@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which defines the abundances structure used for describing elemental abundances in Galacticus.
 !!}
@@ -69,6 +71,7 @@ module Abundances_Structure
        <method description="Sets the metallicity to ``metallicity``." method="metallicitySet" />
        <method description="Converts abundance masses to mass fractions by dividing by the given ``mass`` while ensuring that fractions are in the range 0--1." method="massToMassFraction" />
        <method description="Increment an abundances object." method="increment" />
+       <method description="Add an abundances object directly into a serialized abundances vector (e.g. a slice of the ODE rate vector) in place, avoiding the deserialize/increment/serialize round-trip." method="incrementSerialized" />
        <method description="Return a count of the number of properties in a serialized abundances object." method="serializeCount" />
        <method description="Serialize an abundances object to an array." method="serialize" />
        <method description="Deserialize an abundances object from an array." method="deserialize" />
@@ -112,6 +115,7 @@ module Abundances_Structure
      procedure         :: serialize              => Abundances_Serialize
      procedure         :: deserialize            => Abundances_Deserialize
      procedure         :: increment              => Abundances_Increment
+     procedure         :: incrementSerialized    => Abundances_Increment_Serialized
      procedure         :: metallicity            => Abundances_Get_Metallicity
      procedure         :: metallicitySet         => Abundances_Set_Metallicity
      procedure         :: massToMassFraction     => Abundances_Mass_To_Mass_Fraction_Packed
@@ -259,15 +263,16 @@ contains
     !!{RST
     Build a ``abundances`` object from the given XML ``abundancesDefinition``.
     !!}
-    use :: FoX_DOM, only : node                        , extractDataContent
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM           , only : node                        , extractDataContent
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList              , XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     class  (abundances ), intent(inout)              :: self
     type   (node       ), intent(in   ), pointer     :: abundancesDefinition
     type   (node       )               , pointer     :: abundance
     type   (xmlNodeList), dimension(:) , allocatable :: abundanceList
-    integer                                          :: i
+    integer                                          :: i                   , status
 
     ! Get the metallicity.
     !$omp critical (FoX_DOM_Access)
@@ -277,8 +282,9 @@ contains
     if (size(abundanceList) == 1) then
        !$omp critical (FoX_DOM_Access)
        abundance => abundanceList(0)%element
-       call extractDataContent(abundance,self%metallicityValue)
+       call extractDataContent(abundance,self%metallicityValue,iostat=status)
        !$omp end critical (FoX_DOM_Access)
+       if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,'metals',0)//{introspection:location})
     end if
     if (elementsCount > 0) then
        do i=1,elementsCount
@@ -289,8 +295,9 @@ contains
           if (size(abundanceList) == 1) then
              !$omp critical (FoX_DOM_Access)
              abundance => abundanceList(0)%element
-             call extractDataContent(abundance,self%elementalValue(i))
+             call extractDataContent(abundance,self%elementalValue(i),iostat=status)
              !$omp end critical (FoX_DOM_Access)
+             if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,trim(elementsToTrack(i)),0)//{introspection:location})
           end if
        end do
     end if
@@ -442,6 +449,25 @@ contains
     if (elementsCount > 0) self%elementalValue  =self%elementalValue  +increment%elementalValue
     return
   end subroutine Abundances_Increment
+
+  subroutine Abundances_Increment_Serialized(self,abundancesArray,increment)
+    !!{RST
+    Accumulate ``increment`` directly into a *serialized* abundances object held in ``abundancesArray`` (for example, a slice of
+    the ODE rate vector), using the same layout as ``serialize`` and ``deserialize``. This avoids the
+    deserialize/increment/serialize round-trip and its copies. An unallocated elemental array in ``increment`` is treated as zero
+    (as ``serialize`` does).
+    !!}
+    implicit none
+    class           (abundances), intent(in   )               :: self
+    double precision            , intent(inout), dimension(:) :: abundancesArray
+    class           (abundances), intent(in   )               :: increment
+    !$GLC attributes unused :: self
+
+    abundancesArray(1)=abundancesArray(1)+increment%metallicityValue
+    if (elementsCount == 0 .or. .not.allocated(increment%elementalValue)) return
+    abundancesArray(2:elementsCount+1)=abundancesArray(2:elementsCount+1)+increment%elementalValue
+    return
+  end subroutine Abundances_Increment_Serialized
 
   function Abundances_Subtract(abundances1,abundances2)
     !!{RST
@@ -857,7 +883,7 @@ contains
     implicit none
     class(abundances), intent(in   ) :: self
 
-    Abundances_Helium_Mass_Fraction=min(                                              &
+    Abundances_Helium_Mass_Fraction=max(                                              &
          &                              +self%metallicityValue                        &
          &                              /     metallicitySolar                        &
          &                              *(+heliumByMassSolar-heliumByMassPrimordial)  &

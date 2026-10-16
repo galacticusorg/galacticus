@@ -4,7 +4,7 @@ treeNode).  The bind(c) wrapper takes the handle by reference, converts a
 c_associated handle to a local Fortran pointer (null → disassociated — the
 tree-walker start-of-iteration idiom), and writes the (re)pointed target's
 c_loc back after the call; Python passes a ctypes.c_void_p updated in
-place, so `while walker.next(node): …` iterates.  Runtime behaviour is
+place, so `while walker.next(node): …` iterates.  Runtime behavior is
 validated against gfortran-16 stubs (a 5-node chain walked from Python);
 these tests pin the generated code's shape.
 """

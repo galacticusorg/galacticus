@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Yu Zhao
+  !+    Contributions to this file made by: Yu Zhao, Claude.
 
   !!{RST
   Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton and NFW profiles :cite:p:`schive_understanding_2014`.
@@ -46,6 +46,7 @@
      procedure :: massEnclosedBySphere            => solitonNFWMassEnclosedBySphere
      procedure :: density                         => solitonNFWDensity
      procedure :: densityGradientRadial           => solitonNFWDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => solitonNFWDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral  => solitonNFWDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => solitonNFWRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => solitonNFWRadiusEnclosingDensityNumerical
@@ -214,13 +215,13 @@
         self%radiusCore             =+radiusCore
      else
         self%radiusCore             =+0.0d0
-        call Error_Report('no means to determine core radius')
+        call Error_Report('no means to determine core radius'//{introspection:location})
      end if
      if (present(radiusSoliton)) then
         self%radiusSoliton          =+radiusSoliton
      else
         self%radiusSoliton          =+0.0d0
-        call Error_Report('no means to determine Soliton radius')
+        call Error_Report('no means to determine Soliton radius'//{introspection:location})
      end if
      if      (                            &
           &   present(radiusScale  )      &
@@ -234,19 +235,19 @@
              &                       /concentration
      else
         self%radiusScale            =+0.0d0
-        call Error_Report('no means to determine scale radius')
+        call Error_Report('no means to determine scale radius'//{introspection:location})
      end if
      if (present(densityNormalizationNFW)) then
         self%densityNormalizationNFW=+densityNormalizationNFW
      else
         self%densityNormalizationNFW=+0.0d0
-        call Error_Report('densityNormalizationNFW must be specified')
+        call Error_Report('densityNormalizationNFW must be specified'//{introspection:location})
      end if
      if (present(densitySolitonCentral)) then
         self%densitySolitonCentral  =+densitySolitonCentral
      else
         self%densitySolitonCentral  =+0.0d0
-        call Error_Report('densitySolitonCentral must be specified')
+        call Error_Report('densitySolitonCentral must be specified'//{introspection:location})
      end if
      if (present(dimensionless)) then
         self%dimensionless          =dimensionless
@@ -411,6 +412,45 @@
      return
    end function solitonNFWDensity
    
+   double precision function solitonNFWDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+     !!{RST
+     Return the logarithmic gradient of the logarithmic density slope in a soliton and NFW mass distribution.
+
+     In the soliton regime the slope is :math:`-16w/(1+w)` with :math:`w=c(r/r_\mathrm{c})^2`, and since
+     :math:`\mathrm{d}w/\mathrm{d}\ln r = 2w` its gradient is :math:`-32w/(1+w)^2`. In the NFW regime the slope is
+     :math:`-(1+3x)/(1+x)` with :math:`x=r/r_\mathrm{s}`, whose gradient is :math:`-2x/(1+x)^2`. The profile is
+     discontinuous in slope at the transition, so this gradient is too.
+     !!}
+     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
+     implicit none
+     class           (massDistributionSolitonNFW), intent(inout), target :: self
+     class           (coordinate                ), intent(in   )         :: coordinates
+     double precision                                                    :: radiusScaleFree, radiusCoreFreeSquared
+
+     if      (coordinates%rSpherical() <= 0.0d0            ) then
+        ! Zero radius: the slope is constant in both regimes' limits.
+        densitySlopeLogarithmicGradient=+0.0d0
+     else if (coordinates%rSpherical() <  self%radiusSoliton) then
+        ! Soliton regime.
+        radiusCoreFreeSquared          =+coefficientCore                  &
+             &                          *(                                &
+             &                            +coordinates%rSpherical ()      &
+             &                            /self       %radiusCore         &
+             &                           )**2
+        densitySlopeLogarithmicGradient=-32.0d0                           &
+             &                          *       radiusCoreFreeSquared     &
+             &                          /(1.0d0+radiusCoreFreeSquared)**2
+     else
+        ! NFW regime.
+        radiusScaleFree                =+coordinates%rSpherical ()        &
+             &                          /self       %radiusScale
+        densitySlopeLogarithmicGradient=-2.0d0                            &
+             &                          *       radiusScaleFree           &
+             &                          /(1.0d0+radiusScaleFree)**2
+     end if
+     return
+   end function solitonNFWDensitySlopeLogarithmicGradient
+
    double precision function solitonNFWDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
      !!{RST
      Return the radial density gradient at the specified ``coordinates`` in a soliton and NFW mass distribution.
@@ -484,26 +524,57 @@
      class           (massDistributionSolitonNFW), intent(inout), target   :: self
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
-     double precision                            , parameter               :: epsilonDeltaDensityFractional=5.0d-2
-     
+     ! Range of the series solution below, expressed as the fractional shortfall of the mean enclosed density below the central
+     ! density. The series is carried to fourth order, which holds the error in the radius returned below one part in a thousand
+     ! over this range - against the one and a half percent which the leading term alone reaches at its end.
+     double precision                            , parameter               :: epsilonDeltaDensityFractional=2.5d-1
+     double precision                                                      :: deltaDensityFractional       , radiusCoreFreeSquared
+     logical                                                               :: seriesApplies
+
+     seriesApplies=density > self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)
      if      (density >= self%densitySolitonCentral                                      ) then
         ! Above the central density, return a radius of zero.
         radius=0.0d0
-     else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
-        ! For densities close to, but below the central density, use a series solution.
-        radius=+0.5d0                              &
-             & *self%radiusCore                    &
-             & *sqrt(                              &
-             &       +5.0d0                        &
-             &       /6.0d0                        &
-             &       /coefficientCore              &
-             &       *(                            &
-             &         +1.0d0                      &
-             &         -     density               &
-             &         /self%densitySolitonCentral &
-             &        )                            &
-             &      )
-     else
+     else if (seriesApplies                                                              ) then
+        ! For densities below the central density by less than the above, use a series solution. Writing the fractional shortfall
+        ! of the mean enclosed density below the central density as u, and the dimensionless radius as y=α(r/r_core)², the mean
+        ! enclosed density of the soliton profile gives
+        !
+        !  u = 24y/5 - 108y²/7 + 40y³ - 90y⁴ + …,
+        !
+        ! of which the reversion is the series used here. Only the leading term of it was used previously, which limited the
+        ! range over which it could be applied and left the remainder to a tabulation which inverts this relation poorly: within
+        ! the core the density is very nearly uniform, so that the inversion is ill conditioned there. Note that the profile is
+        ! that of the soliton alone, with no contribution from the NFW component, which is exact here - the distribution is
+        ! piecewise, taking the soliton form within the soliton radius.
+        deltaDensityFractional=+1.0d0                      &
+             &                 -     density               &
+             &                 /self%densitySolitonCentral
+        radiusCoreFreeSquared =+deltaDensityFractional                                    &
+             &                 *(                                                         &
+             &                   +       5.0d0/                24.0d0                     &
+             &                   +deltaDensityFractional                                  &
+             &                   *(                                                       &
+             &                     +     125.0d0/               896.0d0                   &
+             &                     +deltaDensityFractional                                &
+             &                     *(                                                     &
+             &                       +  453125.0d0/           4064256.0d0                 &
+             &                       +deltaDensityFractional                              &
+             &                       *  29078125.0d0/       303464448.0d0                 &
+             &                      )                                                     &
+             &                    )                                                       &
+             &                  )                                                         &
+             &                 /coefficientCore
+        radius                =+self%radiusCore              &
+             &                 *sqrt(radiusCoreFreeSquared)
+        ! The series describes the soliton profile, which this distribution follows only within the soliton radius. Over the
+        ! range above the radius it returns reaches 0.83 core radii, and the soliton radius is solved for within a range bounded
+        ! below by one core radius, so the two do not overlap in practice - but that bound is imposed by the dark matter profile
+        ! which builds this distribution, not by the distribution itself, so it is checked here rather than assumed. Where the
+        ! radius does reach beyond the soliton, the tabulation is used instead.
+        seriesApplies=radius <= self%radiusSoliton
+     end if
+     if (.not.seriesApplies .and. density < self%densitySolitonCentral) then
         radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
      end if
      return
@@ -555,30 +626,30 @@
      if (.not.containerSolitonNFWInitialized) then
         allocate(containerSolitonNFW)
         call containerSolitonNFW%initialize(3)
-        containerSolitonNFW%mass                      %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%mass                      %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%potential                 %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%potential                 %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%energy                    %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%energy                    %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-        containerSolitonNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
-        containerSolitonNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
+        containerSolitonNFW%mass                      %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%mass                      %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%radiusEnclosingDensity    %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%radiusEnclosingDensity    %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%potential                 %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%potential                 %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%velocityDispersion1D      %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%velocityDispersion1D      %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%energy                    %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%energy                    %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%radiusFreefall            %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%radiusFreefall            %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%radiusFreefallIncreaseRate%radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%radiusFreefallIncreaseRate%parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment0      %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment0      %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment1      %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment1      %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment2      %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment2      %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment3      %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%densityRadialMoment3      %parametersCountPer   =+6_c_size_t
+        containerSolitonNFW%fourierTransform          %radiusCountPer       =+6_c_size_t
+        containerSolitonNFW%fourierTransform          %parametersCountPer   =+6_c_size_t
         containerSolitonNFW%nameParameters                               (1)='radiusCoreOverRadiusScale'
         containerSolitonNFW%descriptionParameters                        (1)='The ratio of core to scale radii(r_c/rₛ).'
         containerSolitonNFW%nameParameters                               (2)='radiusSolitonOverRadiusScale'
@@ -597,21 +668,22 @@
      return
    end subroutine solitonNFWParameters
    
-   subroutine solitonNFWDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+   subroutine solitonNFWDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
      !!{RST
      Return an input parameter list descriptor which could be used to recreate this object.
      !!}
-     use :: Input_Parameters, only : inputParameters
+     use :: Input_Parameters, only : inputParameters, descriptorParameterName
      implicit none
      class    (massDistributionSolitonNFW), intent(inout)           :: self
      type     (inputParameters           ), intent(inout)           :: descriptor
      logical                              , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-     character(len=18)                                              :: parameterLabel
+     character(len=*                     ), intent(in   ), optional :: parameterName
+     character(len=18                    )                          :: parameterLabel
      type     (inputParameters           )                          :: parameters
      !$GLC attributes unused :: includeFileModificationTimes
      
-     if (.not.present(includeClass) .or. includeClass) call descriptor%addParameter('massDistribution','solitonNFW')
-     parameters = descriptor%subparameters('massDistribution')
+     if (.not.present(includeClass) .or. includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'solitonNFW')
+     parameters = descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
      write(parameterLabel,'(e17.10)') self%densityNormalizationNFW
      call parameters%addParameter('densityNormalizationNFW',trim(adjustl(parameterLabel)))
      write(parameterLabel,'(e17.10)') self%radiusScale

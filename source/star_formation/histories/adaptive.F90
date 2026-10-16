@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a star formation histories class which records star formation in adaptively sized time bins and split by metallicity.
   !!}
@@ -66,6 +68,8 @@
      procedure :: times                 => adaptiveTimes
      procedure :: metallicityBoundaries => adaptiveMetallicityBoundaries
      procedure :: ageDistribution       => adaptiveAgeDistribution
+     procedure :: rangeIsSufficient     => adaptiveRangeIsSufficient
+     procedure :: extend                => adaptiveExtend
      procedure :: descriptor            => adaptiveDescriptor
   end type starFormationHistoryAdaptive
 
@@ -597,23 +601,71 @@ contains
     return
   end function adaptiveAgeDistribution
 
-  subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  logical function adaptiveRangeIsSufficient(self,starFormationHistory,rangeHistory) result(rangeIsSufficient)
+    !!{RST
+    Return true if the range of this history is sufficient.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(starFormationHistoryAdaptive), intent(inout) :: self
+    type (history                     ), intent(in   ) :: starFormationHistory, rangeHistory
+    !$GLC attributes unused :: self
+
+    if (.not.starFormationHistory%exists())                                 &
+         & call Error_Report(                                               &
+         &                   'no star formation history has been created'// &
+         &                   {introspection:location}                       &
+         &                  )
+    ! All histories are tabulated on the interval grid belonging to the current output, so any history being accumulated into
+    ! another should already lie within its range. Checking here allows a comprehensible error to be reported (see
+    ! `adaptiveExtend()`) if that is ever not the case, instead of aborting inside `history`.
+    rangeIsSufficient=  rangeHistory%time(                      1) >= starFormationHistory%time(                              1) &
+         &            .and.                                                                                                      &
+         &              rangeHistory%time(size(rangeHistory%time)) <= starFormationHistory%time(size(starFormationHistory%time))
+    return
+  end function adaptiveRangeIsSufficient
+
+  subroutine adaptiveExtend(self,starFormationHistory,times)
+    !!{RST
+    Report that histories tabulated by this class can not be extended.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: Display           , only : displayGreen  , displayReset
+    use :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
+    implicit none
+    class           (starFormationHistoryAdaptive), intent(inout)               :: self
+    type            (history                     ), intent(inout)               :: starFormationHistory
+    double precision                              , intent(in   ), dimension(:) :: times
+    type            (varying_string              )                              :: message
+    !$GLC attributes unused :: self, starFormationHistory, times
+
+    message=                                             "star formation histories tabulated by the `adaptive` class can not be extended"//char(10)// &
+         &  displayGreen()//"    HELP:"//displayReset()//" this class tabulates every history on the grid of time intervals belonging to"//char(10)// &
+         &                                               "          the current output, so histories being combined always share a grid."//char(10)// &
+         &                                               "          Reaching this point means that some history was not advanced to the" //char(10)// &
+         &                                               "          grid of the current output."
+    call Error_Report(message//{introspection:location})
+    return
+  end subroutine adaptiveExtend
+
+  subroutine adaptiveDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters  , only : inputParameters
-    use :: ISO_Varying_String, only : assignment(=)  , char, operator(//)
+    use :: Input_Parameters  , only : inputParameters, descriptorParameterName
+    use :: ISO_Varying_String, only : assignment(=)  , char                   , operator(//)
     implicit none
     class    (starFormationHistoryAdaptive), intent(inout)           :: self
     type     (inputParameters             ), intent(inout)           :: descriptor
     logical                                , intent(in   ), optional :: includeClass              , includeFileModificationTimes
+    character(len=*                       ), intent(in   ), optional :: parameterName
     character(len=18                      )                          :: parameterLabel
     type     (inputParameters             )                          :: parameters
     integer                                                          :: i
     type     (varying_string              )                          :: metallicityBoundariesLabel
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('starFormationHistory','adaptive')
-    parameters=descriptor%subparameters('starFormationHistory')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('starFormationHistory',parameterName),'adaptive')
+    parameters=descriptor%subparameters(descriptorParameterName('starFormationHistory',parameterName))
     write (parameterLabel,'(e17.10)') self%timeStepMinimum
     call parameters%addParameter('timeStepMinimum'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(i17)   ') self%countTimeStepsMaximum

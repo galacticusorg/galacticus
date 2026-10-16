@@ -17,22 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Andrew Benson, Claude.
 
 !!{RST
-Contains a module which implements the standard Galacticusnsc node component.
+Contains a module which implements the standard :term:`NSC` node component.
 !!}
 
 module Node_Component_NSC_Standard
   !!{RST
-  Implements the standard Galacticusnsc node component.
+  Implements the standard :term:`NSC` node component.
   !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
   use :: Histories                       , only : history
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
-  use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
+  use :: Star_Formation_Histories        , only : starFormationHistory                   , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
+  use :: Node_Components_Galactic_Shared , only : Node_Component_NSC_Standard_Post_Evolve
   implicit none
   private
   public :: Node_Component_NSC_Standard_Scale_Set        , Node_Component_NSC_Standard_Pre_Evolve         , &
@@ -265,8 +266,8 @@ contains
     !!{RST
     Initializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel, &
-          &                                         postEvolveEvent                , satelliteMergerEvent       , mergerTreeExtraOutputEvent
+    use :: Events_Hooks                    , only : dependencyDirectionAfter       , dependencyRegEx            , openMPThreadBindingAtLevel       , &
+          &                                         postEvolveEvent                , satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultNSCComponent
     use :: Input_Parameters                , only : inputParameter                 , inputParameters
@@ -281,9 +282,9 @@ contains
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultNSCComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard',dependencies=dependencies)
-       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
-       call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
+       call satelliteMergerEvent             %attach(thread,satelliteMerger                        ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard',dependencies=dependencies)
+       call postEvolveEvent                  %attach(thread,Node_Component_NSC_Standard_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
+       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance           ,openMPThreadBindingAtLevel,label='nodeComponentNSCStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentNSC')
        !![
@@ -335,15 +336,19 @@ contains
     !!{RST
     Uninitializes the standard nuclear star cluster component module for each thread.
     !!}
-    use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
+    use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                , only : defaultNSCComponent
-    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
+         &                                          scalerGasPool
     implicit none
 
     if (defaultNSCComponent%standardIsActive()) then
-       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
-       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
-       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger                        )) call satelliteMergerEvent             %detach(thread,satelliteMerger                        )
+       if (postEvolveEvent                  %isAttached(thread,Node_Component_NSC_Standard_Post_Evolve)) call postEvolveEvent                  %detach(thread,Node_Component_NSC_Standard_Post_Evolve)
+       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance           )) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance           )
+       ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
+       call scalerStellarPool%destroy()
+       call scalerGasPool    %destroy()
        !![
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="darkMatterHaloScale_"        />
@@ -382,34 +387,6 @@ contains
     end select
     return
   end subroutine Node_Component_NSC_Standard_Pre_Evolve
-
-  subroutine postEvolve(self,node)
-    !!{RST
-    Trim histories attached to the nuclear star cluster.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentNSC, nodeComponentNSCStandard, treeNode
-    use :: Histories       , only : history
-    implicit none
-    class(*                 ), intent(inout) :: self
-    type (treeNode          ), intent(inout) :: node
-    class(nodeComponentNSC  ), pointer       :: nuclearStarCluster
-    class(nodeComponentBasic), pointer       :: basic
-    type (history           )                :: stellarPropertiesHistory
-    !$GLC attributes unused :: self
-
-    ! Get the nuclear star cluster component.
-    nuclearStarCluster => node%NSC()
-    ! Check if an standard nuclear star cluster component exists.
-    select type (nuclearStarCluster)
-    class is (nodeComponentNSCStandard)
-       ! Trim the stellar populations properties future history.
-       basic                    => node              %basic                   ()
-       stellarPropertiesHistory =  nuclearStarCluster%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(basic%time())
-       call nuclearStarCluster%stellarPropertiesHistorySet(stellarPropertiesHistory)
-    end select
-    return
-  end subroutine postEvolve
 
   !![
   <postStepTask function="Node_Component_NSC_Standard_Post_Step"/>
@@ -868,9 +845,12 @@ contains
     !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentNSC         , nodeComponentNSCStandard, nodeComponentSpheroid   , nodeComponentDisk               , &
+    use :: Galacticus_Nodes                , only : nodeComponentNSC                  , nodeComponentNSCStandard, nodeComponentSpheroid   , nodeComponentDisk               , &
        &                                            treeNode
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid, destinationMergerDisk   , destinationMergerUnmoved, enumerationDestinationMergerType
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid         , destinationMergerDisk   , destinationMergerUnmoved, enumerationDestinationMergerType, &
+         &                                          enumerationDestinationMergerDecode
+    use :: Display                         , only : displayGreen                      , displayReset
+    use :: ISO_Varying_String              , only : operator(//)
     use :: Satellite_Merging_Remnant_Sizes , only : remnantNoChange
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
@@ -977,7 +957,12 @@ contains
        case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                 &
+               &            'the `'//enumerationDestinationMergerDecode(destinationGasHost,includePrefix=.false.)//'` destination of [destinationGasHost]'// &
+               &            ' is not supported by the `standard` nuclear star cluster component'                                                //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                  // &
+               &            {introspection:location}                                                                                                         &
+               &           )
        end select
        ! Move stellar material within the host if necessary
        select case (destinationStarsHost%ID)
@@ -1075,7 +1060,12 @@ contains
        case (destinationMergerUnmoved%ID)
           ! Do nothing
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                     &
+               &            'the `'//enumerationDestinationMergerDecode(destinationStarsHost,includePrefix=.false.)//'` destination of [destinationStarsHost]'// &
+               &            ' is not supported by the `standard` nuclear star cluster component'                                                    //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                      // &
+               &            {introspection:location}                                                                                                             &
+               &           )
        end select
        ! Get specific angular momentum of the nuclear star cluster material.
        massNuclearStarCluster=+nuclearStarCluster%massGas    () &
@@ -1113,7 +1103,12 @@ contains
                   &                                   *                   angularMomentumSpecificNuclearStarCluster   &
                   &                                  )
           case default
-             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report(                                                                                                                                           &
+                  &            'the `'//enumerationDestinationMergerDecode(destinationGasSatellite,includePrefix=.false.)//'` destination of [destinationGasSatellite]'// &
+                  &            ' is not supported by the `standard` nuclear star cluster component'                                                          //char(10)// &
+                  &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                            // &
+                  &            {introspection:location}                                                                                                                   &
+                  &           )
           end select
           call nuclearStarCluster%      massGasSet(         0.0d0)
           call nuclearStarCluster%abundancesGasSet(zeroAbundances)
@@ -1181,7 +1176,12 @@ contains
              call history_                 %destroy                (                                                )
              call historyNuclearStarCluster%destroy                (                                                )
           case default
-             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report(                                                                                                                                               &
+                  &            'the `'//enumerationDestinationMergerDecode(destinationStarsSatellite,includePrefix=.false.)//'` destination of [destinationStarsSatellite]'// &
+                  &            ' is not supported by the `standard` nuclear star cluster component'                                                              //char(10)// &
+                  &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                                // &
+                  &            {introspection:location}                                                                                                                       &
+                  &           )
           end select
           call nuclearStarCluster%        massStellarSet(                  0.0d0)
           call nuclearStarCluster%  abundancesStellarSet(         zeroAbundances)
@@ -1235,25 +1235,20 @@ contains
     return
   end subroutine Node_Component_NSC_Standard_Stellar_Prprts_History_Extend
 
-  subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
+  subroutine mergerTreeOutputStateAdvance(self,node,iOutput)
    !!{RST
    Update the star formation history after an output time is reached.
    !!}
      use            :: Galacticus_Nodes, only : defaultNSCComponent, nodeComponentNSC, nodeComponentNSCStandard, treeNode
      use            :: Histories       , only : history
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
-     use            :: Kind_Numbers    , only : kind_int8
-     use            :: Locks           , only : ompLock
      implicit none
      class  (*               ), intent(inout)          :: self
      type   (treeNode        ), intent(inout)          :: node
      integer(c_size_t        ), intent(in   )          :: iOutput
-     integer(kind=kind_int8  ), intent(in   )          :: treeIndex
-     logical                  , intent(in   )          :: nodePassesFilter
-     type   (ompLock         ), intent(inout)          :: treeLock
      class  (nodeComponentNSC)               , pointer :: nuclearStarCluster
      type   (history         )                         :: historyStarFormation
-     !$GLC attributes unused :: self, treeIndex, nodePassesFilter, treeLock
+     !$GLC attributes unused :: self
 
      ! Check if we are the default method.
      if (.not.defaultNSCComponent%standardIsActive()) return
@@ -1267,7 +1262,7 @@ contains
         call nuclearStarCluster%starFormationHistorySet(historyStarFormation)
      end select
      return
-   end subroutine mergerTreeExtraOutput
+   end subroutine mergerTreeOutputStateAdvance
 
   !![
   <stateStoreTask function="Node_Component_NSC_Standard_State_Store"/>

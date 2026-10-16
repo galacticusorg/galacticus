@@ -24,13 +24,13 @@ Implements the gravitational lensing distribution by modifying another distribut
   !![
   <gravitationalLensing name="gravitationalLensingBaryonicModifier" docformat="rst">
    <description>
-   A gravitational lensing distribution class which (approximately) modifies another distribution for the effects of baryons. The distribution to modify is specified via the ``[gravitationalLensingBaryonicModifierOriginalDistribution]`` parameter. The modification takes the form:
+   A gravitational lensing distribution class which (approximately) modifies another distribution for the effects of baryons. The distribution to modify is specified via the ``[gravitationalLensing]`` parameter. The modification takes the form:
 
    .. math::
 
       P(\mu) \rightarrow P(\mu) + \hbox{min}[\alpha,\beta P(\mu)]
 
-   where :math:`\alpha=`\ ``[gravitationalLensingBaryonicModifierAlpha]`` and :math:`\beta=`\ ``[gravitationalLensingBaryonicModifierBeta]``. The distribution is then renormalized to ensure that the cumulative probability reaches unity for infinite magnification. As an example, values of :math:`\alpha=2.05\times 10^{-3}` and :math:`\beta=0.62` approximately reproduce the results of :cite:t:`hilbert_strong-lensing_2008`.
+   where :math:`\alpha=`\ ``[alpha]`` and :math:`\beta=`\ ``[beta]``. The distribution is then renormalized to ensure that the cumulative probability reaches unity for infinite magnification. As an example, values of :math:`\alpha=2.05\times 10^{-3}` and :math:`\beta=0.62` approximately reproduce the results of :cite:t:`hilbert_strong-lensing_2008`.
    </description>
   </gravitationalLensing>
   !!]

@@ -33,7 +33,7 @@
    A merger tree outputter class which outputs :math:`k`-space density profiles as needed for halo model calculations. A "``haloModel``" group is created in the Galacticus output file. This group contains the following:
 
    ``wavenumber``
-      A dataset giving the wavenumbers (in units of Mpc\ :math:`^{-1}`) at which all output power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the ``[haloModelWavenumberMinimum]`` and ``[haloModelWavenumberMaximum]`` parameters respectively, while the number of points to tabulate in each decade of wavenumber is determined by the ``[haloModelWavenumberPointsPerDecade]`` parameter.
+      A dataset giving the wavenumbers (in units of Mpc\ :math:`^{-1}`) at which all output power spectra are tabulated. The minimum and maximum wavenumbers to tabulate are determined by the ``[wavenumberMinimum]`` and ``[wavenumberMaximum]`` parameters respectively, while the number of points to tabulate in each decade of wavenumber is determined by the ``[wavenumberPointsPerDecade]`` parameter.
 
    ``powerSpectrum``
       A dataset giving the linear theory power spectrum (in units of Mpc\ :math:`^3` normalized to :math:`z=0`) at each wavenumber specified in the ``wavenumber`` dataset.

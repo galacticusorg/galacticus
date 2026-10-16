@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which defines the structure used for describing chemical abundances in Galacticus.
 !!}
@@ -59,6 +61,7 @@ module Chemical_Abundances_Structure
        <method description="Serialize a chemical abundances object to an array." method="serialize" />
        <method description="Deserialize a chemical abundances object from an array." method="deserialize" />
        <method description="Increment a chemical abundances object." method="increment" />
+       <method description="Add a chemical abundances object directly into a serialized chemical abundances vector (e.g. a slice of the ODE rate vector) in place, avoiding the deserialize/increment/serialize round-trip." method="incrementSerialized" />
        <method description="Returns the abundance of a chemical given its index." method="abundance" />
        <method description="Sets the abundance of a chemical given its index." method="abundanceSet" />
        <method description="Resets abundances to zero." method="reset" />
@@ -80,38 +83,39 @@ module Chemical_Abundances_Structure
        <method description="Specify the names of chemical abundance object properties for output." method="outputNames" />
      </methods>
      !!]
-     procedure         ::                    Chemical_Abundances_Add
-     procedure         ::                    Chemical_Abundances_Subtract
-     procedure         ::                    Chemical_Abundances_Multiply
-     procedure         ::                    Chemical_Abundances_Divide
-     generic           :: operator(+)     => Chemical_Abundances_Add
-     generic           :: operator(-)     => Chemical_Abundances_Subtract
-     generic           :: operator(*)     => Chemical_Abundances_Multiply
-     generic           :: operator(/)     => Chemical_Abundances_Divide
-     procedure         :: nonStaticSizeOf => Chemicals_Non_Static_Size_Of
-     procedure, nopass :: serializeCount  => Chemicals_Property_Count
-     procedure         :: serialize       => Chemical_Abundances_Serialize
-     procedure         :: deserialize     => Chemical_Abundances_Deserialize
-     procedure         :: increment       => Chemical_Abundances_Increment
-     procedure         :: scale           => Chemical_Abundances_Scale
-     procedure         :: abundance       => Chemicals_Abundances
-     procedure         :: abundanceSet    => Chemicals_Abundances_Set
-     procedure         :: reset           => Chemicals_Abundances_Reset
-     procedure         :: setToUnity      => Chemicals_Abundances_Set_To_Unity
-     procedure         :: isZero          => Chemicals_Abundances_Is_Zero
-     procedure         :: destroy         => Chemicals_Abundances_Destroy
-     procedure         :: numberToMass    => Chemicals_Number_To_Mass
-     procedure         :: massToNumber    => Chemicals_Mass_To_Number
-     procedure         :: enforcePositive => Chemicals_Enforce_Positive
-     procedure         :: sumOver         => Chemicals_Sum_Over
-     procedure         :: builder         => Chemicals_Builder
-     procedure         :: dump            => Chemicals_Dump
-     procedure         :: dumpRaw         => Chemicals_Dump_Raw
-     procedure         :: readRaw         => Chemicals_Read_Raw
-     procedure         :: output          => Chemicals_Output
-     procedure         :: postOutput      => Chemicals_Post_Output
-     procedure         :: outputCount     => Chemicals_Output_Count
-     procedure         :: outputNames     => Chemicals_Output_Names
+     procedure         ::                        Chemical_Abundances_Add
+     procedure         ::                        Chemical_Abundances_Subtract
+     procedure         ::                        Chemical_Abundances_Multiply
+     procedure         ::                        Chemical_Abundances_Divide
+     generic           :: operator(+)         => Chemical_Abundances_Add
+     generic           :: operator(-)         => Chemical_Abundances_Subtract
+     generic           :: operator(*)         => Chemical_Abundances_Multiply
+     generic           :: operator(/)         => Chemical_Abundances_Divide
+     procedure         :: nonStaticSizeOf     => Chemicals_Non_Static_Size_Of
+     procedure, nopass :: serializeCount      => Chemicals_Property_Count
+     procedure         :: serialize           => Chemical_Abundances_Serialize
+     procedure         :: deserialize         => Chemical_Abundances_Deserialize
+     procedure         :: increment           => Chemical_Abundances_Increment
+     procedure         :: incrementSerialized => Chemical_Abundances_Increment_Serialized
+     procedure         :: scale               => Chemical_Abundances_Scale
+     procedure         :: abundance           => Chemicals_Abundances
+     procedure         :: abundanceSet        => Chemicals_Abundances_Set
+     procedure         :: reset               => Chemicals_Abundances_Reset
+     procedure         :: setToUnity          => Chemicals_Abundances_Set_To_Unity
+     procedure         :: isZero              => Chemicals_Abundances_Is_Zero
+     procedure         :: destroy             => Chemicals_Abundances_Destroy
+     procedure         :: numberToMass        => Chemicals_Number_To_Mass
+     procedure         :: massToNumber        => Chemicals_Mass_To_Number
+     procedure         :: enforcePositive     => Chemicals_Enforce_Positive
+     procedure         :: sumOver             => Chemicals_Sum_Over
+     procedure         :: builder             => Chemicals_Builder
+     procedure         :: dump                => Chemicals_Dump
+     procedure         :: dumpRaw             => Chemicals_Dump_Raw
+     procedure         :: readRaw             => Chemicals_Read_Raw
+     procedure         :: output              => Chemicals_Output
+     procedure         :: postOutput          => Chemicals_Post_Output
+     procedure         :: outputCount         => Chemicals_Output_Count
+     procedure         :: outputNames         => Chemicals_Output_Names
   end type chemicalAbundances
 
   ! Count of the number of elements being tracked.
@@ -275,6 +279,24 @@ contains
     self%chemicalValue=self%chemicalValue+increment%chemicalValue
     return
   end subroutine Chemical_Abundances_Increment
+
+  subroutine Chemical_Abundances_Increment_Serialized(self,chemicalAbundancesArray,increment)
+    !!{RST
+    Accumulate ``increment`` directly into a *serialized* chemical abundances object held in ``chemicalAbundancesArray`` (for
+    example, a slice of the ODE rate vector), using the same layout as ``serialize`` and ``deserialize``. This avoids the
+    deserialize/increment/serialize round-trip and its copies. An unallocated ``increment`` is treated as zero (as ``serialize``
+    does).
+    !!}
+    implicit none
+    class           (chemicalAbundances), intent(in   )               :: self
+    double precision                    , intent(inout), dimension(:) :: chemicalAbundancesArray
+    class           (chemicalAbundances), intent(in   )               :: increment
+    !$GLC attributes unused :: self
+
+    if (.not.allocated(increment%chemicalValue)) return
+    chemicalAbundancesArray=chemicalAbundancesArray+increment%chemicalValue
+    return
+  end subroutine Chemical_Abundances_Increment_Serialized
 
   logical function Chemicals_Abundances_Is_Zero(self)
     !!{RST
@@ -488,14 +510,14 @@ contains
     !!}
     use :: FoX_DOM           , only : node                        , extractDataContent
     use :: Error             , only : Error_Report
-    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
-    use :: ISO_Varying_String, only : char
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList              , XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : char                        , operator(//)
     implicit none
     class  (chemicalAbundances), intent(inout)              :: self
     type   (node              ), pointer                    :: chemicalsDefinition
     type   (node              )               , pointer     :: chemical
     type   (xmlNodeList       ), dimension(:) , allocatable :: chemicalAbundanceList
-    integer                                                 :: i
+    integer                                                 :: i                    , status
 
     if (chemicalsCount > 0) then
        do i=1,chemicalsCount
@@ -506,8 +528,9 @@ contains
           if (size(chemicalAbundanceList) == 1) then
              !$omp critical (FoX_DOM_Access)
              chemical => chemicalAbundanceList(0)%element
-             call extractDataContent(chemical,self%chemicalValue(i))
+             call extractDataContent(chemical,self%chemicalValue(i),iostat=status)
              !$omp end critical (FoX_DOM_Access)
+             if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,char(chemicalsToTrack(i)),0)//{introspection:location})
           end if
        end do
     end if

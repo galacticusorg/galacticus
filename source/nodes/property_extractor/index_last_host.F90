@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a node property extractor for the index of the last host node.
 !!}
@@ -120,6 +122,6 @@ contains
     class(nodePropertyExtractorIndexLastHost), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    indexLastHostDescription=var_str('Index of the node in whcih this node was last a satellite.')
+    indexLastHostDescription=var_str('Index of the node in which this node was last a satellite.')
     return
   end function indexLastHostDescription

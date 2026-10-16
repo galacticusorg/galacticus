@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile shapes  using the :cite:t:`brown_towards_2022` algorithm.
   !!}
@@ -134,8 +136,8 @@ contains
     ! Get the basic component.
     basic => node%basic()
     ! Compute the shape parameter.
-    peakHeight=+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
-         &     /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
+    peakHeight=+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass(),node=node) &
+         &     /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass()          )
     if (peakHeight < peakHeightMaximum) then
        brown2021Shape=+8.520d-4      &
             &         *peakHeight**4 &

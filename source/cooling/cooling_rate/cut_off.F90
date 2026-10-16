@@ -192,19 +192,22 @@ contains
     !!{RST
     Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for a model in which this rate is cut off before/after a given epoch and below a given virial velocity.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes    , only : nodeComponentBasic   , treeNode
+    use :: Nodes_Formation_Node, only : nodeFormationRequired
     implicit none
     class           (coolingRateCutOff ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node
     class           (nodeComponentBasic), pointer       :: basic
+    type            (treeNode          ), pointer       :: nodeFormation
     double precision                                    :: velocityVirial
 
     ! Test for halos where cooling should be cut off.
     select case (self%useFormationNode)
     case (.false.)
-       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node              )
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node         )
     case (.true. )
-       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node%formationNode)
+       nodeFormation => nodeFormationRequired(node,'[useFormationNode]=true in the [cutOff] cooling rate')
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(nodeFormation)
     end select
     basic => node%basic()
     if     (                                                                             &

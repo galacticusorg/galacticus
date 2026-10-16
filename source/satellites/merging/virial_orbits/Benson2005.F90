@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of virial orbits using the :cite:t:`benson_orbital_2005` orbital parameter distribution.
   !!}
@@ -30,7 +32,7 @@
   !![
   <virialOrbit name="virialOrbitBenson2005" docformat="rst">
    <description>
-   A virial orbits class which selects orbital parameters randomly from the distribution given by :cite:t:`benson_orbital_2005`. If the virial density contrast definition differs from that used by :cite:t:`benson_orbital_2005` then the orbit is assigned based on :cite:t:`benson_orbital_2005`'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
+   A virial orbits class which selects orbital parameters randomly from the distribution given by :cite:t:`benson_orbital_2005`. Only the :math:`z=0` fit of their Table 2 is used - the distribution is taken to be independent of redshift - although that paper also gives fits at :math:`z=0.5` and :math:`z=1`. If the virial density contrast definition differs from that used by :cite:t:`benson_orbital_2005` then the orbit is assigned based on :cite:t:`benson_orbital_2005`'s definition and then propagated to the virial radius relevant to the current definition of density contrast.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_"/>
@@ -270,7 +272,7 @@ contains
     type            (treeNode             ), intent(inout) :: node                             , host
     class           (nodeComponentBasic   ), pointer       :: basicHost
     ! The mean magnitude of tangential velocity. This was by numerical integration over the velocity distribution fitting function.
-    double precision                       , parameter     :: velocityTangentialMean=0.748205d0
+    double precision                       , parameter     :: velocityTangentialMean=0.749265d0
     double precision                                       :: massHost                         , radiusHost, &
          &                                                    velocityHost
     !$GLC attributes unused :: node
@@ -302,25 +304,13 @@ contains
     !!{RST
     Return the mean magnitude of the angular momentum.
     !!}
-    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Galacticus_Nodes      , only : treeNode
+    use :: Virial_Orbit_Utilities, only : Virial_Orbit_Angular_Momentum_Magnitude_Mean, Virial_Orbit_Density_Contrast
     implicit none
-    class           (virialOrbitBenson2005), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node        , host
-    class           (nodeComponentBasic   ), pointer       :: basic       , basicHost
-    double precision                                       :: massHost    , radiusHost, &
-         &                                                    velocityHost
+    class(virialOrbitBenson2005), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node, host
 
-    basic                                  =>  node%basic()
-    basicHost                              =>  host%basic()
-    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_,self%darkMatterProfileDMO_)
-    benson2005AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
-         &                                    *radiusHost                                      &
-         &                                    /(                                               & ! Account for reduced mass.
-         &                                      +1.0d0                                         &
-         &                                      +basic    %mass()                              &
-         &                                      /basicHost%mass()                              &
-         &                                     )
+    benson2005AngularMomentumMagnitudeMean=Virial_Orbit_Angular_Momentum_Magnitude_Mean(node,host,self%velocityTangentialMagnitudeMean(node,host),Virial_Orbit_Density_Contrast(host,self%virialDensityContrastDefinition_),self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_,self%darkMatterProfileDMO_)
     return
   end function benson2005AngularMomentumMagnitudeMean
 
@@ -348,11 +338,11 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node                                  , host
+    type            (treeNode             ), intent(inout) :: node                                   , host
     class           (nodeComponentBasic   ), pointer       :: basicHost
     ! The root mean squared total velocity. This was by numerical integration over the velocity distribution fitting function.
-    double precision                       , parameter     :: velocityTotalRootMeanSquared=1.25534d0
-    double precision                                       :: massHost                              , radiusHost, &
+    double precision                       , parameter     :: velocityTotalRootMeanSquared=1.254476d0
+    double precision                                       :: massHost                               , radiusHost, &
          &                                                    velocityHost
     !$GLC attributes unused :: node
 
@@ -367,28 +357,12 @@ contains
     !!{RST
     Return the mean energy of the orbits.
     !!}
-    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
+    use :: Galacticus_Nodes      , only : treeNode
+    use :: Virial_Orbit_Utilities, only : Virial_Orbit_Density_Contrast, Virial_Orbit_Energy_Mean
     implicit none
-    class           (virialOrbitBenson2005), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node        , host
-    class           (nodeComponentBasic   ), pointer       :: basic       , basicHost
-    double precision                                       :: massHost    , radiusHost, &
-         &                                                    velocityHost
+    class(virialOrbitBenson2005), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node, host
 
-    basic                =>  node%basic()
-    basicHost            =>  host%basic()
-    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_,self%darkMatterProfileDMO_)
-    benson2005EnergyMean =  +0.5d0                                           &
-         &                  *self%velocityTotalRootMeanSquared(node,host)**2 &
-         &                  /(                                               & ! Account for reduced mass.
-         &                    +1.0d0                                         &
-         &                    +basic    %mass()                              &
-         &                    /basicHost%mass()                              &
-         &                   )                                               &
-         &                  -gravitationalConstant_internal                  &
-         &                  *massHost                                        &
-         &                  /radiusHost
+    benson2005EnergyMean=Virial_Orbit_Energy_Mean(node,host,self%velocityTotalRootMeanSquared(node,host),Virial_Orbit_Density_Contrast(host,self%virialDensityContrastDefinition_),self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrast_,self%darkMatterProfileDMO_)
     return
   end function benson2005EnergyMean

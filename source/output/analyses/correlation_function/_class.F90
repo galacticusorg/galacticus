@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Implements a generic two-point correlation function output analysis class.
 !!}
@@ -876,7 +878,8 @@ contains
     !!{RST
     Implement a ``correlationFunction`` output analysis reduction.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisCorrelationFunction), intent(inout) :: self
     class(outputAnalysisClass              ), intent(inout) :: reduced
@@ -894,7 +897,7 @@ contains
        reduced%termCovariance       =reduced%termCovariance       +self%termCovariance
        !$ call reduced%accumulateLock%unset()
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisCorrelationFunction] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine correlationFunctionReduce
@@ -1375,7 +1378,7 @@ contains
        ! Compute the log-likelihood.
        correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct     (residual,status) &
             &                           -0.5d0*covariance%logarithmicDeterminant(               ) &
-            &                           -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
+            &                           -0.5d0*dble(self%binCount*self%massCount)*log(2.0d0*Pi)
        if (status /= GSL_Success) correlationFunctionLogLikelihood=logImprobable
     else
        correlationFunctionLogLikelihood=0.0d0

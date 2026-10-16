@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of :cite:t:`penarrubia_impact_2010` dark matter halo profiles.
   !!}
@@ -228,21 +230,19 @@ contains
     !!{RST
     Compute the scale radius of the ``penarrubia2010`` dark matter halo profile.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic
     implicit none
     class           (darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
     class           (nodeComponentBasic                ), pointer       :: basic
     class           (nodeComponentSatellite            ), pointer       :: satellite
-    class           (nodeComponentDarkMatterProfile    ), pointer       :: darkMatterProfile
     double precision                                                    :: fractionMassBound            , fractionRadiusMaximum, &
          &                                                                 ratioRadiusMaximumRadiusScale
     
-    basic                 =>  node     %basic            ()
-    satellite             =>  node     %satellite        ()
-    darkMatterProfile     =>  node     %darkMatterProfile()
-    fractionMassBound     =  +satellite%boundMass        () &
-         &                   /basic    %mass             ()
+    basic                 =>  node     %basic    ()
+    satellite             =>  node     %satellite()
+    fractionMassBound     =  +satellite%boundMass() &
+         &                   /basic    %mass     ()
     fractionRadiusMaximum =  +2.0d0              **self%muRadius  &
          &                   *  fractionMassBound**self%etaRadius &
          &                   /(                                   &
@@ -254,10 +254,10 @@ contains
     else
        ratioRadiusMaximumRadiusScale=self%ratioRadiusMaximumRadiusScaleStripped
     end if
-    radiusScale=+                  fractionRadiusMaximum                     &
-         &      *self             %ratioRadiusMaximumRadiusScaleUnstripped   &
-         &      /                  ratioRadiusMaximumRadiusScale             &
-         &      *darkMatterProfile%scale                                  ()
+    radiusScale=+     fractionRadiusMaximum                         &
+         &      *self%ratioRadiusMaximumRadiusScaleUnstripped       &
+         &      /     ratioRadiusMaximumRadiusScale                 &
+         &      *self%scaleRadiusValidated                   (node)
     return
   end function penarrubia2010ScaleRadius
 
@@ -265,20 +265,18 @@ contains
     !!{RST
     Compute the mass normalization of the ``penarrubia2010`` dark matter halo profile.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic, nodeComponentDarkMatterProfile
+    use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentBasic
     implicit none
-    class(darkMatterProfileDMOPenarrubia2010       ), intent(inout) :: self
-    type (treeNode                                 ), intent(inout) :: node
-    class(nodeComponentBasic                       ), pointer       :: basic
-    class           (nodeComponentSatellite        ), pointer       :: satellite
-    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
-    double precision                                                :: fractionMassBound     , fractionVelocityMaximum, &
-         &                                                             radiusScale           , radiusVirial           , &
-         &                                                             velocityRotationFactor
+    class           (darkMatterProfileDMOPenarrubia2010), intent(inout) :: self
+    type            (treeNode                          ), intent(inout) :: node
+    class           (nodeComponentBasic                ), pointer       :: basic
+    class           (nodeComponentSatellite            ), pointer       :: satellite
+    double precision                                                    :: fractionMassBound     , fractionVelocityMaximum, &
+         &                                                                 radiusScale           , radiusVirial           , &
+         &                                                                 velocityRotationFactor
     
     basic                   =>  node     %basic            ()
     satellite               =>  node     %satellite        ()
-    darkMatterProfile       =>  node     %darkMatterProfile()
     fractionMassBound       =  +satellite%boundMass        () &
          &                     /basic    %mass             ()
     fractionVelocityMaximum =  +2.0d0              **self%muVelocity  &
@@ -287,8 +285,8 @@ contains
          &                       +1.0d0                               &
          &                       +fractionMassBound                   &
          &                      )                  **self%muVelocity
-    radiusScale             =darkMatterProfile                     %scale       (    )
-    radiusVirial            =self             %darkMatterHaloScale_%radiusVirial(node)
+    radiusScale             =self                     %scaleRadiusValidated(node)
+    radiusVirial            =self%darkMatterHaloScale_%radiusVirial        (node)
     if (fractionMassBound >= fractionMassTransition) then
        velocityRotationFactor=+self%massDistributionUnstripped%        rotationCurve       (radius=radiusVirial/self%scaleRadius(node)) &
             &                 /self%massDistributionUnstripped%velocityRotationCurveMaximum(                                          )

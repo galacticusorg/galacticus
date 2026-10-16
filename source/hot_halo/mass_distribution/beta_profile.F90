@@ -32,7 +32,7 @@ An implementation of the hot halo mass distribution class for :math:`\beta`-prof
 
    .. math::
 
-      \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
+      \rho_\mathrm{hot halo}(r) \propto \left[ 1 + (r/r_\mathrm{core})^2 \right]^{-3\beta/2},
 
    where the core radius, :math:`r_\mathrm{core}`, is set using the selected cored profile core radius method (see :galacticus-class:`hotHaloMassDistributionCoreRadius`). The value of :math:`\beta` is specified by the ``[beta]`` parameter. The profile is normalized such that the current mass in the hot gas profile is contained within the outer radius of the hot halo, :math:`r_\mathrm{hot, outer}`.
    </description>
@@ -68,10 +68,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`hotHaloMassDistributionBetaProfile` hot halo mass distribution class which takes a parameter set as input.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List          , Error_Report
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
-    use :: Input_Parameters, only : inputParameter          , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -83,23 +80,9 @@ contains
        !$omp critical(betaProfileInitialized)
        if (.not.initialized) then
           ! Check that required property is gettable.
-          if     (                                                                                            &
-               &  .not.(                                                                                      &
-               &         defaultHotHaloComponent%       massIsGettable()                                      &
-               &        .and.                                                                                 &
-               &         defaultHotHaloComponent%outerRadiusIsGettable()                                      &
-               &       )                                                                                      &
-               & ) call Error_Report                                                                          &
-               & (                                                                                            &
-               &  'This method requires that the "mass" property of the hot halo is gettable.'//              &
-               &  Component_List(                                                                             &
-               &                 'hotHalo'                                                                 ,  &
-               &                  defaultHotHaloComponent%       massAttributeMatch(requireGettable=.true.)   &
-               &                 .intersection.                                                               &
-               &                  defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.)   &
-               &                )                                                                          // &
-               &  {introspection:location}                                                                    &
-               & )
+          !![
+          <componentPropertyAssert class="hotHalo" properties="mass outerRadius" require="gettable"/>
+          !!]
           initialized=.true.
        end if
        !$omp end critical(betaProfileInitialized)
@@ -113,6 +96,7 @@ contains
       The value of :math:`\beta` in :math:`\beta`-profile hot halo mass distributions.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
     !!]
@@ -198,9 +182,9 @@ contains
           ! this node.
           call massDistribution__%initialize(                                   &
                &                             beta                 =self%beta  , &
-               &                             coreRadius           =radiusScale, &
+               &                             radiusCore           =radiusScale, &
                &                             mass                 =mass       , &
-               &                             outerRadius          =radiusOuter, &
+               &                             radiusOuter          =radiusOuter, &
                &                             truncateAtOuterRadius=.true.       &
                &                            )
        else
@@ -210,9 +194,9 @@ contains
 	    <constructor>
               massDistributionBetaProfile(                                                 &amp;
                 &amp;                     beta                 =self%beta                , &amp;
-                &amp;                     coreRadius           =     radiusScale         , &amp;
+                &amp;                     radiusCore           =     radiusScale         , &amp;
                 &amp;                     mass                 =     mass                , &amp;
-                &amp;                     outerRadius          =     radiusOuter         , &amp;
+                &amp;                     radiusOuter          =     radiusOuter         , &amp;
                 &amp;                     truncateAtOuterRadius=     .true.              , &amp;
                 &amp;                     componentType        =     componentTypeHotHalo, &amp;
                 &amp;                     massType             =     massTypeGaseous       &amp;

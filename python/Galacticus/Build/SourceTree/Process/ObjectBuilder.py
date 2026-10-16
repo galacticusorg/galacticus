@@ -1,6 +1,6 @@
 """Processes the functionClass lifecycle directives — objectBuilder,
 objectDestructor, referenceCountIncrement, referenceAcquire,
-referenceConstruct, deepCopy — by synthesising the appropriate
+referenceConstruct, deepCopy — by synthesizing the appropriate
 reference-counted get / release / build / copy code and wiring in the
 required moduleUse imports and local declarations.
 
@@ -12,8 +12,9 @@ import re
 import xml.etree.ElementTree as ET
 
 
-from XML.Utils                                      import xml_to_dict
+from Galacticus.Build                               import Catalogs
 from Galacticus.Build.StateStorables                import function_class_entries
+from Galacticus.Build.Capabilities                  import parse_withholds
 from Galacticus.Build.SourceTree                    import (
     walk_tree, insert_after_node,
 )
@@ -36,7 +37,7 @@ def _load_state_storables():
     if not build_path:
         raise RuntimeError("process_object_builder: BUILDPATH is not set")
     path = os.path.join(build_path, 'stateStorables.xml')
-    _STATE_STORABLES = xml_to_dict(ET.parse(path).getroot())
+    _STATE_STORABLES = Catalogs.load(path)
     return _STATE_STORABLES
 
 
@@ -81,7 +82,7 @@ def _dict_to_parameters_xml(data):
     root = ET.Element('parameters')
     _fill_element(root, data)
     text = ET.tostring(root, encoding='unicode')
-    # Normalise to a compact single line — a format requirement for the
+    # Normalize to a compact single line — a format requirement for the
     # generated code.
     text = re.sub(r'\s*\n\s*', '', text)
     text = re.sub(r'\s{2,}', ' ', text)
@@ -108,6 +109,25 @@ def _fill_element(elem, data):
 # ---------------------------------------------------------------------------
 # Per-directive handlers
 # ---------------------------------------------------------------------------
+
+def _withholds_checks(directive, parameter_name, loc_expr):
+    """Return code rejecting a just-built object which requires an argument that
+    the consumer building it declares, through `withholds`, it never supplies
+    (see `Galacticus.Build.Capabilities`)."""
+    try:
+        withholds = parse_withholds(directive.get('withholds'))
+    except ValueError as error:
+        raise RuntimeError(f"process_object_builder: {error}")
+    lines = ''
+    for method, argument in withholds:
+        lines += (
+            f"   if ({directive['name']}%requires('{method}','{argument}')) "
+            f"call Error_Report('[{parameter_name}] \"'//char({directive['name']}%objectType(short=.true.))//"
+            f"'\" requires the `{argument}` argument of its `{method}` method, which is never supplied to it here'//"
+            f"{loc_expr})\n"
+        )
+    return lines
+
 
 _SOURCE_TAG = ('Galacticus.Build.SourceTree.Process.ObjectBuilder'
                '.process_object_builder()')
@@ -239,21 +259,6 @@ def _handle_object_builder(node, state_storables, function_classes):
     lines += copy_loop_close
 
     if default_name:
-        # Find a free warnObjectBuilderN__ name.
-        i = 0
-        warn_status = "warnObjectBuilder0__"
-        while declaration_exists(parent, warn_status):
-            i += 1
-            warn_status = f"warnObjectBuilder{i}__"
-        add_declarations(parent, [{
-            'intrinsic':     'logical',
-            'type':          None,
-            'openMP':        False,
-            'attributes':    ['save'],
-            'variables':     [f"{warn_status}=.false."],
-            'variableNames': [warn_status],
-            'threadprivate': True,
-        }])
         lines += "   else\n"
         lines += "      ! Object is not explicitly defined. Cause a default object of the class to be added to the parameters. Increment the reference count here as this is a new object.\n"
         lines += copy_loop_open
@@ -264,35 +269,26 @@ def _handle_object_builder(node, state_storables, function_classes):
         lines += f"      call {directive['name']}%referenceCountIncrement()\n"
         lines += f"      call {directive['name']}%autoHook()\n"
         lines += copy_loop_close
+        # Record, in the output file, that this class was not specified and so was built from its
+        # default. This replaces a "Using default class for parameter ..." warning: defaulting is
+        # an extremely common idiom, so those warnings swamped the list which `Error_Report`
+        # replays, crowding genuine warnings out of it. The marker carries the same information,
+        # per parameter, and is recoverable from the output file long after the run.
         lines += (
-            f"      if (mpiSelf%isMaster() .and. .not.{warn_status}) then\n"
-            "         block\n"
-            "            type(varying_string) :: parametersPath\n"
-            "            parametersPath=parametersCurrent%path()\n"
-            "            call Warn('Using default class for parameter "
-            f"''['//char(parametersPath)//'{parameter_name}]''')\n"
-            f"            {warn_status}=.true.\n"
-            "         end block\n"
-            "      end if\n"
+            f"      call parametersCurrent%markDefaulted('{parameter_name}')\n"
             "   end if\n"
         )
 
     if 'parameterName' in directive and 'default' in directive:
         lines += "   if (parametersDefaultCreated) call parametersDefault%destroy()\n"
 
-    insert_after_node(node, [_code_node(lines, _SOURCE_TAG)])
+    # Reject an object which requires an argument that this consumer never
+    # supplies now, rather than when the method is first called.
+    checks = _withholds_checks(directive, parameter_name, loc_expr)
+    if checks:
+        lines += copy_loop_open + checks + copy_loop_close
 
-    # MPI + varying_string module uses when using a default-named object.
-    if default_name:
-        add_uses(parent, {
-            'moduleUse': {
-                'MPI_Utilities':      {'intrinsic': False,
-                                       'only': {'mpiSelf': True}},
-                'ISO_Varying_String': {'intrinsic': False,
-                                       'only': {'varying_string': True}},
-            },
-            'moduleOrder': ['MPI_Utilities', 'ISO_Varying_String'],
-        })
+    insert_after_node(node, [_code_node(lines, _SOURCE_TAG)])
 
     # Main module-use block.  The class-providing module is skipped when the
     # enclosing node is part of the same module that declares the class.
@@ -315,11 +311,10 @@ def _handle_object_builder(node, state_storables, function_classes):
                     is_self = True
                     break
 
+        # `Error` is not listed here: it is added unconditionally, in full, below.
         module_uses = {
             'Input_Parameters':   {'intrinsic': False,
                                    'only': {'inputParameter': True}},
-            'Error':              {'intrinsic': False,
-                                   'only': {'Warn': True}},
             'ISO_Varying_String': {'intrinsic': False,
                                    'only': {'char': True}},
         }

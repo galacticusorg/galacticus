@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Implements a generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.
 !!}
@@ -117,7 +119,7 @@ Implements a generic 1D volume function (i.e. number density of objects binned b
        <method description="Return the results of the volume function operator." method="results"           />
        <method description="Finalize the analysis of this function."             method="finalizeAnalysis"  />
        <method description="Activate/deactivate reporting."                      method="setReporting"      />
-       <method description="Write the log-likelihood of this analysis to the output group. Child classes that compute their own log-likelihood should override this to avoid evaluating the parent-class logLikelihood method." method="logLikelihoodWrite"/>
+       <method description="Write the log-likelihood of this analysis to the output group. Child classes that compute their own log-likelihood should override this to avoid evaluating the parent-class ``logLikelihood`` method." method="logLikelihoodWrite"/>
        <method description="Write class-specific metadata to the analysis output group. The default implementation does nothing; child classes may override it to add further attributes or datasets." method="metadataWrite"/>
      </methods>
      !!]
@@ -193,9 +195,9 @@ contains
     <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
     <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
     !!]
-    allocate(binCenter   (int(parameters%count('binCenter'))                          ))
-    allocate(outputWeight(int(parameters%count('binCenter'))*self%outputTimes_%count()))
-    if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
+    allocate(binCenter   (int(parameters%count('binCenter'))                     ))
+    allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
+    if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Error_Report('incorrect number of output weights provided'//{introspection:location})
     !![
     <inputParameter docformat="rst">
@@ -419,6 +421,8 @@ contains
     !!]
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
+          allocate(functionValueTarget       (parameters%count('functionValueTarget'     )))
+          allocate(functionCovarianceTarget1D(parameters%count('functionCovarianceTarget')))
           !![
           <inputParameter docformat="rst">
             <name>functionValueTarget</name>
@@ -489,7 +493,7 @@ contains
            &amp;                          distributionUnitsInSI                                                                             , &amp;
            &amp;                          binCenter                                                                                         , &amp;
            &amp;                          bufferCount                                                                                       , &amp;
-           &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &amp;
+           &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()])     , &amp;
            &amp;                          nodePropertyExtractor_                                                                            , &amp;
            &amp;                          outputAnalysisPropertyOperator_                                                                   , &amp;
            &amp;                          outputAnalysisPropertyUnoperator_                                                                 , &amp;
@@ -526,6 +530,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisVolumeFunction1D` output analysis class for internal use.
     !!}
+    use :: Display                 , only : displayGreen                         , displayReset
     use :: Error                   , only : Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass           , nodePropertyExtractorScalar
     use :: Output_Analyses_Options , only : outputAnalysisCovarianceModelBinomial
@@ -555,11 +560,32 @@ contains
          &                                                                                                     binWidth
     class           (outputAnalysisTargetDataClass               ), intent(in   ), optional                 :: targetData_
     integer         (c_size_t                                    )                                          :: i
+    character       (len=12                                      )                                          :: labelMinimum                         , labelMaximum                     , &
+         &                                                                                                     labelBins
     !![
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionQuantity, distributionIsComoving, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, binWidth"/>
     !!]
 
-    ! Initialise the bundled target-data fields.  An explicit `targetData_` must be of the
+    ! Validate the un-operator. It is applied to the bin centers once the model has run, where neither a node nor an output
+    ! index exists, so an operator which requires either can not be used in that role - it would abort at the end of the run.
+    if (self%outputAnalysisPropertyUnoperator_%isNodeDependent  ())                                                            &
+         & call Error_Report(                                                                                                  &
+         &                   'the `outputAnalysisPropertyUnoperator` requires a node, but the un-operator is applied to bin'// &
+         &                   ' centers, for which no node exists'//char(10)//                                                  &
+         &                   displayGreen()//'   HELP:'//displayReset()//' use an un-operator which depends only on the'//     &
+         &                   ' property value, such as `antiLog10`.'//                                                         &
+         &                   {introspection:location}                                                                          &
+         &                  )
+    if (self%outputAnalysisPropertyUnoperator_%isOutputDependent())                                                            &
+         & call Error_Report(                                                                                                  &
+         &                   'the `outputAnalysisPropertyUnoperator` requires an output index, but the un-operator is'//       &
+         &                   ' applied to bin centers, for which no output index exists'//char(10)//                           &
+         &                   displayGreen()//'   HELP:'//displayReset()//' use an un-operator which depends only on the'//     &
+         &                   ' property value, such as `antiLog10`.'//                                                         &
+         &                   {introspection:location}                                                                          &
+         &                  )
+
+    ! Initialize the bundled target-data fields.  An explicit `targetData_` must be of the
     ! concrete `outputAnalysisTargetDataStandard` type (the only impl in the project today);
     ! without one we default-construct, matching the per-arg defaults the previous signature
     ! exposed.
@@ -638,7 +664,32 @@ contains
     self%functionCovariance=0.0d0
     ! Allocate and initialize binomial covariance model halo arrays if necessary.
     if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
+       ! Validate the range of halo masses, which is binned logarithmically.
+       if     (                                                                                  &
+            &   self%covarianceBinomialBinsPerDecade   <= 0                                      &
+            &  .or.                                                                              &
+            &   self%covarianceBinomialMassHaloMinimum <= 0.0d0                                  &
+            &  .or.                                                                              &
+            &   self%covarianceBinomialMassHaloMaximum <= self%covarianceBinomialMassHaloMinimum &
+            & ) then
+          write (labelMinimum,'(e12.6)') self%covarianceBinomialMassHaloMinimum
+          write (labelMaximum,'(e12.6)') self%covarianceBinomialMassHaloMaximum
+          write (labelBins   ,'(i12)'  ) self%covarianceBinomialBinsPerDecade
+          call Error_Report(                                                                                                     &
+               &            'the binomial covariance model requires 0 < [covarianceBinomialMassHaloMinimum] <'                // &
+               &            ' [covarianceBinomialMassHaloMaximum], and [covarianceBinomialBinsPerDecade] > 0, but they are '  // &
+               &            trim(adjustl(labelMinimum))//', '//trim(adjustl(labelMaximum))//', and '//trim(adjustl(labelBins))// &
+               &            {introspection:location}                                                                             &
+               &           )
+       end if
        self%covarianceModelBinomialBinCount                  =int(log10(self%covarianceBinomialMassHaloMaximum/self%covarianceBinomialMassHaloMinimum)*dble(self%covarianceBinomialBinsPerDecade)+0.5d0)
+       if (self%covarianceModelBinomialBinCount < 1)                                                                                     &
+            & call Error_Report(                                                                                                         &
+            &                   'the range from [covarianceBinomialMassHaloMinimum] to [covarianceBinomialMassHaloMaximum] spans less'// &
+            &                   ' than one bin of the binomial covariance model - widen it, or increase'                              // &
+            &                   ' [covarianceBinomialBinsPerDecade]'                                                                  // &
+            &                   {introspection:location}                                                                                 &
+            &                  )
        self%covarianceModelHaloMassMinimumLogarithmic        =log10(self%covarianceBinomialMassHaloMinimum)
        self%covarianceModelHaloMassIntervalLogarithmicInverse=dble(self%covarianceModelBinomialBinCount)/log10(self%covarianceBinomialMassHaloMaximum/self%covarianceBinomialMassHaloMinimum)
        allocate(self%weightMainBranch       (self%binCount,self%covarianceModelBinomialBinCount))
@@ -796,6 +847,7 @@ contains
     use :: Error                  , only : Error_Report
     use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     use :: String_Handling        , only : operator(//)
+    use :: ISO_Varying_String     , only : char
     implicit none
     class    (outputAnalysisVolumeFunction1D), intent(inout) :: self
     class    (outputAnalysisClass           ), intent(inout) :: reduced
@@ -838,7 +890,7 @@ contains
        end if
        if (self%report) call displayUnindent('end reduction lock: '//char(self%reportLabel))
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisVolumeFunction1D] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine volumeFunction1DReduce
@@ -911,7 +963,7 @@ contains
 
   subroutine volumeFunction1DLogLikelihoodWrite(self,analysisGroup)
     !!{RST
-    Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood returned by the :galacticus-class:`outputAnalysisVolumeFunction1D`  logLikelihood method whenever a target dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the covariance matrix used by the default  logLikelihood method) should override this method so that the parent-class  logLikelihood is never evaluated.
+    Write the log-likelihood of this analysis to the output group. This default implementation writes the log-likelihood returned by the :galacticus-class:`outputAnalysisVolumeFunction1D`  ``logLikelihood`` method whenever a target dataset is available. Child classes that compute their own log-likelihood (and which may not, e.g., initialize the covariance matrix used by the default  ``logLikelihood`` method) should override this method so that the parent-class  ``logLikelihood`` is never evaluated.
     !!}
     use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
@@ -1030,18 +1082,13 @@ contains
     !!{RST
     Return the log-likelihood of a volumeFunction1D output analysis.
     !!}
-    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Models_Likelihoods_Constants, only : logImprobable
     use :: Error                       , only : Error_Report
-    use :: Interface_GSL               , only : GSL_Success
+    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Output_Analysis_Utilities   , only : Output_Analysis_Log_Likelihood_Normal
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     double precision                                , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                , allocatable  , dimension(:  ) :: functionValueDifference
-    type            (vector                        )                                :: residual
-    type            (matrix                        )                                :: covariance
-    integer                                                                         :: status
 
     ! Check for existence of a target distribution.
     if (self%targetData_%hasTarget()) then
@@ -1059,19 +1106,8 @@ contains
                &                     -self%targetData_%valueTarget
           functionCovarianceCombined=+self%functionCovariance              &
                &                     +self%targetData_%covarianceTarget
-          residual                  = vector(functionValueDifference   )
-          covariance                = matrix(functionCovarianceCombined)
           ! Compute the log-likelihood.
-          volumeFunction1DLogLikelihood          =-0.5d0*covariance%covarianceProduct(residual,status)
-          if (status == GSL_Success) then
-             if (self%likelihoodNormalize)                                                   &
-                  & volumeFunction1DLogLikelihood=+volumeFunction1DLogLikelihood             &
-                  &                               -0.5d0*covariance%logarithmicDeterminant() &
-                  &                               -0.5d0*dble(self%binCount)                 &
-                  &                               *log(2.0d0*Pi)
-          else
-             volumeFunction1DLogLikelihood       =+logImprobable
-          end if
+          volumeFunction1DLogLikelihood=Output_Analysis_Log_Likelihood_Normal(functionValueDifference,functionCovarianceCombined,self%likelihoodNormalize)
        end if
     else
        volumeFunction1DLogLikelihood=0.0d0

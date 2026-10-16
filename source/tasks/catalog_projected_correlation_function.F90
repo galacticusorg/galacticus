@@ -348,10 +348,10 @@ contains
     type            (hdf5Group                              )                                :: correlationFunctionGroup
     type            (irate                                  )                                :: galaxyFile
     double precision                                                                         :: simulationBoxSize       , time            , &
-         &                                                                                      redshift
+         &                                                                                      redshift                , distanceMaximum
     integer                                                                                  :: randomPointCount        , replications    , &
          &                                                                                      i                       , j               , &
-         &                                                                                      replicatedGalaxyCount
+         &                                                                                      replicatedGalaxyCount   , iField
 
     call displayIndent('Begin task: catalog projected correlation function')
     ! Call routines to perform initialization which must occur for all threads if run in parallel.
@@ -420,7 +420,10 @@ contains
          &                             radialSeparationMaximum                 =self%separationRadialMaximum  &
          &                            )
     ! Replicate points to encompass survey geometry.
-    replications=int((self%surveyGeometry_%distanceMaximum(self%massMaximum)+self%widthBuffer)/simulationBoxSize+0.5d0)
+    ! Take the deepest field: the replication only needs to be sufficient to cover the survey, and survey geometries whose
+    ! depth varies between fields require the field to be specified.
+    distanceMaximum=maxval([(self%surveyGeometry_%distanceMaximum(self%massMaximum,field=iField),iField=1,self%surveyGeometry_%fieldCount())])
+    replications=int((distanceMaximum+self%widthBuffer)/simulationBoxSize+0.5d0)
     call Points_Replicate(galaxyPosition,simulationBoxSize,-replications*[1,1,1],+replications*[1,1,1])
     message="Replicated to cover survey volume giving "
     message=message//size(galaxyPosition,dim=2)//" galaxies"

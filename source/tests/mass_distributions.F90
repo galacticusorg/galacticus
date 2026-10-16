@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program to test mass distributions.
 !!}
@@ -50,6 +52,7 @@ program Test_Mass_Distributions
        &                                                                                                        massDistributionWrappedCylindrical
   ! Dedicated objects for the spherical scaler memoization tests, so that those tests do not disturb (or
   ! depend on the allocation state of) the shared objects above.
+  class           (massDistributionClass                  )                                    , pointer     :: massDistributionMomentInner
   class           (massDistributionClass                  )                                    , allocatable :: massDistributionScalerTest                                                                                              , massDistributionScalerInner
   class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_       , &
        &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
@@ -92,7 +95,8 @@ program Test_Mass_Distributions
   integer                                                                                                    :: i                                                                                                                       , referenceCountDiscard
   double precision                                                                                           :: radiusInProjection                                                                                                      , radius                                           , &
        &                                                                                                        rotationCurveGradientAnalytic                                                                                           , rotationCurveGradientNumerical                   , &
-       &                                                                                                        massFraction                                                                                                            , time
+       &                                                                                                        massFraction                                                                                                            , time                                             , &
+       &                                                                                                        radiusCylindrical                                                                                                       , height
   ! Parameters and reference values for the black hole re-initialization (pool re-use) test.
   double precision                                         , parameter                                       :: massBlackHoleA                       =1.0d+6                                                                            , massBlackHoleB                             =4.0d8, &
        &                                                                                                        radiusBlackHoleTest                  =1.0d-3
@@ -100,6 +104,7 @@ program Test_Mass_Distributions
        &                                                                                                        rotationReferenceA                                                                                                      , rotationReferenceB
   double precision                                         , parameter                                       :: epsilonFiniteDifference              =0.01d0
   character       (len=4                                  )                                                  :: label
+  character       (len=5                                  )                                                  :: labelHeight
   double precision                                         , dimension(3,3)                                  :: tidalTensorComponents                                                                                                   , tidalTensorSphericalComponents
   double precision                                         , dimension(3,3)                                  :: tidalTensorScalerReference                                                                                              , tidalTensorScalerDisplaced
   double precision                                         , dimension(3  )                                  :: acceleration                                                                                                            , accelerationReference
@@ -202,6 +207,73 @@ program Test_Mass_Distributions
      call Assert("Mass within cylinder      (r=2.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(4.0d0   ),8.0d0/3.0d0*(+1.0d0-Pi/3.0d0                    /sqrt(3.0d0)),absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Radial moments. Reference values were computed by direct numerical quadrature (scipy.integrate.quad) of ρ(r) rᵐ (or
+  ! Σ(R) Rᵐ) for the dimensionful profiles. Over the full range, ∫ 4π ρ r² dr = M and ∫ 2π Σ R dR = M.
+  call Unit_Tests_Begin_Group("Radial moments")
+  allocate(massDistributionHernquist :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionHernquist)
+     massDistribution_=massDistributionHernquist(dimensionless=.false.,mass=2.0d0,scaleLength=2.0d0)
+  end select
+  select type (massDistribution_)
+  class is (massDistributionSpherical)
+     call Assert("Hernquist: m=2, r=[0,∞)    ",massDistribution_%densityRadialMoment(2.0d0                                        ),2.0d0/4.0d0/Pi                                                   ,relTol=1.0d-6)
+     call Assert("Hernquist: m=1, r=[0.5,3]  ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.03819718634205488d0                                            ,relTol=1.0d-6)
+     call Assert("Hernquist: m=2, r=[0.5,3]  ",massDistribution_%densityRadialMoment(2.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.050929581789406514d0                                           ,relTol=1.0d-6)
+     call Assert("Hernquist: m=3, r=[0.5,3]  ",massDistribution_%densityRadialMoment(3.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.08476412777945765d0                                            ,relTol=1.0d-6)
+     call Assert("Hernquist: m=1, r=[1,∞)    ",massDistribution_%densityRadialMoment(1.0d0,radiusMinimum=1.0d0                    ),0.0353677651315323d0                                             ,relTol=1.0d-6)
+     call Assert("Hernquist: m=2.5, r=[0.5,3]",massDistribution_%densityRadialMoment(2.5d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),massDistribution_%densityRadialMomentNumerical(2.5d0,0.5d0,3.0d0),relTol=1.0d-3)
+  end select
+  allocate(massDistributionHernquist :: massDistributionMomentInner)
+  select type (massDistributionMomentInner)
+  type is (massDistributionHernquist)
+     massDistributionMomentInner=massDistributionHernquist(dimensionless=.true.)
+  end select
+  allocate(massDistributionSphericalScaler :: massDistributionScalerTest)
+  select type (massDistributionScalerTest)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionMomentInner)
+     class is (massDistributionSpherical)
+        massDistributionScalerTest=massDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=2.0d0,massDistribution_=massDistributionMomentInner)
+     end select
+  end select
+  select type (massDistributionScalerTest)
+  class is (massDistributionSpherical)
+     call Assert("Scaled Hernquist: m=2, r=[0,∞)  ",massDistributionScalerTest%densityRadialMoment(2.0d0                                        ),2.0d0/4.0d0/Pi       ,relTol=1.0d-6)
+     call Assert("Scaled Hernquist: m=3, r=[0.5,3]",massDistributionScalerTest%densityRadialMoment(3.0d0,radiusMinimum=0.5d0,radiusMaximum=3.0d0),0.08476412777945765d0,relTol=1.0d-6)
+  end select
+  ! The scaler holds a counted reference to `massDistributionMomentInner` and destroys it in its own destructor, so only the
+  ! scaler itself is deallocated here.
+  deallocate(massDistribution_          )
+  deallocate(massDistributionScalerTest )
+  allocate(massDistributionExponentialDisk :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionExponentialDisk)
+     massDistribution_=massDistributionExponentialDisk(mass=2.0d0,radiusScale=2.0d0,scaleHeight=0.01d0)
+  end select
+  call Assert("Exponential disk: m=1, R=[0,∞)",massDistribution_%surfaceDensityRadialMoment(1.0d0                                        ),2.0d0/2.0d0/Pi      ,relTol=1.0d-6)
+  call Assert("Exponential disk: m=2, R=[1,3]",massDistribution_%surfaceDensityRadialMoment(2.0d0,radiusMinimum=1.0d0,radiusMaximum=3.0d0),0.2250648139159444d0,relTol=1.0d-6)
+  allocate(massDistributionExponentialDisk :: massDistributionMomentInner)
+  select type (massDistributionMomentInner)
+  type is (massDistributionExponentialDisk)
+     massDistributionMomentInner=massDistributionExponentialDisk(scaleHeight=0.005d0,dimensionless=.true.)
+  end select
+  allocate(massDistributionCylindricalScaler :: massDistributionScalerTest)
+  select type (massDistributionScalerTest)
+  type is (massDistributionCylindricalScaler)
+     select type (massDistributionMomentInner)
+     class is (massDistributionCylindrical)
+        massDistributionScalerTest=massDistributionCylindricalScaler(factorScalingLength=2.0d0,factorScalingMass=2.0d0,massDistribution_=massDistributionMomentInner)
+     end select
+  end select
+  call Assert("Scaled exponential disk: m=1, R=[0,∞)",massDistributionScalerTest%surfaceDensityRadialMoment(1.0d0                                        ),2.0d0/2.0d0/Pi      ,relTol=1.0d-6)
+  call Assert("Scaled exponential disk: m=2, R=[1,3]",massDistributionScalerTest%surfaceDensityRadialMoment(2.0d0,radiusMinimum=1.0d0,radiusMaximum=3.0d0),0.2250648139159444d0,relTol=1.0d-6)
+  ! The scaler holds a counted reference to `massDistributionMomentInner` and destroys it in its own destructor, so only the
+  ! scaler itself is deallocated here.
+  deallocate(massDistribution_          )
+  deallocate(massDistributionScalerTest )
   call Unit_Tests_End_Group()
 
   ! Sersic profile.
@@ -335,7 +407,7 @@ program Test_Mass_Distributions
   allocate(massDistributionBetaProfile :: massDistribution_)
   select type (massDistribution_)
   type is (massDistributionBetaProfile)
-     massDistribution_=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=3.8492316686261747d-002,mass=182582297.19568533d0,outerRadius=0.12829569846196026d0)
+     massDistribution_=massDistributionBetaProfile(beta=2.0d0/3.0d0,radiusCore=3.8492316686261747d-002,mass=182582297.19568533d0,radiusOuter=0.12829569846196026d0)
   end select
   select type (massDistribution_)
   class is (massDistributionSpherical)
@@ -450,6 +522,71 @@ program Test_Mass_Distributions
      position=[radius,Pi/2.0d0,-Pi/2.0d0]
      accelerationReference=massDistribution_%acceleration(position)
      call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+1.0d0,0.0d0]*massDistribution_%rotationCurve(radius)**2/radius,absTol=1.0d-6,relTol=1.0d-1)
+     call Unit_Tests_End_Group()
+     ! Test that the tabulated tidal tensor satisfies the Poisson equation. The tidal tensor is T = -∇∇Φ, so its trace must equal
+     ! -4πGρ (with G=1 for this dimensionless disk). This is tested close to the disk plane, where the vertical structure of the
+     ! disk dominates the trace.
+     call Unit_Tests_Begin_Group("Tidal tensor satisfies the Poisson equation")
+     do i=1,4
+        select case (i)
+        case (1)
+           radiusCylindrical=0.5d0
+           height           =0.010d0
+        case (2)
+           radiusCylindrical=1.0d0
+           height           =0.010d0
+        case (3)
+           radiusCylindrical=1.0d0
+           height           =0.020d0
+        case (4)
+           radiusCylindrical=2.0d0
+           height           =0.015d0
+        end select
+        write (label      ,'(f3.1)') radiusCylindrical
+        write (labelHeight,'(f5.3)') height
+        position             =[sqrt(radiusCylindrical**2+height**2),atan2(radiusCylindrical,height),0.0d0]
+        tidalTensorComponents=massDistribution_%tidalTensor(position)
+        call Assert(                                               &
+             &      "R="//trim(label)//", z="//labelHeight       , &
+             &      +tidalTensorComponents(1,1)                    &
+             &      +tidalTensorComponents(2,2)                    &
+             &      +tidalTensorComponents(3,3)                  , &
+             &      -4.0d0*Pi*massDistribution_%density(position), &
+             &      relTol=5.0d-2                                  &
+             &     )
+     end do
+     call Unit_Tests_End_Group()
+     ! Test the acceleration against reference values. These were computed by the `exponentialDiskAccelerations.py` script in
+     ! the galacticusDevTools repository (physicsReferences/), as Hankel transforms of the surface density, with the vertical
+     ! kernel evaluated by direct quadrature of the convolution of the sech² vertical density profile with exp(-k|z-z'|) - i.e.
+     ! independently of the form of the kernel used in the tabulation. The tolerance allows for the bilinear interpolation in the
+     ! tabulated solution.
+     call Unit_Tests_Begin_Group("Acceleration matches reference values")
+     do i=1,4
+        select case (i)
+        case (1)
+           radiusCylindrical    =1.0d0
+           height               =0.01d0
+           accelerationReference=[-2.73856896d-01,0.0d0,-2.77960050d-01]
+        case (2)
+           radiusCylindrical    =1.0d0
+           height               =0.10d0
+           accelerationReference=[-2.43542857d-01,0.0d0,-3.45809193d-01]
+        case (3)
+           radiusCylindrical    =0.5d0
+           height               =0.03d0
+           accelerationReference=[-2.55934175d-01,0.0d0,-5.83951896d-01]
+        case (4)
+           radiusCylindrical    =2.0d0
+           height               =0.30d0
+           accelerationReference=[-1.55488612d-01,0.0d0,-1.30061903d-01]
+        end select
+        write (label      ,'(f3.1)') radiusCylindrical
+        write (labelHeight,'(f5.3)') height
+        position    =[sqrt(radiusCylindrical**2+height**2),atan2(radiusCylindrical,height),0.0d0]
+        acceleration=massDistribution_%acceleration(position)
+        call Assert("R="//trim(label)//", z="//labelHeight,acceleration,accelerationReference,absTol=1.0d-6,relTol=2.0d-3)
+     end do
      call Unit_Tests_End_Group()
   class default
      call Error_Report('unknown mass distribution'//{introspection:location})
@@ -583,7 +720,7 @@ program Test_Mass_Distributions
   end select
   select type (massDistribution_ => massDistributions%next%massDistribution_)
   type is (massDistributionExponentialDisk)
-     massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
+     massDistribution_=massDistributionExponentialDisk(mass=5.7d10,radiusScale=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
   end select
   allocate(massDistributionComposite :: massDistribution_)
   select type (massDistribution_)
@@ -715,7 +852,7 @@ program Test_Mass_Distributions
      end select
      select type (massDistribution_ => massDistributions%next%massDistribution_)
      type is (massDistributionExponentialDisk)
-        massDistribution_=massDistributionExponentialDisk(mass=5.7d10,scaleRadius=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
+        massDistribution_=massDistributionExponentialDisk(mass=5.7d10,radiusScale=2.9d-3,scaleHeight=0.3d-3,componentType=componentTypeDisk    )
      end select
      allocate(massDistributionComposite :: massDistribution_)
      select type (massDistribution_)
@@ -758,7 +895,7 @@ program Test_Mass_Distributions
   allocate(massDistributionNFW :: massDistributionDMO)
   select type (massDistributionDMO)
   type is (massDistributionNFW)
-     massDistributionDMO=massDistributionNFW(scaleLength=30.0d-3,virialRadius=300.0d-3,mass=1.0d12,dimensionless=.false.)
+     massDistributionDMO=massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=1.0d12,dimensionless=.false.)
   end select
   allocate(massDistributionPatejLoeb2015 :: massDistribution_)
   select type (massDistribution_)
@@ -1091,6 +1228,63 @@ program Test_Mass_Distributions
        &      relTol=1.0d-12                                                                   &
        &     )
   deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! The potential tabulation rounds its bounds outward to whole octaves of an absolute lattice. A radius which already lies on
+  ! one is the case where those bounds can coincide, which is rejected as a range of fewer than two points - so evaluate there.
+  call Unit_Tests_Begin_Group("Potential at a radius on a whole octave")
+  block
+    type            (massDistributionHernquist) :: hernquist_
+    type            (coordinateSpherical      ) :: coordinatesOctave
+    double precision                            :: potentialOctave
+    hernquist_       =massDistributionHernquist(mass=1.0d0,scaleLength=1.0d0)
+    coordinatesOctave=[1.0d0,0.0d0,0.0d0]
+    potentialOctave  =hernquist_%potential(coordinatesOctave)
+    call Assert("the potential is finite at a radius lying on a whole octave",potentialOctave < 0.0d0,.true.)
+  end block
+  call Unit_Tests_End_Group()
+
+  ! Test that the tabulations which are pinned to absolute lattices behave as intended. These properties are what pinning is
+  ! for, and none of the tests above constrain them: they exercise the profiles at fixed radii, never driving a tabulation to
+  ! extend and so never revealing whether extension moves values already computed.
+  call Unit_Tests_Begin_Group("Pinned tabulations")
+  block
+    type            (massDistributionExponentialDisk) :: diskExtended  , diskDirect
+    type            (massDistributionSersic         ) :: sersicA       , sersicB
+    type            (coordinateSpherical            ) :: coordinates_
+    double precision                                  :: velocityProbe , velocityAfterExtension, &
+         &                                               velocityDirect, densityA              , &
+         &                                               densityB      , velocityFar
+    ! The exponential disk rotation curve. The radii are chosen to avoid the three paths which bypass the tabulation: the
+    ! small-argument series expansion below a half-radius of 1e-3, the cached factor used at exactly one scale radius, and the
+    ! point-mass approximation beyond `radiusMaximum`=30 scale radii. r=4 gives a half-radius of 2, inside the seed range;
+    ! r=28 gives 14, outside it, and so forces a genuine extension.
+    diskExtended         =massDistributionExponentialDisk(radiusScale=1.0d0,mass=1.0d0)
+    velocityProbe        =diskExtended%rotationCurve( 4.0d0)
+    velocityFar          =diskExtended%rotationCurve(28.0d0)
+    velocityAfterExtension=diskExtended%rotationCurve( 4.0d0)
+    call Assert("exponential disk: extension preserves a tabulated rotation curve",velocityAfterExtension == velocityProbe,.true.)
+    ! A disk driven straight to the wider range must agree bit-for-bit with one which reached it by extension.
+    diskDirect           =massDistributionExponentialDisk(radiusScale=1.0d0,mass=1.0d0)
+    velocityDirect       =diskDirect  %rotationCurve(28.0d0)
+    call Assert("exponential disk: rotation curve is independent of the order of requests",velocityDirect == velocityFar,.true.)
+    call Assert("exponential disk: probe value is independent of the order of requests",diskDirect%rotationCurve(4.0d0) == velocityProbe,.true.)
+    ! The Sersic profile. Nothing computed for it can be carried over when its range moves - the densities are Abel integrals
+    ! taken out to a bound-derived radius, and the enclosed masses accumulate from the innermost point - so what is tested is
+    ! reproducibility: two profiles driven to nearby radii must build identical tables. The radii are large enough to push the
+    ! bounds beyond the seed range, where under the previous scheme they would have differed by the ratio of the two radii.
+    sersicA     =massDistributionSersic(index=4.0d0,radiusHalfMass=1.0d0,mass=1.0d0)
+    sersicB     =massDistributionSersic(index=4.0d0,radiusHalfMass=1.0d0,mass=1.0d0)
+    coordinates_=[900.0d0,0.0d0,0.0d0]
+    densityA    =sersicA%density(coordinates_)
+    coordinates_=[901.0d0,0.0d0,0.0d0]
+    densityB    =sersicB%density(coordinates_)
+    coordinates_=[  1.0d0,0.0d0,0.0d0]
+    densityA    =sersicA%density(coordinates_)
+    densityB    =sersicB%density(coordinates_)
+    call Assert("Sersic: tabulation is reproducible across nearby requested radii",densityA == densityB,.true.)
+    call Assert("Sersic: enclosed mass is reproducible across nearby requested radii",sersicA%massEnclosedBySphere(1.0d0) == sersicB%massEnclosedBySphere(1.0d0),.true.)
+  end block
   call Unit_Tests_End_Group()
 
   ! End unit tests.

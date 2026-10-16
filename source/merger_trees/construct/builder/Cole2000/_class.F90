@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a merger tree builder using the algorithm of :cite:t:`cole_hierarchical_2000`.
   !!}
@@ -144,14 +146,14 @@
 
   ! Sub-module scope variables used in tree building.
   !![
-  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110547" docformat="rst">
+  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110547" docformat="rst">
     <description>
     We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" above) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP task-based parallelism. This may be a compiler bug.
     </description>
   </workaround>
-  <workaround type="gfortran" PR="110548" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=110548" docformat="rst">
+  <workaround type="gfortran" PR="110548" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110548" docformat="rst">
     <description>
-    We use an allocatable treeWalker here. Some subclasses will not need a treeWalker. Ideally this would therefore be passed to functions as an optional argument, but current optional arguments used in OpenMP tasks cause segfaults. Therefore, we instead use the allocation status of this variable as an indication of whether or not a treeWalker is needed.
+    We use an allocatable ``treeWalker`` here. Some subclasses will not need a ``treeWalker``. Ideally this would therefore be passed to functions as an optional argument, but current optional arguments used in OpenMP tasks cause segfaults. Therefore, we instead use the allocation status of this variable as an indication of whether or not a ``treeWalker`` is needed.
     </description>
   </workaround>
   !!]  
@@ -190,6 +192,8 @@ contains
       <description>
       The largest probability of branching allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
       </description>
+      <minimum inclusive="false">0.0</minimum>
+      <maximum>1.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>accretionLimit</name>
@@ -197,7 +201,12 @@ contains
       <defaultValue>0.1d0</defaultValue>
       <description>
       The largest fractional mass change due to subresolution accretion allowed in a timestep in merger trees built by the :cite:t:`cole_hierarchical_2000` method.
+      Smaller values give finer trees, at a cost: memory use and run time grow roughly as 1/``[accretionLimit]``. For example,
+      for a single tree of mass :math:`1.5\times 10^{12}\mathrm{M}_\odot`, built with a mass resolution of
+      :math:`8\times 10^7\mathrm{M}_\odot` and evolved on one thread, peak memory is about 0.2 GB at the default of 0.1, and
+      about 6 GB at 0.001.
       </description>
+      <minimum inclusive="false">0.0</minimum>
       <maximum inclusive="false">1.0</maximum>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -391,10 +400,18 @@ contains
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
     ! Find the critical overdensity at the earliest time to which we will build this tree. We evaluate this here to ensure that
     ! δc(t) is already evaluated over the full range of epochs that we will require - this prevents any possible retabulation
-    ! during tree construction which can potentially lead to misordering of branches. This is not the ideal solution - ideally,
-    ! critical overdensity classes which rely on tabulation and which have to retabulate themselves should ensure that they simply
-    ! expand their range without changing any of the previous computed values (as we do for expansion factor vs. time in the
-    ! cosmology function class).
+    ! during tree construction which can potentially lead to misordering of branches. The result is deliberately unused: the call
+    ! exists only for that side effect.
+    !
+    ! This was formerly described as a workaround pending tabulating classes expanding their range without changing previously
+    ! computed values, "as we do for expansion factor vs. time in the cosmology function class". Pinning abscissae to an absolute
+    ! lattice achieves that for extension at the upper end, but it does not remove the need for this call and cannot: the
+    ! tabulations δc(t) depends upon include ones integrated forward from their earliest tabulated epoch - the linear growth
+    ! factor is one - and such a tabulation cannot be extended *downward* without restarting its integration from a new starting
+    ! epoch, which moves every value in it by of order its integration tolerance. The cosmology function class cited above
+    ! discards its whole table in exactly that case, for exactly this reason. Removing this call was measured to change a small
+    ! model's results by tens of percent, by moving a branch across a threshold. Retiring it requires giving the tabulations
+    ! concerned a fixed earliest epoch, not further pinning.
     deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest/2.0d0,mass=basic%mass(),node=node) &
          &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow           ,mass=basic%mass()          ) &
          &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest/2.0d0,mass=basic%mass()          )

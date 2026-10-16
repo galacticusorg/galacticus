@@ -21,9 +21,14 @@
 Contains a program to test accretion disk functions.
 !!}
 
+!+ Contributions to this file made by: Andrew Benson, Claude.
+
 program Test_Accretion_Disks
   !!{RST
-  Tests of accretion disk functions.
+  Tests of accretion disk functions. The expected :term:`ADAF` jet power efficiencies were computed using an independent
+  implementation of the :cite:t:`benson_maximum_2009` model (``bensonBabul2009_galacticusAlpha.py`` in the `galacticusDevTools
+  <https://github.com/galacticusorg/galacticusDevTools>`_ repository) with the :math:`\alpha(j)` fitting functions used by
+  Galacticus and the Kerr metric factor :math:`\mathcal{A}=1+j^2/r^2+2j^2/r^3`.
   !!}
   use :: Accretion_Disks             , only : accretionDisksADAF            , adafEnergyPureADAF    , adafFieldEnhancementExponential, adafRadiativeEfficiencyTypeFixed, &
           &                                   adafViscosityFit
@@ -34,8 +39,8 @@ program Test_Accretion_Disks
   use :: Unit_Tests                  , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group           , Unit_Tests_Finish               , &
           &                                   compareEquals
   implicit none
-  double precision                                , dimension(6) :: spin            =[0.000d+0,0.200d+0,0.400d+0,0.600d+0,0.800d+0,0.950d+0]
-  double precision                                , dimension(6) :: jetPowerExpected=[2.993d-3,3.916d-3,6.571d-3,1.564d-2,5.246d-2,4.119d-1]
+  double precision                                , dimension(6) :: spin            =[0.0000d+0,0.2000d+0,0.4000d+0,0.6000d+0,0.8000d+0,0.9500d+0]
+  double precision                                , dimension(6) :: jetPowerExpected=[2.9928d-3,4.0715d-3,7.5336d-3,1.9602d-2,5.6359d-2,4.2037d-1]
   double precision                                , dimension(6) :: jetPower
   type            (accretionDisksADAF            )               :: accretionDisk
   type            (nodeComponentBlackHoleStandard)               :: blackHole

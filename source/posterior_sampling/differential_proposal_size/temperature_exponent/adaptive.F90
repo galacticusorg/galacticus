@@ -29,7 +29,7 @@
    ``[exponentInitial]``
       The initial value for :math:`\alpha`;
 
-   ``[exponentFactor]``
+   ``[exponentAdjustFactor]``
       The additive factor by which :math:`\alpha` should be increased or decreased if the acceptance rate gradient is out of range;
 
    ``[exponentMinimum]``

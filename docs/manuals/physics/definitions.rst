@@ -158,7 +158,7 @@ The elements of this colon-separated specifier determine the radius at which a p
    specifies which types of mass should be counted---allowed values are ``all``, ``dark``, ``baryonic``, ``galactic``, ``gaseous``, ``stellar``, and ``blackHole``.
 
 Zero radii
-^^^^^^^^^^
+~~~~~~~~~~
 
 A radius specifier can evaluate to zero---for example ``diskRadius:all:all:1.0`` in a node whose disk has zero radius. This is common: it happens whenever the component on which the radius is based is absent or empty in the node in question, and is quite distinct from an *undefined* radius (see ``solitonRadiusCore`` above), which is reported with a sentinel value instead.
 

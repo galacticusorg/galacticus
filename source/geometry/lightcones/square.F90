@@ -576,9 +576,8 @@ contains
     Determine if the given ``node`` lies within the lightcone. Note that, when called with ``atPresentEpoch=false`` this function returns true if the node is in the lightcone at any point during its existence. However, this check is made assuming that each node remains at fixed comoving coordinates between each output time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to catch any nodes which may briefly enter the lightcone between output times.
     !!}
     use            :: Arrays_Search       , only : searchArray
-    use            :: Error               , only : Component_List          , Error_Report
-    use            :: Galacticus_Nodes    , only : defaultPositionComponent, defaultSatelliteComponent, nodeComponentBasic , nodeComponentPosition, &
-          &                                        nodeComponentSatellite  , treeNode
+    use            :: Error               , only : Error_Report
+    use            :: Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, treeNode
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: ISO_Varying_String  , only : varying_string
     use            :: Numerical_Comparison, only : Values_Agree
@@ -613,16 +612,9 @@ contains
     ! Check that we can get the position of a node.
     if (.not.self%positionGettableChecked) then
        self%positionGettableChecked=.true.
-       if (.not.defaultPositionComponent%positionIsGettable())                                                                          &
-            & call Error_Report                                                                                                         &
-            &      (                                                                                                                    &
-            &       'testing if a node is in the lightcone requires that the position property of the position component be gettable'// &
-            &       Component_List(                                                                                                     &
-            &                      'position'                                                                                        ,  &
-            &                       defaultPositionComponent%positionAttributeMatch(requireGettable=.true.)                             &
-            &                     )                                                                                                  // &
-            &       {introspection:location}                                                                                            &
-            &      )
+       !![
+       <componentPropertyAssert class="position" properties="position" require="gettable"/>
+       !!]
     end if
     ! Determine to which output this galaxy corresponds.
     if (basic%time() > self%timeMinimum_(size(self%timeMinimum_))) then
@@ -648,26 +640,10 @@ contains
        ! that we can get the time of merging and the position of a node.
        if (.not.self%timeOfMergingGettableChecked) then
           self%timeOfMergingGettableChecked=.true.
-          if (.not.defaultSatelliteComponent%timeOfMergingIsGettable())                                                                               &
-               & call Error_Report                                                                                                                    &
-               &      (                                                                                                                               &
-               &       'testing if a node is ever in the lightcone requires that the timeOfMerging property of the satellite component be gettable'// &
-               &       Component_List(                                                                                                                &
-               &                      'satellite'                                                                                                   , &
-               &                       defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                                  &
-               &                     )                                                                                                             // &
-               &       {introspection:location}                                                                                                       &
-               &      )
-          if (.not.defaultPositionComponent%positionIsGettable())                                                                                     &
-               & call Error_Report                                                                                                                    &
-               &      (                                                                                                                               &
-               &       'testing if a node is ever in the lightcone requires that the position property of the position component be gettable'      // &
-               &       Component_List(                                                                                                                &
-               &                      'position'                                                                                                    , &
-               &                       defaultPositionComponent %positionAttributeMatch     (requireGettable=.true.)                                  &
-               &                     )                                                                                                             // &
-               &       {introspection:location}                                                                                                       &
-               &      )
+          !![
+          <componentPropertyAssert class="satellite" properties="timeOfMerging" require="gettable"/>
+          <componentPropertyAssert class="position"  properties="position"      require="gettable"/>
+          !!]
        end if
        ! Get node position component.
        position => node%position()

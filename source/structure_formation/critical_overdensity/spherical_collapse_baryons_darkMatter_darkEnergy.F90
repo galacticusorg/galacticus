@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of critical overdensity for collapse based on spherical collapse accounting for non-clustering of baryons.
   !!}
@@ -24,11 +26,11 @@
   use :: Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
   use :: Dark_Matter_Particles                , only : darkMatterParticle                                , darkMatterParticleClass
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass                  , intergalacticMediumFilteringMassClass
-  use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy, enumerationCllsnlssMttrDarkEnergyFixedAtType
+  use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy, enumerationCollisionlessMatterDarkEnergyFixedAtType
   use :: Tables                               , only : table1D
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy" docformat="rst">
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy" alias="sphericalCollapseBaryonsDarkMatterDarkEnergy" docformat="rst">
    <description>
    Critical overdensity for the gravitational collapse of dark matter halos, computed by numerically solving the spherical collapse model in a universe containing baryons, collisionless dark matter, and dark energy. Baryons may be treated as non-clustering relative to dark matter. The normalization of the result can be adjusted via ``[normalization]``, and tabulation can be stored to file for efficiency.
    </description>
@@ -46,13 +48,11 @@
      !!}
      private
      logical                                                                           :: tableInitialized                  =  .false.
-     double precision                                                                  :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
-          &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum
      double precision                                                                  :: normalization
      double precision                                                                  :: perturbationSmall
      integer                                                                           :: tablePointsPerOctave
      logical                                                                           :: tableStore
-     type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      )              :: energyFixedAt
+     type            (enumerationCollisionlessMatterDarkEnergyFixedAtType      )              :: energyFixedAt
      class           (table1D                                           ), allocatable :: overdensityCriticalClustered                , overdensityCriticalUnclustered
      class           (darkMatterParticleClass                           ), pointer     :: darkMatterParticle_               => null()
      class           (cosmologyParametersClass                          ), pointer     :: cosmologyParameters_              => null()
@@ -89,7 +89,7 @@ contains
     Constructor for the :galacticus-class:`criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy` critical overdensity class which takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
-    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
+    use :: Spherical_Collapse_Solvers, only : enumerationCollisionlessMatterDarkEnergyFixedAtEncode
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
     type            (inputParameters                                         ), intent(inout) :: parameters
@@ -164,7 +164,7 @@ contains
     end if
     !![
     <conditionalCall>
-      <call>self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,normalization{conditions})</call>
+      <call>self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,tablePointsPerOctave,enumerationCollisionlessMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,normalization{conditions})</call>
       <argument name="countTimeCollapsePerUnit" value="countTimeCollapsePerUnit" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
@@ -192,7 +192,7 @@ contains
     class           (intergalacticMediumFilteringMassClass                   ), target  , intent(in   ) :: intergalacticMediumFilteringMass_
     logical                                                                             , intent(in   ) :: tableStore
     integer                                                                             , intent(in   ) :: tablePointsPerOctave
-    type            (enumerationCllsnlssMttrDarkEnergyFixedAtType            )          , intent(in   ) :: energyFixedAt
+    type            (enumerationCollisionlessMatterDarkEnergyFixedAtType            )          , intent(in   ) :: energyFixedAt
     double precision                                                                    , intent(in   ) :: perturbationSmall
     double precision                                                          , optional, intent(in   ) :: normalization                    , countTimeCollapsePerUnit
     !![
@@ -253,7 +253,17 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
-       remakeTable=(time < self%tableClusteredTimeMinimum .or. time > self%tableClusteredTimeMaximum .or. time < self%tableUnclusteredTimeMinimum .or. time > self%tableUnclusteredTimeMaximum)
+       ! Test the request against the tabulations' own bounds - see the collisionless matter variant of this class for why a
+       ! copy of them is not kept here.
+       remakeTable=(                                                                &
+            &        time < self%overdensityCriticalClustered  %x(+1)               &
+            &       .or.                                                            &
+            &        time > self%overdensityCriticalClustered  %x(-1)               &
+            &       .or.                                                            &
+            &        time < self%overdensityCriticalUnclustered%x(+1)               &
+            &       .or.                                                            &
+            &        time > self%overdensityCriticalUnclustered%x(-1)               &
+            &      )
     else
        remakeTable=.true.
     end if
@@ -261,10 +271,6 @@ contains
        call self%sphericalCollapseSolverUnclustered_%criticalOverdensity(time,self%tableStore,self%overdensityCriticalUnclustered)
        call self%sphericalCollapseSolverClustered_  %criticalOverdensity(time,self%tableStore,self%overdensityCriticalClustered  )
        self%tableInitialized           =.true.
-       self%tableClusteredTimeMinimum  =self%overdensityCriticalClustered  %x(+1)
-       self%tableClusteredTimeMaximum  =self%overdensityCriticalClustered  %x(-1)
-       self%tableUnclusteredTimeMinimum=self%overdensityCriticalUnclustered%x(+1)
-       self%tableUnclusteredTimeMaximum=self%overdensityCriticalUnclustered%x(-1)
     end if
     return
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
@@ -350,9 +356,13 @@ contains
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    ! Remake the table if necessary.
+    call self%retabulate(time_)
+    ! The critical overdensity is linear in the interpolating factor, so its gradient with respect to mass is the difference
+    ! between the clustered and unclustered cases multiplied by the gradient of that factor.
     sphericalCollapseBrynsDrkMttrDrkEnrgyGradientMass=+(                                                                                &
          &                                              +self%overdensityCriticalClustered     %interpolate                (     time_) &
-         &                                              +self%overdensityCriticalUnclustered   %interpolate                (     time_) &
+         &                                              -self%overdensityCriticalUnclustered   %interpolate                (     time_) &
          &                                             )                                                                                &
          &                                            *  self%intergalacticMediumFilteringMass_%fractionBaryonsGradientMass(mass,time_) &
          &                                            *  self%normalization

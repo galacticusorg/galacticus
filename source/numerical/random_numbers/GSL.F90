@@ -302,7 +302,7 @@ contains
     allocate(self%randomNumberGenerator)
     self%randomNumberGenerator%rng=GSL_RNG_Alloc(GSL_Get_Rng_Default())
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -490,7 +490,7 @@ contains
        allocate(destination%randomNumberGenerator)
        destination%randomNumberGenerator%rng=GSL_Rng_Clone(self%randomNumberGenerator%rng)
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="57d4f71e7573f4666f3fa72fb74cfa7d646d1d2d" time="2026-10-14T21:57:40"/>
 
   <accretionDisks value="switched">
     <accretionDisksADAF value="ADAF">
@@ -66,7 +66,7 @@
       <mass value="1.0"/>
       <massType value="unknown"/>
       <scaleHeight value="0.137"/>
-      <scaleRadius value="1.0"/>
+      <radiusScale value="1.0"/>
     </massDistributionDisk>
     <diskNegativeAngularMomentumAllowed value="true"/>
     <inactiveLuminositiesStellar value="false"/>
@@ -502,12 +502,11 @@
   <starFormationRateSurfaceDensityDisks value="blitz2006">
     <assumeMonotonicSurfaceDensity value="false"/>
     <heightToRadialScaleDisk value="0.137"/>
-    <pressureCharacteristic value="4.54"/>
+    <pressureCharacteristic value="3.5e4"/>
     <pressureExponent value="0.92"/>
     <starFormationFrequencyNormalization value="1.432e-09"/>
     <surfaceDensityCritical value="200.0"/>
     <surfaceDensityExponent value="0.4"/>
-    <useTabulation value="true"/>
     <velocityDispersionDiskGas value="10.0"/>
   </starFormationRateSurfaceDensityDisks>
   <stellarFeedback value="standard">

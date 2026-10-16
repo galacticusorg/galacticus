@@ -192,10 +192,10 @@ contains
     !!{RST
     Return the excursion set barrier at the given variance and time.
     !!}
-    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
-          &                                     verbosityLevelWorking
-    use, intrinsic :: ISO_C_Binding    , only : c_size_t
-    use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
+    use            :: Display         , only : displayCounter       , displayCounterClear, displayIndent    , displayUnindent    , &
+          &                                    verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding   , only : c_size_t
+    use            :: Numerical_Ranges, only : Range_Pinned         , rangeLattice       , gridSchemePerUnit, gridSchemePerDecade
     implicit none
     class           (excursionSetFirstCrossingZhangHuiHighOrder), intent(inout)                 :: self
     double precision                                            , intent(in   )                 :: variance                             , time
@@ -203,6 +203,7 @@ contains
     double precision                                                           , dimension(0:1) :: hTime                                , hVariance
     double precision                                            , allocatable  , dimension(:,:) :: firstCrossingProbabilityTablePrevious
     logical                                                                                     :: makeTable                            , tableIsExtendable
+    type            (rangeLattice                              )                                :: latticeVariance                      , latticeTime
     integer         (c_size_t                                  )                                :: iVariance                            , iTime
     integer                                                                                     :: i                                    , j                         , &
          &                                                                                         jTime                                , jVariance                 , &
@@ -227,7 +228,22 @@ contains
           self%timeMinimum=0.5d0*time
           self%timeMaximum=2.0d0*time
        end if
+       ! Pin both axes to absolute lattices, so that the tabulation depends only on which anchored intervals the request fell in
+       ! rather than on the variance and time at which it was first built. The bounds are already widened monotonically above,
+       ! so no further margin is applied; pinning only snaps them outward onto lattice points. The variance axis is linear and
+       ! runs from zero, so the *whole* range [0,varianceMaximum] is the target: `limitMinimum` only clamps a range which would
+       ! otherwise extend below zero, it does not make one reach down to it.
+       !
+       ! This is done *before* the extendability test below, which compares the time bounds against those of the previous
+       ! tabulation for exact equality: the comparison must be between pinned bounds, or it would test a raw bound against a
+       ! stored pinned one. Pinning in fact makes that test succeed more often, since a small change in the requested time no
+       ! longer moves the bounds at all, so previously computed values are carried over more frequently.
+       latticeTime            =Range_Pinned([self%timeMinimum,self%timeMaximum],timeTableNumberPerDecade,gridSchemePerDecade,marginFactor=1.0d0)
+       self%timeMinimum       =latticeTime%minimum()
+       self%timeMaximum       =latticeTime%maximum()
        self%varianceMaximum   =max(self%varianceMaximum,variance)
+       latticeVariance        =Range_Pinned([0.0d0,self%varianceMaximum],varianceTableNumberPerUnit,gridSchemePerUnit,marginOffset=0.0d0,limitMinimum=0.0d0)
+       self%varianceMaximum   =latticeVariance%maximum()
        ! Make a copy of the current table if possible.
        tableIsExtendable=(self%timeMinimum == self%timeMinimumPrevious .and. self%timeMaximum == self%timeMaximumPrevious .and. self%tableInitialized)
        if (tableIsExtendable) then
@@ -241,8 +257,8 @@ contains
        end if
        self%timeMinimumPrevious=self%timeMinimum
        self%timeMaximumPrevious=self%timeMaximum
-       self%timeTableCount     =int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
-       self%varianceTableCount =int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
+       self%timeTableCount     =latticeTime    %count
+       self%varianceTableCount =latticeVariance%count-1
        ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (allocated(self%varianceTable                )) deallocate(self%varianceTable                )
        if (allocated(self%timeTable                    )) deallocate(self%timeTable                    )
@@ -250,8 +266,10 @@ contains
        allocate(self%varianceTable                (0:self%varianceTableCount                    ))
        allocate(self%timeTable                    (                          self%timeTableCount))
        allocate(self%firstCrossingProbabilityTable(0:self%varianceTableCount,self%timeTableCount))
-       self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
-       self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
+       ! Take the abscissae from the lattices rather than by subdividing the ranges, so that they are bit-identical to those of
+       ! any other tabulation built on the same lattices - which is what lets the values carried over above remain valid.
+       self%timeTable        =latticeTime    %values()
+       self%varianceTable    =latticeVariance%values()
        self%varianceTableStep=+self%varianceTable(4) &
             &                 -self%varianceTable(0)
        if (tableIsExtendable) then

@@ -29,7 +29,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use :: Display                   , only : displayVerbositySet                                      , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Spherical_Collapse_Solvers, only : collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions        , only : transferFunctionEisensteinHu1999
   use :: Unit_Tests                , only : Assert                                                   , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
@@ -77,7 +77,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
    <constructor>
     virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(                                                                     &amp;
      &amp;                                                    cosmologyFunctions_        =cosmologyFunctions_                    , &amp;
-     &amp;                                                    energyFixedAt              =cllsnlssMttrDarkEnergyFixedAtTurnaround, &amp;
+     &amp;                                                    energyFixedAt              =collisionlessMatterDarkEnergyFixedAtTurnaround, &amp;
      &amp;                                                    tableStore                 =.true.                                   &amp;
      &amp;                                                   )
    </constructor>

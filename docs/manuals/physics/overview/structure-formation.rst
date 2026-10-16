@@ -15,6 +15,8 @@ Below is a flowchart indicating the ingredients of Galacticus structure formatio
        Critical["<a href='https://galacticus.readthedocs.io/en/latest/physics/criticalOverdensity.html' style='text-decoration: none'>δ<sub>c</sub>(t)</a>"]
        Environment["<a href='https://galacticus.readthedocs.io/en/latest/physics/haloEnvironment.html' style='text-decoration: none'>Environment</a>"]
        HMF[<a href='https://galacticus.readthedocs.io/en/latest/physics/haloMassFunction.html' style='text-decoration: none'>Halo mass function</a>]
+       MAH[<a href='https://galacticus.readthedocs.io/en/latest/physics/darkMatterHaloMassAccretionHistory.html' style='text-decoration: none'>Mass accretion history</a>]
+       Concentration[<a href='https://galacticus.readthedocs.io/en/latest/physics/darkMatterProfileConcentration.html' style='text-decoration: none'>Concentration</a>]
        Cosmology --> Linear
        Cosmology --> Transfer
        Power --> Transfer
@@ -25,3 +27,7 @@ Below is a flowchart indicating the ingredients of Galacticus structure formatio
        Critical --> HMF
        Cosmology --> HMF
        Variance --> HMF
+       Cosmology --> MAH
+       Variance --> MAH
+       Critical --> MAH
+       MAH --> Concentration

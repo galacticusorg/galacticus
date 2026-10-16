@@ -5,7 +5,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="57d4f71e7573f4666f3fa72fb74cfa7d646d1d2d" time="2026-10-14T21:57:40"/>
 
 
   <verbosityLevel value="working"/>
@@ -108,7 +108,7 @@
   <!-- Merger tree operations -->
   <mergerTreeOperator value="sequence">
     <mergerTreeOperator value="conditionalMF">
-      <nameGroupOutput value="treeStatisticsInitial"/>
+      <outputGroupName value="treeStatisticsInitial"/>
       <countMassParent value="2"/>
       <massParentMinimum value="1.0e12"/>
       <massParentMaximum value="1.0e13"/>
@@ -125,7 +125,7 @@
       </outputTimes>
     </mergerTreeOperator>
     <mergerTreeOperator value="conditionalMF">
-      <nameGroupOutput value="treeStatisticsAfterRegrid"/>
+      <outputGroupName value="treeStatisticsAfterRegrid"/>
       <countMassParent value="2"/>
       <massParentMinimum value="1.0e12"/>
       <massParentMaximum value="1.0e13"/>
@@ -140,7 +140,7 @@
       <preservePrimaryProgenitor value="false"/>
     </mergerTreeOperator>
     <mergerTreeOperator value="conditionalMF">
-      <nameGroupOutput value="treeStatisticsAfterRegridPrune"/>
+      <outputGroupName value="treeStatisticsAfterRegridPrune"/>
       <countMassParent value="2"/>
       <massParentMinimum value="1.0e12"/>
       <massParentMaximum value="1.0e13"/>
@@ -179,7 +179,7 @@
       </mergerTreeBuilder>
     </mergerTreeOperator>
     <mergerTreeOperator value="conditionalMF">
-      <nameGroupOutput value="treeStatisticsAfterInsertion"/>
+      <outputGroupName value="treeStatisticsAfterInsertion"/>
       <countMassParent value="2"/>
       <massParentMinimum value="1.0e12"/>
       <massParentMaximum value="1.0e13"/>

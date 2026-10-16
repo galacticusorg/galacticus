@@ -85,6 +85,7 @@ contains
       The number of merger trees masses to sample per decade of base halo mass.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="mergerTreeBuildMassDistribution" name="mergerTreeBuildMassDistribution_" source="parameters"/>
     <objectBuilder class="randomNumberGenerator"           name="randomNumberGenerator_"           source="parameters"/>

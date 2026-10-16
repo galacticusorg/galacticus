@@ -26,7 +26,7 @@ Implements a merger tree filter which passes if any node in the tree passes the 
   !![
   <mergerTreeFilter name="mergerTreeFilterAnyNode" docformat="rst">
    <description>
-   A merger tree filter which passes the entire tree if at least one node within it satisfies a given galactic node filter, allowing selection of trees containing particular galaxy types or halo properties. Optionally applies a label to passing nodes or their entire branch, configured via ``[label]`` and ``[applyToDescendants]``.
+   A merger tree filter which passes the entire tree if at least one node within it satisfies a given galactic node filter, allowing selection of trees containing particular galaxy types or halo properties. Optionally applies a label to passing nodes or their entire branch, configured via ``[label]`` and ``[labelBranch]``.
    </description>
   </mergerTreeFilter>
   !!]

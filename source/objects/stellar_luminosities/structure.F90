@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Alex Merson.
+!+    Contributions to this file made by:  Alex Merson, Andrew Benson, Claude.
 
 !!{RST
 Contains a module which defines the stellar luminosities object.
@@ -82,9 +82,10 @@ module Stellar_Luminosities_Structure
      <methods docformat="rst">
        <method description="Multiply stellar luminosities by a scalar." method="operator(*)" />
        <method description="Divide stellar luminosities by a scalar." method="operator(/)" />
-       <method description="Add two stellarLuminosities." method="operator(+)" />
+       <method description="Add two ``stellarLuminosities``." method="operator(+)" />
        <method description="Subtract one abundance from another." method="operator(-)" />
        <method description="Increment a stellar luminosities object." method="increment" />
+       <method description="Add a stellar luminosities object directly into a serialized stellar luminosities vector (e.g. a slice of the ODE rate vector) in place, avoiding the deserialize/increment/serialize round-trip." method="incrementSerialized" />
        <method description="Return a count of the number of properties in a serialized stellar luminosities object." method="serializeCount" />
        <method description="Serialize a stellar luminosities object to an array." method="serialize" />
        <method description="Deserialize a stellar luminosities object from an array." method="deserialize" />
@@ -110,70 +111,82 @@ module Stellar_Luminosities_Structure
        <method description="Return the effective wavelength (in Å, in the frame of the filter) of a luminosity specified by index." method="wavelengthEffective" />
        <method description="Return the redshift to which the filter of a luminosity specified by index is shifted (zero for rest-frame filters)." method="bandRedshift" />
        <method description="Return the rest-frame effective wavelength (in Å) of a luminosity specified by index." method="wavelengthRestFrame" />
+       <method description="Return the range of stellar population ages contributing to a luminosity specified by index, and whether that range is a sharp window." method="ageWindow" />
        <method description="Truncate the number of stellar luminosities stored to match that in the given ``templateLuminosities``." method="truncate" />
        <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
      </methods>
      !!]
-     procedure         ::                          Stellar_Luminosities_Add
-     procedure         ::                          Stellar_Luminosities_Subtract
-     procedure         ::                          Stellar_Luminosities_Multiply
-     procedure         ::                          Stellar_Luminosities_Divide
-     generic           :: operator(+)           => Stellar_Luminosities_Add
-     generic           :: operator(-)           => Stellar_Luminosities_Subtract
-     generic           :: operator(*)           => Stellar_Luminosities_Multiply
-     generic           :: operator(/)           => Stellar_Luminosities_Divide
-     procedure         :: nonStaticSizeOf       => Stellar_Luminosities_Non_Static_Size_Of
-     procedure         :: isZero                => Stellar_Luminosities_Is_Zero
-     procedure         :: destroy               => Stellar_Luminosities_Destroy
-     procedure         :: reset                 => Stellar_Luminosities_Reset
-     procedure         :: builder               => Stellar_Luminosities_Builder
-     procedure         :: dump                  => Stellar_Luminosities_Dump
-     procedure         :: dumpRaw               => Stellar_Luminosities_Dump_Raw
-     procedure         :: readRaw               => Stellar_Luminosities_Read_Raw
-     procedure         :: setToUnity            => Stellar_Luminosities_Set_To_Unity
-     procedure         :: luminosity            => Stellar_Luminosities_Luminosity
-     procedure         :: setLuminosities       => Stellar_Luminosities_Set
-     procedure, nopass :: luminosityCount       => Stellar_Luminosities_Property_Count
-     procedure         :: serializeCount        => Stellar_Luminosities_Serialize_Count
-     procedure         :: serialize             => Stellar_Luminosities_Serialize
-     procedure         :: deserialize           => Stellar_Luminosities_Deserialize
-     procedure         :: increment             => Stellar_Luminosities_Increment
-     procedure         :: output                => Stellar_Luminosities_Output
-     procedure         :: postOutput            => Stellar_Luminosities_Post_Output
-     procedure, nopass :: luminosityOutputCount => Stellar_Luminosities_Output_Count_Get
-     procedure         :: outputCount           => Stellar_Luminosities_Output_Count
-     procedure         :: outputNames           => Stellar_Luminosities_Output_Names
-     procedure, nopass :: isOutput              => Stellar_Luminosities_Is_Output
-     procedure, nopass ::                          Stellar_Luminosities_Index_From_Name
-     procedure, nopass ::                          Stellar_Luminosities_Index_From_Properties
-     generic           :: index                 => Stellar_Luminosities_Index_From_Name      , &
-          &                                        Stellar_Luminosities_Index_From_Properties
-     procedure, nopass :: name                  => Stellar_Luminosities_Name
-     procedure, nopass :: wavelengthEffective   => Stellar_Luminosities_Wavelength_Effective
-     procedure, nopass :: bandRedshift          => Stellar_Luminosities_Band_Redshift
-     procedure, nopass :: wavelengthRestFrame   => Stellar_Luminosities_Wavelength_Rest_Frame
-     procedure         :: truncate              => Stellar_Luminosities_Truncate
+     procedure         :: Stellar_Luminosities_Add
+     procedure         :: Stellar_Luminosities_Subtract
+     procedure         :: Stellar_Luminosities_Multiply
+     procedure         :: Stellar_Luminosities_Divide
+     generic           :: operator(+)                                => Stellar_Luminosities_Add
+     generic           :: operator(-)                                => Stellar_Luminosities_Subtract
+     generic           :: operator(*)                                => Stellar_Luminosities_Multiply
+     generic           :: operator(/)                                => Stellar_Luminosities_Divide
+     procedure         :: nonStaticSizeOf                            => Stellar_Luminosities_Non_Static_Size_Of
+     procedure         :: isZero                                     => Stellar_Luminosities_Is_Zero
+     procedure         :: destroy                                    => Stellar_Luminosities_Destroy
+     procedure         :: reset                                      => Stellar_Luminosities_Reset
+     procedure         :: builder                                    => Stellar_Luminosities_Builder
+     procedure         :: dump                                       => Stellar_Luminosities_Dump
+     procedure         :: dumpRaw                                    => Stellar_Luminosities_Dump_Raw
+     procedure         :: readRaw                                    => Stellar_Luminosities_Read_Raw
+     procedure         :: setToUnity                                 => Stellar_Luminosities_Set_To_Unity
+     procedure         :: luminosity                                 => Stellar_Luminosities_Luminosity
+     procedure         :: setLuminosities                            => Stellar_Luminosities_Set
+     procedure, nopass :: luminosityCount                            => Stellar_Luminosities_Property_Count
+     procedure         :: serializeCount                             => Stellar_Luminosities_Serialize_Count
+     procedure         :: serialize                                  => Stellar_Luminosities_Serialize
+     procedure         :: deserialize                                => Stellar_Luminosities_Deserialize
+     procedure         :: increment                                  => Stellar_Luminosities_Increment
+     procedure         :: incrementSerialized                        => Stellar_Luminosities_Increment_Serialized
+     procedure         :: output                                     => Stellar_Luminosities_Output
+     procedure         :: postOutput                                 => Stellar_Luminosities_Post_Output
+     procedure, nopass :: luminosityOutputCount                      => Stellar_Luminosities_Output_Count_Get
+     procedure         :: outputCount                                => Stellar_Luminosities_Output_Count
+     procedure         :: outputNames                                => Stellar_Luminosities_Output_Names
+     procedure, nopass :: isOutput                                   => Stellar_Luminosities_Is_Output
+     procedure, nopass :: Stellar_Luminosities_Index_From_Name
+     procedure, nopass :: Stellar_Luminosities_Index_From_Properties
+     generic           :: index                                      => Stellar_Luminosities_Index_From_Name      , &
+          &               Stellar_Luminosities_Index_From_Properties
+     procedure, nopass :: name                                       => Stellar_Luminosities_Name
+     procedure, nopass :: wavelengthEffective                        => Stellar_Luminosities_Wavelength_Effective
+     procedure, nopass :: bandRedshift                               => Stellar_Luminosities_Band_Redshift
+     procedure, nopass :: wavelengthRestFrame                        => Stellar_Luminosities_Wavelength_Rest_Frame
+     procedure, nopass :: ageWindow                                  => Stellar_Luminosities_Age_Window
+     procedure         :: truncate                                   => Stellar_Luminosities_Truncate
   end type stellarLuminosities
   
   ! Arrays which hold the luminosity specifications.
-  integer                                                                                        :: luminosityCount                                      , luminosityCountUnmapped
-  integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                                , luminosityIndex               , &
+  integer                                                                                        :: luminosityCount                                 , &
+       &                                                                                            luminosityCountUnmapped
+  integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                           , &
+       &                                                                                            luminosityIndex                                 , &
        &                                                                                            luminosityMap
-  double precision                                                   , allocatable, dimension(:) :: luminosityBandRedshift                               , luminosityCosmicTime          , &
-       &                                                                                            luminosityRedshift                                   , luminosityWavelengthEffective , &
+  double precision                                                   , allocatable, dimension(:) :: luminosityBandRedshift                          , &
+       &                                                                                            luminosityCosmicTime                            , &
+       &                                                                                            luminosityRedshift                              , &
+       &                                                                                            luminosityWavelengthEffective                   , &
        &                                                                                            luminosityVegaOffset
   type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: luminosityPostprocessor
-  type            (varying_string                                   ), allocatable, dimension(:) :: luminosityFilter                                     , luminosityName                , &
-       &                                                                                            luminosityPostprocessSet                             , luminosityType                , &
-       &                                                                                            luminosityRedshiftText                               , luminosityBandRedshiftText
+  type            (varying_string                                   ), allocatable, dimension(:) :: luminosityFilter                                , &
+       &                                                                                            luminosityName                                  , &
+       &                                                                                            luminosityPostprocessSet                        , &
+       &                                                                                            luminosityType                                  , &
+       &                                                                                            luminosityRedshiftText                          , &
+       &                                                                                            luminosityBandRedshiftText
 
   ! Luminosity output options.
   integer                                                                                        :: luminosityOutputOption
-  integer                                                            , parameter                 :: luminosityOutputOptionAll                    =0      , luminosityOutputOptionFuture=1, &
-       &                                                                                            luminosityOutputOptionPresent                =2
+  integer                                                            , parameter                 :: luminosityOutputOptionAll                     =0, &
+       &                                                                                            luminosityOutputOptionFuture                  =1, &
+       &                                                                                            luminosityOutputOptionPresent                 =2
 
   ! Unit and zero stellarLuminosities objects.
-  type            (stellarLuminosities                              ), public                    :: unitStellarLuminosities                              , zeroStellarLuminosities
+  type            (stellarLuminosities                              ), public                    :: unitStellarLuminosities                         , &
+       &                                                                                            zeroStellarLuminosities
 
   ! Stellar population postprocessor builder used during initialization and state restoration.
   class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder__
@@ -199,14 +212,15 @@ contains
     use            :: Sorting            , only : sortByIndex       , sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
-    type            (inputParameters                                  ), intent(inout)             :: parameters
-    class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
-    class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
-    integer                                                                                        :: iLuminosity                                  , jLuminosity
-    double precision                                                                               :: expansionFactor
-    character       (len=10                                           )                            :: redshiftLabel
-    type            (varying_string                                   )                            :: luminosityOutputOptionText
-    integer         (c_size_t                                         ), allocatable, dimension(:) :: luminosityTimeIndex
+    type            (inputParameters                                  ), intent(inout)               :: parameters
+    class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
+    class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                     :: stellarPopulationSpectraPostprocessorBuilder_
+    integer                                                                                          :: iLuminosity                                  , &
+         &                                                                                              jLuminosity
+    double precision                                                                                 :: expansionFactor
+    character       (len=10                                           )                              :: redshiftLabel
+    type            (varying_string                                   )                              :: luminosityOutputOptionText
+    integer         (c_size_t                                         ), allocatable  , dimension(:) :: luminosityTimeIndex
 
     ! Get luminosity output option.
     !![
@@ -480,7 +494,7 @@ contains
   
   subroutine Stellar_Luminosities_Destroy(self)
     !!{RST
-    Destroy an stellarLuminosities object.
+    Destroy a ``stellarLuminosities`` object.
     !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
@@ -493,15 +507,16 @@ contains
     !!{RST
     Build a ``stellarLuminosities`` object from the given XML ``stellarLuminositiesDefinition``.
     !!}
-    use :: FoX_DOM, only : node                        , extractDataContent
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM           , only : node                        , extractDataContent
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList              , XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
-    class  (stellarLuminosities), intent(inout)              :: self
-    type   (node               ), intent(in   ), pointer     :: stellarLuminositiesDefinition
-    type   (node               )               , pointer     :: luminosity
-    type   (xmlNodeList        ), dimension(:) , allocatable :: luminosityList
-    integer                                                  :: i
+    class  (stellarLuminosities), intent(inout)               :: self
+    type   (node               ), intent(in   ), pointer      :: stellarLuminositiesDefinition
+    type   (node               ), pointer                     :: luminosity
+    type   (xmlNodeList        ), allocatable  , dimension(:) :: luminosityList
+    integer                                                   :: i                            , status
 
     ! Get the luminosities.
     !$omp critical (FoX_DOM_Access)
@@ -511,8 +526,9 @@ contains
        do i=0,luminosityCount-1
           !$omp critical (FoX_DOM_Access)
           luminosity => luminosityList(i)%element
-          call extractDataContent(luminosity,self%luminosityValue(i+1))
+          call extractDataContent(luminosity,self%luminosityValue(i+1),iostat=status)
           !$omp end critical (FoX_DOM_Access)
+          if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,'luminosity',0)//{introspection:location})
        end do
     end if
     return
@@ -548,7 +564,7 @@ contains
 
   subroutine Stellar_Luminosities_Dump_Raw(self,fileHandle)
     !!{RST
-    Dump an stellarLuminosities object to binary.
+    Dump a ``stellarLuminosities`` object to binary.
     !!}
     implicit none
     class  (stellarLuminosities), intent(in   ) :: self
@@ -568,7 +584,7 @@ contains
 
   subroutine Stellar_Luminosities_Read_Raw(self,fileHandle)
     !!{RST
-    Read an stellarLuminosities object from binary.
+    Read a ``stellarLuminosities`` object from binary.
     !!}
     implicit none
     class  (stellarLuminosities), intent(inout) :: self
@@ -593,7 +609,7 @@ contains
 
   subroutine Stellar_Luminosities_Reset(self)
     !!{RST
-    Reset an stellarLuminosities object.
+    Reset a ``stellarLuminosities`` object.
     !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
@@ -607,7 +623,7 @@ contains
 
   subroutine Stellar_Luminosities_Set_To_Unity(self)
     !!{RST
-    Set an stellarLuminosities object to unity.
+    Set a ``stellarLuminosities`` object to unity.
     !!}
     implicit none
     class(stellarLuminosities), intent(inout) :: self
@@ -621,7 +637,7 @@ contains
 
   logical function Stellar_Luminosities_Is_Zero(self)
     !!{RST
-    Test whether an stellarLuminosities object is zero.
+    Test whether a ``stellarLuminosities`` object is zero.
     !!}
     implicit none
     class(stellarLuminosities), intent(in   ) :: self
@@ -659,7 +675,7 @@ contains
 
   integer function stellarLuminositiesCountMaximum(luminosities1,luminosities2)
     implicit none
-    type   (stellarLuminosities), intent(in   ) :: luminosities1, luminosities2
+    type(stellarLuminosities), intent(in   ) :: luminosities1, luminosities2
 
     if (allocated(luminosities1%luminosityValue).or.allocated(luminosities2%luminosityValue)) then
        stellarLuminositiesCountMaximum=0
@@ -759,6 +775,27 @@ contains
     end if
     return
   end subroutine Stellar_Luminosities_Increment
+
+  subroutine Stellar_Luminosities_Increment_Serialized(self,stellarLuminositiesArray,increment)
+    !!{RST
+    Accumulate ``increment`` directly into a *serialized* stellar luminosities object held in ``stellarLuminositiesArray`` (for
+    example, a slice of the ODE rate vector), using the same layout as ``serialize`` and ``deserialize``. This avoids the
+    deserialize/increment/serialize round-trip and its copies. As in ``increment``, only the luminosities present in both objects
+    are accumulated, and an unallocated ``increment`` is treated as zero.
+    !!}
+    implicit none
+    class           (stellarLuminosities), intent(in   )               :: self
+    double precision                     , intent(inout), dimension(:) :: stellarLuminositiesArray
+    class           (stellarLuminosities), intent(in   )               :: increment
+    integer                                                            :: luminosityCountActual
+    !$GLC attributes unused :: self
+
+    if (luminosityCount == 0 .or. .not.allocated(increment%luminosityValue)) return
+    luminosityCountActual=min(luminosityCount,size(stellarLuminositiesArray),size(increment%luminosityValue))
+    stellarLuminositiesArray(1:luminosityCountActual)=+stellarLuminositiesArray (1:luminosityCountActual) &
+         &                                            +increment%luminosityValue(1:luminosityCountActual)
+    return
+  end subroutine Stellar_Luminosities_Increment_Serialized
 
   function Stellar_Luminosities_Subtract(luminosities1,luminosities2)
     !!{RST
@@ -935,6 +972,37 @@ contains
     return
   end function Stellar_Luminosities_Wavelength_Rest_Frame
 
+  subroutine Stellar_Luminosities_Age_Window(index,ageMinimum,ageMaximum,isSharp)
+    !!{RST
+    Return the range of stellar population ages (in Gyr) which contribute to the specified entry in the stellar
+    luminosities structure, together with whether that range is a *sharp* window---that is, whether the postprocessing
+    chain applied to this luminosity suppresses ages outside the range while leaving the age dependence within it
+    untouched.
+
+    The range is that reported by the postprocessing chain itself, so it stays correct if the chain is reconfigured.
+    Only a sharp window may be used to isolate the light of a range of ages by differencing luminosities computed with
+    different chains; ``isSharp`` must therefore be tested before the range is relied upon. An empty window, signaled
+    by ``ageMaximum`` :math:`\le` ``ageMinimum``, means that the chain suppresses emission at every age.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    integer         , intent(in   ) :: index
+    double precision, intent(  out) :: ageMinimum, ageMaximum
+    logical         , intent(  out) :: isSharp
+
+    ! Check for index in range.
+    if (index > 0 .and. index <= luminosityCount) then
+       call luminosityPostprocessor(index)%stellarPopulationSpectraPostprocessor_%ageRange(ageMinimum,ageMaximum)
+       isSharp=luminosityPostprocessor(index)%stellarPopulationSpectraPostprocessor_%ageWindowIsSharp()
+    else
+       ageMinimum=0.0d0
+       ageMaximum=0.0d0
+       isSharp   =.false.
+       call Error_Report('index out of range'//{introspection:location})
+    end if
+    return
+  end subroutine Stellar_Luminosities_Age_Window
+
   subroutine Stellar_Luminosities_Create(self)
     !!{RST
     Ensure that the ``luminosity`` array in a ``stellarLuminosities`` is allocated.
@@ -951,8 +1019,8 @@ contains
     Pack stellar luminosities from an array into a ``stellarLuminosities`` structure.
     !!}
     implicit none
-    class           (stellarLuminosities)              , intent(inout) :: self
-    double precision                     , dimension(:), intent(in   ) :: stellarLuminositiesArray
+    class           (stellarLuminosities), intent(inout)               :: self
+    double precision                     , intent(in   ), dimension(:) :: stellarLuminositiesArray
 
     select type (self)
     type is (stellarLuminosities)
@@ -969,8 +1037,8 @@ contains
     Unpack stellar luminosities from a ``stellarLuminosities`` structure into an array.
     !!}
     implicit none
-    double precision                     , dimension(:), intent(  out) :: stellarLuminositiesArray(:)
-    class           (stellarLuminosities)              , intent(in   ) :: self
+    double precision                     , intent(  out), dimension(:) :: stellarLuminositiesArray(:)
+    class           (stellarLuminosities), intent(in   )               :: self
 
     ! Place luminosities into array.
     if (allocated(self%luminosityValue)) then
@@ -1015,10 +1083,10 @@ contains
     Clean up a ``stellarLuminosities`` object after output.
     !!}
     implicit none
-    class           (stellarLuminosities)                , intent(inout) :: self
-    double precision                                     , intent(in   ) :: time
-    double precision                     , dimension(:  ), allocatable   :: luminosityTmp
-    integer                                                              :: i            , luminosityRemainingCount
+    class           (stellarLuminosities), intent(inout)               :: self
+    double precision                     , intent(in   )               :: time
+    double precision                     , allocatable  , dimension(:) :: luminosityTmp
+    integer                                                            :: i            , luminosityRemainingCount
 
     if (luminosityCount > 0) then
        select case (luminosityOutputOption)
@@ -1075,14 +1143,14 @@ contains
     use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     use :: Units_MetaData                    , only : unitType
     implicit none
-    class           (stellarLuminosities  )              , intent(in   ) :: self
-    double precision                                     , intent(in   ) :: time
-    integer                                              , intent(inout) :: doubleProperty   , integerProperty
-    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
-    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
-    character       (len=*                )              , intent(in   ) :: comment          , prefix         , &
-         &                                                                  unitsDescription  , unitsQuantity
-    double precision                                     , intent(in   ) :: unitsInSI
+    class           (stellarLuminosities  ), intent(in   )               :: self
+    double precision                       , intent(in   )               :: time
+    integer                                , intent(inout)               :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble ), intent(inout), dimension(:) :: doubleProperties
+    character       (len=*                ), intent(in   )               :: comment          , prefix         , &
+         &                                                                  unitsDescription , unitsQuantity
+    double precision                       , intent(in   )               :: unitsInSI
     integer                                                              :: i
     !$GLC attributes unused :: self, integerProperty, integerProperties
 
@@ -1141,12 +1209,14 @@ contains
     use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
     use :: Stellar_Populations                       , only : stellarPopulationClass
     implicit none
-    class           (stellarLuminosities                        )                             :: self
-    class           (stellarPopulationClass                     ), intent(inout)              :: stellarPopulation_
-    class           (stellarPopulationBroadBandLuminositiesClass), intent(inout)              :: stellarPopulationBroadBandLuminosities_
-    double precision                                             , intent(in   )              :: mass                                   , time
-    type            (abundances                                 ), intent(in   )              :: abundancesStellar
-    double precision                                             , dimension(:) , allocatable :: ages                                   , massToLightRatio
+    class           (stellarLuminosities                        )                              :: self
+    class           (stellarPopulationClass                     ), intent(inout)               :: stellarPopulation_
+    class           (stellarPopulationBroadBandLuminositiesClass), intent(inout)               :: stellarPopulationBroadBandLuminosities_
+    double precision                                             , intent(in   )               :: mass                                   , &
+         &                                                                                        time
+    type            (abundances                                 ), intent(in   )               :: abundancesStellar
+    double precision                                             , allocatable  , dimension(:) :: ages                                   , &
+         &                                                                                        massToLightRatio
 
     ! Return if no luminosities are tracked.
     if (luminosityCount == 0) return
@@ -1372,29 +1442,46 @@ contains
     use            :: Stellar_Population_Spectra, only : stellarPopulationSpectra, stellarPopulationSpectraClass
     use            :: String_Handling           , only : String_Split_Words      , char
     implicit none
-    integer                                        , intent(inout), allocatable, dimension(:) :: luminosityMap
-    type            (varying_string               ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
-         &                                                                                       luminosityType           , luminosityPostprocessSet
-    double precision                               , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    type            (inputParameters              ), intent(inout)                            :: parameters
-    integer         (c_size_t                     )                                           :: i                        , j                          , &
-         &                                                                                       k                        , newFilterCount,luminosityCount
-    integer                                                       , allocatable, dimension(:) :: luminosityMapTmp
-    type            (varying_string               )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
-         &                                                                                       luminosityTypeTmp        , luminosityPostprocessSetTmp
-    type            (varying_string               )                            , dimension(5) :: specialFilterWords
-    double precision                                              , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
-    class           (stellarPopulationSpectraClass), pointer                                  :: stellarPopulationSpectra_
-    class           (cosmologyFunctionsClass      ), pointer                                  :: cosmologyFunctions_
-    character       (len= 32                      )                                           :: redshiftLabel            , word                       , &
-         &                                                                                       wavelengthCentralLabel   , resolutionLabel
-    character       (len=256                      )                                           :: newFilterName            , lineName
-    double precision                                                                          :: wavelengthMinimum        , wavelengthMaximum          , &
-         &                                                                                       restWavelengthMinimum    , restWavelengthMaximum      , &
-         &                                                                                       wavelengthRatio          , wavelengthCentral          , &
-         &                                                                                       observedWidth            , restWidth                  , &
-         &                                                                                       tabulatedWidth           , filterWidth                , &
-         &                                                                                       resolution
+    integer                                        , intent(inout), allocatable , dimension(:) :: luminosityMap
+    type            (varying_string               ), intent(inout), allocatable , dimension(:) :: luminosityRedshiftText     , &
+         &                                                                                        luminosityFilter           , &
+         &                                                                                        luminosityType             , &
+         &                                                                                        luminosityPostprocessSet
+    double precision                               , intent(inout), allocatable , dimension(:) :: luminosityRedshift         , &
+         &                                                                                        luminosityBandRedshift
+    type            (inputParameters              ), intent(inout)                             :: parameters
+    integer         (c_size_t                     )                                            :: i                          , &
+         &                                                                                        j                          , &
+         &                                                                                        k                          , &
+         &                                                                                        newFilterCount             , &
+         &                                                                                        luminosityCount
+    integer                                        , allocatable  , dimension(:)               :: luminosityMapTmp
+    type            (varying_string               ), allocatable  , dimension(:)               :: luminosityRedshiftTextTmp  , &
+         &                                                                                        luminosityFilterTmp        , &
+         &                                                                                        luminosityTypeTmp          , &
+         &                                                                                        luminosityPostprocessSetTmp
+    type            (varying_string               ), dimension(5)                              :: specialFilterWords
+    double precision                               , allocatable  , dimension(:)               :: luminosityRedshiftTmp      , &
+         &                                                                                        luminosityBandRedshiftTmp
+    class           (stellarPopulationSpectraClass), pointer                                   :: stellarPopulationSpectra_
+    class           (cosmologyFunctionsClass      ), pointer                                   :: cosmologyFunctions_
+    character       (len= 32                      )                                            :: redshiftLabel              , &
+         &                                                                                        word                       , &
+         &                                                                                        wavelengthCentralLabel     , &
+         &                                                                                        resolutionLabel
+    character       (len=256                      )                                            :: newFilterName              , &
+         &                                                                                        lineName
+    double precision                                                                           :: wavelengthMinimum          , &
+         &                                                                                        wavelengthMaximum          , &
+         &                                                                                        restWavelengthMinimum      , &
+         &                                                                                        restWavelengthMaximum      , &
+         &                                                                                        wavelengthRatio            , &
+         &                                                                                        wavelengthCentral          , &
+         &                                                                                        observedWidth              , &
+         &                                                                                        restWidth                  , &
+         &                                                                                        tabulatedWidth             , &
+         &                                                                                        filterWidth                , &
+         &                                                                                        resolution
     
     !![
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -1907,9 +1994,9 @@ contains
     Map an array of luminosity-related input parameters into a new array accounting for special case processing.
     !!}
     implicit none
-    double precision, intent(inout), allocatable, dimension(:) :: parameters
-    double precision               , allocatable, dimension(:) :: parametersMapped
-    integer                                                    :: i
+    double precision, intent(inout), allocatable , dimension(:) :: parameters
+    double precision, allocatable  , dimension(:)               :: parametersMapped
+    integer                                                     :: i
 
     ! Allocate new array.
     allocate(parametersMapped(luminosityCount))
@@ -2026,10 +2113,10 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    type   (stellarPopulationSpectraPostprocessorList), dimension(:          ), intent(inout) :: array
-    integer(kind=c_size_t                            ), dimension(:          ), intent(in   ) :: index
-    type   (stellarPopulationSpectraPostprocessorList), dimension(size(array))                :: arrayTmp
-    integer(kind=c_size_t                            )                                        :: i
+    type   (stellarPopulationSpectraPostprocessorList), intent(inout)         , dimension(:) :: array
+    integer(kind=c_size_t                            ), intent(in   )         , dimension(:) :: index
+    type   (stellarPopulationSpectraPostprocessorList), dimension(size(array))               :: arrayTmp
+    integer(kind=c_size_t                            )                                       :: i
 
     do i=1,size(array)
        arrayTmp(i)=array(index(i))

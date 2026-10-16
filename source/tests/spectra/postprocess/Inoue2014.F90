@@ -44,6 +44,8 @@ program Test_Inoue2014
   ! Compare our calculation of attenuation with that from Inoue's own code and record the maximum error. The file read below was
   ! extracted from the tarball containing Inoue's code (where it was originally called "test") downloaded from:
   !   http://www.las.osaka-sandai.ac.jp/~inoue/ANAIGM/ANAIGM.tar.gz
+  ! That URL is now dead and no archived copy of the tarball could be found - it is retained here only to record the provenance of
+  ! the file, and is excluded from the link checker (see `scripts/aux/linkChecker.py`) for that reason.
   postprocessor=stellarPopulationSpectraPostprocessorInoue2014()
   relativeErrorMaximum=0.0d0
   open(newunit=inoueUnit,file="testSuite/data/inoue2014igmAttenuationModel.txt",status='old',form='formatted',iostat=ioStatus)

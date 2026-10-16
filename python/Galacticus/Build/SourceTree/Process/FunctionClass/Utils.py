@@ -6,6 +6,7 @@ Andrew Benson (ported to Python 2026)
 import re
 
 
+from Fortran.Utils              import TYPE_ATTRIBUTES_TAGGED, type_opener_regex
 from Galacticus.Build.SourceTree import walk_tree
 
 
@@ -15,7 +16,7 @@ def _walk_forward(node):
     Unlike `walk_tree(subtree)`, this walk does not stop at the end of the
     starting node's subtree — it continues through siblings and
     up-then-siblings all the way through the rest of the whole tree.  We
-    materialise this by starting at the top of the tree, collecting every
+    materialize this by starting at the top of the tree, collecting every
     node into a list, and iterating from the given node's position onward.
     """
     root = node
@@ -41,11 +42,9 @@ def class_dependencies(class_node, directive_name):
     """
     class_record = {}
     dependencies = []
-    pattern = re.compile(
-        r'^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*'
-        r'|,\s*extends\s*\(([a-zA-Z0-9_]+)\)\s*)*'
-        r'(?:::)?\s*' + re.escape(directive_name) + r'([a-z0-9_]+)\s*$',
-        re.IGNORECASE,
+    pattern = type_opener_regex(
+        name=re.escape(directive_name) + r'[a-z0-9_]+',
+        attributes=TYPE_ATTRIBUTES_TAGGED,
     )
 
     for node in _walk_forward(class_node):
@@ -58,11 +57,11 @@ def class_dependencies(class_node, directive_name):
 
         if node.get('type') == 'type':
             m = pattern.match(node.get('opener') or '')
-            if not m or m.group(2) is None:
+            if not m or m.group('extends') is None:
                 continue
-            class_record['extends'] = m.group(2)
-            class_record['type']    = directive_name + m.group(3)
-            dependencies.append(m.group(2))
+            class_record['extends'] = m.group('extends')
+            class_record['type']    = m.group('name')
+            dependencies.append(m.group('extends'))
             # Pull in cross-references: `class(Xfoo)` / `type(Xfoo)` members
             # whose type is another member of the same functionClass family.
             child = node.get('firstChild')

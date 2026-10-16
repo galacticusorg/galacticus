@@ -125,7 +125,7 @@ contains
     return
   end subroutine sphericalSymmetryDestructor
 
-  subroutine sphericalSymmetryFactors(self,node,nodeHost,atPericenter,massEnclosedHost,densityHost,radiusOrbital,velocityOrbital)
+  subroutine sphericalSymmetryFactors(self,node,nodeHost,atPericenter,massEnclosedHost,densityHost,positionOrbital,velocityOrbital)
     !!{RST
     Compute relevant quantities for spherically symmetric tidal field calculations.
     !!}
@@ -140,13 +140,14 @@ contains
     type            (treeNode                            ), intent(inout)                   :: node
     type            (treeNode                            ), intent(inout), optional, target :: nodeHost
     logical                                               , intent(in   )                   :: atPericenter
-    double precision                                      , intent(  out)                   :: massEnclosedHost  , densityHost    , &
-         &                                                                                     radiusOrbital     , velocityOrbital
+    double precision                                      , intent(  out)                   :: massEnclosedHost  , densityHost
+    double precision                                      , intent(  out), dimension(3)     :: positionOrbital   , velocityOrbital
     type            (treeNode                            ), pointer                         :: nodeHost_
     class           (nodeComponentSatellite              ), pointer                         :: satellite
     class           (massDistributionClass               ), pointer                         :: massDistribution_
     type            (keplerOrbit                         )                                  :: orbit
     type            (coordinateCylindrical               )                                  :: coordinatesOrbital
+    double precision                                                                        :: radiusOrbital     , speedOrbital
 
     ! Find the host node.
     if (present(nodeHost)) then
@@ -158,13 +159,18 @@ contains
     satellite => node%satellite()
     ! Get the position and velocity at which the tidal field should be evaluated.
     if (atPericenter) then
-       ! Get the orbital radius and velocity at pericenter.
+       ! Get the orbital radius and velocity at pericenter. Only their magnitudes are defined there, so place the satellite on
+       ! the x-axis moving in the y-direction: at pericenter the velocity is purely tangential, so this is a consistent set of
+       ! phase space coordinates, and the tidal tensor of a spherical host is defined only up to a rotation in any case.
        orbit=satellite%virialOrbit()
-       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost_,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%darkMatterHaloScale_)
+       call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost_,orbit,extremumPericenter,radiusOrbital,speedOrbital,self%darkMatterHaloScale_)
+       positionOrbital=[radiusOrbital,0.0d0       ,0.0d0]
+       velocityOrbital=[0.0d0        ,speedOrbital,0.0d0]
     else
        ! Use the current orbital position/velocity.
-       radiusOrbital  =Vector_Magnitude(satellite%position())
-       velocityOrbital=Vector_Magnitude(satellite%velocity())
+       positionOrbital=satellite%position()
+       velocityOrbital=satellite%velocity()
+       radiusOrbital  =Vector_Magnitude(positionOrbital)
     end if
     ! Find the mass and density of the host halo at pericenter.
     coordinatesOrbital =  [radiusOrbital,0.0d0,0.0d0]
@@ -184,17 +190,19 @@ contains
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Tensors                         , only : tensorNullR2D3Sym             , tensorIdentityR2D3Sym, assignment(=), operator(*)
-    use :: Vectors                         , only : Vector_Outer_Product
+    use :: Vectors                         , only : Vector_Magnitude              , Vector_Outer_Product , Vector_Product
     implicit none
     type            (tensorRank2Dimension3Symmetric      )                                  :: tidalTensor
     class           (satelliteTidalFieldSphericalSymmetry), intent(inout)                   :: self
     type            (treeNode                            ), intent(inout)                   :: node
     type            (treeNode                            ), intent(inout), optional, target :: nodeHost
-    logical                                               , intent(in   ), optional         :: atPericenter     , includeCentrifugalAcceleration
-    double precision                                      , dimension(3)                    :: positionCartesian
-    type            (tensorRank2Dimension3Symmetric      )                                  :: positionTensor   , accelerationTensor
-    double precision                                                                        :: densityHost      , massEnclosedHost              , &
-         &                                                                                     radiusOrbital    , velocityOrbital
+    logical                                               , intent(in   ), optional         :: atPericenter         , includeCentrifugalAcceleration
+    double precision                                      , dimension(3)                    :: positionCartesian    , velocityCartesian             , &
+         &                                                                                     velocityAngular
+    type            (tensorRank2Dimension3Symmetric      )                                  :: positionTensor       , accelerationTensor            , &
+         &                                                                                     velocityAngularTensor
+    double precision                                                                        :: densityHost          , massEnclosedHost              , &
+         &                                                                                     radiusOrbital
     !![
     <optionalArgument name="atPericenter"                   defaultsTo=".false."/>
     <optionalArgument name="includeCentrifugalAcceleration" defaultsTo=".false."/>
@@ -206,23 +214,26 @@ contains
        return
     end if
     ! Get required factors.
-    call self%factors(node,nodeHost,atPericenter_,massEnclosedHost,densityHost,radiusOrbital,velocityOrbital)
-    ! Construct the tidal tensor.
-    positionCartesian=[radiusOrbital,0.0d0,0.0d0]
-    positionTensor   =Vector_Outer_Product(positionCartesian,symmetrize=.true.)
-    tidalTensor      =+gravitationalConstant_internal                                       &
-         &            *(                                                                    &
-         &              -(massEnclosedHost         /radiusOrbital**3)*tensorIdentityR2D3Sym &
-         &              +(massEnclosedHost*3.0d0   /radiusOrbital**5)*positionTensor        &
-         &              -(densityHost     *4.0d0*Pi/radiusOrbital**2)*positionTensor        &
-         &             )
-    ! Add centrifugal term if requested.
+    call self%factors(node,nodeHost,atPericenter_,massEnclosedHost,densityHost,positionCartesian,velocityCartesian)
+    ! Construct the tidal tensor. It is evaluated at the satellite's actual position: while the host is spherically symmetric,
+    ! the tensor is not isotropic, and evaluating it along the x-axis instead would return a tensor in a frame rotating with the
+    ! satellite. That matters for the time integral of the tensor along the orbit, which is accumulated in a fixed frame.
+    radiusOrbital =Vector_Magnitude     (positionCartesian                  )
+    positionTensor=Vector_Outer_Product (positionCartesian,symmetrize=.true.)
+    tidalTensor   =+gravitationalConstant_internal                                       &
+         &         *(                                                                    &
+         &           -(massEnclosedHost         /radiusOrbital**3)*tensorIdentityR2D3Sym &
+         &           +(massEnclosedHost*3.0d0   /radiusOrbital**5)*positionTensor        &
+         &           -(densityHost     *4.0d0*Pi/radiusOrbital**2)*positionTensor        &
+         &          )
+    ! Add centrifugal term if requested. The centrifugal acceleration in the frame co-rotating with the satellite is
+    ! -ω×(ω×r), with angular velocity ω=r×v/r², so its contribution to the tidal tensor is |ω|²δ_ij-ω_iω_j.
     if (includeCentrifugalAcceleration_) then
-       accelerationTensor= tensorRank2Dimension3Symmetric(1.0d0,0.0d0,0.0d0,0.0d0,0.0d0,1.0d0)
-       tidalTensor       =+tidalTensor        &
-            &             +accelerationTensor &
-            &             *velocityOrbital**2 &
-            &             /radiusOrbital  **2
+       velocityAngular      =Vector_Product      (positionCartesian,velocityCartesian)/radiusOrbital**2
+       velocityAngularTensor=Vector_Outer_Product(velocityAngular  ,symmetrize=.true.)
+       accelerationTensor   =tensorIdentityR2D3Sym*sum(velocityAngular**2)-velocityAngularTensor
+       tidalTensor          =+tidalTensor        &
+            &                +accelerationTensor
     end if
     ! Boost the tidal field.
     tidalTensor=+     tidalTensor &
@@ -236,13 +247,15 @@ contains
     !!}
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Vectors                         , only : Vector_Magnitude              , Vector_Product
     implicit none
     class           (satelliteTidalFieldSphericalSymmetry), intent(inout)                   :: self
     type            (treeNode                            ), intent(inout)                   :: node
     type            (treeNode                            ), intent(inout), optional, target :: nodeHost
-    logical                                               , intent(in   ), optional         :: atPericenter , includeCentrifugalAcceleration
-    double precision                                                                        :: densityHost  , massEnclosedHost              , &
-         &                                                                                     radiusOrbital, velocityOrbital
+    logical                                               , intent(in   ), optional         :: atPericenter     , includeCentrifugalAcceleration
+    double precision                                      , dimension(3)                    :: positionCartesian, velocityCartesian
+    double precision                                                                        :: densityHost      , massEnclosedHost              , &
+         &                                                                                     radiusOrbital
     !![
     <optionalArgument name="atPericenter"                   defaultsTo=".false."/>
     <optionalArgument name="includeCentrifugalAcceleration" defaultsTo=".false."/>
@@ -254,17 +267,20 @@ contains
        return
     end if
     ! Get required factors.
-    call self%factors(node,nodeHost,atPericenter_,massEnclosedHost,densityHost,radiusOrbital,velocityOrbital)
+    call self%factors(node,nodeHost,atPericenter_,massEnclosedHost,densityHost,positionCartesian,velocityCartesian)
+    radiusOrbital            =Vector_Magnitude(positionCartesian)
     ! Compute the tidal field.
     tidalTensorRadial       =+2.0d0   *gravitationalConstant_internal*massEnclosedHost/radiusOrbital**3 &
          &                   -4.0d0*Pi*gravitationalConstant_internal*densityHost
-    ! Add centrifugal term if requested.
-    if (includeCentrifugalAcceleration_)         &
-         & tidalTensorRadial=+tidalTensorRadial  &
-         &                   +velocityOrbital**2 &
-         &                   /radiusOrbital  **2
+    ! Add centrifugal term if requested. The radial component of |ω|²δ_ij-ω_iω_j is |ω|², since the angular velocity
+    ! ω=r×v/r² is perpendicular to the radial direction; note that this is the *tangential* speed over the radius, not the
+    ! total speed, so it differs from the latter for an eccentric orbit.
+    if (includeCentrifugalAcceleration_)                                                  &
+         & tidalTensorRadial=+tidalTensorRadial                                           &
+         &                   +sum(Vector_Product(positionCartesian,velocityCartesian)**2) &
+         &                   /                                     radiusOrbital     **4
     ! Boost the tidal field.
-    tidalTensorRadial=+      tidalTensorRadial &
+    tidalTensorRadial=+     tidalTensorRadial &
          &            *self%factorBoost
     return
   end function sphericalSymmetryTidalTensorRadial

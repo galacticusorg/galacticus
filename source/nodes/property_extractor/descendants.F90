@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
-Implements an ISM mass output analysis property extractor class.
+Implements a node property extractor for the index of the descendant node at the next output time.
 !!}
 
   use :: Output_Times, only : outputTimes, outputTimesClass
@@ -205,6 +207,6 @@ contains
     class(nodePropertyExtractorDescendants), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    descendantsDescription=var_str('ID of the node which this node will have descended into by the next timestep.')
+    descendantsDescription=var_str('Index of the node containing this galaxy at the next output time - equal to the index of this node itself if it survives to that output.')
     return
   end function descendantsDescription

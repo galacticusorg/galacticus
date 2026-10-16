@@ -18,22 +18,43 @@ A build proceeds, conceptually, in four phases:
 The Makefile
 ~~~~~~~~~~~~
 
-Files generated during the build (with the exception of final executables) are written to the directory specified by the ``BUILDPATH`` variable. This is normally ``work/build/`` (and is set by the ``Makefile``) unless a special build configuration is requested via ``GALACTICUS_BUILD_OPTION``:
+Build options
+^^^^^^^^^^^^^
 
-``default``
-   Standard build (``BUILDPATH=./work/build``).
+Each of the following make variables (settable on the command line or from the environment) controls a single aspect of the build, and they may be combined freely:
 
 ``MPI``
-   MPI-enabled build (``BUILDPATH=./work/buildMPI``); compilers default to ``mpif90``/``mpicc``/``mpic++`` (overridable via ``MPIFCCOMPILER`` etc.) and ``-DUSEMPI`` is defined.
+   ``no`` (default) or ``yes``: an MPI-enabled build. ``-DUSEMPI`` is defined, and the compilers default to ``mpif90``/``mpicc``/``mpic++`` (overridable via ``MPIFCCOMPILER`` etc.).
 
-``lib``
-   Shared-library build of ``libgalacticus.so`` (``BUILDPATH=./work/buildLib``); adds ``-fPIC`` and heap trampolines, and activates the library-interface generators (see Section :galacticus-ref:`buildLibraryInterface`).
+``LIBRARY``
+   ``no`` (default) or ``yes``: a shared-library build of ``libgalacticus.so``. Adds ``-fPIC`` and heap trampolines, and activates the library-interface generators (see Section :galacticus-ref:`buildLibraryInterface`).
 
-``gprof``, ``perf``, ``odeprof``
-   Profiling variants (``-pg``, ``-fno-omit-frame-pointer``, and ``-DPROFILE`` respectively), each with its own build directory and executable ``SUFFIX``.
+``PROFILER``
+   ``none`` (default), ``gprof``, or ``perf``: instrument the code for a profiler, with ``-pg`` for ``gprof``, or frame pointers (``-fno-omit-frame-pointer``) for ``perf``.
 
-``compileprof``
-   Build-profiling mode: every recipe is run through the ``profiler.sh`` wrapper SHELL to collect timing and memory data (see Section :galacticus-ref:`buildProfiling`).
+``ODEPROFILE``
+   ``no`` (default) or ``yes``: profile the ODE solver (``-DPROFILE``).
+
+``DEBUGGING``
+   ``no`` (default) or ``yes``: a debugging build. ``-DDEBUGGING`` is added to ``GALACTICUS_FCFLAGS`` (and exported), as the build's code generators and dependency scanner read it from there.
+
+``BUILDPROFILE``
+   ``no`` (default) or ``yes``: profile the build itself. Every recipe is run through the ``profiler.sh`` wrapper SHELL to collect timing and memory data (see Section :galacticus-ref:`buildProfiling`). This does not change the code built.
+
+``PGO``
+   ``no`` (default), ``generate``, or ``use``: the two phases of a profile-guided optimization build, which made the executable 6--17% faster, depending on the model, in tests on one machine (see issue #1449). The profiles that the second phase uses are located by object file path, so both phases use the same build directory (``work/buildPGO/`` on its own):
+
+   #. ``make PGO=generate Galacticus.exe`` builds an instrumented executable, ``Galacticus.exe_PGOInstrumented``, which runs several times slower than a normal build. Each run of it adds execution counts to ``*.gcda`` profile files in the build directory. Run it, from the repository root, on the training models in ``testSuite/parameters/pgo/``. Counters are updated atomically, so training runs may use several OpenMP threads.
+   #. ``make PGO=use Galacticus.exe`` rebuilds using those profiles, producing ``Galacticus.exe_PGO``. It stops with an error if there are no profiles.
+
+   Profiles are valid only for the exact source and flags they were generated from, so rebuild and retrain after any change. Switching phase rebuilds everything (see the build configuration stamp, below); any change in the configuration of a ``generate`` build deletes existing profiles; and a ``use`` build is redone if any profile has changed since it was last built. Code that training did not reach is optimized as in a normal build (``-fprofile-partial-training``). The ``PGO Build`` workflow (``.github/workflows/pgo.yml``) runs both phases weekly, and for each version tag, and publishes the result as the release asset ``Galacticus.exe_PGO``. The profile changes compiler optimization decisions, so results of baryonic models can differ from those of a normal build: differences begin at the level of floating-point round-off, but the ODE solver can amplify them in individual galaxies.
+
+Files generated during the build (with the exception of final executables) are written to the directory specified by the ``BUILDPATH`` variable. Each of the above options that changes the code built adds a tag to both this directory and the suffix (``SUFFIX``) given to executables, so that each combination of options is built separately, and the results can coexist: the tags are ``MPI``, ``Lib``, ``Debug``, ``ODEProf``, ``GProf``, ``Perf``, and ``PGO``, in that order (except that the instrumented executable of ``PGO=generate`` has the suffix ``PGOInstrumented``). For example, ``make MPI=yes PROFILER=perf Galacticus.exe`` builds in ``work/buildMPIPerf/`` and produces ``Galacticus.exe_MPIPerf``. With none of these options, ``BUILDPATH`` is ``work/build/`` and the suffix is empty. Setting ``BUILDPATH`` or ``SUFFIX`` explicitly overrides the derived value - for example, ``make MPI=yes SUFFIX= Galacticus.exe`` produces plain ``Galacticus.exe``.
+
+Every preprocessed source and object also depends on a build configuration stamp, ``$(BUILDPATH)/buildConfiguration.stamp``, which records the compilers and all compiler flags. The Makefile rewrites it, once it has been read in full, only when they change, so that any change in configuration not reflected in the build directory - such as ``LTO``, ``GALACTICUS_FCFLAGS``, or a newly detected library - rebuilds everything, rather than linking objects built under the old configuration with those built under the new. Invocations that run only utility targets (``clean``, ``tidy``, and the ``parameters-*`` targets) leave it unchanged.
+
+``GALACTICUS_BUILD_OPTION`` (deprecated)
+   The former way to select a build configuration, which allowed only one of a fixed set: ``default``, ``MPI``, ``lib``, ``gprof``, ``perf``, ``odeprof``, or ``compileprof``. It is still accepted, with a warning, and is mapped onto the options above. It keeps its original executable suffixes (none for ``MPI``; ``_lib``, ``_gprof``, ``_perf``, and ``_odeProf`` for the others) so that existing command lines produce the same files.
 
 .. _manual-sec-buildKnobs:
 
@@ -300,6 +321,18 @@ Before being compiled, all Fortran source files are passed through a tree-based 
 
 marking the start of a run of lines in the preprocessed file that maps back to the given original location. The full set of source-tree process hooks is registered by importing ``Galacticus.Build.SourceTree.Process.all`` — every driver that runs the preprocessor imports this one module, so a new Process submodule is added in exactly one place.
 
+Every Fortran source file can be preprocessed, without compiling anything, with ``make preprocess``. Preprocessing needs only ~100 MB per process, whereas compiling the large generated ``_class`` units can take gigabytes each, so a build limited by memory can preprocess at much higher parallelism than it compiles — for example ``make -j$(nproc) preprocess`` followed by ``make -j2 Galacticus.exe``, as the CI builds do. Pass the same build options (e.g. ``DEBUGGING=yes``) to both commands, since they select the build directory and the build configuration.
+
+.. _manual-sec-buildPreprocessorSources:
+
+Because the preprocessor is itself a Python program, the Fortran it emits depends on ``preprocess.py`` and on every first-party module that script imports — the source-tree parser, all of the ``Process`` hooks, the node-component generator, and so on — just as much as it depends on the Fortran input. Make cannot see that dependency, since the closure is discovered by Python's import machinery rather than declared anywhere, so ``scripts/build/preprocessorSources.py`` computes it: it walks the import graph statically (using ``ast``, so nothing is imported and no side effects are triggered), resolving module names against ``python/`` and against the directory of the entry-point script, and writes ``$(BUILDPATH)/preprocessorSources.digest`` — one MD5 per file in the closure — only-if-changed (see :galacticus-ref:`buildUpdateFiles`). The three preprocessing rules take that digest as a prerequisite.
+
+The two granularities are deliberately different. The *digest rule* is triggered by any Python source at all, because the closure can only be known by inspecting the imports. The *digest itself* covers only the closure, so re-running the preprocessor over every source file — the expensive consequence — follows only from editing a module the preprocessor really uses; editing, say, an analysis script recomputes the digest, finds it unchanged, and stops there. Run ``./scripts/build/preprocessorSources.py <galacticusPath> --list`` to print the closure.
+
+Unlike the source-scanning rules above, this rule does **not** list the directories containing its prerequisites. Those rules use directory mtimes to notice a *deleted* source, but the interpreter writes ``__pycache__`` into every directory it imports from — including during the build's own ~1800 ``preprocess.py`` invocations — so listing them would bump their mtimes mid-build and leave the rule permanently out of date, re-running its recipe on every build. And not only on every build: because the preprocessed ``_class.p.F90`` is a prerequisite of the generated ``Makefile_Use_Dependencies``, this digest is remade inside make's *makefile-remaking* phase, so a rule that re-arms itself there runs again in every restart pass. Nothing is lost by omitting them: deleting a module the preprocessor imports fails loudly at the next ``preprocess.py`` run, and deleting one it does not import changes nothing to catch.
+
+Without this, editing a generator and rebuilding regenerated nothing: make reported success, the binary relinked, and the stale preprocessed Fortran was compiled — which also made "change a generator, rebuild, and diff the generated code", the natural way to verify a code-generation change, report a false "no change".
+
 Output from the compiler is captured to a diagnostics file and fed through the ``postprocess.py`` script, which:
 
 * uses the ``.lmap`` to translate line numbers in errors and warnings from the preprocessed source back to the original source;
@@ -315,7 +348,7 @@ Diagnostics are written to a file and postprocessed *after* capturing the compil
 The Shared-Library Interface
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Library builds (``GALACTICUS_BUILD_OPTION=lib``) generate C-interoperable Fortran wrappers, and a Python ``ctypes`` interface, for every ``functionClass`` registered in ``source/libraryClasses.xml``:
+Library builds (``LIBRARY=yes``) generate C-interoperable Fortran wrappers, and a Python ``ctypes`` interface, for every ``functionClass`` registered in ``source/libraryClasses.xml``:
 
 ``scripts/build/libraryInterfaces.py``
    The generator. Parses each implementation file once, classifies every constructor and method argument/return type against the rules in ``python/LibraryInterfaces/Classification.py`` (skipping, with a warning, anything the pipeline cannot translate), and emits: ``$(BUILDPATH)/libgalacticus.Inc`` (the library's initialization core), per-class wrapper units ``$(BUILDPATH)/libgalacticus/<class>.F90`` plus per-implementation constructor wrappers ``<class>__<impl>.F90`` (split so gfortran gets small compilation units), and the Python interface ``galacticus.py``. Wrapper units are written only-if-changed, so catalog changes recompile only genuinely affected wrappers.
@@ -384,6 +417,9 @@ Scripts (all under ``scripts/build/``):
 
 ``preprocess.py``
    Preprocesses Fortran source code to provide various extended functionality (see Section :galacticus-ref:`codeBuildPrePostProcess`);
+
+``preprocessorSources.py``
+   Digests the Python sources implementing the preprocessor, so that editing one re-preprocesses the Fortran (see Section :galacticus-ref:`buildPreprocessorSources`);
 
 ``profiler.sh``
    SHELL wrapper used by ``compileprof`` builds to time every recipe (see Section :galacticus-ref:`buildProfiling`);
@@ -462,6 +498,9 @@ Generated files (all under ``$(BUILDPATH)`` unless noted):
 ``*.up``
    Update sentinels recording when a generator last ran (see :galacticus-ref:`buildUpdateFiles`);
 
+``preprocessorSources.digest``
+   MD5s of the Python sources implementing the preprocessor (see Section :galacticus-ref:`buildPreprocessorSources`);
+
 ``*.blob``, ``*.md5.blob``
    Per-file pickle caches used by the cataloging and metadata scripts (see :galacticus-ref:`buildBlobCaches`);
 
@@ -482,11 +521,11 @@ Generated files (all under ``$(BUILDPATH)`` unless noted):
 Profiling the Build
 ~~~~~~~~~~~~~~~~~~~
 
-Tooling is provided to help profile the build process. This is useful to identify bottlenecks during build. Profiling can be switched on using the ``compileprof`` build option. For example:
+Tooling is provided to help profile the build process. This is useful to identify bottlenecks during build. Profiling can be switched on using the ``BUILDPROFILE`` build option. For example:
 
 .. code-block:: none
 
-   make -j16 GALACTICUS_BUILD_OPTION=compileprof Galacticus.exe >& build.log
+   make -j16 BUILDPROFILE=yes Galacticus.exe >& build.log
 
 Every command run by ``Make`` will be timed, its peak memory usage measured, and the results output. In the above these outputs are collected to the ``build.log`` file. Result lines have the form::
 

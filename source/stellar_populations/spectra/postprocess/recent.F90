@@ -36,6 +36,7 @@
      double precision :: timeLimit
    contains
      procedure :: multiplier          => recentMultiplier
+     procedure :: ageRange            => recentAgeRange
      procedure :: isRedshiftDependent => recentIsRedshiftDependent
   end type stellarPopulationSpectraPostprocessorRecent
 
@@ -119,3 +120,16 @@ contains
     isRedshiftDependent=.false.
     return
   end function recentIsRedshiftDependent
+
+  subroutine recentAgeRange(self,ageMinimum,ageMaximum)
+    !!{RST
+    Return the range of ages retained by a recent postprocessor.
+    !!}
+    implicit none
+    class           (stellarPopulationSpectraPostprocessorRecent), intent(inout) :: self
+    double precision                                             , intent(  out) :: ageMinimum, ageMaximum
+
+    ageMinimum=0.0d0
+    ageMaximum=self%timeLimit
+    return
+  end subroutine recentAgeRange

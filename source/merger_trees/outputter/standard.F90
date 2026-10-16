@@ -17,37 +17,78 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the standard class for outputting merger trees.
   !!}
 
   use :: Cosmology_Functions               , only : cosmologyFunctions   , cosmologyFunctionsClass
   use :: Galactic_Filters                  , only : galacticFilter       , galacticFilterClass
-  use :: IO_HDF5                           , only : hdf5File             , hdf5Group
+  use :: IO_HDF5                           , only : hdf5File             , hdf5Group                , hdf5Dataset
   use :: Kind_Numbers                      , only : kind_int8
-  use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
+  use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble     , propertyNameLengthMax
   use :: Node_Property_Extractors          , only : nodePropertyExtractor, nodePropertyExtractorClass
   use :: Locks                             , only : ompLock
+
+  type outputDataset
+     !!{RST
+     Type used to hold one output dataset open across the appends made to it.
+
+     The outputter appends to the dataset of every property once per tree per output, and every append is made under the
+     process-wide ``hdf5Access`` lock. Opening and closing the dataset around each of those appends therefore serialized a
+     substantial amount of HDF5 metadata work: measured in isolation, an append to an already-open dataset costs about 2 µs
+     against about 17 µs for one which opens and closes the dataset around it. Keeping the handle open instead costs about
+     20 kB per dataset, plus under 1 kB for each additional thread holding a handle to the same dataset - HDF5 shares a
+     dataset's chunk cache between all open handles to it, so the cache is *not* duplicated per handle.
+     !!}
+     type     (hdf5Dataset              ) :: dataset
+     character(len=propertyNameLengthMax) :: name             =''
+     logical                              :: opened           =.false., written=.false.
+   contains
+     !![
+     <methods docformat="rst">
+       <method method="assignment(=)" description="Assign ``outputDataset`` objects."/>
+     </methods>
+     !!]
+     procedure :: outputDatasetAssign
+     generic   :: assignment(=)     =>  outputDatasetAssign
+  end type outputDataset
+
+  ! Positions of the per-tree scalar datasets in the `treeDataset` handle table of an output group.
+  integer         , parameter :: treeDatasetIndexIndex        =1, treeDatasetIndexStart =2, &
+       &                         treeDatasetIndexCount        =3, treeDatasetIndexWeight=4, &
+       &                         treeDatasetIndexSeed         =5
+  integer         , parameter :: treeDatasetsCount            =5
 
   type outputGroup
      !!{RST
      Type used for output group information.
      !!}
-     logical                                 :: doubleAttributesWritten, integerAttributesWritten, &
-          &                                     opened
-     type   (hdf5Group                     ) :: hdf5Group              , nodeDataGroup
-     type   (enumerationOutputGroupTypeType) :: type_
+     logical                                                            :: doubleAttributesWritten, integerAttributesWritten, &
+          &                                                                opened
+     type   (hdf5Group                     )                            :: hdf5Group              , nodeDataGroup
+     type   (enumerationOutputGroupTypeType)                            :: type_
+     ! Handles to the property datasets of this output, held open for as long as the output group is. These are indexed by the
+     ! position of the property in the buffer arrays, and each is validated against the name of the property occupying that
+     ! position before use, so that a change in the set of properties being output cannot direct an append to the wrong dataset.
+     type   (outputDataset                 ), allocatable, dimension(:) :: integerDataset         , doubleDataset
+     ! Handles to the five per-tree scalar datasets of this output - the tree index, the start and length of its block of node
+     ! data, its volume weight and its random number seed - held open for the same reason as the property datasets above. These
+     ! live in the output group itself rather than in its `nodeData` group.
+     type   (outputDataset                 ), allocatable, dimension(:) :: treeDataset
    contains
      !![
      <methods docformat="rst">
-       <method method="assignment(=)" description="Assign outputGroup objects."/>
+       <method method="assignment(=)" description="Assign ``outputGroup`` objects."/>
      </methods>
      !!]
      procedure :: outputGroupAssign
      generic   :: assignment(=)     =>  outputGroupAssign
   end type outputGroup
 
-  ! Parameters controlling the size of output data.
+  ! Parameters controlling the size of output data. `standardBufferSizeIncrement` is the number of elements allocated for the
+  ! property buffers initially; subsequent growth is geometric (doubling) - see `standardExtendIntegerBuffer`.
   !![
   <scoping>
    <module variables="standardBufferSizeIncrement"/>
@@ -238,8 +279,9 @@ contains
     !!}
     use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
+    use            :: HDF5               , only : hsize_t
     use            :: HDF5_Access        , only : hdf5Access
-    use            :: IO_HDF5            , only : hdf5File                , hdf5Dataset
+    use            :: IO_HDF5            , only : hdf5File
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
@@ -254,7 +296,7 @@ contains
     type            (mergerTree                    )               , pointer  :: currentTree
     type            (mergerTreeWalkerAllNodes      )                          :: treeWalker
     integer                                                                   :: iProperty
-    type            (hdf5Dataset                   )                          :: toDataset
+    integer         (kind=hsize_t                  )                          :: extentWritten
     !![
     <optionalArgument name="outputType" defaultsTo="outputGroupTypeTree"/>
     !!]
@@ -301,15 +343,17 @@ contains
           if (.not.treeLock%ownedByThread()) call treeLock%set()
           !$ call hdf5Access%set()
           referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
-          if      (allocated(self%integerProperty).and.size(self%integerProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
-             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(1)%name)
-             referenceStart(1)=toDataset%size(1)-referenceLength(1)
-          else if (allocated(self% doubleProperty).and.size(self% doubleProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doubleProperty(1)%name)) then
-             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doubleProperty(1)%name)
-             referenceStart(1)=toDataset%size(1)-referenceLength(1)
-          else
+          ! Take the extent from a dataset handle already held open for this output, rather than probing for and re-opening the
+          ! dataset. The extent is read from the file through the handle, so it reflects the appends made by every thread, not
+          ! only this one.
+          extentWritten=standardDatasetExtent(self%outputGroups(indexOutput)%integerDataset,self%integerPropertyCount)
+          if (extentWritten < 0_hsize_t) &
+               & extentWritten=standardDatasetExtent(self%outputGroups(indexOutput)%doubleDataset,self%doublePropertyCount)
+          if (extentWritten < 0_hsize_t) then
              ! Datasets do not yet exist therefore the start reference must be zero.
              referenceStart(1)=0
+          else
+             referenceStart(1)=extentWritten-referenceLength(1)
           end if
           ! Create references to the datasets if requested.
           if (self%outputReferences) then
@@ -318,23 +362,23 @@ contains
              ! Create references for this tree.
              if (self%integerPropertyCount > 0 .and. self%integerPropertiesWritten > 0) then
                 do iProperty=1,self%integerPropertyCount
-                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
-                   call currentTree%hdf5Group%createReference1D(toDataset,self%integerProperty(iProperty)%name,referenceStart+1,referenceLength)
+                   call currentTree%hdf5Group%createReference1D(self%outputGroups(indexOutput)%integerDataset(iProperty)%dataset,self%integerProperty(iProperty)%name,referenceStart+1,referenceLength)
                 end do
              end if
              if (self%doublePropertyCount > 0  .and. self%doublePropertiesWritten  > 0) then
                 do iProperty=1,self%doublePropertyCount
-                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
-                   call currentTree%hdf5Group%createReference1D(toDataset,self%doubleProperty(iProperty)%name,referenceStart+1,referenceLength)
+                   call currentTree%hdf5Group%createReference1D(self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset,self%doubleProperty(iProperty)%name,referenceStart+1,referenceLength)
                 end do
              end if
           end if
-          ! Store the start position and length of the node data for this tree, along with its volume weight.
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]                        ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceStart                             ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength                            ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight                 ],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
-          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%randomNumberGenerator_%seed()],"mergerTreeSeed"      ,"Random number seed of each merger tree."                     ,appendTo=.true.)
+          ! Store the start position and length of the node data for this tree, along with its volume weight. These go through
+          ! handles held open for the lifetime of the output group, as the property datasets do.
+          call standardDatasetsAllocate           (self%outputGroups(indexOutput)%treeDataset,treeDatasetsCount                                                                                                                       )
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexIndex ,[currentTree%index]                        ,"mergerTreeIndex"     ,"Index of each merger tree."                   )
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexStart ,referenceStart                             ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.")
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexCount ,referenceLength                            ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  )
+          call standardTreeDatasetAppendDouble    (self%outputGroups(indexOutput)            ,treeDatasetIndexWeight,[currentTree%volumeWeight                 ],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."         )
+          call standardTreeDatasetAppendInteger8  (self%outputGroups(indexOutput)            ,treeDatasetIndexSeed  ,[currentTree%randomNumberGenerator_%seed()],"mergerTreeSeed"      ,"Random number seed of each merger tree."      )
           !$ call hdf5Access%unset()
           if (treeLock%ownedByThread()) call treeLock%unset()
        end if
@@ -682,10 +726,11 @@ contains
           if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
        end do
     end if
-    ! Perform any extra output tasks. These are skipped for trajectory output. Subscribers to this event hook (e.g. the standard
-    ! disk, spheroid, and nuclear star cluster components) *modify* the state of the node - specifically, they advance the star
-    ! formation history to the next output. Since trajectory output occurs during differential evolution (and many times per node)
-    ! allowing that to happen would corrupt the star formation histories and inject spurious data into the regular outputs.
+    ! Perform any extra output tasks. These are skipped for trajectory output, which occurs during differential evolution (and
+    ! many times per node), and so would inject spurious data into the regular outputs. Note that this event is triggered by this
+    ! outputter alone, so subscribers must use it to *write* extra output only, never to modify the state of the node. State which
+    ! must be advanced once per output (star formation histories, for example) should instead subscribe to the
+    ! `mergerTreeOutputStateAdvance` event, which is triggered by the task driving the evolution for every outputter class.
     if (outputType == outputGroupTypeTrajectory) return
     !![
     <eventHook name="mergerTreeExtraOutput">
@@ -728,49 +773,72 @@ contains
     !!{RST
     Dump the contents of the integer properties buffer to the Galacticus output file.
     !!}
+    use :: HDF5       , only : hsize_t
     use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5    , only : hdf5File  , hdf5Dataset
+    use :: IO_HDF5    , only : hdf5File  , hdf5DataTypeInteger8, hdf5DataTypeVlenInteger8
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
     integer                                             :: iProperty  , iMetaDatum
-    type   (hdf5Dataset                )                :: dataset
 
     ! Write integer data from the buffer.
     if (self%integerPropertyCount > 0) then
        !$ call hdf5Access%set()
+       call standardDatasetsAllocate(self%outputGroups(indexOutput)%integerDataset,self%integerPropertyCount)
        do iProperty=1,self%integerPropertyCount
           if      (allocated(self%integerProperty(iProperty)%scalar     )) then
-          call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                             &
-               &                                                                  self%integerProperty(iProperty)%scalar (1:self%integerBufferCount), &
-               &                                                                  self%integerProperty(iProperty)%name                              , &
-               &                                                                  self%integerProperty(iProperty)%comment                           , &
-               &                                                         appendTo=.true.                                                              &
-               &                                                        )
+             call standardDatasetPrepare(                                                                                        &
+                  &                      self%outputGroups(indexOutput)%integerDataset(iProperty)                              , &
+                  &                      self%outputGroups(indexOutput)%nodeDataGroup                                          , &
+                  &                      self%integerProperty(iProperty)%name                                                  , &
+                  &                      self%integerProperty(iProperty)%comment                                               , &
+                  &                      hdf5DataTypeInteger8                                                                  , &
+                  &                      [int(self%integerBufferCount,kind=hsize_t)]                                             &
+                  &                     )
+             call self%outputGroups(indexOutput)%integerDataset(iProperty)%dataset%writeDataset(                                                      &
+                  &                                                                                      self%integerProperty(iProperty)%scalar     (  1:self%integerBufferCount), &
+                  &                                                                             appendTo    =.true.                                                              , &
+                  &                                                                             preExistedIn=self%outputGroups(indexOutput)%integerDataset(iProperty)%written      &
+                  &                                                                            )
           else if (allocated(self%integerProperty(iProperty)%rank1      )) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                          &
-                  &                                                                         self%integerProperty(iProperty)%rank1      (:,1:self%integerBufferCount), &
-                  &                                                                         self%integerProperty(iProperty)%name                                    , &
-                  &                                                                         self%integerProperty(iProperty)%comment                                 , &
-                  &                                                         appendTo       =.true.                                                                  , &
-                  &                                                         appendDimension=2                                                                         &
-                  &                                                        )
+             call standardDatasetPrepare(                                                                                        &
+                  &                      self%outputGroups(indexOutput)%integerDataset(iProperty)                              , &
+                  &                      self%outputGroups(indexOutput)%nodeDataGroup                                          , &
+                  &                      self%integerProperty(iProperty)%name                                                  , &
+                  &                      self%integerProperty(iProperty)%comment                                               , &
+                  &                      hdf5DataTypeInteger8                                                                  , &
+                  &                      [int(size(self%integerProperty(iProperty)%rank1,dim=1),kind=hsize_t),int(self%integerBufferCount,kind=hsize_t)], &
+                  &                      appendDimension=2                                                                        &
+                  &                     )
+             call self%outputGroups(indexOutput)%integerDataset(iProperty)%dataset%writeDataset(                                                      &
+                  &                                                                                      self%integerProperty(iProperty)%rank1      (:,1:self%integerBufferCount), &
+                  &                                                                             appendTo       =.true.                                                           , &
+                  &                                                                             appendDimension=2                                                                , &
+                  &                                                                             preExistedIn   =self%outputGroups(indexOutput)%integerDataset(iProperty)%written   &
+                  &                                                                            )
           else if (allocated(self%integerProperty(iProperty)%rank1VarLen)) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                          &
-                  &                                                                         self%integerProperty(iProperty)%rank1VarLen(  1:self%integerBufferCount), &
-                  &                                                                         self%integerProperty(iProperty)%name                                    , &
-                  &                                                                         self%integerProperty(iProperty)%comment                                 , &
-                  &                                                         appendTo       =.true.                                                                    &
-                  &                                                        )
+             call standardDatasetPrepare(                                                                                        &
+                  &                      self%outputGroups(indexOutput)%integerDataset(iProperty)                              , &
+                  &                      self%outputGroups(indexOutput)%nodeDataGroup                                          , &
+                  &                      self%integerProperty(iProperty)%name                                                  , &
+                  &                      self%integerProperty(iProperty)%comment                                               , &
+                  &                      hdf5DataTypeVlenInteger8                                                              , &
+                  &                      [int(self%integerBufferCount,kind=hsize_t)]                                             &
+                  &                     )
+             call self%outputGroups(indexOutput)%integerDataset(iProperty)%dataset%writeDataset(                                                      &
+                  &                                                                                      self%integerProperty(iProperty)%rank1VarLen(  1:self%integerBufferCount), &
+                  &                                                                             appendTo    =.true.                                                              , &
+                  &                                                                             preExistedIn=self%outputGroups(indexOutput)%integerDataset(iProperty)%written      &
+                  &                                                                            )
           end if
+          self%outputGroups(indexOutput)%integerDataset(iProperty)%written=.true.
           if (.not.self%outputGroups(indexOutput)% integerAttributesWritten.and. self%integerProperty(iProperty)%units%unitsInSI /= 0.0d0) then
-             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(iProperty)%name)
-             call dataset%writeAttribute(self%integerProperty(iProperty)%units,"units")
+             call self%outputGroups(indexOutput)%integerDataset(iProperty)%dataset%writeAttribute(self%integerProperty(iProperty)%units,"units")
              do iMetaDatum=1,self%integerProperty(iProperty)%metaDataRank0%size()
-                call     dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
+                call self%outputGroups(indexOutput)%integerDataset(iProperty)%dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
              end do
              do iMetaDatum=1,self%integerProperty(iProperty)%metaDataRank1%size()
-                call     dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank1%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank1%key(iMetaDatum)))
+                call self%outputGroups(indexOutput)%integerDataset(iProperty)%dataset%writeAttribute(self%integerProperty(iProperty)%metaDataRank1%value(iMetaDatum),char(self%integerProperty(iProperty)%metaDataRank1%key(iMetaDatum)))
              end do
           end if
        end do
@@ -786,8 +854,9 @@ contains
     !!{RST
     Dump the contents of the double precision properties buffer to the Galacticus output file.
     !!}
+    use            :: HDF5         , only : hsize_t
     use            :: HDF5_Access  , only : hdf5Access
-    use            :: IO_HDF5      , only : hdf5File  , hdf5Dataset
+    use            :: IO_HDF5      , only : hdf5File  , hdf5DataTypeDouble, hdf5DataTypeVlenDouble, hdf5DataTypeVlenVlenDouble
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
@@ -798,45 +867,75 @@ contains
     ! Write double data from the buffer.
     if (self%doublePropertyCount > 0) then
        !$ call hdf5Access%set()
+       call standardDatasetsAllocate(self%outputGroups(indexOutput)%doubleDataset,self%doublePropertyCount)
        do iProperty=1,self%doublePropertyCount
           if      (allocated(self%doubleProperty(iProperty)%scalar     )) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                        &
-                  &                                                                         self%doubleProperty(iProperty)%scalar     (  1:self%doubleBufferCount), &
-                  &                                                                         self%doubleProperty(iProperty)%name                                   , &
-                  &                                                                         self%doubleProperty(iProperty)%comment                                , &
-                  &                                                         appendTo       =.true.                                                                  &
-                  &                                                        )
+             call standardDatasetPrepare(                                                                                       &
+                  &                      self%outputGroups(indexOutput)%doubleDataset(iProperty)                              , &
+                  &                      self%outputGroups(indexOutput)%nodeDataGroup                                         , &
+                  &                      self%doubleProperty(iProperty)%name                                                  , &
+                  &                      self%doubleProperty(iProperty)%comment                                               , &
+                  &                      hdf5DataTypeDouble                                                                   , &
+                  &                      [int(self%doubleBufferCount,kind=hsize_t)]                                             &
+                  &                     )
+             call self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset%writeDataset(                                                     &
+                  &                                                                                    self%doubleProperty(iProperty)%scalar     (  1:self%doubleBufferCount), &
+                  &                                                                           appendTo    =.true.                                                            , &
+                  &                                                                           preExistedIn=self%outputGroups(indexOutput)%doubleDataset(iProperty)%written     &
+                  &                                                                          )
           else if (allocated(self%doubleProperty(iProperty)%rank1      )) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                        &
-                  &                                                                         self%doubleProperty(iProperty)%rank1      (:,1:self%doubleBufferCount), &
-                  &                                                                         self%doubleProperty(iProperty)%name                                   , &
-                  &                                                                         self%doubleProperty(iProperty)%comment                                , &
-                  &                                                         appendTo       =.true.                                                                , &
-                  &                                                         appendDimension=2                                                                       &
-                  &                                                        )
+             call standardDatasetPrepare(                                                                                       &
+                  &                      self%outputGroups(indexOutput)%doubleDataset(iProperty)                              , &
+                  &                      self%outputGroups(indexOutput)%nodeDataGroup                                         , &
+                  &                      self%doubleProperty(iProperty)%name                                                  , &
+                  &                      self%doubleProperty(iProperty)%comment                                               , &
+                  &                      hdf5DataTypeDouble                                                                   , &
+                  &                      [int(size(self%doubleProperty(iProperty)%rank1,dim=1),kind=hsize_t),int(self%doubleBufferCount,kind=hsize_t)], &
+                  &                      appendDimension=2                                                                       &
+                  &                     )
+             call self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset%writeDataset(                                                     &
+                  &                                                                                    self%doubleProperty(iProperty)%rank1      (:,1:self%doubleBufferCount), &
+                  &                                                                           appendTo       =.true.                                                         , &
+                  &                                                                           appendDimension=2                                                             , &
+                  &                                                                           preExistedIn   =self%outputGroups(indexOutput)%doubleDataset(iProperty)%written  &
+                  &                                                                          )
           else if (allocated(self%doubleProperty(iProperty)%rank1VarLen)) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                        &
-                  &                                                                         self%doubleProperty(iProperty)%rank1VarLen(  1:self%doubleBufferCount), &
-                  &                                                                         self%doubleProperty(iProperty)%name                                   , &
-                  &                                                                         self%doubleProperty(iProperty)%comment                                , &
-                  &                                                         appendTo       =.true.                                                                  &
-                  &                                                        )
+             call standardDatasetPrepare(                                                                                       &
+                  &                      self%outputGroups(indexOutput)%doubleDataset(iProperty)                              , &
+                  &                      self%outputGroups(indexOutput)%nodeDataGroup                                         , &
+                  &                      self%doubleProperty(iProperty)%name                                                  , &
+                  &                      self%doubleProperty(iProperty)%comment                                               , &
+                  &                      hdf5DataTypeVlenDouble                                                               , &
+                  &                      [int(self%doubleBufferCount,kind=hsize_t)]                                             &
+                  &                     )
+             call self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset%writeDataset(                                                     &
+                  &                                                                                    self%doubleProperty(iProperty)%rank1VarLen(  1:self%doubleBufferCount), &
+                  &                                                                           appendTo    =.true.                                                            , &
+                  &                                                                           preExistedIn=self%outputGroups(indexOutput)%doubleDataset(iProperty)%written     &
+                  &                                                                          )
           else if (allocated(self%doubleProperty(iProperty)%rank2VarLen)) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                        &
-                  &                                                                         self%doubleProperty(iProperty)%rank2VarLen(  1:self%doubleBufferCount), &
-                  &                                                                         self%doubleProperty(iProperty)%name                                   , &
-                  &                                                                         self%doubleProperty(iProperty)%comment                                , &
-                  &                                                         appendTo       =.true.                                                                  &
-                  &                                                        )
+             call standardDatasetPrepare(                                                                                       &
+                  &                      self%outputGroups(indexOutput)%doubleDataset(iProperty)                              , &
+                  &                      self%outputGroups(indexOutput)%nodeDataGroup                                         , &
+                  &                      self%doubleProperty(iProperty)%name                                                  , &
+                  &                      self%doubleProperty(iProperty)%comment                                               , &
+                  &                      hdf5DataTypeVlenVlenDouble                                                           , &
+                  &                      [int(self%doubleBufferCount,kind=hsize_t)]                                             &
+                  &                     )
+             call self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset%writeDataset(                                                     &
+                  &                                                                                    self%doubleProperty(iProperty)%rank2VarLen(  1:self%doubleBufferCount), &
+                  &                                                                           appendTo    =.true.                                                            , &
+                  &                                                                           preExistedIn=self%outputGroups(indexOutput)%doubleDataset(iProperty)%written     &
+                  &                                                                          )
           end if
+          self%outputGroups(indexOutput)%doubleDataset(iProperty)%written=.true.
           if (.not.self%outputGroups(indexOutput)% doubleAttributesWritten.and. self%doubleProperty(iProperty)%units%unitsInSI /= 0.0d0) then
-             dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doubleProperty(iProperty)%name)
-             call        dataset%writeAttribute(self%doubleProperty(iProperty)%units            ,"units"            )
+             call self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset%writeAttribute(self%doubleProperty(iProperty)%units            ,"units"            )
              do iMetaDatum=1,self%doubleProperty(iProperty)%metaDataRank0%size()
-                call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
+                call self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset%writeAttribute(self%doubleProperty(iProperty)%metaDataRank0%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaDataRank0%key(iMetaDatum)))
              end do
              do iMetaDatum=1,self%doubleProperty(iProperty)%metaDataRank1%size()
-                call     dataset%writeAttribute(self%doubleProperty(iProperty)%metaDataRank1%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaDataRank1%key(iMetaDatum)))
+                call self%outputGroups(indexOutput)%doubleDataset(iProperty)%dataset%writeAttribute(self%doubleProperty(iProperty)%metaDataRank1%value(iMetaDatum),char(self%doubleProperty(iProperty)%metaDataRank1%key(iMetaDatum)))
              end do
              if (allocated(self%doubleProperty(iProperty)%rank1Descriptors     ) .and. size(self%doubleProperty(iProperty)%rank1Descriptors     ) > 0) then
                 call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                       &
@@ -851,7 +950,7 @@ contains
                      &                                                         trim(self%doubleProperty(iProperty)%name                  )//"ColumnValues"          , &
                      &                                                         char(self%doubleProperty(iProperty)%rank1DescriptorComment)                            &
                      &                                                        )
-                dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues")
+                dataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(trim(self%doubleProperty(iProperty)%name)//"ColumnValues",preExistedIn=.true.)
                 call dataset%writeAttribute(self%doubleProperty(iProperty)%rank1DescriptorUnits    ,"units"    )
              end if
           end if
@@ -874,24 +973,29 @@ contains
     integer(kind_int8                  ), allocatable  , dimension(:  ) :: scalarTemporary
     integer(kind_int8                  ), allocatable  , dimension(:,:) :: rank1Temporary
     type   (hdf5VarInteger8            ), allocatable  , dimension(:  ) :: rank1VarLenTemporary
-    integer                                                             :: i                   , j
+    integer                                                             :: i                   , j, &
+         &                                                                 bufferSizeNew
 
+    ! Grow the buffer geometrically. Every extension copies the whole buffer, so growing by a fixed increment would make the total
+    ! cost of filling a buffer which ends up holding N elements scale as N² - and the buffer is dumped only once the tree has been
+    ! output, so a tree with many nodes at an output time really does extend it that many times.
+    bufferSizeNew=2*self%integerBufferSize
     do i=1,size(self%integerProperty)
        if (allocated(self%integerProperty(i)%scalar)) then
           call move_alloc(self%integerProperty(i)%scalar,scalarTemporary)
-          allocate(self%integerProperty(i)%scalar(                           self%integerBufferSize+standardBufferSizeIncrement))
+          allocate(self%integerProperty(i)%scalar(                           bufferSizeNew))
           self%integerProperty(i)%scalar(  1:self%integerBufferSize)=scalarTemporary
           deallocate(scalarTemporary)
        end if
        if (allocated(self%integerProperty(i)%rank1)) then
           call move_alloc(self%integerProperty(i)%rank1 ,rank1Temporary )
-          allocate(self%integerProperty(i)%rank1 (size(rank1Temporary,dim=1),self%integerBufferSize+standardBufferSizeIncrement))
+          allocate(self%integerProperty(i)%rank1 (size(rank1Temporary,dim=1),bufferSizeNew))
           self%integerProperty(i)%rank1(:,1:self%integerBufferSize)=rank1Temporary
           deallocate(rank1Temporary )
        end if
        if (allocated(self%integerProperty(i)%rank1VarLen)) then
           call move_alloc(self%integerProperty(i)%rank1VarLen,rank1VarLenTemporary)
-          allocate(self%integerProperty(i)%rank1VarLen(                           self%integerBufferSize+standardBufferSizeIncrement))
+          allocate(self%integerProperty(i)%rank1VarLen(                           bufferSizeNew))
           self%integerProperty(i)%rank1VarLen(  1:self%integerBufferSize)=rank1VarLenTemporary
           ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
           ! deallocated.
@@ -901,7 +1005,7 @@ contains
           deallocate(rank1VarLenTemporary)
        end if
     end do
-    self%integerBufferSize=self%integerBufferSize+standardBufferSizeIncrement
+    self%integerBufferSize=bufferSizeNew
     return
   end subroutine standardExtendIntegerBuffer
 
@@ -916,24 +1020,27 @@ contains
     double precision                             , allocatable  , dimension(:,:) :: rank1Temporary
     type            (hdf5VarDouble              ), allocatable  , dimension(:  ) :: rank1VarLenTemporary
     type            (hdf5VarDouble2D            ), allocatable  , dimension(:  ) :: rank2VarLenTemporary
-    integer                                                                      :: i                   , j
+    integer                                                                      :: i                   , j, &
+         &                                                                          bufferSizeNew
 
+    ! Grow the buffer geometrically - see `standardExtendIntegerBuffer` for why.
+    bufferSizeNew=2*self%doubleBufferSize
     do i=1,size(self%doubleProperty)
        if (allocated(self%doubleProperty(i)%scalar    )) then
           call move_alloc(self%doubleProperty(i)%scalar    ,scalarTemporary)
-          allocate(self%doubleProperty(i)%scalar    (                           self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%scalar    (                           bufferSizeNew))
           self%doubleProperty(i)%scalar    (  1:self%doubleBufferSize)=scalarTemporary
           deallocate(scalarTemporary)
        end if
        if (allocated(self%doubleProperty(i)%rank1     )) then
           call move_alloc(self%doubleProperty(i)%rank1     ,rank1Temporary )
-          allocate(self%doubleProperty(i)%rank1     (size(rank1Temporary,dim=1),self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%rank1     (size(rank1Temporary,dim=1),bufferSizeNew))
           self%doubleProperty(i)%rank1     (:,1:self%doubleBufferSize)=rank1Temporary
           deallocate(rank1Temporary )
        end if
        if (allocated(self%doubleProperty(i)%rank1VarLen)) then
           call move_alloc(self%doubleProperty(i)%rank1VarLen,rank1VarLenTemporary)
-          allocate(self%doubleProperty(i)%rank1VarLen(                           self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%rank1VarLen(                           bufferSizeNew))
           self%doubleProperty(i)%rank1VarLen(  1:self%doubleBufferSize)=rank1VarLenTemporary
           ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
           ! deallocated.
@@ -944,7 +1051,7 @@ contains
        end if
        if (allocated(self%doubleProperty(i)%rank2VarLen)) then
           call move_alloc(self%doubleProperty(i)%rank2VarLen,rank2VarLenTemporary)
-          allocate(self%doubleProperty(i)%rank2VarLen(                           self%doubleBufferSize+standardBufferSizeIncrement))
+          allocate(self%doubleProperty(i)%rank2VarLen(                           bufferSizeNew))
           self%doubleProperty(i)%rank2VarLen(  1:self%doubleBufferSize)=rank2VarLenTemporary
           ! Nullify row pointers in the temporary array to avoid the associated data being destroyed when our temporary array is
           ! deallocated.
@@ -954,7 +1061,7 @@ contains
           deallocate(rank2VarLenTemporary)
        end if
     end do
-    self%doubleBufferSize=self%doubleBufferSize+standardBufferSizeIncrement
+    self%doubleBufferSize=bufferSizeNew
     return
   end subroutine standardExtendDoubleBuffer
 
@@ -1251,16 +1358,18 @@ contains
     double precision                                                              :: expansionFactor      , distanceComoving
     integer                                                                       :: i
     
-    !$ call hdf5Access%set()
-    ! Ensure group ID space is large enough.
+    ! Ensure group ID space is large enough. `hdf5Access` is taken only when there is work to do here, rather than for every call:
+    ! the group table is grown at most once per `standardOutputGroupsIncrement` outputs, whereas this routine is called for every
+    ! tree at every output - and, for node and trajectory output, for every node.
     if (indexOutput > self%outputGroupsCount) then
+       !$ call hdf5Access%set()
        if (allocated(self%outputGroups)) then
           call Move_Alloc(self%outputGroups,outputGroupsTemporary)
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
           !![
-	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
-	    <seeAlso type="gfortran" PR="124012" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=124012"/>
+	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
+	    <seeAlso type="gfortran" PR="124012" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=124012"/>
 	    <description>
 	    Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
 
@@ -1284,13 +1393,15 @@ contains
           self%outputGroups%integerAttributesWritten=.false.
           self%outputGroups%doubleAttributesWritten =.false.
        end if
+       !$ call hdf5Access%unset()
     end if
     ! Make the enclosing group if it has not been created.
     if (.not.self%outputsGroupOpened) then
+       !$ call hdf5Access%set()
        self%outputsGroup      =outputTo%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
+       !$ call hdf5Access%unset()
        self%outputsGroupOpened=.true.
     end if
-    !$ call hdf5Access%unset()
     ! Create the group if it has not been created.
     if (.not.self%outputGroups(indexOutput)%opened) then
        ! Create a name and comment for the group. Trajectory output groups accumulate records for a single node over many times, so
@@ -1341,13 +1452,189 @@ contains
 
   subroutine outputGroupAssign(to,from)
     implicit none
-    class(outputGroup), intent(  out) :: to
-    class(outputGroup), intent(in   ) :: from
+    class  (outputGroup), intent(  out) :: to
+    class  (outputGroup), intent(in   ) :: from
+    integer                             :: i
 
     to%doubleAttributesWritten =from%doubleAttributesWritten
     to%integerAttributesWritten=from%integerAttributesWritten
     to%opened                  =from%opened
     to%hdf5Group               =from%hdf5Group
     to%nodeDataGroup           =from%nodeDataGroup
+    ! The held dataset handles are copied one element at a time, for the same reason that `standardOutputGroupCreate` copies the
+    ! output groups themselves one at a time - see the gfortran workaround recorded there.
+    if (allocated(from%integerDataset)) then
+       allocate(to%integerDataset(size(from%integerDataset)))
+       do i=1,size(from%integerDataset)
+          to%integerDataset(i)=from%integerDataset(i)
+       end do
+    end if
+    if (allocated(from% doubleDataset)) then
+       allocate(to% doubleDataset(size(from% doubleDataset)))
+       do i=1,size(from% doubleDataset)
+          to% doubleDataset(i)=from% doubleDataset(i)
+       end do
+    end if
+    if (allocated(from%   treeDataset)) then
+       allocate(to%   treeDataset(size(from%   treeDataset)))
+       do i=1,size(from%   treeDataset)
+          to%   treeDataset(i)=from%   treeDataset(i)
+       end do
+    end if
     return
   end subroutine outputGroupAssign
+
+  subroutine outputDatasetAssign(to,from)
+    implicit none
+    class(outputDataset), intent(  out) :: to
+    class(outputDataset), intent(in   ) :: from
+
+    to%dataset=from%dataset
+    to%name   =from%name
+    to%opened =from%opened
+    to%written=from%written
+    return
+  end subroutine outputDatasetAssign
+
+  subroutine standardDatasetsAllocate(datasets,countRequired)
+    !!{RST
+    Ensure that ``datasets`` can hold handles for ``countRequired`` properties.
+    !!}
+    implicit none
+    type   (outputDataset), intent(inout), allocatable, dimension(:) :: datasets
+    integer               , intent(in   )                            :: countRequired
+    type   (outputDataset)               , allocatable, dimension(:) :: datasetsTemporary
+    integer                                                          :: i
+
+    if (countRequired < 1) return
+    if (allocated(datasets)) then
+       if (size(datasets) >= countRequired) return
+       ! Grow the table, carrying the handles already held over into it.
+       call Move_Alloc(datasets,datasetsTemporary)
+       allocate(datasets(countRequired))
+       do i=1,size(datasetsTemporary)
+          datasets(i)=datasetsTemporary(i)
+       end do
+       deallocate(datasetsTemporary)
+    else
+       allocate(datasets(countRequired))
+    end if
+    return
+  end subroutine standardDatasetsAllocate
+
+  subroutine standardDatasetPrepare(dataset_,nodeDataGroup,name,comment,dataType,datasetDimensions,appendDimension)
+    !!{RST
+    Ensure that ``dataset_`` holds an open handle to the dataset ``name`` in ``nodeDataGroup``, creating the dataset if it does
+    not yet exist. Does nothing if the handle already held is for this same name, which is the usual case - the handle is opened
+    once per property per output and then reused for every append made to it.
+    !!}
+    use :: HDF5, only : hsize_t
+    implicit none
+    type     (outputDataset), intent(inout)               :: dataset_
+    type     (hdf5Group    ), intent(inout)               :: nodeDataGroup
+    character(len=*        ), intent(in   )               :: name             , comment
+    integer                 , intent(in   )               :: dataType
+    integer  (hsize_t      ), intent(in   ), dimension(:) :: datasetDimensions
+    integer                 , intent(in   ), optional     :: appendDimension
+    logical                                               :: preExisted
+
+    if (dataset_%opened .and. trim(dataset_%name) == trim(name)) return
+    ! No handle is held for this position, or the property occupying it has changed. Assigning over any handle previously held
+    ! here releases it, closing the dataset if this was the last reference to it.
+    preExisted      =nodeDataGroup%hasDataset (name)
+    dataset_%dataset=nodeDataGroup%openDataset(                                   &
+         &                                                     name             , &
+         &                                                     comment          , &
+         &                                                     dataType         , &
+         &                                                     datasetDimensions, &
+         &                                     appendTo       =.true.           , &
+         &                                     appendDimension=appendDimension  , &
+         &                                     preExistedIn   =preExisted         &
+         &                                    )
+    dataset_%name   =name
+    dataset_%opened =.true.
+    ! Whether the dataset held data before we opened it determines whether the first write through this handle appends to it or
+    ! fills a newly-created dataset.
+    dataset_%written=preExisted
+    return
+  end subroutine standardDatasetPrepare
+
+  subroutine standardTreeDatasetAppendInteger8(outputGroup_,indexDataset,values,name,comment)
+    !!{RST
+    Append to one of the per-tree scalar integer datasets of ``outputGroup_``, through a handle held open for it. Must be called
+    with ``hdf5Access`` held.
+    !!}
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5DataTypeInteger8
+    implicit none
+    type     (outputGroup), intent(inout)                :: outputGroup_
+    integer               , intent(in   )                :: indexDataset
+    integer  (kind_int8  ), intent(in   ), dimension(:  ) :: values
+    character(len=*      ), intent(in   )                :: name        , comment
+
+    call standardDatasetPrepare(                                                          &
+         &                      outputGroup_%treeDataset(indexDataset)                  , &
+         &                      outputGroup_%hdf5Group                                  , &
+         &                      name                                                    , &
+         &                      comment                                                 , &
+         &                      hdf5DataTypeInteger8                                    , &
+         &                      [int(size(values),kind=hsize_t)]                          &
+         &                     )
+    call outputGroup_%treeDataset(indexDataset)%dataset%writeDataset(                                                          &
+         &                                                                       values                                      , &
+         &                                                          appendTo    =.true.                                       , &
+         &                                                          preExistedIn=outputGroup_%treeDataset(indexDataset)%written  &
+         &                                                         )
+    outputGroup_%treeDataset(indexDataset)%written=.true.
+    return
+  end subroutine standardTreeDatasetAppendInteger8
+
+  subroutine standardTreeDatasetAppendDouble(outputGroup_,indexDataset,values,name,comment)
+    !!{RST
+    Append to one of the per-tree scalar double precision datasets of ``outputGroup_``, through a handle held open for it. Must be
+    called with ``hdf5Access`` held.
+    !!}
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5DataTypeDouble
+    implicit none
+    type            (outputGroup), intent(inout)                :: outputGroup_
+    integer                      , intent(in   )                :: indexDataset
+    double precision             , intent(in   ), dimension(:  ) :: values
+    character       (len=*      ), intent(in   )                :: name        , comment
+
+    call standardDatasetPrepare(                                                          &
+         &                      outputGroup_%treeDataset(indexDataset)                  , &
+         &                      outputGroup_%hdf5Group                                  , &
+         &                      name                                                    , &
+         &                      comment                                                 , &
+         &                      hdf5DataTypeDouble                                      , &
+         &                      [int(size(values),kind=hsize_t)]                          &
+         &                     )
+    call outputGroup_%treeDataset(indexDataset)%dataset%writeDataset(                                                          &
+         &                                                                       values                                      , &
+         &                                                          appendTo    =.true.                                       , &
+         &                                                          preExistedIn=outputGroup_%treeDataset(indexDataset)%written  &
+         &                                                         )
+    outputGroup_%treeDataset(indexDataset)%written=.true.
+    return
+  end subroutine standardTreeDatasetAppendDouble
+
+  function standardDatasetExtent(datasets,propertyCount) result(extent_)
+    !!{RST
+    Return the extent of the first of ``datasets``, or a negative value if no handle is held for it - which is the case before
+    anything has been written to this output.
+    !!}
+    use :: HDF5, only : hsize_t
+    implicit none
+    integer(kind=hsize_t )                                            :: extent_
+    type   (outputDataset), intent(inout), allocatable, dimension(:) :: datasets
+    integer               , intent(in   )                            :: propertyCount
+
+    extent_=-1_hsize_t
+    if (propertyCount < 1       ) return
+    if (.not.allocated(datasets)) return
+    if (size(datasets) < 1      ) return
+    if (.not.datasets(1)%opened ) return
+    extent_=datasets(1)%dataset%size(1)
+    return
+  end function standardDatasetExtent

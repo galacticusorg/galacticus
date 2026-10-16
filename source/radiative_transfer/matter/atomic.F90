@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoClass
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialClass
   use :: Atomic_Radiation_Gaunt_Factors              , only : gauntFactorClass
@@ -72,6 +74,7 @@
      !!]
      final     ::                                 atomicDestructor
      procedure :: propertyClass                => atomicPropertyClass
+     procedure :: density                      => atomicDensity
      procedure :: populateDomain               => atomicPopulateDomain
      procedure :: reset                        => atomicReset
      procedure :: absorptionCoefficient        => atomicAbsorptionCoefficient
@@ -404,6 +407,19 @@ contains
     return
   end subroutine atomicPropertyClass
   
+  double precision function atomicDensity(self,coordinates)
+    !!{RST
+    Return the mass density of atomic matter at the given coordinates.
+    !!}
+    use :: Coordinates, only : coordinate
+    implicit none
+    class(radiativeTransferMatterAtomic), intent(inout) :: self
+    class(coordinate                   ), intent(in   ) :: coordinates
+
+    atomicDensity=self%massDistribution_%density(coordinates)
+    return
+  end function atomicDensity
+
   subroutine atomicPopulateDomain(self,properties,integrator,onProcess)
     !!{RST
     Populate a computational domain cell with atomic matter.
@@ -451,7 +467,7 @@ contains
                &                            *self       %numberDensityMassDensityRatio
        end if
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
 
@@ -465,7 +481,7 @@ contains
       implicit none
       class(coordinate), intent(in   ) :: coordinates
       
-      atomicDensityIntegrand= self%massDistribution_%density(coordinates)
+      atomicDensityIntegrand=self%density(coordinates)
       return
     end function atomicDensityIntegrand
 
@@ -488,7 +504,7 @@ contains
     type is (radiativeTransferPropertiesMatterAtomic)
        call mpiSelf%broadcastData(sendFromProcess,properties%elements%densityNumber)
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end subroutine atomicBroadcastDomain
@@ -515,7 +531,7 @@ contains
        end do
        properties               %iterationCount             =properties            %iterationCount     +1
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end subroutine atomicReset
@@ -619,7 +635,7 @@ contains
             &                             *megaParsec
     class default
        atomicAbsorptionCoefficientSpecies=0.0d0
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end function atomicAbsorptionCoefficientSpecies
@@ -679,7 +695,7 @@ contains
           end do
        end do
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end subroutine atomicAccumulatePhotonPacket
@@ -717,7 +733,7 @@ contains
           properties%elements(i)%photoHeatingRate   =mpiSelf%sum(properties%elements(i)%photoHeatingRate   )
        end do
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end subroutine atomicAccumulationReduction
@@ -1155,7 +1171,7 @@ contains
        end do
        call self%historyUpdate(properties)       
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
 #ifdef RADTRANSDEBUG
     call Signal(8,handlerPrevious)
@@ -1266,7 +1282,7 @@ contains
           end do
        end if
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end subroutine atomicHistoryUpdate
@@ -1295,7 +1311,7 @@ contains
        end do
        call    mpiSelf%broadcastData(sendFromProcess,properties            %temperature                )
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end subroutine atomicBroadcastState
@@ -1354,7 +1370,7 @@ contains
        atomicConvergenceMeasure=max(convergenceMeasures(1),1.0d0)
        class default
        atomicConvergenceMeasure=0.0d0
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end function atomicConvergenceMeasure
@@ -1420,7 +1436,7 @@ contains
        end if
     class default
        atomicOutputProperty=0.0d0
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [radiativeTransferPropertiesMatterAtomic] class'//{introspection:location})
     end select
     return
   end function atomicOutputProperty

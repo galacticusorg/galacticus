@@ -86,7 +86,11 @@ contains
     class           (coordinate                    ), intent(in   )          :: coordinates
     class           (massDistributionClass         ), intent(inout), target  :: massDistribution_        , massDistributionEmbedding
     class           (massDistributionClass         )               , pointer :: massDistribution__
-    double precision                                , parameter              :: radiusTiny        =1.0d-3, radiusLarge              =1.0d2
+    ! The full solutions below lose accuracy to cancellation as the radius grows, and the large-radius series gains it, so the
+    ! radius at which they are exchanged should be where the two are comparable. For the NFW case that is r/r_s ≈ 50: there the
+    ! full solution is accurate to 2×10⁻⁹ and the series to 1×10⁻⁸, whereas by r/r_s = 100 the full solution has degraded to
+    ! 3×10⁻⁷ while the series has improved to 8×10⁻¹⁰.
+    double precision                                , parameter              :: radiusTiny        =1.0d-3, radiusLarge              =5.0d1
     double precision                                                         :: radius
 
     massDistribution__ => massDistribution_

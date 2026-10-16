@@ -95,11 +95,13 @@ module Test_Methods
    <method name="radiusStripped" >
     <description>Return the stripping radius.</description>
     <type>double precision</type>
+    <pass>yes</pass>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="reset" >
     <description>Reset the object.</description>
     <type>void</type>
+    <pass>yes</pass>
    </method>
   </functionClass>
   !!]
@@ -312,3 +314,184 @@ end module Test_Computed
     # carried into the rendered text so the reader learns what it means.
     rendered = extractDocsRST.render_parameter(param, {})
     assert "I_1/I_2" in rendered
+
+
+# A module header long enough that its closing `!!}` falls outside any modest
+# fixed-size window, carrying several paragraphs and a code-block.  Three real
+# module headers look like this (`Table_Caches`, `Tabulations_Inverse`,
+# `Benchmark_Utilities`); nine exceed the 800-character window that `scan_source`
+# used to match within.
+_LONG_MODULE_FIXTURE = """\
+module Test_Long_Header
+  !!{RST
+  Implements a thing.
+
+  %s
+
+  The intended usage is:
+
+  .. code-block:: fortran
+
+     lattice=Range_Pinned(x,pointsPer,scheme)
+     call table_%%extend(lattice,isComputed)
+
+  Trailing paragraph.
+  !!}
+  implicit none
+end module Test_Long_Header
+""" % (("Filler prose. " * 70).strip(),)
+
+
+def test_long_module_header_is_not_dropped(tmp_path):
+    # `re.match` against a fixed-size window fails outright when the closing
+    # `!!}` lies beyond it, so an over-long header used to remove its module from
+    # the index entirely - silently, and indistinguishably from a module with no
+    # header at all.
+    (tmp_path / "longHeader.F90").write_text(_LONG_MODULE_FIXTURE)
+    *_head, _enums, modules, _components, _workarounds = \
+        extractDocsRST.scan_source(str(tmp_path))
+    assert [m["name"] for m in modules] == ["Test_Long_Header"]
+    assert len(modules[0]["description"]) > 800
+
+
+def test_module_header_structure_survives_rendering(tmp_path):
+    # The body is emitted as written rather than collapsed onto a single line:
+    # collapsing folded a `code-block` directive into the surrounding prose,
+    # where it rendered as literal `.. code-block::` text.
+    (tmp_path / "longHeader.F90").write_text(_LONG_MODULE_FIXTURE)
+    *_head, _enums, modules, _components, _workarounds = \
+        extractDocsRST.scan_source(str(tmp_path))
+    rendered = extractDocsRST.render_modules(modules)
+    # The directive stands alone on its own line, indented as the definition of
+    # the definition list whose term is the module name.
+    assert "\n   .. code-block:: fortran\n" in rendered
+    # ...and the literal block it introduces keeps its indentation relative to it.
+    assert "\n      lattice=Range_Pinned(x,pointsPer,scheme)\n" in rendered
+    # Paragraph breaks are preserved, not run together.
+    assert "\n   Implements a thing.\n\n" in rendered
+
+
+def test_module_header_is_dedented_to_its_own_margin(tmp_path):
+    # Every line of a module-level header carries the two-space indent of the
+    # `!!{RST` block, except the first, which `strip` has already removed it
+    # from.  `textwrap.dedent` must therefore be applied before stripping, or
+    # the common margin is not detected and every continuation line renders as
+    # an unintended block quote.
+    (tmp_path / "indented.F90").write_text("""\
+module Test_Indented
+  !!{RST
+  First line.
+
+  Second paragraph.
+  !!}
+end module Test_Indented
+""")
+    *_head, _enums, modules, _components, _workarounds = \
+        extractDocsRST.scan_source(str(tmp_path))
+    assert modules[0]["description"] == "First line.\n\nSecond paragraph."
+
+
+# Method, parameter and enumeration descriptions are emitted as written rather
+# than collapsed onto a single line: collapsing folded any block structure - a
+# `code-block`, a definition or bullet list, or simply a second paragraph - into
+# one run-on paragraph, where a directive rendered as literal `.. code-block::`
+# text (issue #1474).
+def test_method_description_structure_survives_rendering():
+    method = {
+        "name":        "timeEvolveTo",
+        "type":        "double precision",
+        "arguments":   [],
+        "description": """
+    Return the time.
+
+    .. code-block:: none
+
+         subroutine timestepTask(self)
+         end subroutine timestepTask
+
+    Trailing paragraph.
+    """,
+    }
+    _signature, body, _blank = extractDocsRST.render_method(method, {})
+    # Paragraph breaks are preserved, and the directive stands alone on its own
+    # line, indented as the definition of the definition list whose term is the
+    # method signature...
+    assert body.startswith("   Return the time.\n\n")
+    assert "\n   .. code-block:: none\n\n" in body
+    # ...and the literal block it introduces keeps its indentation relative to it.
+    assert "\n        subroutine timestepTask(self)\n" in body
+    assert body.endswith("\n\n   Trailing paragraph.")
+
+
+def test_type_method_description_is_dedented_to_its_own_margin(tmp_path):
+    # Stripping a `<description>` element before dedenting it removes the first
+    # line's indentation but not that of the lines which follow, so no common
+    # margin is found and everything after the first line renders as a block
+    # quote.
+    (tmp_path / "typeMethod.F90").write_text("""\
+module Test_Type_Method
+  type :: exampleType
+   contains
+     !![
+     <methods docformat="rst">
+       <method method="replicants">
+        <description>
+        Performs various actions:
+
+        ``actionCount``
+           returns the count.
+        </description>
+       </method>
+     </methods>
+     !!]
+  end type exampleType
+end module Test_Type_Method
+""")
+    _fam, _impl, _params, methods_by_file, *_rest = \
+        extractDocsRST.scan_source(str(tmp_path))
+    (method,) = methods_by_file[str(tmp_path / "typeMethod.F90")]
+    _signature, body, _blank = extractDocsRST.render_method(method, {})
+    assert body == ("   Performs various actions:\n\n"
+                    "   ``actionCount``\n"
+                    "      returns the count.")
+
+
+def test_parameter_description_structure_survives_rendering():
+    parameter = {
+        "name":          "likelihoodBins",
+        "defaultSource": "A citation.",
+        "description":   """
+      Controls which bins are used:
+
+      * *not present*: all bins;
+      * ``auto``: only populated bins.
+      """,
+    }
+    rendered = extractDocsRST.render_parameter(parameter, {})
+    # Continuation lines are indented to remain part of the bullet, and the
+    # default source, which would otherwise run on from the nested list,
+    # becomes a paragraph of its own.
+    assert rendered == ("* ``[likelihoodBins]`` — Controls which bins are used:\n\n"
+                        "  * *not present*: all bins;\n"
+                        "  * ``auto``: only populated bins.\n\n"
+                        "  *Default from:* A citation.")
+
+
+def test_single_paragraph_parameter_description_keeps_notes_inline():
+    parameter = {
+        "name":          "ratio",
+        "defaultSource": "A citation.",
+        "description":   "\n      A ratio\n      of two things.\n      ",
+    }
+    rendered = extractDocsRST.render_parameter(parameter, {})
+    assert rendered == ("* ``[ratio]`` — A ratio\n"
+                        "  of two things. *Default from:* A citation.")
+
+
+def test_enumeration_description_paragraphs_survive_rendering():
+    enumeration = {"name":        "status",
+                   "description": "\n  First paragraph.\n\n  Second paragraph.\n  ",
+                   "entries":     [],
+                   "module":      "Test_Status"}
+    rendered = extractDocsRST.render_enumerations([enumeration], {})
+    assert "\nFirst paragraph.\n\nSecond paragraph.\n" in rendered

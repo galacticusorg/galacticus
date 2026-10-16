@@ -40,8 +40,8 @@ program Tests_Spherical_Collapse_Determinism
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Numerical_Ranges          , only : rangeLattice                                    , enumerationGridSchemeType                    , gridSchemePerDecade                               , &
        &                                    gridSchemePerOctave
-  use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt, sphericalCollapseSolverCllsnlssMttrDarkEnergy, sphericalCollapseSolverBaryonsDarkMatterDarkEnergy, &
-       &                                    cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt, sphericalCollapseSolverCollisionlessMatterDarkEnergy, sphericalCollapseSolverBaryonsDarkMatterDarkEnergy, &
+       &                                    collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Tables                    , only : table1D
   use :: Unit_Tests                , only : Assert                                          , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group                              , &
        &                                    Unit_Tests_Finish
@@ -50,7 +50,7 @@ program Tests_Spherical_Collapse_Determinism
   type            (cosmologyFunctionsMatterLambda                    )           :: cosmologyFunctionsLambda_
   type            (cosmologyFunctionsMatterDarkEnergy                )           :: cosmologyFunctionsDarkEnergy_
   type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt  )           :: solverCosmologicalConstant_
-  type            (sphericalCollapseSolverCllsnlssMttrDarkEnergy     )           :: solverDarkEnergy_
+  type            (sphericalCollapseSolverCollisionlessMatterDarkEnergy     )           :: solverDarkEnergy_
   type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)           :: solverBaryons_
   ! Times, in Gyr, at which the tabulations are triggered. The second lies far outside of the range which will have been
   ! tabulated in response to the first, and so forces the table to be extended.
@@ -87,14 +87,14 @@ program Tests_Spherical_Collapse_Determinism
   solverCosmologicalConstant_ =sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt  (                                                                     &
        &                                                                          cosmologyFunctions_      =cosmologyFunctionsLambda_                  &
        &                                                                         )
-  solverDarkEnergy_           =sphericalCollapseSolverCllsnlssMttrDarkEnergy     (                                                                     &
-       &                                                                          energyFixedAt             =cllsnlssMttrDarkEnergyFixedAtTurnaround , &
+  solverDarkEnergy_           =sphericalCollapseSolverCollisionlessMatterDarkEnergy     (                                                                     &
+       &                                                                          energyFixedAt             =collisionlessMatterDarkEnergyFixedAtTurnaround , &
        &                                                                          cosmologyFunctions_       =cosmologyFunctionsDarkEnergy_             &
        &                                                                         )
   solverBaryons_              =sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(                                                                     &
        &                                                                          baryonsCluster            =.false.                                 , &
        &                                                                          tablePointsPerOctave      =pointsPerOctave                         , &
-       &                                                                          energyFixedAt             =cllsnlssMttrDarkEnergyFixedAtTurnaround , &
+       &                                                                          energyFixedAt             =collisionlessMatterDarkEnergyFixedAtTurnaround , &
        &                                                                          perturbationSmall         =1.0d-3                                  , &
        &                                                                          cosmologyParameters_      =cosmologyParameters_                    , &
        &                                                                          cosmologyFunctions_       =cosmologyFunctionsDarkEnergy_             &

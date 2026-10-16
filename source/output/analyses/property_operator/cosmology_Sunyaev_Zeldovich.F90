@@ -42,8 +42,9 @@ Implements a thermal Sunyaev-Zeldovich cosmological scaling corrector analysis p
      class           (outputTimesClass        ), pointer                   :: outputTimes_         => null()
      double precision                          , allocatable, dimension(:) :: correctionFactor
    contains
-     final     ::            csmlgySZDestructor
-     procedure :: operate => csmlgySZOperate
+     final     ::                      csmlgySZDestructor
+     procedure :: operate           => csmlgySZOperate
+     procedure :: isOutputDependent => cosmologySZIsOutputDependent
   end type outputAnalysisPropertyOperatorCosmologySZ
 
   interface outputAnalysisPropertyOperatorCosmologySZ
@@ -145,3 +146,15 @@ contains
          &          *self%correctionFactor(outputIndex)
     return
   end function csmlgySZOperate
+
+  logical function cosmologySZIsOutputDependent(self) result(isOutputDependent)
+    !!{RST
+    This operator requires an output index, which sets the epoch at which the correction is evaluated.
+    !!}
+    implicit none
+    class(outputAnalysisPropertyOperatorCosmologySZ), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isOutputDependent=.true.
+    return
+  end function cosmologySZIsOutputDependent

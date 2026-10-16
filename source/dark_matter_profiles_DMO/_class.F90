@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides an object that implements dark matter halo profiles.
 !!}
@@ -48,6 +50,44 @@ module Dark_Matter_Profiles_DMO
     <argument>type   (treeNode               ), intent(inout)           :: node       </argument>
     <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
     <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
+   </method>
+   <method name="scaleRadiusValidated" >
+    <description>
+    Return the scale radius of the dark matter profile of ``node``, reporting a fatal error if it is not positive. Profiles
+    parameterized by a scale radius should obtain it through this method, so that a scale radius which was never set, or which
+    was set to zero, is reported rather than propagated into the profile.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <modules>Display Error Galacticus_Nodes ISO_Varying_String String_Handling</modules>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <code>
+     class           (nodeComponentDarkMatterProfile), pointer   :: darkMatterProfile
+     type            (varying_string                )            :: message
+     character       (len=16                        )            :: label
+     double precision                                , parameter :: radiusScaleUnset =-1.0d0
+     darkMatterProfile                        => node             %darkMatterProfile()
+     darkMatterProfileDMOScaleRadiusValidated =  darkMatterProfile%scale            ()
+     if (darkMatterProfileDMOScaleRadiusValidated &gt; 0.0d0) return
+     message='the ['//char(self%objectType())//'] dark matter profile requires a positive scale radius, but '
+     if (darkMatterProfileDMOScaleRadiusValidated == radiusScaleUnset) then
+        ! This is the class default value of the scale radius, so it was never set.
+        message=message                                                                                                                // &amp;
+             &amp; 'the scale radius of node '//node%index()//' has not been set'//char(10)                                            // &amp;
+             &amp; displayGreen()//'HELP:'//displayReset()                                                                             // &amp;
+             &amp; ' scale radii are set by [nodeOperator]=darkMatterProfileScaleSet - check that it is present, and that it is'       // &amp;
+             &amp; ' applied to every halo (an operator nested inside a filtering operator, such as [nodeOperator]=filteredMainBranch,'// &amp;
+             &amp; ' is applied to only some halos)'
+     else
+        write (label,'(e12.6)') darkMatterProfileDMOScaleRadiusValidated
+        message=message                                                                                                                // &amp;
+             &amp; 'the scale radius of node '//node%index()//' is '//trim(adjustl(label))//' Mpc'//char(10)                           // &amp;
+             &amp; displayGreen()//'HELP:'//displayReset()                                                                             // &amp;
+             &amp; ' check [darkMatterProfileScaleRadius] - the "zero" class, for example, is suitable only for profiles which have no'// &amp;
+             &amp; ' scale radius, such as [darkMatterProfileDMO]=isothermal'
+     end if
+     call Error_Report(message//{introspection:location})
+    </code>
    </method>
   </functionClass>
   !!]

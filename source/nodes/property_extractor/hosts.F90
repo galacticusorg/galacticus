@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
-Implements a host index output analysis property extractor class.
+Implements a node property extractor for the index of the host node.
 !!}
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIndicesHost" docformat="rst">
    <description>
-   A node property extractor which extracts the index of the node which hosts a given node. For unhosted nodes (i.e. nodes which are not subhalos), a value of :math:`-1` is extracted instead.
+   A node property extractor which extracts the index of the node which hosts a given node. For a node which is not a subhalo the node is considered to be its own host, and so its own index is extracted---this matches the convention used for the ``hostIndex`` dataset in merger tree files, and means that this extractor never returns :math:`-1`.
+
+   By default the index of the *direct* host is extracted, so that a sub-subhalo reports the subhalo in which it resides. If ``topLevel`` is set to ``true`` the hierarchy is instead followed upward until an isolated halo is reached, so that every node reports the isolated halo which ultimately contains it.
+
+   Note that this differs from the ``parentIndex`` property of the :galacticus-class:`nodePropertyExtractorNodeIndices` extractor, which is the host only for subhalos (for an isolated halo it is instead the halo into which that halo grows at the next timestep of the merger tree, or :math:`-1` at the base of the tree). These conventions are described in `Merger Tree Structure in the Output &lt;https://galacticus.readthedocs.io/en/latest/manuals/user-guide/output-tree-structure.html&gt;`_.
    </description>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesHost
      !!{RST
-     A host index output analysis class.
+     A host node index property extractor class.
      !!}
      private
      logical :: topLevel
@@ -141,6 +147,6 @@ contains
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    indicesHostDescription=var_str('ID of the node which hosts this node (or -1 is there is no host).')
+    indicesHostDescription=var_str('Index of the node which hosts this node - equal to the index of this node itself if it is not a subhalo.')
     return
   end function indicesHostDescription

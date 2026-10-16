@@ -22,7 +22,7 @@
   !!}
 
   !![
-  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy" docformat="rst">
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy" alias="sphericalCollapseCollisionlessMatterDarkEnergy" docformat="rst">
    <description>
    Critical overdensity for gravitational collapse of dark matter halos, computed numerically via the spherical collapse model in a universe containing collisionless matter and dark energy. The normalization of the result can be adjusted via ``[normalization]``, and tabulated solutions can be stored to and restored from file for computational efficiency.
    </description>
@@ -115,7 +115,7 @@ contains
     !!}
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM                 , darkMatterParticleClass
     use :: Error                     , only : Error_Report
-    use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined, sphericalCollapseSolverCllsnlssMttrDarkEnergy
+    use :: Spherical_Collapse_Solvers, only : collisionlessMatterDarkEnergyFixedAtUndefined, sphericalCollapseSolverCollisionlessMatterDarkEnergy
     implicit none
     type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy)                          :: self
     class           (cosmologyFunctionsClass                                ), target  , intent(in   ) :: cosmologyFunctions_
@@ -130,11 +130,11 @@ contains
     !!]
 
     self%tableInitialized=.false.
-    allocate(sphericalCollapseSolverCllsnlssMttrDarkEnergy :: self%sphericalCollapseSolver_)
+    allocate(sphericalCollapseSolverCollisionlessMatterDarkEnergy :: self%sphericalCollapseSolver_)
     select type (sphericalCollapseSolver_ => self%sphericalCollapseSolver_)
-    type is (sphericalCollapseSolverCllsnlssMttrDarkEnergy)
+    type is (sphericalCollapseSolverCollisionlessMatterDarkEnergy)
        !![
-       <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrDarkEnergy(cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyFunctions_,self%linearGrowth_)"/>
+       <referenceConstruct isResult="yes" owner="self" nameAssociated="sphericalCollapseSolver_" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCollisionlessMatterDarkEnergy(collisionlessMatterDarkEnergyFixedAtUndefined,self%cosmologyFunctions_,self%linearGrowth_)"/>
        !!]
     end select
     ! Require that the dark matter be cold dark matter.

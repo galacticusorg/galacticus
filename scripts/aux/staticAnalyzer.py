@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
+import os
 import re
 import sys
+
+# Make the in-tree Python packages importable when run directly, without a
+# `pip install -e .` or an externally-set `PYTHONPATH`.  This script is an aux
+# tool run standalone (and its tests invoke it as a bare subprocess), so it
+# cannot rely on either being in place.
+sys.path.insert(0, os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, 'python'))
+
+from Fortran.Utils import type_opener_regex                          # noqa: E402
 
 # Perform static analysis of Fortran files.
 # Andrew Benson (28-February-2023)
@@ -10,6 +20,10 @@ import sys
 #  2. Duplicated variable assignments in <constructorAssign> directives.
 #  3. Empty constructor functions (no-argument constructors for known types).
 #  4. Empty finalizer subroutines.
+#  5. Error_Report calls building a message from a string literal without
+#     appending {introspection:location}.
+#  6. Destructors and internal constructors which are defined but never bound,
+#     so that the compiler silently skips them.
 
 if len(sys.argv) != 2:
     print("Usage: staticAnalyzer.py <fileName>", file=sys.stderr)
@@ -32,12 +46,7 @@ _VAR_DECL = re.compile(
 )
 
 # Derived-type definition opener: "type [,attrs] [::] name"  (not "type(...)").
-_TYPE_DEF = re.compile(
-    r'^\s*type'
-    r'(?:\s*,\s*(?:abstract|public|private|extends\s*\([^)]+\))\s*)*'
-    r'(?:\s*::)?\s*([a-zA-Z0-9_]+)\s*$',
-    re.IGNORECASE,
-)
+_TYPE_DEF = type_opener_regex()
 _END_TYPE      = re.compile(r'^\s*end\s+type\b',      re.IGNORECASE)
 _INTERFACE     = re.compile(r'^\s*interface\s+([a-zA-Z0-9_]+)\s*$', re.IGNORECASE)
 _END_INTERFACE = re.compile(r'^\s*end\s+interface\b', re.IGNORECASE)
@@ -79,6 +88,9 @@ _USE_STMT     = re.compile(r'^\s*use(\s*,\s*intrinsic)??\s*::', re.IGNORECASE)
 _IMPLICIT     = re.compile(r'^\s*implicit\s+none\s*$', re.IGNORECASE)
 _RETURN       = re.compile(r'^\s*return\s*$',          re.IGNORECASE)
 
+# A call to Error_Report (check 5).
+_ERROR_REPORT = re.compile(r'\bcall\s+Error_Report\s*\(', re.IGNORECASE)
+
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -104,6 +116,87 @@ def _join_continuations(lines):
     if current is not None:
         result.append(current)
     return result
+
+
+def _join_continuations_numbered(lines):
+    """Join Fortran continuation lines, returning (lineNumber, text) pairs where
+    lineNumber is the 1-indexed line on which each logical line begins.
+
+    This is deliberately separate from `_join_continuations`, which checks 1-4
+    use, for two reasons. It tracks line numbers, and it also treats `&amp;` as a
+    continuation marker: Fortran embedded in the `!![ ... !!]` directive blocks is
+    XML, so its continuations are escaped. Without that, a call spread over
+    several lines inside a directive block is never joined, and check 5 reports a
+    missing location for a call which in fact has one.
+    """
+    result  = []
+    current = None
+    start   = None
+    for number, raw in enumerate(lines, start=1):
+        line = raw.rstrip('\n')
+        if current is not None:
+            # A continued line may optionally begin with the continuation marker.
+            stripped = line.lstrip()
+            for marker in ('&amp;', '&'):
+                if stripped.startswith(marker):
+                    stripped = stripped[len(marker):]
+                    break
+            current = current + stripped
+        else:
+            current = line
+            start   = number
+        trimmed = current.rstrip()
+        for marker in ('&amp;', '&'):
+            if trimmed.endswith(marker):
+                current = trimmed[:-len(marker)]
+                break
+        else:
+            result.append((start, current))
+            current = None
+    if current is not None:
+        result.append((start, current))
+    return result
+
+
+def _call_arguments(line, start):
+    """Return the text of a call's argument list, where `start` is the index just
+    after its opening parenthesis.
+
+    Fortran string literals are respected, so a parenthesis or a `!` inside a
+    message does not end the scan, and doubled quotes (the Fortran escape) do not
+    end a literal. Scanning stops at the matching closing parenthesis, or at a
+    trailing comment. Restricting the checks to this text matters: a `!` comment
+    after the call can easily contain an apostrophe, which would otherwise make a
+    call whose message is a bare variable look as though it were built from a
+    literal.
+    """
+    depth = 1
+    i     = start
+    n     = len(line)
+    while i < n:
+        character = line[i]
+        if character in ("'", '"'):
+            quote = character
+            i    += 1
+            while i < n:
+                if line[i] == quote:
+                    if i + 1 < n and line[i + 1] == quote:
+                        i += 2          # a doubled quote is an escaped quote
+                        continue
+                    i += 1
+                    break
+                i += 1
+            continue
+        if character == '!':
+            break                       # trailing comment, outside any literal
+        if character == '(':
+            depth += 1
+        elif character == ')':
+            depth -= 1
+            if depth == 0:
+                break
+        i += 1
+    return line[start:i]
 
 
 def _is_trivial_body_line(line):
@@ -243,7 +336,7 @@ for line in lines:
     # type definition
     m = _TYPE_DEF.match(line)
     if m and not in_function and not in_subroutine:
-        type_name = m.group(1).lower()
+        type_name = m.group('name').lower()
         known_types.append(type_name)
         in_type_block     = True
         current_type_name = type_name
@@ -328,5 +421,74 @@ for line in lines:
         if m:
             names = [n.strip().lower() for n in m.group(1).split(',')]
             constructors.extend(names)
+
+
+# ── Check 5: Error_Report without {introspection:location} ────────────────────
+#
+# Every fatal error should say where it was raised, so `{introspection:location}`
+# must be appended to the message. Only calls whose message is built from a
+# string literal are checked: where the message is a bare variable the location
+# may already have been appended where that variable was assigned, which cannot
+# be determined from this call site alone.
+
+for start_line, line in _join_continuations_numbered(raw_lines):
+    if _COMMENT.match(line):
+        continue
+    m = _ERROR_REPORT.search(line)
+    if not m:
+        continue
+    arguments = _call_arguments(line, m.end())
+    if '{introspection:location}' in arguments:
+        continue
+    # The message is a bare variable (or an expression built only from
+    # variables) - the location cannot be checked here.
+    if "'" not in arguments and '"' not in arguments:
+        continue
+    print(f"Error_Report at line {start_line} of file '{file_name}'"
+          f" does not append {{introspection:location}} to its message")
+    status = 1
+
+# ── Check 6: destructors and internal constructors defined but never bound ────
+#
+# A `<name>Destructor` is bound to its type with `final ::`, and a
+# `<name>ConstructorInternal` is added to the type's generic interface with
+# `module procedure`. Where that line is missing the procedure still compiles,
+# but nothing ever reaches it: the destructor never runs (so the objects it
+# releases leak, and any event hook it detaches is left attached to freed
+# memory), while the constructor call falls back to the intrinsic structure
+# constructor, which skips the reference counting that `<constructorAssign>`
+# would have emitted.
+#
+# Both are module-private helpers referenced only from within their own file, so
+# counting whole-word occurrences here is sufficient: an unbound procedure is
+# named exactly twice, by its own opening and closing statements.
+
+# `impure elemental`, `recursive`, `pure` and `module` all precede the keyword,
+# so the prefixes must be consumed as `_FUNCTION` and `_SUBROUTINE` above do.
+_PREFIXES        = r'(?:(?:pure|impure|elemental|recursive|non_recursive|module)\s+)*'
+_DESTRUCTOR_DEF  = re.compile(
+    r'^\s*' + _PREFIXES + r'subroutine\s+([a-zA-Z0-9_]*destructor)\s*\(',
+    re.IGNORECASE)
+_CONSTRUCTOR_DEF = re.compile(
+    r'^\s*' + _PREFIXES + r'function\s+([a-zA-Z0-9_]*constructorInternal)\s*\(',
+    re.IGNORECASE)
+
+_BINDINGS = {'destructor': 'a `final ::` declaration',
+             'constructor': 'a `module procedure` line in the generic interface'}
+
+source_text = ''.join(raw_lines)
+for kind, pattern in (('destructor', _DESTRUCTOR_DEF), ('constructor', _CONSTRUCTOR_DEF)):
+    for start_line, line in _join_continuations_numbered(raw_lines):
+        m = pattern.match(line)
+        if not m:
+            continue
+        name       = m.group(1)
+        references = len(re.findall(r'\b' + re.escape(name) + r'\b',
+                                    source_text, re.IGNORECASE))
+        if references > 2:
+            continue
+        print(f"Procedure '{name}' at line {start_line} of file '{file_name}'"
+              f" is never bound - it needs {_BINDINGS[kind]}")
+        status = 1
 
 raise SystemExit(status)

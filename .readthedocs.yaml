@@ -19,6 +19,11 @@ build:
     - PYTHONPATH=python python scripts/doc/extractDocsRST.py source docs
     # Build the HTML site.
     - python -m sphinx -b html docs $READTHEDOCS_OUTPUT/html
+    # Package the built site as a single downloadable archive, so that each
+    # version -- in particular, each release -- has a self-contained copy of its
+    # documentation. (Note that commands here do not survive nested quoting, so
+    # this must be a script and not an inline `python -c "..."`.)
+    - python scripts/doc/archiveDocs.py $READTHEDOCS_OUTPUT
 
 sphinx:
   configuration: docs/conf.py

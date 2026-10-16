@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for the AGN torus dust attenuation unit test (tests.dust.attenuation_AGN_torus.exe). The test constructs -->
+<!-- the objects under test itself; only the node components are needed from here, and the node needs no properties.    -->
+
+<parameters>
+  <lastModified revision="b0890a5e0f03c7216e1f579b7f752b5b80c9148b" time="2026-10-14T00:00:00"/>
+  <formatVersion>2</formatVersion>
+
+  <!-- Component selection -->
+  <componentBasic     value="standard"/>
+  <componentDisk      value="null"    />
+  <componentSpheroid  value="null"    />
+  <componentHotHalo   value="null"    />
+  <componentBlackHole value="null"    />
+</parameters>

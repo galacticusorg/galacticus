@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a composite mass distribution class.
   !!}
@@ -65,6 +67,7 @@
      procedure :: densityGradientRadial                   => compositeDensityGradientRadial
      procedure :: densitySlopeLogarithmicCentral          => compositeDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment                     => compositeDensityRadialMoment
+     procedure :: surfaceDensityRadialMoment              => compositeSurfaceDensityRadialMoment
      procedure :: densitySphericalAverage                 => compositeDensitySphericalAverage
      procedure :: densitySquareIntegral                   => compositeDensitySquareIntegral
      procedure :: potentialIsAnalytic                     => compositePotentialIsAnalytic
@@ -184,8 +187,9 @@ contains
     
     ! Begin by assuming the highest degree of symmetry.
     self%symmetry_        =massDistributionSymmetrySpherical
-    ! Begin by assuming a single component.
-    self%isSingleComponent=.true.
+    ! Begin by assuming a single component - unless there are no components at all, in which case the single-component shortcuts,
+    ! which pass calls through to the first component, can not be used.
+    self%isSingleComponent=associated(self%massDistributions)
     firstComponent        =.true.
     ! Begin by assuming a collisionless distribution.
     self%isCollisionless  =.true.
@@ -487,7 +491,7 @@ contains
 
   subroutine compositeSelfAcquire(self,self_)
     !!{RST
-    Return a counted reference to self (used by :galacticus-class:`compositeSubset` when the
+    Return a counted reference to self (used by ``compositeSubset`` when the
     requested subset is identical to the whole composite). A submodule-local equivalent of the
     module-level selfAcquire, declared here so it is linkable from this submodule.
     !!}
@@ -697,6 +701,33 @@ contains
     end if
     return
   end function compositeDensityRadialMoment
+
+  double precision function compositeSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
+    !!{RST
+    Return the given radial surface density moment in a composite mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionComposite), intent(inout)           :: self
+    double precision                           , intent(in   )           :: moment
+    double precision                           , intent(in   ), optional :: radiusMinimum    , radiusMaximum
+    logical                                    , intent(  out), optional :: isInfinite
+    type            (massDistributionList     ), pointer                 :: massDistribution_
+
+    compositeSurfaceDensityRadialMoment=0.0d0
+    if (present(isInfinite)) isInfinite=.false.
+    if (associated(self%massDistributions)) then
+       massDistribution_ => self%massDistributions
+       do while (associated(massDistribution_))
+          compositeSurfaceDensityRadialMoment =  +compositeSurfaceDensityRadialMoment                                                                                             &
+               &                                 +massDistribution_                  %massDistribution_%surfaceDensityRadialMoment(moment,radiusMinimum,radiusMaximum,isInfinite)
+          if (present(isInfinite)) then
+             if (isInfinite) return
+          end if
+          massDistribution_                   =>  massDistribution_                  %next
+       end do
+    end if
+    return
+  end function compositeSurfaceDensityRadialMoment
 
   double precision function compositeMassEnclosedBySphere(self,radius)
     !!{RST
@@ -970,7 +1001,10 @@ contains
     class           (massDistributionClass    )               , pointer :: self_
 
     self_ => self
-    if (self%isSingleComponent .and. associated(self_,massDistributionEmbedding)) then
+    if (.not.associated(self%massDistributions)) then
+       ! An empty distribution has no mass, and so no energy.
+       energy=0.0d0
+    else if (self%isSingleComponent .and. associated(self_,massDistributionEmbedding)) then
        energy=self%massDistributions%massDistribution_%energy(radiusOuter,self%massDistributions%massDistribution_)
     else
        energy=0.0d0
@@ -979,27 +1013,28 @@ contains
     return
   end function compositeEnergy
   
-  function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity)
+  function compositeChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity,logarithmCoulomb,dynamicalFrictionGaseous_)
     !!{RST
     Compute the Chandrasekhar integral at the specified ``coordinates`` in a composite mass distribution.
     !!}
     use :: Coordinates, only : coordinateCartesian, assignment(=)
     implicit none
-    type            (coordinateCartesian      )                :: compositeChandrasekharIntegral
-    class           (massDistributionComposite), intent(inout) :: self
-    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
-    double precision                           , intent(in   ) :: massPerturber
-    class           (coordinate               ), intent(in   ) :: coordinates
-    type            (coordinateCartesian      ), intent(in   ) :: velocity
-    type            (massDistributionList     ), pointer       :: massDistribution_
-    double precision                           , dimension(3)  :: integralArray                 , integralComponent
+    type            (coordinateCartesian          )                :: compositeChandrasekharIntegral
+    class           (massDistributionComposite    ), intent(inout) :: self
+    class           (massDistributionClass        ), intent(inout) :: massDistributionEmbedding     , massDistributionPerturber
+    double precision                               , intent(in   ) :: massPerturber                 , logarithmCoulomb
+    class           (coordinate                   ), intent(in   ) :: coordinates
+    type            (coordinateCartesian          ), intent(in   ) :: velocity
+    class           (dynamicalFrictionGaseousClass), intent(inout) :: dynamicalFrictionGaseous_
+    type            (massDistributionList         ), pointer       :: massDistribution_
+    double precision                               , dimension(3)  :: integralArray                 , integralComponent
     !$GLC attributes unused :: massDistributionEmbedding
 
     integralArray=[0.0d0,0.0d0,0.0d0]
     if (associated(self%massDistributions)) then
        massDistribution_ => self%massDistributions
        do while (associated(massDistribution_))
-          integralComponent =  massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,massPerturber,coordinates,velocity)
+          integralComponent =  massDistribution_%massDistribution_%chandrasekharIntegral(massDistribution_%massDistribution_,massDistributionPerturber,massPerturber,coordinates,velocity,logarithmCoulomb,dynamicalFrictionGaseous_)
           integralArray     = +integralArray+integralComponent
           massDistribution_ => massDistribution_%next
        end do

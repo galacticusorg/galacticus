@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements outputting of formatted, indented messages at various verbosity levels from Galacticus.
 !!}
@@ -198,25 +200,26 @@ contains
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                           :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormatNoNewLine(threadNumber)) '-> '
-       write (output_unit,'(a)') trim(message)
-       !$ if (omp_in_parallel()) then
-       !$    indentationLevel(omp_get_thread_num()+1)=indentationLevel(omp_get_thread_num()+1)+1
-       !$ else
-             indentationLevel=indentationLevel+1
-       !$ end if
-       call formatIndentationCreate()
-    end if
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormatNoNewLine(threadNumber)) '-> '
+    write (output_unit,'(a)') trim(message)
+    !$ if (omp_in_parallel()) then
+    !$    indentationLevel(omp_get_thread_num()+1)=indentationLevel(omp_get_thread_num()+1)+1
+    !$ else
+          indentationLevel=indentationLevel+1
+    !$ end if
+    call formatIndentationCreate()
     !$omp end critical(Display_Lock)
     return
   end subroutine displayIndentChar
@@ -245,25 +248,26 @@ contains
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                           :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       !$ if (omp_in_parallel()) then
-       !$    indentationLevel(omp_get_thread_num()+1)=max(indentationLevel(omp_get_thread_num()+1)-1,0)
-       !$ else
-       indentationLevel=max(indentationLevel-1,0)
-       !$ end if
-       call formatIndentationCreate()
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormatNoNewLine(threadNumber)) '<- '
-       write (output_unit,'(a)') trim(message)
-    end if
+    !$ if (omp_in_parallel()) then
+    !$    indentationLevel(omp_get_thread_num()+1)=max(indentationLevel(omp_get_thread_num()+1)-1,0)
+    !$ else
+    indentationLevel=max(indentationLevel-1,0)
+    !$ end if
+    call formatIndentationCreate()
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormatNoNewLine(threadNumber)) '<- '
+    write (output_unit,'(a)') trim(message)
     !$omp end critical(Display_Lock)
     return
   end subroutine displayUnindentChar
@@ -279,20 +283,21 @@ contains
     type     (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                           :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       if (barVisible) call counterClearLockless()
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormat(threadNumber)) trim(message)
-       if (barVisible) call displayCounterLockless(barPercentage,.true.)
-    end if
+    if (barVisible) call counterClearLockless()
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormat(threadNumber)) trim(message)
+    if (barVisible) call displayCounterLockless(barPercentage,.true.)
     !$omp end critical(Display_Lock)
     return
   end subroutine displayMessageChar
@@ -309,20 +314,21 @@ contains
     type   (enumerationVerbosityLevelType), intent(in   ), optional :: verbosity
     integer                                                         :: threadNumber
 
+    ! The verbosity level is set at start-up (and otherwise changed only just before reporting a fatal error), so test it before
+    ! taking the lock. This avoids serializing all threads on messages which will not be displayed.
+    if (.not.showMessage(verbosity)) return
     !$omp critical(Display_Lock)
     call initialize()
-    if (showMessage(verbosity)) then
-       if (barVisible) call counterClearLockless()
-       !$ if (omp_in_parallel()) then
-       !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
-       !$ else
-       !$    write (output_unit,masterFormat)                      ": "
-       !$ end if
-       threadNumber=1
-       !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
-       write (output_unit,indentationFormat(threadNumber)) char(message)
-       if (barVisible) call displayCounterLockless(barPercentage,.true.)
-    end if
+    if (barVisible) call counterClearLockless()
+    !$ if (omp_in_parallel()) then
+    !$    write (output_unit,threadFormat) omp_get_thread_num(),": "
+    !$ else
+    !$    write (output_unit,masterFormat)                      ": "
+    !$ end if
+    threadNumber=1
+    !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
+    write (output_unit,indentationFormat(threadNumber)) char(message)
+    if (barVisible) call displayCounterLockless(barPercentage,.true.)
     !$omp end critical(Display_Lock)
     return
   end subroutine displayMessageVarStr
@@ -450,25 +456,39 @@ contains
     return
   end function showMessage
 
-  function displayRed()
+  function displayEscapeSequence(sequence)
     !!{RST
-    Return the ANSI escape code for red text.
+    Return the given ANSI escape ``sequence``, prefixed by the escape character, if standard output is a terminal, and an empty
+    string otherwise. Under MPI an empty string is always returned, as output is not written to a terminal.
     !!}
 #ifndef USEMPI
     use :: System_Output, only : stdOutIsATTY
 #endif
     implicit none
-    character(len=:), allocatable :: displayRed
+    character(len=:), allocatable   :: displayEscapeSequence
+    character(len=*), intent(in   ) :: sequence
 
 #ifdef USEMPI
-    displayRed=""
+    !$GLC attributes unused :: sequence
+    displayEscapeSequence=""
 #else
     if (stdOutIsATTY()) then
-       displayRed=ESC//"[31m"
+       displayEscapeSequence=ESC//sequence
     else
-       displayRed=""
+       displayEscapeSequence=""
     end if
 #endif
+    return
+  end function displayEscapeSequence
+
+  function displayRed()
+    !!{RST
+    Return the ANSI escape code for red text.
+    !!}
+    implicit none
+    character(len=:), allocatable :: displayRed
+
+    displayRed=displayEscapeSequence("[31m")
     return
   end function displayRed
 
@@ -476,21 +496,10 @@ contains
     !!{RST
     Return the ANSI escape code for blue text.
     !!}
-#ifndef USEMPI
-    use :: System_Output, only : stdOutIsATTY
-#endif
     implicit none
     character(len=:), allocatable :: displayBlue
 
-#ifdef USEMPI
-    displayBlue=""
-#else
-    if (stdOutIsATTY()) then
-       displayBlue=ESC//"[34m"
-    else
-       displayBlue=""
-    end if
-#endif
+    displayBlue=displayEscapeSequence("[34m")
     return
   end function displayBlue
   
@@ -498,21 +507,10 @@ contains
     !!{RST
     Return the ANSI escape code for yellow text.
     !!}
-#ifndef USEMPI
-    use :: System_Output, only : stdOutIsATTY
-#endif
     implicit none
     character(len=:), allocatable :: displayYellow
 
-#ifdef USEMPI
-    displayYellow=""
-#else
-    if (stdOutIsATTY()) then
-       displayYellow=ESC//"[33m"
-    else
-       displayYellow=""
-    end if
-#endif
+    displayYellow=displayEscapeSequence("[33m")
     return
   end function displayYellow
   
@@ -520,21 +518,10 @@ contains
     !!{RST
     Return the ANSI escape code for magenta text.
     !!}
-#ifndef USEMPI
-    use :: System_Output, only : stdOutIsATTY
-#endif
     implicit none
     character(len=:), allocatable :: displayMagenta
 
-#ifdef USEMPI
-    displayMagenta=""
-#else
-    if (stdOutIsATTY()) then
-       displayMagenta=ESC//"[35m"
-    else
-       displayMagenta=""
-    end if
-#endif
+    displayMagenta=displayEscapeSequence("[35m")
     return
   end function displayMagenta
   
@@ -542,21 +529,10 @@ contains
     !!{RST
     Return the ANSI escape code for green text.
     !!}
-#ifndef USEMPI
-    use :: System_Output, only : stdOutIsATTY
-#endif
     implicit none
     character(len=:), allocatable :: displayGreen
 
-#ifdef USEMPI
-    displayGreen=""
-#else
-    if (stdOutIsATTY()) then
-       displayGreen=ESC//"[32m"
-    else
-       displayGreen=""
-    end if
-#endif
+    displayGreen=displayEscapeSequence("[32m")
     return
   end function displayGreen
   
@@ -564,21 +540,10 @@ contains
     !!{RST
     Return the ANSI escape code for bold text.
     !!}
-#ifndef USEMPI
-    use :: System_Output, only : stdOutIsATTY
-#endif
     implicit none
     character(len=:), allocatable :: displayBold
 
-#ifdef USEMPI
-    displayBold=""
-#else
-    if (stdOutIsATTY()) then
-       displayBold=ESC//"[1m"
-    else
-       displayBold=""
-    end if
-#endif
+    displayBold=displayEscapeSequence("[1m")
     return
   end function displayBold
   
@@ -586,21 +551,10 @@ contains
     !!{RST
     Return the ANSI escape code to reset text.
     !!}
-#ifndef USEMPI
-    use :: System_Output, only : stdOutIsATTY
-#endif
     implicit none
     character(len=:), allocatable :: displayReset
 
-#ifdef USEMPI
-    displayReset=""
-#else
-    if (stdOutIsATTY()) then
-       displayReset=ESC//"[0m"
-    else
-       displayReset=""
-    end if
-#endif
+    displayReset=displayEscapeSequence("[0m")
     return
   end function displayReset
   

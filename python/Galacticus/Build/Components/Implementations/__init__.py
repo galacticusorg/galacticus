@@ -71,7 +71,7 @@ def Implementation_Defaults(build):
 
 
 def Null_Implementations(build):
-    """Synthesise a `null` implementation for any class that lacks one.
+    """Synthesize a `null` implementation for any class that lacks one.
 
     When a class has no `null` member,
     we add one; if no other implementation was marked `isDefault`, the

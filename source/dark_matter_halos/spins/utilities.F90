@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements calculations of dark matter halo angular momentum.
 !!}
@@ -38,24 +40,15 @@ contains
     !!{RST
     Assert that properties required for spin calculations are gettable.
     !!}
-    use :: Error             , only : Component_List       , Error_Report
-    use :: Galacticus_Nodes  , only : defaultBasicComponent
     use :: ISO_Varying_String, only : operator(//)
     implicit none
 
     if (.not.propertiesAsserted) then
        !$omp critical(darkMatterHaloSpinsAssertions)
        if (.not.propertiesAsserted) then
-          if (.not.defaultBasicComponent%massIsGettable())                                               &
-               & call Error_Report                                                                       &
-               &      (                                                                                  &
-               &       'mass property of basic component must be gettable.'//                            &
-               &       Component_List(                                                                   &
-               &                      'basic'                                                         ,  &
-               &                      defaultBasicComponent%massAttributeMatch(requireGettable=.true.)   &
-               &                     )                                                                // &
-               &       {introspection:location}                                                          &
-               &      )
+          !![
+          <componentPropertyAssert class="basic" properties="mass" require="gettable"/>
+          !!]
           ! Record that the module is now initialized.
           propertiesAsserted=.true.
        end if
@@ -70,8 +63,9 @@ contains
     !!}
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
-    use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
+    use :: Display                         , only : displayGreen                  , displayReset
     use :: Error                           , only : Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Galactic_Structure_Options      , only : componentTypeDarkMatterOnly   , massTypeDark
@@ -82,7 +76,8 @@ contains
     logical                           , intent(in   ), optional :: useBullockDefinition
     class  (nodeComponentBasic       ), pointer                 :: basic
     class  (massDistributionClass    ), pointer                 :: massDistribution_
-   !![
+    double precision                                            :: energy
+    !![
     <optionalArgument name="useBullockDefinition" defaultsTo=".false." />
     !!]
     
@@ -99,13 +94,23 @@ contains
        ! Use the halo angular momentum scale used in the Peebles (1971; http://adsabs.harvard.edu/abs/1971A%26A....11..377P)
        ! definition of halo spin.
        if (present(darkMatterProfileDMO_)) then
-          massDistribution_    =>  darkMatterProfileDMO_%get             (node                                    )
+          massDistribution_ => darkMatterProfileDMO_%get             (node                                    )
        else
-          massDistribution_    =>  node                 %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
+          massDistribution_ => node                 %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
        end if
-       angularMomentumScale =  +gravitationalConstant_internal                                                                        &
-            &                  *         basic            %mass  (                                                         )  **2.5d0 &
-            &                  /sqrt(abs(massDistribution_%energy(darkMatterHaloScale_%radiusVirial(node),massDistribution_)))
+       energy=massDistribution_%energy(darkMatterHaloScale_%radiusVirial(node),massDistribution_)
+       ! A halo of positive mass has a negative energy. Zero energy means that the halo has no dark matter mass distribution at all.
+       if (energy == 0.0d0)                                                                                                          &
+            & call Error_Report(                                                                                                     &
+            &                   'the halo has no dark matter mass distribution, so its angular momentum scale can not be computed'// &
+            &                   char(10)//displayGreen()//'HELP:'//displayReset()                                                 // &
+            &                   ' a dark matter profile is given to each halo by a node operator - check that [nodeOperator]'     // &
+            &                   ' includes one, such as [nodeOperator]=darkMatterProfileScaleSet'                                 // &
+            &                   {introspection:location}                                                                             &
+            &                  )
+       angularMomentumScale=+gravitationalConstant_internal &
+            &               *basic%mass()**2.5d0            &
+            &               /sqrt(abs(energy))
        !![
        <objectDestructor name="massDistribution_"/>
        !!]

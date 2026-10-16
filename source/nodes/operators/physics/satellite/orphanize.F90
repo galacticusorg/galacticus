@@ -68,13 +68,12 @@ contains
     !!{RST
     Attach to various event hooks.
     !!}
-    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, interTreePostProcessEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, openMPThreadBindingAtLevel
     implicit none
     class(nodeOperatorSatelliteOrphanize), intent(inout) :: self
-    
+
     call   satelliteHostChangeEvent%attach(self,satelliteHostChange  ,openMPThreadBindingAtLevel,label='satelliteOrphanize')
     call branchJumpPostProcessEvent%attach(self,branchJumpPostProcess,openMPThreadBindingAtLevel,label='satelliteOrphanize')
-    call  interTreePostProcessEvent%attach(self,branchJumpPostProcess,openMPThreadBindingAtLevel,label='satelliteOrphanize')
    return
   end subroutine satelliteOrphanizeAutoHook
 
@@ -82,13 +81,12 @@ contains
     !!{RST
     Destructor for the :galacticus-class:`nodeOperatorSatelliteOrphanize` node operator class.
     !!}
-    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent, interTreePostProcessEvent
+    use :: Events_Hooks, only : satelliteHostChangeEvent, branchJumpPostProcessEvent
     implicit none
     type(nodeOperatorSatelliteOrphanize), intent(inout) :: self
 
-    if (  satelliteHostChangeEvent%isAttached(self,satelliteHostChange)) call   satelliteHostChangeEvent%detach(self,satelliteHostChange)
-    if (branchJumpPostProcessEvent%isAttached(self,satelliteHostChange)) call branchJumpPostProcessEvent%detach(self,satelliteHostChange)
-    if ( interTreePostProcessEvent%isAttached(self,satelliteHostChange)) call  interTreePostProcessEvent%detach(self,satelliteHostChange)
+    if (  satelliteHostChangeEvent%isAttached(self,satelliteHostChange  )) call   satelliteHostChangeEvent%detach(self,satelliteHostChange  )
+    if (branchJumpPostProcessEvent%isAttached(self,branchJumpPostProcess)) call branchJumpPostProcessEvent%detach(self,branchJumpPostProcess)
     return
   end subroutine satelliteOrphanizeDestructor
 
@@ -211,6 +209,8 @@ contains
     use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
     use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), target  :: node
@@ -258,8 +258,10 @@ contains
              call orphanizePerform(nodeWork)
           end do
        end if
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class'//{introspection:location})
     end select
     return
   end subroutine satelliteHostChange
@@ -273,6 +275,8 @@ contains
     use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
     use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*                     ), intent(inout)          :: self
     type (treeNode              ), intent(inout), pointer :: node
@@ -325,8 +329,10 @@ contains
           ! Process the node.
           call orphanizePerform(nodeWork)
        end do
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorSatelliteOrphanize] class'//{introspection:location})
     end select
     return
   end subroutine branchJumpPostProcess

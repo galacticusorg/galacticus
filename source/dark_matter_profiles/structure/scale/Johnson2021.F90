@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a dark matter profile scale radius class using the energy-based model of :cite:t:`johnson_random_2021`.
   !!}
@@ -45,7 +47,7 @@
     <description>
     A dark matter profile scale radius class that computes scale radii based on the energy conservation approach of :cite:t:`johnson_random_2021`, with some modifications and improvements.
 
-    Specifically, for "well-resolved" halos (see below for discussion of this point), the concentration is found by computing the total energy of the halo as the sum over the energies (internal and orbital) of its progenitor halos. The halo is assumed to have virialized at this energy, and the scale radius is then solved for such that the energy of the assumed density profile (e.g. Galacticusnfw) is equal to the computed energy of the halo.
+    Specifically, for "well-resolved" halos (see below for discussion of this point), the concentration is found by computing the total energy of the halo as the sum over the energies (internal and orbital) of its progenitor halos. The halo is assumed to have virialized at this energy, and the scale radius is then solved for such that the energy of the assumed density profile (e.g. :term:`NFW`) is equal to the computed energy of the halo.
 
     In detail, the energy, :math:`E_\mathrm{int}`, of a node is assumed to be given by:
 
@@ -124,7 +126,7 @@
     The scale radius which corresponds to this energy is then solved for. If the total energy is found to be positive the
     model has failed (no bound profile corresponds to a positive energy), and the scale radius of the primary progenitor is
     used unchanged. The number of nodes for which this occurs, as a fraction of those to which the energy model was applied,
-    is reported at the end of the run by :galacticus-class:`Johnson2021_Statistics`. The rate of such failures is a function
+    is reported at the end of the run by ``Johnson2021_Statistics``. The rate of such failures is a function
     of both mass resolution and power spectrum, so it should be monitored when calibrating this model: it is a bias in
     precisely the regime of interest.
 
@@ -250,8 +252,10 @@ contains
       </defaultSource>
       <source>parameters</source>
       <description>
-      Factor multiplying the estimate of the internal energy of unresolved accretion.
+      Factor multiplying the estimate of the internal energy of unresolved accretion. A value of zero ignores the energy of
+      unresolved accretion.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>factorMassResolution</name>
@@ -812,18 +816,21 @@ contains
           else
              energyScatter=0.0d0
           end if
-          ! Accumulate the energy of unresolved halos to the total, including random scatter.
-          energyTotal=+energyTotal                                                                 &
-               &      +energyMean                                                                  &
-               &      *exp(                                                                        &
-               &           +node%hostTree%randomNumberGenerator_%standardNormalSample()            &
-               &           *sqrt(                                                                  &
-               &                 +(min(energyScatter/abs(energyMean),scatterFractionalMaximum))**2 &
-               &                 *(2.0d0+self%massFunctionSlopeLogarithmic)                        &
-               &                 /(3.0d0+self%massFunctionSlopeLogarithmic)                        &
-               &                 +(self%scatterExcess*log(10.0d0))**2                              &
-               &                )                                                                  &
-               &          )
+          ! Accumulate the energy of unresolved halos to the total, including random scatter. The mean energy is zero only if
+          ! the energy of unresolved accretion is ignored ([unresolvedEnergy]=0), in which case there is nothing to add - and
+          ! the fractional scatter, below, would be undefined.
+          if (energyMean /= 0.0d0)                                                                        &
+               & energyTotal=+energyTotal                                                                 &
+               &             +energyMean                                                                  &
+               &             *exp(                                                                        &
+               &                  +node%hostTree%randomNumberGenerator_%standardNormalSample()            &
+               &                  *sqrt(                                                                  &
+               &                        +(min(energyScatter/abs(energyMean),scatterFractionalMaximum))**2 &
+               &                        *(2.0d0+self%massFunctionSlopeLogarithmic)                        &
+               &                        /(3.0d0+self%massFunctionSlopeLogarithmic)                        &
+               &                        +(self%scatterExcess*log(10.0d0))**2                              &
+               &                       )                                                                  &
+               &                 )
        end if
        ! Accumulate the count of nodes to which the energy model was applied (reported by `Johnson2021_Statistics`).
        !$omp atomic update

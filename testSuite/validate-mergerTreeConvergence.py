@@ -56,10 +56,19 @@ parser.add_argument('--waitOnSubmit',action='store',type=restricted_int,help='th
 parser.add_argument('--waitOnActive',action='store',type=restricted_int,help='the time (in seconds) to wait after polling active jobs')
 args = parser.parse_args()
 
+# The maximum time (in seconds) to wait for a model's output file to appear before declaring the model failed.
+timeWaitMaximum = 3600
+
 def extractResults(job):
-    # Wait for the model to appear.
+    # Wait for the model to appear. A model which failed to run will never produce its file, so the wait is bounded - such a
+    # model is reported as a failure rather than left to hang forever.
+    timeWaited = 0
     while not os.path.exists(job['galacticusFileName']):
+        if timeWaited >= timeWaitMaximum:
+            print(f"FAILED: model '{job['id']}' produced no output file '{job['galacticusFileName']}' after {timeWaitMaximum} s")
+            sys.exit(0)
         time.sleep(1)
+        timeWaited += 1
     # Extract data from the Galacticus model.
     galacticus                = h5py.File(job['galacticusFileName'],"r")
     outputs                   = galacticus['Outputs']
@@ -396,6 +405,13 @@ for model in models:
 
 # Submit all jobs and wait for completion.
 manager.submitJobs(jobs)
+
+# Verify that every model ran and had its results extracted. Without this check the validation would go on to fit, plot, and
+# write out a results file from whatever subset of the models happened to complete, and report success regardless.
+modelsMissing = [model['id'] for model in models if not results.get(model['id'])]
+if modelsMissing:
+    print("FAILED: no results were extracted for model(s): "+", ".join(modelsMissing))
+    sys.exit(0)
 
 # Fit a completeness model to the accumulated results.
 ## Initial guesses for the parameters of the model.

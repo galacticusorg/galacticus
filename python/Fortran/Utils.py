@@ -12,6 +12,8 @@ __all__ = [
     'extract_variables', 'unformat_variables',
     'check_no_parameterized_derived_type',
     'LABEL', 'ARGUMENT_LIST',
+    'TYPE_ATTRIBUTE', 'TYPE_ATTRIBUTES', 'TYPE_ATTRIBUTES_TAGGED',
+    'type_opener_regex',
     'UNIT_OPENERS', 'UNIT_CLOSERS', 'INTRINSIC_DECLARATIONS',
 ]
 
@@ -21,6 +23,68 @@ __all__ = [
 
 LABEL         = r'[a-zA-Z0-9_{}¦]+'
 ARGUMENT_LIST = r'[a-zA-Z0-9_{}¦,\s]*'
+
+# ---------------------------------------------------------------------------
+# Derived-type definition openers
+# ---------------------------------------------------------------------------
+#
+# Fortran allows exactly five attributes on a `type` statement — `abstract`,
+# `bind(c)`, `extends(parent)`, `public` and `private` — and permits whitespace
+# wherever the standard allows it, including inside `bind( c )` and
+# `extends( parent )`.  The tree uses both freedoms: `type, bind(C) ::
+# unitType` and `type, extends(hdf5Group             ) :: hdf5File`.
+#
+# An opener that fails to match is *not* merely left unlabelled.  The unit
+# parser never opens a `type` node, so the type's components are absorbed into
+# the enclosing scope's declaration node as though they were ordinary
+# variables, and its `end type` is stranded as an orphan code node.  Nothing
+# raises when that happens, so the damage is silent: consumers that walk `type`
+# nodes, or that query declarations at module scope, simply see the wrong tree.
+#
+# These fragments exist so that every consumer shares one definition.  The
+# pattern was previously copied into eight modules, which then drifted apart —
+# which is precisely what let `bind(c)` and padded `extends(...)` go unmatched.
+#
+# `bind(c)` types need no special handling downstream.  A C-interoperable
+# derived type may neither extend another type nor be extended, so it can never
+# appear in a functionClass, stateStorable or deepCopyActions inheritance
+# chain.  Those generators emit code by walking such chains, so they skip these
+# types naturally, without any explicit exclusion.
+
+TYPE_ATTRIBUTE = (
+    r'abstract|public|private'
+    r'|bind\s*\(\s*c\s*\)'
+    r'|extends\s*\(\s*' + LABEL + r'\s*\)'
+)
+
+# Attribute list, capturing nothing.
+TYPE_ATTRIBUTES = r'(?:,\s*(?:' + TYPE_ATTRIBUTE + r')\s*)*'
+
+# Attribute list tagging `abstract` and the `extends` parent.  Both groups sit
+# inside a repeated group, so each holds its last occurrence — and Fortran
+# permits an attribute at most once, so that is also its only occurrence.
+TYPE_ATTRIBUTES_TAGGED = (
+    r'(?:,\s*(?:(?P<abstract>abstract)|public|private|bind\s*\(\s*c\s*\)'
+    r'|extends\s*\(\s*(?P<extends>' + LABEL + r')\s*\))\s*)*'
+)
+
+
+def type_opener_regex(name=LABEL, attributes=TYPE_ATTRIBUTES,
+                      flags=re.IGNORECASE):
+    """Compile a matcher for a derived-type definition opener.
+
+    The type name is captured as `name`.  Pass `attributes` as
+    `TYPE_ATTRIBUTES_TAGGED` to also capture `abstract` and `extends`; the
+    groups are named, so callers index by name and are unaffected by which
+    variant they chose.  `name` may be narrowed to scan for a single family of
+    types — e.g. `re.escape(directive) + r'[a-z0-9_]+'`, which captures the
+    whole name while requiring the family prefix.
+    """
+    return re.compile(
+        r'^\s*type\s*' + attributes + r'(?:::)?\s*(?P<name>' + name + r')\s*$',
+        flags,
+    )
+
 
 # ---------------------------------------------------------------------------
 # Unit opener / closer patterns
@@ -100,12 +164,7 @@ UNIT_OPENERS = {
     # Derived type
     'type': {
         'unit_name': 0,
-        'regex': re.compile(
-            r'^\s*type\s*'
-            r'(?:,\s*(?:abstract|public|private|extends\s*\(' + LABEL + r'\))\s*)*'
-            r'(?:::)?\s*(' + LABEL + r')\s*$',
-            re.IGNORECASE,
-        ),
+        'regex': type_opener_regex(),
     },
     # `contains` marker — self-closing.  Rather than a container whose
     # children are the post-contains subprograms, `contains` is a sibling
@@ -381,6 +440,13 @@ INTRINSIC_DECLARATIONS = {
 # extract_variables
 # ---------------------------------------------------------------------------
 
+# Patterns applied by `extract_variables()` to every declaration.
+_STRING_LITERAL_RE = re.compile(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"")
+_WHITESPACE_RE     = re.compile(r'\s')
+_OPEN_BRACKET_RE   = re.compile(r'[\(\[]')
+_INITIALIZATION_RE = re.compile(r'=[^,]*(,|$)')
+
+
 def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, remove_spaces=True):
     """Parse the post-'::' section of a Fortran declaration line into variable names.
 
@@ -431,14 +497,13 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
         # below can't find it.
         return f'%%strlit{idx}%%'
 
-    variable_list = re.sub(
-        r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", _stash, variable_list)
+    variable_list = _STRING_LITERAL_RE.sub(_stash, variable_list)
 
     if lower_case:
         variable_list = variable_list.lower()
 
     if remove_spaces:
-        variable_list = re.sub(r'\s', '', variable_list)
+        variable_list = _WHITESPACE_RE.sub('', variable_list)
     else:
         variable_list = variable_list.rstrip()
 
@@ -453,7 +518,7 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
     # We iterate because brackets can be nested.
     MAX_ITER = 10000
     for iteration in range(MAX_ITER):
-        m = re.search(r'[\(\[]', variable_list)
+        m = _OPEN_BRACKET_RE.search(variable_list)
         if not m:
             break
         # Find the matching closing bracket.
@@ -490,9 +555,9 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
               file=sys.stderr)
         return []
 
-    # Strip initialisation/association suffixes (e.g. "x=1.0" → "x") unless keeping qualifiers.
+    # Strip initialization/association suffixes (e.g. "x=1.0" → "x") unless keeping qualifiers.
     if not keep_qualifiers:
-        variable_list = re.sub(r'=[^,]*(,|$)', r'\1', variable_list)
+        variable_list = _INITIALIZATION_RE.sub(r'\1', variable_list)
 
     # Split on commas.
     variables = [v.strip() for v in variable_list.split(',') if v.strip()]

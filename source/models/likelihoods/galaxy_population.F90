@@ -27,7 +27,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation" docformat="rst">
    <description>
-   A posterior sampling likelihood class which evaluates the likelihood of Galacticus galaxy formation model outputs against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of collaborative MPI groups is set by ``[countCollaborativeGroups]``, with analysis storage controlled by ``[storeResults]``.
+   A posterior sampling likelihood class which evaluates the likelihood of Galacticus galaxy formation model outputs against observational constraints, supporting parallelized model evaluation across MPI process groups. The number of collaborative MPI groups is set by ``[countCollaborativeGroups]``, with analysis storage controlled by ``[outputAnalyses]``.
    </description>
   </posteriorSampleLikelihood>
   !!]
@@ -232,7 +232,7 @@ contains
     allocate(self%parametersModel)
     self%parametersModel%parametersModel => parametersModel
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -554,15 +554,25 @@ contains
     !!}
     use :: Display           , only : displayMessage         , displayBold   , displayRed, displayReset, &
          &                            verbosityLevelSilent
-    use :: ISO_Varying_String, only : operator(//)           , varying_string
+    use :: ISO_Varying_String, only : operator(//)           , assignment(=) , varying_string
     use :: String_Handling   , only : operator(//)
+    use :: Error             , only : signalNone
     use :: Error_Utilities   , only : enumerationSignalDecode
     implicit none
     integer                , intent(in   ) :: signal
-    type   (varying_string)                :: fileName
-    
+    type   (varying_string)                :: fileName, cause
+
+    ! Name the file for the condition which caused the dump. Handlers are called both in response to
+    ! a signal and, with `signalNone`, from `Error_Report`; the latter must be handled explicitly
+    ! because `signalNone` is not a member of the signal enumeration, and decoding it would raise an
+    ! error of its own - replacing the error actually being reported.
+    if (signal == signalNone) then
+       cause='fatalError'
+    else
+       cause=enumerationSignalDecode(signal,includePrefix=.false.)
+    end if
     ! Dump the failed parameter set to file.
-    fileName=self_%failedParametersFileName//"."//iRank_//"."//enumerationSignalDecode(signal,includePrefix=.false.)
+    fileName=self_%failedParametersFileName//"."//iRank_//"."//cause
     call displayMessage(displayRed()//displayBold()//"Error condition:"//displayReset()//" `posteriorSampleLikelihoodGalaxyPopulation` parameter state will be written to '"//fileName//"'",verbosityLevelSilent)
     call self_%parametersModel%parametersModel%serializeToXML(fileName)
     return

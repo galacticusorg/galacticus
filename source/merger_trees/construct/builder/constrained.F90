@@ -72,9 +72,9 @@ contains
     type   (constrainedBuilderList      ), pointer       :: mergerTreeBuilder_
     integer                                              :: i
 
-    if (parameters%copiesCount('mergerTreeBuilder') == 0                                         ) &
+    if (parameters%copiesCount('mergerTreeBuilder',zeroIfNotPresent=.true.) == 0                                                                 ) &
          & call Error_Report('at least one [mergerTreeBuilder] must be specified'                        //{introspection:location})
-    if (parameters%copiesCount('mergerTreeBuilder') /= parameters%copiesCount('mergerTreeFilter')) &
+    if (parameters%copiesCount('mergerTreeBuilder',zeroIfNotPresent=.true.) /= parameters%copiesCount('mergerTreeFilter',zeroIfNotPresent=.true.)) &
          & call Error_Report('number of [mergerTreeBuilder] and [mergerTreeFilter] parameters must match'//{introspection:location})
     mergerTreeBuilder_ => null()
     do i=1,parameters%copiesCount('mergerTreeBuilder')

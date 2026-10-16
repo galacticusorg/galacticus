@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements the standard disk node component.
 !!}
@@ -27,8 +29,9 @@ module Node_Component_Disk_Standard
   !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
-  use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
+  use :: Star_Formation_Histories        , only : starFormationHistory                    , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Disk_Standard_Post_Evolve
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve         , &
@@ -275,14 +278,14 @@ contains
     !!{RST
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx            , openMPThreadBindingAtLevel, postEvolveEvent, &
-          &                                          satelliteMergerEvent       , mergerTreeExtraOutputEvent
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                                          satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_       , kinematicDistribution_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_
     use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal
-    use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar            , massTypeGaseous
+    use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(2)  :: dependencies
@@ -295,9 +298,9 @@ contains
     if (defaultDiskComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^preAnalysis:'     )
-       call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
-       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
-       call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       call satelliteMergerEvent             %attach(thread,satelliteMerger                         ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
+       call postEvolveEvent                  %attach(thread,Node_Component_Disk_Standard_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance            ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
@@ -388,16 +391,16 @@ contains
     !!{RST
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
+    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
          &                                           scalerGasPool
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
-       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
-       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
-       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger                         )) call satelliteMergerEvent             %detach(thread,satelliteMerger                         )
+       if (postEvolveEvent                  %isAttached(thread,Node_Component_Disk_Standard_Post_Evolve)) call postEvolveEvent                  %detach(thread,Node_Component_Disk_Standard_Post_Evolve)
+       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance            )) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance            )
        ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
        call scalerStellarPool%destroy()
        call scalerGasPool    %destroy()
@@ -438,34 +441,6 @@ contains
     end select
     return
   end subroutine Node_Component_Disk_Standard_Pre_Evolve
-
-  subroutine postEvolve(self,node)
-    !!{RST
-    Trim histories attached to the disk.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskStandard, treeNode
-    use :: Histories       , only : history
-    implicit none
-    class(*                 ), intent(inout) :: self
-    type (treeNode          ), intent(inout) :: node
-    class(nodeComponentDisk ), pointer       :: disk
-    class(nodeComponentBasic), pointer       :: basic
-    type (history           )                :: stellarPropertiesHistory
-    !$GLC attributes unused :: self
-
-    ! Get the disk component.
-    disk => node%disk()
-    ! Check if an standard disk component exists.
-    select type (disk)
-    class is (nodeComponentDiskStandard)
-       ! Trim the stellar populations properties future history.
-       basic => node%basic()
-       stellarPropertiesHistory=disk%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(basic%time())
-       call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
-    end select
-    return
-  end subroutine postEvolve
 
   !![
   <postStepTask function="Node_Component_Disk_Standard_Post_Step"/>
@@ -853,9 +828,11 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskStandard, nodeComponentSpheroid           , treeNode
     use :: Histories                       , only : history
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType
+    use :: Display                         , only : displayGreen           , displayReset
+    use :: ISO_Varying_String              , only : operator(//)
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, enumerationDestinationMergerType, enumerationDestinationMergerDecode
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
-    use :: Kind_NUmbers, only : kind_int8
+    use :: Kind_NUmbers                    , only : kind_int8
     implicit none
     class           (*                               ), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node
@@ -916,7 +893,12 @@ contains
                &                                            +disk        %abundancesGas      ()                         &
                &                                           )
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                           &
+               &            'the `'//enumerationDestinationMergerDecode(destinationGasSatellite,includePrefix=.false.)//'` destination of [destinationGasSatellite]'// &
+               &            ' is not supported by the `standard` disk component'                                                                          //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                            // &
+               &            {introspection:location}                                                                                                                   &
+               &           )
        end select
        call disk%      massGasSet(         0.0d0)
        call disk%abundancesGasSet(zeroAbundances)
@@ -983,7 +965,12 @@ contains
           call historyNode          %destroy                (                                     )
           call historyHost          %destroy                (                                     )
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                               &
+               &            'the `'//enumerationDestinationMergerDecode(destinationStarsSatellite,includePrefix=.false.)//'` destination of [destinationStarsSatellite]'// &
+               &            ' is not supported by the `standard` disk component'                                                                              //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                                // &
+               &            {introspection:location}                                                                                                                       &
+               &           )
        end select
        call disk%        massStellarSet(                  0.0d0)
        call disk%  abundancesStellarSet(         zeroAbundances)
@@ -1176,7 +1163,7 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solver
 
-  subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
+  subroutine mergerTreeOutputStateAdvance(self,node,iOutput)
     !!{RST
     Update the star formation history after an output time is reached.
     !!}
@@ -1184,18 +1171,13 @@ contains
     use            :: Galactic_Structure_Options, only : componentTypeDisk
     use            :: Histories                 , only : history
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
-    use            :: Kind_Numbers              , only : kind_int8
-    use            :: Locks                     , only : ompLock
     implicit none
     class  (*                ), intent(inout)          :: self
     type   (treeNode         ), intent(inout)          :: node
     integer(c_size_t         ), intent(in   )          :: iOutput
-    integer(kind=kind_int8   ), intent(in   )          :: treeIndex
-    logical                   , intent(in   )          :: nodePassesFilter
-    type   (ompLock          ), intent(inout)          :: treeLock
     class  (nodeComponentDisk)               , pointer :: disk
     type   (history          )                         :: historyStarFormation
-    !$GLC attributes unused :: self, treeIndex, nodePassesFilter, treeLock
+    !$GLC attributes unused :: self
     
     ! Check if we are the default method.
     if (.not.defaultDiskComponent%standardIsActive()) return
@@ -1209,7 +1191,7 @@ contains
        call disk%starFormationHistorySet(historyStarFormation)
     end select
     return
-  end subroutine mergerTreeExtraOutput
+  end subroutine mergerTreeOutputStateAdvance
 
   !![
   <stateStoreTask function="Node_Component_Disk_Standard_State_Store"/>

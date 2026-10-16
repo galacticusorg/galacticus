@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements an N-body halo mass ratio output analysis distribution operator class.
   !!}
@@ -216,12 +218,13 @@ contains
        massRatio= 0.0d0
        call Error_Report('unsupported property type'//{introspection:location})
     end select
-    ! Get the uncertainties and correlation of the masses.
-    massUncertaintyRatio       =+self%nbodyHaloMassError_%errorFractional(node           )*massRatio
-    massUncertaintyParent      =+self%nbodyHaloMassError_%errorFractional(     nodeParent)*massParent
-    massUncertaintyCorrelation =+self%nbodyHaloMassError_%correlation    (node,nodeParent)
+    ! Get the uncertainties and correlation of the masses. The progenitor was reached by tracing back from the parent, so the parent
+    ! is passed as the reference node for the progenitor mass error.
+    massUncertaintyRatio       =+self%nbodyHaloMassError_%errorFractional(node,nodeReference=nodeParent)*massRatio
+    massUncertaintyParent      =+self%nbodyHaloMassError_%errorFractional(                   nodeParent)*massParent
+    massUncertaintyCorrelation =+self%nbodyHaloMassError_%correlation    (node,              nodeParent)
     ! Check for zero uncertainties.
-    if (massUncertaintyRatio <= 0.0d0 .or. massUncertaintyParent <= 0.0d0) then
+    if (massUncertaintyRatio <= 0.0d0 .and. massUncertaintyParent <= 0.0d0) then
        ! Zero uncertainties - add the full weight to the bin if the progenitor and parent are within range.
        massRatioNBodyOperateScalar=0.0d0
        if (massParent <  self%massParentMinimum .or. massParent >=      self%massParentMaximum    ) return
@@ -234,6 +237,48 @@ contains
             &  .and.                                            &
             &   propertyValue <  propertyValueMaximum(binIndex) &
             & ) massRatioNBodyOperateScalar(binIndex)=1.0d0
+    else if (massUncertaintyParent <= 0.0d0) then
+       ! Zero uncertainty in the parent mass only. The parent mass is exact, so (in both the "normal" and "hinkley" models) the
+       ! mass ratio is normally distributed with root variance massUncertaintyRatio.
+       massRatioNBodyOperateScalar=0.0d0
+       if (massParent <  self%massParentMinimum .or. massParent >=      self%massParentMaximum    ) return
+       do binIndex=1,size(propertyValueMinimum)
+          call massRatioBinLimits(binIndex)
+          massRatioNBodyOperateScalar(binIndex)=+0.5d0                                                                                    &
+               &                                *Error_Function_Difference(                                                               &
+               &                                                           (massRatioMinimum-massRatio)/massUncertaintyRatio/sqrt(2.0d0), &
+               &                                                           (massRatioMaximum-massRatio)/massUncertaintyRatio/sqrt(2.0d0)  &
+               &                                                          )
+       end do
+    else if (massUncertaintyRatio  <= 0.0d0) then
+       ! Zero uncertainty in the progenitor mass only. The contribution to each bin is the probability that the (error-convolved)
+       ! parent mass lies within the range that places the mass ratio in the bin.
+       massRatioNBodyOperateScalar=0.0d0
+       do binIndex=1,size(propertyValueMinimum)
+          call massRatioBinLimits(binIndex)
+          if (self%massRatioDistribution%ID == massRatioDistributionHinkley%ID) then
+             ! The progenitor mass is exact, so the mass ratio lies within the bin if the parent mass lies between the progenitor
+             ! mass divided by the maximum and minimum mass ratios of the bin.
+             if (massRatioMaximum <= 0.0d0) cycle
+             massParentLimitLower   =max(self%massParentMinimum,massRatio*massParent/massRatioMaximum)
+             if (massRatioMinimum >  0.0d0) then
+                massParentLimitUpper=min(self%massParentMaximum,massRatio*massParent/massRatioMinimum)
+             else
+                massParentLimitUpper=    self%massParentMaximum
+             end if
+          else
+             ! The mass ratio is exact, so contributes only to the bin which contains it.
+             if (massRatio < massRatioMinimum .or. massRatio >= massRatioMaximum) cycle
+             massParentLimitLower   =    self%massParentMinimum
+             massParentLimitUpper   =    self%massParentMaximum
+          end if
+          if (massParentLimitUpper <= massParentLimitLower) cycle
+          massRatioNBodyOperateScalar(binIndex)=+0.5d0                                                                                            &
+               &                                *Error_Function_Difference(                                                                       &
+               &                                                           (massParentLimitLower-massParent)/massUncertaintyParent/sqrt(2.0d0), &
+               &                                                           (massParentLimitUpper-massParent)/massUncertaintyParent/sqrt(2.0d0)  &
+               &                                                          )
+       end do
     else
        ! Integrate over the bivariate normal distribution to find the contribution to each bin in mass ratio.
        ! Pre-compute √(1-correlation²), which is invariant across the integration (it depends only on the
@@ -262,18 +307,7 @@ contains
              integrator_=integrator(massRatioBivariateNormalIntegrand,toleranceAbsolute=1.0d-10,toleranceRelative=1.0d-03)
           end if
           do binIndex=1,size(propertyValueMinimum)
-             select case (propertyType%ID)
-             case (outputAnalysisPropertyTypeLinear%ID)
-                massRatioMinimum=        propertyValueMinimum(binIndex)
-                massRatioMaximum=        propertyValueMaximum(binIndex)
-             case (outputAnalysisPropertyTypeLog10 %ID)
-                massRatioMinimum=10.0d0**propertyValueMinimum(binIndex)
-                massRatioMaximum=10.0d0**propertyValueMaximum(binIndex)
-             case default
-                massRatioMinimum= 0.0d0
-                massRatioMaximum= 0.0d0
-                call Error_Report('unsupported property type'//{introspection:location})
-             end select
+             call massRatioBinLimits(binIndex)
              massRatioLimitLower=+massRatioMinimum           &
                   &              -integrationExtent          &
                   &              *massUncertaintyRatio       &
@@ -426,6 +460,28 @@ contains
            &                     /massUncertaintyParent
       return
     end function massRatioHinkleyIntegrand
+
+    subroutine massRatioBinLimits(indexBin)
+      !!{RST
+      Set the minimum and maximum mass ratios, ``massRatioMinimum`` and ``massRatioMaximum``, spanned by bin ``indexBin``.
+      !!}
+      implicit none
+      integer(c_size_t), intent(in   ) :: indexBin
+
+      select case (propertyType%ID)
+      case (outputAnalysisPropertyTypeLinear%ID)
+         massRatioMinimum=        propertyValueMinimum(indexBin)
+         massRatioMaximum=        propertyValueMaximum(indexBin)
+      case (outputAnalysisPropertyTypeLog10 %ID)
+         massRatioMinimum=10.0d0**propertyValueMinimum(indexBin)
+         massRatioMaximum=10.0d0**propertyValueMaximum(indexBin)
+      case default
+         massRatioMinimum= 0.0d0
+         massRatioMaximum= 0.0d0
+         call Error_Report('unsupported property type'//{introspection:location})
+      end select
+      return
+    end subroutine massRatioBinLimits
 
   end function massRatioNBodyOperateScalar
 

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A fully-specified merger tree in which the satellite's rank-1 `position` property is written as a single element holding
+     three values, instead of as three separate elements. This is the mistake reported in issue #1512: before that was fixed the
+     XML layer wrote a two-line message to standard error and stopped the run with a zero exit status, so the model appeared to
+     succeed while having done nothing at all.
+
+     Used by test-fullySpecifiedTreeMalformedProperty.py, which requires that the run now fails, and that the error names the
+     node, component, implementation, and property concerned. Do not "fix" the `position` element below - it is malformed
+     deliberately.
+  -->
+<tree>
+
+  <!-- The host. -->
+  <node>
+    <index>1</index>
+    <parent>-1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <firstSatellite>2</firstSatellite>
+    <basic>
+      <time>13.8</time>
+      <timeLastIsolated>13.8</timeLastIsolated>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0310934597</scale>
+    </darkMatterProfile>
+  </node>
+
+  <!-- The satellite, with a malformed `position`. -->
+  <node>
+    <index>2</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.8</time>
+      <timeLastIsolated>13.8</timeLastIsolated>
+      <mass>1.0e10</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.00446592187</scale>
+    </darkMatterProfile>
+    <satellite>
+      <boundMass>1.0e10</boundMass>
+      <position>+0.310934597000000 +0.000000000000000 +0.000000000000000</position>
+    </satellite>
+  </node>
+
+</tree>

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a generalized top-hat power spectrum window function class :cite:p:`brown_towards_2022`.
   !!}
@@ -120,43 +122,16 @@ contains
     !!{RST
     Generalized top hat in real space window function Fourier transformed into :math:`k`-space used in computing the variance of the power spectrum.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Power_Spectrum_Window_Function_Utilities, only : Window_Function_Radius_Lagrangian, Window_Function_Top_Hat
     implicit none
     class           (powerSpectrumWindowFunctionTopHatGeneralized), intent(inout) :: self
-    double precision                                              , intent(in   ) :: smoothingMass        , wavenumber, &
+    double precision                                              , intent(in   ) :: smoothingMass, wavenumber, &
          &                                                                           time
-    double precision                                              , parameter     :: xSeriesMaximum=1.0d-3
-    double precision                                                              :: topHatRadius         , x         , &
-         &                                                                           xSquared
+    double precision                                                              :: topHatRadius
     !$GLC attributes unused :: time
 
-    topHatRadius=+(                                             &
-         &         +3.0d0                                       &
-         &         /4.0d0                                       &
-         &         /Pi                                          &
-         &         *smoothingMass                               &
-         &         /self%cosmologyParameters_%OmegaMatter    () &
-         &         /self%cosmologyParameters_%densityCritical() &
-         &        )**(1.0d0/3.0d0)
-    x           =+wavenumber                                    &
-         &       *topHatRadius                                  &
-         &       *self%mu
-    if      (x <= 0.0d0         ) then
-       topHatGeneralizedValue=+0.0d0
-    else if (x <= xSeriesMaximum) then
-       ! Use a series expansion of the window function for small x.
-       xSquared              =+x**2
-       topHatGeneralizedValue=+1.0d0                        &
-            &                 +xSquared*(  -1.0d0/   10.0d0 &
-            &                 +xSquared* ( +1.0d0/  280.0d0 &
-            &                 +xSquared*  (-1.0d0/15120.0d0 &
-            &                             )                 &
-            &                            )                  &
-            &                           )
-    else
-       ! For larger x, use the full expression.
-       topHatGeneralizedValue=3.0d0*(sin(x)-x*cos(x))/(x**3)
-    end if
+    topHatRadius          =Window_Function_Radius_Lagrangian(smoothingMass                  ,self%cosmologyParameters_)
+    topHatGeneralizedValue=Window_Function_Top_Hat          (wavenumber*topHatRadius*self%mu                          )
     return
   end function topHatGeneralizedValue
 

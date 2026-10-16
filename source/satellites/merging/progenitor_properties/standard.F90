@@ -81,56 +81,16 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`mergerProgenitorPropertiesStandard` merger progenitor properties class which takes a parameter list as input.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Error_Report            , Component_List
-    use :: Galacticus_Nodes, only : defaultDiskComponent    , defaultSpheroidComponent
-    use :: Input_Parameters, only : inputParameter          , inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerProgenitorPropertiesStandard)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(mergerMassMovementsClass          ), pointer       :: mergerMassMovements_
 
-    if     (                                                                                                                                                           &
-         &  .not.                                                                                                                                                      &
-         &       (                                                                                                                                                     &
-         &        defaultDiskComponent    %    massStellarIsGettable().and.                                                                                            &
-         &        defaultDiskComponent    %        massGasIsGettable().and.                                                                                            &
-         &        defaultDiskComponent    % halfMassRadiusIsGettable().and.                                                                                            &
-         &        defaultDiskComponent    %angularMomentumIsGettable()                                                                                                 &
-         &  )                                                                                                                                                          &
-         & ) call Error_Report                                                                                                                                         &
-         &        (                                                                                                                                                    &
-         &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the disk component.'    // &
-         &         Component_List(                                                                                                                                     &
-         &                        'disk'                                                                                                                            ,  &
-         &                        defaultDiskComponent    %    massStellarAttributeMatch(requireGettable=.true.).intersection.                                         &
-         &                        defaultDiskComponent    %        massGasAttributeMatch(requireGettable=.true.).intersection.                                         &
-         &                        defaultDiskComponent    % halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                                         &
-         &                        defaultDiskComponent    %angularMomentumAttributeMatch(requireGettable=.true.)                                                       &
-         &                       )                                                                                                                                  // &
-         &         {introspection:location}                                                                                                                            &
-         &        )
-    if     (                                                                                                                                                           &
-         &  .not.                                                                                                                                                      &
-         &       (                                                                                                                                                     &
-         &        defaultSpheroidComponent%    massStellarIsGettable().and.                                                                                            &
-         &        defaultSpheroidComponent%        massGasIsGettable().and.                                                                                            &
-         &        defaultSpheroidComponent% halfMassRadiusIsGettable().and.                                                                                            &
-         &        defaultSpheroidComponent%angularMomentumIsGettable()                                                                                                 &
-         &  )                                                                                                                                                          &
-         & ) call Error_Report                                                                                                                                         &
-         &        (                                                                                                                                                    &
-         &         'this method requires that massStellar, massGas, halfMassRadius, and angularMomentum properties must all be gettable for the spheroid component.'// &
-         &         Component_List(                                                                                                                                     &
-         &                        'spheroid'                                                                                                                        ,  &
-         &                        defaultSpheroidComponent%    massStellarAttributeMatch(requireGettable=.true.).intersection.                                         &
-         &                        defaultSpheroidComponent%        massGasAttributeMatch(requireGettable=.true.).intersection.                                         &
-         &                        defaultSpheroidComponent% halfMassRadiusAttributeMatch(requireGettable=.true.).intersection.                                         &
-         &                        defaultSpheroidComponent%angularMomentumAttributeMatch(requireGettable=.true.)                                                       &
-         &                       )                                                                                                                                  // &
-         &         {introspection:location}                                                                                                                            &
-         &        )
     !![
+    <componentPropertyAssert class="disk"     properties="massStellar massGas halfMassRadius angularMomentum" require="gettable"/>
+    <componentPropertyAssert class="spheroid" properties="massStellar massGas halfMassRadius angularMomentum" require="gettable"/>
     <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
     !!]
     self=mergerProgenitorPropertiesStandard(mergerMassMovements_)

@@ -99,7 +99,7 @@ A stage also refuses to start until every upstream stage's manifest shows
 The human flips the marker with the ``--markConverged {stage}`` subcommand
 (``_do_mark_converged``): it ``scancel``\ s the running job, records
 ``converged: true`` plus provenance (timestamp, git revision), and exits.
-Because ``submit_jobs`` blocks, cancelling the job is also what unblocks the waiting
+Because ``submit_jobs`` blocks, canceling the job is also what unblocks the waiting
 driver so it can advance.
 
 Blocking vs. detached

@@ -34,7 +34,7 @@ densityProfile = nodes['densityProfile'][:]
     
 # Check for negative density profiles.
 if np.any(densityProfile.flatten() < 0.0):
-    print("FAIL: caustic detected")
+    print("FAILED: caustic detected")
 else:
     print("SUCCESS: no caustic detected")
     

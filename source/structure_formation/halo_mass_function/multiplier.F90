@@ -28,6 +28,7 @@ Contains a module which implements a dark matter halo mass function class which 
    <description>
    The halo mass function is computed by multiplying another halo mass function by a constant factor.
    </description>
+   <forwards object="massFunction_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionMultiplier

@@ -171,7 +171,7 @@ class ArgSpec:
     # method — but it is dropped from the Python input signature
     # (py_is_present=False) and its filled value is instead appended to the
     # Python return, interleaved with the array outputs in declaration
-    # order.  Only recognised on methods that also have an output array (see
+    # order.  Only recognized on methods that also have an output array (see
     # unsupported_output_array_method); elsewhere scalar intent(out) args
     # keep their existing handling.
     is_output_scalar:   bool = False
@@ -184,7 +184,7 @@ class ArgSpec:
     # path of the impl already passes as null.  When set, the arg is
     # dropped from the bind(c) signature (fort_is_present=False) and
     # the Python signature (py_is_present=False); the Fortran wrapper
-    # declares a local pointer initialised to null() and passes that to
+    # declares a local pointer initialized to null() and passes that to
     # the inner constructor (galacticus_is_present stays True).
     is_null_filled: bool = False
 

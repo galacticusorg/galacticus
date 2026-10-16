@@ -29,6 +29,7 @@ Contains a  module which  implements a  dark matter  halo mass function  class w
    <description>
    The halo mass function is computed by modifying another halo mass function to mimic systematic errors arising in the friends-of-friends halo finding algorithm. Specifically, a systematic shift in mass motivated by the results of percolation theory :cite:t:`more_overdensity_2011` is applied. In particular, :math:`M_\mathrm{particle}=`\ ``[massParticle]`` is the mass of the particle in the simulation to which the friends-of-friends algorithm was applied.
    </description>
+   <forwards object="massFunctionIntrinsic"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionFofBias

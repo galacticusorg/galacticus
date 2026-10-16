@@ -82,9 +82,9 @@
       A &amp; = A_1+(A_2-A_1)\exp[A_3 z^{A_4}] \nonumber \\
       B &amp; = B_1+B_2 z.
 
-   The coefficients are chosen from one of the three sets given by :cite:t:`dutton_cold_2014`, controlled via the ``[duttonMaccio2014FitType]`` parameter, as described in Table :numref:`{number} &lt;tb-DuttonMaccioConcentrationCoefficients&gt;`.
+   The coefficients are chosen from one of the three sets given by :cite:t:`dutton_cold_2014`, controlled via the ``[fitType]`` parameter, as described in Table :numref:`{number} &lt;tb-DuttonMaccioConcentrationCoefficients&gt;`.
 
-   .. list-table:: Coefficients appearing in the dark matter halo profile concentration fitting functions of :cite:t:`dutton_cold_2014`. The "fit type" is specified by the ``[duttonMaccio2014FitType]`` parameter.
+   .. list-table:: Coefficients appearing in the dark matter halo profile concentration fitting functions of :cite:t:`dutton_cold_2014`. The "fit type" is specified by the ``[fitType]`` parameter.
       :name: tb-DuttonMaccioConcentrationCoefficients
       :header-rows: 1
 

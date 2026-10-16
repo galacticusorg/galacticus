@@ -17,11 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of the :cite:t:`zhao_analytical_1996` mass distribution class.
   !!}
 
-  use :: Numerical_Interpolation , only : interpolator
+  use :: Tabulations_Inverse, only : tabulationInverse
 
   !![
   <enumeration docformat="rst">
@@ -65,22 +67,14 @@
      The :cite:p:`zhao_analytical_1996` mass distribution.
      !!}
      private
-     type            (enumerationSpecialCaseType)              :: specialCase
-     double precision                                          :: densityNormalization                         , scaleLength                                  , &
-          &                                                       alpha                                        , beta                                         , &
-          &                                                       gamma
-     double precision                                          :: densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum
-     double precision                                          :: densityScaleFreeMinimum                      , densityScaleFreeMaximum
-     type            (interpolator              ), allocatable :: densityScaleFree_
-     double precision                                          :: massScaleFreeRadiusMinimum                   , massScaleFreeRadiusMaximum
-     double precision                                          :: massScaleFreeMinimum                         , massScaleFreeMaximum
-     type            (interpolator              ), allocatable :: massScaleFree_
-     double precision                                          :: angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum
-     double precision                                          :: angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum
-     type            (interpolator              ), allocatable :: angularMomentumSpecificScaleFree_
-     double precision                                          :: timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum
-     double precision                                          :: timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
-     type            (interpolator              ), allocatable :: timeFreefallScaleFree_
+     type            (enumerationSpecialCaseType) :: specialCase
+     double precision                             :: densityNormalization             , scaleLength           , &
+          &                                          alpha                            , beta                  , &
+          &                                          gamma
+     ! Tabulations of the scale-free profile, built for inversion. These are held per object because the scale-free Zhao1996
+     ! profile depends on the shape parameters, so each is specific to the object which owns it.
+     type            (tabulationInverse         ) :: densityScaleFree_                , massScaleFree_        , &
+          &                                          angularMomentumSpecificScaleFree_, timeFreefallScaleFree_
    contains
      !![
      <methods docformat="rst">
@@ -90,6 +84,7 @@
      procedure :: massTotal                         => zhao1996MassTotal
      procedure :: density                           => zhao1996Density
      procedure :: densityGradientRadial             => zhao1996DensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient   => zhao1996DensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral    => zhao1996DensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => zhao1996DensityRadialMoment
      procedure :: massEnclosedBySphere              => zhao1996MassEnclosedBySphere
@@ -117,11 +112,14 @@
      module procedure massDistributionZhao1996ConstructorInternal
   end interface massDistributionZhao1996
 
-  class(massDistributionZhao1996), pointer :: self_
+  ! Density of the tabulations; see the note in the NFW implementation for why an octave lattice is used here.
+  integer                                   , parameter :: countRadiiPerOctave                 =30
+
+  class           (massDistributionZhao1996), pointer   :: self_
   !$omp threadprivate(self_)
 
   ! The minimum (scale-free) freefall timescale in a cored NFW profile.
-  double precision , parameter :: timeFreefallScaleFreeMinimumCoredNFW=sqrt(3.0d0*Pi)/4.0d0
+  double precision                          , parameter :: timeFreefallScaleFreeMinimumCoredNFW=sqrt(3.0d0*Pi)/4.0d0
   
 contains
 
@@ -320,23 +318,12 @@ contains
        ! Use general solutions.
        self%specialCase=specialCaseGeneral
     end if
-    ! Initialize memoized results.
-    self%densityScaleFreeMinimum                      =+huge(0.0d0)
-    self%densityScaleFreeMaximum                      =-huge(0.0d0)
-    self%densityScaleFreeRadiusMinimum                =+1.0d0
-    self%densityScaleFreeRadiusMaximum                =+1.0d0
-    self%massScaleFreeMinimum                         =+huge(0.0d0)
-    self%massScaleFreeMaximum                         =-huge(0.0d0)
-    self%massScaleFreeRadiusMinimum                   =+1.0d0
-    self%massScaleFreeRadiusMaximum                   =+1.0d0
-    self%angularMomentumSpecificScaleFreeMinimum      =+huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeMaximum      =-huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeRadiusMinimum=+1.0d0
-    self%angularMomentumSpecificScaleFreeRadiusMaximum=+1.0d0
-    self%timeFreefallScaleFreeMinimum                 =+huge(0.0d0)
-    self%timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
-    self%timeFreefallScaleFreeRadiusMinimum           =+1.0d0
-    self%timeFreefallScaleFreeRadiusMaximum           =+1.0d0
+    ! Initialize the tabulations. This is done here, where the shape parameters are set, so that an object can never serve a
+    ! tabulation built for a different shape.
+    call self%densityScaleFree_                %reset(countRadiiPerOctave,increasing=.false.)
+    call self%massScaleFree_                   %reset(countRadiiPerOctave,increasing=.true. )
+    call self%angularMomentumSpecificScaleFree_%reset(countRadiiPerOctave,increasing=.true. )
+    call self%timeFreefallScaleFree_           %reset(countRadiiPerOctave,increasing=.true. )
     return
   end function massDistributionZhao1996ConstructorInternal
 
@@ -352,10 +339,11 @@ contains
        massTotal=+huge(0.0d0)
     else
        massTotal=+ 4.0d0                                                              &
-            &    /(3.0d0-self%gamma)                                                  &
+            &    *Pi                                                                  &
+            &    /self%alpha                                                          &
+            &    *Gamma_Function((+3.0d0           -self%gamma          )/self%alpha) &
             &    *Gamma_Function((-3.0d0           +self%beta           )/self%alpha) &
-            &    *Gamma_Function((+3.0d0+self%alpha          -self%gamma)/self%alpha) &
-            &    /Gamma_Function((      -self%alpha+self%beta           )/self%alpha) &
+            &    /Gamma_Function((                 +self%beta-self%gamma)/self%alpha) &
             &    *self%densityNormalization                                           &
             &    *self%scaleLength         **3
     end if
@@ -415,6 +403,31 @@ contains
     end select
     return
   end function zhao1996Density
+
+  double precision function zhao1996DensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in a :cite:t:`zhao_analytical_1996` mass distribution.
+
+    Differentiating the slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -(\beta y + \gamma)/(1+y)`, with
+    :math:`y=(r/r_\mathrm{s})^\alpha` and :math:`\mathrm{d}y/\mathrm{d}\ln r = \alpha y`, gives
+    :math:`-\alpha (\beta - \gamma) y/(1+y)^2`. It vanishes at both small and large radii, where the slope tends to
+    :math:`-\gamma` and :math:`-\beta`.
+    !!}
+    implicit none
+    class           (massDistributionZhao1996), intent(inout), target :: self
+    class           (coordinate              ), intent(in   )         :: coordinates
+    double precision                                                  :: radiusScaleFreePowered
+
+    radiusScaleFreePowered         =+(                                 &
+         &                            +coordinates%rSpherical ()       &
+         &                            /self       %scaleLength         &
+         &                           )**self%alpha
+    densitySlopeLogarithmicGradient=-self%alpha                        &
+         &                          *(self%beta-self%gamma)            &
+         &                          *       radiusScaleFreePowered     &
+         &                          /(1.0d0+radiusScaleFreePowered)**2
+    return
+  end function zhao1996DensitySlopeLogarithmicGradient
 
   double precision function zhao1996DensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{RST
@@ -610,15 +623,13 @@ contains
     !!{RST
     Computes the radius enclosing a given mass or mass fraction for zhao1996 mass distributions.
     !!}    
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
-    use :: Error           , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionZhao1996), intent(inout), target       :: self
-    double precision                          , intent(in   ), optional     :: mass                       , massFractional
-    double precision                          , allocatable  , dimension(:) :: radii                      , masses
-    double precision                          , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                        :: massScaleFree              , mass_
-    integer                                                                 :: countRadii
+    double precision                          , intent(in   ), optional     :: mass         , massFractional
+    double precision                          , allocatable  , dimension(:) :: radii
+    double precision                                                        :: massScaleFree, mass_
+    integer                                                                 :: i
 
     mass_=0.0d0
     if (present(mass)) then
@@ -631,30 +642,18 @@ contains
     massScaleFree=+     mass_                   &
          &        /self%densityNormalization    &
          &        /self%scaleLength         **3
-    if     (                                            &
-         &   massScaleFree <= self%massScaleFreeMinimum &
-         &  .or.                                        &
-         &   massScaleFree >  self%massScaleFreeMaximum &
-         & ) then
-       self_ => self
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMinimum) >= massScaleFree)
-          self%massScaleFreeRadiusMinimum=0.5d0*self%massScaleFreeRadiusMinimum
+    ! The evaluators below reach this object through the threadprivate pointer `self_`, not by host association.
+    self_ => self
+    do while (.not.self%massScaleFree_%brackets(massScaleFree))
+       call self%massScaleFree_%expand(massScaleFree)
+       radii=self%massScaleFree_%abscissae()
+       do i=1,size(radii)
+          if (self%massScaleFree_%isComputed(i)) cycle
+          call self%massScaleFree_%set(i,massEnclosedScaleFree(radii(i)))
        end do
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMaximum) <  massScaleFree)
-          self%massScaleFreeRadiusMaximum=2.0d0*self%massScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%massScaleFreeRadiusMaximum/self%massScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%massScaleFree_)) deallocate(self%massScaleFree_)
-       allocate(     radii         (countRadii))
-       allocate(     masses        (countRadii))
-       allocate(self%massScaleFree_            )
-       radii                     =  Make_Range(self%massScaleFreeRadiusMinimum,self%massScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       masses                    =  massEnclosedScaleFree(           radii)
-       self%massScaleFreeMinimum =  masses               (         1      )
-       self%massScaleFreeMaximum =  masses               (countRadii      )
-       self%massScaleFree_       =  interpolator         (masses    ,radii)
-    end if
-    radius=+self%massScaleFree_%interpolate(massScaleFree) &
+       call self%massScaleFree_%build()
+    end do
+    radius=+self%massScaleFree_%invert(massScaleFree) &
          & *self%scaleLength
     return
   end function zhao1996RadiusEnclosingMass
@@ -663,42 +662,27 @@ contains
     !!{RST
     Computes the radius enclosing a given mean density for zhao1996 mass distributions.
     !!}
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionZhao1996), intent(inout), target       :: self
     double precision                          , intent(in   )               :: density
     double precision                          , intent(in   ), optional     :: radiusGuess
-    double precision                          , allocatable  , dimension(:) :: radii                      , densities
-    double precision                          , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                          , allocatable  , dimension(:) :: radii
     double precision                                                        :: densityScaleFree
-    integer                                                                 :: countRadii
+    integer                                                                 :: i
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
-    if     (                                                  &
-         &   densityScaleFree <= self%densityScaleFreeMinimum &
-         &  .or.                                              &
-         &   densityScaleFree >  self%densityScaleFreeMaximum &
-         & ) then
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMinimum) <  densityScaleFree)
-          self%densityScaleFreeRadiusMinimum=0.5d0*self%densityScaleFreeRadiusMinimum
+    self_ => self
+    do while (.not.self%densityScaleFree_%brackets(densityScaleFree))
+       call self%densityScaleFree_%expand(densityScaleFree)
+       radii=self%densityScaleFree_%abscissae()
+       do i=1,size(radii)
+          if (self%densityScaleFree_%isComputed(i)) cycle
+          call self%densityScaleFree_%set(i,densityEnclosedScaleFree(radii(i)))
        end do
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMaximum) >= densityScaleFree)
-          self%densityScaleFreeRadiusMaximum=2.0d0*self%densityScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%densityScaleFreeRadiusMaximum/self%densityScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%densityScaleFree_)) deallocate(self%densityScaleFree_)
-       allocate(     radii            (countRadii))
-       allocate(     densities        (countRadii))
-       allocate(self%densityScaleFree_            )
-       self_                        =>  self
-       radii                        =   Make_Range(self%densityScaleFreeRadiusMinimum,self%densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       densities                    =  -densityEnclosedScaleFree(           radii)
-       self%densityScaleFreeMinimum =  -densities               (countRadii      )
-       self%densityScaleFreeMaximum =  -densities               (         1      )
-       self%densityScaleFree_       =   interpolator            (densities ,radii)
-    end if
-    radius=+self%densityScaleFree_%interpolate(-densityScaleFree) &
+       call self%densityScaleFree_%build()
+    end do
+    radius=+self%densityScaleFree_%invert(densityScaleFree) &
          & *self%scaleLength
     return    
   end function zhao1996RadiusEnclosingDensity
@@ -827,14 +811,12 @@ contains
     Computes the radius corresponding to a given specific angular momentum for zhao1996 mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionZhao1996), intent(inout), target       :: self
     double precision                          , intent(in   )               :: angularMomentumSpecific
-    double precision                          , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                          , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                          , allocatable  , dimension(:) :: radii
     double precision                                                        :: angularMomentumSpecificScaleFree
-    integer                                                                 :: countRadii
+    integer                                                                 :: i
 
     if (angularMomentumSpecific > 0.0d0) then
        angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
@@ -843,30 +825,17 @@ contains
             &                                 *self%densityNormalization         &
             &                                )                                   &
             &                           /      self%scaleLength              **2
-       if     (                                                                                  &
-            &   angularMomentumSpecificScaleFree <= self%angularMomentumSpecificScaleFreeMinimum &
-            &  .or.                                                                              &
-            &   angularMomentumSpecificScaleFree >  self%angularMomentumSpecificScaleFreeMaximum &
-            & ) then
-          do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMinimum) >= angularMomentumSpecificScaleFree)
-             self%angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*self%angularMomentumSpecificScaleFreeRadiusMinimum
+       self_ => self
+       do while (.not.self%angularMomentumSpecificScaleFree_%brackets(angularMomentumSpecificScaleFree))
+          call self%angularMomentumSpecificScaleFree_%expand(angularMomentumSpecificScaleFree)
+          radii=self%angularMomentumSpecificScaleFree_%abscissae()
+          do i=1,size(radii)
+             if (self%angularMomentumSpecificScaleFree_%isComputed(i)) cycle
+             call self%angularMomentumSpecificScaleFree_%set(i,angularMomentumSpecificEnclosedScaleFree(radii(i)))
           end do
-          do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMaximum) <  angularMomentumSpecificScaleFree)
-             self%angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*self%angularMomentumSpecificScaleFreeRadiusMaximum
-          end do
-          countRadii=int(log10(self%angularMomentumSpecificScaleFreeRadiusMaximum/self%angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-          if (allocated(self%angularMomentumSpecificScaleFree_)) deallocate(self%angularMomentumSpecificScaleFree_)
-          allocate(     radii                            (countRadii))
-          allocate(     angularMomentaSpecific           (countRadii))
-          allocate(self%angularMomentumSpecificScaleFree_            )
-          self_                                        => self
-          radii                                        =  Make_Range(self%angularMomentumSpecificScaleFreeRadiusMinimum,self%angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-          angularMomentaSpecific                       =  angularMomentumSpecificEnclosedScaleFree(                       radii)
-          self%angularMomentumSpecificScaleFreeMinimum =  angularMomentaSpecific                  (                     1      )
-          self%angularMomentumSpecificScaleFreeMaximum =  angularMomentaSpecific                  (            countRadii      )
-          self%angularMomentumSpecificScaleFree_       =  interpolator                            (angularMomentaSpecific,radii)
-       end if
-       radius=+self%angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
+          call self%angularMomentumSpecificScaleFree_%build()
+       end do
+       radius=+self%angularMomentumSpecificScaleFree_%invert(angularMomentumSpecificScaleFree) &
             & *self%scaleLength
     else
        radius=+0.0d0
@@ -1125,7 +1094,7 @@ contains
        return
     end if
     call self%timeFreefallTabulate(timeScaleFree)
-    radius=+self%timeFreefallScaleFree_%interpolate(timeScaleFree) &
+    radius=+self%timeFreefallScaleFree_%invert(timeScaleFree) &
          & *self%scaleLength
     return   
   end function zhao1996RadiusFreefall
@@ -1162,84 +1131,15 @@ contains
     !!{RST
     Tabulate the freefall radius at the given ``time`` in an Zhao1996 mass distribution.
     !!}
-    use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
+    use :: Mass_Distributions_Spherical_Utilities, only : Mass_Distribution_Time_Freefall_Tabulate
     implicit none
-    class           (massDistributionZhao1996), intent(inout), target       :: self
-    double precision                          , intent(in   )               :: timeScaleFree
-    double precision                          , allocatable  , dimension(:) :: radii                      , timesFreefall
-    double precision                          , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                        :: radiusStart
-    integer                                                                 :: countRadii                 , i
-    type            (integrator              )                              :: integrator_
+    class           (massDistributionZhao1996), intent(inout), target :: self
+    double precision                          , intent(in   )         :: timeScaleFree
 
-    if     (                                                    &
-         &   timeScaleFree <= self%timeFreefallScaleFreeMinimum &
-         &  .or.                                                &
-         &   timeScaleFree >  self%timeFreefallScaleFreeMaximum &
-         & ) then
-       self_       => self
-       integrator_ =  integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMinimum) >= timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMinimum=0.5d0*self%timeFreefallScaleFreeRadiusMinimum
-       end do
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMaximum) <  timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMaximum=2.0d0*self%timeFreefallScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%timeFreefallScaleFreeRadiusMaximum/self%timeFreefallScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%timeFreefallScaleFree_)) deallocate(self%timeFreefallScaleFree_)
-       allocate(     radii                 (countRadii))
-       allocate(     timesFreefall         (countRadii))
-       allocate(self%timeFreefallScaleFree_            )
-       radii=Make_Range(self%timeFreefallScaleFreeRadiusMinimum,self%timeFreefallScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       do i=1,countRadii
-          timesFreefall(i)=timeFreefallScaleFree(radii(i))
-       end do
-       self%timeFreefallScaleFreeMinimum=timesFreefall(            1      )
-       self%timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
-       self%timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
-    end if
+    ! The potential difference function reaches this object through the threadprivate pointer `self_`.
+    self_ => self
+    call Mass_Distribution_Time_Freefall_Tabulate(self%timeFreefallScaleFree_,timeScaleFree,potentialDifferenceScaleFree,toleranceRelative=1.0d-6)
     return
-    
-  contains
-    
-    double precision function timeFreefallScaleFree(radius)
-      !!{RST
-      Evaluate the freefall time from a given radius in a scale-free Zhao1996 mass distribution.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
-
-      radiusStart          =                            radius
-      timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
-      return
-    end function timeFreefallScaleFree
-    
-    double precision function timeFreeFallIntegrand(radius)
-      !!{RST
-      Integrand used to find the freefall time in a scale-free Zhao1996 mass distribution.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
-      double precision                :: potentialDifference
-      
-      if (radius == 0.0d0) then
-         timeFreeFallIntegrand=+0.0d0
-      else
-         potentialDifference=+potentialDifferenceScaleFree(radiusStart,radius)
-         if (potentialDifference > 0.0d0) then
-            timeFreeFallIntegrand=+1.0d0                     &
-                 &                /sqrt(                     &
-                 &                      +2.0d0               &
-                 &                      *potentialDifference &
-                 &                     )
-         else
-            timeFreeFallIntegrand=+0.0d0
-         end if
-      end if
-      return
-    end function timeFreeFallIntegrand
-    
   end subroutine zhao1996TimeFreefallTabulate
 
   double precision function zhao1996FourierTransform(self,radiusOuter,wavenumber) result(fourierTransform)
@@ -1575,20 +1475,21 @@ contains
     return
   end function zhao1996EnergyKinetic
   
-  subroutine zhao1996Descriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine zhao1996Descriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionZhao1996), intent(inout)           :: self
     type     (inputParameters         ), intent(inout)           :: descriptor
     logical                            , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                   ), intent(in   ), optional :: parameterName
     character(len=18                  )                          :: parameterLabel
     type     (inputParameters         )                          :: parameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','Zhao1996')
-    parameters=descriptor%subparameters('massDistribution')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'Zhao1996')
+    parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
     write (parameterLabel,'(e17.10)') self%densityNormalization
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%scaleLength

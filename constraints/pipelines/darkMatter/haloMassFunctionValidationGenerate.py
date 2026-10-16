@@ -16,6 +16,9 @@ This regenerates, in `testSuite/parameters/validation/haloMassFunction/`:
 
   * `haloMassFunctionBase_*.xml`  - base parameter files (one per simulation/redshift);
   * `haloMassFunction_<suite>.xml` - halo mass function model definitions per suite;
+  * `haloMassFunctionMappings_<suite>_<group>.xml` - the bare-name parameter
+                                    mappings (detection efficiency, isolation
+                                    bias) that the base files `xi:include`;
   * `manifest.json`               - per-case likelihood metadata (target data file,
                                     mass range, etc.) used by the validation driver.
 
@@ -173,20 +176,23 @@ def main():
                     fileNameOld = pathTarget+case["parameterFile"]
                     if os.path.exists(fileNameOld):
                         os.unlink(fileNameOld)
-            # Install post-processed base parameter files, and suite halo mass
-            # function definitions.
+            # Install post-processed base parameter files.
             for fileName in sorted(glob.glob(pathGenerated+"haloMassFunctionBase_*.xml")):
                 with open(fileName) as file:
                     content = file.read()
                 with open(pathTarget+os.path.basename(fileName), "w") as file:
                     file.write(postProcess(content, pathGenerated))
-            for fileName in sorted(glob.glob(pathGenerated+"haloMassFunction_*.xml")):
-                if re.search(r"haloMassFunction(Config|ConfigResume|Parameters)\.xml$", fileName):
-                    continue
-                with open(fileName) as file:
-                    content = file.read()
-                with open(pathTarget+os.path.basename(fileName), "w") as file:
-                    file.write(content)
+            # Suite halo mass function definitions, and the bare-name parameter
+            # mapping files that the base files `xi:include`. Both sit alongside
+            # the base files and need no path rewriting.
+            for pattern in ("haloMassFunction_*.xml", "haloMassFunctionMappings_*.xml"):
+                for fileName in sorted(glob.glob(pathGenerated+pattern)):
+                    if re.search(r"haloMassFunction(Config|ConfigResume|Parameters)\.xml$", fileName):
+                        continue
+                    with open(fileName) as file:
+                        content = file.read()
+                    with open(pathTarget+os.path.basename(fileName), "w") as file:
+                        file.write(content)
             manifest["groups"][group] = {"cases": cases}
             print(f"   ...generated {len(cases)} cases")
 

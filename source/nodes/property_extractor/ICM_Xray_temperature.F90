@@ -179,21 +179,18 @@ contains
       !!}
       use :: Abundances_Structure             , only : abundances
       use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-      use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-      use :: Numerical_Constants_Astronomical , only : massSolar                            , megaParsec
-      use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
+      use :: Numerical_Constants_Astronomical , only : megaParsec
       use :: Numerical_Constants_Math         , only : Pi
-      use :: Numerical_Constants_Prefixes     , only : centi                                , hecto
-      use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
+      use :: Numerical_Constants_Prefixes     , only : centi
+      use :: Coordinates                      , only : coordinateSpherical     , assignment(=)
+      use :: Hot_Halo_Composition             , only : Hot_Halo_Gas_Composition, Hydrogen_Number_Density
       implicit none
       double precision                      , intent(in   ) :: radius
-      class           (nodeComponentHotHalo), pointer       :: hotHalo
       type            (coordinateSpherical )                :: coordinates
-      double precision                                      :: density                , temperature        , &
-           &                                                   numberDensityHydrogen  , massICM            , &
-           &                                                   massToDensityConversion
+      double precision                                      :: density              , temperature, &
+           &                                                   numberDensityHydrogen
       type            (abundances          )                :: abundancesICM
-      type            (chemicalAbundances  )                :: massChemicalICM        , fractionChemicalICM
+      type            (chemicalAbundances  )                :: fractionChemicalICM
 
       ! Set the coordinates.
       coordinates             =  [radius,0.0d0,0.0d0]
@@ -201,28 +198,9 @@ contains
       density                 =  massDistribution_      %density    (coordinates)
       ! Get the temperature of the ICM.
       temperature             =  kinematicsDistribution_%temperature(coordinates)
-      ! Get abundances and chemistry of the ICM.
-      hotHalo         => node   %hotHalo   ()
-      massICM         =  hotHalo%mass      ()
-      abundancesICM   =  hotHalo%abundances()
-      massChemicalICM =  hotHalo%chemicals ()
-      call abundancesICM  %massToMassFraction(            massICM)
-      call massChemicalICM%massToNumber      (fractionChemicalICM)
-      ! Compute factor converting mass of chemicals in (M☉) to number density in cm⁻³ per total mass density.
-      if (hotHalo%mass() > 0.0d0) then
-         massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-      else
-         massToDensityConversion=0.0d0
-      end if
-      ! Convert to number density per unit total mass density.
-      fractionChemicalICM=fractionChemicalICM*massToDensityConversion
-      ! Compute number density of hydrogen (in cm⁻³).
-      numberDensityHydrogen  =+density                                    &
-           &                  *abundancesICM   %hydrogenMassFraction()    &
-           &                  *massSolar                                  &
-           &                  /massHydrogenAtom                           &
-           &                  /hecto                                  **3 &
-           &                  /megaParsec                             **3
+      ! Get abundances and chemistry of the ICM, and the number density of hydrogen (in cm⁻³).
+      call Hot_Halo_Gas_Composition(node,abundancesICM,fractionChemicalICM)
+      numberDensityHydrogen=Hydrogen_Number_Density(density,abundancesICM)
       ! Evaluate the integrand.
       integrandLuminosityXray=+4.0d0                                                                                                                              &
            &                  *Pi                                                                                                                                 &

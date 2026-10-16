@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
   !!{RST
   Tests linear growth calculations.
@@ -33,7 +35,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use :: Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
   use :: Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionSharpKSpace
-  use :: Spherical_Collapse_Solvers           , only : cllsnlssMttrDarkEnergyFixedAtTurnaround
+  use :: Spherical_Collapse_Solvers           , only : collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                   , only : transferFunctionIdentity
   use :: Unit_Tests                           , only : Assert                                                    , Unit_Tests_Begin_Group                                        , Unit_Tests_End_Group                                        , Unit_Tests_Finish
   use :: Virial_Density_Contrast              , only : virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
@@ -55,6 +57,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   type            (intergalacticMediumFilteringMassGnedin2000                    )                          :: intergalacticMediumFilteringMassGnedin2000_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_
+  type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy    )                          :: virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_
   character       (len=1024                                                      )                          :: message                                                                                     , outputFractions
@@ -64,7 +67,9 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
        &                                                                                                       criticalOverdensityBaryons                                                                  , criticalOverdensityDMO    , &
        &                                                                                                       virialDensityContrastBaryons                                                                , virialDensityContrastDMO  , &
        &                                                                                                       radiusTurnaroundBaryons                                                                     , radiusTurnaroundDMO       , &
-       &                                                                                                       fractionBaryons
+       &                                                                                                       fractionBaryons                                                                             , mass                      , &
+       &                                                                                                       gradientMass                                                                                , gradientMassNumerical
+  double precision                                                                              , parameter :: stepMassFractional                                         =1.0d-4
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -189,7 +194,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      intergalacticMediumFilteringMass_       =intergalacticMediumFilteringMassGnedin2000_, &
           &                                                                                                                      tablePointsPerOctave                    =300                                        , &
           &                                                                                                                      tableStore                              =.false.                                    , &
-          &                                                                                                                      energyFixedAt                           =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
+          &                                                                                                                      energyFixedAt                           =collisionlessMatterDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      perturbationSmall                       =1.0d-3                                     , &
           &                                                                                                                      normalization                           =1.0d+0                                       &
           &                                                                                                                     )
@@ -201,7 +206,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
      virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_      =virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy     (                                                                                      &
           &                                                                                                                      tableStore                              =.true.                                     , &
           &                                                                                                                      tablePointsPerOctave                    =300                                        , &
-          &                                                                                                                      energyFixedAt                           =cllsnlssMttrDarkEnergyFixedAtTurnaround    , &
+          &                                                                                                                      energyFixedAt                           =collisionlessMatterDarkEnergyFixedAtTurnaround    , &
           &                                                                                                                      perturbationSmall                       =1.0d-3                                     , &
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersDMO_                    , &
           &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_            , &
@@ -233,6 +238,47 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   end do
   if (trim(outputFractions) == "yes") close(outputFile)
   ! End unit tests.
+  call Unit_Tests_End_Group()
+  ! Test gradients with respect to mass against finite differences. These are evaluated at z=3, at a mass close to the
+  ! filtering mass where the fraction of baryons accreted, and so the critical overdensity, depends strongly on mass.
+  call Unit_Tests_Begin_Group("Spherical collapse: gradients with respect to mass")
+  criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(                                                                                  &
+       &                                                                                                              cosmologyParameters_             =cosmologyParametersBaryons_                   , &
+       &                                                                                                              cosmologyFunctions_              =cosmologyFunctionsMatterLambda_               , &
+       &                                                                                                              cosmologicalMassVariance_        =cosmologicalMassVarianceFilteredPower_        , &
+       &                                                                                                              darkMatterParticle_              =darkMatterParticleCDM_                        , &
+       &                                                                                                              intergalacticMediumFilteringMass_=intergalacticMediumFilteringMassGnedin2000_   , &
+       &                                                                                                              tablePointsPerOctave             =300                                           , &
+       &                                                                                                              tableStore                       =.false.                                       , &
+       &                                                                                                              energyFixedAt                    =collisionlessMatterDarkEnergyFixedAtTurnaround, &
+       &                                                                                                              perturbationSmall                =1.0d-3                                        , &
+       &                                                                                                              normalization                    =1.0d+0                                          &
+       &                                                                                                             )
+  expansionFactor      =cosmologyFunctionsMatterLambda_%expansionFactorFromRedshift(3.0d0          )
+  time                 =cosmologyFunctionsMatterLambda_%cosmicTime                 (expansionFactor)
+  mass                 =2.0d0*intergalacticMediumFilteringMassGnedin2000_%massFiltering(time)
+  gradientMass         =+intergalacticMediumFilteringMassGnedin2000_%fractionBaryonsGradientMass(mass                               ,time)
+  gradientMassNumerical=+(                                                                                                              &
+       &                  +intergalacticMediumFilteringMassGnedin2000_%fractionBaryons            (mass*(1.0d0+stepMassFractional),time) &
+       &                  -intergalacticMediumFilteringMassGnedin2000_%fractionBaryons            (mass*(1.0d0-stepMassFractional),time) &
+       &                 )                                                                                                              &
+       &                /(                                                                                                              &
+       &                  +2.0d0                                                                                                        &
+       &                  *mass                                                                                                         &
+       &                  *stepMassFractional                                                                                           &
+       &                 )
+  call Assert('fraction of baryons accreted [z = 3.0]'  ,gradientMass,gradientMassNumerical,relTol=1.0d-6)
+  gradientMass         =+criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%gradientMass(time=time,mass=mass                           )
+  gradientMassNumerical=+(                                                                                                                       &
+       &                  +criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%value     (time=time,mass=mass*(1.0d0+stepMassFractional)) &
+       &                  -criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%value     (time=time,mass=mass*(1.0d0-stepMassFractional)) &
+       &                 )                                                                                                                       &
+       &                /(                                                                                                                       &
+       &                  +2.0d0                                                                                                                 &
+       &                  *mass                                                                                                                  &
+       &                  *stepMassFractional                                                                                                    &
+       &                 )
+  call Assert('critical overdensity for collapse [z = 3.0]',gradientMass,gradientMassNumerical,relTol=1.0d-6)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 end program Tests_Spherical_Collapse_Baryons_Dark_Matter

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   use, intrinsic :: ISO_C_Binding                  , only : c_size_t
   use            :: Multi_Counters                 , only : multiCounter
   use            :: Radiative_Transfer_Convergences, only : radiativeTransferConvergenceClass
@@ -222,8 +224,10 @@ contains
     !!{RST
     Initialize the computational domain.
     !!}
-    use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorCylindrical
-    use :: Display                                , only : displayCounter                                , displayCounterClear  , displayIndent, displayUnindent, &
+    use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorCylindrical, toleranceRelativeVolumeIntegral
+    use :: Coordinates                            , only : coordinateCylindrical
+    use :: Numerical_Constants_Math               , only : Pi
+    use :: Display                                , only : displayCounter                                , displayCounterClear            , displayIndent, displayUnindent, &
           &                                                verbosityLevelStandard                        , verbosityLevelWorking
     use :: MPI_Utilities                          , only : mpiBarrier                                    , mpiSelf
     use :: Timers                                 , only : timer
@@ -233,7 +237,10 @@ contains
     integer         (c_size_t                                      )                 :: i               , j          , &
          &                                                                              slicesPerProcess, slicesExtra
     type            (computationalDomainVolumeIntegratorCylindrical), allocatable    :: integrator
+    type            (coordinateCylindrical                         )                 :: coordinates
     double precision                                                , dimension(2,2) :: boundariesCell
+    double precision                                                                 :: densityMean     , massDomain , &
+         &                                                                              volumeDomain
 #ifdef USEMPI
     integer                                                                          :: p
 #endif
@@ -264,6 +271,36 @@ contains
     call self  %radiativeTransferMatter_%propertyClass(properties)
     allocate(self%properties(self%countCells(1),self%countCells(2)),mold=properties)
     deallocate(properties)
+    ! Estimate a characteristic density for the domain, with which to set the absolute tolerance of the volume integral over each
+    ! cell. Given only a relative tolerance those integrals are asked for a fixed fractional accuracy even in cells containing
+    ! almost no matter---far more accuracy than is needed there, and very expensive to reach where the density is discontinuous
+    ! within the cell. The estimate is made by sampling the density at the center of each cell, so is cheap, and need only be
+    ! approximate. Where it vanishes (for example if no cell center falls inside the matter distribution) we fall back to a purely
+    ! relative tolerance, which simply reproduces the behavior of the integrators given no absolute tolerance.
+    massDomain  =0.0d0
+    volumeDomain=0.0d0
+    do i   =1,self%countCells(1)
+       boundariesCell   (1,:)=self%boundariesCells(1)%boundary(i:i+1)
+       do j=1,self%countCells(2)
+          boundariesCell(2,:)=self%boundariesCells(2)%boundary(j:j+1)
+          allocate(integrator)
+          integrator=computationalDomainVolumeIntegratorCylindrical(boundariesCell)
+          call coordinates%rSet  (0.5d0*(boundariesCell(1,1)+boundariesCell(1,2)))
+          call coordinates%phiSet(      Pi                                       )
+          call coordinates%zSet  (0.5d0*(boundariesCell(2,1)+boundariesCell(2,2)))
+          massDomain  =+massDomain                                               &
+               &       +self      %radiativeTransferMatter_%density(coordinates) &
+               &       *integrator                         %volume (           )
+          volumeDomain=+volumeDomain                                             &
+               &       +integrator                         %volume (           )
+          deallocate(integrator)
+       end do
+    end do
+    if (volumeDomain > 0.0d0) then
+       densityMean=+massDomain/volumeDomain
+    else
+       densityMean=+0.0d0
+    end if
     do i   =1,self%countCells(1)
        if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(i-1_c_size_t)/dble(self%countCells(1))),isNew=i==1,verbosity=verbosityLevelWorking)
        boundariesCell   (1,:)=self%boundariesCells(1)%boundary(i:i+1)
@@ -272,6 +309,12 @@ contains
           ! Build a volume integrator for this cell.
           allocate(integrator)
           integrator=computationalDomainVolumeIntegratorCylindrical(boundariesCell)
+          call integrator%toleranceSet(                                                    &
+               &                       toleranceAbsolute= toleranceRelativeVolumeIntegral  &
+               &                                         *densityMean                      &
+               &                                         *integrator%volume()            , &
+               &                       toleranceRelative= toleranceRelativeVolumeIntegral  &
+               &                      )
           ! Populate this cell.
           call self%radiativeTransferMatter_%populateDomain(self%properties(i,j),integrator,onProcess=j >= self%sliceMinimum(mpiSelf%rank()) .and. j <= self%sliceMaximum(mpiSelf%rank()))
           ! Destroy the integrator.

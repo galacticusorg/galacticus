@@ -94,7 +94,7 @@ This section deals with structure growth. We choose to model linear growth assum
 .. code-block:: xml
 
    <!-- Output options -->
-   <galacticusOutputFileName value="powerSpectrum.hdf5"/>
+   <outputFileName          value="powerSpectrum.hdf5"/>
    <outputTimes value="list">
      <redshifts value="0.0 1.0"/>
    </outputTimes>

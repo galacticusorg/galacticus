@@ -8,7 +8,7 @@
 
 Galacticus is a semi-analytic model of galaxy formation — a powerful, flexible toolkit for modeling the physics of how galaxies form and evolve. For the science behind it, see the [description paper](https://arxiv.org/abs/1008.1786); for everything else, the [documentation](https://galacticus.readthedocs.io/).
 
-**Install:** `pip install galacticus` gets you a ready-to-run model with no compilation — pre-built binaries, datasets, and tools are downloaded automatically for Linux and macOS. See the [Quickstart](#quickstart) and the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html).
+**Install:** `pip install galacticus` gets you a ready-to-run model with no compilation — pre-built binaries, datasets, and tools are downloaded automatically for Linux and macOS (and for Windows via WSL 2). See the [Quickstart](#quickstart) and the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html).
 
 Have questions? Ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions), or browse the [wiki](https://github.com/galacticusorg/galacticus/wiki).
 
@@ -25,7 +25,7 @@ Have questions? Ask in the [discussion forum](https://github.com/galacticusorg/g
 > galacticus run parameters/quickTest.xml
 > ```
 >
-> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64, macOS Intel, or macOS Apple Silicon) and configures the environment for you. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
+> The first run downloads the right binary, datasets, and tools for your platform (Linux x86-64 or macOS Apple Silicon) and configures the environment for you. On Windows, run `galacticus install-wsl` first: it sets up WSL 2 and installs Galacticus inside it, after which `galacticus run` works from any Windows command prompt. See the [pip installation guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/installation/pip.html). The rest of this section covers building from source, which you need only if you want to modify or extend Galacticus.
 
 This section walks you through building and running a minimal Galacticus model for the first time.
 
@@ -92,6 +92,9 @@ The output is written to `galacticus.hdf5` in the directory you ran from. To cha
 | `./Galacticus.exe: No such file or directory` | The build did not complete successfully. Re-run `make` and check for errors. |
 | Parameter file not found | Ensure you are running the command from the repository root directory so that `parameters/quickTest.xml` resolves correctly. |
 | Missing library errors at link time | Verify that HDF5, FFTW3, and GSL development packages are installed and that their locations are on the relevant library paths. |
+| Build stops with `Error 137` or `Killed` | The compiler ran out of memory. Use fewer parallel jobs (`make -j2 Galacticus.exe`) or `make -j2 LTO=disabled Galacticus.exe`. |
+| `failed to download from "..."` at run time | An external tool or data file could not be fetched. Check network access and that `wget` or `curl` is installed; on a cluster, run once on a login node first. See the [troubleshooting guide](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/troubleshooting/run-time-errors.html). |
+| Every run fails with `unable to close file object '/dev/shm/glcTmpPar...'` | `/dev/shm` is full of temporary files left by older versions. Remove `/dev/shm/glcTmpPar.*` files whose process has exited. |
 
 For further help, visit the [wiki](https://github.com/galacticusorg/galacticus/wiki) or ask in the [discussion forum](https://github.com/galacticusorg/galacticus/discussions).
 

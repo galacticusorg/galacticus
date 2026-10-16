@@ -84,21 +84,15 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`starFormationTimescaleLowerLimited` timescale for star formation class.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type            (starFormationTimescaleLowerLimited)                        :: self
     double precision                                    , intent(in   )         :: timescaleMinimum
     class           (starFormationTimescaleClass       ), intent(in   ), target :: starFormationTimescale_
     !![
     <constructorAssign variables="timescaleMinimum, *starFormationTimescale_"/>
+    <componentPropertyAssert class="disk"     properties="velocity radius" require="gettable" assignTo="self%diskSupported"    />
+    <componentPropertyAssert class="spheroid" properties="velocity radius" require="gettable" assignTo="self%spheroidSupported"/>
     !!]
-    
-    self%diskSupported    = defaultDiskComponent    %velocityIsGettable() &
-         &                 .and.                                          &
-         &                  defaultDiskComponent    %  radiusIsGettable() 
-    self%spheroidSupported= defaultSpheroidComponent%velocityIsGettable() &
-         &                 .and.                                          &
-         &                  defaultSpheroidComponent%  radiusIsGettable() 
     return
   end function lowerLimitedConstructorInternal
 
@@ -106,10 +100,8 @@ contains
     !!{RST
     Return a star formation rate for the given ``component`` which is limited to be no smaller than a given multiple of the dynamical time.
     !!}
-    use :: Array_Utilities                 , only : operator(.intersection.)
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : defaultDiskComponent    , defaultSpheroidComponent, nodeComponent, nodeComponentDisk, &
-          &                                         nodeComponentSpheroid
+    use :: Galacticus_Nodes                , only : nodeComponent    , nodeComponentDisk, nodeComponentSpheroid
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
     class           (starFormationTimescaleLowerLimited), intent(inout) :: self
@@ -119,33 +111,15 @@ contains
 
     select type (component)
     class is (nodeComponentDisk    )
-       if (.not.self%diskSupported) then
-          call Error_Report(                                                                                          &
-               &            'disk component must have gettable radius and velocity properties.'                    // &
-               &            Component_List(                                                                           &
-               &                           'disk'                                                                  ,  &
-               &                            defaultDiskComponent    %velocityAttributeMatch(requireGettable=.true.)   &
-               &                           .intersection.                                                             &
-               &                            defaultDiskComponent    %  radiusAttributeMatch(requireGettable=.true.)   &
-               &                          )                                                                        // &
-               &            {introspection:location}                                                                  &
-               &           )
-       end if
+       !![
+       <componentPropertyAssert class="disk"     properties="velocity radius" require="gettable" condition="self%diskSupported"    />
+       !!]
        velocity=component%velocity()
        radius  =component%radius  ()
     class is (nodeComponentSpheroid)
-       if (.not.self%spheroidSupported) then
-          call Error_Report(                                                                                          &
-               &            'spheroid component must have gettable radius and velocity properties.'                // &
-               &            Component_List(                                                                           &
-               &                           'spheroid'                                                              ,  &
-               &                            defaultSpheroidComponent%velocityAttributeMatch(requireGettable=.true.)   &
-               &                           .intersection.                                                             &
-               &                            defaultSpheroidComponent%  radiusAttributeMatch(requireGettable=.true.)   &
-               &                          )                                                                        // &
-               &            {introspection:location}                                                                  &
-               &           )
-       end if
+       !![
+       <componentPropertyAssert class="spheroid" properties="velocity radius" require="gettable" condition="self%spheroidSupported"/>
+       !!]
        velocity=component%velocity()
        radius  =component%radius  ()
     class default

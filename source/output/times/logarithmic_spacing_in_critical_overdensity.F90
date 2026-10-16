@@ -131,10 +131,10 @@ contains
     timeMaximum=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
     timeNow    =self%cosmologyFunctions_%cosmicTime(1.0d0                                                                )
     criticalOverdensities=Make_Range(                                                                               &
-         &                           +self%criticalOverdensity_     %value       (time=timeMinimum               )  &
+         &                           +self%criticalOverdensity_     %value       (time=timeMinimum,mass=massLarge)  &
          &                           /self%cosmologicalMassVariance_%rootVariance(time=timeMinimum,mass=massLarge)  &
          &                           *self%cosmologicalMassVariance_%rootVariance(time=timeNow    ,mass=massLarge), &
-         &                           +self%criticalOverdensity_     %value       (time=timeMaximum               )  &
+         &                           +self%criticalOverdensity_     %value       (time=timeMaximum,mass=massLarge)  &
          &                           /self%cosmologicalMassVariance_%rootVariance(time=timeMaximum,mass=massLarge)  &
          &                           *self%cosmologicalMassVariance_%rootVariance(time=timeNow    ,mass=massLarge), &
          &                           int(countTimes)                                                              , &

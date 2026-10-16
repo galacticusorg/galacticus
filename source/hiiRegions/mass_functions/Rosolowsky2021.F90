@@ -111,7 +111,7 @@ contains
       <name>massMaximum</name>
       <defaultValue>1.0d8</defaultValue>
       <description>
-      Maximum mass ofgiant molecular clouds.
+      Maximum mass of giant molecular clouds.
       </description>
       <source>parameters</source>
     </inputParameter>

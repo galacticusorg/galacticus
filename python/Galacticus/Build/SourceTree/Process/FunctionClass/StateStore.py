@@ -184,7 +184,7 @@ def state_store_variables(state_stores, state_store, class_record,
         has_pointer    = any(a == 'pointer' for a in attributes)
         is_allocatable = any(a == 'allocatable' for a in attributes)
 
-        # ---- Skip type-bound procedures, finalisers, and generic operator
+        # ---- Skip type-bound procedures, finalizers, and generic operator
         # bindings.  None declare data members, and `generic :: assignment(=)
         # => …` parses as a "variable" named `assignment(=)=>…` that would
         # otherwise be emitted as `self%assignment(=)…` — invalid Fortran.
@@ -442,7 +442,7 @@ def state_store_variables(state_stores, state_store, class_record,
                     f"self%{variable_name}", f"self%{variable_name}",
                 )
         else:
-            # Static-size intrinsic.  Honour any `restoreTo` overrides from
+            # Static-size intrinsic.  Honor any `restoreTo` overrides from
             # the class's `<stateStorable>` block.
             restore_tos = []
             if class_record and isinstance(class_record.get('stateStorable'), dict):

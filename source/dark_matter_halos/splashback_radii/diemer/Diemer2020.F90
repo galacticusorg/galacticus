@@ -21,7 +21,7 @@
   An implementation of dark matter halo splashback radii using the model of :cite:t:`diemer_splashback_2020`.
   !!}
 
-  !+ Implemented by Andrew Benson with assistance from Claude.
+  !+ Contributions to this file made by: Andrew Benson, Claude.
 
   !![
   <darkMatterHaloSplashbackRadius name="darkMatterHaloSplashbackRadiusDiemer2020" docformat="rst">

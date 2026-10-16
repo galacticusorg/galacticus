@@ -38,5 +38,5 @@ with h5py.File("outputs/interoutputStarFormationRate.hdf5", "r") as model:
         timePrevious = time
         massPrevious = massStellar[order]
 
-success = "success" if allGood else "FAIL"
+success = "SUCCESS" if allGood else "FAILED"
 print(f"{success}: mean interoutput star formation rate")

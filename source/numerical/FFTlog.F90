@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which wraps the :term:`FFTLog` functions.
 !!}
@@ -26,7 +28,7 @@ module FFTLogs
   Wraps the :term:`FFTLog` functions.
   !!}
   private
-  public :: FFTLog, FFTLogSineTransform, FFTLogCosineTransform
+  public :: FFTLog, FFTLogSineTransform
 
   !: $(BUILDPATH)/external/FFTlog/cdgamma.o
   !: $(BUILDPATH)/external/FFTlog/drfftb.o
@@ -38,9 +40,8 @@ module FFTLogs
   integer         , parameter, public :: fftLogForward =+1
   integer         , parameter, public :: fftLogBackward=-1
 
-  ! Values of mu for sine/cosine transforms.
+  ! Value of mu for sine transforms.
   double precision, parameter, public :: fftLogSine    =+0.5d0
-  double precision, parameter, public :: fftLogCosine  =-0.5d0
 
 contains
 
@@ -61,24 +62,6 @@ contains
     ft=ft*sqrt(k)*sqrt(Pi/2.0d0)
     return
   end subroutine FFTLogSineTransform
-  
-  subroutine FFTLogCosineTransform(r,k,f,ft,direction)
-    !!{RST
-    Wrapper function for ``FFTLog()`` which performs a Fourier cosine transform. Since ``FFTLog()`` achieves this by using the :math:`J_{1/2}(x)=(2/\pi x)^{1/2} \cos(x)` Bessel function we apply the inverse of these factors to get a cosine transform.
-    !!}
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    double precision, intent(in   ), dimension(     : ) :: r        , f
-    double precision, intent(inout), dimension(     : ) :: k
-    double precision, intent(  out), dimension(     : ) :: ft
-    integer         , intent(in   )                     :: direction
-    double precision               , dimension(size(f)) :: fScaled
-
-    fScaled=f*sqrt(r)
-    call FFTLog(r,k,fScaled,ft,fftLogCosine,direction)
-    ft=ft*sqrt(k)*sqrt(Pi/2.0d0)
-    return
-  end subroutine FFTLogCosineTransform
   
   subroutine FFTLog(r,k,f,ft,mu,direction)
     !!{RST

@@ -12,6 +12,9 @@ from Galacticus.Build.SourceTree         import walk_tree
 from Galacticus.Build.SourceTree.Process import register_process
 
 
+_LOCATION_PLACEHOLDER_RE = re.compile(r'\{(introspection:location(?::compact)?)\}')
+
+
 def instrument(code):
     """Tag every `{introspection:location[:compact]}` placeholder with the
     source line number on which it appears.
@@ -21,11 +24,13 @@ def instrument(code):
     here are consumed later by `process_source_introspection` to emit the
     actual location expression.
     """
+    # Almost no source contains a placeholder, so skip the per-line scan when there is none.
+    if '{introspection:location' not in code:
+        return code
     out = []
     for i, line in enumerate(code.splitlines(keepends=True), start=1):
         out.append(
-            re.sub(
-                r'\{(introspection:location(?::compact)?)\}',
+            _LOCATION_PLACEHOLDER_RE.sub(
                 lambda m: '{' + m.group(1) + ':' + str(i) + '}',
                 line,
             )

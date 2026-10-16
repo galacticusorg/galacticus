@@ -24,7 +24,7 @@
   !![
   <mergerTreeImporter name="mergerTreeImporterSussingASCII" docformat="rst">
    <description>
-   A merger tree importer class for "Sussing Merger Trees" ASCII format merger tree files :cite:p:`srisawat_sussing_2013`, along with :term:`AHF` format halo catalogs. A descriptor file must be specified via the ``[mergerTreeReadFileName]`` parameter. This descriptor file should have the following format:
+   A merger tree importer class for "Sussing Merger Trees" ASCII format merger tree files :cite:p:`srisawat_sussing_2013`, along with :term:`AHF` format halo catalogs. A descriptor file must be specified via the ``[fileNames]`` parameter of the :galacticus-class:`mergerTreeConstructorRead` tree constructor. This descriptor file should have the following format:
 
    .. code-block:: none
 

@@ -167,7 +167,7 @@ contains
       <name>scatter</name>
       <defaultValue>0.4d0</defaultValue>
       <defaultSource>
-      (Obsreschkow, private communication)
+      (Obreschkow, private communication)
       </defaultSource>
       <source>parameters</source>
       <description>

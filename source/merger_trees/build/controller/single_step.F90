@@ -97,10 +97,10 @@ contains
       If true, cease building the tree after the first step. Otherwise, continue to build with no further step limitations.
       </description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    <objectBuilder class="linearGrowth"              name="linearGrowth_"              source="parameters"/>
-    <objectBuilder class="criticalOverdensity"       name="criticalOverdensity_"       source="parameters"/>
-    <objectBuilder class="mergerTreeBuildController" name="mergerTreeBuildController_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"                                           />
+    <objectBuilder class="linearGrowth"              name="linearGrowth_"              source="parameters"                                           />
+    <objectBuilder class="criticalOverdensity"       name="criticalOverdensity_"       source="parameters" withholds="value:mass timeOfCollapse:mass"/>
+    <objectBuilder class="mergerTreeBuildController" name="mergerTreeBuildController_" source="parameters"                                           />
     !!]
     timeStep               = cosmologyFunctions_ %cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftStep))
     criticalOverdensityStep=+criticalOverdensity_%value     (                                                    timeStep ) &

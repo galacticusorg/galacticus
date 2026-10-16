@@ -42,6 +42,6 @@ for output in outputs.keys():
         if len(ratio) > 0:
             rmax = np.max(ratio)
             if rmax > 5.0:
-                print("FAIL: Large jump in MAH of: "+str(rmax)+" "+str(idx[i]))
+                print("FAILED: Large jump in MAH of: "+str(rmax)+" "+str(idx[i]))
                 sys.exit(0)
 print("SUCCESS: most massive subhalo promotion")

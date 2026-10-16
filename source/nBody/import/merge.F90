@@ -144,10 +144,10 @@ contains
     !!{RST
     Merge data from multiple importers.
     !!}
-    use :: Display        , only : displayIndent           , displayUnindent               , verbosityLevelStandard  , displayMessage
-    use :: Error          , only : Error_Report
-    use :: Dictionaries   , only : doubleDictionary        , integerSizeTDictionary        , rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, &
-          &                        rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, varyingStringDictionary , genericDictionary
+    use :: Display        , only : displayIndent           , displayUnindent                , verbosityLevelStandard  , displayMessage
+    use :: Error          , only : Error_Report            , Error_Report_Allocation_Failure
+    use :: Dictionaries   , only : doubleDictionary        , integerSizeTDictionary         , rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, &
+          &                        rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary , varyingStringDictionary , genericDictionary
     use :: String_Handling, only : operator(//)
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
@@ -158,7 +158,7 @@ contains
     integer         (c_size_t          )               , pointer    , dimension(:,:) :: propertyIntegerRank1, propertyIntegerRank1Merged
     double precision                                   , pointer    , dimension(:,:) :: propertyRealRank1   , propertyRealRank1Merged
     integer                                                                          :: j                   , k                         , &
-         &                                                                              i
+         &                                                                              i                   , allocErr
     integer         (c_size_t          )                                             :: countObjects        , countObjectsMerged
     logical                                                                          :: propertiesFound
     
@@ -295,7 +295,10 @@ contains
           if (importer_%simulations(1)%propertiesInteger%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyInteger                                                                =>  importer_%simulations(j)%propertiesInteger%value(k)
-                if (.not.associated(propertyIntegerMerged)) allocate(propertyIntegerMerged(countObjectsMerged))
+                if (.not.associated(propertyIntegerMerged)) then
+                   allocate(propertyIntegerMerged(countObjectsMerged),stat=allocErr)
+                   if (allocErr /= 0) call Error_Report_Allocation_Failure('propertyIntegerMerged',countObjectsMerged,{introspection:location})
+                end if
                 propertyIntegerMerged(countObjects+1:countObjects+size(propertyInteger,dim=1)) =   propertyInteger
                 countObjects                                                                   =  +countObjects                &
                      &                                                                            +size(propertyInteger,dim=1)
@@ -316,7 +319,10 @@ contains
           if (importer_%simulations(1)%propertiesReal%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyReal                                                             =>  importer_%simulations(j)%propertiesReal%value(k)
-                if (.not.associated(propertyRealMerged)) allocate(propertyRealMerged(countObjectsMerged))
+                if (.not.associated(propertyRealMerged)) then
+                   allocate(propertyRealMerged(countObjectsMerged),stat=allocErr)
+                   if (allocErr /= 0) call Error_Report_Allocation_Failure('propertyRealMerged',countObjectsMerged,{introspection:location})
+                end if
                 propertyRealMerged(countObjects+1:countObjects+size(propertyReal,dim=1)) =   propertyReal
                 countObjects                                                             =  +countObjects                &
                      &                                                                      +size(propertyReal,dim=1)
@@ -337,7 +343,10 @@ contains
           if (importer_%simulations(1)%propertiesIntegerRank1%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyIntegerRank1                                                                       =>  importer_%simulations(j)%propertiesIntegerRank1%value(k)
-                if (.not.associated(propertyIntegerRank1Merged)) allocate(propertyIntegerRank1Merged(size(propertyIntegerRank1,dim=1),countObjectsMerged))
+                if (.not.associated(propertyIntegerRank1Merged)) then
+                   allocate(propertyIntegerRank1Merged(size(propertyIntegerRank1,dim=1),countObjectsMerged),stat=allocErr)
+                   if (allocErr /= 0) call Error_Report_Allocation_Failure('propertyIntegerRank1Merged',size(propertyIntegerRank1,dim=1)*countObjectsMerged,{introspection:location})
+                end if
                 propertyIntegerRank1Merged(:,countObjects+1:countObjects+size(propertyIntegerRank1,dim=2)) =   propertyIntegerRank1
                 countObjects                                                                               =  +countObjects                     &
                      &                                                                                        +size(propertyIntegerRank1,dim=2)
@@ -358,7 +367,10 @@ contains
           if (importer_%simulations(1)%propertiesRealRank1%size() > 0) then
              do j=1,size(importer_%simulations)
                 propertyRealRank1                                                                    =>  importer_%simulations(j)%propertiesRealRank1%value(k)
-                if (.not.associated(propertyRealRank1Merged)) allocate(propertyRealRank1Merged(size(propertyRealRank1,dim=1),countObjectsMerged))
+                if (.not.associated(propertyRealRank1Merged)) then
+                   allocate(propertyRealRank1Merged(size(propertyRealRank1,dim=1),countObjectsMerged),stat=allocErr)
+                   if (allocErr /= 0) call Error_Report_Allocation_Failure('propertyRealRank1Merged',size(propertyRealRank1,dim=1)*countObjectsMerged,{introspection:location})
+                end if
                 propertyRealRank1Merged(:,countObjects+1:countObjects+size(propertyRealRank1,dim=2)) =   propertyRealRank1
                 countObjects                                                                         =  +countObjects                     &
                      &                                                                                  +size(propertyRealRank1,dim=2)

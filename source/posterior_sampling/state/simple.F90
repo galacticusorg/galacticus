@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a simple posterior sampling state class.
   !!}
@@ -105,7 +107,12 @@ contains
     allocate(self%accepted(acceptedStateCount))
     self%stepCount      =0
     self%accepted       =0
-    self%chainIndexValue=mpiSelf%rank()
+    ! The chain index is the MPI rank, or zero if MPI is not active (e.g. when evaluating a design in a serial task).
+    if (mpiSelf%isActive()) then
+       self%chainIndexValue=mpiSelf%rank()
+    else
+       self%chainIndexValue=0
+    end if
     return
   end function simpleConstructorInternal
 

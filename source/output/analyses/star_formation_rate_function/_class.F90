@@ -297,7 +297,7 @@ contains
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10    , outputAnalysisPropertyOperatorClass         , outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10         , &
           &                                                 outputAnalysisPropertyOperatorSequence     , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
-    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCsmlgyVolume
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorCosmologyVolume
     implicit none
     type            (outputAnalysisStarFormationRateFunction        )                                          :: self
     type            (varying_string                                 ), intent(in   )                           :: label                                                 , comment
@@ -321,7 +321,7 @@ contains
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSequence         )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
-    type            (outputAnalysisWeightOperatorCsmlgyVolume       )               , pointer                  :: outputAnalysisWeightOperator_
+    type            (outputAnalysisWeightOperatorCosmologyVolume       )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerSequence   )               , pointer                  :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionNormalizerBinWidth   )               , pointer                  :: outputAnalysisDistributionNormalizerBinWidth_
     type            (outputAnalysisDistributionNormalizerLog10ToLog )               , pointer                  :: outputAnalysisDistributionNormalizerLog10ToLog_
@@ -382,7 +382,7 @@ contains
     ! Create a cosmological volume correction weight operator.
     allocate(outputAnalysisWeightOperator_)
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_"                   constructor="outputAnalysisWeightOperatorCsmlgyVolume      (cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_"                   constructor="outputAnalysisWeightOperatorCosmologyVolume      (cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
     !!]
     ! Create a bin width distribution normalizer.
     allocate(outputAnalysisDistributionNormalizerBinWidth_  )

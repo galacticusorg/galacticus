@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a property extractor for "in lightcone" status.
 !!}
@@ -78,13 +80,27 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorIsInLightcone` property extractor class.
     !!}
+    use :: Display            , only : displayGreen         , displayMagenta, displayMessage, displayReset
+    use :: Geometry_Lightcones, only : geometryLightconeNull
+    use :: ISO_Varying_String , only : varying_string       , assignment(=) , operator(//)
     implicit none
     type (nodePropertyExtractorIsInLightcone)                        :: self
     class(geometryLightconeClass            ), intent(in   ), target :: geometryLightcone_
+    type (varying_string                    )                        :: message
     !![
     <constructorAssign variables="*geometryLightcone_"/>
     !!]
     
+    ! Warn if the lightcone geometry is null. This is a valid choice - a null lightcone has zero solid angle, so nothing lies
+    ! within it - but it makes this extractor report `false` for every node, which is unlikely to be what was intended.
+    select type (geometryLightcone_)
+    class is (geometryLightconeNull)
+       message=displayMagenta()//"WARNING:"//displayReset()//" the `nodePropertyExtractorIsInLightcone` class is in use with a null lightcone geometry"//char(10)// &
+            &  displayGreen()//"   HELP:"//displayReset()//" a null lightcone has zero solid angle, so no node ever lies within it and this"          //char(10)// &
+            &                                               "          extractor will therefore report `false` for every node. If that is not what"    //char(10)// &
+            &                                               "          you intended, set a non-null `geometryLightcone`."
+       call displayMessage(message)
+    end select
     return
   end function isInLightconeConstructorInternal
 

@@ -24,7 +24,7 @@ Implements an N-body data operator which flags particles that have been always i
   !![
   <nbodyOperator name="nbodyOperatorFlagAlwaysIsolated" docformat="rst">
    <description>
-   An N-body data operator which identifies and flags particles that have remained isolated throughout the simulation, never having been part of a larger halo, by tracking their merger history. A particle is considered always-isolated unless its virial mass increased by more than the factor specified by ``[massGrowthFactor]``, which ignores transient accretion events.
+   An N-body data operator which identifies and flags particles that have remained isolated throughout the simulation, never having been part of a larger halo, by tracking their merger history. A particle is considered always-isolated unless its virial mass increased by more than the factor specified by ``[massFactor]``, which ignores transient accretion events.
    </description>
   </nbodyOperator>
   !!]

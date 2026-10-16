@@ -33,7 +33,7 @@ module Dark_Matter_Halo_Splashback_Radii_Reference
   !!{RST
   Computes the reference mass and radius used by the splashback radius classes.
   !!}
-  !+ Implemented by Andrew Benson with assistance from Claude.
+  !+ Contributions to this file made by: Andrew Benson, Claude.
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Galacticus_Nodes       , only : treeNode

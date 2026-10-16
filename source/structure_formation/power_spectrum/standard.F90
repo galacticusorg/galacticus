@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to :math:`z=0`.
 !!}
@@ -155,22 +157,23 @@ contains
     return
   end function standardPowerDimensionless
 
-  subroutine standardDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine standardDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
       !!{RST
       Generate a descriptor for the standard power spectrum class.
       !!}
-      use Input_Parameters, only : inputParameters
+      use Input_Parameters, only : inputParameters, descriptorParameterName
       implicit none
-      class  (powerSpectrumStandard), intent(inout)           :: self
-      type   (inputParameters      ), intent(inout)           :: descriptor
-      logical                       , intent(in   ), optional :: includeClass, includeFileModificationTimes
-      type   (inputParameters      )                          :: parameters
+      class    (powerSpectrumStandard), intent(inout)           :: self
+      type     (inputParameters      ), intent(inout)           :: descriptor
+      logical                         , intent(in   ), optional :: includeClass , includeFileModificationTimes
+      character(len=*                ), intent(in   ), optional :: parameterName
+      type     (inputParameters      )                          :: parameters
       !![
       <optionalArgument name="includeClass" defaultsTo=".true." />
       !!]
       
-      if (includeClass_) call descriptor%addParameter('powerSpectrum','standard')
-      parameters=descriptor%subparameters('powerSpectrum')
+      if (includeClass_) call descriptor%addParameter(descriptorParameterName('powerSpectrum',parameterName),'standard')
+      parameters=descriptor%subparameters(descriptorParameterName('powerSpectrum',parameterName))
       if (associated(self%cosmologicalMassVariance_          )) call self%cosmologicalMassVariance_          %descriptorNormalizationOnly(parameters,includeClass,includeFileModificationTimes)
       if (associated(self%powerSpectrumPrimordialTransferred_)) call self%powerSpectrumPrimordialTransferred_%descriptor                 (parameters,includeClass,includeFileModificationTimes)
       return      

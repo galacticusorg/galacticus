@@ -187,6 +187,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic
     use :: Error                               , only : Error_Report
+    use :: ISO_Varying_String                  , only : char
     implicit none
     double precision                    , intent(in   ) :: timeFormation
     class           (nodeComponentBasic), pointer       :: basic
@@ -232,7 +233,7 @@ contains
        end if
     class default
        massFormation=-huge(0.0d0)
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [darkMatterProfileScaleRadiusLudlow2016Analytic] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     end select
     formationTimeRoot =  +                   massFormation          &
          &               -states(stateCount)%massHaloCharacteristic

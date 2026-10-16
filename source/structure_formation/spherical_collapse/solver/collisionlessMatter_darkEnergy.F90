@@ -24,7 +24,7 @@
   ! Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.
   !![
   <enumeration docformat="rst">
-   <name>cllsnlssMttrDarkEnergyFixedAt</name>
+   <name>collisionlessMatterDarkEnergyFixedAt</name>
    <description>
    Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.
    </description>
@@ -38,30 +38,30 @@
   !!]
 
   !![
-  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrDarkEnergy" docformat="rst">
+  <sphericalCollapseSolver name="sphericalCollapseSolverCollisionlessMatterDarkEnergy" docformat="rst">
    <description>
    A spherical collapse solver for universes consisting of collisionless matter and dark energy.
    </description>
   </sphericalCollapseSolver>
   !!]
-  type, extends(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt) :: sphericalCollapseSolverCllsnlssMttrDarkEnergy
+  type, extends(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt) :: sphericalCollapseSolverCollisionlessMatterDarkEnergy
      !!{RST
      A spherical collapse solver for universes consisting of collisionless matter and dark energy.
      !!}
      private
-     type(enumerationCllsnlssMttrDarkEnergyFixedAtType) :: energyFixedAt
+     type(enumerationCollisionlessMatterDarkEnergyFixedAtType) :: energyFixedAt
    contains
-     procedure :: linearNonlinearMap => cllsnlssMttrDarkEnergyLinearNonlinearMap
-     procedure :: tabulate           => cllsnlssMttrDarkEnergyTabulate
-  end type sphericalCollapseSolverCllsnlssMttrDarkEnergy
+     procedure :: linearNonlinearMap => collisionlessMatterDarkEnergyLinearNonlinearMap
+     procedure :: tabulate           => collisionlessMatterDarkEnergyTabulate
+  end type sphericalCollapseSolverCollisionlessMatterDarkEnergy
 
-  interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
+  interface sphericalCollapseSolverCollisionlessMatterDarkEnergy
      !!{RST
-     Constructors for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrDarkEnergy` spherical collapse solver class.
+     Constructors for the :galacticus-class:`sphericalCollapseSolverCollisionlessMatterDarkEnergy` spherical collapse solver class.
      !!}
-     module procedure cllsnlssMttrDarkEnergyConstructorParameters
-     module procedure cllsnlssMttrDarkEnergyConstructorInternal
-  end interface sphericalCollapseSolverCllsnlssMttrDarkEnergy
+     module procedure collisionlessMatterDarkEnergyConstructorParameters
+     module procedure collisionlessMatterDarkEnergyConstructorInternal
+  end interface sphericalCollapseSolverCollisionlessMatterDarkEnergy
 
   ! Pointer to the default cosmology functions object.
   class           (cosmologyFunctionsClass), pointer   :: cosmologyFunctions_            => null()
@@ -76,13 +76,13 @@
 
 contains
 
-  function cllsnlssMttrDarkEnergyConstructorParameters(parameters) result(self)
+  function collisionlessMatterDarkEnergyConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrDarkEnergy` spherical collapse solver class that takes a parameter set as input.
+    Constructor for the :galacticus-class:`sphericalCollapseSolverCollisionlessMatterDarkEnergy` spherical collapse solver class that takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type   (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                :: self
+    type   (sphericalCollapseSolverCollisionlessMatterDarkEnergy)                :: self
     type   (inputParameters                              ), intent(inout) :: parameters
     class  (cosmologyFunctionsClass                      ), pointer       :: cosmologyFunctions_
     class  (linearGrowthClass                            ), pointer       :: linearGrowth_
@@ -100,25 +100,25 @@ contains
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
     !!]
-    self=sphericalCollapseSolverCllsnlssMttrDarkEnergy(enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_,linearGrowth_)
+    self=sphericalCollapseSolverCollisionlessMatterDarkEnergy(enumerationCollisionlessMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
     <objectDestructor name="linearGrowth_"      />
     !!]
     return
-  end function cllsnlssMttrDarkEnergyConstructorParameters
+  end function collisionlessMatterDarkEnergyConstructorParameters
 
-  function cllsnlssMttrDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
+  function collisionlessMatterDarkEnergyConstructorInternal(energyFixedAt,cosmologyFunctions_,linearGrowth_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`sphericalCollapseSolverCllsnlssMttrDarkEnergy` spherical collapse solver class.
+    Internal constructor for the :galacticus-class:`sphericalCollapseSolverCollisionlessMatterDarkEnergy` spherical collapse solver class.
     !!}
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath   , pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
     implicit none
-    type (sphericalCollapseSolverCllsnlssMttrDarkEnergy)                                  :: self
-    type (enumerationCllsnlssMttrDarkEnergyFixedAtType ), intent(in   )                   :: energyFixedAt
+    type (sphericalCollapseSolverCollisionlessMatterDarkEnergy)                                  :: self
+    type (enumerationCollisionlessMatterDarkEnergyFixedAtType ), intent(in   )                   :: energyFixedAt
     class(cosmologyFunctionsClass                      ), intent(in   ), target           :: cosmologyFunctions_
     class(linearGrowthClass                            ), intent(in   ), target, optional :: linearGrowth_
     !![
@@ -143,11 +143,11 @@ contains
          &                             'TurnaroundRadius_'                                                                  // &
          &                             self%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)// &
          &                             '.hdf5'
-    if (.not.enumerationCllsnlssMttrDarkEnergyFixedAtIsValid(energyFixedAt)) call Error_Report('invalid energyFixedAt'//{introspection:location})
+    if (.not.enumerationCollisionlessMatterDarkEnergyFixedAtIsValid(energyFixedAt)) call Error_Report('invalid energyFixedAt'//{introspection:location})
     return
-  end function cllsnlssMttrDarkEnergyConstructorInternal
+  end function collisionlessMatterDarkEnergyConstructorInternal
 
-  subroutine cllsnlssMttrDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
+  subroutine collisionlessMatterDarkEnergyTabulate(self,time,sphericalCollapse_,calculationType)
     !!{RST
     Tabulate spherical collapse solutions for :math:`\delta_\mathrm{crit}`, :math:`\Delta_\mathrm{vir}`, or :math:`R_\mathrm{ta}/R_\mathrm{vir}` vs. time.
     !!}
@@ -159,7 +159,7 @@ contains
     use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Tables          , only : table1DLogarithmicLinear
     implicit none
-    class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy)             , intent(inout) :: self
+    class           (sphericalCollapseSolverCollisionlessMatterDarkEnergy)             , intent(inout) :: self
     double precision                                                            , intent(in   ) :: time
     type            (enumerationCllsnlssMttCsmlgclCnstntClcltnType)             , intent(in   ) :: calculationType
     class           (table1D                                      ), allocatable, intent(inout) :: sphericalCollapse_
@@ -262,7 +262,7 @@ contains
           OmegaDarkEnergyEpochal=cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
           hubbleTimeEpochal     =cosmologyFunctions_%expansionRate         (                expansionFactor)
           ! Estimate a suitably negative minimum value for ε. The initial expansion rate of the perturbation is proportional to
-          ! √(Ωₘ/aᵢ+ε) (see `cllsnlssMttrDarkEnergyPerturbationDynamicsSolver`), so ε can not be more negative than -Ωₘ/aᵢ - at
+          ! √(Ωₘ/aᵢ+ε) (see `collisionlessMatterDarkEnergyPerturbationDynamicsSolver`), so ε can not be more negative than -Ωₘ/aᵢ - at
           ! precisely that value the perturbation begins at rest, and so collapses at the earliest possible epoch. At late times
           ! in a dark energy dominated universe Ωₘ→0, so this physical bound can be much less negative than the nominal value of
           ! -10 used at earlier epochs.
@@ -274,7 +274,7 @@ contains
           ! Find the value of ε for which the perturbation just collapses at this time.
           if (.not.finderAmplitudeConstructed) then
              finderAmplitudePerturbation=rootFinder(                                                       &
-                  &                                 rootFunction=cllsnlssMttrDarkEnergyRadiusPerturbation, &
+                  &                                 rootFunction=collisionlessMatterDarkEnergyRadiusPerturbation, &
                   &                                 toleranceAbsolute=toleranceAbsolute                  , &
                   &                                 toleranceRelative=toleranceRelative                    &
                   &                                )
@@ -302,7 +302,7 @@ contains
              ! Find the epoch of maximum expansion for the perturbation.
              if (.not.finderExpansionConstructed) then
                 finderExpansionMaximum=rootFinder(                                                                   &
-                     &                            rootFunction     =cllsnlssMttrDarkEnergyExpansionRatePerturbation, &
+                     &                            rootFunction     =collisionlessMatterDarkEnergyExpansionRatePerturbation, &
                      &                            toleranceAbsolute=toleranceAbsolute                              , &
                      &                            toleranceRelative=toleranceRelative                                &
                      &                           )
@@ -324,7 +324,7 @@ contains
              maximumExpansionTime           =finderExpansionMaximum%find(rootRange=timeRange)
              expansionFactorExpansionMaximum=cosmologyFunctions_%expansionFactor(maximumExpansionTime)
              ! Solve the dynamics of the perturbation to find the radius at the point of maximum expansion.
-             call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,maximumExpansionTime,radiusExpansionMaximum)
+             call collisionlessMatterDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,maximumExpansionTime,radiusExpansionMaximum)
              ! Compute the density contrast of the perturbation at maximum expansion.
              densityContrastExpansionMaximum=(expansionFactorExpansionMaximum/expansionFactor/radiusExpansionMaximum)**3
              ! Solve the cubic equation (Percival, 2005, A&A, 443, 819, eqn. 38) to give the ratio of virial to turnaround radii,
@@ -335,9 +335,9 @@ contains
              y=      expansionFactorExpansionMaximum**cosmologyFunctions_%exponentDarkEnergy(time=maximumExpansionTime) &
                   & /expansionFactor                **cosmologyFunctions_%exponentDarkEnergy(time=time_               )
              select case (self%energyFixedAt%ID)
-             case (cllsnlssMttrDarkEnergyFixedAtTurnaround   %ID)
+             case (collisionlessMatterDarkEnergyFixedAtTurnaround   %ID)
                 timeEnergyFixed=maximumExpansionTime
-             case (cllsnlssMttrDarkEnergyFixedAtVirialization%ID)
+             case (collisionlessMatterDarkEnergyFixedAtVirialization%ID)
                 timeEnergyFixed=time_
              case default
                 call Error_Report('unrecognized epoch'//{introspection:location})
@@ -389,31 +389,31 @@ contains
        call displayUnindent    ('done',verbosity=verbosityLevelWorking)
     end select
     return
-  end subroutine cllsnlssMttrDarkEnergyTabulate
+  end subroutine collisionlessMatterDarkEnergyTabulate
 
-  double precision function cllsnlssMttrDarkEnergyRadiusPerturbation(epsilonPerturbation)
+  double precision function collisionlessMatterDarkEnergyRadiusPerturbation(epsilonPerturbation)
     !!{RST
     Return the radius of a spherical top-hat perturbation in a dark energy universe given an initial perturbation amplitude ``epsilonPerturbation``.
     !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
-    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time_,cllsnlssMttrDarkEnergyRadiusPerturbation)
+    call collisionlessMatterDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time_,collisionlessMatterDarkEnergyRadiusPerturbation)
     return
-  end function cllsnlssMttrDarkEnergyRadiusPerturbation
+  end function collisionlessMatterDarkEnergyRadiusPerturbation
 
-  double precision function cllsnlssMttrDarkEnergyExpansionRatePerturbation(time)
+  double precision function collisionlessMatterDarkEnergyExpansionRatePerturbation(time)
     !!{RST
     Return the expansion rate of a spherical top-hat perturbation in a dark energy universe given an initial perturbation amplitude ``epsilonPerturbation``.
     !!}
     implicit none
     double precision, intent(in   ) :: time
 
-    call cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(amplitudePerturbation,time,expansionRatePerturbation=cllsnlssMttrDarkEnergyExpansionRatePerturbation)
+    call collisionlessMatterDarkEnergyPerturbationDynamicsSolver(amplitudePerturbation,time,expansionRatePerturbation=collisionlessMatterDarkEnergyExpansionRatePerturbation)
     return
-  end function cllsnlssMttrDarkEnergyExpansionRatePerturbation
+  end function collisionlessMatterDarkEnergyExpansionRatePerturbation
 
-  subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
+  subroutine collisionlessMatterDarkEnergyPerturbationDynamicsSolver(epsilonPerturbation,time,radiusPerturbation,expansionRatePerturbation)
     !!{RST
     Integrate the dynamics of a spherical top-hat perturbation in a dark energy universe given an initial perturbation amplitude ``epsilonPerturbation``.
     !!}
@@ -453,7 +453,7 @@ contains
     perturbationRadiusInitial=+expansionFactorInitial
     ! Find the perturbation expansion rate at early time (Percival, 2005, A&A, 443, 819, eqn. 22). The argument of the square
     ! root is non-negative for any physically-valid ε (see where the root finding range is set in
-    ! `cllsnlssMttrDarkEnergyTabulate`), but is clamped here to guard against it evaluating to a very small negative value due
+    ! `collisionlessMatterDarkEnergyTabulate`), but is clamped here to guard against it evaluating to a very small negative value due
     ! to round-off when ε lies at the extreme of that range.
     expansionRatePerturbationInitial=+hubbleTimeEpochal                 &
          &                           *sqrt(                             &
@@ -472,7 +472,7 @@ contains
     ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
        ! Solve the ODE to find the perturbation radius at the present day.
-       solver=odeSolver(countProperties,cllsnlssMttrDarkEnergyPerturbationODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
+       solver=odeSolver(countProperties,collisionlessMatterDarkEnergyPerturbationODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
        call solver%solve(timeInitial,time,propertyValues,status=odeStatus)
        ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
        ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
@@ -488,9 +488,9 @@ contains
     if (present(radiusPerturbation       )) radiusPerturbation       =propertyValues(1)
     if (present(expansionRatePerturbation)) expansionRatePerturbation=propertyValues(2)
     return
-  end subroutine cllsnlssMttrDarkEnergyPerturbationDynamicsSolver
+  end subroutine collisionlessMatterDarkEnergyPerturbationDynamicsSolver
 
-  integer function cllsnlssMttrDarkEnergyPerturbationODEs(time,y,dydt)
+  integer function collisionlessMatterDarkEnergyPerturbationODEs(time,y,dydt)
     !!{RST
     Differential equations describing the evolution of spherical perturbations in a universe containing collisionless dark matter and dark energy.
     !!}
@@ -516,21 +516,21 @@ contains
             &   )
     end if
     ! Return success.
-    cllsnlssMttrDarkEnergyPerturbationODEs=GSL_Success
+    collisionlessMatterDarkEnergyPerturbationODEs=GSL_Success
     return
-  end function cllsnlssMttrDarkEnergyPerturbationODEs
+  end function collisionlessMatterDarkEnergyPerturbationODEs
 
-  subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap(self,time,linearNonlinearMap_)
+  subroutine collisionlessMatterDarkEnergyLinearNonlinearMap(self,time,linearNonlinearMap_)
     !!{RST
     Tabulate the mapping between linear and nonlinear overdensity for the spherical collapse model.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (sphericalCollapseSolverCllsnlssMttrDarkEnergy), intent(inout) :: self
+    class           (sphericalCollapseSolverCollisionlessMatterDarkEnergy), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
     class           (table2DLinLinLin                             ), intent(inout) :: linearNonlinearMap_
     !$GLC attributes unused :: self, time, linearNonlinearMap_
 
     call Error_Report('linear-nonlinear mapping is not supported by this class'//{introspection:location})
     return
-  end subroutine cllsnlssMttrDarkEnergyLinearNonlinearMap
+  end subroutine collisionlessMatterDarkEnergyLinearNonlinearMap

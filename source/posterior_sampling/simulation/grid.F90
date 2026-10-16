@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a posterior sampling simulation class which implements a simple grid search.
   !!}
@@ -38,12 +40,12 @@
      Implementation of a posterior sampling simulation class which implements a simple grid search.
      !!}
      private
-     type   (modelParameterList            ), pointer, dimension(:) :: modelParametersActive_     => null(), modelParametersInactive_ => null()
-     class  (posteriorSampleLikelihoodClass), pointer               :: posteriorSampleLikelihood_ => null()
-     class  (posteriorSamplesClass         ), pointer               :: posteriorSamples_          => null()
-     integer                                                        :: parameterCount                      , logFlushCount
-     logical                                                        :: appendLogs                          , outputLikelihoods
-     type   (varying_string                )                        :: logFileRoot
+     type   (modelParameterList            ), allocatable, dimension(:) :: modelParametersActive_                , modelParametersInactive_
+     class  (posteriorSampleLikelihoodClass), pointer                   :: posteriorSampleLikelihood_ => null()
+     class  (posteriorSamplesClass         ), pointer                   :: posteriorSamples_          => null()
+     integer                                                            :: parameterCount                        , logFlushCount
+     logical                                                            :: appendLogs                            , outputLikelihoods
+     type   (varying_string                )                            :: logFileRoot
    contains
      !![
      <methods docformat="rst">
@@ -215,14 +217,16 @@ contains
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
-    self%modelParametersActive_  =modelParametersActive_
-    self%modelParametersInactive_=modelParametersInactive_
     do i=1,size(modelParametersActive_  )
+       self%modelParametersActive_  (i)                 =  modelParameterList      ( )
+       self%modelParametersActive_  (i)%modelParameter_ => modelParametersActive_  (i)%modelParameter_
        !![
        <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
        !!]
     end do
     do i=1,size(modelParametersInactive_)
+       self%modelParametersInactive_(i)                 =  modelParameterList      ( )
+       self%modelParametersInactive_(i)%modelParameter_ => modelParametersInactive_(i)%modelParameter_
        !![
        <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
        !!]
@@ -243,14 +247,14 @@ contains
     <objectDestructor name="self%posteriorSampleLikelihood_"/>
     <objectDestructor name="self%posteriorSamples_"         />
     !!]
-    if (associated(self%modelParametersActive_  )) then
+    if (allocated (self%modelParametersActive_  )) then
        do i=1,size(self%modelParametersActive_  )
           !![
 	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
           !!]
        end do
     end if
-    if (associated(self%modelParametersInactive_)) then
+    if (allocated (self%modelParametersInactive_)) then
        do i=1,size(self%modelParametersInactive_)
           !![
 	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
@@ -274,11 +278,12 @@ contains
     class           (posteriorSampleSimulationGrid), intent(inout)                               :: self
     double precision                               , dimension(self%parameterCount)              :: stateVector
     type            (posteriorSampleStateSimple   ), dimension(                  :), allocatable :: stateSamples
-    real                                                                                         :: timeEvaluate
-    double precision                                                                             :: logPosterior, logLikelihood
-    type            (varying_string               )                                              :: logFileName , message 
+    real                                                                                         :: timeEvaluate    , timePreEvaluate, &
+         &                                                                                          timePostEvaluate
+    double precision                                                                             :: logPosterior    , logLikelihood
+    type            (varying_string               )                                              :: logFileName     , message 
     integer                                                                                      :: logFileUnit
-    integer         (c_size_t                     )                                              :: i           , j
+    integer         (c_size_t                     )                                              :: i               , j
 
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
@@ -298,8 +303,13 @@ contains
     do j=1,size(stateSamples)
        call stateSamples(j)%countSet(int(j))
        if (mod(j,mpiSelf%count()) /= mpiSelf%rank()) cycle
-       ! Evaluate the posterior in the initial state.
+       ! Evaluate the posterior in the initial state. If the likelihood does not report the time taken to evaluate it, the CPU
+       ! time taken is used.
+       timeEvaluate=-1.0
+       call CPU_Time(timePreEvaluate )
        call self%posterior(stateSamples(j),logPosterior,logLikelihood,timeEvaluate)
+       call CPU_Time(timePostEvaluate)
+       if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
        ! Unmap parameters and write to log file.
        stateVector=stateSamples(j)%get()
        do i=1,size(stateVector)
@@ -395,12 +405,12 @@ contains
     type   (inputParameters              ), intent(inout) :: descriptor
     integer                                               :: i
     
-    if (associated(self%modelParametersActive_  )) then
+    if (allocated (self%modelParametersActive_  )) then
        do i=1,size(self%modelParametersActive_  )
           call self%modelParametersActive_  (i)%modelParameter_%descriptor(descriptor)
        end do
     end if
-    if (associated(self%modelParametersInactive_)) then
+    if (allocated (self%modelParametersInactive_)) then
        do i=1,size(self%modelParametersInactive_)
           call self%modelParametersInactive_(i)%modelParameter_%descriptor(descriptor)
        end do

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements the standard spheroid component.
 !!}
@@ -29,8 +31,9 @@ module Node_Component_Spheroid_Standard
   use :: Histories                       , only : history
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
-  use :: Star_Formation_Histories        , only : starFormationHistory            , starFormationHistoryClass
+  use :: Star_Formation_Histories        , only : starFormationHistory                        , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Standard_Post_Evolve
   implicit none
   private
   public :: Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Scale_Set                 , &
@@ -274,14 +277,14 @@ contains
     !!{RST
     Initializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx           , openMPThreadBindingAtLevel, postEvolveEvent, &
-          &                                              satelliteMergerEvent     , mergerTreeExtraOutputEvent
+    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                                              satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter           , inputParameters
     use :: Mass_Distributions                   , only : massDistributionSpherical, kinematicsDistributionLocal
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_       , kinematicDistribution_
-    use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar            , massTypeGaseous
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_
+    use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                  , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(3)  :: dependencies
@@ -295,9 +298,9 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        dependencies(2)=dependencyRegEx(dependencyDirectionAfter,'^preAnalysis:'     )
        dependencies(3)=dependencyRegEx(dependencyDirectionAfter,'^nodeComponentDisk')
-       call satelliteMergerEvent      %attach(thread,satelliteMerger      ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
-       call mergerTreeExtraOutputEvent%attach(thread,mergerTreeExtraOutput,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
-       call postEvolveEvent           %attach(thread,postEvolve           ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          ) 
+       call satelliteMergerEvent             %attach(thread,satelliteMerger                             ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard',dependencies=dependencies)
+       call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance                ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          )
+       call postEvolveEvent                  %attach(thread,Node_Component_Spheroid_Standard_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentSpheroidStandard'                          ) 
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
@@ -378,16 +381,16 @@ contains
     !!{RST
     Uninitializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeExtraOutputEvent
+    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
          &                                               scalerGasPool
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
-       if (postEvolveEvent           %isAttached(thread,postEvolve           )) call postEvolveEvent           %detach(thread,postEvolve           )
-       if (satelliteMergerEvent      %isAttached(thread,satelliteMerger      )) call satelliteMergerEvent      %detach(thread,satelliteMerger      )
-       if (mergerTreeExtraOutputEvent%isAttached(thread,mergerTreeExtraOutput)) call mergerTreeExtraOutputEvent%detach(thread,mergerTreeExtraOutput)
+       if (postEvolveEvent                  %isAttached(thread,Node_Component_Spheroid_Standard_Post_Evolve)) call postEvolveEvent                  %detach(thread,Node_Component_Spheroid_Standard_Post_Evolve)
+       if (satelliteMergerEvent             %isAttached(thread,satelliteMerger                             )) call satelliteMergerEvent             %detach(thread,satelliteMerger                             )
+       if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance                )) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance                )
        ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
        call scalerStellarPool%destroy()
        call scalerGasPool    %destroy()
@@ -429,34 +432,6 @@ contains
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Pre_Evolve
-
-  subroutine postEvolve(self,node)
-    !!{RST
-    Trim histories attached to the spheroid.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
-    use :: Histories       , only : history
-    implicit none
-    class(*                    ), intent(inout) :: self
-    type (treeNode             ), intent(inout) :: node
-    class(nodeComponentSpheroid), pointer       :: spheroid
-    class(nodeComponentBasic   ), pointer       :: basic
-    type (history              )                :: stellarPropertiesHistory
-    !$GLC attributes unused :: self
-
-    ! Get the spheroid component.
-    spheroid => node%spheroid()
-    ! Check if an exponential spheroid component exists.
-    select type (spheroid)
-    class is (nodeComponentSpheroidStandard)
-       ! Trim the stellar populations properties future history.
-       basic => node%basic()
-       stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(basic%time())
-       call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
-    end select
-    return
-  end subroutine postEvolve
 
   !![
   <postStepTask function="Node_Component_Spheroid_Standard_Post_Step"/>
@@ -925,7 +900,9 @@ contains
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidStandard, treeNode
-    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved     , enumerationDestinationMergerType
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved     , enumerationDestinationMergerType, enumerationDestinationMergerDecode
+    use :: Display                         , only : displayGreen           , displayReset
+    use :: ISO_Varying_String              , only : operator(//)
     use :: Satellite_Merging_Remnant_Sizes , only : remnantNoChange
     use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
@@ -1025,7 +1002,12 @@ contains
        case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                 &
+               &            'the `'//enumerationDestinationMergerDecode(destinationGasHost,includePrefix=.false.)//'` destination of [destinationGasHost]'// &
+               &            ' is not supported by the `standard` spheroid component'                                                            //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                  // &
+               &            {introspection:location}                                                                                                         &
+               &           )
        end select
 
        ! Move stellar material within the host if necessary.
@@ -1122,7 +1104,12 @@ contains
        case (destinationMergerUnmoved%ID)
           ! Do nothing.
        case default
-          call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+          call Error_Report(                                                                                                                                     &
+               &            'the `'//enumerationDestinationMergerDecode(destinationStarsHost,includePrefix=.false.)//'` destination of [destinationStarsHost]'// &
+               &            ' is not supported by the `standard` spheroid component'                                                                //char(10)// &
+               &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                      // &
+               &            {introspection:location}                                                                                                             &
+               &           )
        end select
        ! If the entire host disk/spheroid (gas plus stars) was moved to the spheroid/disk, ensure that the
        ! corresponding angular momentum is precisely zero.
@@ -1161,7 +1148,12 @@ contains
                   &                               +spheroid    %  abundancesGas()  &
                   &                              )
           case default
-             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report(                                                                                                                                           &
+                  &            'the `'//enumerationDestinationMergerDecode(destinationGasSatellite,includePrefix=.false.)//'` destination of [destinationGasSatellite]'// &
+                  &            ' is not supported by the `standard` spheroid component'                                                                      //char(10)// &
+                  &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                            // &
+                  &            {introspection:location}                                                                                                                   &
+                  &           )
           end select
           call spheroid%      massGasSet(0.0d0         )
           call spheroid%abundancesGasSet(zeroAbundances)
@@ -1223,7 +1215,12 @@ contains
              call history_             %destroy                (                                      )
              call historySpheroid      %destroy                (                                      )
           case default
-             call Error_Report('unrecognized movesTo descriptor'//{introspection:location})
+             call Error_Report(                                                                                                                                               &
+                  &            'the `'//enumerationDestinationMergerDecode(destinationStarsSatellite,includePrefix=.false.)//'` destination of [destinationStarsSatellite]'// &
+                  &            ' is not supported by the `standard` spheroid component'                                                                          //char(10)// &
+                  &            displayGreen()//'   HELP:'//displayReset()//' check the destinations set by the [mergerMassMovements] class'                                // &
+                  &            {introspection:location}                                                                                                                       &
+                  &           )
           end select
           call spheroid%        massStellarSet(0.0d0                  )
           call spheroid%  abundancesStellarSet(zeroAbundances         )
@@ -1499,7 +1496,7 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend
 
-  subroutine mergerTreeExtraOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
+  subroutine mergerTreeOutputStateAdvance(self,node,iOutput)
     !!{RST
     Update the star formation history after an output time is reached.
     !!}
@@ -1507,18 +1504,13 @@ contains
     use            :: Galactic_Structure_Options, only : componentTypeSpheroid
     use            :: Histories                 , only : history
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
-    use            :: Kind_Numbers              , only : kind_int8
-    use            :: Locks                     , only : ompLock
     implicit none
     class  (*                    ), intent(inout)          :: self
     type   (treeNode             ), intent(inout)          :: node
     integer(c_size_t             ), intent(in   )          :: iOutput
-    integer(kind=kind_int8       ), intent(in   )          :: treeIndex
-    logical                       , intent(in   )          :: nodePassesFilter
-    type   (ompLock              ), intent(inout)          :: treeLock
     class  (nodeComponentSpheroid)               , pointer :: spheroid
     type   (history              )                         :: historyStarFormation
-    !$GLC attributes unused :: self, treeIndex, nodePassesFilter, treeLock
+    !$GLC attributes unused :: self
 
     ! Check if we are the default method.
     if (.not.defaultSpheroidComponent%standardIsActive()) return
@@ -1532,7 +1524,7 @@ contains
        call spheroid%starFormationHistorySet(historyStarFormation)
     end select
     return
-  end subroutine mergerTreeExtraOutput
+  end subroutine mergerTreeOutputStateAdvance
 
   !![
   <stateStoreTask function="Node_Component_Spheroid_Standard_State_Store"/>

@@ -69,6 +69,8 @@ contains
     use :: Error             , only : Error_Report
     use :: Display           , only : displayIndent, displayUnindent, verbosityLevelStandard
     use :: Points_Convex_Hull, only : convexHull
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class  (nbodyOperatorConvexHullVolume), intent(inout)                 :: self
     type   (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -82,8 +84,10 @@ contains
        class is (convexHull)
           call simulations(i)%attributesReal%set           (keyCH        ='convexHullVolume',value         =hull%volume())
           call simulations(i)%analysis      %writeAttribute(attributeName='convexHullVolume',attributeValue=hull%volume())
+       class is (functionClass)
+          call Error_Report('object is not of [convexHull] class, but of ['//char(hull%objectType())//'] class'//{introspection:location})
        class default
-          call Error_Report('incorrect class'//{introspection:location})
+          call Error_Report('object is not of [convexHull] class'//{introspection:location})
        end select
        nullify(hull)
     end do

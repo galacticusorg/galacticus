@@ -185,8 +185,6 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorHaloAngularMomentumVitvitska2002` node operator class.
     !!}
-    use :: Error           , only : Component_List      , Error_Report
-    use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type            (nodeOperatorHaloAngularMomentumVitvitska2002)                        :: self
     class           (haloSpinDistributionClass                   ), intent(in   ), target :: haloSpinDistribution_
@@ -203,23 +201,9 @@ contains
     !!]
 
     ! Ensure that the spin component supports vector angular momentum.
-    if     (                                                                                                                               &
-         &  .not.                                                                                                                          &
-         &   (                                                                                                                             &
-         &     defaultSpinComponent%angularMomentumVectorIsGettable()                                                                      &
-         &    .and.                                                                                                                        &
-         &     defaultSpinComponent%angularMomentumVectorIsSettable()                                                                      &
-         &   )                                                                                                                             &
-         & )                                                                                                                               &
-         & call Error_Report                                                                                                               &
-         &      (                                                                                                                          &
-         &       'method requires a spin component that provides a gettable and settable "angularMomentumVector" property.'             // &
-         &       Component_List(                                                                                                           &
-         &                      'spin'                                                                                                  ,  &
-         &                       defaultSpinComponent%angularMomentumVectorAttributeMatch(requireGettable=.true.,requireSettable=.true.)   &
-         &                     )                                                                                                        // &
-         &       {introspection:location}                                                                                                  &
-         &      )
+    !![
+    <componentPropertyAssert class="spin" properties="angularMomentumVector" require="gettable settable"/>
+    !!]
     return
   end function haloAngularMomentumVitvitska2002ConstructorInternal
 

@@ -2,9 +2,12 @@
 """Update a Galacticus parameter file from its last modified revision to the current revision."""
 
 import argparse
+import difflib
+import html
 import os
 import re
 import subprocess
+import math
 import sys
 import tempfile
 from datetime import datetime, timezone
@@ -52,6 +55,77 @@ def preprocess_multiline_attributes(input_filename):
                 in_comment = False
             fout.write(line)
     return tmp_filename
+
+
+# Tokens of an XML document: comments, CDATA sections, processing instructions (including the XML declaration), tags
+# (allowing for quoted attribute values which contain `>`), and runs of text.
+_TOKEN = re.compile(r"<!--.*?-->|<!\[CDATA\[.*?\]\]>|<\?.*?\?>|<(?:[^>\"']|\"[^\"]*\"|'[^']*')*>|[^<]+", re.DOTALL)
+_TAG = re.compile(r"<([?/]?)([^\s/>?!]+)(.*?)\s*([/?]?)>\Z", re.DOTALL)
+_ATTRIBUTE = re.compile(r"([^\s=]+)\s*=\s*(\"[^\"]*\"|'[^']*')")
+
+
+def _token_key(token):
+    """Return a normalized form of an XML token, such that tokens which differ only in formatting compare equal.
+
+    Whitespace runs are collapsed, attributes are sorted, attribute values are compared with entities and quoting
+    resolved. Comments and CDATA are compared verbatim, up to whitespace.
+    """
+    if token.startswith("<!"):
+        return " ".join(token.split())
+    match = _TAG.match(token)
+    if match is None:
+        return html.unescape(" ".join(token.split()))
+    attributes = sorted((name, html.unescape(" ".join(value[1:-1].split()))) for name, value in _ATTRIBUTE.findall(match.group(3)))
+    return (match.group(1), match.group(2), tuple(attributes), match.group(4))
+
+
+def _tokenize(text):
+    """Split an XML document into a list of (whitespace, token) pairs, where `whitespace` is the whitespace preceding
+    the token, and return these along with any trailing whitespace."""
+    tokens = []
+    whitespace = ""
+    for match in _TOKEN.finditer(text):
+        token = match.group(0)
+        if not token.startswith("<"):
+            stripped = token.lstrip()
+            whitespace += token[:len(token) - len(stripped)]
+            token = stripped.rstrip()
+            if not token:
+                continue
+            trailing = stripped[len(token):]
+        else:
+            trailing = ""
+        tokens.append((whitespace, token))
+        whitespace = trailing
+    return tokens, whitespace
+
+
+def merge_unchanged_formatting(original, migrated):
+    """Return the migrated document, with every token unchanged by the migration taken verbatim from the original.
+
+    Serialization by `lxml` reformats content which the migration did not touch (attribute order and quoting, the XML
+    declaration, line breaks between adjacent tags). To keep the changes to a migrated file to a minimum, the two
+    documents are compared token by token, ignoring such formatting. Tokens which compare equal are written exactly as
+    they appear in the original, along with their preceding whitespace; only tokens which the migration inserted or
+    changed are taken from the migrated document. An XML declaration is not added to a document which had none.
+    """
+    tokens_original, trailing_original = _tokenize(original)
+    tokens_migrated, trailing_migrated = _tokenize(migrated)
+    if not any(token.startswith("<?xml") for _, token in tokens_original):
+        tokens_migrated = [(whitespace, token) for whitespace, token in tokens_migrated if not token.startswith("<?xml")]
+    matcher = difflib.SequenceMatcher(
+        None,
+        [_token_key(token) for _, token in tokens_original],
+        [_token_key(token) for _, token in tokens_migrated],
+        autojunk=False,
+    )
+    merged = []
+    for operation, i1, i2, j1, j2 in matcher.get_opcodes():
+        if operation == "equal":
+            merged.extend(tokens_original[i1:i2])
+        else:
+            merged.extend(tokens_migrated[j1:j2])
+    return "".join(whitespace + token for whitespace, token in merged) + trailing_original
 
 
 def restore_multiline_attributes(input_filename, output_filename):
@@ -104,6 +178,19 @@ def parse_migrations(path):
             }
         )
     return migrations
+
+
+def append_indented(parent, new_node):
+    """Append a node to a parent, on a new line indented as for the parent's first child."""
+    indent = parent.text if parent.text is not None and parent.text.strip() == "" and "\n" in parent.text else "\n  "
+    if len(parent) > 0:
+        last = parent[-1]
+        new_node.tail = last.tail
+        last.tail = indent
+    else:
+        new_node.tail = parent.text
+        parent.text = indent
+    parent.append(new_node)
 
 
 def insert_after(parent, new_node, ref_node):
@@ -1397,6 +1484,39 @@ def chandrasekhar_suppress_extended_mass(input_doc, parameters, is_grid):
     _suppress_extended_mass_disable(profile)
 
 
+def dynamical_friction_gaseous(input_doc, parameters, is_grid):
+    """Retain the collisionless treatment of dynamical friction from gaseous components.
+
+    Commit b3ff1596d6 introduced the `dynamicalFrictionGaseous` class, used to compute dynamical friction
+    from collisional (gaseous) components such as the hot halo, with a default (`kimKim2007`) that
+    differs from the collisionless Chandrasekhar (1943) formula previously applied to them. Parameter
+    files predating that commit expect the prior behavior, so we explicitly select
+    `dynamicalFrictionGaseous=chandrasekhar1943`, which reproduces it.
+
+    The option matters only where dynamical friction is computed (by a `satelliteDynamicalFriction`
+    node operator, or any non-`zero` `satelliteDynamicalFriction` class) *and* a gaseous component is
+    present (i.e. `componentHotHalo` is not `null` - the default is `standard`). Elsewhere it would have
+    no effect, so we do not add it.
+    """
+    if len(parameters.xpath(".//dynamicalFrictionGaseous[@value]")) > 0:
+        return
+    friction = parameters.xpath(".//satelliteDynamicalFriction[@value]")
+    operator = parameters.xpath(".//nodeOperator[@value='satelliteDynamicalFriction']")
+    if len(friction) == 0 and len(operator) == 0:
+        return
+    if len(friction) > 0 and all(element.get("value") == "zero" for element in friction):
+        return
+    hot_halo = parameters.xpath(".//componentHotHalo[@value]")
+    if len(hot_halo) > 0 and all(element.get("value") == "null" for element in hot_halo):
+        return
+    print("   insert dynamicalFrictionGaseous chandrasekhar1943 to retain collisionless dynamical friction from gas")
+    gaseous = etree.Element("dynamicalFrictionGaseous")
+    gaseous.set("value", "chandrasekhar1943")
+    if is_grid:
+        gaseous.set("iterable", "no")
+    append_indented(parameters, gaseous)
+
+
 def vitvitska_subresolution_method(input_doc, parameters, is_grid):
     """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
     nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
@@ -1419,7 +1539,7 @@ def johnson2021_mass_function_slope(input_doc, parameters, is_grid):
     """Preserve the Johnson2021 unresolved-accretion mass-function slope across its default change.
     `massFunctionSlopeLogarithmic` was a compiled constant (-1.8) and is now an input parameter whose
     default changed to -1.9 (unifying it with Vitvitska2002 and matching Benson 2019). A file predating
-    this change implicitly used -1.8, so pin that value to preserve its behaviour."""
+    this change implicitly used -1.8, so pin that value to preserve its behavior."""
     nodes = parameters.xpath(".//darkMatterProfileScaleRadius[@value='johnson2021']")
     if len(nodes) <= 0:
         return
@@ -1437,9 +1557,9 @@ def johnson2021_mass_function_slope(input_doc, parameters, is_grid):
 
 def vitvitska_subresolution_method_enum(input_doc, parameters, is_grid):
     """Convert the boolean `useOriginalSubresolutionMethod` to the `subresolutionAngularMomentumMethod`
-    enumeration, preserving the original behaviour. The default variance method changed to the new,
+    enumeration, preserving the original behavior. The default variance method changed to the new,
     physically-convergent `resolutionScaled` method, so a file predating this change must be pinned to
-    its former behaviour: the old boolean's `true`/`false` map to `original`/`massScaled` respectively.
+    its former behavior: the old boolean's `true`/`false` map to `original`/`massScaled` respectively.
     (The earlier `vitvitska_subresolution_method` migration ensures the boolean is present, so any file
     reaching here that used the model has it set explicitly.)
 
@@ -1517,7 +1637,188 @@ def splashback_radius_accretion_flow(input_doc, parameters, is_grid):
         node.append(splashback_node)
 
 
+def prompt_cusp_require_collapse_before_halo(input_doc, parameters, is_grid):
+    """Special handling for the introduction of the `requireCollapseBeforeHalo` parameter.
+
+    The `darkMatterProfilePromptCusps` node operator previously assigned a prompt cusp to every
+    halo, accepting collapse epochs which postdate the halo itself and, where no collapse epoch
+    existed at all, taking the collapse to occur at the limiting time of the search. It now follows
+    the reference implementation of Delos & White (2025) instead: since prompt cusp formation is,
+    by definition, the formation event of a halo, halos failing that condition can not have formed,
+    and are labeled so that they may be pruned from the merger tree.
+
+    This changes the physics of existing models, so we pin the original behavior here. Users who
+    want the new (more realistic) behavior should set `requireCollapseBeforeHalo` to true and add a
+    merger tree operator which prunes the labeled halos - see the documentation for the
+    `nodeOperatorDarkMatterProfilePromptCusps` class.
+    """
+    for node in parameters.xpath(".//nodeOperator[@value='darkMatterProfilePromptCusps']"):
+        # Do not override a choice which has already been made explicitly.
+        if len(node.xpath("./requireCollapseBeforeHalo[@value]")) > 0:
+            continue
+        print("   insert special 'requireCollapseBeforeHalo' into 'darkMatterProfilePromptCusps'")
+        require_node = etree.Element("requireCollapseBeforeHalo")
+        require_node.set("value", "false")
+        if is_grid:
+            require_node.set("iterable", "no")
+        # Append as the final child, preserving the indentation of the existing children.
+        children = list(node)
+        if children:
+            require_node.tail = children[-1].tail
+            children[-1].tail = node.text
+        else:
+            # The indentation of this node is carried by the whitespace which precedes it.
+            previous = node.getprevious()
+            indentation = (previous.tail if previous is not None else node.getparent().text) or "\n  "
+            require_node.tail = indentation
+            node.text = indentation + "  "
+        node.append(require_node)
+
+
+def dust_attenuation_framework(input_doc, parameters, is_grid):
+    """Special handling for the retirement of `stellarSpectraDustAttenuation` and `lmnstyStllrCF2000`.
+
+    The `lmnstyStllrCF2000` property extractor applied Charlot & Fall (2000) dust to the summed stellar luminosity of
+    a galaxy. Its replacement extracts each component's luminosity unattenuated, applies dust by wrapping them, and
+    scalarizes the sum:
+
+        scalarizer -> dustAttenuation(outputSumOnly) -> luminosityStellar(disk), luminosityStellar(spheroid)
+
+    Note the replacement evaluates the extinction curve at the rest-frame wavelength, where the old extractor used
+    the observed one. For a rest-frame filter these coincide and results are unchanged; for an observed-frame filter
+    at band redshift z the optical depth changes by a factor (1+z)^exponent. The old behavior was a bug -- dust acts
+    in the rest frame of the emitting galaxy -- so it is not reproduced here.
+    """
+    for node in parameters.xpath(".//nodePropertyExtractor[@value='lmnstyStllrCF2000']"):
+        print("   translate special './/nodePropertyExtractor[@value=\'lmnstyStllrCF2000\']'")
+        # Read the old parameters, falling back to the defaults of the retired class.
+        def setting(name, default):
+            child = node.find(name)
+            return child.get("value") if child is not None else default
+
+        filter_name    = setting("filterName"                   , "SDSS_r")
+        filter_type    = setting("filterType"                   , "rest"  )
+        coefficient_ism    = setting("depthOpticalISMCoefficient"   , "1.0"   )
+        coefficient_clouds = setting("depthOpticalCloudsCoefficient", "1.0"   )
+        exponent           = setting("wavelengthExponent"           , "0.7"   )
+        redshift_band      = node.find("redshiftBand")
+
+        scalarizer = etree.Element("nodePropertyExtractor")
+        scalarizer.set("value", "scalarizer")
+        etree.SubElement(scalarizer, "element", value="1")
+        attenuated = etree.SubElement(scalarizer, "nodePropertyExtractor", value="dustAttenuation")
+        etree.SubElement(attenuated, "outputSumOnly", value="true"             )
+        etree.SubElement(attenuated, "sumName"      , value="luminosityStellar")
+        dust = etree.SubElement(attenuated, "dustAttenuation", value="charlotFall2000")
+        etree.SubElement(dust, "coefficientBirthCloud", value=coefficient_clouds)
+        etree.SubElement(dust, "coefficientISM"       , value=coefficient_ism   )
+        etree.SubElement(dust, "timescale"            , value="1.0e-2"          )
+        etree.SubElement(dust, "exponent"             , value=exponent          )
+        # Each component carries its own column of dust, so each is extracted and attenuated separately. Both
+        # postprocessing chains are needed so that the light can be split by stellar population age, which the birth
+        # cloud component requires.
+        for component in ("disk", "spheroid"):
+            luminosity = etree.SubElement(attenuated, "nodePropertyExtractor", value="luminosityStellar")
+            etree.SubElement(luminosity, "filterName"       , value=filter_name    )
+            etree.SubElement(luminosity, "filterType"       , value=filter_type    )
+            etree.SubElement(luminosity, "component"        , value=component      )
+            etree.SubElement(luminosity, "postprocessChains", value="default recent")
+            if redshift_band is not None:
+                etree.SubElement(luminosity, "redshiftBand", value=redshift_band.get("value"))
+        # Insert the replacement and remove the original. The new subtree is indented explicitly: it is several
+        # levels deep, and inherits no useful whitespace from the single element it replaces.
+        parent = node.getparent()
+        etree.indent(scalarizer, space="  ")
+        scalarizer.tail = node.tail
+        insert_after(parent, scalarizer, node)
+        parent.remove(node)
+
+
+
+def extended_schmidt_normalization_per_gigayear(input_doc, parameters, is_grid):
+    """Rescale the extended Schmidt normalization from per year to per Gyr.
+
+    The parameter was given in M☉ yr⁻¹ pc⁻², while the equivalent parameter of
+    `kennicuttSchmidt` was given in M☉ Gyr⁻¹ pc⁻². Both are now per Gyr, so an
+    existing value must be multiplied by the number of years in a Gyr.
+    """
+    for node in parameters.xpath(
+        ".//starFormationRateSurfaceDensityDisks[@value='extendedSchmidt']/normalization[@value]"
+    ):
+        value = node.get("value")
+        try:
+            rescaled = float(value) * 1.0e9
+        except ValueError:
+            # A value which is not a plain number - an expression, say - can not be rescaled here.
+            print(
+                f"   WARNING: can not rescale 'starFormationRateSurfaceDensityDisks[extendedSchmidt]/normalization'"
+                f" value '{value}' from per year to per Gyr - rescale it by 1e9 by hand"
+            )
+            continue
+        print(
+            "   translate special './/starFormationRateSurfaceDensityDisks[@value=\'extendedSchmidt\']"
+            f"/normalization[@value]': {value} --> {rescaled:.6e} (per year --> per Gyr)"
+        )
+        node.set("value", f"{rescaled:.6e}")
+
+
+def dust_properties(input_doc, parameters, is_grid):
+    """Special handling for the introduction of the `dustProperties` class.
+
+    Dust attenuation classes now take their dust-to-metals ratio and V-band opacity from a `dustProperties` object, so
+    that the dust which attenuates a galaxy's light and the dust which re-emits it are the same. Two parameters change:
+
+    * `birthCloud` replaces its dimensionless `coefficient` (the V-band optical depth of a birth cloud of local
+      interstellar medium metallicity) with `densitySurfaceGas`, the column of gas through the cloud in M☉/pc². With the
+      default dust properties unit optical depth corresponds to `COLUMN_UNIT_OPTICAL_DEPTH`, so the coefficient is
+      multiplied by that. (`charlotFall2000` keeps its dimensionless `coefficientBirthCloud` and is unaffected.)
+    * `atlasCompendium` loses its `dustToMetalsRatio`, which moves into a `dustProperties` object of its own. That object
+      must also carry the opacity of the tabulation, which depends on the file and so can not be filled in here: the
+      model reports the required value when it is run.
+    """
+    for node in parameters.xpath(".//dustAttenuation[@value='birthCloud']/coefficient"):
+        print("   translate special './/dustAttenuation[@value=\'birthCloud\']/coefficient'")
+        value = node.get("value")
+        try:
+            column = float(value) * COLUMN_UNIT_OPTICAL_DEPTH
+        except (TypeError, ValueError):
+            sys.exit(f'parametersMigrate.py: can not convert the non-numeric birthCloud coefficient "{value}" to a densitySurfaceGas - convert it by hand, multiplying by {COLUMN_UNIT_OPTICAL_DEPTH:.6e}')
+        node.tag = "densitySurfaceGas"
+        node.set("value", f"{column:.6e}")
+    for node in parameters.xpath(".//dustAttenuation[@value='atlasCompendium']/dustToMetalsRatio"):
+        print("   translate special './/dustAttenuation[@value=\'atlasCompendium\']/dustToMetalsRatio'")
+        print("      NOTE: the new dustProperties object also needs `opacityExtinctionV` set to the opacity of the tabulation;")
+        print("            run the model once to have it reported")
+        attenuator = node.getparent()
+        properties = etree.Element("dustProperties")
+        properties.set("value", "simple")
+        ratio = etree.SubElement(properties, "dustToMetalsRatio")
+        ratio.set("value", node.get("value"))
+        # Indent the new element to match the one it replaces.
+        previous    = node.getprevious()
+        whitespace  = (previous.tail if previous is not None else attenuator.text) or "\n"
+        indentation = whitespace.split("\n")[-1]
+        properties.text = "\n" + indentation + "  "
+        ratio     .tail = "\n" + indentation
+        properties.tail = node.tail
+        insert_after(attenuator, properties, node)
+        attenuator.remove(node)
+
+
+# Surface density of gas, in M☉/pc², for which gas of the metallicity of the local interstellar medium containing Milky
+# Way dust has unit V-band optical depth. This matches `densitySurfaceGasDepthOpticalVUnitMilkyWay` in
+# `source/dust/properties/_class.F90`: the Savage & Mathis (1979) relation between column density and reddening
+# (A_V/E(B-V)=3.1, N_H/E(B-V)=5.8e21 atoms/cm²/mag), a solar hydrogen mass fraction of 0.707, and a local interstellar
+# medium metallicity of 0.02.
+_DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS = 3.1 / 5.8e21 * 0.707 / 1.660538782e-24 / 0.02 / (2.5 / math.log(10.0))  # cm²/g
+COLUMN_UNIT_OPTICAL_DEPTH = 1.0 / _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS / 0.02 * 3.08567758135e18**2 / 1.98892e33
+
+
 SPECIAL_FUNCTIONS = {
+    "extended_schmidt_normalization_per_gigayear": extended_schmidt_normalization_per_gigayear,
+    "dust_properties": dust_properties,
+    "dust_attenuation_framework": dust_attenuation_framework,
+    "prompt_cusp_require_collapse_before_halo": prompt_cusp_require_collapse_before_halo,
     "radiation_field_intergalactic_background_cmb": radiation_field_intergalactic_background_cmb,
     "black_hole_seed_mass": black_hole_seed_mass,
     "black_hole_physics": black_hole_physics,
@@ -1540,6 +1841,7 @@ SPECIAL_FUNCTIONS = {
     "splashback_radius_accretion_flow": splashback_radius_accretion_flow,
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
+    "dynamical_friction_gaseous": dynamical_friction_gaseous,
 }
 
 
@@ -1598,19 +1900,13 @@ def main():
         tmp_output = f.name
         f.write(serialized)
 
-    # If requested, ignore whitespace changes.
+    # If requested, ignore whitespace (and other formatting) changes, keeping the original formatting of all unchanged
+    # content.
     if options.ignoreWhiteSpaceChanges == "yes":
-        # Make a patch from the old to the new file, but ignoring changes in whitespace.
-        with tempfile.NamedTemporaryFile(mode='w') as patch_file:
-            subprocess.run(
-                ["diff", "-w", "-u", tmp_input, tmp_output],
-                stdout=patch_file,
-            )
-            # Apply the patch to the old file.
-            subprocess.run(
-                ["patch", tmp_input, patch_file.name, f"--output={tmp_output}"],
-                stdout=subprocess.DEVNULL,
-            )
+        with open(tmp_input, "r") as f:
+            original = f.read()
+        with open(tmp_output, "w") as f:
+            f.write(merge_unchanged_formatting(original, serialized))
 
     # Undo any split line reformatting that we previously applied.
     restore_multiline_attributes(tmp_output, options.outputFile)

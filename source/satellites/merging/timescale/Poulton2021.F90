@@ -71,9 +71,7 @@ contains
     !!{RST
     Constructor for the :cite:t:`poulton_extracting_2021` merging timescale class which builds the object from a parameter set.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : defaultBasicComponent
-    use :: Input_Parameters, only : inputParameter        , inputParameters
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesPoulton2021)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
@@ -82,8 +80,8 @@ contains
     double precision                                                       :: A                    , c        , &
          &                                                                    bInterior            , bExterior
 
-    if (.not.defaultBasicComponent%massIsGettable()) call Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
     !![
+    <componentPropertyAssert class="basic" properties="mass" require="gettable"/>
     <inputParameter docformat="rst">
       <name>A</name>
       <defaultValue>5.5d0</defaultValue>

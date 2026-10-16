@@ -24,14 +24,13 @@
    </description>
   </task>
   !!]
-  type, extends(taskClass) :: taskBuildToolFSPS
+  type, extends(taskBuildTool) :: taskBuildToolFSPS
      !!{RST
      Implementation of a task which builds the FSPS tool.
      !!}
      private
    contains
-     procedure :: perform            => buildToolFSPSPerform
-     procedure :: requiresOutputFile => buildToolFSPSRequiresOutputFile
+     procedure :: perform => buildToolFSPSPerform
   end type taskBuildToolFSPS
 
   interface taskBuildToolFSPS
@@ -59,42 +58,15 @@ contains
 
   subroutine buildToolFSPSPerform(self,status)
     !!{RST
-    Builds the tabulation.
+    Builds the tool.
     !!}
-    use :: Display         , only : displayIndent            , displayMessage, displayUnindent
-    use :: Error, only : errorStatusSuccess
-    use :: Interfaces_FSPS , only : Interface_FSPS_Initialize
+    use :: Interfaces_FSPS           , only : Interface_FSPS_Initialize
+    use :: Tasks_Build_Tool_Utilities, only : Task_Build_Tool
     implicit none
     class  (taskBuildToolFSPS), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
-    type   (varying_string   )                          :: fspsPath, fspsVersion
     !$GLC attributes unused :: self
-#include "os.inc"
 
-    call displayIndent  ('Begin task: FSPS tool build')
-    call Interface_FSPS_Initialize(                    &
-         &                                fspsPath   , &
-         &                                fspsVersion, &
-#ifdef __APPLE__
-         &                         static=.false.      &
-#else
-         &                         static=.true.       &
-#endif
-         &                        )
-    call displayMessage('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
-    if (present(status)) status=errorStatusSuccess
-    call displayUnindent('Done task: FSPS tool build')
+    call Task_Build_Tool('FSPS',Interface_FSPS_Initialize,status)
     return
   end subroutine buildToolFSPSPerform
-
-  logical function buildToolFSPSRequiresOutputFile(self)
-    !!{RST
-    Specifies that this task does not requires the main output file.
-    !!}
-    implicit none
-    class(taskBuildToolFSPS), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    buildToolFSPSRequiresOutputFile=.false.
-    return
-  end function buildToolFSPSRequiresOutputFile

@@ -12,21 +12,21 @@ subprocess.run("cd ..; mkdir -p testSuite/outputs; ./Galacticus.exe testSuite/pa
 
 # Check for outputs.
 if not os.path.exists("outputs/test-output.hdf5"):
-    print("test-output.py: FAILED to run Galacticus model")
+    print("FAILED: failed to run Galacticus model")
     sys.exit(0)
 
 with h5py.File("outputs/test-output.hdf5", "r") as f:
     if "Outputs" not in f:
-        print("test-output.py FAIL - no Outputs group exists")
+        print("FAILED: no Outputs group exists")
         sys.exit(0)
     if "Output1" not in f["Outputs"]:
-        print("test-output.py FAIL - no Output1 group exists")
+        print("FAILED: no Output1 group exists")
         sys.exit(0)
     if "nodeData" not in f["Outputs/Output1"]:
-        print("test-output.py FAIL - no nodeData group exists")
+        print("FAILED: no nodeData group exists")
         sys.exit(0)
     if "nodeIndex" not in f["Outputs/Output1/nodeData"]:
-        print("test-output.py FAIL - no nodeIndex dataset exists")
+        print("FAILED: no nodeIndex dataset exists")
         sys.exit(0)
 
-print("test-output.py: SUCCESS")
+print("SUCCESS: output file structure")

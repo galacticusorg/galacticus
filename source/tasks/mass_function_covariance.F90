@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The fix for issue #1321 was diagnosed and drafted with
-!+    assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   use :: Conditional_Mass_Functions, only : conditionalMassFunction, conditionalMassFunctionClass
   use :: Cosmology_Functions       , only : cosmologyFunctions     , cosmologyFunctionsClass
@@ -240,12 +239,12 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"      name="cosmologyFunctions_"      source="parameters"/>
-    <objectBuilder class="surveyGeometry"          name="surveyGeometry_"          source="parameters"/>
-    <objectBuilder class="powerSpectrumNonlinear"  name="powerSpectrumNonlinear_"  source="parameters"/>
-    <objectBuilder class="darkMatterHaloBias"      name="darkMatterHaloBias_"      source="parameters"/>
-    <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
-    <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"      name="cosmologyFunctions_"      source="parameters"                              />
+    <objectBuilder class="surveyGeometry"          name="surveyGeometry_"          source="parameters"                              />
+    <objectBuilder class="powerSpectrumNonlinear"  name="powerSpectrumNonlinear_"  source="parameters"                              />
+    <objectBuilder class="darkMatterHaloBias"      name="darkMatterHaloBias_"      source="parameters"                              />
+    <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"                              />
+    <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters" withholds="differential:node"/>
     !!]
     self=taskMassFunctionCovariance(massFunctionFileName,surveyredshiftMinimum, surveyRedshiftMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum,countMassBins,sizeGridFFT,includePoisson, includeHalo, includeLSS, cosmologyFunctions_,surveyGeometry_,powerSpectrumNonlinear_,darkMatterHaloBias_,conditionalMassFunction_,haloMassFunction_)
     !![

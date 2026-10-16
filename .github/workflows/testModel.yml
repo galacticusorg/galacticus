@@ -89,9 +89,15 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ github.workspace }}/datasets/dynamic
-          key: ${{ hashFiles(format('{0}',inputs.file)) }}-${{ github.run_id }}
+          # The key namespaces the cache by the test being run, so that each caching job keeps its own cache. The test
+          # file is hashed both as given (callers passing a path relative to the repository root, e.g. an XML file) and
+          # anywhere in the tree (callers passing just a file name, e.g. a script in testSuite/), so that a change to
+          # the test starts a new cache. The run ID makes the key unique to this run, so that each run saves the data
+          # it generated; the restore keys then find the most recent cache for this test.
+          key: dynamic-${{ inputs.file }}-${{ hashFiles(inputs.file, format('**/{0}',inputs.file)) }}-${{ github.run_id }}
           restore-keys: |
-            ${{ hashFiles(format('{0}',inputs.file)) }}
+            dynamic-${{ inputs.file }}-${{ hashFiles(inputs.file, format('**/{0}',inputs.file)) }}-
+            dynamic-${{ inputs.file }}-
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -103,7 +109,7 @@ jobs:
         run: |
           echo "OMP_NUM_THREADS=${{ inputs.ompNumThreads }}" >> $GITHUB_ENV
       - name: Download executables
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ inputs.artifact }}
       - name: Install packages
@@ -184,6 +190,18 @@ jobs:
           fi
           ! grep -q -e FAIL -e "ODE integration failed" test.log
       - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
+      - name: "Report skipped tests"
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          cd ${{ inputs.runPath }}
+          # A test that could not meet a prerequisite (too few MPI processes, a non-debugging build, a missing executable)
+          # prints a line beginning "SKIPPED" and exits successfully. Without this step such a test is reported as a pass,
+          # so a misconfigured runner would silently stop testing anything.
+          if grep -q '^SKIPPED' test.log; then
+           echo "# :warning: Test skipped: ${{ inputs.file }} :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           grep '^SKIPPED' test.log >> $GITHUB_STEP_SUMMARY
+          fi
       - name: "Check for unrecognized parameters"
         if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |
@@ -213,7 +231,7 @@ jobs:
           find $GALACTICUS_DATA_PATH/dynamic/ -type d \( -path $GALACTICUS_DATA_PATH/dynamic/fsps-${fspsVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/axionCAMB-${axioncambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/CAMB-${cambVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/RecFast -o -path $GALACTICUS_DATA_PATH/dynamic/class_public-${classVersion} -o -path $GALACTICUS_DATA_PATH/dynamic/mangle-${mangleVersion} \) -prune -o -type f -not -anewer mark.time -print0 | xargs --no-run-if-empty -0 rm
       - name: Upload result
         if: inputs.uploadName != '' && inputs.uploadFile != ''
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: ${{ inputs.uploadName }}
           path: ${{ inputs.uploadFile }}

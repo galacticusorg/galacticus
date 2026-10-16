@@ -57,6 +57,7 @@ module Satellite_Merging_Mass_Movements
    Enumeration of possible destinations for stellar and gaseous mass components following a galaxy merger, including unmoved (left in place), dominant component, disk, and spheroid.
    </description>
    <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
    <entry label="unmoved" />
    <entry label="dominant"/>
    <entry label="disk"    />

@@ -210,7 +210,7 @@ def state_store_linked_list(class_record, non_abstract_class,
                             linked_list_variables):
     """Generate state-store / state-restore Fortran code for the linked-list
     block.  Returns `(input_code, output_code, module)`; the no-op path is
-    normalised to the same 3-tuple shape.
+    normalized to the same 3-tuple shape.
     """
     if 'linkedList' not in class_record:
         return '', '', None

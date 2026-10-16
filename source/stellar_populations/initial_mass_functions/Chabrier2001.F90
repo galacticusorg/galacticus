@@ -93,6 +93,7 @@ contains
       The lower mass limit for the :cite:t:`chabrier_galactic_2001` :term:`IMF`.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>massTransition</name>
@@ -109,6 +110,7 @@ contains
       The width of the lognormal part of the :cite:t:`chabrier_galactic_2001` :term:`IMF`.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>exponent</name>
@@ -138,6 +140,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`initialMassFunctionChabrier2001` initial mass function.
     !!}
+    use :: Error                   , only : Error_Report
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -150,6 +153,7 @@ contains
     <constructorAssign variables="massLower,massTransition,massUpper,exponent,massCharacteristic,sigma"/>
     !!]
 
+    if (massUpper <= massLower) call Error_Report('[massUpper] > [massLower] is required'//{introspection:location})
     self%normalizationLogNormal  =+sqrt(Pi/2.0d0)                                     &
          &                        *self%sigma                                         &
          &                        *self%massCharacteristic                            &
@@ -203,15 +207,15 @@ contains
     normalization                =+self%normalizationLogNormal   &
          &                        +self%normalizationExponential
     self%normalizationLogNormal  =1.0d0/normalization
-    self%normalizationExponential=+exp(                                    &
-         &                              -0.50d0                            &
-         &                              *log10(                            &
-         &                                     +self%massTransition        &
-         &                                     /self%massCharacteristic    &
-         &                                    )                        **2 &
-         &                              /self%sigma                    **2 &
-         &                             )                                   &
-         &                         /self%massTransition                    &
+    self%normalizationExponential=+exp(                                        &
+         &                              -0.50d0                                &
+         &                              *log10(                                &
+         &                                     +self%massTransition            &
+         &                                     /self%massCharacteristic        &
+         &                                    )                        **2     &
+         &                              /self%sigma                    **2     &
+         &                             )                                       &
+         &                         /self%massTransition**(1.0d0+self%exponent) &
          &                         /normalization
     return
   end function chabrier2001ConstructorInternal

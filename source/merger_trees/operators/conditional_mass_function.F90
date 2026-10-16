@@ -62,7 +62,7 @@
    ``fractionTimeFormationRate``
       The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
 
-   ``nameGroupOutput``
+   ``outputGroupName``
       The name of the :term:`HDF5` group to which mass functions will be written.
 
    If the operator finds the named :term:`HDF5` group already in existence, it will accumulate its mass functions to those already written to the group, weighting by the inverse of the variance in each bin. The structure of the :term:`HDF5` group is as follows:
@@ -185,7 +185,7 @@
           &                                                                            massRatioMaximum
      logical                                                                        :: alwaysIsolatedHalosOnly                       , primaryProgenitorStatisticsValid     , &
           &                                                                            extendedStatistics                            , computeCovariances
-     type            (varying_string         )                                      :: nameGroupOutput
+     type            (varying_string         )                                      :: outputGroupName
    contains
      !![
      <methods docformat="rst">
@@ -227,7 +227,7 @@ contains
          &                                                                            fractionTimeFormationRate
     logical                                                                        :: alwaysIsolatedHalosOnly  , extendedStatistics   , &
          &                                                                            computeCovariances
-    type            (varying_string                 )                              :: nameGroupOutput
+    type            (varying_string                 )                              :: outputGroupName
 
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -351,7 +351,7 @@ contains
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>nameGroupOutput</name>
+      <name>outputGroupName</name>
       <source>parameters</source>
       <defaultValue>var_str('conditionalMassFunction')</defaultValue>
       <description>
@@ -375,7 +375,7 @@ contains
          &                               alwaysIsolatedHalosOnly  , &
          &                               extendedStatistics       , &
          &                               computeCovariances       , &
-         &                               nameGroupOutput          , &
+         &                               outputGroupName          , &
          &                               cosmologyFunctions_      , &
          &                               haloMassError_             &
          &                              )
@@ -387,7 +387,7 @@ contains
     return
   end function conditionalMFConstructorParameters
 
-  function conditionalMFConstructorInternal(countMassParent,massParentMinimum,massParentMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,redshiftsParent,redshiftsProgenitor,depthProgenitorPrimary,fractionTimeFormationRate,depthHierarchySubhalo,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,nameGroupOutput,cosmologyFunctions_,haloMassError_) result(self)
+  function conditionalMFConstructorInternal(countMassParent,massParentMinimum,massParentMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,redshiftsParent,redshiftsProgenitor,depthProgenitorPrimary,fractionTimeFormationRate,depthHierarchySubhalo,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,cosmologyFunctions_,haloMassError_) result(self)
     !!{RST
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
@@ -403,12 +403,12 @@ contains
          &                                                                            fractionTimeFormationRate
     logical                                          , intent(in   )               :: alwaysIsolatedHalosOnly         , extendedStatistics   , &
          &                                                                            computeCovariances
-    type            (varying_string                 ), intent(in   )               :: nameGroupOutput
+    type            (varying_string                 ), intent(in   )               :: outputGroupName
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass        ), intent(in   ), target       :: haloMassError_
     integer                                                                        :: i
     !![
-    <constructorAssign variables="massParentMinimum, massParentMaximum, massRatioMinimum, massRatioMaximum, countMassParent, massRatioCount, depthProgenitorPrimary, depthHierarchySubhalo, fractionTimeFormationRate, alwaysIsolatedHalosOnly, extendedStatistics, computeCovariances, nameGroupOutput, *haloMassError_, *cosmologyFunctions_"/>
+    <constructorAssign variables="massParentMinimum, massParentMaximum, massRatioMinimum, massRatioMaximum, countMassParent, massRatioCount, depthProgenitorPrimary, depthHierarchySubhalo, fractionTimeFormationRate, alwaysIsolatedHalosOnly, extendedStatistics, computeCovariances, outputGroupName, *haloMassError_, *cosmologyFunctions_"/>
     !!]
 
     ! Store array sizes.
@@ -1519,9 +1519,9 @@ contains
     ! Output the data.
     !$ call hdf5Access%set()
     ! Check if our output group already exists.
-    if (outputFile%hasGroup(char(self%nameGroupOutput))) then
+    if (outputFile%hasGroup(char(self%outputGroupName))) then
        ! Our group does exist. Read existing mass functions, add them to our own, then write back to file.
-       conditionalMassFunctionGroup=outputFile%openGroup(char(self%nameGroupOutput),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
+       conditionalMassFunctionGroup=outputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        allocate(normalization               ,mold=self%normalization               )
        allocate(normalizationError          ,mold=self%normalizationError          )
        allocate(conditionalMassFunctionError,mold=self%conditionalMassFunctionError)
@@ -1599,7 +1599,7 @@ contains
        end if
     else
        ! Our group does not already exist. Simply write the data.
-       conditionalMassFunctionGroup=outputFile%openGroup(char(self%nameGroupOutput),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
+       conditionalMassFunctionGroup=outputFile%openGroup(char(self%outputGroupName),'Conditional mass functions of merger trees.',objectsOverwritable=.true.,overwriteOverride=.true.)
        call conditionalMassFunctionGroup%writeDataset  (self%massParents                       ,"massParent"                        ,"Mass of parent node [Msolar]"              ,datasetReturned=massDataset)
        call massDataset                 %writeAttribute(unitType(massSolar,"Solar masses","solMass"),"units")
        call conditionalMassFunctionGroup%writeDataset  (self%massRatios                        ,"massRatio"                         ,"Mass of ratio node [Msolar]"               ,datasetReturned=massDataset)

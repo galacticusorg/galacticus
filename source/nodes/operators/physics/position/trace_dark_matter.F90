@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that sets the positions of subhalos to trace the dark matter component of their host halo.
   !!}
@@ -49,6 +51,7 @@
        <method method="assignPosition" description="Assign a position to a node such that it traces the dark matter of its host."/>
      </methods>
      !!]
+     final     ::                   positionTraceDarkMatterDestructor
      procedure :: nodeInitialize => positionTraceDarkMatterNodeInitialize
      procedure :: nodesMerge     => positionTraceDarkMatterNodesMerge
      procedure :: autoHook       => positionTraceDarkMatterAutoHook
@@ -149,6 +152,8 @@ contains
     Update the position of a subhalo when it changes host.
     !!}
     use :: Error, only : Error_Report
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class(*       ), intent(inout)         :: self
     type (treeNode), intent(inout), target :: node
@@ -156,8 +161,10 @@ contains
     select type (self)
     class is (nodeOperatorPositionTraceDarkMatter)
        call self%assignPosition(node,checkSatelliteStatus=.false.)
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorPositionTraceDarkMatter] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorPositionTraceDarkMatter] class'//{introspection:location})
     end select
     return
   end subroutine positionTraceDarkMatterSatelliteHostChange

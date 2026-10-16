@@ -6,6 +6,7 @@ in-repo `Galacticus.Parameters` tree via a stub install whose `exec_path` is the
 repository root.
 """
 
+import contextlib
 import json
 from pathlib import Path
 
@@ -155,6 +156,21 @@ def _fake_generator(exec_path):
     return gen
 
 
+def _provision_catalog(install, *, force, log):
+    """Plan and run the catalog component against a release publishing none.
+
+    The empty checksum map stands in for a release whose asset list does not
+    include a catalog, which is what sends the planner down the generate path --
+    and keeps these tests free of any network access.
+    """
+    with contextlib.ExitStack() as stack:
+        context = download._Context(install=install, checksums={}, force=force,
+                                    log=log, fetcher=download._Fetcher(log=log),
+                                    stack=stack)
+        plan = download._plan_catalog(context)
+        return False if plan is None else plan.unpack()
+
+
 def test_provision_catalog_generates_when_missing(tmp_path, monkeypatch):
     _fake_generator(tmp_path)
     captured = {}
@@ -164,8 +180,8 @@ def test_provision_catalog_generates_when_missing(tmp_path, monkeypatch):
         Path(cmd[3]).write_text("{}")        # the generator writes the catalog
     monkeypatch.setattr(download.subprocess, "run", fake_run)
 
-    assert download._provision_catalog(_install_at(tmp_path), force=False,
-                                       log=lambda *a: None) is True
+    assert _provision_catalog(_install_at(tmp_path), force=False,
+                              log=lambda *a: None) is True
     assert (tmp_path / "parameters.catalog.json").is_file()
     assert captured["cmd"][2:] == [str(tmp_path), str(tmp_path / "parameters.catalog.json")]
 
@@ -175,19 +191,19 @@ def test_provision_catalog_skips_when_present(tmp_path, monkeypatch):
     (tmp_path / "parameters.catalog.json").write_text("{}")
     ran = []
     monkeypatch.setattr(download.subprocess, "run", lambda *a, **k: ran.append(a))
-    assert download._provision_catalog(_install_at(tmp_path), force=False,
-                                       log=lambda *a: None) is False
+    assert _provision_catalog(_install_at(tmp_path), force=False,
+                              log=lambda *a: None) is False
     assert ran == []                         # not regenerated
     # ... but force=True regenerates.
     monkeypatch.setattr(download.subprocess, "run",
                         lambda cmd, **k: Path(cmd[3]).write_text("{}"))
-    assert download._provision_catalog(_install_at(tmp_path), force=True,
-                                       log=lambda *a: None) is True
+    assert _provision_catalog(_install_at(tmp_path), force=True,
+                              log=lambda *a: None) is True
 
 
 def test_provision_catalog_without_source_is_noop(tmp_path):
-    assert download._provision_catalog(_install_at(tmp_path), force=False,
-                                       log=lambda *a: None) is False
+    assert _provision_catalog(_install_at(tmp_path), force=False,
+                              log=lambda *a: None) is False
 
 
 def test_find_catalog_locations(tmp_path, monkeypatch):
@@ -217,6 +233,6 @@ def test_provision_catalog_failure_is_best_effort(tmp_path, monkeypatch):
         raise download.subprocess.CalledProcessError(1, "parameterCatalog.py")
     monkeypatch.setattr(download.subprocess, "run", boom)
     messages = []
-    assert download._provision_catalog(_install_at(tmp_path), force=False,
-                                       log=messages.append) is False
+    assert _provision_catalog(_install_at(tmp_path), force=False,
+                              log=messages.append) is False
     assert any("could not generate" in m for m in messages)

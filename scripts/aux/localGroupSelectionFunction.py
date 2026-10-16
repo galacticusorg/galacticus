@@ -60,7 +60,7 @@ import yaml
 
 # Bits of the DELVE census mask which indicate that a region is unusable. Taken from
 # `data/read_config.yaml` of the DELVE census data release: regions near bright stars, near
-# catalogued objects, of high Galactic extinction, of high foreground stellar density, or with no
+# cataloged objects, of high Galactic extinction, of high foreground stellar density, or with no
 # survey coverage. Note that the bits identifying the survey footprints are *not* included here --
 # each survey's mask already sets the "no coverage" bit outside of that survey's own footprint.
 maskBitsBad = ("ASSOC", "STAR", "EBV", "DENSITY", "FOOT")

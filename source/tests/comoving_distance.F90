@@ -21,7 +21,7 @@ program Tests_Comoving_Distance
   !!{RST
   Tests comoving distance calculations for various universes. Distances calculated using Python `implementation <http://www.astro.ucla.edu/~wright/CC.python>`_ of Ned Wright's cosmology calculator.
   !!}
-  use :: Cosmology_Functions             , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterLambda
+  use :: Cosmology_Functions             , only : cosmologyFunctions       , cosmologyFunctionsClass, cosmologyFunctionsMatterLambda, cosmologyFunctionsStaticUniverse
   use :: Cosmology_Functions_Options     , only : distanceTypeComoving
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple, hubbleUnitsTime
   use :: Display                         , only : displayVerbositySet      , verbosityLevelStandard
@@ -29,20 +29,21 @@ program Tests_Comoving_Distance
   use :: Numerical_Constants_Physical    , only : speedLight
   use :: Numerical_Constants_Astronomical, only : megaParsec               , gigaYear
   implicit none
-  double precision                                , dimension(8), parameter :: redshift                               =[0.1000000d0, 1.0000000d0, 3.0000000d0, 9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
-  double precision                                , dimension(8), target    :: distanceEdS                            =[2.7903130d0,17.5614328d0,29.9792345d0,40.9979133d0,49.1894753d0, 53.9916697d0, 56.4991337d0,  58.0449076d0]
-  double precision                                , dimension(8), target    :: distanceOpen                           =[2.8365460d0,19.5660920d0,36.2487160d0,53.3136690d0,67.2862090d0, 75.8567320d0, 80.4014770d0,  83.2171590d0]
-  double precision                                , dimension(8), target    :: distanceCosmologicalConstant           =[2.9291813d0,23.1267935d0,44.4897529d0,64.4722404d0,79.4221370d0, 88.1893579d0, 92.7669523d0,  95.5884181d0]
-  double precision                                , dimension(:), pointer   :: distance_
-  class           (cosmologyFunctionsClass       )              , pointer   :: cosmologyFunctions_
-  type            (cosmologyParametersSimple     )                          :: cosmologyParametersCosmologicalConstant                                                                                                             , cosmologyParametersOpen, &
-       &                                                                       cosmologyParametersEdS
-  type            (cosmologyFunctionsMatterLambda)              , target    :: cosmologyFunctionsCosmologicalConstant                                                                                                              , cosmologyFunctionsOpen , &
-       &                                                                       cosmologyFunctionsEdS
-  character       (len=1024                      )                          :: message
-  integer                                                                   :: i                                                                                                                                                   , iExpansion
-  double precision                                                          :: distance                                                                                                                                            , distanceModulus        , &
-       &                                                                       time                                                                                                                                                , timeLookup
+  double precision                                  , dimension(8), parameter :: redshift                               =[0.1000000d0, 1.0000000d0, 3.0000000d0, 9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
+  double precision                                  , dimension(8), target    :: distanceEdS                            =[2.7903130d0,17.5614328d0,29.9792345d0,40.9979133d0,49.1894753d0, 53.9916697d0, 56.4991337d0,  58.0449076d0]
+  double precision                                  , dimension(8), target    :: distanceOpen                           =[2.8365460d0,19.5660920d0,36.2487160d0,53.3136690d0,67.2862090d0, 75.8567320d0, 80.4014770d0,  83.2171590d0]
+  double precision                                  , dimension(8), target    :: distanceCosmologicalConstant           =[2.9291813d0,23.1267935d0,44.4897529d0,64.4722404d0,79.4221370d0, 88.1893579d0, 92.7669523d0,  95.5884181d0]
+  double precision                                  , dimension(:), pointer   :: distance_
+  class           (cosmologyFunctionsClass         )              , pointer   :: cosmologyFunctions_
+  type            (cosmologyParametersSimple       )                          :: cosmologyParametersCosmologicalConstant                                                                                                             , cosmologyParametersOpen, &
+       &                                                                         cosmologyParametersEdS
+  type            (cosmologyFunctionsMatterLambda  )              , target    :: cosmologyFunctionsCosmologicalConstant                                                                                                              , cosmologyFunctionsOpen , &
+       &                                                                         cosmologyFunctionsEdS
+  type            (cosmologyFunctionsStaticUniverse)              , target    :: cosmologyFunctionsStatic
+  character       (len=1024                        )                          :: message
+  integer                                                                     :: i                                                                                                                                                   , iExpansion
+  double precision                                                            :: distance                                                                                                                                            , distanceModulus        , &
+       &                                                                         time                                                                                                                                                , timeLookup
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -157,6 +158,28 @@ program Tests_Comoving_Distance
      end do
      call Unit_Tests_End_Group()
   end do
+  ! In a static universe the comoving, luminosity, and (modulus-derived) distances are all identical. Test that each measure can
+  ! be converted to a comoving distance - in particular that a luminosity distance alone is sufficient.
+  call Unit_Tests_Begin_Group("Static universe")
+  !![
+  <referenceConstruct object="cosmologyFunctionsStatic">
+   <constructor>
+    cosmologyFunctionsStaticUniverse(                                            &amp;
+     &amp;                           cosmologyParameters_=cosmologyParametersEdS &amp;
+     &amp;                          )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  do iExpansion=1,size(distanceEdS)
+     distance       =cosmologyFunctionsStatic%distanceComovingConvert(distanceTypeComoving,distanceLuminosity=distanceEdS    (iExpansion))
+     write (message,'(a,f6.1,a)') "comoving distance [       Dl=",distanceEdS(iExpansion)," Mpc]"
+     call Assert(trim(message),distance,distanceEdS(iExpansion),relTol=1.0d-6)
+     distanceModulus=25.0d0+5.0d0*log10(distanceEdS(iExpansion))
+     distance       =cosmologyFunctionsStatic%distanceComovingConvert(distanceTypeComoving,distanceModulus   =distanceModulus            )
+     write (message,'(a,f6.1,a)') "comoving distance [        D=",distanceModulus        ,"    ]"
+     call Assert(trim(message),distance,distanceEdS(iExpansion),relTol=1.0d-6)
+  end do
+  call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

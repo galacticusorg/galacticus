@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a dark matter density profile which includes the accretion flow surrounding the halo.
   !!}
@@ -199,12 +201,16 @@ contains
        massDistributionVirialized_ => self%darkMatterProfileDMO_%get(node)
        select type (massDistributionVirialized_)
        class is (massDistributionSpherical)
+          ! Extract basic quantities for the halo.
+          basic             => node                                             %basic                 (                    )
+          time              =  basic                                            %time                  (                    )
+          mass              =  basic                                            %mass                  (                    )
           ! Find the radius enclosing 200 times the mean density.
           densityMean       =  self                       %cosmologyFunctions_  %matterDensityEpochal  (         time       )
           radius200Mean     =  massDistributionVirialized_                      %radiusEnclosingDensity(+200.0d0*densityMean)
           ! Compute the transition radius following Diemer & Kravtsov (2014; equation 6).
-          peakHeight      =+self%criticalOverdensity_     %value       (time=time,mass=mass) &
-               &           /self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
+          peakHeight      =+self%criticalOverdensity_     %value       (time=time,mass=mass,node=node) &
+               &           /self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass          )
           radiusTransition=+(             &
                &             +1.90d0      &
                &             -0.18d0      &
@@ -215,10 +221,6 @@ contains
           allocate(massDistributionCorrelationFunction :: massDistributionAccretionFlow_)
           select type(massDistributionAccretionFlow_)
           type is (massDistributionCorrelationFunction)
-             ! Extract basic quantities for the halo.
-             basic => node %basic()
-             time  =  basic%time ()
-             mass  =  basic%mass ()
              ! Build a correlation function.
              radiusMinimum=radius200Mean/factorRadiusMinimum
              radiusMaximum=radius200Mean*factorRadiusMaximum
@@ -273,7 +275,7 @@ contains
 	  &amp;                       massVirial                       =                          mass                                                     , &amp;
 	  &amp;                       radiusVirial                     =self%darkMatterHaloScale_%radiusVirial                        (node=node          ), &amp;
 	  &amp;                       time                             =                          time                                                     , &amp;
-	  &amp;                       overdensityCritical              =self%criticalOverdensity_%value                               (time=time,mass=mass), &amp;
+	  &amp;                       overdensityCritical              =self%criticalOverdensity_%value                     (time=time,mass=mass,node=node), &amp;
 	  &amp;                       rateLinearGrowth                 =self%linearGrowth_       %logarithmicDerivativeExpansionFactor(time=time          ), &amp;
 	  &amp;                       scaleFactorVelocity              =self%scaleFactorVelocity                                                           , &amp;
 	  &amp;                       radius                           =                          radius                                                   , &amp;

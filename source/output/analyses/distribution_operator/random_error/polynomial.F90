@@ -22,13 +22,13 @@
   !!}
 
   !![
-  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPlynml" docformat="rst">
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPolynomial" docformat="rst">
    <description>
    An output analysis distribution operator that convolves a property distribution with a Gaussian random error whose width is a polynomial function of the property value, with configurable polynomial coefficients, zero-point, and minimum/maximum error clamps.
    </description>
   </outputAnalysisDistributionOperator>
   !!]
-  type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorPlynml
+  type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorPolynomial
      !!{RST
      A random error output distribution operator class which has an error magnitude that is a polynomial function of the property value.
      !!}
@@ -38,25 +38,25 @@
      double precision, allocatable, dimension(:) :: coefficient
    contains
      procedure :: rootVariance => randomErrorPolynomialRootVariance
-  end type outputAnalysisDistributionOperatorRandomErrorPlynml
+  end type outputAnalysisDistributionOperatorRandomErrorPolynomial
 
-  interface outputAnalysisDistributionOperatorRandomErrorPlynml
+  interface outputAnalysisDistributionOperatorRandomErrorPolynomial
      !!{RST
-     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class.
+     Constructors for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPolynomial` output analysis distribution operator class.
      !!}
      module procedure randomErrorPolynomialConstructorParameters
      module procedure randomErrorPolynomialConstructorInternal
-  end interface outputAnalysisDistributionOperatorRandomErrorPlynml
+  end interface outputAnalysisDistributionOperatorRandomErrorPolynomial
 
 contains
 
   function randomErrorPolynomialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPolynomial` output analysis distribution operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)                              :: self
     type            (inputParameters                                    ), intent(inout)               :: parameters
     double precision                                                                                   :: zeroPoint   , errorMinimum, &
          &                                                                                                errorMaximum
@@ -99,7 +99,7 @@ contains
     </inputParameter>
     !!]
     ! Construct the object.
-    self=outputAnalysisDistributionOperatorRandomErrorPlynml(errorMinimum,errorMaximum,zeroPoint,coefficient)
+    self=outputAnalysisDistributionOperatorRandomErrorPolynomial(errorMinimum,errorMaximum,zeroPoint,coefficient)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -108,10 +108,10 @@ contains
 
   function randomErrorPolynomialConstructorInternal(errorMinimum,errorMaximum,zeroPoint,coefficient) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPlynml` output analysis distribution operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisDistributionOperatorRandomErrorPolynomial` output analysis distribution operator class.
     !!}
     implicit none
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial)                              :: self
     double precision                                                     , intent(in   )               :: errorMinimum, errorMaximum, &
          &                                                                                                zeroPoint
     double precision                                                     , intent(in   ), dimension(:) :: coefficient
@@ -127,7 +127,7 @@ contains
     Return the root-variance in the polynomial random error distribution operator.
     !!}
     implicit none
-    class           (outputAnalysisDistributionOperatorRandomErrorPlynml), intent(inout) :: self
+    class           (outputAnalysisDistributionOperatorRandomErrorPolynomial), intent(inout) :: self
     double precision                                                     , intent(in   ) :: propertyValue
     type            (treeNode                                           ), intent(inout) :: node
     integer                                                                              :: i

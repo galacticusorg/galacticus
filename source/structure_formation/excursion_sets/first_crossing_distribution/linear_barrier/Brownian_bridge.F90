@@ -229,7 +229,7 @@ contains
        varianceConstrained           =0.0d0
        timeConstrained               =0.0d0
        massConstrained               =0.0d0
-       call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [timeConstrained] and [massConstrained]')
+       call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [timeConstrained] and [massConstrained]'//{introspection:location})
     end if
     self=excursionSetFirstCrossingLinearBarrierBrownianBridge(varianceConstrained,criticalOverdensityConstrained,fractionalTimeStep,cosmologyFunctions_,excursionSetFirstCrossing_,excursionSetBarrier_,cosmologicalMassVariance_,criticalOverdensity_,linearGrowth_)
     !![

@@ -34,7 +34,8 @@
      !!}
      private
    contains
-     procedure :: normalize => unitarityNormalize
+     procedure :: normalize            => unitarityNormalize
+     procedure :: requiresDistribution => unitarityRequiresDistribution
   end type outputAnalysisDistributionNormalizerUnitarity
 
   interface outputAnalysisDistributionNormalizerUnitarity
@@ -86,3 +87,15 @@ contains
     end if
     return
   end subroutine unitarityNormalize
+
+  logical function unitarityRequiresDistribution(self) result(requiresDistribution)
+    !!{RST
+    This normalizer operates on the distribution itself, so requires it to be supplied.
+    !!}
+    implicit none
+    class(outputAnalysisDistributionNormalizerUnitarity), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    requiresDistribution=.true.
+    return
+  end function unitarityRequiresDistribution

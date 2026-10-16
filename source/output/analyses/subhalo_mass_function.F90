@@ -530,7 +530,8 @@ contains
     !!{RST
     Implement a ``subhaloMassFunction`` output analysis reduction.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisSubhaloMassFunction), intent(inout) :: self
     class(outputAnalysisClass              ), intent(inout) :: reduced
@@ -540,7 +541,7 @@ contains
        call self%volumeFunctionsSubHalos %reduce(reduced%volumeFunctionsSubHalos )
        call self%volumeFunctionsHostHalos%reduce(reduced%volumeFunctionsHostHalos)
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisSubhaloMassFunction] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine subhaloMassFunctionReduce

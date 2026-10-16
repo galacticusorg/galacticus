@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a transfer function class based on the fuzzy dark matter modifier of :cite:t:`hu_fuzzy_2000`.
   !!}
@@ -217,28 +219,19 @@ contains
     !!{RST
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
-    use :: Error                   , only : errorStatusSuccess
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Error                      , only : errorStatusSuccess
+    use :: Transfer_Function_Utilities, only : Transfer_Function_Mass_From_Wavenumber
     implicit none
     class           (transferFunctionHu2000FDM), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
-    double precision                                                     :: matterDensity, wavenumberHalfMode
+    double precision                                                     :: wavenumberHalfMode
 
-    matterDensity        =+self%cosmologyParameters_%OmegaMatter    () &
-         &                *self%cosmologyParameters_%densityCritical()
     wavenumberHalfMode   =+1.108d0                 &
          &                *4.5d0                   &
          &                *self%m22**(4.0d0/9.0d0)
     ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
     ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
-    hu2000FDMHalfModeMass=+4.0d0                &
-         &                *Pi                   &
-         &                /3.0d0                &
-         &                *matterDensity        &
-         &                *(                    &
-         &                  +Pi                 &
-         &                  /wavenumberHalfMode &
-         &                 )**3
+    hu2000FDMHalfModeMass=Transfer_Function_Mass_From_Wavenumber(wavenumberHalfMode,self%cosmologyParameters_)
     if (present(status)) status=errorStatusSuccess
     return
   end function hu2000FDMHalfModeMass
@@ -247,28 +240,19 @@ contains
     !!{RST
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative to a :term:`CDM` transfer function.
     !!}
-    use :: Error                   , only : errorStatusSuccess
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Error                      , only : errorStatusSuccess
+    use :: Transfer_Function_Utilities, only : Transfer_Function_Mass_From_Wavenumber
     implicit none
     class           (transferFunctionHu2000FDM), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
-    double precision                                                     :: matterDensity, wavenumberQuarterMode
+    double precision                                                     :: wavenumberQuarterMode
 
-    matterDensity           =+self%cosmologyParameters_%OmegaMatter    () &
-         &                   *self%cosmologyParameters_%densityCritical()
     wavenumberQuarterMode   =+1.230d0                 &
          &                   *4.5d0                   &
          &                   *self%m22**(4.0d0/9.0d0)
     ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
     ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
-    hu2000FDMQuarterModeMass=+4.0d0                   &
-         &                   *Pi                      &
-         &                   /3.0d0                   &
-         &                   *matterDensity           &
-         &                   *(                       &
-         &                     +Pi                    &
-         &                     /wavenumberQuarterMode &
-         &                    )**3
+    hu2000FDMQuarterModeMass=Transfer_Function_Mass_From_Wavenumber(wavenumberQuarterMode,self%cosmologyParameters_)
     if (present(status)) status=errorStatusSuccess
     return
   end function hu2000FDMQuarterModeMass

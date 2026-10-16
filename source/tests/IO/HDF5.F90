@@ -22,13 +22,14 @@ program Tests_IO_HDF5
   Tests the HDF5 I/O module.
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
+  use :: File_Utilities    , only : File_Exists        , File_Name_Temporary   , File_Remove
   use :: Error             , only : Error_Report
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5File              , hdf5VarDouble       , hdf5VarInteger8  , &
-       &                            hdf5VarDouble2D    , hdf5DataTypeDouble    , hdf5File            , hdf5Group        , &
-       &                            hdf5Dataset
-  use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string      , var_str          , &
-       &                            char
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5DataTypeDouble    , hdf5DataTypeInteger , hdf5Dataset      , &
+  &                                 hdf5File           , hdf5Group             , hdf5VarDouble       , hdf5VarDouble2D  , &
+  &                                 hdf5VarInteger8
+  use :: ISO_Varying_String, only : assignment(=)      , char                  , trim                , var_str          , &
+  &                                 varying_string
   use :: Kind_Numbers      , only : kind_int8
   use :: System_Command    , only : System_Command_Do
   use :: Units_MetaData    , only : unitType
@@ -38,7 +39,8 @@ program Tests_IO_HDF5
        &                                                                       integerValueReread               , i                             , &
        &                                                                       j                                , k
   logical                                                                   :: appendableOK
-  integer                                                                   :: unitsStatus                      , attributesStatus
+  integer                                                                   :: unitsStatus                      , attributesStatus              , &
+       &                                                                       chunkingStatus
   type            (unitType       )                                         :: unitsValue
   integer                                       , dimension(10)             :: integerValueArray
   integer                                       , dimension(10)             :: integerValueArrayRereadStatic
@@ -1004,15 +1006,26 @@ program Tests_IO_HDF5
           end block
        end if
        
-       ! Write a very large (>4GB) dataset to test that chunking limits
-       ! the chunksize to less than the maximum allowed.
+       ! Create very large (>4GB) datasets to test that chunking limits the chunk size to less than the maximum allowed. No
+       ! data are written to these datasets, so they occupy no space in the file - only their chunk shapes are of interest,
+       ! and those are checked (via h5py) after the file is closed. The chunk chosen must also continue to tile the extent of
+       ! the dataset - otherwise HDF5 allocates an extra, almost entirely unused, chunk along the affected dimension.
        if (iPass == 2) then
           block
-            type(hdf5Dataset) :: datasetObject
-            datasetObject=fileObject%openDataset('bigDataset','A dataset larger than 4GB.',hdf5DataTypeDouble,[600_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
+            type(hdf5Dataset) :: datasetBigEven, datasetBigOdd, datasetBigOdd2D, datasetBigInteger
+            ! Extents which are exactly halved - the reduced chunk tiles the extent trivially.
+            datasetBigEven   =fileObject%openDataset('bigDataset'           ,'A dataset larger than 4GB.'                     ,hdf5DataTypeDouble ,[600_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
+            ! An odd extent in the fastest-varying dimension - halving with rounding down would give a chunk which no longer
+            ! tiles the extent.
+            datasetBigOdd    =fileObject%openDataset('bigDatasetOdd'        ,'A dataset larger than 4GB with an odd extent.'  ,hdf5DataTypeDouble ,[601_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
+            ! Odd extents in two dimensions - two reductions are needed, so both dimensions must be handled.
+            datasetBigOdd2D  =fileObject%openDataset('bigDatasetOdd2D'      ,'A dataset larger than 4GB with two odd extents.',hdf5DataTypeDouble ,[601_hsize_t,201_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
+            ! A 4-byte datatype - the chunk size limit must be evaluated using the actual size of the datatype, so these
+            ! extents need no reduction at all, even though they do for an 8-byte datatype.
+            datasetBigInteger=fileObject%openDataset('bigDatasetInteger'    ,'An integer dataset which fits in one chunk.'    ,hdf5DataTypeInteger,[600_hsize_t,100_hsize_t,100_hsize_t,100_hsize_t],chunkSize=1024_hsize_t)
           end block
        end if
-       
+
        ! Write an attribute of length >64KB by forcing dense storage of
        ! attributes in s group.
        block
@@ -1088,6 +1101,47 @@ program Tests_IO_HDF5
   call Unit_Tests_Begin_Group("2-D double attribute")
   call System_Command_Do("./testSuite/scripts/verify_attributes.py",attributesStatus)
   call Assert("re-read 2-D double attribute (via h5py)",attributesStatus,0)
+  call Unit_Tests_End_Group()
+
+  ! Verify the chunk shapes chosen for the large datasets created above by reading them back with h5py (there is no Fortran
+  ! reader for chunk dimensions). The verifier script exits with non-zero status on any mismatch.
+  call Unit_Tests_Begin_Group("chunk dimensions of large datasets")
+  call System_Command_Do("./testSuite/scripts/verify_chunking.py",chunkingStatus)
+  call Assert("chunks of large datasets fit within, and tile, their extents (via h5py)",chunkingStatus,0)
+  call Unit_Tests_End_Group()
+
+  ! Test the handling of temporary files. A temporary file must be removed from the file system when it is closed, and a file
+  ! removed from the file system while it is still open must remain fully usable (this is the create-open-unlink idiom used for
+  ! the temporary parameter file - see issue #1391).
+  call Unit_Tests_Begin_Group("temporary files")
+  block
+    type(varying_string) :: fileNameTemporary
+    fileNameTemporary=File_Name_Temporary("test.IO.HDF5.temporary",'testSuite/outputs')
+    block
+      type(hdf5File ) :: fileObject
+      type(hdf5Group) :: groupObject
+      fileObject =hdf5File(char(fileNameTemporary),isTemporary=.true.)
+      groupObject=fileObject%openGroup("myGroup")
+      call Assert("file object reports the name of the file which contains it" ,char(fileObject %fileName()),char(fileNameTemporary))
+      call Assert("group object reports the name of the file which contains it",char(groupObject%fileName()),char(fileNameTemporary))
+      call Assert("temporary file exists while it is open"                     ,File_Exists(fileNameTemporary),.true.               )
+    end block
+    call Assert("temporary file is removed when it is closed",File_Exists(fileNameTemporary),.false.)
+  end block
+  block
+    type(varying_string) :: fileNameTemporary
+    fileNameTemporary=File_Name_Temporary("test.IO.HDF5.unlinked",'testSuite/outputs')
+    block
+      type(hdf5File) :: fileObject
+      fileObject=hdf5File(char(fileNameTemporary))
+      call File_Remove(fileObject%fileName())
+      call Assert("file removed while open no longer exists in the file system",File_Exists(fileNameTemporary),.false.)
+      integerValue=42
+      call fileObject%writeAttribute(integerValue,"integerAttribute")
+      call fileObject%readAttribute ("integerAttribute",integerValueReread)
+      call Assert("file removed while open remains readable and writable",integerValue,integerValueReread)
+    end block
+  end block
   call Unit_Tests_End_Group()
 
   ! End unit tests.

@@ -18,6 +18,85 @@ Variable names
 
 For a variable that is set via an input parameter, the internal variable name should match the parameter name (this allows the automatic generation of descriptor functions). If the parameter name clashes with the name of a method of the class, append an underscore to the internal variable name. For example, the ``stellarFeedbackOutflowsPowerLaw`` class has a method ``velocityCharacteristic`` and also reads a parameter of the same name, so the corresponding internal variable is named ``velocityCharacteristic_``.
 
+.. _manual-sec-namingConventions:
+
+Naming conventions
+~~~~~~~~~~~~~~~~~~
+
+The conventions below apply across the API — class, implementation, parameter, method, module, procedure, and file names. Several long-standing, deliberate exceptions are recorded here as well, so that they are not repeatedly re-flagged as defects by naming audits.
+
+Spelling
+^^^^^^^^
+
+US spelling is used throughout — in identifiers, in prose, and in parameter names and values. Write ``modeling``, ``modeled``, ``fueled``, ``catalog``, ``normalize``, ``initialize``, ``behavior``, ``color``, ``center``, and ``neighbor`` rather than their British forms.
+
+``aux/words.dict`` is the dictionary used by the documentation spelling builder. It is for *technical terms* that a general dictionary does not know (``halofit``, ``Lorentzian``, ``deprojected``); it must not be used to whitelist British spellings. Proper names — of people (``Storey``), simulations, or codes — belong there too, and are a common source of false positives in automated spelling scans.
+
+Class and implementation names
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* ``functionClass`` names are ``lowerCamelCase`` (``darkMatterProfileDMO``, ``coolingRate``).
+* An implementation name is its class name followed by an ``UpperCamelCase`` suffix naming the implementation: ``darkMatterProfileDMONFW``, ``coolingRateWhiteFrenk1991``. This is required, not merely conventional — the code generator relies on it.
+
+Because a Fortran identifier may be at most 63 characters, a small number of implementation names carry vowel-stripped abbreviations (for example ``criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt``). These are unavoidable given the length limit, but they are *not* a style to imitate: prefer a shorter, readable suffix, and abbreviate only when the full name would exceed the limit. Note that these abbreviations are user-visible, since the suffix is the value used to select the implementation in a parameter file.
+
+Parameter names
+^^^^^^^^^^^^^^^
+
+* Parameter names are ``lowerCamelCase``, matching the internal variable name (see *Variable names* above).
+* **Word order is noun-first, qualifier-second**: ``radiusVirial``, ``massStellar``, ``timeMinimum``, ``massHaloMinimum`` — not ``virialRadius``, ``stellarMass``, or ``haloMassMinimum``. This groups related quantities together when parameters are listed alphabetically. Established physics terms that read as a single concept (``scaleHeight``, ``scaleLength``, ``peakHeightExponent``) are exempt.
+* Boolean parameters should read as predicates. Two forms are accepted:
+
+  * a verb prefix — ``includeBaryonGravity``, ``useFittingFunction``, ``allowNegativeCGMMass``, ``applySubsamplingWeights``;
+  * a predicate suffix — ``convergenceFailureIsFatal``, ``mainBranchOnly``, ``accretionNegativeAllowed``.
+
+  A bare noun or adjective (``dimensionless``, ``fast``, ``forward``, ``extendedStatistics``) does not read as a question and should be avoided in new code.
+
+Two groups of parameter names are deliberately **not** ``lowerCamelCase``, and are correct as they stand:
+
+* **Cosmological parameters written as their conventional symbols**: ``OmegaMatter``, ``OmegaBaryon``, ``OmegaDarkEnergy``, ``OmegaCurvature``, ``OmegaRadiation``, ``HubbleConstant``. The corresponding ``cosmologyParameters`` methods share these names, and are the reason a handful of methods are ``UpperCamelCase``.
+* **Fitting-formula coefficients written as the symbols used in the source paper**: ``A``, ``B``, ``C``, ``alpha_0``, ``alpha_z``, ``M_0``, ``epsilon_lna``, ``sigma_8``. Preserving the paper's notation lets the implementation be checked against its reference, which outweighs uniformity here. Use this form only where the name genuinely mirrors a published symbol, and cite the paper in the ``<description>``.
+
+Method names
+^^^^^^^^^^^^
+
+Method names are ``lowerCamelCase`` and should follow the same noun-first order as parameters — ``rateMassLoss``, ``rateAccretion``, ``gradientTemperatureLogarithmic``.
+
+Where a concept already exists as a method on another class, match the existing name rather than introducing a second spelling of the same idea. Three concepts currently exist under both orders, and should converge on the noun-first form as those classes are next revised:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 34 26 34
+
+   * - Noun-first (preferred)
+     - Classes
+     - Verb/adjective-first
+     - Classes
+   * - ``rateMassLoss``
+     - ``ramPressureStripping``, ``stellarWinds``, ``tidalStripping``
+     - ``massLossRate``
+     - ``satelliteTidalStripping``, ``satelliteEvaporationSIDM``
+   * - ``rateAccretion``
+     - ``blackHoleAccretionRate``
+     - ``accretionRate``
+     - ``accretionHalo``, ``accretionHaloTotal``
+   * - ``gradientTemperatureLogarithmic``
+     - ``coolingTime``
+     - ``temperatureGradientLogarithmic``
+     - ``kinematicsDistribution``
+
+Renaming a method is an internal change — method names do not appear in parameter files — but it touches every caller, so it is best done as part of other work on the class rather than as a standalone sweep.
+
+The ``UpperCamelCase`` cosmological methods noted above are the sole exception to ``lowerCamelCase``.
+
+Modules, procedures, and files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* **Modules** use ``Upper_Snake_Case``: ``Dark_Matter_Profiles_DMO``, ``Numerical_Integration``.
+* **Procedures** use ``lowerCamelCase`` in new code. A large body of older code — concentrated in ``source/objects/`` and ``source/utility/`` — uses ``Upper_Snake_Case`` (``Abundances_Get_Metallicity``). Both are accepted; the older style is not a defect and is not worth a mass rename, but new procedures should be ``lowerCamelCase``.
+* **File names** describing a concept use lower ``snake_case``: ``cosmic_microwave_background.F90``, ``nuclear_star_clusters.F90``, ``radius_velocity_maximum.F90``. Directory names follow the same style.
+* Files named for a **proper noun** — a model, code, or author — keep that noun's own capitalization: ``NFW.F90``, ``Einasto.F90``, ``Zhao1996.F90``, ``RecFast.F90``. Where the name combines *several* authors, camel-case them together and do not use hyphens: ``DiemerKravtsov2014.F90``, not ``Diemer-Kravtsov2014.F90``. Both spellings are currently present in the tree (``dark_matter_profiles/structure/concentration/Diemer-Kravtsov2014.F90`` alongside ``dark_matter_profiles_DMO/accretion_flow/DiemerKravtsov2014.F90``); the form without hyphens is the one to use in new files. File names are not user-facing, so existing hyphenated names are left as they are rather than renamed.
+
 Variable declarations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -33,6 +112,61 @@ write:
 
     logical, intent(  out) :: diskRequired        , spheroidRequired   , &
          &                    radiusVirialRequired, radiusScaleRequired
+
+Like ``use`` blocks, a run of declarations is laid out as a table so that it can be scanned down a column. The conventions are:
+
+* The intrinsic type, its parenthetical (kind specifier, type name, ``len=``), the ``::`` and the variables each occupy a column, whose width is shared by every declaration in the run. A declaration with no parenthetical still leaves room for one, so its ``::`` lines up with the rest.
+* The intrinsic is padded before the bracket opens — ``double precision``, ``type            (treeNode)`` — rather than the padding going inside the brackets.
+* Attributes occupy positional columns: whichever attribute comes first on a row sits in the first attribute column, so one column may hold ``pointer`` on one row and ``intent(inout)`` on the next, sized to the wider.
+* Attributes are written in a canonical order — ``intent``, ``pointer``, ``allocatable``, ``dimension``, ``target``, ``optional``, ``parameter``, ``save``, ``value``, ``public``, ``private``, then anything else alphabetically. Fortran attaches no meaning to the order; fixing one is what lets a given attribute reliably land in the same column.
+* The argument of ``intent`` is padded to the width of the longest spelling, so that ``intent(in   )``, ``intent(inout)`` and ``intent(  out)`` form one column.
+* At most two variables per row, aligned in columns, with any ``=`` or ``=>`` initializer aligned down each column. Continuation rows carry ``&`` five columns in from the block indent.
+* A declaration needed only under OpenMP carries the ``!$`` sentinel; unconditional declarations in the same run are indented three further columns so the intrinsic types still line up.
+* Rows hold fewer variables where two would push the line past 132 columns.
+
+For example:
+
+.. code-block:: fortran
+
+       type            (treeNode), intent(inout)                            :: node
+       double precision          , intent(in   ), allocatable, dimension(:) :: radii
+       logical                   , intent(  out)                            :: isComputed
+       double precision                                                     :: massStellar        , massGas              , &
+         &                                                                     radiusScale        , velocityVirial
+       integer                                                              :: i
+    !$ integer                                                              :: threadCount
+       logical                                                              :: converged  =.false., iterating     =.true.
+
+A comment or a ``#ifdef`` between two runs of declarations does not break the alignment — the columns span it. These conventions are applied automatically by :ref:`manual-sec-formatDeclarations`.
+
+Module ``use`` statements
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Blocks of ``use`` statements are laid out as a table, so that the module names and the symbols imported from them can be scanned down a column. The conventions are:
+
+* Every ``use`` carries an explicit ``::`` and an ``only`` clause naming the symbols imported. One statement per module.
+* Within a block, the ``use``, ``::`` and ``, only :`` tokens are vertically aligned, which means module names are padded to the width of the longest.
+* At most four symbols per row, using continuation lines for more — but fewer per row where four would push the line past 132 columns. The count is chosen once for the whole block, so the symbol columns stay aligned between statements.
+* Symbols are sorted alphabetically and aligned in columns whose widths are shared across the entire block. The sort is case-sensitive, which groups ``Capitalized_With_Underscores`` procedure names ahead of ``camelCase`` types and variables.
+* Modules imported with the ``intrinsic`` attribute come first, keeping their order relative to one another.
+* A ``use`` needed only under OpenMP carries the ``!$`` sentinel. Every statement still begins at the block's own indent, so the sentinel sits out to the left of the ``use`` keyword; the three columns it occupies are made up after the module attributes, keeping the ``::`` column aligned across the block.
+* A ``use`` guarded by a preprocessor conditional keeps its own ``#ifdef``/``#endif`` wrapper.
+
+For example:
+
+.. code-block:: fortran
+
+    use, intrinsic    :: ISO_C_Binding     , only : c_size_t
+    use               :: Error             , only : Error_Report
+    use               :: Display           , only : displayIndent         , displayMessage, displayUnindent, displayVerbositySet, &
+    &                                               verbosityLevelStandard
+    use               :: ISO_Varying_String, only : assignment(=)         , varying_string
+   #ifdef USEMPI
+    use               :: MPI_Utilities     , only : mpiBarrier            , mpiSelf
+   #endif
+    !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
+
+These conventions are applied automatically by :ref:`manual-sec-formatModuleUses`, so there is no need to align them by hand.
 
 Constants
 ~~~~~~~~~
@@ -290,6 +424,16 @@ or with explicit bounds:
 
 In the first case, the loop index ``i`` is used as the ``copyInstance`` argument when retrieving the object, allowing the parameter node to hold multiple instances. In the second case, the loop runs from 1 to ``countPostprocessors`` explicitly.
 
+Where the object built is used without some optional argument of one of its methods---because no such value exists where the method is called---list those arguments in a ``withholds`` attribute, as space- or comma-separated ``method:argument`` pairs. For example, a task which integrates over the halo mass function, and so has no node to pass to it, declares:
+
+.. code-block:: none
+
+    !![
+    <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters" withholds="differential:node"/>
+    !!]
+
+An implementation which requires one of those arguments is then rejected as soon as it is built, rather than when the method is first called, and ``scripts/build/parameterValidate.py`` rejects the combination before the model is run. See :ref:`manual-sec-capabilities`.
+
 Object Destructor
 ~~~~~~~~~~~~~~~~~
 
@@ -383,6 +527,51 @@ A common requirement in object constructors is to assign the values of arguments
      end function stellarMassConstructorInternal
 
 will cause the value of the ``massThreshold`` argument to ``stellarMassConstructorInternal%massThreshold``. If an argument name is prefixed with ``*`` in the variables list, pointer assignment is used instead of standard assignment.
+
+.. _manual-sec-componentPropertyAssert:
+
+Component Property Assertions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Many classes work only if the active node component implementations provide certain properties with certain attributes---for example, a dark matter profile that needs a gettable ``scale`` property of the ``darkMatterProfile`` component. Since which implementations are active is chosen at run time from the parameter file, such requirements must be asserted at run time, and the resulting error message should tell the user which implementations *would* satisfy the requirement. The ``componentPropertyAssert`` directive generates that assertion:
+
+.. code-block:: none
+
+     !![
+     <componentPropertyAssert class="spheroid" properties="massStellar massGas halfMassRadius angularMomentum" require="gettable"/>
+     !!]
+
+This expands to a test that every listed property is gettable, and, if not, a call to ``Error_Report`` whose message is appended with a ``Component_List`` naming the implementations of the ``spheroid`` class that do provide all of those properties as gettable. The ``use`` statements required by the generated code are added automatically. The attributes are:
+
+``class``
+   The name of the component class, e.g. ``spheroid``. This is used both to build the name of the default component object (``defaultSpheroidComponent``) and as the class name reported in the error message---writing it once removes the risk of the two disagreeing.
+
+``properties``
+   A whitespace- and/or comma-separated list of property names of that class.
+
+``require``
+   A whitespace- and/or comma-separated list of the required attributes; any of ``gettable``, ``settable``, and ``evolvable``. Every requirement is applied to every listed property.
+
+``message``
+   Optional. Replaces the generated diagnostic. Use this where the requirement needs context that cannot be inferred from the class and property names---the location of the assertion is reported automatically, so there is no need to name the enclosing class or function.
+
+Occasionally the test must be made in one place and reported in another---typically when the test is made once in a constructor and cached, but the error is raised later at the point of use, inside a ``select type`` over component implementations. The ``assignTo`` and ``condition`` attributes split the directive across those two places:
+
+.. code-block:: none
+
+     ! In the constructor:
+     !![
+     <componentPropertyAssert class="disk" properties="radius velocity" require="gettable" assignTo="self%diskSupported"/>
+     !!]
+
+     ! At the point of use:
+     !![
+     <componentPropertyAssert class="disk" properties="radius velocity" require="gettable" condition="self%diskSupported"/>
+     !!]
+
+``assignTo`` generates only the test, assigning its result to the named ``logical`` variable (which must be declared as usual). ``condition`` generates only the error report, guarded by the supplied expression. The two attributes are mutually exclusive.
+
+Note that property names are not validated by the preprocessor: a misspelled property generates a reference to a non-existent ``%<property>IsGettable()`` binding, which the compiler rejects.
 
 .. _manual-sec-metaProperties:
 
@@ -512,19 +701,19 @@ Attaching Functions to an Event Hook
 
 A ``functionClass`` implementation can attach one or more of its functions to event hooks by implementing an ``autoHook`` method. This method is automatically called whenever a new instance is created via deep copy (see Section :galacticus-ref:`functionClassAll`), and also on newly-constructed instances. The method should call the ``attach`` method on the relevant ``eventHookUnspecified`` object (or a typed variant) from the ``Events_Hooks`` module.
 
-For example, the following ``autoHook`` implementation attaches the ``betaProfileCalculationReset`` function to the ``calculationResetEvent`` event hook:
+For example, the following ``autoHook`` implementation (from the abstract :galacticus-class:`coolingRadiusCoolingTime` class, and so inherited by each of its concrete classes) attaches the ``coolingTimeCalculationReset`` function to the ``calculationResetEvent`` event hook:
 
 .. code-block:: none
 
-     subroutine betaProfileAutoHook(self)
+     subroutine coolingTimeAutoHook(self)
        use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
        implicit none
-       class(coolingRadiusBetaProfile), intent(inout) :: self
+       class(coolingRadiusCoolingTime), intent(inout) :: self
 
-       call calculationResetEvent%attach(self,betaProfileCalculationReset, &
-            & openMPThreadBindingAllLevels,label='coolingRadiusBetaProfile')
+       call calculationResetEvent%attach(self,coolingTimeCalculationReset, &
+            & openMPThreadBindingAllLevels,label='coolingRadiusCoolingTime')
        return
-     end subroutine betaProfileAutoHook
+     end subroutine coolingTimeAutoHook
 
 The ``attach`` method takes the following arguments:
 
@@ -543,7 +732,7 @@ The ``attach`` method takes the following arguments:
 ``dependencies``
    *(optional)* An array of ``dependency`` objects (of type ``dependencyExact`` or ``dependencyRegEx``) specifying ordering constraints relative to other hooks with matching labels.
 
-Each ``functionClass`` implementation that provides an ``autoHook`` method must also detach its functions from event hooks in its destructor, using the ``detach`` method:
+Each ``functionClass`` implementation that provides (or, as here, inherits) an ``autoHook`` method must also detach its functions from event hooks in its destructor, using the ``detach`` method:
 
 .. code-block:: none
 
@@ -552,8 +741,8 @@ Each ``functionClass`` implementation that provides an ``autoHook`` method must 
        implicit none
        type(coolingRadiusBetaProfile), intent(inout) :: self
 
-       if (calculationResetEvent%isAttached(self,betaProfileCalculationReset)) &
-          & call calculationResetEvent%detach(self,betaProfileCalculationReset)
+       if (calculationResetEvent%isAttached(self,coolingTimeCalculationReset)) &
+          & call calculationResetEvent%detach(self,coolingTimeCalculationReset)
        return
      end subroutine betaProfileDestructor
 
@@ -574,6 +763,8 @@ For this reason the dispatch block uses ``countLockless()`` instead, which reads
 
 Code that genuinely requires a serialized, consistent snapshot of the hook count (for example, logic internal to ``attach``/``detach`` themselves) should continue to use the locked ``count()``; ``countLockless()`` is intended only for hot, read-only dispatch paths that satisfy the static-hooks invariant described above.
 
+.. _manual-sec-conditionalCall:
+
 Conditional Call
 ~~~~~~~~~~~~~~~~
 
@@ -586,8 +777,8 @@ In some instances it is useful to be able to call a function with different comb
       <call>self=massDistributionBetaProfile(beta{conditions})</call>
       <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
       <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
-      <argument name="outerRadius"          value="outerRadius"          parameterPresent="parameters"/>
-      <argument name="coreRadius"           value="coreRadius"           parameterPresent="parameters"/>
+      <argument name="radiusOuter"          value="radiusOuter"          parameterPresent="parameters"/>
+      <argument name="radiusCore"           value="radiusCore"           parameterPresent="parameters"/>
       <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
      </conditionalCall>
      <inputParametersValidate source="parameters"/>
@@ -702,6 +893,8 @@ The ``inputParameter`` directive reads an input parameter and assigns the approp
 
 In this case, the value of the ``HubbleConstant`` parameter is assigned to the ``hubbleConstant`` variable, with a default of :math:`69.7` if no value was specified in the input parameter file. If the ``source`` element is present, the parameter will be read from the named ``inputParameters`` set, otherwise the parameter will be read from the top-level of the parameters file. The ``defaultSource``, ``<description>The``, ``type``, and ``cardinality`` elements are used only for adding an entry for the input parameter to the documentation, and so should be written in LaTeX\ syntax.
 
+A numeric parameter can declare bounds on its value with ``minimum`` and ``maximum`` elements, for example ``<minimum inclusive="false">0.0</minimum>``. A bound is inclusive (the parameter may equal it) unless ``inclusive="false"`` is given, and must be a number. Bounds are enforced in two places. The parameter file validator (``scripts/build/parameterValidate.py``) reports any literal value in a parameter file which violates a bound. The executable checks the value actually read---after evaluation of any expression, and including the default value---and reports a fatal error naming the parameter, its value, and the bound. Bounds can be declared only for scalar ``integer``, ``integer(kind_int8)``, and ``double precision`` parameters. A condition relating two or more parameters (for example, that one mass is less than another) cannot be expressed as a bound, and must be checked in the constructor.
+
 It is also possible to specify a set of parameter which iterate over names defined by other directives. The following example would read one parameter named "``fileNameForXXXXXXIMF``" where "``XXXXXX``" equals the ``name`` element each ``imfRegisterName`` directive:
 
 .. code-block:: none
@@ -782,7 +975,7 @@ A translation may either rewrite the parameter file declaratively, via an ``xpat
 
    **Commit hashes in** ``migrations.xml`` **must remain valid for the lifetime of the repository.**
 
-   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behaviour.
+   To decide which migrations to apply, ``parametersMigrate.py`` walks the git ancestry between the parameter file's recorded ``lastModified`` revision and the current ``HEAD``, and matches each commit in that ancestry against the ``commit`` attributes in ``migrations.xml`` **by exact string equality**. A hash which is not present in the history therefore matches nothing: the migration is *silently skipped*. There is no error and no warning — parameter files simply fail to migrate, and models built from them quietly change behavior.
 
    The practical consequences are:
 
@@ -940,6 +1133,17 @@ In the above example, we define a "simple" implementation of the cosmologyParame
 Name:
    The name should always be prefixed with the function class name. In this case, we have a ``simple`` implementation of the ``cosmologyParameters`` function class, and so our name is ``cosmologyParametersSimple``.
 
+   The remainder of the name, after the class prefix, is the value which selects this implementation in a parameter file---``simple`` here. Choose a readable one: it is part of the user-facing API, not merely an internal identifier.
+
+   Occasionally a readable name cannot be used, because Fortran limits an identifier to **63 characters** and the build generates further identifiers from this name by appending suffixes (``ConstructorParameters``, a method name, a trailing underscore for the implementation's submodule, and so on). Where that limit forces an abbreviated name, give the directive an ``alias`` attribute carrying the readable form:
+
+   .. code-block:: xml
+
+      <virialDensityContrast name="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt"
+                             alias="sphericalCollapseCollisionlessMatterCosmologicalConstant">
+
+   The alias is the value documented, written into descriptors, and reported by the ``objectType`` method and by the error message listing the available implementations. The abbreviated name continues to be accepted in parameter files, so adding an alias breaks nothing and needs no migration. Use an alias *only* where the length limit forces it---an abbreviation which would fit in full should simply be renamed.
+
 Extends:
    The base class for the function class is always the function class name suffixed with ``Class``, in this case ``cosmologyParametersClass``. Implementations must always be extensions of either this base class, or of another implementation.
 
@@ -953,6 +1157,40 @@ Procedures:
    All required procedures (including constructors and destructors) should be given after a line containing the ``contains`` keyword. Galacticus coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, ``simple`` in this case.
 
 Functionality to store and restore the state (see :ref:`here <manual-sec-restarting>`) of classes built via a ``functionClass`` directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element to the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
+
+.. _manual-sec-capabilities:
+
+Capabilities
+^^^^^^^^^^^^
+
+Some implementations can only answer a method when given one of its optional arguments. A halo mass function may need a ``node``, for example, or a critical overdensity a ``mass``. Declare this with a ``requires`` element in the directive declaring the implementation, naming the method and the argument:
+
+.. code-block:: none
+
+    !![
+    <haloMassFunction name="haloMassFunctionPressSchechter">
+     <description>...</description>
+     <requires method="differential" argument="node"/>
+     <requires method="integrated"   argument="node"/>
+    </haloMassFunction>
+    !!]
+
+The argument must be an optional argument of that method, or the build fails. A requirement is inherited by implementations which extend the declaring one. It must also be declared for any method whose default implementation calls a method that has the requirement---``integrated`` above, whose default integrates ``differential``.
+
+An implementation which passes the arguments it is given on to another object of the same class, such as a decorator which multiplies a mass function, inherits that object's requirements. Declare this with a ``forwards`` element naming the object's component:
+
+.. code-block:: none
+
+    !![
+    <haloMassFunction name="haloMassFunctionMultiplier">
+     <description>...</description>
+     <forwards object="massFunction_"/>
+    </haloMassFunction>
+    !!]
+
+Omit ``forwards`` for an object which is always given the argument by the implementation itself.
+
+``requires`` and ``forwards`` elements follow all other elements of the directive, with every ``requires`` before any ``forwards``. From them a ``requires(method,argument)`` method is generated for every class. It returns true if the object requires that argument, and it is an error to ask about a pair which is not an optional argument of one of the class' methods. Consumers declare the arguments they never supply through the ``withholds`` attribute of the ``objectBuilder`` directive, which calls this method when the object is built. A consumer which receives an object in any other way can call ``requires`` itself in its constructor. The parameter catalog records all three markers, and ``scripts/build/parameterValidate.py`` reports a ``capability`` error for any parameter file which combines an implementation with a consumer that withholds an argument it requires. The validator follows objects inherited from enclosing parameters, ``idRef`` references, forwarding implementations and class defaults, as ``objectBuilder`` does.
 
 .. _manual-sec-deepCopy:
 
@@ -1200,6 +1438,14 @@ The ``workaround`` directive annotates code that exists only to work around a bu
 
 The ``type`` attribute (required) names the tool containing the bug (e.g. ``gfortran``), while the optional ``PR`` and ``url`` attributes identify the relevant bug report. A ``description`` element should explain the bug being worked around. Optional ``seeAlso`` elements (with the same ``type``/``PR``/``url`` attributes) can reference related bug reports.
 
+The ``Workarounds`` workflow (``.github/workflows/workarounds.yml``) runs ``scripts/aux/workaroundChecker.py`` daily, which looks up the ``PR`` of every ``workaround`` directive in GCC's Bugzilla and fails if any of them has been marked ``RESOLVED``---so that fixed bugs do not leave dead workarounds behind. A bug being fixed upstream does not always mean the workaround can be removed immediately though: typically we must wait until the fix appears in a released compiler that is available on all of the platforms we build for. For such cases, open an issue recording what must happen before the workaround can be removed, and reference it from the directive with the optional ``issue`` attribute:
+
+.. code-block:: none
+
+    <workaround type="gfortran" PR="105807" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105807" issue="1234">
+
+The attribute takes either a bare issue number in this repository (as above) or a full URL. The checker then reports the workaround as *staged for removal* and does not fail, for as long as the referenced issue remains open---if the issue is closed while the workaround is still present the checker begins to fail again. Only one occurrence of a given ``PR`` need carry the attribute; a single issue tracks removal of all workarounds for that bug.
+
 Module Scoping
 ~~~~~~~~~~~~~~
 
@@ -1302,6 +1548,25 @@ Computation Dependencies and Data Files
 In many situations, some module in Galacticus might want to perform a calculation and then store the results to a file so that they can be reused later. A good example is the :galacticus-class:`transferFunctionCAMB` transfer function model, which computes a transfer function using  CAMB and stores this function in a file so that it can be re-read next time, avoiding the need to recompute the transfer function. A problem arises in such cases as the calculation may depend on the values of parameters (in our example, the transfer function will depend on cosmological parameters for example). We would like to record which parameter values this calculation refers to, perhaps encoding these into the file name, so that we can reuse these data in a future run only if the parameter values are unchanged. Given the modular nature of Galacticus it is impossible to know in advance which parameters will be relevant (e.g. does the cosmological parameter implementation have a parameter that describes a time varying equation of state for dark energy?).
 
 To address this problem, Galacticus provides a mechanism to generate a unique descriptor for a given object. This descriptor encodes the parameter used to construct the object, and recursively includes the parameters used to construct any other object which is composited. A long-form (human readable) descriptor is returned by the ``descriptor`` method associated with all ``functionClass`` objects. Additionally, the ``hashedDescriptor`` method will return an MD5 hash of the descriptor, which will be unique (up to collisions) and can be used to identify the object both internally and, for example, when used as a suffix to file names. If the optional ``includeSourceDigest`` argument is set to true in the ``hashedDescriptor`` method then the hashed descriptor will include a hash of the source code of the object (and all composited objects) such that the descriptor will change should the source code be changed.
+
+Piecewise Approximations and Their Boundaries
+---------------------------------------------
+
+Many closed-form results in Galacticus are evaluated piecewise: a series expansion at small argument, a full expression in between, and sometimes a second series at large argument. The series exist because the full expression loses accuracy at the extremes, usually to cancellation between terms which are individually far larger than their sum. This is a sound pattern, but the boundaries between the branches must be chosen by *measuring* where the branches cross, not by eye.
+
+Three cases found in 2026 illustrate what goes wrong otherwise. In :galacticus-class:`massDistributionBurkert` the enclosed mass switched to its series below :math:`10^{-4} r_\mathrm{s}`, but the exact expression is already wrong by :math:`6\times 10^{-5}` there, because its terms are of order :math:`R` while their sum is of order :math:`R^3`; the band from :math:`10^{-4}` to :math:`10^{-2} r_\mathrm{s}` was served accurately by neither branch. In :galacticus-class:`massDistributionCuspNFW` a simplified solution was used out to :math:`10^{-3} r_\mathrm{s}`, where it is wrong by :math:`1.2\times 10^{-3}` and the full solution is accurate to :math:`10^{-9}`. In :galacticus-class:`kinematicsDistributionZhao1996` the large-radius series took over at :math:`100 r_\mathrm{s}`, by which point the full solution had degraded to :math:`3\times 10^{-7}` while the series it replaced was accurate to :math:`8\times 10^{-10}`.
+
+In each case the boundary sat well past the point at which the other branch had become the better of the two, and in each case the error was invisible to the existing tests, which compared the profile against its own numerical integrals and so shared the same expressions.
+
+When adding or reviewing such a branch:
+
+* Evaluate both branches against an independent reference across the region where either might be used, and place the boundary where their errors are comparable. The reference must not be the branches themselves.
+
+* Record the measured accuracy of each branch at the boundary in a comment, so that the choice can be checked later without repeating the analysis.
+
+* Do not build the reference by comparing one branch against the other. A full expression which has lost six digits to cancellation will make a perfectly good series look broken, and vice versa.
+
+* Test at radii, temperatures or energies which fall *inside* each branch and at the boundaries themselves. A test which samples only the middle of the range cannot see any of this.
 
 .. _manual-sec-Optimization:
 

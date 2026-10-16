@@ -127,6 +127,65 @@ def _b64digest_no_pad(hasher):
 
 
 # ---------------------------------------------------------------------------
+# Per-file cache of functionClass instance dependencies, shared by all targets.
+# ---------------------------------------------------------------------------
+# Finding an instance file's class records needs a full parse of the file -- the
+# dominant cost of a cold scan. The records depend only on the file's own content
+# (`parse_file` follows no includes and runs no processing) and on the set of
+# functionClass names, never on the target being linked, so they are cached in a
+# `<file>.classDependencies` sidecar under $BUILDPATH keyed on exactly those two.
+# Every target's first link -- 156 of them for `make all` -- then reuses one
+# parse per file. The sidecar is replaced atomically, so concurrent links are
+# safe: at worst two of them compute the same records.
+
+_CLASS_DEPENDENCIES_VERSION = 1
+
+
+def _instance_class_dependencies(file_to_process, function_class_names,
+                                 build_path, source_root):
+    """Return `[(hash_name, dependencies), ...]` for every functionClass
+    instance directive in `file_to_process`, in file order."""
+    with open(file_to_process, 'rb') as fh:
+        content = fh.read()
+    key = (
+        _CLASS_DEPENDENCIES_VERSION,
+        hashlib.md5(content).hexdigest(),
+        hashlib.md5('\n'.join(sorted(set(function_class_names))).encode()).hexdigest(),
+    )
+    cache_path = os.path.join(
+        build_path,
+        os.path.relpath(file_to_process, source_root) + '.classDependencies')
+    try:
+        with open(cache_path, 'rb') as fh:
+            cached = pickle.load(fh)
+        if cached['key'] == key:
+            return cached['records']
+    except (OSError, EOFError, pickle.UnpicklingError, KeyError, TypeError):
+        pass
+
+    records = []
+    tree    = parse_file(file_to_process)
+    for node in walk_tree(tree):
+        ntype = node.get('type')
+        if ntype not in function_class_names:
+            continue
+        hash_name = (node.get('directive') or {}).get('name')
+        if not hash_name:
+            continue
+        class_record, deps = class_dependencies(node, ntype)
+        class_type = (class_record or {}).get('type')
+        records.append((hash_name, [d for d in deps if d != class_type]))
+
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    tmp_path = f'{cache_path}.{os.getpid()}.tmp'
+    with open(tmp_path, 'wb') as fh:
+        pickle.dump({'key': key, 'records': records}, fh,
+                    protocol=pickle.HIGHEST_PROTOCOL)
+    os.replace(tmp_path, cache_path)
+    return records
+
+
+# ---------------------------------------------------------------------------
 # Parallel pre-warm of the per-file `.md5` sidecars.
 # ---------------------------------------------------------------------------
 # The per-source-file digests are shared across every type's composite and
@@ -156,7 +215,7 @@ def _prewarm_file_digests(object_files, build_path, use_locks):
 
     Each source file is a single task with a single writer, so the parallel
     pass needs no intra-run lock (the `flock` inside `ensure_file_digest`,
-    taken when `use_locks`, still serialises concurrent *external* builds).
+    taken when `use_locks`, still serializes concurrent *external* builds).
     This is a pure warm-up: any file it skips — including one that is stale
     only via a data-file dependency the cheap filter below ignores — is still
     computed, correctly and serially, by `find_hash`.
@@ -244,17 +303,9 @@ def _scan_file_worker(task):
     # functionClass instance files: walk the AST and record a per-derived-
     # class hash + its inheritance dependencies.
     if file_to_process in function_class_file_set:
-        tree = parse_file(file_to_process)
-        for node in walk_tree(tree):
-            ntype = node.get('type')
-            if ntype not in function_class_names:
-                continue
-            hash_name = (node.get('directive') or {}).get('name')
-            if not hash_name:
-                continue
-            class_record, deps = class_dependencies(node, ntype)
-            class_type = (class_record or {}).get('type')
-            deps = [d for d in deps if d != class_type]
+        for hash_name, deps in _instance_class_dependencies(
+                file_to_process, function_class_names, build_path,
+                source_root):
             type_records.append((hash_name,
                                  {'sourceMD5': _source_md5(),
                                   'dependencies': list(deps)}))
@@ -338,6 +389,19 @@ def main(argv):
     # last-writer-wins semantics for any shared type name. `seen_identifiers`
     # tracks every participating file (for stale-entry pruning), independent
     # of whether it needs a rescan.
+    # Each file's `tracked` list is (roughly) its whole dependency closure, so the
+    # same ~2000 paths recur in every list -- over half a million times in all.
+    # Stat each path once per run.
+    mtimes = {}
+
+    def _modified_since_cache(path):
+        if path not in mtimes:
+            try:
+                mtimes[path] = os.stat(path).st_mtime
+            except OSError:
+                mtimes[path] = None
+        return mtimes[path] is not None and mtimes[path] > cache_mtime
+
     files_to_scan = []
     for file_name in source_names:
         if os.path.basename(file_name).startswith('.#'):
@@ -355,10 +419,7 @@ def main(argv):
         rescan = True
         if file_identifier in digests_per_file:
             tracked = digests_per_file[file_identifier].get('files') or []
-            stale = any(
-                os.path.exists(t) and os.stat(t).st_mtime > cache_mtime
-                for t in tracked
-            )
+            stale = any(_modified_since_cache(t) for t in tracked)
             rescan = bool(stale)
         if not rescan:
             continue

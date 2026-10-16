@@ -188,20 +188,22 @@ contains
     !!}
     use, intrinsic :: ISO_Fortran_Env                 , only : int32
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use            :: Display                         , only : displayIndent                 , displayUnindent               , verbosityLevelStandard
+    use            :: Display                         , only : displayIndent                  , displayUnindent               , verbosityLevelStandard
     use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use            :: File_Utilities                  , only : File_Exists
-    use            :: Dictionaries                    , only : rank1IntegerSizeTPtrDictionary, rank2IntegerSizeTPtrDictionary, rank1DoublePtrDictionary    , rank2DoublePtrDictionary, &
-         &                                                     doubleDictionary              , varyingStringDictionary       , integerSizeTDictionary      , genericDictionary
-    use            :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
+    use            :: Dictionaries                    , only : rank1IntegerSizeTPtrDictionary , rank2IntegerSizeTPtrDictionary, rank1DoublePtrDictionary    , rank2DoublePtrDictionary, &
+         &                                                     doubleDictionary               , varyingStringDictionary       , integerSizeTDictionary      , genericDictionary
+    use            :: Numerical_Constants_Astronomical, only : massSolar                      , megaParsec
     use            :: Numerical_Constants_Prefixes    , only : kilo
+    use            :: Error                           , only : Error_Report_Allocation_Failure
     implicit none
     class           (nbodyImporterGadgetBinary), intent(inout)                                 :: self
     type            (nBodyData                ), intent(  out), allocatable  , dimension( :  ) :: simulations
     integer                                                                  , dimension( 6  ) :: numberParticleType     , numberParticleTypeFile
     integer                                                                                    :: numberParticleTotal    , numberParticleTotalFile, &
          &                                                                                        numberParticleTotalRead, numberParticleStartRead, &
-         &                                                                                        numberMassStartRead    , numberTypeAssigned
+         &                                                                                        numberMassStartRead    , numberTypeAssigned     , &
+         &                                                                                        allocErr
     real                                                      , allocatable  , dimension( :,:) :: position               , velocity
     double precision                                          , pointer      , dimension( :,:) :: position_              , velocity_
     double precision                                                         , dimension( 6  ) :: massParticleType
@@ -270,13 +272,19 @@ contains
              massesDiffer       =    massParticleType(self%particleType+1) == 0.0d0 
           end if
           readMasses=massesDiffer .and. any(massParticleType == 0.0d0)
-          allocate       (position_(3,numberParticleTotal))
-          allocate       (velocity_(3,numberParticleTotal))
-          allocate       (id_      (  numberParticleTotal))
-          if (     massesDiffer   )                         &
-               & allocate(mass_    (  numberParticleTotal))
+          allocate       (position_(3,numberParticleTotal),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('position_',3*numberParticleTotal,{introspection:location})
+          allocate       (velocity_(3,numberParticleTotal),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('velocity_',3*numberParticleTotal,{introspection:location})
+          allocate       (id_      (  numberParticleTotal),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('id_'      ,  numberParticleTotal,{introspection:location})
+          if (massesDiffer) then
+             allocate(mass_(  numberParticleTotal),stat=allocErr)
+             if (allocErr /= 0) call Error_Report_Allocation_Failure('mass_' ,  numberParticleTotal,{introspection:location})
+          end if
           if (self%setParticleType) then
-             allocate    (type_    (  numberParticleTotal))
+             allocate    (type_    (  numberParticleTotal),stat=allocErr)
+             if (allocErr /= 0) call Error_Report_Allocation_Failure('type_' ,  numberParticleTotal,{introspection:location})
           else
              allocate    (type_    (                    0))
           end if
@@ -292,11 +300,16 @@ contains
              numberParticleStartRead=0
           end if
        end if
-       allocate       (position(3,sum(numberParticleTypeFile                               )))
-       allocate       (velocity(3,sum(numberParticleTypeFile                               )))
-       allocate       (id      (  sum(numberParticleTypeFile                               )))
-       if (readMasses)                                                                         &
-            & allocate(mass    (  sum(numberParticleTypeFile,mask=massParticleType == 0.0d0)))
+       allocate       (position(3,sum(numberParticleTypeFile)),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('position',3*sum(numberParticleTypeFile                               ),{introspection:location})
+       allocate       (velocity(3,sum(numberParticleTypeFile)),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('velocity',3*sum(numberParticleTypeFile                               ),{introspection:location})
+       allocate       (id      (  sum(numberParticleTypeFile)),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('id'      ,  sum(numberParticleTypeFile                               ),{introspection:location})
+       if (readMasses) then
+          allocate(mass(  sum(numberParticleTypeFile,mask=massParticleType == 0.0d0)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('mass' ,  sum(numberParticleTypeFile,mask=massParticleType == 0.0d0),{introspection:location})
+       end if
        read        (file) recordMarker,position,recordMarker
        read        (file) recordMarker,velocity,recordMarker
        read        (file) recordMarker,id      ,recordMarker

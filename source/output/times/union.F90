@@ -60,16 +60,21 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`outputTimesUnion` output times class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters , only : inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameters
     implicit none
     type   (outputTimesUnion    )                :: self
     type   (inputParameters     ), intent(inout) :: parameters
     type   (outputTimesUnionList), pointer       :: outputTimesUnion_
     integer                                      :: i
 
+    ! Members are given as nested `outputTimes` parameters, which is also the name under which they are built below. Counting
+    ! a different name (`outputTimesUnion`) left the union with no members, which then had no times to report.
+    if (parameters%copiesCount('outputTimes',zeroIfNotPresent=.true.) == 0) &
+         & call Error_Report('at least one [outputTimes] must be specified'//{introspection:location})
     self%outputTimesUnion_ => null()
     outputTimesUnion_      => null()
-    do i=1,parameters%copiesCount('outputTimesUnion',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputTimes',zeroIfNotPresent=.true.)
        if (associated(outputTimesUnion_)) then
           allocate(outputTimesUnion_%next)
           outputTimesUnion_ => outputTimesUnion_%next
@@ -77,10 +82,15 @@ contains
           allocate(self%outputTimesUnion_)
           outputTimesUnion_ => self             %outputTimesUnion_
        end if
-       outputTimesUnion_%outputTimes_ => outputTimes(parameters,i)
+       ! Build the member through the `objectBuilder` directive so that its reference count is incremented. A bare pointer
+       ! assignment left the member with a zero reference count, so that destroying the temporary object returned by this
+       ! constructor destroyed the member along with it.
+       !![
+       <objectBuilder class="outputTimes" name="outputTimesUnion_%outputTimes_" source="parameters" copy="i"/>
+       !!]
     end do
     !![
-    <inputParametersValidate source="parameters" multiParameters="outputTimesUnion"/>
+    <inputParametersValidate source="parameters" multiParameters="outputTimes"/>
     !!]
     call self%initialize()
     return
@@ -113,8 +123,12 @@ contains
        outputTimesUnion_ => self%outputTimesUnion_
        do while (associated(outputTimesUnion_))
           outputTimesUnionNext => outputTimesUnion_   %next
-          deallocate(outputTimesUnion_%outputTimes_)
-          deallocate(outputTimesUnion_             )
+          ! Members are shared with any copy of this object (the generated assignment counts the references), so they must be
+          ! released through the reference count rather than deallocated outright.
+          !![
+          <objectDestructor name="outputTimesUnion_%outputTimes_"/>
+          !!]
+          deallocate(outputTimesUnion_)
           outputTimesUnion_    => outputTimesUnionNext
        end do
     end if

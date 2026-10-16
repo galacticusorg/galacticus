@@ -14,6 +14,18 @@
       "reason": "Pre-migration parameter name; migration test fixture. Remove once the validator applies migrations (Step 4)."
     },
     {
+      "file": "parameterMigration.xml",
+      "kind": "unknown",
+      "name": "coefficient",
+      "reason": "Pre-migration parameter of dustAttenuationBirthCloud, removed when dust attenuation took its normalization from dustProperties; migration test fixture. Remove once the validator applies migrations (Step 4)."
+    },
+    {
+      "file": "parameterMigration.xml",
+      "kind": "unknown",
+      "name": "dustToMetalsRatio",
+      "reason": "Pre-migration parameter of dustAttenuationAtlasCompendium, removed when dust attenuation took its normalization from dustProperties; migration test fixture. Remove once the validator applies migrations (Step 4)."
+    },
+    {
       "file": "test-allowed-parameters.xml",
       "kind": "unknown",
       "name": "scaleCutOff",

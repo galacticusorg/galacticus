@@ -39,6 +39,14 @@ Stellar populations
    postprocessing-stellar-spectra
    broadband-stellar-luminosities
 
+Galaxy spectra
+--------------
+
+.. toctree::
+   :maxdepth: 1
+
+   dust-absorption-and-emission
+
 N-body merger trees
 -------------------
 

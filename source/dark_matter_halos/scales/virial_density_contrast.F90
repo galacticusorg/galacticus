@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo scales based on virial density contrast.
   !!}
@@ -24,6 +26,7 @@
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Kind_Numbers           , only : kind_int8
+  use :: Numerical_Ranges       , only : rangeLattice
   use :: Tables                 , only : table1DLogarithmicLinear
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
   
@@ -52,8 +55,7 @@
           &                                                   temperatureVirialStored             , velocityVirialStored            , &
           &                                                   timePrevious                        , densityGrowthRatePrevious       , &
           &                                                   massPrevious
-     ! Table for fast lookup of the mean density of halos.
-     double precision                                      :: densityMeanTimeMaximum              , densityMeanTimeMinimum   =-1.0d0
+     ! Table for fast lookup of the mean density of halos. Its range is carried by the lattice on which it is built.
      type            (table1DLogarithmicLinear  )          :: densityMeanTable
    contains
      !![
@@ -84,6 +86,9 @@
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
 
   integer, parameter :: meanDensityTablePointsPerDecade=100
+
+  ! Interval, in lattice steps, to which the bounds of the mean density tabulation are pinned - half decades.
+  integer, parameter :: meanDensityTableAnchorEvery    =meanDensityTablePointsPerDecade/2
 
 contains
 
@@ -133,8 +138,6 @@ contains
     self%radiusVirialComputed      =.false.
     self%temperatureVirialComputed =.false.
     self%velocityVirialComputed    =.false.
-    self%densityMeanTimeMaximum    =-1.0d0
-    self%densityMeanTimeMinimum    =-1.0d0
     self%timePrevious              =-1.0d0
     self%massPrevious              =-1.0d0
     return
@@ -165,7 +168,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"   />
     <objectDestructor name="self%virialDensityContrast_"/>
     !!]
-    if (self%densityMeanTimeMinimum >= 0.0d0) call self%densityMeanTable%destroy()
+    if (self%densityMeanTable%lattice%isDefined()) call self%densityMeanTable%destroy()
     if (calculationResetEvent%isAttached(self,virialDensityContrastDefinitionCalculationReset)) call calculationResetEvent%detach(self,virialDensityContrastDefinitionCalculationReset)
     return
   end subroutine virialDensityContrastDefinitionDestructor
@@ -355,12 +358,15 @@ contains
     Returns the mean density for ``node``.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Numerical_Ranges, only : Range_Pinned      , gridSchemePerDecade
     implicit none
-    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-    type            (treeNode                                          ), intent(inout) :: node
-    class           (nodeComponentBasic                                ), pointer       :: basic
-    integer                                                                             :: i    , densityMeanTablePoints
-    double precision                                                                    :: time
+    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)             :: self
+    type            (treeNode                                          ), intent(inout)             :: node
+    class           (nodeComponentBasic                                ), pointer                   :: basic
+    integer                                                                                         :: i
+    type            (rangeLattice                                      )                            :: lattice
+    logical                                                             , allocatable, dimension(:) :: isComputed
+    double precision                                                                                :: time
 
     ! Get the basic component.
     basic => node%basic()
@@ -376,19 +382,24 @@ contains
             &                                        /self%cosmologyFunctions_   %expansionFactor(             time)**3
     else
        ! For non-mass-dependent virial density contrasts we can tabulate as a function of time.
-       ! Retabulate the mean density vs. time if necessary.
-       if (time < self%densityMeanTimeMinimum .or. time > self%densityMeanTimeMaximum) then
-          if (self%densityMeanTimeMinimum <= 0.0d0) then
-             self%densityMeanTimeMinimum=                                time/2.0d0
-             self%densityMeanTimeMaximum=                                time*2.0d0
-          else
-             self%densityMeanTimeMinimum=min(self%densityMeanTimeMinimum,time/2.0d0)
-             self%densityMeanTimeMaximum=max(self%densityMeanTimeMaximum,time*2.0d0)
-          end if
-          densityMeanTablePoints=int(log10(self%densityMeanTimeMaximum/self%densityMeanTimeMinimum)*dble(meanDensityTablePointsPerDecade))+1
-          call self%densityMeanTable%destroy()
-          call self%densityMeanTable%create(self%densityMeanTimeMinimum,self%densityMeanTimeMaximum,densityMeanTablePoints)
-          do i=1,densityMeanTablePoints
+       ! Find the range of times to tabulate, pinned to an absolute lattice. Pinning makes the tabulation - and therefore every
+       ! value interpolated from it - independent of the time at which the table was first requested, and allows the table to be
+       ! extended without recomputing any value already found. The safety margin `Range_Pinned` applies by default is a factor of
+       ! two at each end, which is the margin this tabulation always used. Anchoring is to half decades rather than whole ones:
+       ! on a cosmic time axis a whole decade spans most of the history of the universe.
+       lattice=Range_Pinned(                                                &
+            &                              time                           , &
+            &                              meanDensityTablePointsPerDecade, &
+            &                              gridSchemePerDecade            , &
+            &               latticeCurrent=self%densityMeanTable%lattice  , &
+            &               anchorEvery   =meanDensityTableAnchorEvery      &
+            &              )
+       if (.not.self%densityMeanTable%lattice%covers(lattice)) then
+          ! Extend the tabulation onto the new lattice, preserving every value already computed. Each tabulated value depends
+          ! only on its own abscissa, so those carried over are exactly what a fresh tabulation would have produced.
+          call self%densityMeanTable%extend(lattice,isComputed)
+          do i=1,lattice%count
+             if (isComputed(i)) cycle
              call self%densityMeanTable%populate                                                               &
                   & (                                                                                          &
                   &  +self%virialDensityContrast_%densityContrast(basic%mass(),self%densityMeanTable%x(i))     &

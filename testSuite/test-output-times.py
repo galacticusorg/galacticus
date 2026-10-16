@@ -13,7 +13,7 @@ subprocess.run("cd ..; mkdir -p testSuite/outputs; ./Galacticus.exe testSuite/pa
 
 # Check for outputs.
 if not os.path.exists("outputs/test-output-times.hdf5"):
-    print("test-output-times.py: FAILED to run Galacticus model")
+    print("FAILED: failed to run Galacticus model")
     sys.exit(0)
 
 # Find all output times.
@@ -43,8 +43,8 @@ timesExpected = np.array(sorted(timesExpected))
 
 # Compare the times.
 if len(times) != len(timesExpected):
-    print("test-output-times.py: FAILED - number of times does not match")
+    print("FAILED: number of output times does not match")
 elif np.any(np.abs(times - timesExpected) / timesExpected > 1.0e-3):
-    print("test-output-times.py: FAILED - times do not match")
+    print("FAILED: output times do not match")
 else:
-    print("test-output-times.py: SUCCESS")
+    print("SUCCESS: output times")

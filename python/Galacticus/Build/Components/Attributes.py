@@ -47,7 +47,7 @@ def Default_Functions(build: dict) -> None:
     entries on every component property.
 
     Each `getFunction` / `setFunction` is
-    normalised to a dict with `content` (the Fortran symbol name) and
+    normalized to a dict with `content` (the Fortran symbol name) and
     `build` (True if the build system needs to emit a body, False if the
     user supplied one in the XML).
     """

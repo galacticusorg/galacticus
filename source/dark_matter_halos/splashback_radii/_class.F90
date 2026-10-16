@@ -25,7 +25,7 @@ module Dark_Matter_Halo_Splashback_Radii
   !!{RST
   Provides a class implementing splashback radii of dark matter halos.
   !!}
-  !+ Implemented by Andrew Benson with assistance from Claude.
+  !+ Contributions to this file made by: Andrew Benson, Claude.
   use :: Galacticus_Nodes  , only : treeNode
   use :: Mass_Distributions, only : massDistributionClass
   private

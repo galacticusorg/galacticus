@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an isothermal kinematic distribution class.
   !!}
@@ -24,7 +26,9 @@
   !![
   <kinematicsDistribution name="kinematicsDistributionIsothermal" docformat="rst">
    <description>
-   An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature ``[temperature]`` and mean atomic mass ``[massAtomicMean]``, appropriate for modelling thermally supported gas in hydrostatic equilibrium.
+   An isothermal kinematic distribution class for collisional gas components in which all particles share a single uniform temperature. The 1D velocity dispersion is derived from the gas temperature ``[temperature]`` and mean atomic mass ``[massAtomicMean]``, appropriate for modeling thermally supported gas in hydrostatic equilibrium. The distribution is treated as collisional unless
+   ``[collisional]`` is false, as it should be when the class is used to describe an isothermal distribution of collisionless
+   particles (e.g. dark matter).
    </description>
   </kinematicsDistribution>
   !!]
@@ -34,6 +38,7 @@
      !!}
      double precision :: temperature_       , massAtomicMean, &
           &              velocityDispersion_
+     logical          :: collisional
    contains
      procedure :: isCollisional                  => isothermalIsCollisional
      procedure :: temperature                    => isothermalTemperature
@@ -61,7 +66,18 @@ contains
     type            (inputParameters                 ), intent(inout) :: parameters
     double precision                                                  :: temperature       , massAtomicMean, &
          &                                                               velocityDispersion
+    logical                                                           :: collisional
 
+    !![
+    <inputParameter docformat="rst">
+      <name>collisional</name>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      If true, the distribution is treated as collisional (i.e. as a gas) - this affects, for example, the computation of dynamical friction.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('temperature')) then
        !![
        <inputParameter docformat="rst">
@@ -79,7 +95,7 @@ contains
 	 <source>parameters</source>
        </inputParameter>
        !!]
-       self=kinematicsDistributionIsothermal(temperature_=temperature,massAtomicMean=massAtomicMean)
+       self=kinematicsDistributionIsothermal(temperature_=temperature,massAtomicMean=massAtomicMean,collisional=collisional)
     else
        !![
        <inputParameter docformat="rst">
@@ -90,7 +106,7 @@ contains
 	 <source>parameters</source>
        </inputParameter>
        !!]
-       self=kinematicsDistributionIsothermal(velocityDispersion_=velocityDispersion)
+       self=kinematicsDistributionIsothermal(velocityDispersion_=velocityDispersion,collisional=collisional)
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -98,9 +114,10 @@ contains
     return
   end function isothermalConstructorParameters
   
-  function isothermalConstructorInternal(temperature_,massAtomicMean,velocityDispersion_) result(self)
+  function isothermalConstructorInternal(temperature_,massAtomicMean,velocityDispersion_,collisional) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class.
+    Constructor for the :galacticus-class:`kinematicsDistributionIsothermal` kinematic distribution class. The distribution
+    is collisional unless ``collisional`` is present and false.
     !!}
     use :: Error                       , only : Error_Report
     use :: Numerical_Constants_Atomic  , only : atomicMassUnit
@@ -110,10 +127,13 @@ contains
     type            (kinematicsDistributionIsothermal)                          :: self
     double precision                                  , intent(in   ), optional :: temperature_       , massAtomicMean, &
          &                                                                         velocityDispersion_
+    logical                                           , intent(in   ), optional :: collisional
     !![
+    <optionalArgument name="collisional" defaultsTo=".true."/>
     <constructorAssign variables="temperature_, massAtomicMean, velocityDispersion_"/>
     !!]
 
+    self%collisional=collisional_
     if (present(velocityDispersion_) .and. present(temperature_)) then
        call Error_Report('can not provide both [temperature] and [velocityDispersion]'//{introspection:location})
     else if (present(temperature_       )) then
@@ -129,11 +149,11 @@ contains
        if (     present(massAtomicMean)) call Error_Report('[massAtomicMean] must not be provided'//{introspection:location})
        self%massAtomicMean     =+1.0d0
        self%temperature_       =+(                     &
-            &                    +velocityDispersion_ &
-            &                    *kilo                &
-            &                   )**2                  &
-            &                  *atomicMassUnit        &
-            &                  /boltzmannsConstant
+            &                     +velocityDispersion_ &
+            &                     *kilo                &
+            &                    )**2                  &
+            &                   *atomicMassUnit        &
+            &                   /boltzmannsConstant
     else
        call Error_Report('either [temperature] or [velocityDispersion] must be supplied'//{introspection:location})
     end if
@@ -142,12 +162,12 @@ contains
 
   logical function isothermalIsCollisional(self)
     !!{RST
-    Return true indicating that the isothermal kinematic distribution represents collisional particles.
+    Return true if the isothermal kinematic distribution represents collisional particles.
     !!}
     implicit none
     class(kinematicsDistributionIsothermal), intent(inout) :: self
     
-    isothermalIsCollisional=.true.
+    isothermalIsCollisional=self%collisional
     return
   end function isothermalIsCollisional
 

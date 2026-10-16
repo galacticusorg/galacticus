@@ -97,6 +97,7 @@ contains
     !!{RST
     Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not fully compatible with chemical markup language (CML), but only a limited subset of it.
     !!}
+    use :: Display           , only : displayGreen                , displayReset
     use :: FoX_dom           , only : Node                        , destroy           , extractDataContent
     use :: Error             , only : Error_Report
     use :: Input_Paths       , only : inputPath                   , pathTypeDataStatic
@@ -120,7 +121,15 @@ contains
        fileName=char(inputPath(pathTypeDataStatic))//'abundances/Chemical_Database.cml'
        !$omp critical (FoX_DOM_Access)
        doc => XML_Parse(char(fileName),iostat=ioErr)
-       if (ioErr /= 0) call Error_Report('Unable to find chemical database file'//{introspection:location})
+       if (ioErr /= 0) call Error_Report(                                                                                       &
+            &                            'Unable to find data file "'//char(fileName)//'"'//char(10)                         // &
+            &                            displayGreen()//'HELP:'//displayReset()                                             // &
+            &                            ' this file is provided by the Galacticus datasets repository. If the path above'   // &
+            &                            ' begins with "./" then the `GALACTICUS_DATA_PATH` environment variable is not set;'// &
+            &                            ' set it to the location of your clone of'                                          // &
+            &                            ' https://github.com/galacticusorg/datasets'                                        // &
+            &                            {introspection:location}                                                               &
+            &                           )
        ! Get a list of all chemicals.
        call XML_Get_Elements_By_Tag_Name(doc,"chemical",chemicalList)
        ! Allocate the array of chemicals.

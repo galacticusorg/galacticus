@@ -69,6 +69,7 @@ contains
       <description>
       The minimum timescale (in units of the component dynamical time) for outflows due to stellar feedback.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_" source="parameters"/>
     !!]

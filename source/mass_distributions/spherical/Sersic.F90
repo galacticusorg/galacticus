@@ -17,22 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
-  Implementation of a S\'ersic mass distribution class.
+  Implementation of a Sérsic mass distribution class.
   !!}
 
   use :: Numerical_Interpolation, only : interpolator
+  use :: Numerical_Ranges       , only : rangeLattice
 
   !![
   <massDistribution name="massDistributionSersic" docformat="rst">
    <description>
-   A S\'ersic mass distribution class implementing the spherically deprojected form of the S\'ersic surface brightness profile :math:`I(R) \propto \exp(-b_n [(R/R_e)^{1/n}-1])`, where :math:`n` controls the profile shape.
+   A Sérsic mass distribution class implementing the spherically deprojected form of the Sérsic surface brightness profile :math:`I(R) \propto \exp(-b_n [(R/R_e)^{1/n}-1])`, where :math:`n` controls the profile shape.
    </description>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSersic
      !!{RST
-     The S\'ersic density profile.
+     The Sérsic density profile.
      !!}
      double precision                                          :: densityNormalization                  , mass              , &
           &                                                       radiusHalfMass_                       , index_
@@ -41,6 +44,7 @@
      logical                                                   :: tableInitialized              =.false.
      integer                                                   :: tableCount
      double precision                                          :: tableRadiusMaximum                    , tableRadiusMinimum
+     type            (rangeLattice)                            :: tableLattice
      double precision                                          :: table3dRadiusHalfMass
      double precision                                          :: table2dRadiusHalfMass
      double precision                                          :: gradientLogarithmicMassCentral
@@ -74,7 +78,15 @@
   end interface massDistributionSersic
 
   ! Table granularity for Sersic profiles.
-  integer                        , parameter :: tablePointsPerDecade=1000
+  integer                        , parameter :: tablePointsPerDecade     =1000
+
+  ! Seed range for the tabulation. Every range begins from this one, so that any two tabulations - built at different requested
+  ! radii - start from a common set of bounds.
+  double precision               , parameter :: tableRadiusMinimumDefault=1.0d-3                 , tableRadiusMaximumDefault=1.0d+3
+
+  ! Interval, in lattice steps, to which the tabulation bounds are pinned. A whole decade of this tabulation is a thousand
+  ! points, each an Abel integral, so the bounds are anchored to tenths of a decade instead.
+  integer                        , parameter :: tableAnchorEvery         =tablePointsPerDecade/10
 
   ! Module scope variables used in integration and root finding.
   class  (massDistributionSersic), pointer   :: self_
@@ -103,7 +115,7 @@ contains
       <variable>index_</variable>
       <defaultValue>4.0d0</defaultValue>
       <description>
-      The S\'ersic index :math:`n` that controls the shape of the surface brightness (or mass surface density) profile; :math:`n=1` gives an exponential profile, :math:`n=4` gives the de Vaucouleurs profile, and larger :math:`n` produces more centrally concentrated profiles.
+      The Sérsic index :math:`n` that controls the shape of the surface brightness (or mass surface density) profile; :math:`n=1` gives an exponential profile, :math:`n=4` gives the de Vaucouleurs profile, and larger :math:`n` produces more centrally concentrated profiles.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -111,7 +123,7 @@ contains
       <name>radiusHalfMass</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The projected half-mass (effective) radius (in Mpc) of the S\'ersic profile, :math:`R_e`, within which half the total projected mass is enclosed.
+      The projected half-mass (effective) radius (in Mpc) of the Sérsic profile, :math:`R_e`, within which half the total projected mass is enclosed.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -119,7 +131,7 @@ contains
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The total mass (in :math:`\mathrm{M}_\odot`) of the S\'ersic profile, used together with ``index`` and ``radiusHalfMass`` to set the overall normalization of the density distribution.
+      The total mass (in :math:`\mathrm{M}_\odot`) of the Sérsic profile, used together with ``index`` and ``radiusHalfMass`` to set the overall normalization of the density distribution.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -127,7 +139,7 @@ contains
       <name>dimensionless</name>
       <defaultValue>.true.</defaultValue>
       <description>
-      If true the S\'ersic profile is considered to be dimensionless.
+      If true the Sérsic profile is considered to be dimensionless.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -180,8 +192,8 @@ contains
     if (present(dimensionless)) self%dimensionless=dimensionless
     ! Initialize state.
     self%tableInitialized     =.false.
-    self%tableRadiusMaximum   =1.0d+3
-    self%tableRadiusMinimum   =1.0d-3
+    self%tableRadiusMaximum   =tableRadiusMaximumDefault
+    self%tableRadiusMinimum   =tableRadiusMinimumDefault
     self%table3dRadiusHalfMass=1.0d+0
     self%index_               =index
     ! Tabulate the profile.
@@ -213,7 +225,7 @@ contains
 
   double precision function sersicDensity(self,coordinates)
     !!{RST
-    Return the density at the specified ``coordinates`` in a S\'ersic mass distribution.
+    Return the density at the specified ``coordinates`` in a Sérsic mass distribution.
     !!}
     use :: Coordinates , only : assignment(=)               , coordinateSpherical
     implicit none
@@ -236,7 +248,7 @@ contains
 
   double precision function sersicDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{RST
-    Returns a radial density moment for the S\'ersic mass distribution.
+    Returns a radial density moment for the Sérsic mass distribution.
     !!}
     implicit none
     class           (massDistributionSersic), intent(inout)           :: self
@@ -289,7 +301,7 @@ contains
 
   double precision function sersicMassTotal(self)
     !!{RST
-    Computes the total mass for S\'ersic mass distributions.
+    Computes the total mass for Sérsic mass distributions.
     !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
@@ -300,7 +312,7 @@ contains
   
   double precision function sersicMassEnclosedBySphere(self,radius)
     !!{RST
-    Computes the mass enclosed within a sphere of given ``radius`` for S\'ersic mass distributions.
+    Computes the mass enclosed within a sphere of given ``radius`` for Sérsic mass distributions.
     !!}
     implicit none
     class           (massDistributionSersic), intent(inout), target :: self
@@ -336,7 +348,7 @@ contains
 
   double precision function sersicPotential(self,coordinates,status)
     !!{RST
-    Return the potential at the specified ``coordinates`` in a S\'ersic mass distribution.
+    Return the potential at the specified ``coordinates`` in a Sérsic mass distribution.
     !!}
     use :: Coordinates                     , only : assignment(=)                 , coordinateSpherical
     use :: Error                           , only : Error_Report
@@ -383,7 +395,7 @@ contains
 
   double precision function sersicRadiusHalfMass(self)
     !!{RST
-    Return the half-mass radius of a S\'ersic mass distribution.
+    Return the half-mass radius of a Sérsic mass distribution.
     !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
@@ -394,7 +406,7 @@ contains
 
   double precision function sersicRadiusHalfMassProjected(self)
     !!{RST
-    Return the half-mass radius in projection of a S\'ersic mass distribution.
+    Return the half-mass radius in projection of a Sérsic mass distribution.
     !!}
     implicit none
     class(massDistributionSersic), intent(inout) :: self
@@ -406,11 +418,11 @@ contains
 
   subroutine sersicTabulate(self,radius)
     !!{RST
-    Tabulate the density enclosed mass, and potential in a dimensionless S\'ersic profile.
+    Tabulate the density enclosed mass, and potential in a dimensionless Sérsic profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
-    use :: Numerical_Ranges        , only : Make_Range                  , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Range_Pinned                , gridSchemePerDecade
     use :: Root_Finder             , only : rangeExpandMultiplicative   , rootFinder
     use :: Table_Labels            , only : extrapolationTypeExtrapolate
     implicit none
@@ -463,11 +475,29 @@ contains
        ! Try building the table until it has sufficient extent to encompass the requested radius.
        tableHasSufficientExtent=.false.
        do while (.not.tableHasSufficientExtent)
-          ! Find suitable radius limits.
-          self%tableRadiusMinimum=min(self%tableRadiusMinimum,0.5d0*radiusActual*self%table3dRadiusHalfMass)
-          self%tableRadiusMaximum=max(self%tableRadiusMaximum,2.0d0*radiusActual*self%table3dRadiusHalfMass)
-          ! Determine the number of points at which to tabulate the profile.
-          self%tableCount=int(log10(self%tableRadiusMaximum/self%tableRadiusMinimum)*dble(tablePointsPerDecade))+1
+          ! Find suitable radius limits, pinned to an absolute lattice. Unlike the tabulations converted elsewhere under this
+          ! issue, no previously computed value can be carried over here: the densities are Abel integrals taken out to
+          ! `radiusInfinity`, which is set from the upper bound; the enclosed masses are accumulated from the innermost radius
+          ! outwards; and both are then normalized by the enclosed mass at the outermost point. Every stored value therefore
+          ! moves whenever either bound moves, and the table is rebuilt in full below, as it always was.
+          !
+          ! What pinning buys is reproducibility. The bounds may now take only the discrete values which are lattice points a
+          ! multiple of `tableAnchorEvery` apart, so the tabulation - and every quantity derived from it, including the half mass
+          ! radius by which the abscissae are subsequently rescaled - depends only on which anchored interval the requested
+          ! radius fell in, not on the radius itself. Two runs which request slightly different radii falling in the same
+          ! interval build identical tables. Taking the union with the lattice already in use also guarantees the range never
+          ! shrinks, so this loop terminates.
+          self%tableLattice      =Range_Pinned(                                                                      &
+               &                                              radiusActual*self%table3dRadiusHalfMass              , &
+               &                                              tablePointsPerDecade                                 , &
+               &                                              gridSchemePerDecade                                  , &
+               &                               rangeCurrent  =[tableRadiusMinimumDefault,tableRadiusMaximumDefault], &
+               &                               latticeCurrent=self%tableLattice                                    , &
+               &                               anchorEvery   =tableAnchorEvery                                       &
+               &                              )
+          self%tableRadiusMinimum=self%tableLattice%minimum()
+          self%tableRadiusMaximum=self%tableLattice%maximum()
+          self%tableCount        =self%tableLattice%count
           ! Allocate arrays for storing the tables.
           if (allocated(self%tableRadius)) then
              deallocate(self%tableRadius      )
@@ -479,8 +509,9 @@ contains
           allocate(self%tableDensity     (self%tableCount))
           allocate(self%tableEnclosedMass(self%tableCount))
           allocate(self%tablePotential   (self%tableCount))
-          ! Create an array of logarithmically distributed radii.
-          self%tableRadius=Make_Range(self%tableRadiusMinimum,self%tableRadiusMaximum,self%tableCount,rangeType=rangeTypeLogarithmic)
+          ! Take the abscissae from the lattice rather than by subdividing the range, so that they are bit-identical to those of
+          ! any other tabulation built on the same lattice.
+          self%tableRadius=self%tableLattice%values()
           ! Compute the coefficient appearing in the Sérsic profile.
           self%coefficient=finder%find(rootGuess=coefficientGuess)
           ! Compute a suitably large approximation to infinite radius for use in integration.
@@ -555,7 +586,7 @@ contains
 
   double precision function sersicCoefficientRoot(coefficient)
     !!{RST
-    Root function used in finding the coefficient for S\'ersic profiles.
+    Root function used in finding the coefficient for Sérsic profiles.
     !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete
     implicit none
@@ -567,7 +598,7 @@ contains
 
   double precision function sersicAbelIntegrand(radius)
     !!{RST
-    The integrand in the Abel integral used to invert the S\'ersic profile to get the corresponding 3-D profile.
+    The integrand in the Abel integral used to invert the Sérsic profile to get the corresponding 3-D profile.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none

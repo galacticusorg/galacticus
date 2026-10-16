@@ -127,14 +127,14 @@ contains
             &   .not.parameters%isPresent('massBinCenters'    ) &
             &  .or.                                             &
             &   .not.parameters%isPresent('massLogarithmDelta') &
-            & ) call Error_Report('both [massBinCenters] and [massLogarithmDelta] must be specified if either is specified'   //{introspection:location})
+            & ) call Error_Report('both [massBinCenters] and [massLogarithmDelta] must be specified if either is specified'//{introspection:location})
        if     (                                                 &
             &        parameters%isPresent('massMinimum'       ) &
             &  .or.                                             &
             &        parameters%isPresent('massMaximum'       ) &
             &  .or.                                             &
             &        parameters%isPresent('countMass'         ) &
-            & ) call Error_Report('ambigous mass specification'                                                               //{introspection:location})
+            & ) call Error_Report('ambiguous mass specification'                                                           //{introspection:location})
        !![
        <inputParameter docformat="rst">
          <name>massBinCenters</name>
@@ -152,18 +152,6 @@ contains
        </inputParameter>
        !!]
     else
-       if     (                                                 &
-            &        parameters%isPresent('massBinCenters'    ) &
-            &  .or.                                             &
-            &        parameters%isPresent('massLogarithmDelta') &
-            & ) call Error_Report('ambigous mass specification'                                                               //{introspection:location})
-       if     (                                                 &
-            &   .not.parameters%isPresent('massMinimum'       ) &
-            &  .or.                                             &
-            &   .not.parameters%isPresent('massMaximum'       ) &
-            &  .or.                                             &
-            &   .not.parameters%isPresent('countMass'         ) &
-            & ) call Error_Report('all of [massMinimum], [massMaximum], and [countMass] must be specified if any is specified'//{introspection:location})
        !![
        <inputParameter docformat="rst">
          <name>massMinimum</name>
@@ -227,11 +215,11 @@ contains
        read (text,*) massHalo
     end if
     !![
-    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
-    <objectBuilder class="conditionalMassFunction"    name="conditionalMassFunction_"    source="parameters"/>
-    <objectBuilder class="surveyGeometry"             name="surveyGeometry_"             source="parameters"/>
-    <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"/>
-    <objectBuilder class="haloMassFunction"           name="haloMassFunction_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"                              />
+    <objectBuilder class="conditionalMassFunction"    name="conditionalMassFunction_"    source="parameters"                              />
+    <objectBuilder class="surveyGeometry"             name="surveyGeometry_"             source="parameters"                              />
+    <objectBuilder class="massFunctionIncompleteness" name="massFunctionIncompleteness_" source="parameters"                              />
+    <objectBuilder class="haloMassFunction"           name="haloMassFunction_"           source="parameters" withholds="differential:node"/>
     !!]
     ! Compute the time corresponding to the specified redshift.
     timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
@@ -242,14 +230,14 @@ contains
     <call>
     self=conditionalMassFunctionConstructorInternal(outputGroupName,timeMinimum,timeMaximum,useSurveyLimits,cosmologyFunctions_,conditionalMassFunction_,surveyGeometry_,massFunctionIncompleteness_,haloMassFunction_{conditions})
     </call>
-    <argument  name="massMinimum"        value="massMinimum"        parameterPresent="     parameters"                   />
-    <argument  name="massMaximum"        value="massMaximum"        parameterPresent="     parameters"                   />
-    <argument  name="countMass"          value="countMass"          parameterPresent="     parameters"                   />
-    <argument  name="massBinCenters"     value="massBinCenters"     parameterPresent="     parameters"                   />
-    <argument  name="massLogarithmDelta" value="massLogarithmDelta" parameterPresent="     parameters"                   />
-    <argument  name="massHalo"           value="massHalo"           condition       =".not.integrateOverHaloMassFunction"/>
-    <argument  name="massHaloMinimum"    value="massHaloMinimum"    condition       ="     integrateOverHaloMassFunction"/>
-    <argument  name="massHaloMaximum"    value="massHaloMaximum"    condition       ="     integrateOverHaloMassFunction"/>
+    <argument  name="massMinimum"        value="massMinimum"        condition       =".not.parameters%isPresent('massBinCenters')"/>
+    <argument  name="massMaximum"        value="massMaximum"        condition       =".not.parameters%isPresent('massBinCenters')"/>
+    <argument  name="countMass"          value="countMass"          condition       =".not.parameters%isPresent('massBinCenters')"/>
+    <argument  name="massBinCenters"     value="massBinCenters"     parameterPresent="     parameters"                            />
+    <argument  name="massLogarithmDelta" value="massLogarithmDelta" parameterPresent="     parameters"                            />
+    <argument  name="massHalo"           value="massHalo"           condition       =".not.integrateOverHaloMassFunction"         />
+    <argument  name="massHaloMinimum"    value="massHaloMinimum"    condition       ="     integrateOverHaloMassFunction"         />
+    <argument  name="massHaloMaximum"    value="massHaloMaximum"    condition       ="     integrateOverHaloMassFunction"         />
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"        />

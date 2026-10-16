@@ -36,7 +36,7 @@ Implements an N-body data operator which filters out particles based on a proper
   !![
   <nbodyOperator name="nbodyOperatorFilterProperties" docformat="rst">
    <description>
-   An N-body data operator which retains only particles whose named property values fall within specified minimum and maximum bounds, enabling selection by mass, concentration, spin, or any other stored property. Property names and their lower and upper limits are specified as arrays via ``[names]``, ``[minimum]``, and ``[maximum]``.
+   An N-body data operator which retains only particles whose named property values fall within specified minimum and maximum bounds, enabling selection by mass, concentration, spin, or any other stored property. Property names and their lower and upper limits are specified as arrays via ``[propertyNames]``, ``[rangeLow]``, and ``[rangeHigh]``.
    </description>
   </nbodyOperator>
   !!]

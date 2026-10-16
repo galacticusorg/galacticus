@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a class that implements critical overdensity.
 !!}
@@ -141,7 +143,7 @@ module Cosmological_Density_Field
    </method>
    <method name="isMassDependent" >
     <description>
-    Return true if the critical overdensity :math:`\delta_\mathrm{c}` depends on halo mass (as in ellipsoidal collapse models), signalling that the mass argument must be supplied and cached values are mass-specific.
+    Return true if the critical overdensity :math:`\delta_\mathrm{c}` depends on halo mass (as in ellipsoidal collapse models), signaling that the mass argument must be supplied and cached values are mass-specific.
     </description>
     <type>logical</type>
     <pass>yes</pass>
@@ -352,10 +354,11 @@ module Cosmological_Density_Field
     <type>void</type>
     <pass>yes</pass>
     <modules>Input_Parameters</modules>
-    <argument>type   (inputParameters), intent(inout)           :: descriptor                                </argument>
-    <argument>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
+    <argument>type     (inputParameters), intent(inout)           :: descriptor                                </argument>
+    <argument>logical                   , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
+    <argument>character(len=*          ), intent(in   ), optional :: parameterName                             </argument>
     <code>
-      call self%descriptor(descriptor,includeClass,includeFileModificationTimes)
+      call self%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)
     </code>
    </method>
    <method name="powerNormalization" >
@@ -438,16 +441,16 @@ contains
     double precision                          , intent(in   ), optional             :: mass
     type            (treeNode                ), intent(inout), optional    , target :: node
     integer                                   , intent(  out), optional             :: status
-    double precision                          , parameter                           :: toleranceRelative                =1.0d-12, toleranceAbsolute       =0.0d0, &
+    double precision                          , parameter                           :: toleranceRelative                =1.0d-12   , toleranceAbsolute       =0.0d0, &
          &                                                                             fractionTimeCollapseGrowthMinimum=1.0d-03
     double precision                          , allocatable  , dimension(:)         :: threshold
-    double precision                                                                :: timeBigCrunch                            , timeGuess                     , &
-         &                                                                             collapseThresholdMinimum                 , collapseThresholdMaximum      , &
-         &                                                                             collapseTimePrevious                     , collapseTimeUpperLimit        , &
+    double precision                                                                :: timeBigCrunch                               , timeGuess                     , &
+         &                                                                             collapseThresholdMinimum                    , collapseThresholdMaximum      , &
+         &                                                                             collapseTimePrevious                        , collapseTimeUpperLimit        , &
          &                                                                             timeUpperLimit
-    logical                                                                         :: updateResult                             , remakeTable
-    integer                                                                         :: i                                        , countThresholds               , &
-         &                                                                             countNewLower                            , countNewUpper
+    logical                                                                         :: updateResult                                , remakeTable
+    integer                                                                         :: i                                           , countThresholds               , &
+         &                                                                             countNewLower                               , countNewUpper
 
     ! Assume a successful calculation by default.
     if (present(status)) status=errorStatusSuccess    
@@ -562,6 +565,7 @@ contains
              remakeTable                  =.true.
              self%collapseThresholdMinimum=      criticalOverdensity
              self%collapseThresholdMaximum=2.0d0*criticalOverdensity
+             call collapseThresholdCountValidate(self%countTimeCollapsePerUnit*(self%collapseThresholdMaximum-self%collapseThresholdMinimum)+2.0d0,self%collapseThresholdMinimum,self%collapseThresholdMaximum)
              countThresholds              =int(self%countTimeCollapsePerUnit*(self%collapseThresholdMaximum-self%collapseThresholdMinimum))+2
              ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
              self%collapseThresholdMaximum=self%collapseThresholdMinimum+dble(countThresholds-1)/self%countTimeCollapsePerUnit
@@ -574,6 +578,13 @@ contains
              ! Determine how many points the table must be extended by in each direction to span the new required range.
              countNewLower=0
              countNewUpper=0
+             call collapseThresholdCountValidate(                                                                                       &
+                  &                               +dble(self%collapseThreshold%size())                                                    &
+                  &                               +max(0.0d0,(+self%collapseThresholdMinimum-collapseThresholdMinimum)*self%countTimeCollapsePerUnit+1.0d0) &
+                  &                               +max(0.0d0,(-self%collapseThresholdMaximum+collapseThresholdMaximum)*self%countTimeCollapsePerUnit+1.0d0) , &
+                  &                                    collapseThresholdMinimum                                                         , &
+                  &                                    collapseThresholdMaximum                                                           &
+                  &                              )
              if (self%collapseThresholdMinimum > collapseThresholdMinimum) countNewLower=int((+self%collapseThresholdMinimum-collapseThresholdMinimum)*self%countTimeCollapsePerUnit+1.0d0)
              if (self%collapseThresholdMaximum < collapseThresholdMaximum) countNewUpper=int((-self%collapseThresholdMaximum+collapseThresholdMaximum)*self%countTimeCollapsePerUnit+1.0d0)
              countThresholds=self%collapseThreshold%size()+countNewLower+countNewUpper
@@ -703,5 +714,36 @@ contains
     end if
     return
   end subroutine criticalOverdensityCalculationReset
+
+
+  subroutine collapseThresholdCountValidate(countThresholds,collapseThresholdMinimum,collapseThresholdMaximum)
+    !!{RST
+    Report an attempt to tabulate collapse times at more than the largest permitted number of points. The table is built at a
+    fixed resolution in critical overdensity and extended to span whatever threshold is requested, so a request far outside of
+    the physically-reasonable range drives an unbounded allocation. The count is passed as a floating point number, and checked
+    before it is converted to an integer, as that conversion would itself overflow for such a request.
+    !!}
+    use :: Display            , only : displayGreen  , displayReset
+    use :: Error              , only : Error_Report
+    use :: ISO_Varying_String , only : varying_string, assignment(=), operator(//)
+    implicit none
+    double precision                , intent(in   ) :: countThresholds     , collapseThresholdMinimum, &
+         &                                             collapseThresholdMaximum
+    ! The largest tabulation which will be attempted.
+    double precision                , parameter     :: countThresholdsMaximum=1.0d9
+    type            (varying_string)                :: message
+    character       (len=24        )                :: labelCount          , labelMinimum            , &
+         &                                             labelMaximum
+
+    if (countThresholds <= countThresholdsMaximum) return
+    write (labelCount  ,'(e12.6)') countThresholds
+    write (labelMinimum,'(e12.6)') collapseThresholdMinimum
+    write (labelMaximum,'(e12.6)') collapseThresholdMaximum
+    message='tabulating collapse thresholds over δ_c = ['//trim(adjustl(labelMinimum))//':'//trim(adjustl(labelMaximum))//'] would require '//trim(adjustl(labelCount))//' points'//char(10)// &
+         &  displayGreen()//'   HELP:'//displayReset()//' either a critical overdensity far above the usual value (≈1.7) has been requested, or [countTimeCollapsePerUnit] is very large'//char(10)// &
+         &                  '          - an extreme critical overdensity normally indicates a problem in the parameters of whatever requested it, for example those controlling merger tree branching'
+    call Error_Report(message//{introspection:location})
+    return
+  end subroutine collapseThresholdCountValidate
 
 end module Cosmological_Density_Field

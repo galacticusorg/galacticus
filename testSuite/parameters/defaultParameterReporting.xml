@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes applied to `parametersExtract.xml` for `test-parameters-default-reporting.py`.       -->
+<!-- The verbosity is raised to `warn` so that any warning issued would be displayed as it is     -->
+<!-- issued; the test relies on this to show that the use of a default value or class is *not*    -->
+<!-- reported to the terminal. The output is directed to a file of its own.                       -->
+<changes>
+
+  <change type="replaceOrAppend" path="verbosityLevel">
+    <verbosityLevel value="warn"/>
+  </change>
+
+  <change type="replaceOrAppend" path="outputFileName">
+    <outputFileName value="testSuite/outputs/defaultParameterReporting.hdf5"/>
+  </change>
+
+</changes>

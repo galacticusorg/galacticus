@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !+    Contributions to this file made by: Yu Zhao
 
   !!{RST
@@ -245,10 +247,9 @@ contains
     Generic constructor for the :galacticus-class:`darkMatterProfileDMOSolitonNFWHeated` dark matter halo profile class.
     !!}
     use :: Mass_Distributions          , only : enumerationNonAnalyticSolversIsValid
-    use :: Error                       , only : Component_List                      , Error_Report
+    use :: Error                       , only : Error_Report
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Numerical_Constants_Prefixes, only : kilo
-    use :: Galacticus_Nodes            , only : defaultDarkMatterProfileComponent
     implicit none
     type            (darkMatterProfileDMOSolitonNFWHeated)                     :: self
     class           (darkMatterProfileHeatingClass       ), intent(in), target :: darkMatterProfileHeating_
@@ -283,16 +284,9 @@ contains
     class default
        call Error_Report('expected a `darkMatterParticleFuzzyDarkMatter` dark matter particle object'//{introspection:location})
     end select
-    if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                             &
-        & call Error_Report                                                                                                   &
-        &      (                                                                                                              &
-        &       'solitonNFW dark matter profile requires a dark matter profile component with a gettable "scale" property.'// &
-        &       Component_List(                                                                                               &
-        &                      'darkMatterProfile'                                                                         ,  &
-        &                      defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)                  &
-        &                     )                                                                                            // &
-        &      {introspection:location}                                                                                       &
-        &      )
+    !![
+    <componentPropertyAssert class="darkMatterProfile" properties="scale" require="gettable"/>
+    !!]
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Construct an NFW profile.
@@ -431,8 +425,8 @@ contains
            self%massCorePrevious     =massCore
        end if
     else
-       self%radiusVirialPrevious=+self%darkMatterHaloScale_%radiusVirial(node)
-       self%radiusScalePrevious =+     darkMatterProfile   %scale       (    )
+       self%radiusVirialPrevious=+self%darkMatterHaloScale_%radiusVirial        (node)
+       self%radiusScalePrevious =+self                     %scaleRadiusValidated(node)
     end if
     radiusVirial =self             %radiusVirialPrevious
     radiusScale  =self             %radiusScalePrevious
@@ -492,7 +486,7 @@ contains
 	    <constructor>
               massDistributionNFW(                                             &amp;
                &amp;              mass         =basic%mass                 (), &amp;
-               &amp;              virialRadius =      radiusVirial           , &amp;
+               &amp;              radiusVirial =      radiusVirial           , &amp;
                &amp;              scaleLength  =      radiusScale            , &amp;
                &amp;              componentType=      componentTypeDarkHalo  , &amp;
                &amp;              massType     =      massTypeDark             &amp;
@@ -659,7 +653,7 @@ contains
     massHalo       =+basic                                 %mass                       (                       )
     zeta_0         =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0                )
     zeta_z         =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=expansionFactor      )
-    radiusScale    =+darkMatterProfile                     %scale                      (                       )
+    radiusScale    =+self                                  %scaleRadiusValidated       (node                   )
     radiusVirial   =+self             %darkMatterHaloScale_%radiusVirial               (node                   )
     concentration  =+                                       radiusVirial                                         &
          &          /                                       radiusScale

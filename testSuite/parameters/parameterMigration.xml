@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="51ff8d78923fbad302e487dc22db8d56ca796838" time="2026-08-23T04:06:13"/>
 
   <spheroidVerySimpleTrackLuminosities value="false"/>
 
@@ -10,6 +10,20 @@
       <massDestruction           value="1.0"/>
       <massDestructionFractional value="0.0"/>
     </nodeOperator>
+    <!-- Dynamical friction with a hot halo present: the collisionless treatment of gaseous components must be retained. -->
+    <nodeOperator value="satelliteDynamicalFriction"/>
   </nodeOperator>
+
+  <!-- Dust attenuators predating the `dustProperties` class: the birth cloud coefficient becomes a column of gas, and the
+       compendium's dust-to-metals ratio moves into a `dustProperties` object of its own. -->
+  <dustAttenuation value="sequence">
+    <dustAttenuation value="birthCloud">
+      <coefficient value="0.5"/>
+    </dustAttenuation>
+    <dustAttenuation value="atlasCompendium">
+      <fileName          value="Ferrara1999_MW_hz1.0_Attenuations.hdf5"/>
+      <dustToMetalsRatio value="0.3"/>
+    </dustAttenuation>
+  </dustAttenuation>
 
 <componentHotHalo value="standard"/></parameters>

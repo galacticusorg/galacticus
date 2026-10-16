@@ -292,6 +292,8 @@ contains
          &                                               treeNode
     use            :: Mass_Distributions        , only : massDistributionClass
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
+    use            :: ISO_Varying_String        , only : char
+    use            :: Function_Classes          , only : functionClass
     implicit none
     class           (*                            ), intent(inout)          :: self
     type            (mergerTree                   ), intent(in   )          :: tree
@@ -378,8 +380,10 @@ contains
        if (.not.node%isSatellite()) self%densityNode(timeIndex)=+    self                             %densityNode           (timeIndex                                                   ) &
             &                                                   +    basic                            %mass                  (                                                            ) &
             &                                                   *    tree                             %volumeWeight
+    class is (functionClass)
+       call Error_Report('object is not of [mergerTreeEvolveTimestepHistory] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerTreeEvolveTimestepHistory] class'//{introspection:location})
     end select
     return
   end subroutine historyStore
@@ -394,6 +398,8 @@ contains
     use :: IO_HDF5                         , only : hdf5File    , hdf5Group, hdf5Dataset
     use :: Numerical_Constants_Astronomical, only : gigaYear    , massSolar, megaParsec
     use :: Units_MetaData                  , only : unitType
+    use :: ISO_Varying_String              , only : char
+    use :: Function_Classes                , only : functionClass
     implicit none
     class           (*         ), intent(inout)               :: self
     double precision            , allocatable  , dimension(:) :: rateStarFormationDisk , rateStarFormationSpheroid, &
@@ -451,8 +457,10 @@ contains
        call historyGroup  %writeDataset  (self%densityNode                ,"densityNode"              ,"Node mass density [M⊙/Mpc³]"                   ,datasetReturned=historyDataset)
        call historyDataset%writeAttribute(unitType(massSolar/megaParsec**3         ,"M☉/Mpc³"    ,"solMass/Mpc^3"    ,isComoving=.true.),"units")
        !$ call hdf5Access %unset()
+    class is (functionClass)
+       call Error_Report('object is not of [mergerTreeEvolveTimestepHistory] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [mergerTreeEvolveTimestepHistory] class'//{introspection:location})
     end select
     return
   end subroutine historyWrite

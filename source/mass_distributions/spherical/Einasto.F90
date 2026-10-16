@@ -17,11 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an Einasto (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`) mass distribution class.
   !!}
 
-  use :: Numerical_Interpolation, only : interpolator
+  use :: Tabulations_Inverse, only : tabulationInverse
   
   !![
   <massDistribution name="massDistributionEinasto" docformat="rst">
@@ -40,21 +42,13 @@
      The Einasto (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`) mass distribution.
      !!}
      private
-     double precision                            :: densityNormalization                         , scaleLength                                  , &
-          &                                         shapeParameter                               , massTotal_
-     double precision                            :: enclosedMassRadiusPrevious                   , enclosedMassPrevious
-     double precision                            :: massScaleFreeRadiusMinimum                   , massScaleFreeRadiusMaximum
-     double precision                            :: massScaleFreeMinimum                         , massScaleFreeMaximum
-     type            (interpolator), allocatable :: massScaleFree_
-     double precision                            :: densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum
-     double precision                            :: densityScaleFreeMinimum                      , densityScaleFreeMaximum
-     type            (interpolator), allocatable :: densityScaleFree_
-     double precision                            :: angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum
-     double precision                            :: angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum
-     type            (interpolator), allocatable :: angularMomentumSpecificScaleFree_
-     double precision                            :: timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum
-     double precision                            :: timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
-     type            (interpolator), allocatable :: timeFreefallScaleFree_
+     double precision                    :: densityNormalization             , scaleLength           , &
+          &                                 shapeParameter                   , massTotal_
+     double precision                    :: enclosedMassRadiusPrevious       , enclosedMassPrevious
+     ! Tabulations of the scale-free profile, built for inversion. These are held per object because the scale-free Einasto
+     ! profile depends on the shape parameter, so each is specific to the object which owns it.
+     type            (tabulationInverse) :: massScaleFree_                   , densityScaleFree_     , &
+          &                                 angularMomentumSpecificScaleFree_, timeFreefallScaleFree_
    contains
      !![
      <methods docformat="rst">
@@ -88,6 +82,11 @@
      module procedure massDistributionEinastoConstructorInternal
   end interface massDistributionEinasto
 
+  ! Density of the tabulations. The bounds these reach are found by halving and doubling from a unit seed, so they are exact
+  ! powers of two and are already points of an octave lattice. Thirty points per octave is 99.66 per decade, against the
+  ! hundred per decade used before.
+  integer, parameter :: countRadiiPerOctave=30
+
 contains
 
   function massDistributionEinastoConstructorParameters(parameters) result(self)
@@ -103,7 +102,7 @@ contains
     type            (inputParameters        ), intent(inout) :: parameters
     double precision                                         :: mass                , scaleLength  , &
          &                                                      densityNormalization, concentration, &
-         &                                                      virialRadius        , shapeParameter
+         &                                                      radiusVirial        , shapeParameter
     logical                                                  :: dimensionless
     type            (varying_string         )                :: componentType
     type            (varying_string         )                :: massType
@@ -149,7 +148,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>virialRadius</name>
+      <name>radiusVirial</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
       The virial radius of the Einasto profile.
@@ -185,7 +184,7 @@ contains
      <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
      <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
      <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
-     <argument name="virialRadius"         value="virialRadius"         parameterPresent="parameters"/>
+     <argument name="radiusVirial"         value="radiusVirial"         parameterPresent="parameters"/>
      <argument name="concentration"        value="concentration"        parameterPresent="parameters"/>
      <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
     </conditionalCall>
@@ -194,7 +193,7 @@ contains
     return
   end function massDistributionEinastoConstructorParameters
 
-  function massDistributionEinastoConstructorInternal(shapeParameter,scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless,componentType,massType) result(self)
+  function massDistributionEinastoConstructorInternal(shapeParameter,scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType) result(self)
     !!{RST
     Internal constructor for "einasto" mass distribution class.
     !!}
@@ -206,7 +205,7 @@ contains
     double precision                              , intent(in   )           :: shapeParameter
     double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
          &                                                                     densityNormalization, mass         , &
-         &                                                                     virialRadius
+         &                                                                     radiusVirial
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
@@ -222,9 +221,9 @@ contains
        self%scaleLength=scaleLength
     else if (                            &
          &   present(concentration).and. &
-         &   present(virialRadius )      &
+         &   present(radiusVirial )      &
          &  ) then
-       self%scaleLength=virialRadius/concentration
+       self%scaleLength=radiusVirial/concentration
     else
        self%scaleLength=0.0d0
        call Error_Report('no means to determine scale length'//{introspection:location})
@@ -237,15 +236,15 @@ contains
        self%massTotal_          =+4.0d0*Pi*densityNormalization*self%scaleLength**3/shapeParameter/(2.0d0/shapeParameter)**(3.0d0/shapeParameter)*Gamma_Function(3.0d0/shapeParameter)*exp(2.0d0/shapeParameter)
     else if (                                   &
          &   present(mass                ).and. &
-         &   present(virialRadius        )      &
+         &   present(radiusVirial        )      &
          &  ) then
-       radiusScaleFree          =+virialRadius/self%scaleLength
+       radiusScaleFree          =+radiusVirial/self%scaleLength
        self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3*shapeParameter*exp(-2.0d0/shapeParameter)*(2.0d0/shapeParameter)**(3.0d0/shapeParameter)/Gamma_Function(3.0d0/shapeParameter)
        self%massTotal_          =+mass
     else
        self%densityNormalization=+0.0d0
        self%massTotal_          =+0.0d0
-       call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
+       call Error_Report('either "densityNormalization", or "mass" and "radiusVirial" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
     if      (present(dimensionless     )) then
@@ -253,26 +252,15 @@ contains
     else
        self%dimensionless=.false.
     end if
-
     ! Initialize memoized results.
-    self%enclosedMassPrevious                         =-huge(0.0d0)
-    self%enclosedMassRadiusPrevious                   =-huge(0.0d0)
-    self%densityScaleFreeMinimum                      =+huge(0.0d0)
-    self%densityScaleFreeMaximum                      =-huge(0.0d0)
-    self%densityScaleFreeRadiusMinimum                =+1.0d0
-    self%densityScaleFreeRadiusMaximum                =+1.0d0
-    self%angularMomentumSpecificScaleFreeMinimum      =+huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeMaximum      =-huge(0.0d0)
-    self%angularMomentumSpecificScaleFreeRadiusMinimum=+1.0d0
-    self%angularMomentumSpecificScaleFreeRadiusMaximum=+1.0d0
-    self%timeFreefallScaleFreeMinimum                 =+huge(0.0d0)
-    self%timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
-    self%timeFreefallScaleFreeRadiusMinimum           =+1.0d0
-    self%timeFreefallScaleFreeRadiusMaximum           =+1.0d0
-    self%massScaleFreeMinimum                         =+huge(0.0d0)
-    self%massScaleFreeMaximum                         =-huge(0.0d0)
-    self%massScaleFreeRadiusMinimum                   =+1.0d0
-    self%massScaleFreeRadiusMaximum                   =+1.0d0
+    self%enclosedMassPrevious      =-huge(0.0d0)
+    self%enclosedMassRadiusPrevious=-huge(0.0d0)
+    ! Initialize the tabulations. This is done here, where the shape parameter is set, so that an object can never serve a
+    ! tabulation built for a different shape.
+    call self%massScaleFree_                   %reset(countRadiiPerOctave,increasing=.true. )
+    call self%densityScaleFree_                %reset(countRadiiPerOctave,increasing=.false.)
+    call self%angularMomentumSpecificScaleFree_%reset(countRadiiPerOctave,increasing=.true. )
+    call self%timeFreefallScaleFree_           %reset(countRadiiPerOctave,increasing=.true. )
     return
   end function massDistributionEinastoConstructorInternal
 
@@ -436,16 +424,13 @@ contains
     !!{RST
     Computes the radius enclosing a given mass or mass fraction for einasto mass distributions.
     !!}    
-    use :: Numerical_Ranges, only : Make_Range  , rangeTypeLogarithmic
-    use :: Error           , only : Error_Report
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionEinasto), intent(inout), target       :: self
-    double precision                         , intent(in   ), optional     :: mass                       , massFractional
-    double precision                                                       :: mass_
-    double precision                         , allocatable  , dimension(:) :: radii                      , masses
-    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                       :: massScaleFree              , mass_
-    integer                                                                :: countRadii                 , i
+    double precision                         , intent(in   ), optional     :: mass         , massFractional
+    double precision                         , allocatable  , dimension(:) :: radii
+    double precision                                                       :: massScaleFree, mass_
+    integer                                                                :: i
 
     mass_=0.0d0
     if (present(mass)) then
@@ -458,31 +443,16 @@ contains
     massScaleFree=+     mass_                   &
          &        /self%densityNormalization    &
          &        /self%scaleLength         **3
-    if     (                                            &
-         &   massScaleFree <= self%massScaleFreeMinimum &
-         &  .or.                                        &
-         &   massScaleFree >  self%massScaleFreeMaximum &
-         & ) then
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMinimum,self%shapeParameter) >= massScaleFree)
-          self%massScaleFreeRadiusMinimum=0.5d0*self%massScaleFreeRadiusMinimum
+    do while (.not.self%massScaleFree_%brackets(massScaleFree))
+       call self%massScaleFree_%expand(massScaleFree)
+       radii=self%massScaleFree_%abscissae()
+       do i=1,size(radii)
+          if (self%massScaleFree_%isComputed(i)) cycle
+          call self%massScaleFree_%set(i,massEnclosedScaleFree(radii(i),self%shapeParameter))
        end do
-       do while (massEnclosedScaleFree(self%massScaleFreeRadiusMaximum,self%shapeParameter) <  massScaleFree)
-          self%massScaleFreeRadiusMaximum=2.0d0*self%massScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%massScaleFreeRadiusMaximum/self%massScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%massScaleFree_)) deallocate(self%massScaleFree_)
-       allocate(     radii         (countRadii))
-       allocate(     masses        (countRadii))
-       allocate(self%massScaleFree_            )
-       radii                       =Make_Range(self%massScaleFreeRadiusMinimum,self%massScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       do i=1,countRadii
-          masses                (i)=massEnclosedScaleFree(           radii(i),self%shapeParameter)
-       end do
-       self%massScaleFreeMinimum   =masses               (         1                             )
-       self%massScaleFreeMaximum   =masses               (countRadii                             )
-       self%massScaleFree_         =interpolator         (masses    ,radii                       )
-    end if
-    radius=+self%massScaleFree_%interpolate(massScaleFree) &
+       call self%massScaleFree_%build()
+    end do
+    radius=+self%massScaleFree_%invert(massScaleFree) &
          & *self%scaleLength
     return
   end function einastoRadiusEnclosingMass
@@ -491,43 +461,26 @@ contains
     !!{RST
     Computes the radius enclosing a given mean density for Einasto mass distributions.
     !!}
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionEinasto), intent(inout), target       :: self
     double precision                         , intent(in   )               :: density
     double precision                         , intent(in   ), optional     :: radiusGuess
-    double precision                         , allocatable  , dimension(:) :: radii                      , densities
-    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                         , allocatable  , dimension(:) :: radii
     double precision                                                       :: densityScaleFree
-    integer                                                                :: countRadii                 , i
+    integer                                                                :: i
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
-    if     (                                                  &
-         &   densityScaleFree <= self%densityScaleFreeMinimum &
-         &  .or.                                              &
-         &   densityScaleFree >  self%densityScaleFreeMaximum &
-         & ) then
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMinimum,self%shapeParameter) <  densityScaleFree)
-          self%densityScaleFreeRadiusMinimum=0.5d0*self%densityScaleFreeRadiusMinimum
+    do while (.not.self%densityScaleFree_%brackets(densityScaleFree))
+       call self%densityScaleFree_%expand(densityScaleFree)
+       radii=self%densityScaleFree_%abscissae()
+       do i=1,size(radii)
+          if (self%densityScaleFree_%isComputed(i)) cycle
+          call self%densityScaleFree_%set(i,densityEnclosedScaleFree(radii(i),self%shapeParameter))
        end do
-       do while (densityEnclosedScaleFree(self%densityScaleFreeRadiusMaximum,self%shapeParameter) >= densityScaleFree)
-          self%densityScaleFreeRadiusMaximum=2.0d0*self%densityScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%densityScaleFreeRadiusMaximum/self%densityScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%densityScaleFree_)) deallocate(self%densityScaleFree_)
-       allocate(     radii            (countRadii))
-       allocate(     densities        (countRadii))
-       allocate(self%densityScaleFree_            )
-       radii                          = Make_Range(self%densityScaleFreeRadiusMinimum,self%densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       do i=1,countRadii
-          densities                (i)=-densityEnclosedScaleFree(radii     (i),self%shapeParameter)
-       end do
-       self%densityScaleFreeMinimum   =-densities               (countRadii                       )
-       self%densityScaleFreeMaximum   =-densities               (         1                       )
-       self%densityScaleFree_         = interpolator            (densities    ,radii              )
-    end if
-    radius=+self%densityScaleFree_%interpolate(-densityScaleFree) &
+       call self%densityScaleFree_%build()
+    end do
+    radius=+self%densityScaleFree_%invert( densityScaleFree) &
          & *self%scaleLength
     return    
   end function einastoRadiusEnclosingDensity
@@ -572,14 +525,12 @@ contains
     Computes the radius corresponding to a given specific angular momentum for einasto mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionEinasto), intent(inout), target       :: self
     double precision                         , intent(in   )               :: angularMomentumSpecific
-    double precision                         , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                         , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                         , allocatable  , dimension(:) :: radii
     double precision                                                       :: angularMomentumSpecificScaleFree
-    integer                                                                :: countRadii                              , i
+    integer                                                                :: i
 
     if (angularMomentumSpecific > 0.0d0) then
        angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
@@ -588,31 +539,16 @@ contains
             &                                 *self%densityNormalization         &
             &                                )                                   &
             &                           /      self%scaleLength              **2
-       if     (                                                                                  &
-            &   angularMomentumSpecificScaleFree <= self%angularMomentumSpecificScaleFreeMinimum &
-            &  .or.                                                                              &
-            &   angularMomentumSpecificScaleFree >  self%angularMomentumSpecificScaleFreeMaximum &
-            & ) then
-          do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMinimum,self%shapeParameter) >= angularMomentumSpecificScaleFree)
-             self%angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*self%angularMomentumSpecificScaleFreeRadiusMinimum
+       do while (.not.self%angularMomentumSpecificScaleFree_%brackets(angularMomentumSpecificScaleFree))
+          call self%angularMomentumSpecificScaleFree_%expand(angularMomentumSpecificScaleFree)
+          radii=self%angularMomentumSpecificScaleFree_%abscissae()
+          do i=1,size(radii)
+             if (self%angularMomentumSpecificScaleFree_%isComputed(i)) cycle
+             call self%angularMomentumSpecificScaleFree_%set(i,angularMomentumSpecificEnclosedScaleFree(radii(i),self%shapeParameter))
           end do
-          do while (angularMomentumSpecificEnclosedScaleFree(self%angularMomentumSpecificScaleFreeRadiusMaximum,self%shapeParameter) <  angularMomentumSpecificScaleFree)
-             self%angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*self%angularMomentumSpecificScaleFreeRadiusMaximum
-          end do
-          countRadii=int(log10(self%angularMomentumSpecificScaleFreeRadiusMaximum/self%angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-          if (allocated(self%angularMomentumSpecificScaleFree_)) deallocate(self%angularMomentumSpecificScaleFree_)
-          allocate(     radii                            (countRadii))
-          allocate(     angularMomentaSpecific           (countRadii))
-          allocate(self%angularMomentumSpecificScaleFree_            )
-          radii                                          =Make_Range(self%angularMomentumSpecificScaleFreeRadiusMinimum,self%angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-          do i=1,countRadii
-             angularMomentaSpecific                   (i)=angularMomentumSpecificEnclosedScaleFree(                       radii(i),self%shapeParameter)
-          end do
-          self%angularMomentumSpecificScaleFreeMinimum   =angularMomentaSpecific                  (                     1                             )
-          self%angularMomentumSpecificScaleFreeMaximum   =angularMomentaSpecific                  (            countRadii                             )
-          self%angularMomentumSpecificScaleFree_         =interpolator                            (angularMomentaSpecific,radii                       )
-       end if
-       radius=+self%angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
+          call self%angularMomentumSpecificScaleFree_%build()
+       end do
+       radius=+self%angularMomentumSpecificScaleFree_%invert(angularMomentumSpecificScaleFree) &
             & *self%scaleLength
     else
        radius=+0.0d0
@@ -741,7 +677,7 @@ contains
        return
     end if
     call self%timeFreefallTabulate(timeScaleFree)
-    radius=+self%timeFreefallScaleFree_%interpolate(timeScaleFree) &
+    radius=+self%timeFreefallScaleFree_%invert(timeScaleFree) &
          & *self%scaleLength
     return   
   end function einastoRadiusFreefall
@@ -799,99 +735,44 @@ contains
     !!{RST
     Tabulate the freefall radius at the given ``time`` in an Einasto mass distribution.
     !!}
-    use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
+    use :: Mass_Distributions_Spherical_Utilities, only : Mass_Distribution_Time_Freefall_Tabulate
     implicit none
-    class           (massDistributionEinasto), intent(inout)               :: self
-    double precision                         , intent(in   )               :: timeScaleFree
-    double precision                         , allocatable  , dimension(:) :: radii                      , timesFreefall
-    double precision                         , parameter                   :: countRadiiPerDecade=100.0d0
-    double precision                                                       :: radiusStart
-    integer                                                                :: countRadii                 , i
-    type            (integrator             )                              :: integrator_
+    class           (massDistributionEinasto), intent(inout) :: self
+    double precision                         , intent(in   ) :: timeScaleFree
 
-    if     (                                                    &
-         &   timeScaleFree <= self%timeFreefallScaleFreeMinimum &
-         &  .or.                                                &
-         &   timeScaleFree >  self%timeFreefallScaleFreeMaximum &
-         & ) then
-       integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-6)
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMinimum) >= timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMinimum=0.5d0*self%timeFreefallScaleFreeRadiusMinimum
-       end do
-       do while (timeFreefallScaleFree(self%timeFreefallScaleFreeRadiusMaximum) <  timeScaleFree)
-          self%timeFreefallScaleFreeRadiusMaximum=2.0d0*self%timeFreefallScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(self%timeFreefallScaleFreeRadiusMaximum/self%timeFreefallScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(self%timeFreefallScaleFree_)) deallocate(self%timeFreefallScaleFree_)
-       allocate(     radii                 (countRadii))
-       allocate(     timesFreefall         (countRadii))
-       allocate(self%timeFreefallScaleFree_            )
-       radii=Make_Range(self%timeFreefallScaleFreeRadiusMinimum,self%timeFreefallScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       do i=1,countRadii
-          timesFreefall(i)=timeFreefallScaleFree(radii(i))
-       end do
-       self%timeFreefallScaleFreeMinimum=timesFreefall(            1      )
-       self%timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
-       self%timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
-    end if
+    call Mass_Distribution_Time_Freefall_Tabulate(self%timeFreefallScaleFree_,timeScaleFree,potentialDifference,toleranceRelative=1.0d-6)
     return
-    
-  contains
-    
-    double precision function timeFreefallScaleFree(radius)
-      !!{RST
-      Evaluate the freefall time from a given radius in a scale-free Einasto mass distribution.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
 
-      radiusStart          =                            radius
-      timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
-      return
-    end function timeFreefallScaleFree
-    
-    double precision function timeFreeFallIntegrand(radius)
+  contains
+
+    double precision function potentialDifference(radius1,radius2)
       !!{RST
-      Integrand used to find the freefall time in a scale-free Einasto mass distribution.
+      Compute the potential difference in the scale-free Einasto mass distribution of this object's shape.
       !!}
       implicit none
-      double precision, intent(in   ) :: radius
-      double precision                :: potentialDifference
-      
-      if (radius == 0.0d0) then
-         timeFreeFallIntegrand=+0.0d0
-      else
-         potentialDifference=+potentialDifferenceScaleFree(radiusStart,radius,self%shapeParameter)
-         if (potentialDifference > 0.0d0) then
-            timeFreeFallIntegrand=+1.0d0                     &
-                 &                /sqrt(                     &
-                 &                      +2.0d0               &
-                 &                      *potentialDifference &
-                 &                     )
-         else
-            timeFreeFallIntegrand=+0.0d0
-         end if
-      end if
+      double precision, intent(in   ) :: radius1, radius2
+
+      potentialDifference=potentialDifferenceScaleFree(radius1,radius2,self%shapeParameter)
       return
-    end function timeFreeFallIntegrand
-    
+    end function potentialDifference
+
   end subroutine einastoTimeFreefallTabulate
 
-  subroutine einastoDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine einastoDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionEinasto), intent(inout)           :: self
     type     (inputParameters        ), intent(inout)           :: descriptor
     logical                           , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                  ), intent(in   ), optional :: parameterName
     character(len=18                 )                          :: parameterLabel
     type     (inputParameters        )                          :: parameters
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','Einasto')
-    parameters=descriptor%subparameters('massDistribution')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'Einasto')
+    parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
     write (parameterLabel,'(e17.10)') self%densityNormalization
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%scaleLength

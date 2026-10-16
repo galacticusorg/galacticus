@@ -28,6 +28,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
    <description>
    The halo mass function is computed by modifying another mass function by the halo-finder detection efficiency.
    </description>
+   <forwards object="massFunction_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionDetectionEfficiency

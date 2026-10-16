@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Yu Zhao
+  !+    Contributions to this file made by: Yu Zhao, Claude.
 
   !!{RST
   Implementation of a mass distribution class for fuzzy dark matter halos consisting of soliton profiles :cite:p:`schive_understanding_2014`.
@@ -164,13 +164,13 @@
         self%radiusCore             =+radiusCore
      else
         self%radiusCore             =+0.0d0
-        call Error_Report('no means to determine core radius')
+        call Error_Report('no means to determine core radius'//{introspection:location})
      end if
      if (present(densitySolitonCentral)) then
         self%densitySolitonCentral  =+densitySolitonCentral
      else
         self%densitySolitonCentral  =+0.0d0
-        call Error_Report('densitySolitonCentral must be specified')
+        call Error_Report('densitySolitonCentral must be specified'//{introspection:location})
      end if
      if (present(dimensionless)) then
         self%dimensionless          =dimensionless
@@ -401,30 +401,30 @@
      if (.not.containerSolitonInitialized) then
         allocate(containerSoliton)
         call containerSoliton%initialize(0)
-        containerSoliton%mass                      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%mass                      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%radiusEnclosingDensity    %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%radiusEnclosingDensity    %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%potential                 %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%potential                 %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%velocityDispersion1D      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%velocityDispersion1D      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%energy                    %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%energy                    %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%radiusFreefall            %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%radiusFreefall            %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%radiusFreefallIncreaseRate%radiusCountPer       =+ 20_c_size_t
-        containerSoliton%radiusFreefallIncreaseRate%parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment0      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment0      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment1      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment1      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment2      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment2      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%densityRadialMoment3      %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%densityRadialMoment3      %parametersCountPer   =+ 20_c_size_t
-        containerSoliton%fourierTransform          %radiusCountPer       =+ 20_c_size_t
-        containerSoliton%fourierTransform          %parametersCountPer   =+ 20_c_size_t
+        containerSoliton%mass                      %radiusCountPer       =+6_c_size_t
+        containerSoliton%mass                      %parametersCountPer   =+6_c_size_t
+        containerSoliton%radiusEnclosingDensity    %radiusCountPer       =+6_c_size_t
+        containerSoliton%radiusEnclosingDensity    %parametersCountPer   =+6_c_size_t
+        containerSoliton%potential                 %radiusCountPer       =+6_c_size_t
+        containerSoliton%potential                 %parametersCountPer   =+6_c_size_t
+        containerSoliton%velocityDispersion1D      %radiusCountPer       =+6_c_size_t
+        containerSoliton%velocityDispersion1D      %parametersCountPer   =+6_c_size_t
+        containerSoliton%energy                    %radiusCountPer       =+6_c_size_t
+        containerSoliton%energy                    %parametersCountPer   =+6_c_size_t
+        containerSoliton%radiusFreefall            %radiusCountPer       =+6_c_size_t
+        containerSoliton%radiusFreefall            %parametersCountPer   =+6_c_size_t
+        containerSoliton%radiusFreefallIncreaseRate%radiusCountPer       =+6_c_size_t
+        containerSoliton%radiusFreefallIncreaseRate%parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment0      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment0      %parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment1      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment1      %parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment2      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment2      %parametersCountPer   =+6_c_size_t
+        containerSoliton%densityRadialMoment3      %radiusCountPer       =+6_c_size_t
+        containerSoliton%densityRadialMoment3      %parametersCountPer   =+6_c_size_t
+        containerSoliton%fourierTransform          %radiusCountPer       =+6_c_size_t
+        containerSoliton%fourierTransform          %parametersCountPer   =+6_c_size_t
         containerSolitonInitialized                                      =.true.
      end if
      allocate(parameters(0))
@@ -434,21 +434,22 @@
      return
    end subroutine solitonParameters
    
-   subroutine solitonDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+   subroutine solitonDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
      !!{RST
      Return an input parameter list descriptor which could be used to recreate this object.
      !!}
-     use :: Input_Parameters, only : inputParameters
+     use :: Input_Parameters, only : inputParameters, descriptorParameterName
      implicit none
      class    (massDistributionSoliton), intent(inout)           :: self
      type     (inputParameters        ), intent(inout)           :: descriptor
      logical                           , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-     character(len=18)                                           :: parameterLabel
+     character(len=*                  ), intent(in   ), optional :: parameterName
+     character(len=18                 )                          :: parameterLabel
      type     (inputParameters        )                          :: parameters
      !$GLC attributes unused :: includeFileModificationTimes
      
-     if (.not.present(includeClass) .or. includeClass) call descriptor%addParameter('massDistribution','soliton')
-     parameters = descriptor%subparameters('massDistribution')
+     if (.not.present(includeClass) .or. includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'soliton')
+     parameters = descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
      write(parameterLabel,'(e17.10)') self%radiusCore
      call parameters%addParameter('radiusCore'             ,trim(adjustl(parameterLabel)))
      write(parameterLabel,'(e17.10)') self%densitySolitonCentral

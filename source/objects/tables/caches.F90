@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements persistent, mergeable caches of tabulated functions.
 !!}
@@ -55,11 +57,15 @@ module Table_Caches
   it holds only for the duration of the file input/output---never across the tabulation itself. ``Table_Cache_Store`` re-reads
   the file under that exclusive lock before writing, so that a range written by another process since our own read is merged
   rather than overwritten.
+
+  See :ref:`manual-sec-growingATabulation` in the developer guide for the whole idiom of which this module is a part---the
+  absolute lattice, pinning a range to it with ``Range_Pinned``, extending a tabulation onto it, and the conditions under which
+  previously computed values may be carried over.
   !!}
   use :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: Table_Cache_Restore, Table_Cache_Store, Table_Cache_File_Name
+  public :: Table_Cache_Restore, Table_Cache_Store, Table_Cache_File_Name, Table_Cache_Lattice_Write, Table_Cache_Lattice_Read
 
   interface Table_Cache_Restore
      !!{RST
@@ -110,6 +116,80 @@ contains
     fileName=inputPath(pathTypeDataDynamic)//trim(subDirectory)//'/'//trim(objectType)//label_//'_'//trim(hashedDescriptor)//'.hdf5'
     return
   end function Table_Cache_File_Name
+
+  subroutine Table_Cache_Lattice_Write(file,axisName,lattice)
+    !!{RST
+    Record, as attributes of the already-open ``file``, the ``rangeLattice`` on which an axis of a stored tabulation is
+    built. The attributes are named for that axis, so any number of axes may be recorded alongside one another. ``file`` is
+    anything HDF5 attributes may attach to---a file, a group, or a dataset---so a tabulation stored in a group of its own
+    records its lattices there rather than at the file root.
+
+    This is for tabulations held in raw arrays rather than in a :galacticus-class:`table1D`; those are written whole by
+    ``Table_Cache_Store``, which records their lattices itself.
+    !!}
+    use :: IO_HDF5         , only : hdf5AttributableObject
+    use :: Numerical_Ranges, only : rangeLattice
+    implicit none
+    class    (hdf5AttributableObject), intent(inout) :: file
+    character(len=*                 ), intent(in   ) :: axisName
+    type     (rangeLattice          ), intent(in   ) :: lattice
+
+    call file%writeAttribute(lattice%scheme%ID   ,axisName//'GridScheme'  )
+    call file%writeAttribute(lattice%pointsPer   ,axisName//'PointsPer'   )
+    call file%writeAttribute(lattice%indexMinimum,axisName//'IndexMinimum')
+    call file%writeAttribute(lattice%count       ,axisName//'Count'       )
+    return
+  end subroutine Table_Cache_Lattice_Write
+
+  subroutine Table_Cache_Lattice_Read(file,axisName,scheme,pointsPer,lattice,countExpected)
+    !!{RST
+    Restore, from the already-open ``file``, the ``rangeLattice`` on which an axis of a stored tabulation was built. The
+    lattice is returned undefined---which the caller must treat as the stored tabulation being unusable---unless the file
+    records one which is self-consistent and which uses the gridding scheme and density of points that the caller expects. A
+    file written before the lattices were recorded, or with a different grid, therefore reports an undefined lattice rather
+    than being misread. As for ``Table_Cache_Lattice_Write``, ``file`` may be a file, a group, or a dataset.
+
+    Where ``countExpected`` is given, the lattice must also hold that many points---the length of the dataset stored alongside
+    it---so that a file whose datasets do not match the lattice recorded with them is rejected rather than misread. It is
+    omitted for a lattice which carries no tabulated points, such as one recorded solely to pin a bound.
+    !!}
+    use :: IO_HDF5         , only : hdf5AttributableObject
+    use :: Numerical_Ranges, only : rangeLattice          , enumerationGridSchemeType
+    implicit none
+    class    (hdf5AttributableObject   ), intent(inout)           :: file
+    character(len=*                    ), intent(in   )           :: axisName
+    type     (enumerationGridSchemeType), intent(in   )           :: scheme
+    integer                             , intent(in   )           :: pointsPer
+    type     (rangeLattice             ), intent(  out)           :: lattice
+    integer                             , intent(in   ), optional :: countExpected
+    integer                                                       :: schemeStored , pointsPerStored, &
+         &                                                           indexMinimum , countPoints
+
+    lattice=rangeLattice()
+    if     (                                                  &
+         &   .not.file%hasAttribute(axisName//'GridScheme'  ) &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'PointsPer'   ) &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'IndexMinimum') &
+         &  .or.                                              &
+         &   .not.file%hasAttribute(axisName//'Count'       ) &
+         & ) return
+    call file%readAttribute(axisName//'GridScheme'  ,schemeStored   )
+    call file%readAttribute(axisName//'PointsPer'   ,pointsPerStored)
+    call file%readAttribute(axisName//'IndexMinimum',indexMinimum   )
+    call file%readAttribute(axisName//'Count'       ,countPoints    )
+    ! Comparing the stored scheme against the one expected is stronger than merely checking that it is a valid member of the
+    ! enumeration, so no separate validity test is needed.
+    if (enumerationGridSchemeType(schemeStored) /= scheme   ) return
+    if (pointsPerStored                         /= pointsPer) return
+    if (present(countExpected)) then
+       if (countPoints /= countExpected) return
+    end if
+    lattice=rangeLattice(enumerationGridSchemeType(schemeStored),pointsPerStored,indexMinimum,countPoints)
+    if (.not.lattice%isDefined()) lattice=rangeLattice()
+    return
+  end subroutine Table_Cache_Lattice_Read
 
   subroutine Table_Cache_Restore_1D(table_,fileName,status)
     !!{RST
@@ -363,13 +443,13 @@ contains
     use :: Error             , only : errorStatusFail, errorStatusSuccess
     use :: File_Utilities    , only : File_Exists    , File_Lock            , File_Unlock, lockDescriptor
     use :: ISO_Varying_String, only : char
-    use :: Tables            , only : table2DLogLogLin
+    use :: Tables            , only : table2D
     implicit none
-    type   (table2DLogLogLin), intent(inout) :: table_
-    type   (varying_string  ), intent(in   ) :: fileName
-    integer                  , intent(  out) :: status
-    type   (table2DLogLogLin)                :: tableCached
-    type   (lockDescriptor  )                :: fileLock
+    class  (table2D       )             , intent(inout) :: table_
+    type   (varying_string)             , intent(in   ) :: fileName
+    integer                             , intent(  out) :: status
+    class  (table2D       ), allocatable                :: tableCached
+    type   (lockDescriptor)                             :: fileLock
 
     status=errorStatusFail
     if (.not.File_Exists(fileName)) return
@@ -392,13 +472,13 @@ contains
     use :: File_Utilities    , only : Directory_Make, File_Exists       , File_Lock, File_Path, &
          &                            File_Unlock   , lockDescriptor
     use :: ISO_Varying_String, only : char
-    use :: Tables            , only : table2DLogLogLin
+    use :: Tables            , only : table2D
     implicit none
-    type   (table2DLogLogLin), intent(inout) :: table_
-    type   (varying_string  ), intent(in   ) :: fileName
-    type   (table2DLogLogLin)                :: tableCached
-    type   (lockDescriptor  )                :: fileLock
-    integer                                  :: status
+    class  (table2D       )             , intent(inout) :: table_
+    type   (varying_string)             , intent(in   ) :: fileName
+    class  (table2D       ), allocatable                :: tableCached
+    type   (lockDescriptor)                             :: fileLock
+    integer                                             :: status
 
     if (.not.table_%latticeX%isDefined() .or. .not.table_%latticeY%isDefined()) &
          & call Error_Report('table was not built on absolute lattices'//{introspection:location})
@@ -419,13 +499,14 @@ contains
     Read a cached two-dimensional tabulation from ``fileName``. The caller is responsible for holding a suitable lock on the
     file.
     !!}
-    use :: Error           , only : errorStatusFail , errorStatusSuccess
+    use :: Error           , only : errorStatusFail     , errorStatusSuccess
     use :: HDF5_Access     , only : hdf5Access
     use :: IO_HDF5         , only : hdf5File
-    use :: Numerical_Ranges, only : rangeLattice    , enumerationGridSchemeType
-    use :: Tables          , only : table2DLogLogLin, tableTypeLogLogLin2D
+    use :: Numerical_Ranges, only : rangeLattice        , enumerationGridSchemeType
+    use :: Tables          , only : table2D             , table2DLogLogLin         , table2DLinLinLin, tableTypeLogLogLin2D, &
+         &                          tableTypeLinLinLin2D
     implicit none
-    type            (table2DLogLogLin)                               , intent(  out) :: tableCached
+    class           (table2D         ), allocatable                  , intent(  out) :: tableCached
     type            (varying_string  )                               , intent(in   ) :: fileName
     integer                                                          , intent(  out) :: status
     type            (hdf5File        )                                               :: file
@@ -446,7 +527,7 @@ contains
        call file%readAttribute('formatVersion',formatVersion)
        if (formatVersion == formatVersionCurrent) then
           call file%readAttribute('tableType'     ,tableType    )
-          if (tableType == tableTypeLogLogLin2D%ID) then
+          if (tableType == tableTypeLogLogLin2D%ID .or. tableType == tableTypeLinLinLin2D%ID) then
              call file%readAttribute('gridSchemeX'   ,gridSchemeX  )
              call file%readAttribute('pointsPerX'    ,pointsPerX   )
              call file%readAttribute('indexMinimumX' ,indexMinimumX)
@@ -470,9 +551,18 @@ contains
                   &  .and.                                           &
                   &   size(valuesCached,dim=3) == countTables        &
                   & ) then
-                call tableCached%extend(latticeX,latticeY,isComputed,tableCount=countTables)
-                tableCached%zv=valuesCached
-                status        =errorStatusSuccess
+                select case (tableType)
+                case (tableTypeLogLogLin2D%ID)
+                   allocate(table2DLogLogLin :: tableCached)
+                case (tableTypeLinLinLin2D%ID)
+                   allocate(table2DLinLinLin :: tableCached)
+                end select
+                if (allocated(tableCached)) then
+                   call tableCached%extend(latticeX,latticeY,isComputed,tableCount=countTables)
+                   tableCached%zv=valuesCached
+                   call tableCached%interpolationReset()
+                   status        =errorStatusSuccess
+                end if
              end if
           end if
        end if
@@ -486,18 +576,30 @@ contains
     Write the two-dimensional table ``table_`` to ``fileName``. The caller is responsible for holding an exclusive lock on the
     file.
     !!}
+    use :: Error      , only : Error_Report
     use :: HDF5_Access, only : hdf5Access
     use :: IO_HDF5    , only : hdf5File
-    use :: Tables     , only : table2DLogLogLin, tableTypeLogLogLin2D
+    use :: Tables     , only : table2D             , table2DLogLogLin, table2DLinLinLin, tableTypeLogLogLin2D, &
+         &                     tableTypeLinLinLin2D
     implicit none
-    type(table2DLogLogLin), intent(in   ) :: table_
-    type(varying_string  ), intent(in   ) :: fileName
-    type(hdf5File        )                :: file
+    class  (table2D       ), intent(in   ) :: table_
+    type   (varying_string), intent(in   ) :: fileName
+    type   (hdf5File      )                :: file
+    integer                                :: tableType
 
+    select type (table_)
+    type is (table2DLogLogLin)
+       tableType=tableTypeLogLogLin2D%ID
+    type is (table2DLinLinLin)
+       tableType=tableTypeLinLinLin2D%ID
+    class default
+       tableType=-1
+       call Error_Report('caching is not supported for this table type'//{introspection:location})
+    end select
     !$ call hdf5Access%set()
     file=hdf5File(fileName,overWrite=.true.,readOnly=.false.)
     call file%writeAttribute(formatVersionCurrent          ,'formatVersion')
-    call file%writeAttribute(tableTypeLogLogLin2D%ID       ,'tableType'    )
+    call file%writeAttribute(tableType                     ,'tableType'    )
     call file%writeAttribute(table_%latticeX%scheme%ID     ,'gridSchemeX'  )
     call file%writeAttribute(table_%latticeX%pointsPer     ,'pointsPerX'   )
     call file%writeAttribute(table_%latticeX%indexMinimum  ,'indexMinimumX')
@@ -519,18 +621,25 @@ contains
     Merge the two-dimensional tabulation ``tableCached`` into ``table_``---see ``Table_Cache_Restore_2D`` for why this is
     restricted to the case in which one tabulation contains the other.
     !!}
-    use :: Display         , only : displayMessage , verbosityLevelWorking
-    use :: Error           , only : errorStatusFail, errorStatusSuccess
-    use :: Tables          , only : table2DLogLogLin
+    use :: Display, only : displayMessage , verbosityLevelWorking
+    use :: Error  , only : errorStatusFail, errorStatusSuccess
+    use :: Tables , only : table2D
     implicit none
-    type   (table2DLogLogLin), intent(inout) :: table_
-    type   (table2DLogLogLin), intent(inout) :: tableCached
-    integer                  , intent(  out) :: status
+    class  (table2D)             , intent(inout) :: table_
+    class  (table2D), allocatable, intent(inout) :: tableCached
+    integer                      , intent(  out) :: status
 
     status=errorStatusFail
+    if (.not.allocated(tableCached)) return
+    ! Ignore a cached tabulation stored by a different table type - the abscissae which it records are in the internal
+    ! coordinate of that type, and so mean nothing to ours.
+    if (.not.same_type_as(table_,tableCached)) then
+       call displayMessage('ignoring a cached tabulation stored by a different table type',verbosityLevelWorking)
+       return
+    end if
     ! If we have nothing in memory, simply adopt the cached tabulation.
     if (.not.table_%latticeX%isDefined() .or. .not.table_%latticeY%isDefined()) then
-       table_=tableCached
+       call Table_Cache_Adopt_2D(table_,tableCached)
        status=errorStatusSuccess
        return
     end if
@@ -547,6 +656,11 @@ contains
        call displayMessage('ignoring a cached tabulation built on incommensurate lattices',verbosityLevelWorking)
        return
     end if
+    ! Ignore a cached tabulation holding a different number of tables - it can be neither adopted nor merged.
+    if (size(tableCached%zv,dim=3) /= size(table_%zv,dim=3)) then
+       call displayMessage('ignoring a cached tabulation holding a different number of tables',verbosityLevelWorking)
+       return
+    end if
     ! Nothing to contribute if we already contain everything cached.
     if     (                                              &
          &   table_%latticeX%covers(tableCached%latticeX) &
@@ -559,12 +673,35 @@ contains
          &  .and.                                         &
          &   tableCached%latticeY%covers(table_%latticeY) &
          & ) then
-       table_=tableCached
+       call Table_Cache_Adopt_2D(table_,tableCached)
        status=errorStatusSuccess
        return
     end if
     call displayMessage('ignoring a cached tabulation which neither contains, nor is contained by, that in memory',verbosityLevelWorking)
     return
   end subroutine Table_Cache_Merge_2D
+
+  subroutine Table_Cache_Adopt_2D(table_,tableCached)
+    !!{RST
+    Replace the tabulation in ``table_`` with that of ``tableCached``, which must be of the same type and must cover it. The
+    two are extended onto the same pair of lattices rather than assigned, since ``table_`` is polymorphic and not
+    allocatable---and, in any case, its dynamic type must be preserved.
+    !!}
+    use :: Tables, only : table2D
+    implicit none
+    class  (table2D)             , intent(inout) :: table_
+    class  (table2D)             , intent(in   ) :: tableCached
+    logical         , allocatable, dimension(:,:):: isComputed
+
+    call table_%extend(                                       &
+         &                        tableCached%latticeX      , &
+         &                        tableCached%latticeY      , &
+         &                        isComputed                , &
+         &             tableCount=size(tableCached%zv,dim=3)  &
+         &            )
+    table_%zv=tableCached%zv
+    call table_%interpolationReset()
+    return
+  end subroutine Table_Cache_Adopt_2D
 
 end module Table_Caches

@@ -101,69 +101,21 @@ contains
   
   subroutine tidalMassLossDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
-    Perform star formation in a disk.
+    Apply tidal mass loss to the disk.
     !!}
-    use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentDisk  , nodeComponentHotHalo
-    use :: Abundances_Structure          , only : operator(*)
-    use :: Histories                     , only : operator(*)     , history
-    use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
+    use :: Galacticus_Nodes         , only : propertyInactive
+    use :: Tidal_Mass_Loss_Utilities, only : Tidal_Mass_Loss_Apply_Disk
     implicit none
-    class           (nodeOperatorTidalMassLossDisks), intent(inout), target  :: self
-    type            (treeNode                      ), intent(inout), target  :: node
-    logical                                         , intent(inout)          :: interrupt
-    procedure       (interruptTask                 ), intent(inout), pointer :: functionInterrupt
-    integer                                         , intent(in   )          :: propertyType
-    class           (nodeComponentDisk             )               , pointer :: disk
-    class           (nodeComponentHotHalo          )               , pointer :: hotHalo
-    type            (stellarLuminosities           ), save                   :: luminositiesTransferRate
-    !$omp threadprivate(luminositiesTransferRate)
-    double precision                                                         :: fractionGas             , fractionStellar, &
-         &                                                                      massLossRate
-    type            (history                       )                         :: historyTransferRate
+    class    (nodeOperatorTidalMassLossDisks), intent(inout), target  :: self
+    type     (treeNode                      ), intent(inout), target  :: node
+    logical                                  , intent(inout)          :: interrupt
+    procedure(interruptTask                 ), intent(inout), pointer :: functionInterrupt
+    integer                                  , intent(in   )          :: propertyType
+    !$GLC attributes unused :: interrupt, functionInterrupt
 
     ! Do nothing during inactive property solving.
-    if (propertyInactive(propertyType)            ) return
-    ! Return if the disk has no mass.
-    disk => node%disk()
-    if (disk%massGas()+disk%massStellar() <= 0.0d0) return
-    ! Return if the tidal mass loss rate is zero.
-    massLossRate=self%tidalStripping_%rateMassLoss(disk)
-    if (massLossRate                      <= 0.0d0) return
-    ! Transfer stripped material from the disk.
-    !! Gas is moved to the hot halo component.
-    hotHalo         => node%hotHalo()
-    fractionGas     =  min(1.0d0,max(0.0d0,disk%massGas()/(disk%massGas()+disk%massStellar())))
-    fractionStellar =  1.0d0-fractionGas
-    if (fractionGas     > 0.0d0 .and. disk%massGas    () > 0.0d0) then
-       call        disk%                  massGasRate(-fractionGas    *massLossRate                                                             )
-       call        disk%            abundancesGasRate(-fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                    )
-       call     hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                             )
-       call     hotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                    )
-       call     hotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
-    end if
-    ! Stellar mass is simply removed.
-    if (fractionStellar > 0.0d0 .and. disk%massStellar() > 0.0d0) then
-       ! If luminosities are being treated as inactive properties this is an error - they appear on the right-hand side
-       ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
-       ! luminosities to the spheroid by bar instabilities could work here.)
-       !! Stellar mass and metals.
-       call        disk%              massStellarRate(-fractionStellar*massLossRate                                                             )
-       call        disk%        abundancesStellarRate(-fractionStellar*massLossRate*disk%abundancesStellar()/                disk%massStellar() )
-       !! Stellar luminosities.
-       luminositiesTransferRate=max(zeroStellarLuminosities,disk%luminositiesStellar())
-       call        disk%      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesTransferRate/                disk%massStellar() )
-       !! Stellar properties history.
-       historyTransferRate=disk%stellarPropertiesHistory()
-       if (historyTransferRate%exists()) &
-            & call disk%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate     /                disk%massStellar() )
-       call historyTransferRate%destroy()
-       !! Star formation history.
-       historyTransferRate=disk%starFormationHistory()
-       if (historyTransferRate%exists()) &
-            & call disk    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate     /                disk%massStellar() )
-    end if
-    ! Angular momentum is lost.
-    call           disk%          angularMomentumRate(-                massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
+    if (propertyInactive(propertyType)) return
+    call Tidal_Mass_Loss_Apply_Disk(node,self%tidalStripping_)
     return
   end subroutine tidalMassLossDisksDifferentialEvolution
 

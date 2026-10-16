@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements linear algebra calculations.
 !!}
@@ -30,9 +32,9 @@ module Linear_Algebra
   use            :: Resource_Manager, only : resourceManager
   implicit none
   private
-  public :: vector        , matrix         , matrixRotation      , matrixRotationPlusTranslation, &
-       &    matrixLU      , assignment(=)  , operator(*)         , gsl_vector_get               , &
-       &    gsl_vector_set, gsl_vector_free, matrixRotationRandom
+  public :: vector         , matrix              , matrixRotation, matrixLU      , &
+       &    assignment(=)  , operator(*)         , gsl_vector_get, gsl_vector_set, &
+       &    gsl_vector_free, matrixRotationRandom, matrixCholesky
 
   type :: vectorWrapper
      !!{RST
@@ -184,6 +186,33 @@ module Linear_Algebra
      !!}
      module procedure matrixLUConstructor
   end interface matrixLU
+
+  type, public, extends(matrix) :: matrixCholesky
+     !!{RST
+     Matrix class for the Cholesky decomposition, :math:`A = L L^\mathrm{T}`, of a symmetric, positive-definite matrix
+     :math:`A`. The lower triangle of the stored matrix holds :math:`L`. The ``inverse`` and ``logarithmicDeterminant``
+     methods return those of :math:`A`; other methods inherited from ``matrix`` act on the stored decomposition.
+     !!}
+     private
+   contains
+     !![
+     <methods docformat="rst">
+       <method description="Solve the linear system :math:`y = A \cdot x` for :math:`x`."                                                             method="squareSystemSolve"   />
+       <method description="Solve the triangular linear system :math:`y = L \cdot x` for :math:`x`, such that :math:`|x|^2 = y^\mathrm{T} A^{-1} y`." method="lowerTriangularSolve"/>
+     </methods>
+     !!]
+     procedure :: squareSystemSolve      => matrixCholeskySquareSystemSolve
+     procedure :: lowerTriangularSolve   => matrixCholeskyLowerTriangularSolve
+     procedure :: inverse                => matrixCholeskyInverse
+     procedure :: logarithmicDeterminant => matrixCholeskyLogarithmicDeterminant
+  end type matrixCholesky
+
+  interface matrixCholesky
+     !!{RST
+     Interface to Cholesky matrix constructors.
+     !!}
+     module procedure matrixCholeskyConstructor
+  end interface matrixCholesky
   
   ! Assignment interfaces.
   interface assignment(=)
@@ -192,6 +221,7 @@ module Linear_Algebra
      module procedure matrixAssignmentConstructor
      module procedure matrixUnassignment
      module procedure matrixLUUnassignment
+     module procedure matrixCholeskyUnassignment
   end interface assignment(=)
 
   ! Operator interfaces.
@@ -440,6 +470,34 @@ module Linear_Algebra
        type   (c_ptr), value :: A
      end function gsl_linalg_cholesky_decomp
 
+     function gsl_linalg_cholesky_decomp1(A) bind(c,name='gsl_linalg_cholesky_decomp1')
+       !!{RST
+       Template for the GSL Cholesky decomposition function which leaves the upper triangle unmodified.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_cholesky_decomp1
+       type   (c_ptr), value :: A
+     end function gsl_linalg_cholesky_decomp1
+
+     function gsl_linalg_cholesky_solve(cholesky,b,x) bind(c,name='gsl_linalg_cholesky_solve')
+       !!{RST
+       Template for the GSL Cholesky solve function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_cholesky_solve
+       type   (c_ptr), value :: cholesky                 , b, &
+            &                   x
+     end function gsl_linalg_cholesky_solve
+
+     function gsl_linalg_cholesky_invert(cholesky) bind(c,name='gsl_linalg_cholesky_invert')
+       !!{RST
+       Template for the GSL Cholesky in-place inversion function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int)        :: gsl_linalg_cholesky_invert
+       type   (c_ptr), value :: cholesky
+     end function gsl_linalg_cholesky_invert
+
      function gsl_eigen_symmv_alloc(n) bind(c,name='gsl_eigen_symmv_alloc')
        !!{RST
        Template for the GSL symmetric eigenvalues workspace alloc function.
@@ -490,6 +548,19 @@ module Linear_Algebra
        !$GLC attributes interoperable :: TransA
      end function gsl_blas_dgemv
 
+     function gsl_blas_dtrsv(Uplo,TransA,Diag,A,x) bind(c,name='gsl_blas_dtrsv')
+       !!{RST
+       Template for the GSL BLAS triangular solve function.
+       !!}
+       import c_ptr, c_int
+       integer(c_int             )        :: gsl_blas_dtrsv
+       integer(kind(CblasLower  )), value :: Uplo
+       integer(kind(CblasNoTrans)), value :: TransA
+       integer(kind(CblasNonUnit)), value :: Diag
+       type   (c_ptr             ), value :: A             , x
+       !$GLC attributes interoperable :: Uplo, TransA, Diag
+     end function gsl_blas_dtrsv
+
      function gsl_blas_dgemm(TransA,TransB,alpha,A,B,beta,C) bind(c,name='gsl_blas_dgemm')
        !!{RST
        Template for the GSL BLAS matrix-vector multiply-add function.
@@ -529,7 +600,7 @@ contains
     self%size_      =size(array,kind=c_size_t)
     self%vector_%gsl=gsl_vector_alloc(self%size_)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -558,7 +629,7 @@ contains
     self%size_      =n
     self%vector_%gsl=gsl_vector_alloc(self%size_)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -590,7 +661,7 @@ contains
     status          =gsl_vector_memcpy(self%vector_%gsl,source%vector_%gsl)
     if (status /= GSL_Success) call Error_Report('vector copy failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -759,7 +830,7 @@ contains
     self%nonZeroRowColumnsChecked    =.false.
     self%hasZeroRowColumns           =.false.
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -793,7 +864,7 @@ contains
     self%hasZeroRowColumns          =.false.
     self%matrix_                 %gsl=gsl_matrix_alloc(self%size_(1),self%size_(2))
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -828,7 +899,7 @@ contains
     status                           =gsl_matrix_memcpy(self%matrix_%gsl   ,source%matrix_%gsl   )
     if (status /= GSL_Success) call Error_Report('matrix copy failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -1123,7 +1194,7 @@ contains
        allocate(self%LUdecomposition)
        allocate(self%LUpermutation  )
        !![
-       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+       <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	 <description>
 	 ICE when passing a derived type component to a class(*) function argument.
 	 </description>
@@ -1266,7 +1337,7 @@ contains
     status               =GSL_LinAlg_LU_Decomp (self%matrix_%gsl   ,self%permutation_%gsl,self%decompositionSign)
     if (status /= GSL_Success) call Error_Report('LU decomposition failed'//{introspection:location})
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -1314,6 +1385,129 @@ contains
     return
   end subroutine matrixLUUnassignment
   
+  !! Cholesky matrix functions.
+
+  function matrixCholeskyConstructor(matrix_,status) result(self)
+    !!{RST
+    Constructor for the ``matrixCholesky`` class, which finds the Cholesky decomposition of the given symmetric,
+    positive-definite matrix. If ``status`` is present, failure of the decomposition (e.g. because the matrix is not
+    positive-definite) is reported through it instead of being fatal.
+    !!}
+    use :: Error        , only : Error_Report, GSL_Error_Handler_Abort_Off, GSL_Error_Handler_Abort_On
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (matrixCholesky)                          :: self
+    type   (matrix        ), intent(in   )           :: matrix_
+    integer                , intent(  out), optional :: status
+    integer(c_int         )                          :: status_
+
+    if (.not.matrix_%isSquare) call Error_Report('can not find Cholesky decomposition of a non-square matrix'//{introspection:location})
+    self%matrix=matrix(matrix_)
+    if (present(status)) then
+       call GSL_Error_Handler_Abort_Off()
+       status =GSL_LinAlg_Cholesky_Decomp1(self%matrix_%gsl)
+       call GSL_Error_Handler_Abort_On ()
+    else
+       status_=GSL_LinAlg_Cholesky_Decomp1(self%matrix_%gsl)
+       if (status_ /= GSL_Success) call Error_Report('Cholesky decomposition failed'//{introspection:location})
+    end if
+    return
+  end function matrixCholeskyConstructor
+
+  function matrixCholeskySquareSystemSolve(self,y)
+    !!{RST
+    Solve the square linear system :math:`y = A \cdot x` using the Cholesky decomposition of :math:`A`.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (vector        )                :: matrixCholeskySquareSystemSolve
+    class  (matrixCholesky), intent(inout) :: self
+    type   (vector        ), intent(in   ) :: y
+    integer(c_int         )                :: status
+
+    matrixCholeskySquareSystemSolve=vector                   (                 y%size_                                                  )
+    status                         =GSL_LinAlg_Cholesky_Solve(self%matrix_%gsl,y%vector_%gsl,matrixCholeskySquareSystemSolve%vector_%gsl)
+    if (status /= GSL_Success) call Error_Report('Cholesky solve failed'//{introspection:location})
+    return
+  end function matrixCholeskySquareSystemSolve
+
+  function matrixCholeskyLowerTriangularSolve(self,y)
+    !!{RST
+    Solve the triangular linear system :math:`y = L \cdot x` where :math:`L` is the lower-triangular Cholesky factor. Since
+    :math:`A^{-1} = L^{-\mathrm{T}} L^{-1}`, the result satisfies :math:`|x|^2 = y^\mathrm{T} A^{-1} y` at half the cost of a
+    full solve.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (vector        )                :: matrixCholeskyLowerTriangularSolve
+    class  (matrixCholesky), intent(inout) :: self
+    type   (vector        ), intent(in   ) :: y
+    integer(c_int         )                :: status
+
+    matrixCholeskyLowerTriangularSolve=vector        (y                                                                                                   )
+    status                            =GSL_BLAS_DTRSV(CblasLower,CblasNoTrans,CblasNonUnit,self%matrix_%gsl,matrixCholeskyLowerTriangularSolve%vector_%gsl)
+    if (status /= GSL_Success) call Error_Report('triangular solve failed'//{introspection:location})
+    return
+  end function matrixCholeskyLowerTriangularSolve
+
+  function matrixCholeskyInverse(self)
+    !!{RST
+    Compute the inverse of the matrix :math:`A` from its Cholesky decomposition.
+    !!}
+    use :: Error        , only : Error_Report
+    use :: Interface_GSL, only : GSL_Success
+    implicit none
+    type   (matrix        )                :: matrixCholeskyInverse
+    class  (matrixCholesky), intent(in   ) :: self
+    integer(c_int         )                :: status
+
+    matrixCholeskyInverse=matrix                    (self%matrix                       )
+    status               =GSL_LinAlg_Cholesky_Invert(matrixCholeskyInverse%matrix_%gsl)
+    if (status /= GSL_Success) call Error_Report('Cholesky inversion failed'//{introspection:location})
+    return
+  end function matrixCholeskyInverse
+
+  double precision function matrixCholeskyLogarithmicDeterminant(self)
+    !!{RST
+    Compute the logarithm of the determinant of the matrix :math:`A` from its Cholesky decomposition, as :math:`2 \sum_i \log
+    L_{ii}`.
+    !!}
+    implicit none
+    class  (matrixCholesky), intent(in   ) :: self
+    integer(c_size_t      )                :: i
+
+    matrixCholeskyLogarithmicDeterminant=0.0d0
+    do i=1_c_size_t,self%size_(1)
+       matrixCholeskyLogarithmicDeterminant=+matrixCholeskyLogarithmicDeterminant                                  &
+            &                               +2.0d0*log(gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,i-1_c_size_t))
+    end do
+    return
+  end function matrixCholeskyLogarithmicDeterminant
+
+  subroutine matrixCholeskyUnassignment(array,self)
+    !!{RST
+    Assign the lower-triangular Cholesky factor, :math:`L`, of a ``matrixCholesky`` object to an array. Elements above the
+    diagonal are set to zero.
+    !!}
+    implicit none
+    double precision                , intent(  out), dimension(:,:) :: array
+    type            (matrixCholesky), intent(in   )                 :: self
+    integer         (c_size_t      )                                :: i    , j
+
+    do i=1_c_size_t,self%size_(1)
+       do j=1_c_size_t,self%size_(2)
+          if (j <= i) then
+             array(i,j)=gsl_matrix_get(self%matrix_%gsl,i-1_c_size_t,j-1_c_size_t)
+          else
+             array(i,j)=0.0d0
+          end if
+       end do
+    end do
+    return
+  end subroutine matrixCholeskyUnassignment
+
   !! Geometrical transformations.
 
   function matrixRotationRandom(randomNumberGenerator_)
@@ -1377,42 +1571,6 @@ contains
     matrixRotation       =Q*Pinverse
     return
   end function matrixRotation
-
-  function matrixRotationPlusTranslation(points,pointsRotated,translation) result(matrixRotation)
-    !!{RST
-    Given a set of 3 points, and a corresponding set of points to which some rotation has been applied, construct the corresponding rotation matrix (and, optionally, any translation between the points). The distances between the points must be the same---currently this is not checked. The method used is that of :cite:t:`robjohn2012`
-    !!}
-    implicit none
-    type            (matrix)                                :: matrixRotation
-    type            (vector), intent(in   ), dimension(3  ) :: points           , pointsRotated
-    type            (vector), intent(  out), optional       :: translation
-    type            (vector)                                :: point4           , pointRotated4 , &
-         &                                                     point21          , point31       , &
-         &                                                     pointRotated21   , pointRotated31
-    type            (matrix)                                :: P                , Q
-    double precision                       , dimension(3,3) :: matrixComponents
-
-    point21       =points       (2)-points       (1)
-    pointRotated21=pointsRotated(2)-pointsRotated(1)
-    point31       =points       (3)-points       (1)
-    pointRotated31=pointsRotated(3)-pointsRotated(1)
-    point4        =points       (1)+point21       .cross.point31
-    pointRotated4 =pointsRotated(1)+pointRotated21.cross.pointRotated31
-    matrixComponents(:,1)=point21
-    matrixComponents(:,2)=point31
-    matrixComponents(:,3)=point4       -points       (1)
-    P                    =matrix(matrixComponents)
-    matrixComponents(:,1)=pointRotated21
-    matrixComponents(:,2)=pointRotated31
-    matrixComponents(:,3)=pointRotated4-pointsRotated(1)
-    Q                    =matrix(matrixComponents)
-    matrixRotation       =Q*P%inverse()
-    if (present(translation)) &
-         & translation   = pointsRotated (1) &
-         &                -matrixRotation    &
-         &                *points        (1)
-    return
-  end function matrixRotationPlusTranslation
 
   subroutine vectorWrapperDestructor(self)
     !!{RST

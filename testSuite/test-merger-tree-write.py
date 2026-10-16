@@ -38,4 +38,4 @@ if validator:
     if status.returncode != 0:
         print("FAILED: IRATE-format file output by Galacticus did not validate")
 else:
-    print("SKIP: iratevalidate is not installed - validation of IRATE-format file will be skipped")
+    print("iratevalidate is not installed - validation of the IRATE-format file will be skipped")

@@ -89,6 +89,7 @@ contains
       The parameter :math:`A` appearing in the :cite:t:`gnedin_response_2004` adiabatic contraction algorithm.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>omega</name>

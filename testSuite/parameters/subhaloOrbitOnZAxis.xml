@@ -8,7 +8,7 @@
 <!-- z-axis and using a different axis in such cases.                                                       -->
 
 <parameters>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="57d4f71e7573f4666f3fa72fb74cfa7d646d1d2d" time="2026-10-14T21:57:40"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -215,7 +215,6 @@
   <starFormationRateDisks value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisks value="blitz2006">
     <starFormationFrequencyNormalization value="1.432e-9"/>
-    <useTabulation value="true"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
     <starFormationTimescale value="dynamicalTime">
@@ -572,7 +571,7 @@
       <ageLimit value="0.01"/>
       </hiiRegionEscapeFraction>
     </nodePropertyExtractor>
-    <nodePropertyExtractor value="lmnstyEmssnLineAGN">
+    <nodePropertyExtractor value="luminosityEmissionLineAGN">
       <!-- hard coded on main branch <cloudyTableFileNameAGN value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities_AGN.hdf5"/> -->
       <densityHydrogen value="1.0d3"/>
       <lineNames value="balmerAlpha6565 balmerBeta4863 balmerDelta4103 balmerGamma4342 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII4933 oxygenIII4960 oxygenIII5008 paschenAlpha18756 paschenBeta12822 sulfurII6718 sulfurII6733 sulfurIII9071 sulfurIII9533"/>

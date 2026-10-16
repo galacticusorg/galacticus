@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a prune-by-lightcone operator on merger trees.
   !!}
@@ -149,35 +151,33 @@ contains
     !!{RST
     Validate the lightcone pruning operator.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List          , Error_Report
-    use :: Galacticus_Nodes, only : defaultPositionComponent, defaultSatelliteComponent
+    use :: Display            , only : displayGreen            , displayReset
+    use :: Error              , only : Error_Report
+    use :: Galacticus_Nodes   , only : defaultPositionComponent
+    use :: Geometry_Lightcones, only : geometryLightconeNull
+    use :: ISO_Varying_String , only : varying_string          , assignment(=), operator(//)
     implicit none
     class(mergerTreeOperatorPruneLightconeSnapshots), intent(inout) :: self
+    type (varying_string                           )                :: message
 
+    ! Validate the lightcone geometry. This operator prunes away every tree which does not intersect the lightcone, so it can not
+    ! be used without one. With a null lightcone no node ever intersects the lightcone, so every tree would be silently pruned.
+    select type (geometryLightcone_ => self%geometryLightcone_)
+    class is (geometryLightconeNull)
+       message=                                             "the `mergerTreeOperatorPruneLightconeSnapshots` class requires a lightcone geometry"//char(10)// &
+            &  displayGreen()//"    HELP:"//displayReset()//" this operator prunes trees which do not intersect the lightcone, but you have"     //char(10)// &
+            &                                               "          no lightcone geometry configured - so every tree would be pruned."        //char(10)// &
+            &                                               "          Either set a non-null `geometryLightcone`, or remove this operator."
+       call Error_Report(message//{introspection:location})
+    end select
     ! If buffering is applied to isolated halos, then satellite halos are to be checked for intersection only for as long as their
     ! position is known. In this case, check if satellite position history can be obtained, and also require that satellite time
     ! of merging can be both read and written.
     if (self%bufferIsolatedHalos) then
        self%positionHistoryAvailable=defaultPositionComponent%positionHistoryIsGettable()
-       if     (                                                                                                                               &
-            &  .not.(                                                                                                                         &
-            &         defaultSatelliteComponent%timeOfMergingIsGettable()                                                                     &
-            &        .and.                                                                                                                    &
-            &         defaultSatelliteComponent%timeOfMergingIsSettable()                                                                     &
-            &       )                                                                                                                         &
-            & )                                                                                                                               &
-            & call Error_Report                                                                                                               &
-            &      (                                                                                                                          &
-            &       'buffering isolated halos requires that the timeOfMerging property of the satellite component be gettable and settable'// &
-            &       Component_List(                                                                                                           &
-            &                      'satellite'                                                                                             ,  &
-            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                            &
-            &                       .intersection.                                                                                            &
-            &                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)                            &
-            &                      )                                                                                                       // &
-            &       {introspection:location}                                                                                                  &
-            &      )
+       !![
+       <componentPropertyAssert class="satellite" properties="timeOfMerging" require="gettable settable"/>
+       !!]
     end if
     return
   end subroutine pruneLightconeSnapshotsValidate

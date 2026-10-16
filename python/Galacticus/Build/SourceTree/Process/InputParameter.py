@@ -1,76 +1,52 @@
 """Processes `inputParameter` directives: emits the
 `source%value('name', var, defaultValue=…, writeOutput=…)` call that binds
 a Fortran variable to a named run-time parameter, and ensures the enclosing
-subprogram imports `Input_Parameters`.
+subprogram imports `Input_Parameters`. For each bound declared by a
+`<minimum>` or `<maximum>` element, it also emits a call to
+`inputParameterBoundCheck` (module `Input_Parameters_Bounds`), which reports
+a fatal error if the value read violates the bound.
 
 Andrew Benson (ported to Python 2026)
 """
 
-import os
 import re
-import xml.etree.ElementTree as ET
 
-
-from XML.Utils                                    import xml_to_dict
 from Galacticus.Build.SourceTree                  import walk_tree, insert_after_node
 from Galacticus.Build.SourceTree.Process          import register_process
 from Galacticus.Build.SourceTree.Parse.ModuleUses import add_uses
 
 
-def _read_executables(build_path):
-    """Return the list of non-test executables listed on `all_exes = …` of
-    `$BUILDPATH/Makefile_All_Execs`.
+def _bound(raw):
+    """Parse a `<minimum>`/`<maximum>` directive value into `(text, inclusive)`.
+
+    `raw` is the `xml_to_dict` value: a plain string (`<minimum>0.0</minimum>`), or a dict when the
+    element carries attributes (`<minimum inclusive="false">0.0</minimum>`).
     """
-    path = os.path.join(build_path, 'Makefile_All_Execs')
-    executables = []
-    with open(path, 'r', errors='replace') as fh:
-        for line in fh:
-            m = re.match(r'^all_exes\s+=\s+(.*)', line)
-            if m:
-                executables = [
-                    token for token in m.group(1).split()
-                    if not token.startswith('tests.')
-                ]
-                break
-    return executables
+    if isinstance(raw, dict):
+        text      = str(raw.get('content', '')).strip()
+        inclusive = raw.get('inclusive', 'true') != 'false'
+    else:
+        text      = str(raw).strip()
+        inclusive = True
+    return text, inclusive
 
 
-def _read_dependencies(build_path, executables):
-    """For each executable, parse `<exe>.d` and collect its object-file stems.
-
-    Missing `.d` files are silently skipped.  The returned shape is
-    `{exe: {stem: True}}`.
-    """
-    dependencies = {}
-    for executable in executables:
-        dep_name = re.sub(r'\.exe$', '.d', executable)
-        dep_path = os.path.join(build_path, dep_name)
-        if not os.path.exists(dep_path):
-            continue
-        dependencies[executable] = {}
-        with open(dep_path, 'r', errors='replace') as fh:
-            for line in fh:
-                m = re.search(r'([^/]+)\.o$', line.rstrip('\n'))
-                if m:
-                    dependencies[executable][m.group(1)] = True
-    return dependencies
+def _double_literal(text, parameter):
+    """Return `text`, a numeric bound, as a Fortran double precision literal."""
+    try:
+        float(text.lower().replace('d', 'e'))
+    except ValueError:
+        raise RuntimeError(
+            f"process_input_parameters: bound '{text}' of parameter '{parameter}' is not a number")
+    if re.search(r'[dD]', text):
+        return text
+    if re.search(r'[eE]', text):
+        return re.sub(r'[eE]', 'd', text)
+    return text + 'd0'
 
 
 def process_input_parameters(tree, options):
     """Process `inputParameter` directives in the tree."""
-    build_path = os.environ.get('BUILDPATH')
-    if not build_path:
-        raise RuntimeError(
-            "process_input_parameters: BUILDPATH is not set")
-
-    # The executables/dependencies/directiveLocations reads are deliberately
-    # performed even when no inputParameter directives exist.
-    executables  = _read_executables(build_path)
-    _dependencies = _read_dependencies(build_path, executables)
-    _directive_locations_path = os.path.join(build_path, 'directiveLocations.xml')
-    if os.path.exists(_directive_locations_path):
-        xml_to_dict(ET.parse(_directive_locations_path).getroot())
-
     for node in walk_tree(tree):
         if node.get('type') != 'inputParameter':
             continue
@@ -94,6 +70,28 @@ def process_input_parameters(tree, options):
                               else '.true.')
                 code += f",writeOutput={write_flag}"
             code += ")\n"
+            # Enforce any declared bounds.
+            bounds = [
+                (element, *_bound(directive[element]))
+                for element in ('minimum', 'maximum') if element in directive
+            ]
+            for element, text, inclusive in bounds:
+                code += (
+                    f"  call inputParameterBoundCheck({source},{parameter_arg},{variable},"
+                    f"{_double_literal(text, parameter)},'{text}',"
+                    f"isMinimum={'.true.' if element == 'minimum' else '.false.'},"
+                    f"isInclusive={'.true.' if inclusive else '.false.'})\n"
+                )
+            if bounds:
+                add_uses(node['parent'], {
+                    'moduleUse': {
+                        'Input_Parameters_Bounds': {
+                            'intrinsic': False,
+                            'only':      {'inputParameterBoundCheck': True},
+                        },
+                    },
+                    'moduleOrder': ['Input_Parameters_Bounds'],
+                })
         code += "  ! End auto-generated input parameter\n\n"
 
         insert_after_node(node, [{

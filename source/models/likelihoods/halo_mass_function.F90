@@ -29,7 +29,7 @@
   !![
   <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction" docformat="rst">
    <description>
-   A posterior sampling likelihood class which evaluates the likelihood of a modeled dark matter halo mass function against observed data, supporting Poisson or multivariate normal statistics. The target data file is set by ``[fileName]``, with the evaluation redshift, mass limits, and minimum halo count per bin set by ``[redshift]``, ``[massMinimum]``, and ``[countMinimum]``.
+   A posterior sampling likelihood class which evaluates the likelihood of a modeled dark matter halo mass function against observed data, supporting Poisson or multivariate normal statistics. The target data file is set by ``[fileNames]``, with the evaluation redshift, mass limits, and minimum halo count per bin set by ``[redshifts]``, ``[massRangeMinimum]``, and ``[binCountMinimum]``.
    </description>
    <runTimeFileDependencies paths="fileNames"/>
   </posteriorSampleLikelihood>
@@ -312,7 +312,7 @@ contains
     allocate(self%parametersModel)
     self%parametersModel%parametersModel => parametersModel
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -842,13 +842,13 @@ contains
                             rootVarianceEarly=rootVarianceEarly/linearGrowthFactorEarly
                             ! Evaluate the model for the correlation between these two bins.
                             if (massFunction(j,jTime) > 0.0d0) then
-                               peakHeightEffective    =+    (                                                                            &
-                                    &                        +self%criticalOverdensity_%value(self%times(jTime))/linearGrowthFactorEarly &
-                                    &                        -self%criticalOverdensity_%value(self%times(iTime))/linearGrowthFactorLate  &
-                                    &                       )                                                                            &
-                                    &                  /sqrt(                                                                            &
-                                    &                        +rootVarianceEarly**2                                                       &
-                                    &                        -rootVarianceLate **2                                                       &
+                               peakHeightEffective    =+    (                                                                                              &
+                                    &                        +self%criticalOverdensity_%value(self%times(jTime),mass=self%mass(j))/linearGrowthFactorEarly &
+                                    &                        -self%criticalOverdensity_%value(self%times(iTime),mass=self%mass(i))/linearGrowthFactorLate  &
+                                    &                       )                                                                                              &
+                                    &                  /sqrt(                                                                                              &
+                                    &                        +rootVarianceEarly**2                                                                         &
+                                    &                        -rootVarianceLate **2                                                                         &
                                     &                       )
                                fractionMassProgenitors=+0.4d0                                     & ! "Global fit" from Cole et al. (2008; https://ui.adsabs.harvard.edu/abs/2008MNRAS.383..546C).
                                     &                  *    ( peakHeightEffective**0.75d0       ) &

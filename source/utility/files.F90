@@ -283,7 +283,7 @@ contains
 
     allocate(self%unit)
     !![
-    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
       <description>
       ICE when passing a derived type component to a class(*) function argument.
       </description>
@@ -774,6 +774,9 @@ contains
     character(len=*), intent(in   ) :: fileName
     integer  (c_int)                :: status
 
+    ! An empty file name is always an error - it can never name a file to remove, so silently accepting it would hide the bug in
+    ! the caller (as it did in the case of issue #1391).
+    if (len_trim(fileName) == 0) call Error_Report('no file name given'//{introspection:location})
     if (File_Exists(fileName)) then
        status=unlink_C(trim(fileName)//char(0))
        if (status /= 0) call Error_Report('failed to remove file "'//trim(fileName)//'"'//{introspection:location})

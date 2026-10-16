@@ -34,7 +34,7 @@ _launch_spec.loader.exec_module(_launch)
 
 m = re.match(r'(\d+):(\d+)', args.instance)
 if not m:
-    print("'instance' argument syntax error")
+    print(f"FAILED: 'instance' argument syntax error: expected '<instance>:<count>', got '{args.instance}'")
     sys.exit(0)
 instance      = int(m.group(1))
 instanceCount = int(m.group(2))
@@ -307,7 +307,7 @@ def evaluate_model(modelName, fileName, randomSeed, gitRevision, calibratePercen
         try:
             failureCount, testCount = test["func"](modelName, modelDir, test["label"], gitRevision)
         except Exception as e:
-            print(f"      Warning: test failed with exception: {e}")
+            print(f"FAILED: test '{test['name']}' of model '{modelName}' raised an exception: {e}")
             failureCount, testCount = 0, 0
         failureTotal += failureCount
         testTotal    += testCount
@@ -325,8 +325,8 @@ def evaluate_model(modelName, fileName, randomSeed, gitRevision, calibratePercen
     elif probabilityExcess < 0.010:
         status = "WARNING"
     else:
-        status = "success"
-    print(f"Status: {status}")
+        status = "SUCCESS"
+    print(f"{status}: model integration test '{modelName}'")
 
 
 # Find integration models to run.

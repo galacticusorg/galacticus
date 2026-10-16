@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Contains a module which implements a concentration distribution output analysis class for dark matter halo time formation distribution.
   !!}
@@ -313,6 +315,8 @@ contains
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
+             allocate(functionValueTarget       (parameters%count('functionValueTarget'     )))
+             allocate(functionCovarianceTarget1D(parameters%count('functionCovarianceTarget')))
              !![
              <inputParameter docformat="rst">
                <name>functionValueTarget</name>
@@ -778,7 +782,8 @@ contains
     !!{RST
     Implement reduction over progenitor mass functions.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisFormationTimeDistribution), intent(inout) :: self
     class(outputAnalysisClass                    ), intent(inout) :: reduced
@@ -790,7 +795,7 @@ contains
             &                +self   %weightParents
        !$ call reduced%accumulateLock%unset()
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisFormationTimeDistribution] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     call self%outputAnalysisVolumeFunction1D%reduce(reduced)
     return

@@ -31,7 +31,7 @@
    ``[gammaInitial]``
       The initial value for :math:`\gamma`.
 
-   ``[gammaFactor]``
+   ``[gammaAdjustFactor]``
       The multiplicative factor by which :math:`\gamma` should be increased or decreased if the acceptance rate is out of range.
 
    ``[gammaMinimum]``

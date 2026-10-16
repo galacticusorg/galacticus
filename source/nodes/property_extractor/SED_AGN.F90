@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a property extractor class for the SED of the AGN.
   !!}
@@ -46,18 +48,22 @@
      !![
      <methods docformat="rst">
        <method description="Return an array of the wavelengths at which the SED is computed." method="wavelengths"/>
+       <method description="Return true if the SED is computed in the rest frame."            method="isRestFrame"/>
      </methods>
      !!]
-     final     ::                            sedAGNDestructor
-     procedure :: wavelengths             => sedAGNWavelengths
-     procedure :: columnDescriptions      => sedAGNColumnDescriptions
-     procedure :: size                    => sedAGNSize
-     procedure :: elementCount            => sedAGNElementCount
-     procedure :: extract                 => sedAGNExtract
-     procedure :: names                   => sedAGNNames
-     procedure :: descriptions            => sedAGNDescriptions
-     procedure :: unitsInSI               => sedAGNUnitsInSI
-     procedure :: units       => sEDAGNUnits
+     final     ::                        sedAGNDestructor
+     procedure :: wavelengths         => sedAGNWavelengths
+     procedure :: columnDescriptions  => sedAGNColumnDescriptions
+     procedure :: size                => sedAGNSize
+     procedure :: elementCount        => sedAGNElementCount
+     procedure :: extract             => sedAGNExtract
+     procedure :: names               => sedAGNNames
+     procedure :: descriptions        => sedAGNDescriptions
+     procedure :: unitsInSI           => sedAGNUnitsInSI
+     procedure :: units               => sedAGNUnits
+     procedure :: isRestFrame         => sedAGNIsRestFrame
+     procedure :: supportsAttenuation => sedAGNSupportsAttenuation
+     procedure :: decompose           => sedAGNDecompose
   end type nodePropertyExtractorSEDAGN
   
   interface nodePropertyExtractorSEDAGN
@@ -384,6 +390,75 @@ contains
     unitsInSI(1)=luminositySolar
     return
   end function sedAGNUnitsInSI
+
+  logical function sedAGNIsRestFrame(self) result(isRestFrame)
+    !!{RST
+    Return true if the SED is computed in the rest frame.
+    !!}
+    use :: Stellar_Luminosities_Structure, only : frameRest
+    implicit none
+    class(nodePropertyExtractorSEDAGN), intent(inout) :: self
+
+    isRestFrame=self%frame == frameRest
+    return
+  end function sedAGNIsRestFrame
+
+  logical function sedAGNSupportsAttenuation(self) result(supportsAttenuation)
+    !!{RST
+    Return true, since the SED of the AGN can be decomposed into parcels of emission which dust may attenuate.
+    !!}
+    implicit none
+    class(nodePropertyExtractorSEDAGN), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    supportsAttenuation=.true.
+    return
+  end function sedAGNSupportsAttenuation
+
+  function sedAGNDecompose(self,node,time,request) result(decomposition)
+    !!{RST
+    Decompose the SED of the AGN into parcels of emission which may be attenuated by dust: one parcel at each wavelength,
+    emitted by the accretion disk of the black hole. The age of the emission is left unresolved, so attenuators which
+    distinguish young populations---birth clouds, for example---treat it as old.
+    !!}
+    use :: Dust_Attenuation_Descriptors  , only : emissionSourceAccretionDisk
+    use :: Error                         , only : Error_Report
+    use :: Galactic_Structure_Options    , only : componentTypeBlackHole
+    use :: Stellar_Luminosities_Structure, only : frameObserved              , frameRest
+    implicit none
+    type            (luminosityDecomposition    )                             :: decomposition
+    class           (nodePropertyExtractorSEDAGN), intent(inout), target      :: self
+    type            (treeNode                   ), intent(inout), target      :: node
+    double precision                             , intent(in   )              :: time
+    type            (decompositionRequest       ), intent(in   )              :: request
+    double precision                             , dimension(:) , allocatable :: wavelengths
+    double precision                                                          :: expansionFactor
+    integer         (c_size_t                   )                             :: countWavelengths
+    integer                                                                   :: i
+    !$GLC attributes unused :: request
+
+    select case (self%frame%ID)
+    case (frameRest    %ID)
+       expansionFactor=1.0d0
+    case (frameObserved%ID)
+       expansionFactor=self%cosmologyFunctions_%expansionFactor(time)
+    case default
+       expansionFactor=1.0d0
+       call Error_Report('unknown frame'//{introspection:location})
+    end select
+    countWavelengths=self%size(time)
+    ! Dust acts in the rest frame of the emitting galaxy.
+    wavelengths=self%wavelengths(time)*expansionFactor
+    call decomposition%initialize(int(countWavelengths),int(countWavelengths))
+    do i=1,int(countWavelengths)
+       decomposition%luminosities(i)              =self%accretionDiskSpectra_%spectrum(node,wavelengths(i))
+       decomposition%elementIndex(i)              =i
+       decomposition%descriptors (i)%wavelength   =wavelengths(i)
+       decomposition%descriptors (i)%componentType=componentTypeBlackHole
+       decomposition%descriptors (i)%sourceType   =emissionSourceAccretionDisk
+    end do
+    return
+  end function sedAGNDecompose
 
   function sEDAGNUnits(self,time) result(units)
     !!{RST

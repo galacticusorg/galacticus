@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo mass accretion histories using the :cite:t:`zhao_accurate_2009` algorithm.
   !!}
@@ -162,7 +164,7 @@ contains
     ! Compute σ proxy.
     sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved ! Equation 8 from Zhao et al. (2009).
     ! Compute critical overdensities for collapse.
-    deltaCriticalObserved=self%criticalOverdensity_%value(time=baseTime,mass=baseMass)
+    deltaCriticalObserved=self%criticalOverdensity_%value(time=baseTime,mass=baseMass,node=node)
     ! Compute w factors.
     wObserved=deltaCriticalObserved/sObserved ! Equation 7 from Zhao et al. (2009).
     ! Compute p factors.

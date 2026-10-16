@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The analytic evaluation of the smoothed power spectrum slope was
-!+    drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   Implements a generalization of the ETHOS power spectrum window function class from :cite:t:`bohr_halo_2021`.
@@ -123,6 +122,7 @@ contains
       <description>
       The parameter :math:`c_\mathrm{W,0}` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>beta0</name>
@@ -131,22 +131,25 @@ contains
       <description>
       The parameter :math:`\beta_0` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>cW1</name>
       <source>parameters</source>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>1.0d0</defaultValue>
       <description>
       The parameter :math:`c_\mathrm{W,1}` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>beta1</name>
       <source>parameters</source>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>1.0d0</defaultValue>
       <description>
       The parameter :math:`\beta_1` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>wavenumberScaledMinimum</name>
@@ -155,6 +158,7 @@ contains
       <description>
       The parameter :math:`x_\mathrm{min}` in the generalized ETHOS power spectrum window function.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>powerSpectrumSmoothingWidth</name>
@@ -163,6 +167,7 @@ contains
       <description>
       The width (in natural logarithm of wavenumber) over which to smooth the power spectrum when estimating the power spectrum slope.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
@@ -254,7 +259,7 @@ contains
          &               )                                                                                , &
          &                +exponentPowerMaximum                                                             &
          &           )
-    if (exponent(self%beta0)+exponent(self%beta1)*exponentPower < maxExponent(parameterValueMaximum)) then
+    if (exponent(self%beta0)+exponent(self%beta1)*exponentPower < exponent(parameterValueMaximum)) then
        beta   =+self%beta0                &
             &  *self%beta1**exponentPower
     else
@@ -265,7 +270,7 @@ contains
   
   double precision function ETHOSExtendedWavenumberScaledMinimum(self,wavenumber,time) result(wavenumberScaledMinimum)
     !!{RST
-    Compute the :math:`\beta` parameter for the extended ETHOS window function.
+    Compute the minimum scaled wavenumber, :math:`x_\mathrm{min}`, for the extended ETHOS window function.
     !!}
     implicit none
     class           (powerSpectrumWindowFunctionETHOSExtended), intent(inout) :: self

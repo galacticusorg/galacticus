@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a concentration distribution output analysis class for dark matter halo progenitor mass functions.
   !!}
@@ -375,6 +377,8 @@ contains
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
+             allocate(functionValueTarget       (parameters%count('functionValueTarget'     )))
+             allocate(functionCovarianceTarget1D(parameters%count('functionCovarianceTarget')))
              !![
              <inputParameter docformat="rst">
                <name>functionValueTarget</name>
@@ -405,6 +409,7 @@ contains
           if (parameters%isPresent('functionCovariance')) call Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
        end if
        if (parameters%isPresent('functionCountTarget')) then
+          allocate(functionCountTarget(parameters%count('functionCountTarget')))
           !![
           <inputParameter docformat="rst">
             <name>functionCountTarget</name>
@@ -946,7 +951,8 @@ contains
     !!{RST
     Implement reduction over progenitor mass functions.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
     class(outputAnalysisClass                 ), intent(inout) :: reduced
@@ -958,7 +964,7 @@ contains
             &                +self   %weightParents
        !$ call reduced%accumulateLock%unset()
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisProgenitorMassFunction] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     call self%outputAnalysisVolumeFunction1D%reduce(reduced)
     return
@@ -1037,7 +1043,7 @@ contains
 
   subroutine progenitorMassFunctionLogLikelihoodWrite(self,analysisGroup)
     !!{RST
-    Write the log-likelihood of the progenitor mass function to the output group. This overrides the :galacticus-class:`outputAnalysisVolumeFunction1D` default so that our own  logLikelihood method is used, and the parent-class  logLikelihood method (which requires a covariance matrix that we do not construct) is never evaluated.
+    Write the log-likelihood of the progenitor mass function to the output group. This overrides the :galacticus-class:`outputAnalysisVolumeFunction1D` default so that our own  ``logLikelihood`` method is used, and the parent-class  ``logLikelihood`` method (which requires a covariance matrix that we do not construct) is never evaluated.
     !!}
     use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
@@ -1050,7 +1056,7 @@ contains
 
   subroutine progenitorMassFunctionMetadataWrite(self,analysisGroup)
     !!{RST
-    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts.
+    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts. If target counts are available, also write those counts, and the factor converting the progenitor mass function in each bin to a count (``countPerValue``), so that the counts-based likelihood can be reconstructed from the output (for example, by an emulator of this analysis). The range of mass ratio used in the likelihood is also written as the generic ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes for this purpose.
     !!}
     use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
@@ -1063,6 +1069,12 @@ contains
     call analysisGroup%writeAttribute(self%massParentMaximum         ,'massParentMaximum'         )
     call analysisGroup%writeAttribute(self%redshiftParent            ,'redshiftParent'            )
     call analysisGroup%writeAttribute(self%redshiftProgenitor        ,'redshiftProgenitor'        )
+    if (allocated(self%functionCountTarget)) then
+       call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum,'xLikelihoodMinimum')
+       call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum,'xLikelihoodMaximum')
+       call analysisGroup%writeDataset  (dble(self%functionCountTarget)                     ,'countTarget'  ,'Target counts in each bin'                                  )
+       call analysisGroup%writeDataset  (     self%countConversionFactor/self%massRatios    ,'countPerValue','Factor converting the function value in each bin to a count')
+    end if
     return
   end subroutine progenitorMassFunctionMetadataWrite
 
@@ -1241,7 +1253,7 @@ contains
                 if (self%likelihoodNormalize)                                                         &
                      & progenitorMassFunctionLogLikelihood=+progenitorMassFunctionLogLikelihood       &
                      &                                     -0.5d0*covariance%logarithmicDeterminant() &
-                     &                                     -0.5d0*dble(self%binCount)                 &
+                     &                                     -0.5d0*dble(size(functionValueDifference)) &
                      &                                     *log(2.0d0*Pi)
              else
                 progenitorMassFunctionLogLikelihood=logImprobable

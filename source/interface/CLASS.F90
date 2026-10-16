@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides various interfaces to the :term:`CLASS` code.
 !!}
@@ -748,11 +750,11 @@ contains
     use               :: File_Utilities                  , only : Directory_Make          , File_Remove        , Directory_Remove, Count_Lines_In_File
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)
+    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)    , var_str
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)
-    use               :: System_Command                  , only : System_Command_Do       , shellEscape
+    use               :: System_Command                  , only : System_Command_Do       , shellEscape        , System_Command_Failure_Report
     implicit none
     class           (cosmologyParametersClass), intent(inout)                                          :: cosmologyParameters_
     double precision                          , intent(in   ), optional, dimension(:    )              :: redshifts
@@ -775,7 +777,8 @@ contains
     type            (varying_string          )                                                         :: classVersion                     , parameterFile          , &
          &                                                                                                classPath                        , workPath               , &
          &                                                                                                transferFileName                 , escapedExecutable      , &
-         &                                                                                                escapedParameterFile             , escapedLogFile
+         &                                                                                                escapedParameterFile             , escapedLogFile         , &
+         &                                                                                                logFileName                      , helpMessage
     logical                                                                                            :: found                            , haveTransferFunctions  , &
          &                                                                                                haveNormalization                , havePerturbations
     double precision                                                                                   :: sigma8                           , wavenumberCLASS
@@ -870,7 +873,15 @@ contains
     escapedExecutable   =shellEscape(classPath//"class"    )
     escapedParameterFile=shellEscape(parameterFile         )
     escapedLogFile      =shellEscape(workPath//"/class.log")
-    call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile)
+    call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
+    ! Note that the log file name and message are built in assignments, not in the argument list below - `varying_string`
+    ! expressions passed directly as arguments are not finalized by gfortran, and so leak.
+    if (status /= 0) then
+       logFileName=workPath//"/class.log"
+       helpMessage=var_str('CLASS most often fails because the cosmological parameters given to it are invalid. Its')// &
+            &      ' parameter file is "'//parameterFile//'".'
+       call System_Command_Failure_Report('CLASS',logFileName,helpMessage)
+    end if
     ! Extract the ratio σ₈²/Aₛ.
     if (haveNormalization) then
        found=.false.

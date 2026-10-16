@@ -51,7 +51,7 @@ def parse_code(code, name='<string>', source=None, instrument=True):
     placeholder with the line number on which it appears; downstream
     `process_source_introspection` then expands those into a full Fortran
     expression naming the surrounding scope.  Re-parses of generic-expanded
-    or otherwise synthesised content should pass `instrument=False` so the
+    or otherwise synthesized content should pass `instrument=False` so the
     line numbers aren't tagged a second time.
     """
     if instrument:
@@ -73,17 +73,121 @@ def parse_code(code, name='<string>', source=None, instrument=True):
     return root
 
 
+def parse_code_for_format(code, name='<string>', source=None):
+    """Build an AST suitable for *reformatting* a source file.
+
+    `parse_code()` is built for code generation: it is free to rewrite parts
+    of the file that the compiler will not care about, and it does.  Three of
+    those rewrites make its trees unusable for a formatter, and this entry
+    point suppresses each:
+
+    * `{introspection:location}` placeholders are **not** instrumented with
+      their line numbers (`parse_code(instrument=True)` rewrites them in
+      place, so `…:location}` comes back as `…:location:338}`).
+    * The directives pass is **not** run.  It splits a multi-directive
+      `!![ … !!]` block into one node per directive, each re-emitting its own
+      `!![`/`!!]` marker pair — invisible to the compiler, but it means a
+      block holding three `<objectDestructor>` directives serializes back as
+      three separate blocks.
+    * Only the module-use and declaration passes run, since those are the
+      only node types a formatter rewrites.  The visibility and OpenMP passes
+      are pure overhead here.
+
+    Embedded LaTeX/XML blocks are still commented out by
+    `_comment_embedded()`, because their bodies would otherwise be scanned
+    for Fortran unit openers and declarations; pair this with
+    `serialize_for_format()`, which undoes that on the way out.
+
+    The result is a tree that serializes back to a byte-identical copy of
+    `code` until something deliberately modifies it.
+    """
+    root = {
+        'type':       'file',
+        'name':       name,
+        'content':    _comment_embedded(code),
+        'parent':     None,
+        'firstChild': None,
+        'sibling':    None,
+        'source':     source if source is not None else name,
+        'line':       0,
+    }
+    _link_children(root, _parse_units(root))
+    _pass_module_uses(root)
+    _pass_declarations(root)
+    return root
+
+
+def parse_file_for_format(filename):
+    """Read a Fortran source file and return a tree suitable for reformatting.
+
+    See `parse_code_for_format()`.
+    """
+    with open(filename, 'r', errors='replace') as fh:
+        content = fh.read()
+    return parse_code_for_format(content,
+                                 name=_name_relative_to_source(filename),
+                                 source=filename)
+
+
+def serialize_for_format(node):
+    """Serialize a tree from `parse_code_for_format()` back to source text.
+
+    Undoes the `!< ` marker that `_comment_embedded()` adds to embedded
+    LaTeX/XML block bodies, which plain `serialize()` deliberately leaves in
+    place for the benefit of the compiler.
+    """
+    return uncomment_embedded(serialize(node))
+
+
+_GUARD_OPEN_RE  = re.compile(r'^\s*#\s*(?:ifdef|ifndef|if)\b')
+_GUARD_CLOSE_RE = re.compile(r'^\s*#\s*endif\b')
+
+
+def preprocessor_guard_balance(text):
+    """Net count of opened-minus-closed preprocessor conditionals in `text`.
+
+    Reformatting must never change this.  `update_uses()` re-emits a guard
+    around each `use` statement it owns, so where a `#ifdef` in the source
+    covered a `use` *and* the code following it, the rebuilt block closes its
+    own guard while the original `#endif` survives in the following code —
+    leaving an unbalanced `#endif` that fails to compile.
+
+    Comparing the whole-file balance before and after catches that class of
+    error whatever its cause, which a check on the parsed structure alone does
+    not: the structure round-trips perfectly, and it is the *interleaving* of
+    the rebuilt block with its surroundings that goes wrong.
+    """
+    balance = 0
+    for line in text.splitlines():
+        if _GUARD_OPEN_RE.match(line):
+            balance += 1
+        elif _GUARD_CLOSE_RE.match(line):
+            balance -= 1
+    return balance
+
+
 def walk_tree(node):
     """Depth-first generator over all nodes in the tree.
 
     Yields every node exactly once
     in pre-order (parent before children).
+
+    Iterative rather than recursive (a recursive generator costs a generator frame per node per level of nesting), but
+    reads each link at the same moment the recursive form would — a node's `firstChild` just after the node is yielded,
+    and its `sibling` once its subtree is exhausted — so callers that modify the tree mid-walk see identical behavior.
     """
     yield node
+    stack = []
     child = node.get('firstChild')
-    while child:
-        yield from walk_tree(child)
-        child = child.get('sibling')
+    while True:
+        if child:
+            yield child
+            stack.append(child)
+            child = child.get('firstChild')
+        elif stack:
+            child = stack.pop().get('sibling')
+        else:
+            return
 
 
 def children(node):
@@ -132,34 +236,98 @@ def _build_tree(root):
     _pass_visibilities(root)
     _pass_openmp(root)
 
+_LATEX_OPEN_RE       = re.compile(r'^\s*!!\{')
+_LATEX_CLOSE_RE      = re.compile(r'^\s*!!\}')
+_XML_OPEN_RE         = re.compile(r'^\s*!!\[')
+_XML_CLOSE_RE        = re.compile(r'^\s*!!\]')
+_EMBEDDED_COMMENT_RE = re.compile(r'^\s*\!<')
+
+
 def _comment_embedded(content):
     """Comment out embedded LaTeX and XML blocks so that they are not processed as Fortran code"""
 
     import io
     fh = io.StringIO(content)
 
-    code_commented = ""
+    code_commented = []
     in_LaTeX = False
     in_XML = False
     for line in fh:
         # Detect the end of a LaTeX section and change state.
-        if re.match(r'^\s*!!\}',line):
+        if _LATEX_CLOSE_RE.match(line):
             in_LaTeX = False
         # Detect the end of an XML section and change state.
-        if re.match(r'^\s*!!\]',line):
+        if _XML_CLOSE_RE.match(line):
             in_XML = False
         # Comment out LaTeX and XML, unless it is already commented out.
-        if ( in_LaTeX or in_XML ) and not re.match(r'^\s*\!<',line):
+        if ( in_LaTeX or in_XML ) and not _EMBEDDED_COMMENT_RE.match(line):
             line = "!< "+line
-        code_commented = code_commented + line
+        code_commented.append(line)
         # Detect the start of a LaTeX section and change state.
-        if re.match(r'^\s*!!\{',line):
+        if _LATEX_OPEN_RE.match(line):
             in_LaTeX = True
         # Detect the start of an XML section and change state.
-        if re.match(r'^\s*!!\[',line):
+        if _XML_OPEN_RE.match(line):
             in_XML = True
-    return code_commented
-        
+    return ''.join(code_commented)
+
+
+def uncomment_embedded(content):
+    """Invert `_comment_embedded()`, restoring embedded LaTeX/XML block bodies.
+
+    `_comment_embedded()` prefixes every line inside a `!!{ … !!}` (LaTeX) or
+    `!![ … !!]` (XML) block with `"!< "`, so that the body cannot be mistaken
+    for Fortran when the tree is serialized straight to the compiler.  The
+    build's code generators serialize *to the compiler* and so want that
+    prefix left in place; anything that serializes back to *source* — a
+    formatter — must undo it, or every directive and documentation block in
+    the file is rewritten.
+
+    The state machine below mirrors `_comment_embedded()` line for line, so
+    only lines that function would have prefixed are stripped.  Note that
+    `_comment_embedded()` skips lines that already begin with `!<`, which
+    makes it non-injective in principle; in practice no Galacticus source
+    file contains such a line (the marker is internal to the parser), and
+    callers that care should verify the round-trip per file rather than
+    assume it — see `scripts/aux/formatModuleUses.py`.
+    """
+    import io
+
+    code_uncommented = ""
+    in_LaTeX = False
+    in_XML   = False
+    for line in io.StringIO(content):
+        # Both state transitions are tested against the line as it appears in
+        # the *commented* content, i.e. before the marker is stripped.  That
+        # is what makes this an exact mirror of `_comment_embedded()`: there,
+        # the end test runs before the prefix is added and the start test
+        # runs after, so in both functions a marker nested inside a block
+        # (which `_comment_embedded()` will have prefixed to `!< !!{`) fails
+        # to match and correctly does not open a second block.
+        marker = line
+
+        # Detect the end of a LaTeX section and change state.
+        if re.match(r'^\s*!!\}', marker):
+            in_LaTeX = False
+        # Detect the end of an XML section and change state.
+        if re.match(r'^\s*!!\]', marker):
+            in_XML = False
+        # Strip the marker from lines inside a block.  Only the exact `"!< "`
+        # prefix that `_comment_embedded()` adds is removed, and only at the
+        # very start of the line — it prepends, so the body's own indentation
+        # follows the marker untouched.
+        if (in_LaTeX or in_XML) and line.startswith("!< "):
+            line = line[3:]
+        code_uncommented = code_uncommented + line
+        # Detect the start of a LaTeX section and change state.
+        if re.match(r'^\s*!!\{', marker):
+            in_LaTeX = True
+        # Detect the start of an XML section and change state.
+        if re.match(r'^\s*!!\[', marker):
+            in_XML = True
+    return code_uncommented
+
+
 def _make_code_node(content, source, line, parent=None):
     return {
         'type':       'code',
@@ -170,6 +338,11 @@ def _make_code_node(content, source, line, parent=None):
         'source':     source,
         'line':       line,
     }
+
+
+# Keywords of which at least one appears in every `UNIT_OPENERS` pattern (`module` also covers `submodule` and
+# `module procedure`).
+_UNIT_OPENER_KEYWORDS_RE = re.compile(r'module|program|subroutine|function|interface|type|contains', re.IGNORECASE)
 
 
 def _parse_units(parent, first_line=None):
@@ -259,7 +432,10 @@ def _parse_units(parent, first_line=None):
 
         # ---- check for an opener ----
         matched_opener = False
-        for unit_type, spec in UNIT_OPENERS.items():
+        # Every opener pattern contains one of a few keywords, so a single search for those rejects most lines
+        # without trying each opener pattern in turn.
+        openers = UNIT_OPENERS.items() if _UNIT_OPENER_KEYWORDS_RE.search(processed_line) else ()
+        for unit_type, spec in openers:
             m = spec['regex'].match(processed_line)
             if not m:
                 continue
@@ -646,6 +822,9 @@ def _pass_module_uses(tree):
 # Parse pass 3: declarations
 # ---------------------------------------------------------------------------
 
+_IMPLICIT_NONE_RE = re.compile(r'^\s*implicit\s+none\s*$', re.IGNORECASE)
+
+
 def _pass_declarations(tree):
     """Walk code nodes extracting declaration lines into declaration nodes."""
     nodes_to_replace = []
@@ -709,7 +888,7 @@ def _pass_declarations(tree):
             start_line = current_line
 
             is_decl = False
-            if re.match(r'^\s*implicit\s+none\s*$', processed_line, re.IGNORECASE):
+            if _IMPLICIT_NONE_RE.match(processed_line):
                 is_decl       = True
                 implicit_none = True
 
@@ -717,6 +896,13 @@ def _pass_declarations(tree):
             if decl:
                 is_decl = True
                 decl['line'] = start_line
+                # Keep the statement exactly as written.  Continuation lines
+                # are joined away by `get_fortran_line`, so a declaration whose
+                # author wrapped a long initializer by hand cannot be put back
+                # the way it was from the parsed fields alone; the formatter
+                # falls back to this text for statements it cannot lay out
+                # within the line-length ruler.
+                decl['rawText'] = raw_line
 
             if is_decl:
                 flush_code()
@@ -792,7 +978,7 @@ def serialize(node, annotate=False, strip_mappings=False):
         When True, the annotations are removed from the returned source and
         collected into a second string.  In that mode the function returns a
         `(source, mappings)` 2-tuple.  When False (the default), the function
-        returns a single `source` string — matching the behaviour used by
+        returns a single `source` string — matching the behavior used by
         `Generics` / `FunctionClass` callers that do not need mappings.
 
     The algorithm is a sibling-chain walk that recurses into firstChild:
@@ -812,8 +998,8 @@ def _serialize(node, annotate, strip_mappings):
     """Internal helper: always returns (source, mappings) and tracks the
     cumulative output line number across the sibling chain.
     """
-    serialization = ''
-    mappings      = ''
+    serialization = []
+    mappings      = []
     line_number   = 0
     current       = node
 
@@ -825,9 +1011,9 @@ def _serialize(node, annotate, strip_mappings):
         # arithmetic needs every entry on the same basis.
         if annotate and 'source' in current and 'line' in current:
             if strip_mappings:
-                mappings += f'!--> {current["line"]} {line_number + 1} "{current["source"]}"\n'
+                mappings.append(f'!--> {current["line"]} {line_number + 1} "{current["source"]}"\n')
             else:
-                serialization += f'!--> {current["line"]} {line_number} "{current["source"]}"\n'
+                serialization.append(f'!--> {current["line"]} {line_number} "{current["source"]}"\n')
                 line_number   += 1
 
         # Serialize this node's own content.
@@ -844,22 +1030,22 @@ def _serialize(node, annotate, strip_mappings):
             node_text += current.get('closer') or ''
 
         if strip_mappings:
-            stripped = ''
+            stripped = []
             for line in node_text.splitlines(keepends=True):
                 m = _MAPPING_RE.match(line)
                 if m:
-                    mappings += f'!--> {m.group(1)} {line_number + 1} "{m.group(3)}"\n'
+                    mappings.append(f'!--> {m.group(1)} {line_number + 1} "{m.group(3)}"\n')
                 else:
                     line_number += 1
-                    stripped    += line
-            node_text = stripped
+                    stripped.append(line)
+            node_text = ''.join(stripped)
         else:
             line_number += node_text.count('\n')
 
-        serialization += node_text
-        current        = current.get('sibling')
+        serialization.append(node_text)
+        current = current.get('sibling')
 
-    return serialization, mappings
+    return ''.join(serialization), ''.join(mappings)
 
 
 def analyze_tree(tree, options=None):

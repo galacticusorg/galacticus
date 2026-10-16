@@ -23,9 +23,31 @@ tests = [
         "assertions": [
             {
                 "name":              "hot halo mass",
+                # Updated when the cosmology function tabulations were pinned to an absolute lattice (#1317). That moved the
+                # abscissae of the expansion factor tabulation, and placed the initial condition of the ordinary differential
+                # equation it solves at a fixed, earlier epoch at which the analytic approximation used for that condition is
+                # more accurate. Both shift interpolated cosmological quantities at the level of their own interpolation error;
+                # this value moved by 6.5 parts per million, just past the 4 part per million tolerance below. That is the
+                # one-time shift anticipated by the issue - the tabulations are deterministic from here on.
+                #
+                # Updated again when the halo mean density tabulation of darkMatterHaloScaleVirialDensityContrastDefinition was
+                # pinned (#1375). That table is interpolated linearly in the logarithm of time at a hundred points per decade, so
+                # it carries an error against the exact density contrast of order one part in ten thousand; moving its abscissae
+                # changes only where in that error a given requested time falls. Measured here, the interpolated mean density went
+                # from 23 parts per million below the exact value to 98 parts per million above it. The virial radius follows the
+                # inverse cube root of that density and moved by 41 parts per million, and this value by 18 parts per million.
+                #
+                # Updated again when the helium mass fraction was allowed to increase with metallicity (#1496). Previously
+                # `Abundances_Helium_Mass_Fraction` clamped its result from above at the primordial value, so helium never
+                # tracked metallicity at all. The hot halo in this model sits at 1.005 times the Solar metallicity, where the
+                # helium mass fraction consequently rises from 0.2486 to 0.2741. The `simple` cooling time is proportional to the
+                # total particle number density at fixed hydrogen density - that is, to the reciprocal of the hydrogen number
+                # fraction - which rises by 0.84%, so the gas cools more slowly, the cooling radius is smaller, and more mass
+                # remains hot. Measured here, this value moved by 425 parts per million. Reverting that one change reproduces the
+                # previous value bit for bit, so it is the sole cause of the shift.
                 "output":            1,
                 "property":          "hotHaloMass",
-                "values":            np.array([7.99799857410098e10]),
+                "values":            np.array([8.001306768315475e10]),
                 "toleranceRelative": 4.0e-6,
             }
         ],
@@ -149,15 +171,16 @@ for test in tests:
                 elif "expression" in assertion:
                     values = evaluate_expression(assertion["expression"], nodeData, gravitationalConstant)
                 else:
-                    raise ValueError("assertion gives no property or expression to test")
+                    print(f"FAILED: assertion '{assertion['name']}' of reproducibility test '{test['name']}' gives no property or expression to test")
+                    sys.exit(0)
 
                 difference   = np.abs(values - assertion["values"])
                 allowedError = assertion["toleranceRelative"] * np.abs(values)
                 if np.all(difference < allowedError):
                     print(f"SUCCESS: assertion '{assertion['name']}' of reproducibility test '{test['name']}' passed")
                 else:
-                    print(f"FAIL: assertion '{assertion['name']}' of reproducibility test '{test['name']}' failed")
+                    print(f"FAILED: assertion '{assertion['name']}' of reproducibility test '{test['name']}' failed")
                     for i in range(len(difference)):
                         print(f"\t{values[i]}\t{assertion['values'][i]}\t{difference[i]}\t{allowedError[i]}")
     else:
-        print(f"FAIL: reproducibility test '{test['name']}' model failed to run")
+        print(f"FAILED: reproducibility test '{test['name']}' model failed to run")

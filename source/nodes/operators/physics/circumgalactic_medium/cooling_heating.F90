@@ -223,6 +223,7 @@ contains
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentDisk       , nodeComponentSpheroid
     use :: Galactic_Structure_Options   , only : componentTypeDisk     , componentTypeSpheroid   , componentTypeNone
     use :: Error                        , only : Error_Report
+    use :: Nodes_Formation_Node         , only : nodeFormationRequired
     implicit none
     class           (nodeOperatorCGMCoolingHeating), intent(inout), target  :: self
     type            (treeNode                     ), intent(inout), target  :: node
@@ -311,7 +312,7 @@ contains
        case (coolingFromCurrentNode  %ID)
           nodeCooling => node
        case (coolingFromFormationNode%ID)
-          nodeCooling => node%formationNode
+          nodeCooling => nodeFormationRequired(node,'[coolingFrom]=formationNode in the [CGMCoolingHeating] node operator')
        case default
           nodeCooling => null()
           call Error_Report('unknown `coolingFrom` - this should not happen'//{introspection:location})

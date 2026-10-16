@@ -37,9 +37,9 @@ parallelFlat = data["parallelTreeBuildParallel"]["conditionalMassFunction"].flat
 errorFlat    = data["parallelTreeBuildSerial"]["conditionalMassFunctionError"].flat[:]
 selection    = np.where(serialFlat > 0.0)[0]
 errorNormalized = np.abs(parallelFlat[selection] - serialFlat[selection]) / errorFlat[selection]
-status_str   = "FAIL" if np.any(errorNormalized > 4.0) else "SUCCESS"
+status_str   = "FAILED" if np.any(errorNormalized > 4.0) else "SUCCESS"
 print(f"{status_str}: parallel tree build")
-if status_str == "FAIL":
+if status_str == "FAILED":
     print("Conditional mass function:")
     print(f"\t  Serial build: {serialFlat[selection]}")
     print(f"\tParallel build: {parallelFlat[selection]}")

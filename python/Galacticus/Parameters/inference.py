@@ -96,7 +96,7 @@ def classify_literal(literal):
 
     Returns ``(canonical_type, kind)`` where ``kind`` is a finer Fortran kind
     descriptor (``'double'``, ``'long'``) or None, or ``(None, None)`` when the
-    literal is not recognised (e.g. an expression referencing other entities).
+    literal is not recognized (e.g. an expression referencing other entities).
     """
     if literal is None:
         return None, None

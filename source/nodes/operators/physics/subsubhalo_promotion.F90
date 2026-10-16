@@ -67,21 +67,12 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorSubsubhaloPromotion` node operator class.
     !!}
-    use:: Error           , only : Component_List           , Error_Report
-    use:: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type(nodeOperatorSubsubhaloPromotion) :: self
 
-    if (.not.defaultSatelliteComponent%positionIsGettable())                                                             &
-            & call Error_Report                                                                                          &
-            &      (                                                                                                     &
-            &       'sub-subhalo promotion requires that the position property of the satellite component be gettable'// &
-            &       Component_List(                                                                                      &
-            &                      'satellite'                                                                        ,  &
-            &                       defaultSatelliteComponent%positionAttributeMatch(requireGettable=.true.)             &
-            &                     )                                                                                   // &
-            &       {introspection:location}                                                                             &
-            &      )
+    !![
+    <componentPropertyAssert class="satellite" properties="position" require="gettable"/>
+    !!]
     return
   end function subsubhaloPromotionConstructorInternal
 

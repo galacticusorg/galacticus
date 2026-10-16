@@ -145,11 +145,11 @@ contains
     !![
     <referenceConstruct owner="self" isResult="yes" object="distributionDensityContrast">
      <constructor>
-      distributionFunction1DLogNormal(                                                                    &amp;
-        &amp;                         mean      =+densityContrastMean                                   , &amp;
-        &amp;                         variance  =+self%variance                                         , &amp;
-        &amp;                         limitUpper=+1.0d0                                                   &amp;
-        &amp;                                    +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &amp;
+      distributionFunction1DLogNormal(                                                                                                &amp;
+        &amp;                         mean      =+densityContrastMean                                                               , &amp;
+        &amp;                         variance  =+self%variance                                                                     , &amp;
+        &amp;                         limitUpper=+1.0d0                                                                               &amp;
+        &amp;                                    +self%criticalOverdensity_%value(expansionFactor=1.0d0,mass=self%environmentMass())  &amp;
         &amp;                        )
      </constructor>
     </referenceConstruct>

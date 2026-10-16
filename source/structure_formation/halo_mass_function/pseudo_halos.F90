@@ -29,6 +29,7 @@
     <description>
     The halo mass function is computed by adding a population of pseudo-halos to another halo mass function.
     </description>
+    <forwards object="massFunction_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionPseudoHalos

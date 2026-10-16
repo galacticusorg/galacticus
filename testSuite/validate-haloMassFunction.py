@@ -42,8 +42,8 @@ pathOutputs    = "outputs/validation/haloMassFunction/"
 
 # Parse arguments.
 if len(sys.argv) < 2 or len(sys.argv) > 3:
-    print("FAIL: usage: validate-haloMassFunction.py <group> [workers]")
-    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    print("FAILED: usage: validate-haloMassFunction.py <group> [workers]")
+    # Always exit with status 0 - failure is signaled by "FAILED" in the output above.
     sys.exit(0)
 group   = sys.argv[1]
 workers = int(sys.argv[2]) if len(sys.argv) == 3 else None
@@ -54,8 +54,8 @@ if workers is None:
 with open(pathParameters+"manifest.json") as file:
     manifest = json.load(file)
 if group not in manifest["groups"]:
-    print(f"FAIL: unknown validation group '{group}' - known groups: {', '.join(manifest['groups'])}")
-    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    print(f"FAILED: unknown validation group '{group}' - known groups: {', '.join(manifest['groups'])}")
+    # Always exit with status 0 - failure is signaled by "FAILED" in the output above.
     sys.exit(0)
 cases                              = manifest["groups"][group]["cases"]
 varianceFractionalModelDiscrepancy = manifest["varianceFractionalModelDiscrepancy"]
@@ -79,12 +79,12 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         if status.returncode == 0:
             print(  "SUCCESS: model '"+case["parameterFile"]+"'")
         else:
-            print(     "FAIL: model '"+case["parameterFile"]+"'")
+            print(  "FAILED: model '"+case["parameterFile"]+"'")
             print(status.stdout[-2000:])
             print(status.stderr[-2000:])
             failed = True
 if failed:
-    # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+    # Always exit with status 0 - failure is signaled by "FAILED" in the output above.
     sys.exit(0)
 
 # Evaluate likelihoods, and aggregate cases which differ only in their
@@ -96,8 +96,8 @@ for case in cases:
         case["parameterFile"],
     )
     if match is None:
-        print("FAIL: unable to parse parameter file name '"+case["parameterFile"]+"'")
-        # Always exit with status 0 - failure is signaled by "FAIL" in the output above.
+        print("FAILED: unable to parse parameter file name '"+case["parameterFile"]+"'")
+        # Always exit with status 0 - failure is signaled by "FAILED" in the output above.
         sys.exit(0)
     suite, groupName, resolution, simulation, realization, redshift = match.groups()
     model = validateHaloMassFunction.readModel(

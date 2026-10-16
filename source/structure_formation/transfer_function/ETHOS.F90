@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Implements the ETHOS :cite:p:`cyr-racine_ethoseffective_2016` transfer function, using the specific form given by :cite:t:`bohr_halo_2021`.
 !!}
@@ -542,14 +544,14 @@ contains
     !!{RST
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
-    use :: Error                   , only : errorStatusSuccess
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Error                      , only : errorStatusSuccess
+    use :: Root_Finder                , only : rangeExpandMultiplicative             , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Transfer_Function_Utilities, only : Transfer_Function_Mass_From_Wavenumber
     implicit none
     class           (transferFunctionETHOSDM), intent(inout), target   :: self
     double precision                         , intent(in   )           :: fraction
     integer                                  , intent(  out), optional :: status
-    double precision                                                   :: matterDensity, wavenumberFractionMode
+    double precision                                                   :: wavenumberFractionMode
     type            (rootFinder             )                          :: finder
 
     ! There is no analytic solution for the fraction-mode mass so we resort to numerical root finding. This is complicated by the fact
@@ -569,18 +571,9 @@ contains
          &                     *self                    %value   (0.0d0) &
          &                     /self%transferFunctionCDM%value   (0.0d0)
     wavenumberFractionMode  =   finder%find(rootGuess=1.0d-2/self%alpha)
-    matterDensity           =  +self%cosmologyParameters_%OmegaMatter    () &
-         &                     *self%cosmologyParameters_%densityCritical()
     ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
     ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
-    ETHOSDMFractionModeMass =  +4.0d0                    &
-         &                     *Pi                       &
-         &                     /3.0d0                    &
-         &                     *matterDensity            &
-         &                     *(                        &
-         &                       +Pi                     &
-         &                       /wavenumberFractionMode &
-         &                      )**3
+    ETHOSDMFractionModeMass=Transfer_Function_Mass_From_Wavenumber(wavenumberFractionMode,self%cosmologyParameters_)
     if (present(status)) status=errorStatusSuccess
     return
   end function ETHOSDMFractionModeMass

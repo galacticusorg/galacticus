@@ -56,6 +56,7 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`mergerTreeBuildMassesUnion` merger tree masses class which takes a parameter set as input.
     !!}
+    use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (mergerTreeBuildMassesUnion)                :: self
@@ -63,6 +64,8 @@ contains
     type   (mergerTreeBuildMassesList ), pointer       :: mergerTreeBuildMasses_
     integer                                            :: i
 
+    if (parameters%copiesCount('mergerTreeBuildMasses',zeroIfNotPresent=.true.) == 0) &
+         & call Error_Report('at least one [mergerTreeBuildMasses] must be specified'//{introspection:location})
     self%mergerTreeBuildMasses_ => null()
     mergerTreeBuildMasses_      => null()
     do i=1,parameters%copiesCount('mergerTreeBuildMasses',zeroIfNotPresent=.true.)
@@ -73,7 +76,12 @@ contains
           allocate(self%mergerTreeBuildMasses_)
           mergerTreeBuildMasses_ => self                  %mergerTreeBuildMasses_
        end if
-       mergerTreeBuildMasses_%mergerTreeBuildMasses_ => mergerTreeBuildMasses(parameters,i)
+       ! Build the member through the `objectBuilder` directive so that its reference count is incremented. A bare pointer
+       ! assignment left the member with a zero reference count, so that destroying the temporary object returned by this
+       ! constructor destroyed the member along with it.
+       !![
+       <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_%mergerTreeBuildMasses_" source="parameters" copy="i"/>
+       !!]
     end do
     !![
     <inputParametersValidate source="parameters" multiParameters="mergerTreeBuildMasses"/>
@@ -95,7 +103,7 @@ contains
     return
   end function unionConstructorInternal
 
-  elemental subroutine unionDestructor(self)
+  subroutine unionDestructor(self)
     !!{RST
     Destructor for the merger tree mergerTreeBuildMasses function class.
     !!}
@@ -107,8 +115,12 @@ contains
        mergerTreeBuildMasses_ => self%mergerTreeBuildMasses_
        do while (associated(mergerTreeBuildMasses_))
           mergerTreeBuildMassesNext => mergerTreeBuildMasses_   %next
-          deallocate(mergerTreeBuildMasses_%mergerTreeBuildMasses_)
-          deallocate(mergerTreeBuildMasses_                       )
+          ! Members are shared with any copy of this object (the generated assignment counts the references), so they must be
+          ! released through the reference count rather than deallocated outright.
+          !![
+          <objectDestructor name="mergerTreeBuildMasses_%mergerTreeBuildMasses_"/>
+          !!]
+          deallocate(mergerTreeBuildMasses_)
           mergerTreeBuildMasses_    => mergerTreeBuildMassesNext
        end do
     end if

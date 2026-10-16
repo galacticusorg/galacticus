@@ -71,6 +71,7 @@ contains
       The core radius in the hot halo density profile in units of the virial radius.
       </description>
       <source>parameters</source>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]

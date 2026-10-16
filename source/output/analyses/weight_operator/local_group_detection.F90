@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+ This file was generated with Claude and verified by Andrew Benson
+!+ Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Implements a weight operator which applies the observational selection function for Milky Way satellite galaxies.

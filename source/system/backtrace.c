@@ -31,17 +31,17 @@ void getCallerC (int callerSize,char *caller) {
   strings = backtrace_symbols (array, size);
   if (size >= 4 ) {
     i = 3;
-    /* Skip over unnamed functions. */
-    while ( i < size && strstr(strings[i],"()") ) {
+    /* Skip over unnamed functions. Depending on the glibc version these appear as "binary()" or "binary(+0x...)". */
+    while ( i < size && ( strstr(strings[i],"()") || strstr(strings[i],"(+") ) ) {
 	++i;
       }
       if ( i < size ) {
 	strncpy(caller,strings[i],callerSize);
       } else {
-	caller = "unknown";
+	strncpy(caller,"unknown",callerSize);
       }
   } else {
-    caller = "unknown";
+    strncpy(caller,"unknown",callerSize);
   }
   free (strings);
 }

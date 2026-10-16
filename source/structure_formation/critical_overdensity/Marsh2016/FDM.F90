@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a critical overdensity for collapse using the :term:`FDM` modifier of :cite:t:`marsh_warmandfuzzy_2016`.
   !!}
@@ -47,6 +49,9 @@
 
    The best-fit parameters :math:`a_i` are :math:`\{a_1,a_2,a_3,a_4,a_5,a_6\}=\{3.4,1.0,1.8,0.5,1.7,0.9\}`.
    </description>
+   <requires method="value"          argument="mass"/>
+   <requires method="gradientMass"   argument="mass"/>
+   <requires method="timeOfCollapse" argument="mass"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityMarsh2016FDM
@@ -142,10 +147,12 @@ contains
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
+    use :: Display                     , only : displayGreen                     , displayReset
     use :: FoX_DOM                     , only : destroy                          , node
     use :: Error                       , only : Error_Report
     use :: Input_Paths                 , only : inputPath                        , pathTypeDataStatic
     use :: IO_XML                      , only : XML_Array_Read                   , XML_Get_First_Element_By_Tag_Name, XML_Parse
+    use :: ISO_Varying_String          , only : char
     use :: Numerical_Interpolation     , only : GSL_Interp_CSpline
     use :: Table_Labels                , only : extrapolationTypeFix
     use :: Numerical_Constants_Prefixes, only : kilo
@@ -185,7 +192,16 @@ contains
        ! Read in the tabulated critical overdensity scaling.
        !$omp critical (FoX_DOM_Access)
        doc => XML_Parse(char(inputPath(pathTypeDataStatic))//"darkMatter/criticalOverdensityFuzzyDarkMatterMarsh.xml",iostat=ioStatus)
-       if (ioStatus /= 0) call Error_Report('unable to find or parse the tabulated data'//{introspection:location})
+       if (ioStatus /= 0) call Error_Report(                                                                                                 &
+            &                               'Unable to find data file "'//char(inputPath(pathTypeDataStatic))//                              &
+            &                               'darkMatter/criticalOverdensityFuzzyDarkMatterMarsh.xml"'                           //char(10)// &
+            &                               displayGreen()//'HELP:'//displayReset()                                                       // &
+            &                               ' this file is provided by the Galacticus datasets repository. If the path above'             // &
+            &                               ' begins with "./" then the `GALACTICUS_DATA_PATH` environment variable is not set;'          // &
+            &                               ' set it to the location of your clone of'                                                    // &
+            &                               ' https://github.com/galacticusorg/datasets'                                                  // &
+            &                               {introspection:location}                                                                         &
+            &                              )
        ! Extract the datum lists.
        element    => XML_Get_First_Element_By_Tag_Name(doc,"mass" )
        call XML_Array_Read(element,"datum",self%deltaTableMass )
@@ -281,7 +297,7 @@ contains
           marsh2016FDMValue=self%interpolator_%interpolate(massScaleFree)
        end if
     end if
-    marsh2016FDMValue=marsh2016FDMValue*self%criticalOverdensityCDM%value(time,expansionFactor,collapsing,mass)
+    marsh2016FDMValue=marsh2016FDMValue*self%criticalOverdensityCDM%value(time,expansionFactor,collapsing,mass,node)
     return
   end function marsh2016FDMValue
 
@@ -297,9 +313,9 @@ contains
     type            (treeNode                       ), intent(inout), optional :: node
     !$GLC attributes unused :: node
 
-    marsh2016FDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass) &
-         &                   *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass) &
-         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass)
+    marsh2016FDMGradientTime=+self                       %value       (time,expansionFactor,collapsing,mass,node) &
+         &                   *self%criticalOverdensityCDM%gradientTime(time,expansionFactor,collapsing,mass,node) &
+         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node)
     return
   end function marsh2016FDMGradientTime
 
@@ -394,11 +410,11 @@ contains
        end if
     end if
     ! Include gradient from CDM critical overdensity.
-    marsh2016FDMGradientMass=+marsh2016FDMGradientMass                                                       &
-         &                   *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
-         &                   +self                       %value       (time,expansionFactor,collapsing,mass) &
-         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
-         &                   *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass)
+    marsh2016FDMGradientMass=+marsh2016FDMGradientMass                                                            &
+         &                   *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node) &
+         &                   +self                       %value       (time,expansionFactor,collapsing,mass,node) &
+         &                   /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass,node) &
+         &                   *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass,node)
     return
   end function marsh2016FDMGradientMass
 

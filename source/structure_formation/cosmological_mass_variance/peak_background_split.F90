@@ -270,7 +270,7 @@ contains
 
   double precision function variancePeakBackgroundSplitMass(self,rootVariance,time)
     !!{RST
-    Return the mass corresponding to the given ```` root-variance of the cosmological density field.
+    Return the mass corresponding to the given root-variance of the cosmological density field.
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self

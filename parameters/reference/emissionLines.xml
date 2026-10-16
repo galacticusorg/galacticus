@@ -65,7 +65,7 @@
       <component         value="all"   />
       <toleranceRelative value="1.0d-2"/>
     </nodePropertyExtractor>
-    <nodePropertyExtractor value="lmnstyEmssnLineAGN">
+    <nodePropertyExtractor value="luminosityEmissionLineAGN">
       <cloudyTableFileName value="%DATASTATICPATH%/hiiRegions/emissionLineLuminosities:AGN:dustMetalsRatio0.4:factorMorphology2.0:abundanceAdjustS:0.2.hdf5"/>
       <lineNames value="balmerBeta4863 balmerAlpha6565 nitrogenII6550 nitrogenII6585 oxygenII3727 oxygenII3730 oxygenIII5008 sulfurII6718  sulfurII6733 sulfurIII9071 sulfurIII9533"/>
       <densityHydrogen              value="+1.0e3"/>

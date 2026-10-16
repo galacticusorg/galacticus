@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a stellar population properties class based on the noninstantaneous recycling approximation.
   !!}
@@ -177,9 +179,9 @@ contains
     Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     !!}
     use            :: Abundances_Structure          , only : zeroAbundances
+    use            :: Arrays_Search                 , only : searchArray
     use            :: Galacticus_Nodes              , only : nodeComponent         , nodeComponentBasic , treeNode
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-    use            :: Numerical_Interpolation       , only : interpolator
     use            :: Stellar_Luminosities_Structure, only : max                   , stellarLuminosities, zeroStellarLuminosities
     use            :: Stellar_Populations           , only : stellarPopulationClass
     implicit none
@@ -203,16 +205,16 @@ contains
     integer         (c_size_t                                   )                                :: iHistory
     double precision                                                                             :: ageMaximum                   , ageMinimum            , &
          &                                                                                          currentTime                  , recyclingRate
-    type            (interpolator                               )                                :: interpolator_
 
     ! If a history exists, compute rates.
     if (history_%exists()) then
        ! Get the current time.
        basic       => node %basic()
        currentTime =  basic%time ()
-       ! Get interpolating factors in stellar population history.
-       interpolator_=interpolator(history_%time)
-       iHistory          =interpolator_%locate(currentTime)
+       ! Find the index of the stellar population history entry bracketing the current time. Only the bracketing index is
+       ! needed here, so a direct bisection search is used - constructing an `interpolator` object would copy the time array
+       ! and allocate GSL objects on every call to this rate function.
+       iHistory=searchArray(history_%time,currentTime)
        ! Get recycling, energy input, metal recycling and metal yield rates.
        recyclingRate  =history_%data(iHistory,self%          recycledRateIndex                               )
        rateEnergyInput=history_%data(iHistory,self%       rateEnergyInputIndex                               )

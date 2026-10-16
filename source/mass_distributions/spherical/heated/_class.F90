@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a heated spherical mass distribution.
   !!}
@@ -511,17 +513,25 @@ contains
     class           (massDistributionSphericalHeated), intent(inout), target   :: self
     double precision                                 , intent(in   ), optional :: mass          , massFractional
     double precision                                                           :: radiusInitial
-    double precision                                                           :: energySpecific
+    double precision                                                           :: energySpecific, massEnclosed
 
     radiusInitial =self%massDistribution_       %radiusEnclosingMass(mass         ,     massFractional   )
     energySpecific=self%massDistributionHeating_%specificEnergy     (radiusInitial,self%massDistribution_)
     if (radiusInitial <= 0.0d0) then
        radius=+radiusLarge
     else       
-       radius=+1.0d0                                                      &
-            & /(                                                          &
-            &   +1.0d0/radiusInitial                                      &
-            &   -2.0d0/gravitationalConstant_internal/mass*energySpecific &
+       ! Find the mass enclosed within the initial radius. Where the enclosed mass was specified directly it is, by definition,
+       ! that mass. Where instead a mass fraction was specified the `mass` argument is absent, so the enclosed mass must be
+       ! computed from the initial radius.
+       if (present(mass)) then
+          massEnclosed=     mass
+       else
+          massEnclosed=self%massDistribution_%massEnclosedBySphere(radiusInitial)
+       end if
+       radius=+1.0d0                                                              &
+            & /(                                                                  &
+            &   +1.0d0/radiusInitial                                              &
+            &   -2.0d0/gravitationalConstant_internal/massEnclosed*energySpecific &
             &  )
        ! If the radius found is negative, which means the initial shell has expanded to infinity, return the largest radius.
        if (radius < 0.0d0) radius=radiusLarge

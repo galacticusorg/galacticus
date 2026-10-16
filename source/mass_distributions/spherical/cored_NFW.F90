@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a cored NFW :cite:p:`navarro_structure_1996` mass distribution class.
   !!}
@@ -359,30 +361,30 @@ contains
        allocate(containerCoredNFW)
        call containerCoredNFW%initialize(1)
        ! Specify the number of tabulation points per interval in radius and each parameter.
-       containerCoredNFW%mass                      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%mass                      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%potential                 %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%potential                 %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%energy                    %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%energy                    %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%radiusFreefall            %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%radiusFreefall            %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-       containerCoredNFW%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-       containerCoredNFW%fourierTransform          %radiusCountPer       =+20_c_size_t
-       containerCoredNFW%fourierTransform          %parametersCountPer   =+20_c_size_t
+       containerCoredNFW%mass                      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%mass                      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%radiusEnclosingDensity    %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%radiusEnclosingDensity    %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%potential                 %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%potential                 %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%velocityDispersion1D      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%velocityDispersion1D      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%energy                    %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%energy                    %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%radiusFreefall            %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%radiusFreefall            %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%radiusFreefallIncreaseRate%radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%radiusFreefallIncreaseRate%parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment0      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment0      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment1      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment1      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment2      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment2      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment3      %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%densityRadialMoment3      %parametersCountPer   =+ 6_c_size_t
+       containerCoredNFW%fourierTransform          %radiusCountPer       =+ 6_c_size_t
+       containerCoredNFW%fourierTransform          %parametersCountPer   =+ 6_c_size_t
        ! Specify names and descriptions of the parameters.
        containerCoredNFW%nameParameters                               (1)='radiusCoreOverRadiusScale'
        containerCoredNFW%descriptionParameters                        (1)='The ratio of core to scale radii.'
@@ -397,21 +399,22 @@ contains
     return
   end subroutine coredNFWParameters
 
-  subroutine coredNFWDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine coredNFWDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionCoredNFW), intent(inout)           :: self
     type     (inputParameters         ), intent(inout)           :: descriptor
     logical                            , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                   ), intent(in   ), optional :: parameterName
     character(len=18                  )                          :: parameterLabel
     type     (inputParameters         )                          :: parameters
     !$GLC attributes unused :: includeFileModificationTimes
     
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','coredNFW')
-    parameters=descriptor%subparameters('massDistribution')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'coredNFW')
+    parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
     write (parameterLabel,'(e17.10)') self%densityNormalization
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%radiusScale

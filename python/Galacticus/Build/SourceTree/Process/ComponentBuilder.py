@@ -35,11 +35,10 @@ Mirrors the cross-file gathering pattern already used by
 """
 
 import os
-import xml.etree.ElementTree as ET
 
 
 from List.ExtraUtils                     import as_array
-from XML.Utils                           import xml_to_dict
+from Galacticus.Build                    import Catalogs
 from Galacticus.Build.Directives         import extract_directives
 from Galacticus.Build.SourceTree         import (
     walk_tree, parse_code, children, replace_node,
@@ -64,7 +63,7 @@ def _load_directive_locations():
     if not build_path:
         raise RuntimeError("process_component_builder: BUILDPATH is not set")
     path = os.path.join(build_path, 'directiveLocations.xml')
-    _DIRECTIVE_LOCATIONS = xml_to_dict(ET.parse(path).getroot())
+    _DIRECTIVE_LOCATIONS = Catalogs.load(path)
     return _DIRECTIVE_LOCATIONS
 
 

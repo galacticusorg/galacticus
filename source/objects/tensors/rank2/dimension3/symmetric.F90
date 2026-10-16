@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Claude.
 
 !!{RST
 Contains a submodule which provides implementations of functions for rank-2, dimension-3, symmetric tensors.
@@ -43,14 +43,14 @@ submodule (Tensors) Tensor_R2_D3_Sym
   implicit none
 
   ! Mapping from a pair of (0-based) tensor indices (i,j) to the packed storage index in c.
-  integer         , dimension(0:2,0:2), parameter :: packedIndex     =reshape([1,2,3,2,4,5,3,5,6],[3,3])
+  integer                , dimension(0:2,0:2), parameter :: packedIndex    =reshape([1,2,3,2,4,5,3,5,6],[3,3])
   ! Names of the packed elements (used for XML input and for dumps).
-  character(len=3), dimension(6      ), parameter :: elementNames    =['x00','x01','x02','x11','x12','x22']
+  character       (len=3), dimension(6)      , parameter :: elementNames   =['x00','x01','x02','x11','x12','x22']
   ! Multiplicity of each packed element in the full 3×3 tensor (off-diagonal elements
   ! appear twice); used to weight contractions and projections.
-  double precision, dimension(6      ), parameter :: multiplicity    =[1.0d0,2.0d0,2.0d0,1.0d0,2.0d0,1.0d0]
+  double precision       , dimension(6)      , parameter :: multiplicity   =[1.0d0,2.0d0,2.0d0,1.0d0,2.0d0,1.0d0]
   ! Storage indices of the three diagonal elements; used for the trace.
-  integer         , dimension(3      ), parameter :: diagonalIndices =[1,4,6]
+  integer                , dimension(3)      , parameter :: diagonalIndices=[1,4,6]
 
 contains
 
@@ -91,13 +91,14 @@ contains
     !!{RST
     Build a ``tensorRank2Dimension3Symmetric`` object from the given XML ``tensorDefinition``.
     !!}
-    use :: FoX_DOM, only : node                        , extractDataContent
-    use :: Error  , only : Error_Report
-    use :: IO_XML , only : XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: FoX_DOM           , only : extractDataContent       , node
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Extract_Error_Message, XML_Get_Elements_By_Tag_Name, xmlNodeList
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
-    type   (node       )               , pointer     :: element
-    type   (xmlNodeList), dimension(:) , allocatable :: elementList
-    integer                                          :: i
+    type   (node       ), pointer                   :: element
+    type   (xmlNodeList), allocatable, dimension(:) :: elementList
+    integer                                         :: i          , status
 
     ! Get the elements.
     do i=1,6
@@ -108,8 +109,9 @@ contains
        if (size(elementList) < 1) call Error_Report('no "'     //elementNames(i)//'" value specified'  //{introspection:location})
        !$omp critical (FoX_DOM_Access)
        element => elementList(0)%element
-       call extractDataContent(element,self%c(i))
+       call extractDataContent(element,self%c(i),iostat=status)
        !$omp end critical (FoX_DOM_Access)
+       if (status /= 0) call Error_Report(XML_Extract_Error_Message(status,elementNames(i),0)//{introspection:location})
     end do
     return
   end procedure Tensor_R2_D3_Sym_Builder

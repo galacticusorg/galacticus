@@ -49,7 +49,7 @@ def main(argv):
         failures.append(f"too few implementations: {len(implementations)} "
                         f"< {MIN_IMPLEMENTATIONS}")
     if not parameters:
-        failures.append("no parameters catalogued")
+        failures.append("no parameters cataloged")
     elif fraction >= MAX_UNKNOWN_FRACTION:
         failures.append(f"type-inference coverage regressed: {fraction:.1%} "
                         f"unknown >= {MAX_UNKNOWN_FRACTION:.0%}")

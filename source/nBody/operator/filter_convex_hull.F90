@@ -24,7 +24,7 @@ Implements an N-body data operator which filters particles outside of a convex h
   !![
   <nbodyOperator name="nbodyOperatorFilterConvexHull" docformat="rst">
    <description>
-   An N-body data operator which retains only particles whose positions fall inside the convex hull of another simulation dataset, enabling filtering to an irregular survey geometry or simulation subvolume boundary. The convex hull is taken from the simulation identified by the ``[simulationIndex]`` parameter.
+   An N-body data operator which retains only particles whose positions fall inside the convex hull of another simulation dataset, enabling filtering to an irregular survey geometry or simulation subvolume boundary. The convex hull is taken from the simulation identified by the ``[hullFromSimulation]`` parameter.
    </description>
   </nbodyOperator>
   !!]
@@ -97,6 +97,8 @@ contains
          &                            displayCounter, displayCounterClear
     use :: Error             , only : Error_Report
     use :: Points_Convex_Hull, only : convexHull
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class           (nbodyOperatorFilterConvexHull), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -179,8 +181,10 @@ contains
           ! Set the convex hull volume for this simulation.
           call simulations(i)%attributesReal%set('convexHullVolume',hull%volume())
        end do
+    class is (functionClass)
+       call Error_Report('object is not of [convexHull] class, but of ['//char(hull%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [convexHull] class'//{introspection:location})
     end select
     nullify(hull)
     call displayUnindent('done',verbosityLevelStandard)

@@ -116,20 +116,23 @@ contains
     use :: Mass_Distributions        , only : massDistributionClass
     use :: Coordinates               , only : coordinateSpherical  , assignment(=)
     use :: Galactic_Structure_Options, only : componentTypeHotHalo , massTypeGaseous
+    use :: Nodes_Formation_Node      , only : nodeFormationRequired
     implicit none
     class           (coolingRateCole2000  ), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
+    type            (treeNode             ), pointer       :: nodeFormation
     class           (nodeComponentBasic   ), pointer       :: basicFormation
     class           (nodeComponentHotHalo ), pointer       :: hotHaloFormation
     class           (massDistributionClass), pointer       :: massDistribution_
     type            (coordinateSpherical  )                :: coordinates
-    double precision                                       :: densityInfall            , radiusInfall, &
-         &                                                    radiusInfallGrowthRate   , radiusOuter
+    double precision                                       :: densityInfall         , radiusInfall, &
+         &                                                    radiusInfallGrowthRate, radiusOuter
     !$GLC attributes unused :: self
 
     ! Get formation node components.
-    basicFormation   => node%formationNode%basic  ()
-    hotHaloFormation => node%formationNode%hotHalo()
+    nodeFormation    => nodeFormationRequired(node,'[coolingRate]=cole2000')
+    basicFormation   => nodeFormation%basic  (                             )
+    hotHaloFormation => nodeFormation%hotHalo(                             )
     ! Check for empty halos.
     if (hotHaloFormation%mass() <= 0.0d0) then
        cole2000Rate=0.0d0
@@ -138,20 +141,20 @@ contains
     ! Get the outer radius of the hot halo.
     radiusOuter =hotHaloFormation%outerRadius()
     ! Get the infall radius.
-    radiusInfall=self%coolingInfallRadius_%radius(node%formationNode)
+    radiusInfall=self%coolingInfallRadius_%radius(nodeFormation)
     if (radiusInfall >= radiusOuter) then
        ! Infall radius exceeds the outer radius - zero infall rate.
        cole2000Rate=0.0d0
     else
        ! Find the density at the infall radius.
        coordinates              =  [radiusInfall,0.0d0,0.0d0]
-       massDistribution_        => node             %formationNode       %massDistribution  (componentTypeHotHalo,massTypeGaseous)
+       massDistribution_        => nodeFormation                         %massDistribution  (componentTypeHotHalo,massTypeGaseous)
        densityInfall            =  massDistribution_                     %density           (coordinates                         )
        !![
        <objectDestructor name="massDistribution_"/>
        !!]          
        ! Find infall radius growth rate.
-       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(node%formationNode                  )
+       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(nodeFormation                       )
        ! Compute the infall rate.
        cole2000Rate             = +4.0d0                     &
             &                     *Pi                        &

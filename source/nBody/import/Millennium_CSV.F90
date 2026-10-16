@@ -154,13 +154,13 @@ contains
     Import data from a MillenniumCSV file.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Display             , only : displayCounter          , displayCounterClear           , displayIndent          , displayUnindent         , &
+    use :: Display             , only : displayCounter          , displayCounterClear            , displayIndent           , displayUnindent               , &
           &                             verbosityLevelStandard
-    use :: Error               , only : Error_Report
+    use :: Error               , only : Error_Report            , Error_Report_Allocation_Failure
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Dictionaries        , only : rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, &
-         &                              doubleDictionary        , integerSizeTDictionary        , varyingStringDictionary , genericDictionary
-    use :: String_Handling     , only : String_Count_Words    , String_Split_Words
+    use :: Dictionaries        , only : rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary , rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, &
+         &                              doubleDictionary        , integerSizeTDictionary         , varyingStringDictionary , genericDictionary
+    use :: String_Handling     , only : String_Count_Words      , String_Split_Words
     implicit none
     class           (nbodyImporterMillenniumCSV), intent(inout)                              :: self
     type            (nBodyData                 ), intent(  out), dimension(  :), allocatable :: simulations
@@ -174,7 +174,8 @@ contains
     integer         (c_size_t                  )                                             :: countPoints             , i
     integer                                                                                  :: status                  , file        , &
          &                                                                                      j                       , countColumns, &
-         &                                                                                      countReal               , countInteger
+         &                                                                                      countReal               , countInteger, &
+         &                                                                                      allocErr
     character       (len=1024                  )                                             :: line
     logical                                                                                  :: isComment               , readHeader  , &
          &                                                                                      gotPositionX            , gotPositionY, &
@@ -189,9 +190,12 @@ contains
     ! Count lines in file. (Subtract 1 since one lines gives the column headers.)
     countPoints=Count_Lines_In_File(self%fileName,comment_char="#")-1_c_size_t
     ! Allocate storage
-    allocate(position  (3_c_size_t,countPoints))
-    allocate(velocity  (3_c_size_t,countPoints))
-    allocate(particleID(           countPoints))
+    allocate(position  (3_c_size_t,countPoints),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('position'  ,3_c_size_t*countPoints,{introspection:location})
+    allocate(velocity  (3_c_size_t,countPoints),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('velocity'  ,3_c_size_t*countPoints,{introspection:location})
+    allocate(particleID(           countPoints),stat=allocErr)
+    if (allocErr /= 0) call Error_Report_Allocation_Failure('particleID',           countPoints,{introspection:location})
     allocate(propertiesReal   (0))
     allocate(propertiesInteger(0))
     ! Initialize status.
@@ -266,10 +270,12 @@ contains
              allocate(propertiesReal   (countReal   ))
              allocate(propertiesInteger(countInteger))
              do j=1,countReal
-                allocate(propertiesReal   (j)%property(countPoints))
+                allocate(propertiesReal   (j)%property(countPoints),stat=allocErr)
+                if (allocErr /= 0) call Error_Report_Allocation_Failure('propertiesReal'   ,countPoints,{introspection:location})
              end do
              do j=1,countInteger
-                allocate(propertiesInteger(j)%property(countPoints))
+                allocate(propertiesInteger(j)%property(countPoints),stat=allocErr)
+                if (allocErr /= 0) call Error_Report_Allocation_Failure('propertiesInteger',countPoints,{introspection:location})
              end do
              readHeader=.true.
           else

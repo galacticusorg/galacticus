@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile shapes  using the :cite:t:`klypin_multidark_2014` algorithm.
   !!}
@@ -146,8 +148,8 @@ contains
     ! Get the basic component.
     basic => node%basic()
     ! Compute the shape parameter.
-    nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
-         &  /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
+    nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass(),node=node) &
+         &  /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass()          )
     select case (self%sample%ID)
     case (klypin2015SampleAll    %ID)
        klypin2015Shape=0.115d0+0.0165d0*nu**2

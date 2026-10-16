@@ -137,8 +137,6 @@ contains
     implicit none
     class           (starFormationRateDisksIntgrtdSurfaceDensity), intent(inout), target         :: self
     type            (treeNode                                   ), intent(inout), target         :: node
-    double precision                                             , allocatable  , dimension(  :) :: integralsAnalytic
-    logical                                                      , allocatable  , dimension(  :) :: intervalIsAnalytic
     double precision                                             , allocatable  , dimension(:,:) :: intervals
     class           (nodeComponentDisk                          ), pointer                       :: disk
     double precision                                             , parameter                     :: radiusInnerDimensionless=0.0d+00, radiusOuterDimensionless=10.0d0
@@ -166,23 +164,16 @@ contains
           radiusInner=radiusDisk*radiusInnerDimensionless
           radiusOuter=radiusDisk*radiusOuterDimensionless
           ! Get a set of intervals into which this integral should be broken.
-          intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter,intervalIsAnalytic,integralsAnalytic)
+          intervals=self%starFormationRateSurfaceDensityDisks_%intervals(node,radiusInner,radiusOuter)
           ! Compute the star formation rate. A low order integration rule (GSL_Integ_Gauss15) works well here.
           intgrtdSurfaceDensityRate=0.0d0
           do i=1,size(intervals,dim=2)
-             if (intervalIsAnalytic(i)) then
-                intgrtdSurfaceDensityRate=+                 intgrtdSurfaceDensityRate                                &
-                     &                    +                 integralsAnalytic        (                           i )
-             else
-                intgrtdSurfaceDensityRate=+                 intgrtdSurfaceDensityRate                                &
-                     &                    +self%integrator_%integrate                (intervals(1,i),intervals(2,i))
-             end if
+             intgrtdSurfaceDensityRate=+                 intgrtdSurfaceDensityRate                                &
+                  &                    +self%integrator_%integrate                (intervals(1,i),intervals(2,i))
           end do
           intgrtdSurfaceDensityRate=+2.0d0                     &
                &                    *Pi                        &
                &                    *intgrtdSurfaceDensityRate
-          if (allocated(intervalIsAnalytic)) deallocate(intervalIsAnalytic)
-          if (allocated(integralsAnalytic )) deallocate(integralsAnalytic )
        end if
        self%starFormationRatePrevious=intgrtdSurfaceDensityRate
     end if

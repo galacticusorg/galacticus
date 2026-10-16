@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a hybrid top-hat/sharp :math:`k`-space power spectrum window function class.
   !!}
@@ -182,39 +184,21 @@ contains
     !!{RST
     Computes a window function for calculations of the variance in the power spectrum. Specifically, uses a convolution of top-hat real-space and sharp :math:`k`-space window functions. The top-hat radius is :math:`r_\mathrm{th}`, while the :math:`k`-space cut-off wavenumber is :math:`k_\mathrm{s}=a/r_\mathrm{s}`, where :math:`a=`\ ``[normalization]``. The two radii are chosen such that :math:`r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}` and :math:`r_\mathrm{s}=\beta r_{\mathrm th}` where :math:`\beta=`\ ``[radiiRatio]``.
     !!}
+    use :: Power_Spectrum_Window_Function_Utilities, only : Window_Function_Top_Hat
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
-    double precision                                               , intent(in   ) :: smoothingMass              , wavenumber               , &
+    double precision                                               , intent(in   ) :: smoothingMass       , wavenumber               , &
          &                                                                            time
-    double precision                                               , parameter     :: xSeriesMaximum      =1.0d-3
-    double precision                                                               :: radiusKSpaceSharp          , radiusTopHat             , &
-         &                                                                            topHatWindowFunction       , kSpaceSharpWindowFunction, &
-         &                                                                            wavenumberCutOff           , x                        , &
-         &                                                                            xSquared
+    double precision                                                               :: radiusKSpaceSharp   , radiusTopHat             , &
+         &                                                                            topHatWindowFunction, kSpaceSharpWindowFunction, &
+         &                                                                            wavenumberCutOff
     !$GLC attributes unused :: time
 
     ! Find radii for both filters and cut-off wavenumber for the sharp k-space filter.
     call self%radii(smoothingMass,radiusTopHat,radiusKSpaceSharp)
     wavenumberCutOff=self%wavenumberMaximum(smoothingMass)
     ! Compute the top-hat window function.
-    x               =+wavenumber   &
-         &           *radiusTopHat
-    if      (x <= 0.0d0) then
-       topHatWindowFunction=0.0d0
-    else if (x <= xSeriesMaximum) then
-       ! Use a series expansion of the window function for small x.
-       xSquared            =+x**2
-       topHatWindowFunction=+1.0d0                        &
-            &               +xSquared*(  -1.0d0/   10.0d0 &
-            &               +xSquared* ( +1.0d0/  280.0d0 &
-            &               +xSquared*  (-1.0d0/15120.0d0 &
-            &                           )                 &
-            &                          )                  &
-            &                         )
-    else
-       ! For larger x, use the full expression.
-       topHatWindowFunction=3.0d0*(sin(x)-x*cos(x))/(x**3)
-    end if
+    topHatWindowFunction=Window_Function_Top_Hat(wavenumber*radiusTopHat)
     ! Compute k-space sharp window function.
     if      (wavenumber <=            0.0d0) then
        kSpaceSharpWindowFunction=0.0d0
@@ -248,7 +232,7 @@ contains
     !!{RST
     Computes the radii of the top-hat and sharp :math:`k`-space filters. Specifically, uses a convolution of top-hat real-space and sharp :math:`k`-space window functions. The top-hat radius is :math:`r_\mathrm{th}`, while the :math:`k`-space cut-off wavenumber is :math:`k_\mathrm{s}=a/r_\mathrm{s}`, where :math:`a=`\ ``[normalization]``. The two radii are chosen such that :math:`r_\mathrm{th}^2 + r_\mathrm{s}^2 = (3 M / 4 \pi \bar{rho})^{1/3}` and :math:`r_\mathrm{s}=\beta r_\mathrm{th}` where :math:`\beta=`\ ``[radiiRatio]``.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
+    use :: Power_Spectrum_Window_Function_Utilities, only : Window_Function_Radius_Lagrangian
     implicit none
     class           (powerSpectrumWindowFunctionTopHatSharpKHybrid), intent(inout) :: self
     double precision                                               , intent(in   ) :: smoothingMass
@@ -256,21 +240,14 @@ contains
     double precision                                                               :: radiusTotal
 
     ! Find the radius enclosing this mass.
-    radiusTotal      =+(                                             &
-         &              +3.0d0                                       &
-         &              /4.0d0                                       &
-         &              /Pi                                          &
-         &              *smoothingMass                               &
-         &              /self%cosmologyParameters_%OmegaMatter    () &
-         &              /self%cosmologyParameters_%densityCritical() &
-         &              )**(1.0d0/3.0d0)
+    radiusTotal      =Window_Function_Radius_Lagrangian(smoothingMass,self%cosmologyParameters_)
     ! Find the top-hat and sharp k-space radii, and the k-space wavenumber.
-    radiusTopHat     =+radiusTotal                                   &
-         &            /sqrt(                                         &
-         &                  +1.0d0                                   &
-         &                  +self%radiiRatio**2                      &
+    radiusTopHat     =+radiusTotal              &
+         &            /sqrt(                    &
+         &                  +1.0d0              &
+         &                  +self%radiiRatio**2 &
          &                 )
-    radiusKSpaceSharp=+self%radiiRatio                               &
+    radiusKSpaceSharp=+self%radiiRatio          &
          &            *radiusTopHat
     return
   end subroutine topHatSharpKHybridRadii

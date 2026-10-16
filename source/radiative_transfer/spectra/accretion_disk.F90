@@ -22,7 +22,7 @@
   !![
   <radiativeTransferSpectrum name="radiativeTransferSpectrumAccretionDisk" docformat="rst">
    <description>
-   A photon spectrum class that computes the spectral luminosity of radiation emitted by an accreting black hole accretion disk in radiative transfer calculations. The black hole mass and Eddington-scaled accretion rate are set by the ``[blackHoleMass]`` and ``[accretionRateEddington]`` parameters.
+   A photon spectrum class that computes the spectral luminosity of radiation emitted by an accreting black hole accretion disk in radiative transfer calculations. The black hole mass and Eddington-scaled accretion rate are set by the ``[massBlackHole]`` and ``[accretionRateEddington]`` parameters.
    </description>
   </radiativeTransferSpectrum>
   !!]

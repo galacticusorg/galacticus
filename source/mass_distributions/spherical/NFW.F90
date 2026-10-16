@@ -17,11 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an NFW :cite:p:`navarro_structure_1996` mass distribution class.
   !!}
 
-  use :: Numerical_Interpolation, only : interpolator
+  use :: Tabulations_Inverse, only : tabulationInverse
 
   public :: massDistributionNFWStateStore, massDistributionNFWStateRestore
   
@@ -55,6 +57,7 @@
      procedure :: massTotal                         => nfwMassTotal
      procedure :: density                           => nfwDensity
      procedure :: densityGradientRadial             => nfwDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient   => nfwDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral    => nfwDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment               => nfwDensityRadialMoment
      procedure :: massEnclosedBySphere              => nfwMassEnclosedBySphere
@@ -82,26 +85,20 @@
      module procedure massDistributionNFWConstructorInternal
   end interface massDistributionNFW
 
-  ! Tabulated solutions.
-  double precision                            :: densityScaleFreeRadiusMinimum                =+     2.0d0 , densityScaleFreeRadiusMaximum                =+     0.5d0
-  double precision                            :: densityScaleFreeMinimum                      =+huge(0.0d0), densityScaleFreeMaximum                      =-huge(0.0d0)
-  type            (interpolator), allocatable :: densityScaleFree_
-  double precision                            :: angularMomentumSpecificScaleFreeRadiusMinimum=+     2.0d0 , angularMomentumSpecificScaleFreeRadiusMaximum=+     0.5d0 
-  double precision                            :: angularMomentumSpecificScaleFreeMinimum      =+huge(0.0d0), angularMomentumSpecificScaleFreeMaximum      =-huge(0.0d0)
-  type            (interpolator), allocatable :: angularMomentumSpecificScaleFree_
-  double precision                            :: timeFreefallScaleFreeRadiusMinimum           =+     2.0d0 , timeFreefallScaleFreeRadiusMaximum           =+     0.5d0 
-  double precision                            :: timeFreefallScaleFreeMinimum                 =+huge(0.0d0), timeFreefallScaleFreeMaximum                 =-huge(0.0d0)
-  type            (interpolator), allocatable :: timeFreefallScaleFree_
-  !$omp threadprivate(densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum                )
-  !$omp threadprivate(densityScaleFreeMinimum                      , densityScaleFreeMaximum                      )
-  !$omp threadprivate(densityScaleFree_                                                                           )
-  !$omp threadprivate(angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum)
-  !$omp threadprivate(angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum      )
-  !$omp threadprivate(angularMomentumSpecificScaleFree_                                                           )
-  !$omp threadprivate(timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum           )
-  !$omp threadprivate(timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum                 )
-  !$omp threadprivate(timeFreefallScaleFree_                                                                      )
-  
+  ! Tabulated solutions. These are held per thread rather than per object: the scale-free NFW profile has no shape parameter,
+  ! so each of these tabulations is universal and is shared by every NFW distribution a thread constructs. (The corresponding
+  ! tabulations of the Einasto, Burkert and Zhao1996 profiles are held per object precisely because each of those profiles
+  ! *does* have a shape parameter, which makes them specific to the object.)
+  !
+  ! The abscissae are points of an absolute octave lattice. The bounds these tabulations reach are found by halving and
+  ! doubling from a seed of unity, so they are exact powers of two and are therefore already points of that lattice: pinning
+  ! costs nothing in range here, where anchoring to whole decades would pad every bound outward. Thirty points per octave is
+  ! 99.66 per decade, against the hundred per decade used before.
+  integer                   , parameter :: countRadiiPerOctave   =30
+  type   (tabulationInverse)            :: densityScaleFree_        , angularMomentumSpecificScaleFree_, &
+       &                                   timeFreefallScaleFree_
+  !$omp threadprivate(densityScaleFree_,angularMomentumSpecificScaleFree_,timeFreefallScaleFree_)
+
 contains
 
   function massDistributionNFWConstructorParameters(parameters) result(self)
@@ -116,7 +113,7 @@ contains
     type            (inputParameters    ), intent(inout) :: parameters
     double precision                                     :: mass                , scaleLength  , &
          &                                                  densityNormalization, concentration, &
-         &                                                  virialRadius
+         &                                                  radiusVirial
     logical                                              :: dimensionless
     type            (varying_string     )                :: componentType
     type            (varying_string     )                :: massType
@@ -155,7 +152,7 @@ contains
       <source>parameters</source>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>virialRadius</name>
+      <name>radiusVirial</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
       The virial radius (in Mpc) :math:`r_\mathrm{vir}` of the NFW halo, which defines the outer boundary of the profile at which the mean enclosed density equals the virial overdensity threshold.
@@ -191,7 +188,7 @@ contains
      <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
      <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
      <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
-     <argument name="virialRadius"         value="virialRadius"         parameterPresent="parameters"/>
+     <argument name="radiusVirial"         value="radiusVirial"         parameterPresent="parameters"/>
      <argument name="concentration"        value="concentration"        parameterPresent="parameters"/>
      <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
     </conditionalCall>
@@ -200,7 +197,7 @@ contains
     return
   end function massDistributionNFWConstructorParameters
 
-  function massDistributionNFWConstructorInternal(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless,componentType,massType) result(self)
+  function massDistributionNFWConstructorInternal(scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless,componentType,massType) result(self)
     !!{RST
     Internal constructor for "nfw" mass distribution class.
     !!}
@@ -208,7 +205,7 @@ contains
     type            (massDistributionNFW         )                          :: self
     double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
          &                                                                     densityNormalization, mass         , &
-         &                                                                     virialRadius
+         &                                                                     radiusVirial
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
@@ -216,11 +213,11 @@ contains
     <constructorAssign variables="componentType, massType"/>
     !!]
 
-    call self%initialize(scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless)
+    call self%initialize(scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless)
     return
   end function massDistributionNFWConstructorInternal
 
-  subroutine nfwInitialize(self,scaleLength,concentration,densityNormalization,mass,virialRadius,dimensionless)
+  subroutine nfwInitialize(self,scaleLength,concentration,densityNormalization,mass,radiusVirial,dimensionless)
     !!{RST
     Initialize the parameters of an NFW mass distribution.
     !!}
@@ -230,7 +227,7 @@ contains
     class           (massDistributionNFW), intent(inout)           :: self
     double precision                     , intent(in   ), optional :: scaleLength         , concentration, &
          &                                                            densityNormalization, mass         , &
-         &                                                            virialRadius
+         &                                                            radiusVirial
     logical                              , intent(in   ), optional :: dimensionless
     double precision                                               :: radiusScaleFree
 
@@ -241,9 +238,9 @@ contains
        self%scaleLength=scaleLength
     else if (                            &
          &   present(concentration).and. &
-         &   present(virialRadius )      &
+         &   present(radiusVirial )      &
          &  ) then
-       self%scaleLength=virialRadius/concentration
+       self%scaleLength=radiusVirial/concentration
     else
        self%scaleLength=0.0d0
        call Error_Report('no means to determine scale length'//{introspection:location})
@@ -255,13 +252,13 @@ contains
        self%densityNormalization=densityNormalization
     else if (                                   &
          &   present(mass                ).and. &
-         &   present(virialRadius        )      &
+         &   present(radiusVirial        )      &
          &  ) then
-       radiusScaleFree          =+virialRadius/self%scaleLength
+       radiusScaleFree          =+radiusVirial/self%scaleLength
        self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3/(log(1.0d0+radiusScaleFree)-radiusScaleFree/(1.0d0+radiusScaleFree))
     else
        self%densityNormalization=+0.00
-       call Error_Report('either "densityNormalization", or "mass" and "virialRadius" must be specified'//{introspection:location})
+       call Error_Report('either "densityNormalization", or "mass" and "radiusVirial" must be specified'//{introspection:location})
     end if
     ! Determine if profile is dimensionless.
     if      (present(dimensionless     )) then
@@ -297,19 +294,46 @@ contains
     !!{RST
     Return the density at the specified ``coordinates`` in an NFW mass distribution.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionNFW), intent(inout) :: self
     class           (coordinate         ), intent(in   ) :: coordinates
     double precision                                     :: radiusScaleFree
 
-    ! Compute the density at this position.
+    ! Compute the density at this position. The profile diverges at zero radius: that is reported here, as returning the largest
+    ! representable density instead simply moves the overflow into whatever uses the result.
     radiusScaleFree=+coordinates%rSpherical          () &
          &          /self       %scaleLength
+    if (radiusScaleFree <= 0.0d0) then
+       nfwDensity  =+0.0d0
+       call Error_Report('density is divergent at zero radius'//{introspection:location})
+       return
+    end if
     nfwDensity     =+self       %densityNormalization   &
          &          /       radiusScaleFree             &
          &          /(1.0d0+radiusScaleFree)**2
     return
   end function nfwDensity
+
+  double precision function nfwDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in an NFW :cite:p:`navarro_structure_1996` mass
+    distribution. Differentiating the slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -(1+3x)/(1+x)`, with
+    :math:`x=r/r_\mathrm{s}`, gives :math:`-2x/(1+x)^2`. It vanishes at both the center and at large radii, where the slope
+    tends to its asymptotic values of :math:`-1` and :math:`-3`.
+    !!}
+    implicit none
+    class           (massDistributionNFW), intent(inout), target :: self
+    class           (coordinate         ), intent(in   )         :: coordinates
+    double precision                                             :: radiusScaleFree
+
+    radiusScaleFree                =+coordinates%rSpherical()   &
+         &                          /self       %scaleLength
+    densitySlopeLogarithmicGradient=-2.0d0                      &
+         &                          *       radiusScaleFree     &
+         &                          /(1.0d0+radiusScaleFree)**2
+    return
+  end function nfwDensitySlopeLogarithmicGradient
 
   double precision function nfwDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{RST
@@ -526,43 +550,31 @@ contains
     !!{RST
     Computes the radius enclosing a given mean density for nfw mass distributions.
     !!}
-    use :: Numerical_Ranges, only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionNFW), intent(inout), target       :: self
     double precision                     , intent(in   )               :: density
     double precision                     , intent(in   ), optional     :: radiusGuess
-    double precision                     , allocatable  , dimension(:) :: radii                      , densities
-    double precision                     , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                     , allocatable  , dimension(:) :: radii
     double precision                                                   :: densityScaleFree
-    integer                                                            :: countRadii
+    integer                                                            :: i
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
-    if     (                                            &
-         &   densityScaleFree < densityScaleFreeMinimum &
-         &  .or.                                        &
-         &   densityScaleFree > densityScaleFreeMaximum &
-         & ) then
-       do while (densityEnclosedScaleFree(densityScaleFreeRadiusMinimum) < densityScaleFree)
-          densityScaleFreeRadiusMinimum=0.5d0*densityScaleFreeRadiusMinimum
+    ! Extend the tabulation - by one octave at a time, and preserving everything already computed - until it spans the
+    ! requested density. The mean enclosed density decreases with radius.
+    if (densityScaleFree_%pointsPerOctave == 0) call densityScaleFree_%reset(countRadiiPerOctave,increasing=.false.)
+    do while (.not.densityScaleFree_%brackets(densityScaleFree))
+       call densityScaleFree_%expand(densityScaleFree)
+       radii=densityScaleFree_%abscissae()
+       do i=1,size(radii)
+          if (densityScaleFree_%isComputed(i)) cycle
+          call densityScaleFree_%set(i,densityEnclosedScaleFree(radii(i)))
        end do
-       do while (densityEnclosedScaleFree(densityScaleFreeRadiusMaximum) > densityScaleFree)
-          densityScaleFreeRadiusMaximum=2.0d0*densityScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(densityScaleFreeRadiusMaximum/densityScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(densityScaleFree_)) deallocate(densityScaleFree_)
-       allocate(radii            (countRadii))
-       allocate(densities        (countRadii))
-       allocate(densityScaleFree_            )
-       radii                  = Make_Range(densityScaleFreeRadiusMinimum,densityScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       densities              =-densityEnclosedScaleFree(           radii)
-       densityScaleFreeMinimum=-densities               (countRadii      )
-       densityScaleFreeMaximum=-densities               (         1      )
-       densityScaleFree_      = interpolator            (densities ,radii)
-    end if
-    radius=+densityScaleFree_%interpolate(-densityScaleFree) &
+       call densityScaleFree_%build()
+    end do
+    radius=+densityScaleFree_%invert     (densityScaleFree) &
          & *self             %scaleLength
-    return    
+    return
   end function nfwRadiusEnclosingDensity
 
   elemental double precision function massEnclosedScaleFree(radius) result(mass)
@@ -572,7 +584,13 @@ contains
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
-    double precision, parameter     :: minimumRadiusForExactSolution   =1.0d-6
+    ! Below this radius the exact solution loses accuracy catastrophically: ln(1+r) and r/(1+r) are each of order r while their
+    ! difference is of order r²/2, and `log(1.0d0+radius)` rounds its argument to unity plus an ulp before taking the logarithm.
+    ! The series below is the better of the two for any smaller radius, so the two are exchanged where their errors are
+    ! comparable. Measured against a high-precision evaluation, the worst relative error over r/r_s ∈ [10⁻⁹,1] is 3×10⁻¹¹ with
+    ! this threshold; it was 1.4×10⁻⁴ with the previous value of 10⁻⁶, which left the exact solution in use down to radii where
+    ! it is wrong by 1.2×10⁻² at 10⁻⁷ and by more than unity at 10⁻⁸.
+    double precision, parameter     :: minimumRadiusForExactSolution   =2.0d-3
     double precision, parameter     :: nfwNormalizationFactorUnitRadius=log(2.0d0)-0.5d0 ! Precomputed NFW normalization factor for unit radius.
     
     if      (radius == 1.0d0                        ) then
@@ -609,14 +627,12 @@ contains
     Computes the radius corresponding to a given specific angular momentum for nfw mass distributions.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLogarithmic
     implicit none
     class           (massDistributionNFW), intent(inout), target       :: self
     double precision                     , intent(in   )               :: angularMomentumSpecific
-    double precision                     , allocatable  , dimension(:) :: radii                                   , angularMomentaSpecific
-    double precision                     , parameter                   :: countRadiiPerDecade             =100.0d0
+    double precision                     , allocatable  , dimension(:) :: radii
     double precision                                                   :: angularMomentumSpecificScaleFree
-    integer                                                            :: countRadii
+    integer                                                            :: i
 
     if (angularMomentumSpecific > 0.0d0) then
        angularMomentumSpecificScaleFree=+angularMomentumSpecific                 &
@@ -625,34 +641,23 @@ contains
             &                                 *self%densityNormalization         &
             &                                )                                   &
             &                           /      self%scaleLength              **2
-       if     (                                                                            &
-            &   angularMomentumSpecificScaleFree < angularMomentumSpecificScaleFreeMinimum &
-            &  .or.                                                                        &
-            &   angularMomentumSpecificScaleFree > angularMomentumSpecificScaleFreeMaximum &
-            & ) then
-          do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMinimum) > angularMomentumSpecificScaleFree)
-             angularMomentumSpecificScaleFreeRadiusMinimum=0.5d0*angularMomentumSpecificScaleFreeRadiusMinimum
+       ! The enclosed specific angular momentum increases with radius.
+       if (angularMomentumSpecificScaleFree_%pointsPerOctave == 0) call angularMomentumSpecificScaleFree_%reset(countRadiiPerOctave,increasing=.true.)
+       do while (.not.angularMomentumSpecificScaleFree_%brackets(angularMomentumSpecificScaleFree))
+          call angularMomentumSpecificScaleFree_%expand(angularMomentumSpecificScaleFree)
+          radii=angularMomentumSpecificScaleFree_%abscissae()
+          do i=1,size(radii)
+             if (angularMomentumSpecificScaleFree_%isComputed(i)) cycle
+             call angularMomentumSpecificScaleFree_%set(i,angularMomentumSpecificEnclosedScaleFree(radii(i)))
           end do
-          do while (angularMomentumSpecificEnclosedScaleFree(angularMomentumSpecificScaleFreeRadiusMaximum) < angularMomentumSpecificScaleFree)
-             angularMomentumSpecificScaleFreeRadiusMaximum=2.0d0*angularMomentumSpecificScaleFreeRadiusMaximum
-          end do
-          countRadii=int(log10(angularMomentumSpecificScaleFreeRadiusMaximum/angularMomentumSpecificScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-          if (allocated(angularMomentumSpecificScaleFree_)) deallocate(angularMomentumSpecificScaleFree_)
-          allocate(radii                            (countRadii))
-          allocate(angularMomentaSpecific           (countRadii))
-          allocate(angularMomentumSpecificScaleFree_            )
-          radii                                  =Make_Range(angularMomentumSpecificScaleFreeRadiusMinimum,angularMomentumSpecificScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-          angularMomentaSpecific                 =angularMomentumSpecificEnclosedScaleFree(     radii)
-          angularMomentumSpecificScaleFreeMinimum=angularMomentaSpecific                  (         1)
-          angularMomentumSpecificScaleFreeMaximum=angularMomentaSpecific                  (countRadii)
-          angularMomentumSpecificScaleFree_      =interpolator                            (angularMomentaSpecific,radii)
-       end if
-       radius=+angularMomentumSpecificScaleFree_%interpolate(angularMomentumSpecificScaleFree) &
+          call angularMomentumSpecificScaleFree_%build()
+       end do
+       radius=+angularMomentumSpecificScaleFree_%invert     (angularMomentumSpecificScaleFree) &
             & *self                             %scaleLength
     else
        radius=+0.0d0
     end if
-    return    
+    return
   end function nfwRadiusFromSpecificAngularMomentum
 
   elemental double precision function angularMomentumSpecificEnclosedScaleFree(radius) result(angularMomentumSpecific)
@@ -841,7 +846,7 @@ contains
        timeScaleFree=+time                                       &
             &        /timeScale
        call self%timeFreefallTabulate(timeScaleFree)
-       radius=+timeFreefallScaleFree_%interpolate(timeScaleFree) &
+       radius=+timeFreefallScaleFree_%invert     (timeScaleFree) &
             & *self                  %scaleLength
     else
        ! For non-positive freefall times, return a zero freefall radius.
@@ -884,43 +889,31 @@ contains
     Tabulate the freefall radius at the given ``time`` in an NFW mass distribution.
     !!}
     use :: Numerical_Integration, only : integrator
-    use :: Numerical_Ranges     , only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (massDistributionNFW), intent(inout)               :: self
     double precision                     , intent(in   )               :: timeScaleFree
-    double precision                     , allocatable  , dimension(:) :: radii                      , timesFreefall
-    double precision                     , parameter                   :: countRadiiPerDecade=100.0d0
+    double precision                     , allocatable  , dimension(:) :: radii
     double precision                                                   :: radiusStart
-    integer                                                            :: countRadii                 , i
+    integer                                                            :: i
     type            (integrator         )                              :: integrator_
 
-    if     (                                              &
-         &   timeScaleFree < timeFreefallScaleFreeMinimum &
-         &  .or.                                          &
-         &   timeScaleFree > timeFreefallScaleFreeMaximum &
-         & ) then
+    ! The freefall time increases with radius. Note that each point is an independent quadrature from the center out to its
+    ! own radius, so a point carried over by an extension is precisely the value which would be computed afresh.
+    if (timeFreefallScaleFree_%pointsPerOctave == 0) call timeFreefallScaleFree_%reset(countRadiiPerOctave,increasing=.true.)
+    if (.not.timeFreefallScaleFree_%brackets(timeScaleFree)) then
        integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-3)
-       do while (timeFreefallScaleFree(timeFreefallScaleFreeRadiusMinimum) > timeScaleFree)
-          timeFreefallScaleFreeRadiusMinimum=0.5d0*timeFreefallScaleFreeRadiusMinimum
+       do while (.not.timeFreefallScaleFree_%brackets(timeScaleFree))
+          call timeFreefallScaleFree_%expand(timeScaleFree)
+          radii=timeFreefallScaleFree_%abscissae()
+          do i=1,size(radii)
+             if (timeFreefallScaleFree_%isComputed(i)) cycle
+             call timeFreefallScaleFree_%set(i,timeFreefallScaleFree(radii(i)))
+          end do
+          call timeFreefallScaleFree_%build()
        end do
-       do while (timeFreefallScaleFree(timeFreefallScaleFreeRadiusMaximum) < timeScaleFree)
-          timeFreefallScaleFreeRadiusMaximum=2.0d0*timeFreefallScaleFreeRadiusMaximum
-       end do
-       countRadii=int(log10(timeFreefallScaleFreeRadiusMaximum/timeFreefallScaleFreeRadiusMinimum)*countRadiiPerDecade)+1
-       if (allocated(timeFreefallScaleFree_)) deallocate(timeFreefallScaleFree_)
-       allocate(radii                 (countRadii))
-       allocate(timesFreefall         (countRadii))
-       allocate(timeFreefallScaleFree_            )
-       radii=Make_Range(timeFreefallScaleFreeRadiusMinimum,timeFreefallScaleFreeRadiusMaximum,countRadii,rangeTypeLogarithmic)
-       do i=1,countRadii
-          timesFreefall(i)=timeFreefallScaleFree(radii(i))
-       end do
-       timeFreefallScaleFreeMinimum=timesFreefall(            1      )
-       timeFreefallScaleFreeMaximum=timesFreefall(   countRadii      )
-       timeFreefallScaleFree_      =interpolator (timesFreefall,radii)
     end if
     return
-    
+
   contains
     
     double precision function timeFreefallScaleFree(radius)
@@ -1076,21 +1069,22 @@ contains
     return
   end function nfwEnergyKinetic
 
-  subroutine nfwDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine nfwDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionNFW), intent(inout)           :: self
     type     (inputParameters    ), intent(inout)           :: descriptor
     logical                       , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*              ), intent(in   ), optional :: parameterName
     character(len=18             )                          :: parameterLabel
     type     (inputParameters    )                          :: parameters
     !$GLC attributes unused :: includeFileModificationTimes
     
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','NFW')
-    parameters=descriptor%subparameters('massDistribution')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'NFW')
+    parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
     write (parameterLabel,'(e17.10)') self%densityNormalization
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%scaleLength
@@ -1113,12 +1107,12 @@ contains
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
     call displayMessage('Storing state for: massDistributionNFW',verbosity=verbosityLevelInfo)
-    write (stateFile) densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum                , &
-         &            densityScaleFreeMinimum                      , densityScaleFreeMaximum                      , &
-         &            angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum, &
-         &            angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum      , &
-         &            timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum           , &
-         &            timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
+    ! Store the tabulations in full - the lattice on which each was built, and the values computed on it. Recording only the
+    ! range, as was done previously, left a restored object which reported that it spanned a value while holding no
+    ! interpolator with which to invert it.
+    call densityScaleFree_                %stateStore(stateFile)
+    call angularMomentumSpecificScaleFree_%stateStore(stateFile)
+    call timeFreefallScaleFree_           %stateStore(stateFile)
     return
   end subroutine massDistributionNFWStateStore
 
@@ -1137,12 +1131,9 @@ contains
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
     call displayMessage('Retrieving state for: massDistributionNFW',verbosity=verbosityLevelInfo)
-    read (stateFile) densityScaleFreeRadiusMinimum                , densityScaleFreeRadiusMaximum                , &
-         &           densityScaleFreeMinimum                      , densityScaleFreeMaximum                      , &
-         &           angularMomentumSpecificScaleFreeRadiusMinimum, angularMomentumSpecificScaleFreeRadiusMaximum, &
-         &           angularMomentumSpecificScaleFreeMinimum      , angularMomentumSpecificScaleFreeMaximum      , &
-         &           timeFreefallScaleFreeRadiusMinimum           , timeFreefallScaleFreeRadiusMaximum           , &
-         &           timeFreefallScaleFreeMinimum                 , timeFreefallScaleFreeMaximum
+    call densityScaleFree_                %stateRestore(stateFile)
+    call angularMomentumSpecificScaleFree_%stateRestore(stateFile)
+    call timeFreefallScaleFree_           %stateRestore(stateFile)
     return
   end subroutine massDistributionNFWStateRestore
   

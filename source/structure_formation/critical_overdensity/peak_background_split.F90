@@ -26,6 +26,7 @@ Implements an peak-background split critical overdensity class.
    <description>
    The critical overdensity is given by some other critical overdensity class offset by the halo environmental overdensity.
    </description>
+   <forwards object="criticalOverdensity_"/>
   </criticalOverdensity>
   !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityPeakBackgroundSplit

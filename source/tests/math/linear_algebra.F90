@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program to test linear algebra functions.
 !!}
@@ -25,31 +27,37 @@ program Test_Math_Linear_Algebra
   !!{RST
   Tests of linear algebra functions.
   !!}
-  use            :: Display                 , only : displayVerbositySet, verbosityLevelStandard
+  use            :: Display                 , only : displayVerbositySet   , verbosityLevelStandard
+  use            :: Error                   , only : Error_Handler_Register
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
-  use            :: Linear_Algebra          , only : assignment(=)      , matrix                , matrixLU            , matrixRotation   , &
-          &                                          operator(*)        , vector
+  use            :: Linear_Algebra          , only : assignment(=)         , matrix                , matrixLU      , matrixRotation, &
+          &                                          operator(*)           , vector                , matrixCholesky
+  use            :: Interface_GSL           , only : GSL_Success
   use            :: Numerical_Constants_Math, only : Pi
   use            :: Sorting                 , only : sortIndex
-  use            :: Unit_Tests              , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Unit_Tests              , only : Assert                , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (vector  ), allocatable    :: vector1          , vector2          , &
-       &                                        vector3          , vectorE
-  type            (matrix  ), allocatable    :: matrix_          , matrixI          , &
-       &                                        matrixT          , matrixP          , &
-       &                                        matrixC          , matrixCD         , &
-       &                                        matrixE          , matrixR          , &
-       &                                        matrix1
-  type            (matrixLU), allocatable    :: matrixLU_
-  double precision          , dimension(3  ) :: vectorComponents
-  integer         (c_size_t), dimension(3  ) :: vectorOrder
-  type            (vector  ), dimension(3  ) :: vectors          , vectorsRotated
-  double precision          , dimension(3,3) :: matrixComponents , matrixComponentsT
-  double precision          , dimension(3,4) :: matrixComponents1
-  double precision                           :: angle
+  type            (vector        ), allocatable    :: vector1          , vector2          , &
+       &                                              vector3          , vectorE
+  type            (matrix        ), allocatable    :: matrix_          , matrixI          , &
+       &                                              matrixT          , matrixP          , &
+       &                                              matrixC          , matrixCD         , &
+       &                                              matrixE          , matrixR          , &
+       &                                              matrix1
+  type            (matrixLU      ), allocatable    :: matrixLU_
+  type            (matrixCholesky), allocatable    :: matrixCholesky_
+  double precision                , dimension(3  ) :: vectorComponents
+  integer         (c_size_t      ), dimension(3  ) :: vectorOrder
+  type            (vector        ), dimension(3  ) :: vectors          , vectorsRotated
+  double precision                , dimension(3,3) :: matrixComponents , matrixComponentsT
+  double precision                , dimension(3,4) :: matrixComponents1
+  double precision                                 :: angle
+  integer                                          :: status
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  ! Register error handlers, so that GSL errors can be reported through status arguments.
+  call Error_Handler_Register()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: linear algebra")
   !! Build the vectors.
@@ -171,6 +179,31 @@ program Test_Math_Linear_Algebra
   deallocate(vector3  )
   deallocate(matrixLU_)
   call Assert("LU square system solve",vectorComponents,[8.88728d0,-2.25434d0,-1.71965d0],relTol=1.0d-3)
+  !! Tests of the Cholesky matrix class. Values computed using NumPy.
+  allocate(matrixCholesky_)
+  matrixCholesky_ =matrixCholesky(matrixC)
+  matrixComponents=matrixCholesky_
+  call Assert("Cholesky factor"                    ,       matrixComponents                             ,reshape([1.0d0,1.1d0,1.4d0,0.0d0,0.888819441731559d0,0.405031644333368d0,0.0d0,0.0d0,0.935921667175522d0],[3,3]),absTol=1.0d-12)
+  call Assert("Cholesky factor reconstructs matrix",matmul(matrixComponents,transpose(matrixComponents)),reshape([1.0d0,1.1d0,1.4d0,1.1d0,2.0d0,1.9d0,1.4d0,1.9d0,3.0d0]                                          ,[3,3]),absTol=1.0d-12)
+  allocate(vector3)
+  vector3         =matrixCholesky_%squareSystemSolve   (vector1)
+  vectorComponents=vector3
+  call Assert("Cholesky square system solve"        ,vectorComponents,[8.88728323699422d0,-2.254335260115609d0,-1.71965317919075d0],relTol=1.0d-12)
+  vector3         =matrixCholesky_%lowerTriangularSolve(vector1)
+  vectorComponents=vector3
+  call Assert("Cholesky lower triangular solve"     ,vectorComponents,[4.0d0,-2.700210962222458d0,-1.609460670431893d0],relTol=1.0d-12)
+  call Assert("Cholesky lower triangular solve: |x|^2 = y.A^-1.y",sum(vectorComponents**2),4.0d0*8.88728323699422d0+2.0d0*(-2.254335260115609d0)+3.0d0*(-1.71965317919075d0),relTol=1.0d-12)
+  deallocate(vector3)
+  matrixComponents=matrixCholesky_%inverse()
+  call Assert("Cholesky inverse"                    ,matrixComponents,reshape([3.453757225433526d0,-0.92485549132948d0,-1.026011560693641d0,-0.92485549132948d0,1.502890173410404d0,-0.520231213872832d0,-1.026011560693641d0,-0.520231213872832d0,1.141618497109826d0],[3,3]),relTol=1.0d-12)
+  call Assert("Cholesky logarithmic determinant"    ,matrixCholesky_%logarithmicDeterminant(),-0.3681693233644671d0,relTol=1.0d-12)
+  call Assert("Cholesky leaves source matrix intact",matrixC%logarithmicDeterminant(),-0.3681693233644671d0,relTol=1.0d-12)
+  deallocate(matrixCholesky_)
+  !! A matrix which is not positive-definite (eigenvalues -1 and 3) must report failure through the status argument.
+  allocate(matrixCholesky_)
+  matrixCholesky_=matrixCholesky(matrix(reshape([1.0d0,2.0d0,2.0d0,1.0d0],[2,2])),status)
+  call Assert("Cholesky decomposition of a non-positive-definite matrix fails",status /= GSL_Success,.true.)
+  deallocate(matrixCholesky_)
   !! Done.
   deallocate(vector1 )
   deallocate(vectorE )

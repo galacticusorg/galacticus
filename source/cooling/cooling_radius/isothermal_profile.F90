@@ -25,7 +25,6 @@
   use :: Cooling_Times_Available, only : coolingTimeAvailableClass
   use :: Cosmology_Functions    , only : cosmologyFunctions       , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Kind_Numbers           , only : kind_int8
 
   !![
   <coolingRadius name="coolingRadiusIsothermal" docformat="rst">
@@ -50,40 +49,18 @@
 
    where :math:`t_\mathrm{cool,virial}` is the cooling time at the virial radius.
    </description>
-   <deepCopy>
-    <functionClass variables="radiation"/>
-   </deepCopy>
-   <stateStorable>
-    <functionClass variables="radiation"/>
-   </stateStorable>
   </coolingRadius>
   !!]
-  type, extends(coolingRadiusClass) :: coolingRadiusIsothermal
+  type, extends(coolingRadiusCoolingTime) :: coolingRadiusIsothermal
      !!{RST
      Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available for cooling equals the cooling time.
      !!}
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
-     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
-     class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
-     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
-     integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
-     integer                                                            :: abundancesCount                     , chemicalsCount
-     ! Stored values of cooling radius.
-     logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
-     double precision                                                   :: radiusGrowthRateStored              , radiusStored
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
-     !![
-     <methods docformat="rst">
-       <method description="Reset memoized calculations." method="calculationReset" />
-     </methods>
-     !!]
      final     ::                     isothermalDestructor
-     procedure :: autoHook         => isothermalAutoHook
      procedure :: radius           => isothermalRadius
      procedure :: radiusGrowthRate => isothermalRadiusGrowthRate
-     procedure :: calculationReset => isothermalCalculationReset
   end type coolingRadiusIsothermal
 
   interface coolingRadiusIsothermal
@@ -130,11 +107,6 @@ contains
     !!{RST
     Internal constructor for the isothermal cooling radius class.
     !!}
-    use :: Abundances_Structure         , only : Abundances_Property_Count, abundances
-    use :: Array_Utilities              , only : operator(.intersection.)
-    use :: Chemical_Abundances_Structure, only : Chemicals_Property_Count
-    use :: Error                        , only : Component_List           , Error_Report
-    use :: Galacticus_Nodes             , only : defaultHotHaloComponent
     implicit none
     type (coolingRadiusIsothermal  )                        :: self
     class(cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
@@ -145,55 +117,10 @@ contains
     <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *coolingTimeAvailable_, *coolingTime_"/>
     !!]
 
-    ! Initial state of stored solutions.
-    self%radiusComputed          =.false.
-    self%radiusGrowthRateComputed=.false.
-    ! Get a count of the number of abundances and chemicals properties.
-    self%abundancesCount=Abundances_Property_Count()
-    self%chemicalsCount =Chemicals_Property_Count ()
-    ! Initialize radiation field.
-    allocate(self%radiation)
-    !![
-    <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
-    !!]
-    ! Check that required components are gettable.
-    if     (                                                                                                             &
-         &  .not.(                                                                                                       &
-         &         defaultHotHaloComponent%       massIsGettable() .and.                                                 &
-         &         defaultHotHaloComponent% abundancesIsGettable() .and.                                                 &
-         &         defaultHotHaloComponent%outerRadiusIsGettable() .and.                                                 &
-         &        (defaultHotHaloComponent%  chemicalsIsGettable() .or.  self%chemicalsCount == 0)                       &
-         &       )                                                                                                       &
-         & ) call Error_Report                                                                                           &
-         & (                                                                                                             &
-         &  'This method requires that the "mass", "abundances", "outerRadius", and "chemicals" '//                      &
-         &  '(if any chemicals are being used) properties of the hot halo are gettable.'         //                      &
-         &  Component_List(                                                                                              &
-         &                 'hotHalo'                                                                                  ,  &
-         &                  defaultHotHaloComponent%massAttributeMatch       (requireGettable=.true.                 )   &
-         &                 .intersection.                                                                                &
-         &                  defaultHotHaloComponent%abundancesAttributeMatch (requireGettable=.true.                 )   &
-         &                 .intersection.                                                                                &
-         &                  defaultHotHaloComponent%outerRadiusAttributeMatch(requireGettable=.true.                 )   &
-         &                 .intersection.                                                                                &
-         &                  defaultHotHaloComponent%chemicalsAttributeMatch  (requireGettable=self%chemicalsCount > 0)   &
-         &                )                                                                                           // &
-         &  {introspection:location}                                                                                     &
-         & )
+    ! Initialize the state shared with other cooling time-based classes.
+    call self%initialize()
     return
   end function isothermalConstructorInternal
-
-  subroutine isothermalAutoHook(self)
-    !!{RST
-    Attach to the calculation reset event.
-    !!}
-    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
-    implicit none
-    class(coolingRadiusIsothermal), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,isothermalCalculationReset,openMPThreadBindingAllLevels,label='coolingRadiusIsothermal')
-    return
-  end subroutine isothermalAutoHook
 
   subroutine isothermalDestructor(self)
     !!{RST
@@ -210,26 +137,9 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"  />
     <objectDestructor name="self%radiation"            />
     !!]
-    if (calculationResetEvent%isAttached(self,isothermalCalculationReset)) call calculationResetEvent%detach(self,isothermalCalculationReset)
+    if (calculationResetEvent%isAttached(self,coolingTimeCalculationReset)) call calculationResetEvent%detach(self,coolingTimeCalculationReset)
     return
   end subroutine isothermalDestructor
-
-  subroutine isothermalCalculationReset(self,node,uniqueID)
-    !!{RST
-    Reset the cooling radius calculation.
-    !!}
-    use :: Kind_Numbers, only : kind_int8
-    implicit none
-    class  (coolingRadiusIsothermal), intent(inout) :: self
-    type   (treeNode               ), intent(inout) :: node
-    integer(kind_int8              ), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
-
-    self%radiusComputed          =.false.
-    self%radiusGrowthRateComputed=.false.
-    self%lastUniqueID            =uniqueID
-    return
-  end subroutine isothermalCalculationReset
 
   double precision function isothermalRadiusGrowthRate(self,node)
     !!{RST
@@ -271,50 +181,33 @@ contains
     !!{RST
     Return the cooling radius in the isothermal model.
     !!}
-    use :: Abundances_Structure             , only : abundances
-    use :: Chemical_Abundances_Structure    , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                   , nodeComponentHotHalo       , treeNode
-    use :: Mass_Distributions               , only : massDistributionClass                , kinematicsDistributionClass
-    use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
-    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                 , massTypeGaseous
+    use :: Abundances_Structure         , only : abundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Galacticus_Nodes             , only : nodeComponentBasic   , treeNode
+    use :: Mass_Distributions           , only : massDistributionClass, kinematicsDistributionClass
+    use :: Coordinates                  , only : coordinateSpherical  , assignment(=)
+    use :: Galactic_Structure_Options   , only : componentTypeHotHalo , massTypeGaseous
     implicit none
     class           (coolingRadiusIsothermal    ), intent(inout), target  :: self
     type            (treeNode                   ), intent(inout), target  :: node
     class           (nodeComponentBasic         )               , pointer :: basic
-    class           (nodeComponentHotHalo       )               , pointer :: hotHalo
     class           (massDistributionClass      )               , pointer :: massDistribution_
     class           (kinematicsDistributionClass)               , pointer :: kinematicsDistribution_
     type            (coordinateSpherical        )                         :: coordinates
-    double precision                                                      :: coolingTime            , timeAvailable          , &
-         &                                                                   density                , massToDensityConversion, &
-         &                                                                   temperature            , radiusVirial
+    double precision                                                      :: coolingTime            , timeAvailable, &
+         &                                                                   density                , temperature  , &
+         &                                                                   radiusVirial
     type            (abundances                 )                         :: hotAbundances
-    type            (chemicalAbundances         )                         :: chemicalFractions      , chemicalMasses
+    type            (chemicalAbundances         )                         :: chemicalFractions
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if cooling radius is already computed.
     if (.not.self%radiusComputed) then
        ! Get the time available for cooling in node.
-       timeAvailable                   =  self%coolingTimeAvailable_%timeAvailable(node)
-       ! Get the abundances for this node.
-       hotHalo                         => node    %hotHalo  ()
-       hotAbundances                   =  hotHalo%abundances()
-       call hotAbundances%massToMassFraction(hotHalo%mass())
-       ! Get the chemicals for this node.
-       if (self%chemicalsCount > 0) then
-          chemicalMasses=hotHalo%chemicals()
-          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(chemicalFractions)
-          if (hotHalo%mass() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-          else
-             massToDensityConversion=0.0d0
-          end if          
-          ! Convert to number density per unit total mass density.
-          chemicalFractions=chemicalFractions*massToDensityConversion
-       end if
+       timeAvailable=self%coolingTimeAvailable_%timeAvailable(node)
+       ! Get the abundances and chemicals for this node.
+       call self%hotHaloComposition(node,hotAbundances,chemicalFractions)
        ! Set epoch for radiation field.
        basic => node%basic()
        call self%radiation%timeSet(basic%time())

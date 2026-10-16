@@ -182,6 +182,69 @@ jobs:
       - name: Check no LaTeX remains inside converted docstrings
         run: |
           python3 scripts/doc/convertDocstringsToRST.py --check-residual source
+      # Docstrings and manuals name parameters, classes, implementations, and
+      # bibliography keys in prose. Nothing in the documentation build checks
+      # that those names still exist, so a parameter rename silently leaves the
+      # prose which mentions it pointing at a name the user cannot find.
+      - name: Check documentation names things which exist
+        run: |
+          python3 scripts/aux/docBlockAudit.py --check
+  # Contributor markers must record names only. Everything after the label in a
+  # `!+` marker is parsed as a comma-separated list of contributors, so a
+  # description of what was contributed (by a person or by an AI tool - that
+  # belongs in the commit message) is published in the documentation's
+  # Acknowledgments as if it were a person's name.
+  Validate-Contributor-Markers:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Check contributor markers record names only
+        run: |
+          python3 scripts/doc/extractContributors.py --check $GITHUB_WORKSPACE
+  # Test outcome markers. Every `testSuite/test-*.py` and `testSuite/validate-*.py` script signals its outcome by printing
+  # a `FAILED:`, `SUCCESS:` or `SKIPPED:` marker and exiting zero. The harnesses judge a test by scanning its log for
+  # `FAIL`, so a script with no marker at all, or one whose passing output contains `FAIL`, is silently mis-reported.
+  #
+  # Unlike the source formatters this check is blocking: the suite is fully compliant, so any report is a new drift rather
+  # than a pre-existing one.
+  Validate-Test-Markers:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Check test scripts against the outcome-marker convention
+        run: |
+          python3 scripts/aux/auditTestMarkers.py --check
+  # Check that every parameter file's `lastModified` revision, and every commit registered in `scripts/aux/migrations.xml`,
+  # is an ancestor of HEAD. These hashes drive parameter migration, and are lost when the branch which recorded them is
+  # rebased or amended before merging - a missing `lastModified` revision makes migration fail, and a missing migration
+  # commit makes that migration silently never fire. The full history is needed, hence `fetch-depth: 0`.
+  Validate-Revisions:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Check parameter file and migration revisions are in the history
+        run: |
+          python3 scripts/aux/auditRevisions.py --check
   # Fortran static analysis
   Fortran-Static-Analysis:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
@@ -217,6 +280,94 @@ jobs:
             fi
           done
           exit $status
+  # Source formatting. `use` blocks and variable declaration blocks follow the
+  # column layout described in the developer guide, applied by the formatters in
+  # `scripts/aux/`. Only files touched by the pull request are checked.
+  #
+  # Advisory: this job reports through annotations and never fails. The tree was
+  # not reformatted in one sweep, so most files still predate the formatters;
+  # failing here would force the first change to any of them to carry a
+  # whole-file reformat in the same pull request, mixing it with the substantive
+  # change. Reporting instead lets that reformat be made as a separate
+  # follow-up commit.
+  Check-Source-Formatting:
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Mark directory safe
+        run: |
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
+        with:
+          # Vendored third-party code under `source/external/` is excluded, so
+          # that it stays comparable with its upstream original.
+          files: |
+            source/**/*.F90
+            source/**/*.Inc
+          files_ignore: |
+            source/external/**
+          safe_output: false
+      - name: Check formatting of Fortran sources
+        env:
+          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        run: |
+          set -f
+          : > rows.md
+          for file in ${CHANGED_FILES}; do
+            # Deleted or renamed-away files still appear in the changed list.
+            [ -f "$file" ] || continue
+            for tool in formatModuleUses formatDeclarations; do
+              # `run:` executes under `bash -e`, so the exit status has to be
+              # captured somewhere errexit does not apply — a bare call
+              # followed by `case $?` would abort the step on the first
+              # unformatted file, before anything was recorded.
+              rc=0
+              PYTHONPATH=$GITHUB_WORKSPACE/python python3 "scripts/aux/$tool.py" "$file" --check || rc=$?
+              case $rc in
+                0)
+                  ;;
+                1)
+                  printf '| `%s` | differs from the house style | `./scripts/aux/%s.py %s` |\n' \
+                    "$file" "$tool" "$file" >> rows.md
+                  # Annotations are capped at ten of each level per step, so
+                  # the job summary below — not this — is the complete record.
+                  echo "::warning file=$file::Formatting differs from the house style; see the job summary."
+                  ;;
+                *)
+                  # Exit 2 means the tool declined to touch the file — it does
+                  # not round-trip, or reformatting would change what it
+                  # declares or unbalance its preprocessor guards. That is a
+                  # tool limitation rather than a style problem, and needs no
+                  # action from the author.
+                  printf '| `%s` | `%s.py` could not process it; formatting not verified | _none needed_ |\n' \
+                    "$file" "$tool" >> rows.md
+                  ;;
+              esac
+            done
+          done
+          if [ -s rows.md ]; then
+            {
+              printf '## :warning: Source formatting (advisory)\n\n'
+              printf 'The files below differ from the house style. See '
+              printf '[how the formatting is rolled out](https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/editor-setup.html#manual-sec-formattingadoption) '
+              printf 'in the developer guide.\n\n'
+              printf '| File | Finding | To fix |\n|---|---|---|\n'
+              cat rows.md
+              printf '\n**Nothing here blocks this pull request.** Most of the tree predates the\n'
+              printf 'formatters, so the first change to a file often reformats far more lines than\n'
+              printf 'the change itself. If you do reformat, please do it as a separate commit so\n'
+              printf 'that reviewers can read the two apart.\n'
+            } >> $GITHUB_STEP_SUMMARY
+          fi
+          # Advisory only — see the comment on this job.
+          exit 0
   # Embedded XML directive validation (the LaTeX checks were retired with the
   # migration of the embedded documentation to reStructuredText).
   Validate-Embedded-XML:
@@ -260,9 +411,16 @@ jobs:
             fi
           done
           exit $status
-  # Spell-check the reStructuredText documentation (advisory — does not fail the
-  # build). Builds the docs with sphinxcontrib-spelling and posts any possible
-  # misspellings as a PR comment; add legitimate technical terms to aux/words.dict.
+  # Spell-check the reStructuredText documentation.  Fails the build on any
+  # misspelling, and still reports them in the job summary and as a PR comment so
+  # they can be read without opening the log.
+  #
+  # If a flagged word is legitimate — a technical term, or a proper name — add it
+  # to aux/words.dict.  If it is a code identifier appearing in prose, mark it up
+  # as a reStructuredText literal (``likeThis``) instead: that renders it as code
+  # and excludes it from the check, and keeps the dictionary for words.  British
+  # spellings must be corrected, never added to the dictionary; whitelisting them
+  # is what allowed them to accumulate previously.
   Spell-Check-RST:
     if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
@@ -272,6 +430,11 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history: `spelling_ignore_contributor_names` in docs/conf.py reads
+          # the contributor names from the git log, so a shallow clone would leave
+          # them unrecognised and flag every one of them.
+          fetch-depth: 0
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -285,16 +448,28 @@ jobs:
       - name: Install tools
         run: |
           sudo apt -y update
-          sudo apt install -y enchant-2 aspell aspell-en poppler-utils
+          # pandoc is required by nbsphinx to convert the tutorial notebooks; without
+          # it the documentation build aborts on the first notebook.  Kept in step
+          # with the list in .readthedocs.yaml.
+          sudo apt install -y enchant-2 aspell aspell-en poppler-utils pandoc
           pip install -r docs/requirements.txt sphinxcontrib-spelling pyenchant
       - name: Build documentation and spell-check
         run: |
           PYTHONPATH=$GITHUB_WORKSPACE/python python scripts/doc/extractDocsRST.py source docs
-          SPHINX_SPELLING=1 python -m sphinx -b spelling docs docs/_spelling || true
+          # The spelling builder exits non-zero when it finds a misspelling, so its
+          # status is recorded rather than acted on here: the reporting steps below
+          # need to run first.  A non-zero status with no `.spelling` output means
+          # the documentation build itself failed, which is fatal immediately.
+          SPHINX_SPELLING=1 python -m sphinx -b spelling docs docs/_spelling && sphinxStatus=0 || sphinxStatus=$?
+          if [ "$sphinxStatus" -ne 0 ] && ! find docs/_spelling -name '*.spelling' -size +0 | grep -q .; then
+            echo "Documentation build failed (sphinx exited $sphinxStatus) with no spelling output."
+            exit "$sphinxStatus"
+          fi
           if find docs/_spelling -name '*.spelling' -size +0 | grep -q .; then
             {
-              printf '<details><summary>RST spell-check (advisory) — possible misspellings (click to expand)</summary>\n\n'
-              printf 'Add any legitimate technical terms to `aux/words.dict`.\n\n```\n'
+              printf '<details><summary>RST spell-check — misspellings (click to expand)</summary>\n\n'
+              printf 'Correct the spelling, mark a code identifier up as ``likeThis``, or — for a\n'
+              printf 'genuine technical term or proper name — add it to `aux/words.dict`.\n\n```\n'
               cat $(find docs/_spelling -name '*.spelling') | sort -u
               printf '```\n\n</details>\n'
             } > warnings.md
@@ -314,3 +489,8 @@ jobs:
         uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
           file-path: warnings.md
+      - name: Fail if any misspellings were found
+        if: steps.check_files.outputs.files_exists == 'true'
+        run: |
+          echo "Documentation spell-check failed; see the job summary for the flagged words."
+          exit 1

@@ -32,11 +32,11 @@ No additional Python packages (e.g., ``numpy``) are required merely to *use* the
 Build
 ~~~~~
 
-The shared library and its Python interface module are built by invoking ``make`` with the ``GALACTICUS_BUILD_OPTION=lib`` flag and specifying the ``libgalacticus.so`` target:
+The shared library and its Python interface module are built by invoking ``make`` with the ``LIBRARY=yes`` option and specifying the ``libgalacticus.so`` target:
 
 .. code-block:: none
 
-   make GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+   make LIBRARY=yes libgalacticus.so
 
 This build step performs the following actions:
 
@@ -107,7 +107,7 @@ Once the prerequisites in Section :galacticus-ref:`pythonInterface:build:pythonp
 
    import galacticus
 
-Importing the module automatically loads ``libgalacticus.so`` via ``ctypes`` and calls the internal Galacticus initialisation routine ``libGalacticusInitL``, which sets up event hooks and the HDF5 access lock.
+Importing the module automatically loads ``libgalacticus.so`` via ``ctypes`` and calls the internal Galacticus initialization routine ``libGalacticusInitL``, which sets up event hooks and the HDF5 access lock.
 
 .. _manual-sec-pythonInterface-usage-classes:
 
@@ -280,7 +280,7 @@ An ``AttributeError`` or ``OSError`` of the form *symbol not found* when calling
 
 .. code-block:: none
 
-   make GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+   make LIBRARY=yes libgalacticus.so
    mv galacticus.py    /path/to/prefix/galacticus/python/
    mv libgalacticus.so /path/to/prefix/galacticus/lib/
 

@@ -118,7 +118,7 @@ contains
     return
   end subroutine soHaloFinderDestructor
 
-  double precision function soHaloFinderErrorFractional(self,node)
+  double precision function soHaloFinderErrorFractional(self,node,nodeReference)
     !!{RST
     Return the fractional error on the mass of an N-body halo in the power-law error model.
     !!}
@@ -127,18 +127,20 @@ contains
     use :: Mass_Distributions      , only : massDistributionClass
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    class           (nodeComponentBasic            ), pointer       :: basic
-    class           (massDistributionClass         ), pointer       :: massDistribution_
-    double precision                                , parameter     :: errorConstant                =0.014d0
-    type            (coordinateSpherical           )                :: coordinates
-    double precision                                                :: radiusHalo                           , densityOuterRadius, &
-         &                                                             densityRatioInternalToSurface        , particleCount     , &
-         &                                                             errorFractionalFixedSphere
+    class           (nbodyHaloMassErrorSOHaloFinder), intent(inout)           :: self
+    type            (treeNode                      ), intent(inout)           :: node
+    type            (treeNode                      ), intent(inout), optional :: nodeReference
+    class           (nodeComponentBasic            ), pointer                 :: basic
+    class           (massDistributionClass         ), pointer                 :: massDistribution_
+    double precision                                , parameter               :: errorConstant                =0.014d0
+    !$GLC attributes unused :: nodeReference
+    type            (coordinateSpherical           )                          :: coordinates
+    double precision                                                          :: radiusHalo                           , densityOuterRadius, &
+         &                                                                       densityRatioInternalToSurface        , particleCount     , &
+         &                                                                       errorFractionalFixedSphere
 
     ! Get the basic component of the node.
-    basic                         =>  node                     %basic       (               )
+    basic                         =>  node %basic       ()
     ! Determine number of particles in the halo.
     particleCount                 =  +basic%mass        () &
          &                           /self %massParticle

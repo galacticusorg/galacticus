@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of "Einasto" dark matter halo profiles.
   !!}
@@ -75,38 +77,18 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileDMOEinasto` dark matter halo profile class.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List                   , Error_Report
-    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (darkMatterProfileDMOEinasto)                        :: self
     class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
     !![
     <constructorAssign variables="*darkMatterHaloScale_"/>
     !!]
-    
+
     ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
     ! a treeNode to process, it should have been initialized by now.
-    if     (                                                                                                            &
-         &  .not.(                                                                                                      &
-         &         defaultDarkMatterProfileComponent%scaleIsGettable()                                                  &
-         &        .and.                                                                                                 &
-         &         defaultDarkMatterProfileComponent%shapeIsGettable()                                                  &
-         &       )                                                                                                      &
-         & ) then
-       call Error_Report                                                                                                &
-            &        (                                                                                                  &
-            &         'Einasto dark matter profile requires a dark matter profile component that supports gettable '//  &
-            &         '"scale" and "shape" properties.'                                                             //  &
-            &         Component_List(                                                                                   &
-            &                        'darkMatterProfile'                                                              , &
-            &                         defaultDarkMatterProfileComponent%shapeAttributeMatch(requireGettable=.true.)     &
-            &                        .intersection.                                                                     &
-            &                         defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)     &
-            &                       )                                                                               //  &
-            &         {introspection:location}                                                                          &
-            &        )
-    end if
+    !![
+    <componentPropertyAssert class="darkMatterProfile" properties="scale shape" require="gettable"/>
+    !!]
     return
   end function einastoConstructorInternal
 
@@ -158,11 +140,11 @@ contains
 	 <constructor>
            massDistributionEinasto(                                                                                  &amp;
            &amp;                   mass          =basic            %mass                                     (    ), &amp;
-           &amp;                   virialRadius  =self             %darkMatterHaloScale_%radiusVirial        (node), &amp;
-           &amp;                   scaleLength   =darkMatterProfile%scale                                    (    ), &amp;
-           &amp;                   shapeParameter=darkMatterProfile%shape                                    (    ), &amp;
-           &amp;                   componentType=                                       componentTypeDarkHalo      , &amp;
-           &amp;                   massType     =                                       massTypeDark                 &amp;
+           &amp;                   radiusVirial  =self             %darkMatterHaloScale_%radiusVirial        (node), &amp;
+           &amp;                   scaleLength   =self                                  %scaleRadiusValidated(node), &amp;
+           &amp;                   shapeParameter=darkMatterProfile                     %shape               (    ), &amp;
+           &amp;                   componentType =                                       componentTypeDarkHalo     , &amp;
+           &amp;                   massType      =                                       massTypeDark                &amp;
            &amp;                  )
 	 </constructor>
        </referenceConstruct>

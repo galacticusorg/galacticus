@@ -32,7 +32,7 @@ module Cosmology_Parameters
   <enumeration docformat="rst">
    <name>hubbleUnits</name>
    <description>
-   Enumeration of supported unit systems for the Hubble constant: standard cosmolgical units (km/s/Mpc), time units (inverse time), or the dimensionless little-:math:`h` convention where :math:`H_0 = 100 h` km/s/Mpc.
+   Enumeration of supported unit systems for the Hubble constant: standard cosmological units (km/s/Mpc), time units (inverse time), or the dimensionless little-:math:`h` convention where :math:`H_0 = 100 h` km/s/Mpc.
    </description>
    <visibility>public</visibility>
    <entry label="standard" />
@@ -86,7 +86,7 @@ module Cosmology_Parameters
    </method>
    <method name="HubbleConstant" >
     <description>
-    Return the Hubble constant at the present day. The optional ``units`` argument specifies if the return value should be in units of km/s/Mpc (hubbleUnitsStandard), Gyr\ :math:`^{-1}` (hubbleUnitsTime), or 100 km/s/Mpc (hubbleUnitsLittleH).
+    Return the Hubble constant at the present day. The optional ``units`` argument specifies if the return value should be in units of km/s/Mpc (``hubbleUnitsStandard``), Gyr\ :math:`^{-1}` (``hubbleUnitsTime``), or 100 km/s/Mpc (``hubbleUnitsLittleH``).
     </description>
     <type>double precision</type>
     <pass>yes</pass>

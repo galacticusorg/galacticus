@@ -24,7 +24,7 @@
   !![
   <massFunctionIncompleteness name="massFunctionIncompletenessComplete" docformat="rst">
    <description>
-   A mass function incompleteness class that assumes the observational sample is fully complete at all masses---i.e., the completeness fraction is identically 1 for every object regardless of mass. This is the appropriate choice when no observational selection effects need to be modelled, and serves as the trivial (no-op) implementation of the :galacticus-class:`massFunctionIncompletenessClass` interface.
+   A mass function incompleteness class that assumes the observational sample is fully complete at all masses---i.e., the completeness fraction is identically 1 for every object regardless of mass. This is the appropriate choice when no observational selection effects need to be modeled, and serves as the trivial (no-op) implementation of the :galacticus-class:`massFunctionIncompletenessClass` interface.
    </description>
   </massFunctionIncompleteness>
   !!]

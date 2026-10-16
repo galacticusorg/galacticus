@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="57d4f71e7573f4666f3fa72fb74cfa7d646d1d2d" time="2026-10-14T21:57:40"/>
   <!-- Task and output -->
   <task value="haloMassFunction">
-    <haloMassMinimum value=" 1.122018454e06"/>
-    <haloMassMaximum value=" 1.122018454e16"/>
-    <pointsPerDecade value="10.0"/>
+    <massHaloMinimum value=" 1.122018454e06"/>
+    <massHaloMaximum value=" 1.122018454e16"/>
+    <pointsPerDecade value="10"/>
     <includeMassAccretionRate value="false"/>
     <includeUnevolvedSubhaloMassFunction value="false"/>
     <errorsAreFatal value="false"/>
@@ -45,6 +45,10 @@
           <p value="=[haloMassFunctionParameters/p]"/>
           <q value="=[haloMassFunctionParameters/q]"/>
           <normalization value="=[haloMassFunctionParameters/normalization]"/>
+          <!-- These parameters were fit without the redshift dependence of the Bhattacharya et al. (2011) normalization and -->
+          <!-- `a` parameter, so those exponents are set to zero here.                                                       -->
+          <exponentRedshiftA             value="0.0"/>
+          <exponentRedshiftNormalization value="0.0"/>
         </haloMassFunction>
       </haloMassFunction>
     </haloMassFunction>

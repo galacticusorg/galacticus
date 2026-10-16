@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a two-point correlation function class in which the correlation function is found by Fourier transforming a power spectrum.
 !!}
@@ -166,7 +168,7 @@ contains
     !!}
     use :: FFTLogs                 , only : FFTLogSineTransform, fftLogForward
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Make_Range         , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Range_Pinned       , rangeLattice , gridSchemePerDecade
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
     double precision                                                   , intent(in   )             :: time                      , separation
@@ -174,6 +176,7 @@ contains
          &                                                                                            correlation               , separations
     integer                                                            , parameter                 :: wavenumbersPerDecade=125
     double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
+    type            (rangeLattice                                     )                           :: lattice
     double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum, &
          &                                                                                            time_
     integer         (c_size_t                                         )                            :: countWavenumbers          , i
@@ -190,12 +193,20 @@ contains
        end if
        wavenumberMinimum=1.0d0/max(separation*wavenumbersRange,self%separationMaximum)
        wavenumberMaximum=1.0d0/min(separation/wavenumbersRange,self%separationMinimum)
-       countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
+       ! Pin the wavenumber range to an absolute lattice, so that the transform - and therefore the correlation function it
+       ! returns - depends only on which anchored intervals the accumulated separation range fell in, rather than on the
+       ! separations at which it happened to be requested. No further margin is applied: `wavenumbersRange` above already
+       ! provides one. No value can be carried over when the range grows, and none is attempted: the grid feeds an FFTLog sine
+       ! transform, every output of which depends on the whole input grid.
+       lattice          =Range_Pinned([wavenumberMinimum,wavenumberMaximum],wavenumbersPerDecade,gridSchemePerDecade,marginFactor=1.0d0)
+       wavenumberMinimum=lattice%minimum()
+       wavenumberMaximum=lattice%maximum()
+       countWavenumbers =int(lattice%count,c_size_t)
        allocate(wavenumbers  (countWavenumbers))
        allocate(powerSpectrum(countWavenumbers))
        allocate(correlation  (countWavenumbers))
        allocate(separations  (countWavenumbers))
-       wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
+       wavenumbers=lattice%values()
        do i=1,countWavenumbers
           if (associated(self%powerSpectrum_)) then
              powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time_)
@@ -250,7 +261,7 @@ contains
     use :: FFTLogs                 , only : FFTLog      , fftLogForward
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Interpolation , only : interpolator
-    use :: Numerical_Ranges        , only : Make_Range  , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Range_Pinned, rangeLattice , gridSchemePerDecade
     implicit none
     class           (correlationFunctionTwoPointPowerSpectrumTransform), intent(inout)             :: self
     double precision                                                   , intent(in   )             :: time                      , separation
@@ -258,6 +269,7 @@ contains
          &                                                                                            correlation               , separations
     integer                                                            , parameter                 :: wavenumbersPerDecade=125
     double precision                                                   , parameter                 :: wavenumbersRange    =1.0d4
+    type            (rangeLattice                                     )                            :: lattice
     double precision                                                                               :: wavenumberMinimum         , wavenumberMaximum, &
          &                                                                                            time_
     integer         (c_size_t                                         )                            :: countWavenumbers          , i
@@ -274,12 +286,20 @@ contains
        end if
        wavenumberMinimum=1.0d0/max(separation*wavenumbersRange,self%separationMaximumVolumeAveraged)
        wavenumberMaximum=1.0d0/min(separation/wavenumbersRange,self%separationMinimumVolumeAveraged)
-       countWavenumbers =int(log10(wavenumberMaximum/wavenumberMinimum)*dble(wavenumbersPerDecade),c_size_t)
+       ! Pin the wavenumber range to an absolute lattice, so that the transform - and therefore the correlation function it
+       ! returns - depends only on which anchored intervals the accumulated separation range fell in, rather than on the
+       ! separations at which it happened to be requested. No further margin is applied: `wavenumbersRange` above already
+       ! provides one. No value can be carried over when the range grows, and none is attempted: the grid feeds an FFTLog sine
+       ! transform, every output of which depends on the whole input grid.
+       lattice          =Range_Pinned([wavenumberMinimum,wavenumberMaximum],wavenumbersPerDecade,gridSchemePerDecade,marginFactor=1.0d0)
+       wavenumberMinimum=lattice%minimum()
+       wavenumberMaximum=lattice%maximum()
+       countWavenumbers =int(lattice%count,c_size_t)
        allocate(wavenumbers  (countWavenumbers))
        allocate(powerSpectrum(countWavenumbers))
        allocate(correlation  (countWavenumbers))
        allocate(separations  (countWavenumbers))
-       wavenumbers=Make_Range(wavenumberMinimum,wavenumberMaximum,int(countWavenumbers),rangeTypeLogarithmic)
+       wavenumbers=lattice%values()
        do i=1,countWavenumbers
           if (associated(self%powerSpectrum_)) then
              powerSpectrum(i)=self%powerSpectrum_         %power(wavenumbers(i),time_)

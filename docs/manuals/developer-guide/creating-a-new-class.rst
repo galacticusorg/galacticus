@@ -955,6 +955,16 @@ In our example, there are two things we need to do in our destructor:
 
 tells Galacticus that we are done with the object pointed to by ``self%cosmologyFunctions_``. It will update the reference count to this object, and, if it decides the object is no longer in use anywhere, it will destroy it.
 
+Writing the destructor is not enough on its own: it must also be bound to the type with a ``final`` declaration, as in the type definition shown earlier:
+
+.. code-block:: fortran
+
+        final     ::                     haloScalingDestructor
+
+Without that line nothing ever calls the destructor. The code still compiles, so the omission is silent: the objects it would have released are leaked, and any event it would have detached from is left attached to freed memory. The same applies to the internal constructor, which must be named by a ``module procedure`` line in the type's generic interface --- otherwise the constructor call resolves to the intrinsic structure constructor instead, skipping the reference counting that ``constructorAssign`` emits, so the object is freed while still in use.
+
+Both are checked mechanically. Check 6 of ``scripts/aux/staticAnalyzer.py`` reports a ``Destructor`` which is never bound with ``final ::``, and a ``ConstructorInternal`` which is missing from its generic interface; it runs both in the *Fortran-Static-Analysis* CI job and in the pre-commit hook.
+
 .. _new-class-other-functions:
 
 Other functions
@@ -1112,7 +1122,7 @@ For a small number of classes, however, such a construction cycle is *legitimate
    </starFormationTimescale>
    !!]
 
-That single attribute is all that is required. When the build re-enters the node currently under construction, the factory returns a generated *shim*---a lightweight ``<name>Recursive`` object that holds only a weak pointer back to the real object under construction and forwards every method call to it. All of the supporting machinery is generated automatically: the shim type and its method forwarders, its ``deepCopy``/``stateStore``/``descriptor`` behaviour, and the weak (uncounted) back-reference that keeps reference counting sound so no memory leak results. You do **not** need to write any ``recursiveSelf`` pointers, per-method guards, or custom ``deepCopy`` code---this boilerplate was removed under `issue #695 <https://github.com/galacticusorg/galacticus/issues/695>`_.
+That single attribute is all that is required. When the build re-enters the node currently under construction, the factory returns a generated *shim*---a lightweight ``<name>Recursive`` object that holds only a weak pointer back to the real object under construction and forwards every method call to it. All of the supporting machinery is generated automatically: the shim type and its method forwarders, its ``deepCopy``/``stateStore``/``descriptor`` behavior, and the weak (uncounted) back-reference that keeps reference counting sound so no memory leak results. You do **not** need to write any ``recursiveSelf`` pointers, per-method guards, or custom ``deepCopy`` code---this boilerplate was removed under `issue #695 <https://github.com/galacticusorg/galacticus/issues/695>`_.
 
 .. warning::
 

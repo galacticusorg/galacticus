@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an inactive model parameter class.
   !!}
@@ -39,6 +41,7 @@
      procedure :: name               => inactiveName
      procedure :: priorSample        => inactivePriorSample
      procedure :: priorInvert        => inactivePriorInvert
+     procedure :: priorCumulative    => inactivePriorCumulative
      procedure :: priorMinimum       => inactivePriorMinimum
      procedure :: priorMaximum       => inactivePriorMaximum
      procedure :: randomPerturbation => inactiveRandomPerturbation
@@ -153,6 +156,21 @@ contains
     call Error_Report('parameter is inactive'//{introspection:location})
     return
   end function inactivePriorInvert
+
+  double precision function inactivePriorCumulative(self,x)
+    !!{RST
+    Return the cumulative probability of the prior at the given parameter value.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (modelParameterInactive), intent(inout) :: self
+    double precision                        , intent(in   ) :: x
+    !$GLC attributes unused :: self, x
+
+    inactivePriorCumulative=0.0d0
+    call Error_Report('parameter is inactive'//{introspection:location})
+    return
+  end function inactivePriorCumulative
 
   double precision function inactivePriorMinimum(self)
     !!{RST

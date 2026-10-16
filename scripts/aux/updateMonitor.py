@@ -30,7 +30,7 @@ def _extract_directives(file_name):
                     in_xml = False
 
                 if in_xml or depth > 0:
-                    # Strip leading instrumentation prefix and normalise.
+                    # Strip leading instrumentation prefix and normalize.
                     processed = re.sub(r'^(\!<)?\s*', '', line) if in_xml else line
                     processed = processed.replace('&nbsp;', ' ')
                     xml_lines.append(processed)

@@ -13,6 +13,12 @@ Walks a parameter XML tree hierarchically and reports three classes of problem:
     name is not accepted by the selected implementation.
   * **type**      -- a scalar whose literal value does not parse as the
     parameter's inferred type.
+  * **capability** -- an object which requires an optional argument of one of
+    its methods that the implementation building it never supplies (declared by
+    `<requires>` and `withholds`; see `Galacticus.Build.Capabilities`).  The
+    object is resolved as `objectBuilder` resolves it: from the nearest
+    enclosing element, through `idRef` references and implementations which
+    forward their arguments, or from the class default.
 
 Design notes / why this is low-false-positive:
 
@@ -102,10 +108,17 @@ class _Index:
         self.implementations = catalog['implementations']
         self.enumerations = catalog.get('enumerations', {})
         self.base_names = set(self.function_classes)
-        # (base, label) -> implementation type name.
+        # (base, label) -> implementation type name.  An implementation whose
+        # Fortran name had to be abbreviated may also carry a readable `alias`;
+        # both select it, so both must resolve here.  Registering only the
+        # label would leave a file using the alias with no schema, silently
+        # skipping every check on that element's sub-parameters.
         self.type_by_base_label = {}
         for type_name, impl in self.implementations.items():
-            self.type_by_base_label[(impl['functionClass'], impl['label'])] = type_name
+            for label in (impl['label'], impl.get('alias')):
+                if label:
+                    self.type_by_base_label[
+                        (impl['functionClass'], label)] = type_name
         self._schema_cache = {}
 
     def labels_for(self, base):
@@ -246,6 +259,86 @@ def validate_parameters(root, catalog):
     findings = []
     name_renames, value_renames = _migrations()
 
+    # What is needed to resolve objects as `objectBuilder` does: each element's
+    # parent (an object is looked for in enclosing elements too), and the
+    # elements carrying an `id` (an `idRef` stands for the element it names).
+    parent_of = {child: parent for parent in root.iter() for child in parent}
+    identified = {(element.tag, element.get('id')): element
+                  for element in root.iter()
+                  if isinstance(element.tag, str) and element.get('id') is not None}
+    defaults_checked = set()
+
+    def locate_object(scope, obj):
+        """Resolve the object `obj` built from the parameters of `scope`, as
+        `objectBuilder` does: the nearest element named for it in `scope` or an
+        enclosing element, else a default built at the root. Returns
+        ``(element, implementation, isDefault)``, where `element` holds the
+        object's own parameters, or None where it can not be resolved."""
+        if obj.get('source') != 'parameters' or obj.get('sourceElement') is not None:
+            return None
+        base, name = obj['class'], obj['parameterName']
+        current = scope
+        while current is not None:
+            for child in current:
+                if child.tag != name:
+                    continue
+                if child.get('idRef') is not None:
+                    child = identified.get((child.tag, child.get('idRef')))
+                    if child is None:
+                        return None
+                label = child.get('value')
+                if label is None:
+                    label = index.default_label(base)
+                implementation = index.type_by_base_label.get((base, label))
+                return (child, implementation, False) if implementation else None
+            current = parent_of.get(current)
+        implementation = index.type_by_base_label.get((base, index.default_label(base)))
+        return (root, implementation, True) if implementation else None
+
+    def requirements(scope, impl_type, seen=frozenset()):
+        """The ``(method, argument)`` pairs which `impl_type`, built from the
+        parameters of `scope`, requires: its own, those of the implementations
+        it extends, and those of the objects it forwards its arguments to."""
+        if (id(scope), impl_type) in seen:
+            return set()
+        seen = seen | {(id(scope), impl_type)}
+        objects = {obj.get('name'): obj
+                   for obj in index.schema(impl_type)['objects'].values()}
+        needed = set()
+        for type_name in index._inheritance_chain(impl_type):
+            implementation = index.implementations[type_name]
+            needed.update((entry['method'], entry['argument'])
+                          for entry in implementation.get('requires') or [])
+            for name in implementation.get('forwards') or []:
+                located = locate_object(scope, objects[name]) if name in objects else None
+                if located:
+                    needed |= requirements(located[0], located[1], seen)
+        return needed
+
+    def check_capabilities(scope, impl_type, path):
+        """Report each object which `impl_type` builds and which requires an
+        argument `impl_type` withholds from it. An object built from its class
+        default has no element for `walk_scope` to reach, so the objects it
+        builds in turn are checked from here."""
+        for obj in index.schema(impl_type)['objects'].values():
+            located = locate_object(scope, obj)
+            if located is None:
+                continue
+            object_scope, object_type, is_default = located
+            object_path = f"{path}/{obj['parameterName']}"
+            withheld = {(entry['method'], entry['argument'])
+                        for entry in obj.get('withholds') or []}
+            if withheld:
+                for method, argument in sorted(withheld & requirements(object_scope, object_type)):
+                    findings.append(Finding(
+                        'error', 'capability', object_path,
+                        f"implementation '{object_type}' requires the '{argument}' "
+                        f"argument of its '{method}' method, but '{impl_type}' "
+                        f"never supplies it"))
+            if is_default and object_type not in defaults_checked:
+                defaults_checked.add(object_type)
+                check_capabilities(object_scope, object_type, object_path)
+
     def child_value(element):
         return element.get('value')
 
@@ -332,7 +425,7 @@ def validate_parameters(root, catalog):
 
             # 6. Anything else inside a functionClass scope is an unknown
             #    parameter name.  (At the root scope we do not flag -- globals
-            #    and meta parameters legitimately live there.)  Honour
+            #    and meta parameters legitimately live there.)  Honor
             #    `ignoreWarnings="true"`, Galacticus's own opt-out for
             #    deliberately-unusual parameters (input_parameters.F90).
             if schema is not None and child.get('ignoreWarnings') != 'true':
@@ -341,6 +434,9 @@ def validate_parameters(root, catalog):
                     'error', 'unknown', child_path,
                     f"parameter '{tag}' is not accepted by implementation "
                     f"'{impl_type}'{hint}"))
+
+        if impl_type:
+            check_capabilities(element, impl_type, path)
 
     def walk_group(element, scalars, objects, path):
         """Validate a sourceElement wrapper's children against its grouped
@@ -551,7 +647,7 @@ def _expand_xincludes(element, base_dir, findings, label, seen, depth=0):
 # NOTE: expression/conditional `[path]` references are intentionally NOT checked.
 # The bracket mini-language supports defaults (`[path|0.0]`, so an unresolved
 # path is legal), printf-style formats (`[%4.4d|path]`), and relative paths --
-# which makes path-resolution checking low-value (defaults legalise misses) and
+# which makes path-resolution checking low-value (defaults legalize misses) and
 # error-prone; left for a future expression-aware resolver if needed.
 
 

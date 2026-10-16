@@ -10,7 +10,7 @@ into subdirectories to any depth), this script:
   declaration (skipping text inside `!!{…!!}` LaTeX and `!![…!!]` XML blocks).
 * For every `functionClass` directive in the file, walks each instance file
   listed in `directiveLocations.xml` to discover the concrete derived types
-  and synthesises one functionClass-submodule entry per derived type.
+  and synthesizes one functionClass-submodule entry per derived type.
 * Emits Makefile rules for each discovered module / submodule target: the
   `<mod>.mod`, `<mod>@<sub>.smod`, `<src>.o`, `<src>.p.F90`, `<mod>.mod.d`,
   `<mod>.mod.gv`, `<src>.m`, `<src>.smod` dependencies the main build
@@ -30,6 +30,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+from Fortran.Utils                 import TYPE_ATTRIBUTES_TAGGED, type_opener_regex
 from Galacticus.Build.Directives   import extract_directives
 from Galacticus.Build.ParallelScan import scan as parallel_scan
 from Galacticus.Build.SourceTree   import parse_file, walk_tree
@@ -115,11 +116,9 @@ def _find_function_class_submodules(directive_name, function_class_file,
     directive.
     """
     # Regex is dynamic: the class name is substituted in.
-    type_re = re.compile(
-        r'^\s*type\s*'
-        r'(?:,\s*(?:abstract|public|private|extends\s*\(([a-zA-Z0-9_]+)\))\s*)*'
-        r'(?:::)?\s*' + re.escape(directive_name) + r'([a-z0-9_]+)\s*$',
-        re.IGNORECASE,
+    type_re = type_opener_regex(
+        name=re.escape(directive_name) + r'[a-z0-9_]+',
+        attributes=TYPE_ATTRIBUTES_TAGGED,
     )
 
     tree = parse_file(function_class_file)
@@ -132,9 +131,8 @@ def _find_function_class_submodules(directive_name, function_class_file,
                 classes.setdefault(name, {})['name'] = name
         elif ntype == 'type':
             m = type_re.match(node.get('opener') or '')
-            if m and m.group(1) is not None:
-                class_name = directive_name + m.group(2)
-                classes.setdefault(class_name, {})['extends'] = m.group(1)
+            if m and m.group('extends') is not None:
+                classes.setdefault(m.group('name'), {})['extends'] = m.group('extends')
 
     submodules = []
     # `fileName` must be the stem relative to `source/` (e.g.
@@ -260,7 +258,7 @@ def _scan_one(task):
     locations   = _WORKER['locations']
     file_path   = desc['path'] + '/' + name
 
-    # functionClass -> synthesise submodule records.
+    # functionClass -> synthesize submodule records.
     function_classes = extract_directives(file_path, 'functionClass')
     submodules_for_file = []
     for fc in function_classes:
@@ -303,7 +301,7 @@ def _scan_files(scan_list, source_root, locations):
 def _build_submodule_map(modules_per_file):
     """Return a dict mapping lowercase `<module>.mod` to the ordered list of
     submodule records associated with it.  Combines both functionClass-
-    synthesised submodules and Fortran `submodule (…)` statements.
+    synthesized submodules and Fortran `submodule (…)` statements.
     """
     submodules = {}
     for file_id, entry in modules_per_file.items():

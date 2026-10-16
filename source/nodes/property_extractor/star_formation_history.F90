@@ -28,7 +28,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistory" docformat="rst">
    <description>
-   A composite property extractor that combines both the stellar mass formed in each age--metallicity bin and the corresponding time bin boundaries of the star formation history for a specified galaxy ``component`` (disk, spheroid, nuclearStarCluster, or all). It bundles together the outputs of :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass` and :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` for convenient simultaneous extraction, providing the full information needed to reconstruct the star formation history from output datasets.
+   A composite property extractor that combines both the stellar mass formed in each age--metallicity bin and the corresponding time bin boundaries of the star formation history for a specified galaxy ``component`` (disk, spheroid, ``nuclearStarCluster``, or all). It bundles together the outputs of :galacticus-class:`nodePropertyExtractorStarFormationHistoryMass` and :galacticus-class:`nodePropertyExtractorStarFormationHistoryTimes` for convenient simultaneous extraction, providing the full information needed to reconstruct the star formation history from output datasets.
    </description>
   </nodePropertyExtractor>
   !!]

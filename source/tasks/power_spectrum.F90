@@ -430,7 +430,7 @@ contains
        call dataset       %writeAttribute(unitType(megaParsec**3   ,"Mpc³"        ,"Mpc^3"  ,.true.),'units')
        call outputGroup   %writeDataset  (transferFunction         (:,iOutput),'transferFunction'         ,'The transfer function.'                                                                                        )
        call outputGroup   %writeDataset  (sigma                    (:,iOutput),'sigma'                    ,'The mass fluctuation on this scale.'                                                                           )
-       call outputGroup   %writeDataset  (sigmaGradient            (:,iOutput),'alpha'                    ,'Logarithmic deriative of the mass flucation with respect to mass.'                                             )
+       call outputGroup   %writeDataset  (sigmaGradient            (:,iOutput),'alpha'                    ,'Logarithmic derivative of the mass fluctuation with respect to mass.'                                             )
        if (self%includeNonLinear) then
           call outputGroup%writeDataset  (powerSpectrumNonLinear   (:,iOutput),'powerSpectrumNonlinear'   ,'The non-linear power spectrum.'                                                        ,datasetReturned=dataset)
           call dataset    %writeAttribute(unitType(megaParsec**3   ,"Mpc³"        ,"Mpc^3"  ,.true.),'units')

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which defines a ``table`` class with optimized interpolation operators.
 !!}
@@ -33,7 +35,7 @@ module Tables
        &    table1DLinearLinear            , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
        &    table1DLinearCSpline           , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
        &    table1DLinearMonotoneCSpline   , table1DLogarithmicMonotoneCSpline, table2DLinLinLin                  , &
-       &    tablesIntegrationWeightFunction, table1DMonotoneCSpline
+       &    tablesIntegrationWeightFunction, table1DMonotoneCSpline           , table2D
 
   !![
   <enumeration docformat="rst">
@@ -44,6 +46,7 @@ module Tables
    <entry label="linearLinear1D"      />
    <entry label="logarithmicLinear1D" />
    <entry label="logLogLin2D"         />
+   <entry label="linLinLin2D"         />
   </enumeration>
   !!]
   
@@ -118,7 +121,7 @@ module Tables
        <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="y" />
        <method description="Return an array of all :math:`x`-values." method="xs" />
        <method description="Return an array of all :math:`y`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="ys" />
-       <method description="Return the effective value of :math:`x` to use in table interpolations." method="xEffective"/>
+       <method description="Return the effective value of :math:`x` to use in table interpolations. Both the argument and the result are in the internal coordinate of the table (i.e. :math:`\log x` for logarithmic tables)." method="xEffective"/>
        <method description="Return the weights to be applied to the table to integrate (using the trapezium rule) between ``x0`` and ``x1``." method="integrationWeights" />
        <method description="Extend the table onto the given absolute lattice (creating it if it does not yet exist), preserving any previously computed values. On return ``isComputed`` is true for those points whose values were preserved, and false for those which the caller must now evaluate. The new lattice must be commensurate with, and must contain, the lattice on which the table is currently tabulated." method="extend" />
        <method description="Assign ``table1d`` objects." method="assignment(=)" />
@@ -177,7 +180,7 @@ module Tables
      Table type supporting generic one dimensional tables.
      !!}
      !![
-     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=123938" docformat="rst">
+     <workaround type="gfortran" PR="123938" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=123938" docformat="rst">
        <description>
        gfortran causes a memory leak with allocatable components in nested derived-types.
        </description>
@@ -375,94 +378,167 @@ module Tables
      end function tablesIntegrationWeightFunction
   end interface
 
-  type, extends(table) :: table2DLinLinLin
+  type, abstract, extends(table) :: table2D
      !!{RST
-     Table type supporting generic two dimensional tables.
-     !!}
-     integer                                                       :: xCount       , yCount
-     double precision              , allocatable, dimension(:    ) :: xv           , yv
-     double precision              , allocatable, dimension(:,:,:) :: zv
-     type            (interpolator)                                :: interpolatorX, interpolatorY
-   contains
-     !![
-     <methods docformat="rst">
-       <method description="Create the object with the specified ``x`` and ``y`` values, and with ``tableCount`` tables." method="create" />
-       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the indices, ``i``, ``j``, of the element to set must also be specified." method="populate" />
-       <method description="Interpolate to ``x``, ``y`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolate" />
-       <method description="Return an array of all ``x`` values." method="xs" />
-       <method description="Return an array of all ``y`` values." method="ys" />
-       <method description="Return an array of all ``z`` values." method="zs" />
-       <method description="Reinitialize the interpolator." method="interpolatorReinitialize" />
-     </methods>
-     !!]
-     procedure :: create                           => Table_2D_LinLinLin_Create
-     procedure :: destroy                          => Table_2D_LinLinLin_Destroy
-     procedure :: Table_2D_LinLinLin_Populate
-     procedure :: Table_2D_LinLinLin_Populate_Single
-     generic   :: populate                         => Table_2D_LinLinLin_Populate       , &
-          &                                           Table_2D_LinLinLin_Populate_Single
-     procedure :: interpolate                      => Table_2D_LinLinLin_Interpolate
-     procedure :: xs                               => Table_2D_LinLinLin_Xs
-     procedure :: ys                               => Table_2D_LinLinLin_Ys
-     procedure :: zs                               => Table_2D_LinLinLin_Zs
-     procedure :: interpolatorReinitialize         => Table_2D_LinLinLin_Interpolator_Reinitialize
-  end type table2DLinLinLin
+     Base type for two dimensional tables.
 
-  type, extends(table) :: table2DLogLogLin
-     !!{RST
-     Two-dimensional table type with logarithmic spacing in x and y dimensions, and linear interpolation in z.
+     The abscissae, ``xv`` and ``yv``, are stored in whatever internal coordinate the concrete type interpolates in---for a
+     logarithmically-spaced axis these are the natural logarithms of the tabulation points. The accessors ``x``, ``y``, ``xs``,
+     and ``ys`` return the tabulation points themselves, so a concrete type whose internal coordinate differs from the
+     tabulation point must override them (as :galacticus-class:`table2DLogLogLin` does).
      !!}
-     type            (enumerationExtrapolationTypeType)                                :: extrapolationTypeX  , extrapolationTypeY
-     integer                                                                           :: xCount              , yCount              , &
-          &                                                                               i                   , j                   , &
-          &                                                                               tablePrevious       , dimPrevious
-     double precision                                                                  :: xLinearPrevious     , yLinearPrevious     , &
-          &                                                                               xLogarithmicPrevious, yLogarithmicPrevious, &
-          &                                                                               hx                  , hy                  , &
-          &                                                                               inverseDeltaX       , inverseDeltaY       , &
-          &                                                                               zPrevious           , dzPrevious
-     logical                                                                           :: xPreviousSet        , yPreviousSet
-     type            (rangeLattice                   )                                 :: latticeX            , latticeY
-     double precision                                  , allocatable, dimension(:    ) :: xv                  , yv
+     integer                                                                           :: xCount            , yCount
+     type            (enumerationExtrapolationTypeType)                                :: extrapolationTypeX, extrapolationTypeY
+     type            (rangeLattice                    )                                :: latticeX          , latticeY
+     double precision                                  , allocatable, dimension(:    ) :: xv                , yv
      double precision                                  , allocatable, dimension(:,:,:) :: zv
    contains
      !![
      <methods docformat="rst">
-       <method description="Compute and store interpolation factors to ``(x,y)``." method="interpolationFactors" />
-       <method description="Interpolate to ``x`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolate" />
-       <method description="Interpolate the gradient to ``x`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolateGradient" />
-       <method description="Return the size (i.e. number of :math:`x` or :math:`y`-values) in the table of the given dimension." method="size" />
+       <method description="Interpolate to ``x``, ``y`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolate" />
+       <method description="Interpolate the gradient with respect to dimension ``dim`` at ``x``, ``y`` in the ``table``\ :math:`^\mathrm{th}` table." method="interpolateGradient" />
+       <method description="Return the size (i.e. number of :math:`x`- or :math:`y`-values) in the table along the given dimension." method="size" />
        <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value." method="x" />
-       <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="y" />
+       <method description="Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value." method="y" />
        <method description="Return the ``(i,j)``\ :math:`^\mathrm{th}` :math:`z`-value. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`z`-values, otherwise the first table is used." method="z" />
        <method description="Return an array of all :math:`x`-values." method="xs" />
-       <method description="Return an array of all :math:`y`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`y`-values, otherwise the first table is used." method="ys" />
+       <method description="Return an array of all :math:`y`-values." method="ys" />
        <method description="Return an array of all :math:`z`-values. If ``table`` is specified then the ``table``\ :math:`^\mathrm{th}` table is used for the :math:`z`-values, otherwise the first table is used." method="zs" />
        <method description="Return true if the table is initialized (this means the table is created, it may not yet have been populated)." method="isInitialized" />
-       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``y``. If ``y`` is a scalar, then the index, ``i``, of the element to set must also be specified." method="populate" />
-       <method description="Create the object with :math:`x`-values spanning the range ``xMinimum`` to ``xMaximum`` in ``xCount`` steps, and with ``tableCount`` tables." method="create" />
+       <method description="Populate the ``table``\ :math:`^\mathrm{th}` table with elements ``z``. If ``z`` is a scalar, then the indices, ``i``, ``j``, of the element to set must also be specified." method="populate" />
        <method description="Extend the table onto the given pair of absolute lattices (creating it if it does not yet exist), preserving any previously computed values. On return ``isComputed`` is true for those points whose values were preserved, and false for those which the caller must now evaluate. Each new lattice must be commensurate with, and must contain, that on which the corresponding axis is currently tabulated." method="extend" />
+       <method description="Reset any cached interpolation state. Called whenever the tabulated values change." method="interpolationReset" />
      </methods>
      !!]
-     procedure :: create                            => Table_2DLogLogLin_Create
-     procedure :: extend                            => Table_2DLogLogLin_Extend
-     procedure :: Table_2DLogLogLin_Populate
-     procedure :: Table_2DLogLogLin_Populate_Single
-     generic   :: populate                          => Table_2DLogLogLin_Populate             , &
-          &                                            Table_2DLogLogLin_Populate_Single
-     procedure :: interpolationFactors              => Table_2DLogLogLin_Interpolation_Factors
-     procedure :: interpolate                       => Table_2DLogLogLin_Interpolate
-     procedure :: interpolateGradient               => Table_2DLogLogLin_Interpolate_Gradient
-     procedure :: destroy                           => Table_2DLogLogLin_Destroy
-     procedure :: size                              => Table_2DLogLogLin_Size
-     procedure :: x                                 => Table_2DLogLogLin_X
-     procedure :: y                                 => Table_2DLogLogLin_Y
-     procedure :: z                                 => Table_2DLogLogLin_z
-     procedure :: xs                                => Table_2DLogLogLin_Xs
-     procedure :: ys                                => Table_2DLogLogLin_Ys
-     procedure :: zs                                => Table_2DLogLogLin_Zs
-     procedure :: isInitialized                     => Table_2DLogLogLin_Is_Initialized
+     procedure(Table2D_Interpolate         ), deferred :: interpolate
+     procedure(Table2D_Interpolate_Gradient), deferred :: interpolateGradient
+     procedure                                         :: destroy            => Table_2D_Destroy
+     procedure                                         :: extend             => Table_2D_Extend
+     procedure                                         :: size               => Table_2D_Size
+     procedure                                         :: x                  => Table_2D_X
+     procedure                                         :: y                  => Table_2D_Y
+     procedure                                         :: z                  => Table_2D_Z
+     procedure                                         :: xs                 => Table_2D_Xs
+     procedure                                         :: ys                 => Table_2D_Ys
+     procedure                                         :: zs                 => Table_2D_Zs
+     procedure                                         :: isInitialized      => Table_2D_Is_Initialized
+     procedure                                         :: interpolationReset => Table_2D_Interpolation_Reset
+     procedure                                         ::                       Table_2D_Populate
+     procedure                                         ::                       Table_2D_Populate_Single
+     generic                                           :: populate           => Table_2D_Populate       , &
+          &                                                                     Table_2D_Populate_Single
+  end type table2D
+
+  interface
+     double precision function Table2D_Interpolate(self,x,y,table)
+       !!{RST
+       Interface to ``table2D`` interpolator.
+       !!}
+       import table2D
+       implicit none
+       class           (table2D), intent(inout)           :: self
+       double precision         , intent(in   )           :: x    , y
+       integer                  , intent(in   ), optional :: table
+     end function Table2D_Interpolate
+  end interface
+
+  interface
+     double precision function Table2D_Interpolate_Gradient(self,x,y,dim,table)
+       !!{RST
+       Interface to ``table2D`` gradient interpolator.
+       !!}
+       import table2D
+       implicit none
+       class           (table2D), intent(inout)           :: self
+       double precision         , intent(in   )           :: x    , y
+       integer                  , intent(in   )           :: dim
+       integer                  , intent(in   ), optional :: table
+     end function Table2D_Interpolate_Gradient
+  end interface
+
+  type, extends(table2D) :: table2DLinLinLin
+     !!{RST
+     Two dimensional table type with linear spacing in the :math:`x` and :math:`y` dimensions, and linear interpolation in :math:`z`.
+     !!}
+     type(interpolator) :: interpolatorX, interpolatorY
+   contains
+     !![
+     <methods docformat="rst">
+       <method description="Create the object with the specified ``x`` and ``y`` values, and with ``tableCount`` tables." method="create" />
+       <method description="Rebuild the interpolators from the abscissae and extrapolation types of the table." method="interpolatorRebuild" />
+       <method description="Reinitialize the interpolators." method="interpolatorReinitialize" />
+     </methods>
+     !!]
+     procedure :: create                   => Table_2D_LinLinLin_Create
+     procedure :: extend                   => Table_2D_LinLinLin_Extend
+     procedure :: interpolate              => Table_2D_LinLinLin_Interpolate
+     procedure :: interpolateGradient      => Table_2D_LinLinLin_Interpolate_Gradient
+     procedure :: interpolatorRebuild      => Table_2D_LinLinLin_Interpolator_Rebuild
+     procedure :: interpolatorReinitialize => Table_2D_LinLinLin_Interpolator_Reinitialize
+  end type table2DLinLinLin
+
+  type, extends(table2D) :: table2DLogLogLin
+     !!{RST
+     Two dimensional table type with logarithmic spacing in the :math:`x` and :math:`y` dimensions, and linear interpolation in :math:`z`.
+
+     The bracketing indices and interpolation factors are found by direct arithmetic on the uniformly-spaced internal
+     abscissae (the natural logarithms of the tabulation points), and are memoized, so that interpolating repeatedly at the
+     same point does not recompute them.
+
+     The interpolated value and the interpolated gradient are memoized too, but each under a key entirely of its own---the
+     point, table (and, for the gradient, dimension) at which it was computed. In particular neither may be keyed on the
+     interpolation factors which the two share: evaluating either at a point advances those factors, so a key resting on them
+     would report a hit for the other quantity at a point it was never computed at. The one dimensional types are keyed this
+     way too, and are safe from the same trap only because they hold no shared factors at all, finding their bracketing index
+     in a local variable each time.
+
+     ``tablePrevious`` and ``dTablePrevious`` are negative unless the corresponding quantity has been computed, so
+     ``interpolationReset`` invalidates both by setting them so.
+
+     Beyond the tabulated range of an axis its extrapolation type is honored: ``fix`` holds the interpolant at its value on the
+     boundary, ``zero`` makes it zero, and ``abort`` is an error. In the first two cases the interpolation factors record (in
+     ``xClamped`` or ``yClamped``) that the gradient with respect to that axis is zero, and in the second (in ``xZeroed`` or
+     ``yZeroed``) that the interpolant, and so every gradient, is zero.
+     !!}
+     integer          :: i                   , j                   , &
+          &              tablePrevious       , dTablePrevious      , &
+          &              dimPrevious
+     double precision :: xLinearPrevious     , yLinearPrevious     , &
+          &              xLogarithmicPrevious, yLogarithmicPrevious, &
+          &              hx                  , hy                  , &
+          &              inverseDeltaX       , inverseDeltaY       , &
+          &              zPrevious           , dzPrevious          , &
+          &              xPrevious           , yPrevious           , &
+          &              dxPrevious          , dyPrevious
+     logical          :: xPreviousSet        , yPreviousSet        , &
+          &              xClamped            , yClamped            , &
+          &              xZeroed             , yZeroed
+   contains
+     !![
+     <methods docformat="rst">
+       <method description="Compute and store interpolation factors to ``(x,y)``." method="interpolationFactors" />
+       <method description="Create the object with :math:`x`-values spanning the range ``xMinimum`` to ``xMaximum`` in ``xCount`` steps, :math:`y`-values spanning the range ``yMinimum`` to ``yMaximum`` in ``yCount`` steps, and with ``tableCount`` tables." method="create" />
+     </methods>
+     !!]
+     procedure :: create               => Table_2DLogLogLin_Create
+     procedure :: extend               => Table_2DLogLogLin_Extend
+     procedure :: interpolationFactors => Table_2DLogLogLin_Interpolation_Factors
+     procedure :: interpolate          => Table_2DLogLogLin_Interpolate
+     procedure :: interpolateGradient  => Table_2DLogLogLin_Interpolate_Gradient
+     procedure :: interpolationReset   => Table_2DLogLogLin_Interpolation_Reset
+     procedure :: x                    => Table_2DLogLogLin_X
+     procedure :: y                    => Table_2DLogLogLin_Y
+     procedure :: xs                   => Table_2DLogLogLin_Xs
+     procedure :: ys                   => Table_2DLogLogLin_Ys
   end type table2DLogLogLin
+
+  ! Generic type instances used to generate the spline computation for the monotone cubic spline tables.
+  !![
+  <generic identifier="splinetype">
+   <instance label="Monotone"        intrinsic="type(table1DMonotoneCSpline      )"/>
+   <instance label="Linear_Monotone" intrinsic="type(table1DLinearMonotoneCSpline)"/>
+  </generic>
+  !!]
 
 contains
 
@@ -510,7 +586,7 @@ contains
     type. Each concrete table type must, on return, set its own spacing and reset any cached interpolation state.
 
     **The spacing must be taken from the lattice**, never evaluated as ``xValues(2)-xValues(1)``: the difference of two
-    neighbouring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
+    neighboring lattice points varies in its final bits with position along the lattice, so deriving the interpolation factor
     from it would change every interpolated value by of order one unit in the last place whenever the lower bound of the table
     moved---defeating the very reuse which extension exists to provide.
 
@@ -742,7 +818,7 @@ contains
   end function Table1D_Integration_Weights
   
   !![
-  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=121537" docformat="rst">
+  <workaround type="gfortran" PR="121537" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=121537" docformat="rst">
     <description>
     gfortran misses a defined-assignment of a component.
     </description>
@@ -777,7 +853,7 @@ contains
           if (associated(from%interpolators)) then
              allocate(to%interpolators(size(from%interpolators)))
              !![
-	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=57696" docformat="rst">
+	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
 	       <description>
 	       Defined assignment for components not used when those are ALLOCATABLE
 	       </description>
@@ -1160,6 +1236,12 @@ contains
     <optionalArgument name="table" defaultsTo="1"/>
     !!]
     
+    ! Beyond the range of the table, with "fix" or "zero" extrapolation, the gradient is zero. This is tested before the memoized
+    ! result is used, as all points beyond the range share the same effective x.
+    if (Table1D_Gradient_Vanishes(self,x,status)) then
+       Table_Generic_1D_Interpolate_Gradient=0.0d0
+       return
+    end if
     call self%interpolatorInitialize(table_)
     if (self%interpolationType == GSL_Interp_Linear) then
        interpolator_=1
@@ -1418,6 +1500,12 @@ contains
     double precision                                               :: xEffective
 
     ! Determine which table to use.
+    ! Beyond the range of the table, with "fix" or "zero" extrapolation, the gradient is zero. This is tested before the memoized
+    ! result is used, as all points beyond the range share the same effective x.
+    if (Table1D_Gradient_Vanishes(self,x,status)) then
+       Table_Linear_1D_Interpolate_Gradient=0.0d0
+       return
+    end if
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
@@ -1558,7 +1646,7 @@ contains
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
+    Table_Logarithmic_1D_Interpolate_Gradient=self%table1DLinearLinear%interpolateGradient(self%xLogarithmicPrevious,table,status)/x
     return
   end function Table_Logarithmic_1D_Interpolate_Gradient
 
@@ -2107,6 +2195,12 @@ contains
     double precision                                                :: xEffective, dx
 
     ! Determine which table to use.
+    ! Beyond the range of the table, with "fix" or "zero" extrapolation, the gradient is zero. This is tested before the memoized
+    ! result is used, as all points beyond the range share the same effective x.
+    if (Table1D_Gradient_Vanishes(self,x,status)) then
+       Table_Linear_CSpline_1D_Interpolate_Gradient=0.0d0
+       return
+    end if
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
@@ -2219,7 +2313,7 @@ contains
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
+    Table_Logarithmic_CSpline_1D_Interpolate_Gradient=self%table1DLinearCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/x
     return
   end function Table_Logarithmic_CSpline_1D_Interpolate_Gradient
 
@@ -2356,16 +2450,16 @@ contains
     return
   end subroutine Table_Monotone_CSpline_1D_Populate_Single
 
-  subroutine Table_Monotone_CSpline_1D_Compute_Spline(self,table)
+  subroutine Table_{splinetype¦label}_CSpline_1D_Compute_Spline(self,table)
     !!{RST
-    Compute the interpolating spline factors for a 1-D linear spline.
+    Compute the interpolating spline factors for a 1-D monotone cubic spline.
     !!}
     implicit none
-    type            (table1DMonotoneCSpline), intent(inout)               :: self
-    integer                                 , intent(in   )               :: table
-    double precision                        , allocatable  , dimension(:) :: dx   , dy    , m
-    integer                                                               :: i
-    double precision                                                      :: dxSum, factor
+    {splinetype¦intrinsic}, intent(inout)               :: self
+    integer               , intent(in   )               :: table
+    double precision      , allocatable  , dimension(:) :: dx   , dy    , m
+    integer                                             :: i
+    double precision                                    :: dxSum, factor
 
     ! Reset all previously stored values.
     self% tablePrevious=-1
@@ -2403,7 +2497,7 @@ contains
     deallocate(dy)
     deallocate( m)
     return
-  end subroutine Table_Monotone_CSpline_1D_Compute_Spline
+  end subroutine Table_{splinetype¦label}_CSpline_1D_Compute_Spline
 
   double precision function Table_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{RST
@@ -2461,6 +2555,12 @@ contains
     double precision                                                  :: dx   , xEffective
 
     ! Determine which table to use.
+    ! Beyond the range of the table, with "fix" or "zero" extrapolation, the gradient is zero. This is tested before the memoized
+    ! result is used, as all points beyond the range share the same effective x.
+    if (Table1D_Gradient_Vanishes(self,x,status)) then
+       Table_Monotone_CSpline_1D_Interpolate_Gradient=0.0d0
+       return
+    end if
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
@@ -2502,6 +2602,25 @@ contains
     return
   end function Table_Monotone_CSpline_Integration_Weights
   
+  logical function Table1D_Gradient_Vanishes(self,x,status)
+    !!{RST
+    Return true if ``x`` (in the internal coordinate of the table) lies beyond the range of the table on a side where the table
+    is extrapolated as "fix" or "zero". The value of the table is constant there, so its gradient is zero.
+    !!}
+    use :: Error       , only : errorStatusSuccess
+    use :: Table_Labels, only : extrapolationTypeFix, extrapolationTypeZero
+    implicit none
+    class           (table1D), intent(in   )           :: self
+    double precision         , intent(in   )           :: x
+    integer                  , intent(  out), optional :: status
+
+    if (present(status)) status=errorStatusSuccess
+    Table1D_Gradient_Vanishes= (x < self%xv(1          ) .and. (self%extrapolationType(1) == extrapolationTypeFix .or. self%extrapolationType(1) == extrapolationTypeZero)) &
+         &                    .or.                                                                                                                                       &
+         &                     (x > self%xv(self%xCount) .and. (self%extrapolationType(2) == extrapolationTypeFix .or. self%extrapolationType(2) == extrapolationTypeZero))
+    return
+  end function Table1D_Gradient_Vanishes
+
   double precision function Table1D_Find_Effective_X(self,x,status)
     !!{RST
     Return the effective value of :math:`x` to use in table interpolations.
@@ -2531,7 +2650,7 @@ contains
           Table1D_Find_Effective_X=0.0d0
           call    Error_Report('x is below range - unknown extrapolation method'                    //{introspection:location})
        end select
-    else if (x > self%x(self%xCount)) then
+    else if (x > self%xv(self%xCount)) then
        select case (self%extrapolationType(2)%ID)
        case (extrapolationTypeExtrapolate%ID,extrapolationTypeZero%ID)
           Table1D_Find_Effective_X=     x
@@ -2656,175 +2775,77 @@ contains
     return
   end function Table_NonUniform_Linear_Logarithmic_1D_Ys
   
-  subroutine Table_2DLogLogLin_Create(self,xMinimum,xMaximum,xCount,yMinimum,yMaximum,yCount,tableCount,extrapolationTypeX,extrapolationTypeY)
+  subroutine Table_2D_Destroy(self)
     !!{RST
-    Create a 2-D log-log-linear table.
+    Destroy a 2-D table. Any memoized interpolation state is discarded along with the values from which it was computed - were
+    it kept, a subsequent interpolation could be answered from the memo instead of failing on the deallocated table.
     !!}
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear, rangeLattice
-    use :: Table_Labels     , only : extrapolationTypeExtrapolate
+    use :: Numerical_Ranges, only : rangeLattice
     implicit none
-    class           (table2DLogLogLin                ), intent(inout)           :: self
-    double precision                                  , intent(in   )           :: xMaximum          , xMinimum          , &
-         &                                                                         yMaximum          , yMinimum
-    integer                                           , intent(in   )           :: xCount            , yCount
-    type            (enumerationExtrapolationTypeType), intent(in   ), optional :: extrapolationTypeX, extrapolationTypeY
-    integer                                           , intent(in   ), optional :: tableCount
-    integer                                                                     :: tableCountActual
+    class(table2D), intent(inout) :: self
 
-    ! Initialize state.
-    self%xPreviousSet        =.false.
-    self%yPreviousSet        =.false.
-    self%xLinearPrevious     =-1.0d0
-    self%yLinearPrevious     =-1.0d0
-    self%xLogarithmicPrevious=-1.0d0
-    self%yLogarithmicPrevious=-1.0d0
-    ! Discard any lattices on which the table was previously tabulated - the abscissae are being rebuilt from the given ranges.
-    self%latticeX            =rangeLattice()
-    self%latticeY            =rangeLattice()
-    ! Determine number of tables.
-    tableCountActual=1
-    if (present(tableCount)) tableCountActual=tableCount
-    ! Allocate arrays and construct the ranges.
-    self%xCount=xCount
-    self%yCount=yCount
-    allocate(self%xv(xCount                        ))
-    allocate(self%yv(yCount                 ))
-    allocate(self%zv(xCount,yCount,tableCountActual))
-    self%xv                  =Make_Range(log(xMinimum),log(xMaximum),xCount,rangeType=rangeTypeLinear)
-    self%yv                  =Make_Range(log(yMinimum),log(yMaximum),yCount,rangeType=rangeTypeLinear)
-    self%inverseDeltaX       =1.0d0/(self%xv(2)-self%xv(1))
-    self%inverseDeltaY       =1.0d0/(self%yv(2)-self%yv(1))
-    self%tablePrevious       =-1
-    self%hx                  =-1.0d0
-    self%xLinearPrevious     =-1.0d0
-    self%xLogarithmicPrevious=-1.0d0
-    self%hy                  =-1.0d0
-    self%yLinearPrevious     =-1.0d0
-    self%yLogarithmicPrevious=-1.0d0
-    ! Set extrapolation type.
-    if (present(extrapolationTypeX)) then
-       self%extrapolationTypeX=extrapolationTypeX
-    else
-       self%extrapolationTypeX=extrapolationTypeExtrapolate
-    end if
-    if (present(extrapolationTypeY)) then
-       self%extrapolationTypeY=extrapolationTypeY
-    else
-       self%extrapolationTypeY=extrapolationTypeExtrapolate
-    end if
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    if (allocated(self%zv)) deallocate(self%zv)
+    self%latticeX=rangeLattice()
+    self%latticeY=rangeLattice()
+    call self%interpolationReset()
     return
-  end subroutine Table_2DLogLogLin_Create
+  end subroutine Table_2D_Destroy
 
-  double precision function Table_2DLogLogLin_X(self,i)
+  subroutine Table_2D_Extend(self,latticeX,latticeY,isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
     !!{RST
-    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a 2D log-log table.
-    !!}
-    implicit none
-    class  (table2DLogLogLin), intent(inout) :: self
-    integer                  , intent(in   ) :: i
-
-    Table_2DLogLogLin_X=exp(self%xv(i))
-    return
-  end function Table_2DLogLogLin_X
-
-  double precision function Table_2DLogLogLin_Y(self,i)
-    !!{RST
-    Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value for a 2D log-log table.
-    !!}
-    implicit none
-    class  (table2DLogLogLin), intent(inout) :: self
-    integer                  , intent(in   ) :: i
-
-    Table_2DLogLogLin_Y=exp(self%yv(i))
-    return
-  end function Table_2DLogLogLin_Y
-
-  double precision function Table_2DLogLogLin_Z(self,i,j,table)
-    !!{RST
-    Return the ``(i,j)``\ :math:`^\mathrm{th}` :math:`x`-value for a 2D log-log table.
-    !!}
-    implicit none
-    class  (table2DLogLogLin), intent(inout)           :: self
-    integer                  , intent(in   )           :: i          , j
-    integer                  , intent(in   ), optional :: table
-    integer                                            :: tableActual
-
-    tableActual=1
-    if (present(table)) tableActual=table
-    Table_2DLogLogLin_Z=self%zv(i,j,tableActual)
-    return
-  end function Table_2DLogLogLin_Z
-
-  function Table_2DLogLogLin_Xs(self)
-    !!{RST
-    Return the :math:`x`-values for a 2D log-log table.
-    !!}
-    implicit none
-    class(table2DLogLogLin), intent(in   )             :: self
-    double precision       , dimension(size(self%xv))  :: Table_2DLogLogLin_Xs
-
-    Table_2DLogLogLin_Xs=exp(self%xv)
-    return
-  end function Table_2DLogLogLin_Xs
-
-  function Table_2DLogLogLin_Ys(self)
-    !!{RST
-    Return the :math:`y`-values for a 2D log-log table.
-    !!}
-    implicit none
-    class(table2DLogLogLin), intent(in   )             :: self
-    double precision       , dimension(size(self%yv))  :: Table_2DLogLogLin_Ys
-
-    Table_2DLogLogLin_Ys=exp(self%yv)
-    return
-  end function Table_2DLogLogLin_Ys
-
-  function Table_2DLogLogLin_Zs(self,table)
-    !!{RST
-    Return the :math:`y`-values for a 2D log-log table.
-    !!}
-    implicit none
-    class           (table2DLogLogLin), intent(in   )                                    :: self
-    double precision                  , dimension(size(self%xv),size(self%yv))           :: Table_2DLogLogLin_Zs
-    integer                           , intent(in   )                         , optional :: table
-    integer                                                                              :: tableActual
-
-    tableActual=1
-    if (present(table)) tableActual=table
-    Table_2DLogLogLin_Zs=self%zv(:,:,tableActual)
-    return
-  end function Table_2DLogLogLin_Zs
-
-  subroutine Table_2DLogLogLin_Extend(self,latticeX,latticeY,isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
-    !!{RST
-    Extend a 2-D log-log-linear table onto a pair of absolute lattices, creating it if it does not yet exist. Each axis is
-    pinned independently, so the extended table spans the product of the two lattice ranges.
-
-    Previously computed values occupy a rectangular block of the extended table, and are copied into it at index offsets
-    computed from the integer lattice indices; the returned ``isComputed`` mask is true over that block and false over the
-    L-shaped remainder which the caller must evaluate. As for the one-dimensional case the spacings are taken from the
-    lattices rather than from the abscissae, so that they - and hence every interpolated value - are invariant under
-    extension.
+    Extend a 2-D table onto a pair of absolute lattices. This is supported only for those table types which use
+    uniformly-spaced internal abscissae---for all others this is an error.
     !!}
     use :: Error           , only : Error_Report
-    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerDecade         , gridSchemePerOctave
+    use :: Numerical_Ranges, only : rangeLattice
+    implicit none
+    class  (table2D                         ), intent(inout)                              :: self
+    type   (rangeLattice                    ), intent(in   )                              :: latticeX          , latticeY
+    logical                                  , intent(  out), allocatable, dimension(:,:) :: isComputed
+    integer                                  , intent(in   ), optional                    :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional                    :: extrapolationTypeX, extrapolationTypeY
+    !$GLC attributes unused :: self, latticeX, latticeY, tableCount, extrapolationTypeX, extrapolationTypeY
+
+    allocate(isComputed(0,0))
+    call Error_Report('extension onto absolute lattices is not supported for this table type'//{introspection:location})
+    return
+  end subroutine Table_2D_Extend
+
+  subroutine Table_2D_Extend_Uniform(self,latticeX,latticeY,xValues,yValues,isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
+    !!{RST
+    Worker used to extend 2-D tables which have uniformly-spaced *internal* abscissae. ``xValues`` and ``yValues`` must be the
+    internal-coordinate abscissae of the points of ``latticeX`` and ``latticeY``---for example, for a logarithmically-spaced
+    axis these are the natural logarithms of the lattice points.
+
+    This is the two-dimensional counterpart of ``Table_1D_Extend_Uniform``, and handles only the state held by ``table2D``
+    itself---the abscissae, the values, the lattices, and the extrapolation types. Each concrete table type must, on return,
+    set its own spacings and reset any cached interpolation state. **The spacings must be taken from the lattices**, never
+    evaluated as ``xValues(2)-xValues(1)``---see ``Table_1D_Extend_Uniform`` for why.
+
+    Each axis is pinned independently, so the extended table spans the product of the two lattice ranges. Previously computed
+    values therefore occupy a rectangular block of the extended table, and are copied into it at index offsets computed from
+    the integer lattice indices; the returned ``isComputed`` mask is true over that block and false over the L-shaped
+    remainder which the caller must evaluate.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice
     use :: Table_Labels    , only : extrapolationTypeExtrapolate
     implicit none
-    class           (table2DLogLogLin                ), intent(inout)                              :: self
+    class           (table2D                         ), intent(inout)                              :: self
     type            (rangeLattice                    ), intent(in   )                              :: latticeX          , latticeY
+    double precision                                  , intent(in   )              , dimension(:)  :: xValues           , yValues
     logical                                           , intent(  out), allocatable, dimension(:,:) :: isComputed
     integer                                           , intent(in   ), optional                    :: tableCount
     type            (enumerationExtrapolationTypeType), intent(in   ), optional                    :: extrapolationTypeX, extrapolationTypeY
-    double precision                                  , allocatable              , dimension(:,:,:):: zvPrevious
-    integer                                                                                        :: tableCountActual  , offsetX           , &
+    double precision                                  ,               allocatable, dimension(:,:,:):: zvPrevious
+    integer                                                                                        :: tableCountActual  , offsetX  , &
          &                                                                                            offsetY
 
-    if (.not.latticeX%isDefined() .or. .not.latticeY%isDefined()) call Error_Report('the lattices provided are not usable'//{introspection:location})
-    if     (                                                                                                                                     &
-         &   (latticeX%scheme /= gridSchemePerDecade .and. latticeX%scheme /= gridSchemePerOctave)                                               &
-         &  .or.                                                                                                                                 &
-         &   (latticeY%scheme /= gridSchemePerDecade .and. latticeY%scheme /= gridSchemePerOctave)                                               &
-         & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
+    if (.not.latticeX%isDefined() .or. .not.latticeY%isDefined()) call Error_Report('the lattices provided are not usable'   //{introspection:location})
+    if (size(xValues) /= latticeX%count                         ) call Error_Report('abscissae provided do not match lattice'//{introspection:location})
+    if (size(yValues) /= latticeY%count                         ) call Error_Report('abscissae provided do not match lattice'//{introspection:location})
     allocate(isComputed(latticeX%count,latticeY%count))
     isComputed=.false.
     offsetX   =0
@@ -2867,110 +2888,326 @@ contains
     allocate(self%xv(latticeX%count                                ))
     allocate(self%yv(               latticeY%count                 ))
     allocate(self%zv(latticeX%count,latticeY%count,tableCountActual))
-    self%xv=latticeX%valuesLogarithmic()
-    self%yv=latticeY%valuesLogarithmic()
+    self%xv=xValues
+    self%yv=yValues
     self%zv=0.0d0
     if (allocated(zvPrevious))                                                                                     &
          & self%zv(offsetX+1:offsetX+size(zvPrevious,dim=1),offsetY+1:offsetY+size(zvPrevious,dim=2),:)=zvPrevious
-    self%xCount              =latticeX%count
-    self%yCount              =latticeY%count
-    self%latticeX            =latticeX
-    self%latticeY            =latticeY
-    self%inverseDeltaX       =1.0d0/latticeX%stepLogarithmic()
-    self%inverseDeltaY       =1.0d0/latticeY%stepLogarithmic()
-    self%tablePrevious       =-1
-    self%hx                  =-1.0d0
-    self%hy                  =-1.0d0
-    self%xPreviousSet        =.false.
-    self%yPreviousSet        =.false.
-    self%xLinearPrevious     =-1.0d0
-    self%yLinearPrevious     =-1.0d0
-    self%xLogarithmicPrevious=-1.0d0
-    self%yLogarithmicPrevious=-1.0d0
+    self%xCount  =latticeX%count
+    self%yCount  =latticeY%count
+    self%latticeX=latticeX
+    self%latticeY=latticeY
     ! Set the extrapolation types if specified.
     if (present(extrapolationTypeX)) self%extrapolationTypeX=extrapolationTypeX
     if (present(extrapolationTypeY)) self%extrapolationTypeY=extrapolationTypeY
     return
-  end subroutine Table_2DLogLogLin_Extend
+  end subroutine Table_2D_Extend_Uniform
 
-  subroutine Table_2DLogLogLin_Populate(self,z,table)
+  integer function Table_2D_Size(self,dim)
     !!{RST
-    Populate a 2-D log-log-linear table.
+    Return the size of a 2D table along the given dimension.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (table2DLogLogLin)                , intent(inout)           :: self
-    double precision                  , dimension(:,:), intent(in   )           :: z
-    integer                                           , intent(in   ), optional :: table
-    integer                                                                     :: tableActual
+    class  (table2D), intent(in   ) :: self
+    integer         , intent(in   ) :: dim
+
+    select case (dim)
+    case (1)
+       Table_2D_Size=self%xCount
+    case (2)
+       Table_2D_Size=self%yCount
+    case default
+       Table_2D_Size=0
+       call Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
+    end select
+    return
+  end function Table_2D_Size
+
+  double precision function Table_2D_X(self,i)
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a 2D table.
+    !!}
+    implicit none
+    class  (table2D), intent(inout) :: self
+    integer         , intent(in   ) :: i
+
+    Table_2D_X=self%xv(i)
+    return
+  end function Table_2D_X
+
+  double precision function Table_2D_Y(self,i)
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value for a 2D table.
+    !!}
+    implicit none
+    class  (table2D), intent(inout) :: self
+    integer         , intent(in   ) :: i
+
+    Table_2D_Y=self%yv(i)
+    return
+  end function Table_2D_Y
+
+  double precision function Table_2D_Z(self,i,j,table)
+    !!{RST
+    Return the ``(i,j)``\ :math:`^\mathrm{th}` :math:`z`-value for a 2D table.
+    !!}
+    implicit none
+    class  (table2D), intent(inout)           :: self
+    integer         , intent(in   )           :: i    , j
+    integer         , intent(in   ), optional :: table
+    !![
+    <optionalArgument name="table" defaultsTo="1"/>
+    !!]
+
+    Table_2D_Z=self%zv(i,j,table_)
+    return
+  end function Table_2D_Z
+
+  function Table_2D_Xs(self)
+    !!{RST
+    Return the :math:`x`-values for a 2D table.
+    !!}
+    implicit none
+    class           (table2D), intent(in   )            :: self
+    double precision         , dimension(size(self%xv)) :: Table_2D_Xs
+
+    Table_2D_Xs=self%xv
+    return
+  end function Table_2D_Xs
+
+  function Table_2D_Ys(self)
+    !!{RST
+    Return the :math:`y`-values for a 2D table.
+    !!}
+    implicit none
+    class           (table2D), intent(in   )            :: self
+    double precision         , dimension(size(self%yv)) :: Table_2D_Ys
+
+    Table_2D_Ys=self%yv
+    return
+  end function Table_2D_Ys
+
+  function Table_2D_Zs(self,table)
+    !!{RST
+    Return the :math:`z`-values for a 2D table.
+    !!}
+    implicit none
+    class           (table2D), intent(in   )                                    :: self
+    double precision         , dimension(size(self%xv),size(self%yv))           :: Table_2D_Zs
+    integer                  , intent(in   )                         , optional :: table
+    !![
+    <optionalArgument name="table" defaultsTo="1"/>
+    !!]
+
+    Table_2D_Zs=self%zv(:,:,table_)
+    return
+  end function Table_2D_Zs
+
+  logical function Table_2D_Is_Initialized(self)
+    !!{RST
+    Return true if a 2D table has been created.
+    !!}
+    implicit none
+    class(table2D), intent(in   ) :: self
+
+    Table_2D_Is_Initialized=allocated(self%zv)
+    return
+  end function Table_2D_Is_Initialized
+
+  subroutine Table_2D_Interpolation_Reset(self)
+    !!{RST
+    Reset any cached interpolation state of a 2D table. Table types which memoize nothing---such as
+    :galacticus-class:`table2DLinLinLin`, whose bracketing indices are found by the interpolators which it owns---need do
+    nothing here.
+    !!}
+    implicit none
+    class(table2D), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    return
+  end subroutine Table_2D_Interpolation_Reset
+
+  subroutine Table_2D_Populate(self,z,table)
+    !!{RST
+    Populate a 2-D table.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (table2D)                , intent(inout)           :: self
+    double precision         , dimension(:,:), intent(in   )           :: z
+    integer                                  , intent(in   ), optional :: table
+    !![
+    <optionalArgument name="table" defaultsTo="1"/>
+    !!]
 
     ! Validate the input.
-    if (.not.allocated(self%zv)) call Error_Report("create the table before populating it"//{introspection:location})
-    if     (                                                                                                &
-         &   size(self%zv,dim=1) /= size(z,dim=1)                                                           &
-         &  .or.                                                                                            &
-         &   size(self%zv,dim=2) /= size(z,dim=2)                                                           &
-         & ) call Error_Report("provided z array is of wrong size"//{introspection:location})
-    ! Determine which table to use.
-    tableActual=1
-    if (present(table)) tableActual=table
-    ! Reset all previously stored values.
-    self%tablePrevious=-1
-    ! Store the z values.
-    self%zv(:,:,tableActual)=z
+    if (.not.allocated(self%zv)             ) call Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%zv,dim=1) /= size(z,dim=1)) call Error_Report("provided z array is of wrong size"    //{introspection:location})
+    if (size(self%zv,dim=2) /= size(z,dim=2)) call Error_Report("provided z array is of wrong size"    //{introspection:location})
+    ! Store the z values, discarding any interpolation state cached from the values which they replace.
+    self%zv(:,:,table_)=z
+    call self%interpolationReset()
     return
-  end subroutine Table_2DLogLogLin_Populate
+  end subroutine Table_2D_Populate
 
-  subroutine Table_2DLogLogLin_Populate_Single(self,z,i,j,table)
+  subroutine Table_2D_Populate_Single(self,z,i,j,table)
     !!{RST
-    Populate a single element of a 2-D log-log-linear table.
+    Populate a single element of a 2-D table.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (table2DLogLogLin), intent(inout)           :: self
-    double precision                  , intent(in   )           :: z
-    integer                           , intent(in   )           :: i          , j
-    integer                           , intent(in   ), optional :: table
-    integer                                                     :: tableActual
+    class           (table2D), intent(inout)           :: self
+    double precision         , intent(in   )           :: z
+    integer                  , intent(in   )           :: i    , j
+    integer                  , intent(in   ), optional :: table
+    !![
+    <optionalArgument name="table" defaultsTo="1"/>
+    !!]
 
     ! Validate the input.
     if (.not.allocated(self%zv)           ) call Error_Report("create the table before populating it"//{introspection:location})
     if (i < 1 .or. i > size(self%zv,dim=1)) call Error_Report("provided i value is out of bounds"    //{introspection:location})
     if (j < 1 .or. j > size(self%zv,dim=2)) call Error_Report("provided j value is out of bounds"    //{introspection:location})
-    ! Determine which table to use.
-    tableActual=1
-    if (present(table)) tableActual=table
-    ! Reset all previously stored values.
-    self%tablePrevious=-1
-    ! Store the z value.
-    self%zv(i,j,tableActual)=z
+    ! Store the z value, discarding any interpolation state cached from the value which it replaces.
+    self%zv(i,j,table_)=z
+    call self%interpolationReset()
     return
-  end subroutine Table_2DLogLogLin_Populate_Single
+  end subroutine Table_2D_Populate_Single
 
-  integer function Table_2DLogLogLin_Size(self,dim)
+  subroutine Table_2DLogLogLin_Create(self,xMinimum,xMaximum,xCount,yMinimum,yMaximum,yCount,tableCount,extrapolationTypeX,extrapolationTypeY)
     !!{RST
-    Return the size of a 2D log-log-linear table.
+    Create a 2-D log-log-linear table.
     !!}
-    use :: Error, only : Error_Report
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear, rangeLattice
+    use :: Table_Labels     , only : extrapolationTypeExtrapolate
     implicit none
-    class  (table2DLogLogLin), intent(in   ) :: self
-    integer                  , intent(in   ) :: dim
+    class           (table2DLogLogLin                ), intent(inout)           :: self
+    double precision                                  , intent(in   )           :: xMaximum          , xMinimum          , &
+         &                                                                         yMaximum          , yMinimum
+    integer                                           , intent(in   )           :: xCount            , yCount
+    type            (enumerationExtrapolationTypeType), intent(in   ), optional :: extrapolationTypeX, extrapolationTypeY
+    integer                                           , intent(in   ), optional :: tableCount
+    integer                                                                     :: tableCountActual
 
-    select case (dim)
-    case (1)
-       Table_2DLogLogLin_Size=self%xCount
-    case (2)
-       Table_2DLogLogLin_Size=self%yCount
-    case default
-       Table_2DLogLogLin_Size=0
-       call Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
-    end select
+    ! Discard any lattices on which the table was previously tabulated - the abscissae are being rebuilt from the given ranges.
+    self%latticeX=rangeLattice()
+    self%latticeY=rangeLattice()
+    ! Determine number of tables.
+    tableCountActual=1
+    if (present(tableCount)) tableCountActual=tableCount
+    ! Allocate arrays and construct the ranges.
+    self%xCount=xCount
+    self%yCount=yCount
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    if (allocated(self%zv)) deallocate(self%zv)
+    allocate(self%xv(xCount                        ))
+    allocate(self%yv(       yCount                 ))
+    allocate(self%zv(xCount,yCount,tableCountActual))
+    ! Initialize the values. A caller is expected to populate every point before interpolating in the table, but a caller which
+    ! omits one - and at least one has - would otherwise read whatever the allocation happened to return, which is not merely
+    ! arbitrary but can differ between one run and the next, and between one point of the table and another.
+    self%zv           =0.0d0
+    self%xv           =Make_Range(log(xMinimum),log(xMaximum),xCount,rangeType=rangeTypeLinear)
+    self%yv           =Make_Range(log(yMinimum),log(yMaximum),yCount,rangeType=rangeTypeLinear)
+    self%inverseDeltaX=1.0d0/(self%xv(2)-self%xv(1))
+    self%inverseDeltaY=1.0d0/(self%yv(2)-self%yv(1))
+    call self%interpolationReset()
+    ! Set extrapolation type.
+    if (present(extrapolationTypeX)) then
+       self%extrapolationTypeX=extrapolationTypeX
+    else
+       self%extrapolationTypeX=extrapolationTypeExtrapolate
+    end if
+    if (present(extrapolationTypeY)) then
+       self%extrapolationTypeY=extrapolationTypeY
+    else
+       self%extrapolationTypeY=extrapolationTypeExtrapolate
+    end if
     return
-  end function Table_2DLogLogLin_Size
+  end subroutine Table_2DLogLogLin_Create
+
+  double precision function Table_2DLogLogLin_X(self,i)
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a 2D log-log table.
+    !!}
+    implicit none
+    class  (table2DLogLogLin), intent(inout) :: self
+    integer                  , intent(in   ) :: i
+
+    Table_2DLogLogLin_X=exp(self%xv(i))
+    return
+  end function Table_2DLogLogLin_X
+
+  double precision function Table_2DLogLogLin_Y(self,i)
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`y`-value for a 2D log-log table.
+    !!}
+    implicit none
+    class  (table2DLogLogLin), intent(inout) :: self
+    integer                  , intent(in   ) :: i
+
+    Table_2DLogLogLin_Y=exp(self%yv(i))
+    return
+  end function Table_2DLogLogLin_Y
+
+  function Table_2DLogLogLin_Xs(self)
+    !!{RST
+    Return the :math:`x`-values for a 2D log-log table.
+    !!}
+    implicit none
+    class(table2DLogLogLin), intent(in   )             :: self
+    double precision       , dimension(size(self%xv))  :: Table_2DLogLogLin_Xs
+
+    Table_2DLogLogLin_Xs=exp(self%xv)
+    return
+  end function Table_2DLogLogLin_Xs
+
+  function Table_2DLogLogLin_Ys(self)
+    !!{RST
+    Return the :math:`y`-values for a 2D log-log table.
+    !!}
+    implicit none
+    class(table2DLogLogLin), intent(in   )             :: self
+    double precision       , dimension(size(self%yv))  :: Table_2DLogLogLin_Ys
+
+    Table_2DLogLogLin_Ys=exp(self%yv)
+    return
+  end function Table_2DLogLogLin_Ys
+
+  subroutine Table_2DLogLogLin_Extend(self,latticeX,latticeY,isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
+    !!{RST
+    Extend a 2-D log-log-linear table onto a pair of absolute lattices, creating it if it does not yet exist. Since the
+    abscissae of such a table are uniformly spaced in :math:`\log x` and :math:`\log y`, only the logarithmic gridding schemes
+    are applicable.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerDecade, gridSchemePerOctave
+    implicit none
+    class  (table2DLogLogLin                ), intent(inout)                              :: self
+    type   (rangeLattice                    ), intent(in   )                              :: latticeX          , latticeY
+    logical                                  , intent(  out), allocatable, dimension(:,:) :: isComputed
+    integer                                  , intent(in   ), optional                    :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional                    :: extrapolationTypeX, extrapolationTypeY
+
+    if     (                                                                                       &
+         &   (latticeX%scheme /= gridSchemePerDecade .and. latticeX%scheme /= gridSchemePerOctave) &
+         &  .or.                                                                                   &
+         &   (latticeY%scheme /= gridSchemePerDecade .and. latticeY%scheme /= gridSchemePerOctave) &
+         & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
+    ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
+    call Table_2D_Extend_Uniform(self,latticeX,latticeY,latticeX%valuesLogarithmic(),latticeY%valuesLogarithmic(),isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
+    ! The spacings come from the lattices - see `Table_2D_Extend_Uniform`.
+    self%inverseDeltaX=1.0d0/latticeX%stepLogarithmic()
+    self%inverseDeltaY=1.0d0/latticeY%stepLogarithmic()
+    call self%interpolationReset()
+    return
+  end subroutine Table_2DLogLogLin_Extend
 
   double precision function Table_2DLogLogLin_Interpolate(self,x,y,table)
     !!{RST
-    Perform linear interpolation in a logarithmic 1D table.
+    Perform bilinear interpolation in a 2D log-log-linear table.
     !!}
     implicit none
     class           (table2DLogLogLin), intent(inout)           :: self
@@ -2982,13 +3219,21 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Test for being recalled with same values.
-    if (.not.(self%xPreviousSet .and. self%yPreviousSet .and. x == self%xLinearPrevious .and. y == self%yLinearPrevious .and. tableActual == self%tablePrevious)) then
+    if (.not.(x == self%xPrevious .and. y == self%yPrevious .and. tableActual == self%tablePrevious)) then
        ! Update interpolation factors.
        call self%interpolationFactors(x,y)
-       ! Perform the interpolation.
-       self%zPrevious=                                                                                                               &
-            & +(self%zv(self%i,self%j  ,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j  ,tableActual)*self%hx)*(1.0d0-self%hy) &
-            & +(self%zv(self%i,self%j+1,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j+1,tableActual)*self%hx)*       self%hy
+       ! Perform the interpolation, recording the point at which it was made.
+       self%xPrevious    =x
+       self%yPrevious    =y
+       self%tablePrevious=tableActual
+       if (self%xZeroed .or. self%yZeroed) then
+          ! Beyond the range of an axis with "zero" extrapolation the interpolant is zero.
+          self%zPrevious=0.0d0
+       else
+          self%zPrevious=                                                                                                               &
+               & +(self%zv(self%i,self%j  ,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j  ,tableActual)*self%hx)*(1.0d0-self%hy) &
+               & +(self%zv(self%i,self%j+1,tableActual)*(1.0d0-self%hx)+self%zv(self%i+1,self%j+1,tableActual)*self%hx)*       self%hy
+       end if
     end if
     ! Return the stored value.
     Table_2DLogLogLin_Interpolate=self%zPrevious
@@ -2997,7 +3242,7 @@ contains
 
   double precision function Table_2DLogLogLin_Interpolate_Gradient(self,x,y,dim,table)
     !!{RST
-    Perform linear interpolation in a logarithmic 1D table.
+    Perform bilinear interpolation of the gradient with respect to dimension ``dim`` in a 2D log-log-linear table.
     !!}
     use :: Error, only : Error_Report
     implicit none
@@ -3011,30 +3256,46 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     ! Test for being recalled with same values.
-    if (.not.(self%xPreviousSet .and. self%yPreviousSet .and. x == self%xLinearPrevious .and. y == self%yLinearPrevious .and. tableActual == self%tablePrevious .and. dim == self%dimPrevious)) then
+    if (.not.(x == self%dxPrevious .and. y == self%dyPrevious .and. tableActual == self%dTablePrevious .and. dim == self%dimPrevious)) then
        ! Update interpolation factors.
        call self%interpolationFactors(x,y)
-       ! Perform the interpolation.
+       ! Perform the interpolation. Beyond the range of an axis with "fix" or "zero" extrapolation the interpolant is independent
+       ! of that coordinate, so the gradient with respect to it is zero, and the interpolation factors have already been pinned
+       ! to the boundary so the gradient with respect to the other coordinate needs no such treatment. Under "zero" extrapolation
+       ! the interpolant is zero, and so is its gradient with respect to either coordinate. (A zeroed axis is always clamped too.)
        select case (dim)
        case (1)
-          self%dzPrevious=                                                                                         &
-               & +(                                                                                                &
-               &   +(-self%zv(self%i,self%j  ,tableActual)+self%zv(self%i+1,self%j  ,tableActual))*(1.0d0-self%hy) &
-               &   +(-self%zv(self%i,self%j+1,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hy  &
-               &  )                                                                                                &
-               & *self%inverseDeltaX                                                                               &
-               & /self%xLinearPrevious
+          if (self%xClamped .or. self%yZeroed) then
+             self%dzPrevious=0.0d0
+          else
+             self%dzPrevious=                                                                                         &
+                  & +(                                                                                                &
+                  &   +(-self%zv(self%i,self%j  ,tableActual)+self%zv(self%i+1,self%j  ,tableActual))*(1.0d0-self%hy) &
+                  &   +(-self%zv(self%i,self%j+1,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hy  &
+                  &  )                                                                                                &
+                  & *self%inverseDeltaX                                                                               &
+                  & /self%xLinearPrevious
+          end if
        case (2)
-          self%dzPrevious=                                                                                         &
-               & +(                                                                                                &
-               &   +(-self%zv(self%i  ,self%j,tableActual)+self%zv(self%i  ,self%j+1,tableActual))*(1.0d0-self%hx) &
-               &   +(-self%zv(self%i+1,self%j,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hx  &
-               &  )                                                                                                &
-               & *self%inverseDeltaY                                                                               &
-               & /self%yLinearPrevious
+          if (self%yClamped .or. self%xZeroed) then
+             self%dzPrevious=0.0d0
+          else
+             self%dzPrevious=                                                                                         &
+                  & +(                                                                                                &
+                  &   +(-self%zv(self%i  ,self%j,tableActual)+self%zv(self%i  ,self%j+1,tableActual))*(1.0d0-self%hx) &
+                  &   +(-self%zv(self%i+1,self%j,tableActual)+self%zv(self%i+1,self%j+1,tableActual))*       self%hx  &
+                  &  )                                                                                                &
+                  & *self%inverseDeltaY                                                                               &
+                  & /self%yLinearPrevious
+          end if
        case default
           call Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
        end select
+       ! Record the point at which the gradient was computed.
+       self%dxPrevious    =x
+       self%dyPrevious    =y
+       self%dTablePrevious=tableActual
+       self%dimPrevious   =dim
     end if
     ! Return the stored value.
     Table_2DLogLogLin_Interpolate_Gradient=self%dzPrevious
@@ -3052,59 +3313,103 @@ contains
        self%xPreviousSet        =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
-       ! Determine the location in the table.
-       if      (self%xLogarithmicPrevious <  self%xv(          1)) then
-          self%i=1
-       else if (self%xLogarithmicPrevious >= self%xv(self%xCount)) then
-          self%i=self%xCount-1
-       else
-          self%i=int((self%xLogarithmicPrevious-self%xv(1))*self%inverseDeltaX)+1
-       end if
-       ! Compute interpolation factor.
-       self%hx=(self%xLogarithmicPrevious-self%xv(self%i))*self%inverseDeltaX
+       call Table_2DLogLogLin_Axis_Factors(self%xLogarithmicPrevious,self%xv,self%inverseDeltaX,self%extrapolationTypeX,'x',self%i,self%hx,self%xClamped,self%xZeroed)
     end if
     ! Update interpolation factors for y if necessary.
     if (.not.self%yPreviousSet .or. y /= self%yLinearPrevious) then
        self%yPreviousSet        =.true.
        self%yLinearPrevious     =    y
        self%yLogarithmicPrevious=log(y)
-       ! Determine the location in the table.
-       if      (self%yLogarithmicPrevious <  self%yv(          1)) then
-          self%j=1
-       else if (self%yLogarithmicPrevious >= self%yv(self%yCount)) then
-          self%j=self%yCount-1
-       else
-          self%j=int((self%yLogarithmicPrevious-self%yv(1))*self%inverseDeltaY)+1
-       end if
-       ! Compute interpolation factor.
-       self%hy=(self%yLogarithmicPrevious-self%yv(self%j))*self%inverseDeltaY
+       call Table_2DLogLogLin_Axis_Factors(self%yLogarithmicPrevious,self%yv,self%inverseDeltaY,self%extrapolationTypeY,'y',self%j,self%hy,self%yClamped,self%yZeroed)
     end if
     return
   end subroutine Table_2DLogLogLin_Interpolation_Factors
 
-  subroutine Table_2DLogLogLin_Destroy(self)
+  subroutine Table_2DLogLogLin_Axis_Factors(coordinate,abscissae,inverseDelta,extrapolationType,label,i,h,isClamped,isZeroed)
     !!{RST
-    Destroy a 2D log-log-linear table.
+    Find the bracketing index, ``i``, and interpolation factor, ``h``, along one axis of a 2D log-log-linear table at internal
+    coordinate ``coordinate``, applying the extrapolation type of that axis beyond its tabulated range. ``isClamped`` is
+    returned true if the interpolant is independent of the coordinate there (under ``fix`` or ``zero`` extrapolation), and
+    ``isZeroed`` if it is zero (under ``zero`` extrapolation).
+    !!}
+    use :: Error       , only : Error_Report
+    use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero, extrapolationTypeAbort
+    implicit none
+    double precision                                  , intent(in   )               :: coordinate       , inverseDelta
+    double precision                                  , intent(in   ), dimension(:) :: abscissae
+    type            (enumerationExtrapolationTypeType), intent(in   )               :: extrapolationType
+    character       (len=1                           ), intent(in   )               :: label
+    integer                                           , intent(  out)               :: i
+    double precision                                  , intent(  out)               :: h
+    logical                                           , intent(  out)               :: isClamped        , isZeroed
+    integer                                                                         :: count
+
+    count    =size(abscissae)
+    isClamped=.false.
+    isZeroed =.false.
+    ! Determine the location in the table. Within the range the index is limited so that the upper end of the range falls in
+    ! the final interval.
+    if      (coordinate < abscissae(    1)) then
+       i=1
+    else if (coordinate > abscissae(count)) then
+       i=count-1
+    else
+       i=min(int((coordinate-abscissae(1))*inverseDelta)+1,count-1)
+    end if
+    ! Compute interpolation factor.
+    h=(coordinate-abscissae(i))*inverseDelta
+    ! Apply the extrapolation type beyond the range.
+    if (coordinate < abscissae(1) .or. coordinate > abscissae(count)) then
+       select case (extrapolationType%ID)
+       case (extrapolationTypeExtrapolate%ID)
+          ! Nothing to do - the interpolation factor extrapolates linearly from the final interval.
+       case (extrapolationTypeFix        %ID,extrapolationTypeZero%ID)
+          ! Pin the interpolation factor to the boundary.
+          if (coordinate < abscissae(1)) then
+             h=0.0d0
+          else
+             h=1.0d0
+          end if
+          isClamped=.true.
+          isZeroed =extrapolationType == extrapolationTypeZero
+       case (extrapolationTypeAbort      %ID)
+          if (coordinate < abscissae(1)) then
+             call Error_Report(label//' is below range - extrapolation type "abort" forbids extrapolation'//{introspection:location})
+          else
+             call Error_Report(label//' is above range - extrapolation type "abort" forbids extrapolation'//{introspection:location})
+          end if
+       case default
+          call Error_Report(label//' is out of range - unknown extrapolation method'//{introspection:location})
+       end select
+    end if
+    return
+  end subroutine Table_2DLogLogLin_Axis_Factors
+
+  subroutine Table_2DLogLogLin_Interpolation_Reset(self)
+    !!{RST
+    Discard every memoized quantity of a 2D log-log-linear table---the bracketing indices and interpolation factors, and the
+    interpolated value and gradient computed from them.
     !!}
     implicit none
     class(table2DLogLogLin), intent(inout) :: self
 
-    if (allocated(self%xv)) deallocate(self%xv)
-    if (allocated(self%yv)) deallocate(self%yv)
-    if (allocated(self%zv)) deallocate(self%zv)
+    self%tablePrevious       =-1
+    self%dTablePrevious      =-1
+    self%dimPrevious         =-1
+    self%xPrevious           =-1.0d0
+    self%yPrevious           =-1.0d0
+    self%dxPrevious          =-1.0d0
+    self%dyPrevious          =-1.0d0
+    self%xPreviousSet        =.false.
+    self%yPreviousSet        =.false.
+    self%hx                  =-1.0d0
+    self%hy                  =-1.0d0
+    self%xLinearPrevious     =-1.0d0
+    self%yLinearPrevious     =-1.0d0
+    self%xLogarithmicPrevious=-1.0d0
+    self%yLogarithmicPrevious=-1.0d0
     return
-  end subroutine Table_2DLogLogLin_Destroy
-
-  logical function Table_2DLogLogLin_Is_Initialized(self)
-    !!{RST
-    Return true if a 2D log-log-linear table has been created.
-    !!}
-    implicit none
-    class(table2DLogLogLin), intent(in   ) :: self
-
-    Table_2DLogLogLin_Is_Initialized=allocated(self%zv)
-    return
-  end function Table_2DLogLogLin_Is_Initialized
+  end subroutine Table_2DLogLogLin_Interpolation_Reset
 
   subroutine Table_Linear_Monotone_CSpline_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
     !!{RST
@@ -3226,55 +3531,6 @@ contains
     return
   end subroutine Table_Linear_Monotone_CSpline_1D_Populate_Single
 
-  subroutine Table_Linear_Monotone_CSpline_1D_Compute_Spline(self,table)
-    !!{RST
-    Compute the interpolating spline factors for a 1-D linear spline.
-    !!}
-    implicit none
-    type            (table1DLinearMonotoneCSpline), intent(inout)               :: self
-    integer                                       , intent(in   )               :: table
-    double precision                              , allocatable  , dimension(:) :: dx   , dy    , m
-    integer                                                                     :: i
-    double precision                                                            :: dxSum, factor
-
-    ! Reset all previously stored values.
-    self% tablePrevious=-1
-    self%dTablePrevious=-1
-    self%     iPrevious=-1
-    ! Allocate workspace.
-    allocate(dx(size(self%xv)-1))
-    allocate(dy(size(self%xv)-1))
-    allocate( m(size(self%xv)-1))
-    ! Get consecutive differences and slopes.
-    do i=1,size(self%xv)-1
-       dx(i)=self%xv(i+1      )-self%xv(i      )
-       dy(i)=self%yv(i+1,table)-self%yv(i,table)
-       m (i)=dy(i)/dx(i)
-    end do
-    ! Get degree-1 coefficients.
-    self%av(1,table)=m(1)
-    do i=1,size(dx)-1
-       if (m(i)*m(i+1) <= 0.0d0) then
-          self%av(i+1,table)=0.0d0
-       else
-          dxSum=dx(i)+dx(i+1)
-          self%av(i+1,table)=3.0d0*dxSum/((dxSum+dx(i+1))/m(i)+(dxSum+dx(i))/m(i+1))
-       end if
-    end do
-    self%av(size(dx)+1,table)=m(size(m))
-    ! Get degree-2 and degree-3 coefficients.
-    do i=1,size(self%av)-1
-       factor=self%av(i,table)+self%av(i+1,table)-2.0d0*m(i)
-       self%bv(i,table)=(m(i)-self%av(i,table)-factor)/dx(i)
-       self%cv(i,table)=factor/dx(i)**2
-    end do
-    ! Destroy workspace.
-    deallocate(dx)
-    deallocate(dy)
-    deallocate( m)
-    return
-  end subroutine Table_Linear_Monotone_CSpline_1D_Compute_Spline
-
   double precision function Table_Linear_Monotone_CSpline_1D_Interpolate(self,x,table,status)
     !!{RST
     Perform linear interpolation in a linear 1D table.
@@ -3325,6 +3581,12 @@ contains
     double precision                                                        :: dx    , xEffective
 
     ! Determine which table to use.
+    ! Beyond the range of the table, with "fix" or "zero" extrapolation, the gradient is zero. This is tested before the memoized
+    ! result is used, as all points beyond the range share the same effective x.
+    if (Table1D_Gradient_Vanishes(self,x,status)) then
+       Table_Linear_Monotone_CSpline_1D_Interpolate_Gradient=0.0d0
+       return
+    end if
     tableActual=1
     if (present(table)) tableActual=table
     ! Check for recall with same value as previous call.
@@ -3454,99 +3716,95 @@ contains
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
     end if
-    Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=self%table1DLinearMonotoneCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/self%xEffective(x,status)
+    Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=self%table1DLinearMonotoneCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/x
     return
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
 
-  subroutine Table_2D_LinLinLin_Create(self,x,y,tableCount)
+  subroutine Table_2D_LinLinLin_Create(self,x,y,tableCount,extrapolationTypeX,extrapolationTypeY)
     !!{RST
-    Create a 2-D generic table.
+    Create a 2-D linear-linear-linear table.
+
+    Extrapolation beyond the tabulated abscissae defaults to ``extrapolationTypeAbort``---a table created over an explicit set
+    of abscissae has no defined behavior outside them, so a caller which wants one must ask for it. (A table built by
+    ``extend`` instead takes the default of every table built on an absolute lattice, ``extrapolationTypeExtrapolate``.)
     !!}
+    use :: Numerical_Ranges, only : rangeLattice
+    use :: Table_Labels    , only : extrapolationTypeAbort
     implicit none
-    class           (table2DLinLinLin)              , intent(inout)           :: self
-    double precision                  , dimension(:), intent(in   )           :: x         , y
-    integer                                         , intent(in   ), optional :: tableCount
+    class           (table2DLinLinLin                )              , intent(inout)           :: self
+    double precision                                  , dimension(:), intent(in   )           :: x                 , y
+    integer                                                         , intent(in   ), optional :: tableCount
+    type            (enumerationExtrapolationTypeType)              , intent(in   ), optional :: extrapolationTypeX, extrapolationTypeY
     !![
-    <optionalArgument name="tableCount" defaultsTo="1"/>
+    <optionalArgument name="tableCount"         defaultsTo="1"                     />
+    <optionalArgument name="extrapolationTypeX" defaultsTo="extrapolationTypeAbort"/>
+    <optionalArgument name="extrapolationTypeY" defaultsTo="extrapolationTypeAbort"/>
     !!]
 
-    ! Allocate arrays and construct the x-range.
+    ! Discard any lattices on which the table was previously tabulated - the abscissae are being rebuilt from those given.
+    self%latticeX          =rangeLattice()
+    self%latticeY          =rangeLattice()
+    ! Set the extrapolation types.
+    self%extrapolationTypeX=extrapolationTypeX_
+    self%extrapolationTypeY=extrapolationTypeY_
+    ! Allocate arrays and construct the x- and y-ranges.
     self%xCount=size(x)
     self%yCount=size(y)
+    if (allocated(self%xv)) deallocate(self%xv)
+    if (allocated(self%yv)) deallocate(self%yv)
+    if (allocated(self%zv)) deallocate(self%zv)
     allocate(self%xv(size(x)                    ))
     allocate(self%yv(        size(y)            ))
     allocate(self%zv(size(x),size(y),tableCount_))
     self%xv=x
     self%yv=y
+    self%zv=0.0d0
     ! Build the interpolators.
-    self%interpolatorX=interpolator(self%xv)
-    self%interpolatorY=interpolator(self%yv)
+    call self%interpolatorRebuild()
     return
   end subroutine Table_2D_LinLinLin_Create
 
-  subroutine Table_2D_LinLinLin_Destroy(self)
+  subroutine Table_2D_LinLinLin_Extend(self,latticeX,latticeY,isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
     !!{RST
-    Destroy a generic 2-D table.
+    Extend a 2-D linear-linear-linear table onto a pair of absolute lattices, creating it if it does not yet exist. Since the
+    abscissae of such a table are uniformly spaced in :math:`x` and :math:`y`, only the ``perUnit`` gridding scheme is
+    applicable.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerUnit
+    implicit none
+    class  (table2DLinLinLin                ), intent(inout)                              :: self
+    type   (rangeLattice                    ), intent(in   )                              :: latticeX          , latticeY
+    logical                                  , intent(  out), allocatable, dimension(:,:) :: isComputed
+    integer                                  , intent(in   ), optional                    :: tableCount
+    type   (enumerationExtrapolationTypeType), intent(in   ), optional                    :: extrapolationTypeX, extrapolationTypeY
+
+    if (latticeX%scheme /= gridSchemePerUnit .or. latticeY%scheme /= gridSchemePerUnit) &
+         & call Error_Report('a linearly-spaced table requires a `perUnit` gridding scheme'//{introspection:location})
+    call Table_2D_Extend_Uniform(self,latticeX,latticeY,latticeX%values(),latticeY%values(),isComputed,tableCount,extrapolationTypeX,extrapolationTypeY)
+    ! The interpolators hold their own copies of the abscissae and of the extrapolation types, so must be rebuilt from those
+    ! which the extension has just installed.
+    call self%interpolatorRebuild()
+    return
+  end subroutine Table_2D_LinLinLin_Extend
+
+  subroutine Table_2D_LinLinLin_Interpolator_Rebuild(self)
+    !!{RST
+    Build the interpolators of a 2-D linear-linear-linear table from its abscissae and extrapolation types.
     !!}
     implicit none
     class(table2DLinLinLin), intent(inout) :: self
-    !$GLC attributes unused :: self
 
+    self%interpolatorX=interpolator(self%xv,extrapolationType=self%extrapolationTypeX)
+    self%interpolatorY=interpolator(self%yv,extrapolationType=self%extrapolationTypeY)
     return
-  end subroutine Table_2D_LinLinLin_Destroy
-
-  subroutine Table_2D_LinLinLin_Populate(self,z,table)
-    !!{RST
-    Populate a 2-D linear table.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class           (table2DLinLinLin)                , intent(inout)           :: self
-    double precision                  , dimension(:,:), intent(in   )           :: z
-    integer                                           , intent(in   ), optional :: table
-    !![
-    <optionalArgument name="table" defaultsTo="1"/>
-    !!]
-
-    ! Validate the input.
-    if (.not.allocated(self%zv)             ) call Error_Report("create the table before populating it"//{introspection:location})
-    if (size(self%zv,dim=1) /= size(z,dim=1)) call Error_Report("provided z array is of wrong size"    //{introspection:location})
-    if (size(self%zv,dim=2) /= size(z,dim=2)) call Error_Report("provided z array is of wrong size"    //{introspection:location})
-
-    ! Store the y values.
-    self%zv(:,:,table_)=z
-    return
-  end subroutine Table_2D_LinLinLin_Populate
-
-  subroutine Table_2D_LinLinLin_Populate_Single(self,z,i,j,table)
-    !!{RST
-    Populate a single element of a 2-D generic table.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class           (table2DLinLinLin), intent(inout)           :: self
-    double precision                  , intent(in   )           :: z
-    integer                           , intent(in   )           :: i    , j
-    integer                           , intent(in   ), optional :: table
-    !![
-    <optionalArgument name="table" defaultsTo="1"/>
-    !!]
-
-    ! Validate the input.
-    if (.not.allocated(self%zv)           ) call Error_Report("create the table before populating it"//{introspection:location})
-    if (i < 1 .or. i > size(self%zv,dim=1)) call Error_Report("provided i value is out of bounds"    //{introspection:location})
-    if (j < 1 .or. j > size(self%zv,dim=2)) call Error_Report("provided j value is out of bounds"    //{introspection:location})
-
-    ! Store the y values.
-    self%zv(i,j,table_)=z
-    return
-  end subroutine Table_2D_LinLinLin_Populate_Single
+  end subroutine Table_2D_LinLinLin_Interpolator_Rebuild
 
   double precision function Table_2D_LinLinLin_Interpolate(self,x,y,table)
     !!{RST
-    Perform generic interpolation in a generic 2D table.
+    Perform bilinear interpolation in a 2D linear-linear-linear table.
     !!}
-    use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (table2DLinLinLin), intent(inout)            :: self
     double precision                  , intent(in   )            :: x    , y
@@ -3571,45 +3829,67 @@ contains
     return
   end function Table_2D_LinLinLin_Interpolate
 
-  function Table_2D_LinLinLin_Xs(self)
+  double precision function Table_2D_LinLinLin_Interpolate_Gradient(self,x,y,dim,table)
     !!{RST
-    Return the :math:`x`-values for a 2D table.
+    Perform bilinear interpolation of the gradient with respect to dimension ``dim`` in a 2D linear-linear-linear table.
     !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    use            :: Error        , only : Error_Report
+    use            :: Table_Labels , only : extrapolationTypeFix
     implicit none
-    class           (table2DLinLinLin), intent(in   )            :: self
-    double precision                  , dimension(size(self%xv)) :: Table_2D_LinLinLin_Xs
+    class           (table2DLinLinLin), intent(inout)            :: self
+    double precision                  , intent(in   )            :: x    , y
+    integer                           , intent(in   )            :: dim
+    integer                           , intent(in   ) , optional :: table
+    integer         (c_size_t        )                           :: i    , j
+    double precision                  , dimension(0:1)           :: hi   , hj
+    !![
+    <optionalArgument name="table" defaultsTo="1"/>
+    !!]
 
-    Table_2D_LinLinLin_Xs=self%xv
+    ! Compute interpolating factors.
+    call self%interpolatorX%linearFactors(x,i,hi)
+    call self%interpolatorY%linearFactors(y,j,hj)
+    ! An axis which has been extrapolated to zero returns null weights - the function, and therefore its gradient, is zero
+    ! there. Every other case returns weights which sum to unity.
+    if (hi(0)+hi(1) <= 0.0d0 .or. hj(0)+hj(1) <= 0.0d0) then
+       Table_2D_LinLinLin_Interpolate_Gradient=0.0d0
+       return
+    end if
+    ! Beyond the tabulated range under `fix` extrapolation the interpolant is independent of the coordinate which is out of
+    ! range, so its gradient with respect to that coordinate is zero. `linearFactors` has already pinned the interpolating
+    ! factors of that axis to the boundary, so the gradient with respect to the *other* coordinate needs no such treatment.
+    if     (                                                                                                                       &
+         &   (dim == 1 .and. self%extrapolationTypeX == extrapolationTypeFix .and. (x < self%xv(1) .or. x > self%xv(self%xCount))) &
+         &  .or.                                                                                                                   &
+         &   (dim == 2 .and. self%extrapolationTypeY == extrapolationTypeFix .and. (y < self%yv(1) .or. y > self%yv(self%yCount))) &
+         & ) then
+       Table_2D_LinLinLin_Interpolate_Gradient=0.0d0
+       return
+    end if
+    select case (dim)
+    case (1)
+       Table_2D_LinLinLin_Interpolate_Gradient=+(                                                        &
+            &                                    +(-self%zv(i,j  ,table_)+self%zv(i+1,j  ,table_))*hj(0) &
+            &                                    +(-self%zv(i,j+1,table_)+self%zv(i+1,j+1,table_))*hj(1) &
+            &                                   )                                                        &
+            &                                  /  (-self%xv(i           )+self%xv(i+1            ))
+    case (2)
+       Table_2D_LinLinLin_Interpolate_Gradient=+(                                                        &
+            &                                    +(-self%zv(i  ,j,table_)+self%zv(i  ,j+1,table_))*hi(0) &
+            &                                    +(-self%zv(i+1,j,table_)+self%zv(i+1,j+1,table_))*hi(1) &
+            &                                   )                                                        &
+            &                                  /  (-self%yv(    j       )+self%yv(    j+1       ))
+    case default
+       Table_2D_LinLinLin_Interpolate_Gradient=0.0d0
+       call Error_Report('1 ≤ dim ≤ 2 is required'//{introspection:location})
+    end select
     return
-  end function Table_2D_LinLinLin_Xs
-
-  function Table_2D_LinLinLin_Ys(self)
-    !!{RST
-    Return the :math:`y`-values for a 2D table.
-    !!}
-    implicit none
-    class           (table2DLinLinLin), intent(in   )            :: self
-    double precision                  , dimension(size(self%yv)) :: Table_2D_LinLinLin_Ys
-
-    Table_2D_LinLinLin_Ys=self%yv
-    return
-  end function Table_2D_LinLinLin_Ys
-
-  function Table_2D_LinLinLin_Zs(self)
-    !!{RST
-    Return the :math:`z`-values for a 2D table.
-    !!}
-    implicit none
-    class           (table2DLinLinLin), intent(in   )                                                          :: self
-    double precision                  , dimension(size(self%zv,dim=1),size(self%zv,dim=2),size(self%zv,dim=3)) :: Table_2D_LinLinLin_Zs
-
-    Table_2D_LinLinLin_Zs=self%zv
-    return
-  end function Table_2D_LinLinLin_Zs
+  end function Table_2D_LinLinLin_Interpolate_Gradient
 
   subroutine Table_2D_LinLinLin_Interpolator_Reinitialize(self)
     !!{RST
-    Reinitialize the interpolator.
+    Reinitialize the interpolators.
     !!}
     implicit none
     class(table2DLinLinLin), intent(inout) :: self

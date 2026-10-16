@@ -10,7 +10,7 @@ import numpy as np
 # Run the model.
 status = subprocess.run("cd ..; mkdir -p testSuite/outputs; ./Galacticus.exe testSuite/parameters/haloTriaxialityMenkerBenson2022.xml", shell=True)
 if status.returncode != 0:
-    print("FAIL: Menker & Benson (2022) halo triaxility failed to run")
+    print("FAILED: Menker & Benson (2022) halo triaxility failed to run")
     sys.exit(0)
 
 # Extract the data.
@@ -28,11 +28,11 @@ medianAxisRatio2Target = 0.73
 medianAxisRatio3Target = 0.53
 
 if abs(medianAxisRatio2 - medianAxisRatio2Target) < tolerance:
-    print("success: axis ratio 2 median")
+    print("SUCCESS: axis ratio 2 median")
 else:
-    print(f"FAIL: axis ratio 2 median ({medianAxisRatio2})")
+    print(f"FAILED: axis ratio 2 median ({medianAxisRatio2})")
 
 if abs(medianAxisRatio3 - medianAxisRatio3Target) < tolerance:
-    print("success: axis ratio 3 median")
+    print("SUCCESS: axis ratio 3 median")
 else:
-    print(f"FAIL: axis ratio 3 median ({medianAxisRatio3})")
+    print(f"FAILED: axis ratio 3 median ({medianAxisRatio3})")

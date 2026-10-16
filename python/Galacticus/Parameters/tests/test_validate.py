@@ -370,7 +370,7 @@ def test_constraint_skips_expression_value():
     assert _validate_constraint('<fraction value="[otherParam]"/>') == []
 
 
-def test_constraint_honours_ignore_warnings():
+def test_constraint_honors_ignore_warnings():
     assert _validate_constraint(
         '<fraction ignoreWarnings="true" value="9.9"/>') == []
 

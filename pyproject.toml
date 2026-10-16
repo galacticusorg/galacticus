@@ -38,6 +38,9 @@ dependencies = [
     "GitPython",
     "termcolor",
     "platformdirs",
+    # Release archives are zstd-compressed; `compression.zstd` covers this from
+    # Python 3.14 onward, so the package is only needed on earlier versions.
+    "zstandard; python_version < '3.14'",
 ]
 
 [project.optional-dependencies]
@@ -52,6 +55,11 @@ emulation = [
     "colossus",
     "mcfit",
     "samana",
+]
+# Training Gaussian-process emulators of model predictions (python/Galacticus/Emulation/train.py,
+# scripts/emulation/emulatorTrainReference.py). Kept opt-in: nothing else depends on scikit-learn.
+emulation-gp = [
+    "scikit-learn",
 ]
 test = [
     "pytest",

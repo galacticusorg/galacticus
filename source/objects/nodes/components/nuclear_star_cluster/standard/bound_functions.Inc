@@ -81,11 +81,12 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   !!{RST
   Return the mass distribution for the standard nuclear star cluster component.
   !!}
-  use :: Mass_Distributions              , only : massDistributionClass          , massDistributionSphericalScaler, massDistributionComposite   , massDistributionList   , &
-        &                                         massDistributionSpherical      , massDistributionMatches_
-  use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_       , massDistributionGas_           , kinematicDistribution_
-  use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar                , massTypeGaseous             , enumerationWeightByType, &
-       &                                          weightByMass                   , weightByLuminosity             , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Mass_Distributions                         , only : massDistributionClass                            , massDistributionMatches_
+  use :: Node_Component_NSC_Standard_Data           , only : massDistributionStellar_                         , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
+       &                                                     scalerGasPool
+  use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Spherical
+  use :: Galactic_Structure_Options                 , only : componentTypeNuclearStarCluster                  , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
+       &                                                     weightByMass                                     , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
   class           (massDistributionClass          ), pointer                 :: massDistribution_
   class           (nodeComponentNSCStandard       ), intent(inout)           :: self
@@ -93,14 +94,11 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   type            (enumerationMassTypeType        ), intent(in   ), optional :: massType
   type            (enumerationWeightByType        ), intent(in   ), optional :: weightBy
   integer                                          , intent(in   ), optional :: weightIndex
-  type            (massDistributionSphericalScaler), pointer                 :: massDistributionStellar   , massDistributionGas
-  type            (massDistributionComposite      ), pointer                 :: massDistributionTotal
-  type            (massDistributionList           ), pointer                 :: massDistributionComponents
   type            (stellarLuminosities            ), save                    :: luminosities
   !$omp threadprivate(luminosities)
-  double precision                                                           :: massStellar               , massGas            , &
+  double precision                                                           :: massStellar      , massGas     , &
        &                                                                        radiusScale
-  logical                                                                    :: includeGas                , includeStars
+  logical                                                                    :: includeGas       , includeStars
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
@@ -120,59 +118,9 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
      massDistribution_ => null()
      return
   end if
-  ! Determine which components to build.
-  radiusScale=self%radius()
-  if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
-     ! Nuclear star cluster has non-positive size, or no components matched. Return a null distribution.
-     massDistribution_ => null()
-  else
-     ! Build the individual distributions.
-     massDistributionStellar => null()
-     massDistributionGas     => null()
-     if (includeStars) then
-        allocate(massDistributionStellar)
-        select type (massDistributionStellar_)
-        class is (massDistributionSpherical)
-           !![
-           <referenceConstruct object="massDistributionStellar" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massStellar,massDistribution_=massDistributionStellar_)"/>
-           !!]
-        end select
-        call massDistributionStellar%setKinematicsDistribution(kinematicDistribution_)
-     end if
-     if (includeGas  ) then
-        allocate(massDistributionGas  )
-        select type (massDistributionGas_    )
-        class is (massDistributionSpherical)
-           !![
-           <referenceConstruct object="massDistributionGas"     constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=massGas    ,massDistribution_=massDistributionGas_    )"/>
-           !!]
-        end select
-        call massDistributionGas    %setKinematicsDistribution(kinematicDistribution_)
-     end if
-     ! Combine the distributions as necessary.
-     if      (includeStars .and. includeGas) then
-        ! Wrap the dimensionless mass distribution inside scaler classes to allow us to re-scale it to any nuclear star cluster system, and then composite those.
-        allocate(massDistributionTotal          )
-        allocate(massDistributionComponents     )
-        allocate(massDistributionComponents%next)
-        massDistributionComponents     %massDistribution_ => massDistributionStellar
-        massDistributionComponents%next%massDistribution_ => massDistributionGas
-        !![
-        <referenceConstruct object="massDistributionTotal" constructor="massDistributionComposite(massDistributionComponents)"/>
-        <objectDestructor name="massDistributionStellar"/>
-        <objectDestructor name="massDistributionGas"    />
-        !!]
-        nullify(massDistributionComponents)
-        ! Return a pointer to the nuclear star cluster mass distribution.
-        massDistribution_ => massDistributionTotal
-     else if (includeStars                 ) then
-        ! Return just the stellar component.
-        massDistribution_ => massDistributionStellar
-     else if (                   includeGas) then
-        ! Return just the gas component.
-        massDistribution_ => massDistributionGas
-     end if
-  end if
+  ! Build the nuclear star cluster mass distribution.
+  radiusScale       =  self%radius()
+  massDistribution_ => Node_Component_Mass_Distribution_Scaled_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,scalerStellarPool,scalerGasPool)
   return
 end function Node_Component_NSC_Standard_Mass_Distribution
 

@@ -28,7 +28,7 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorStarFormationHistoryMass" docformat="rst">
     <description>
-    A property extractor that returns the stellar mass formed in each age and metallicity bin of the star formation history for a specified galaxy component (disk, spheroid, nuclearStarCluster, or all combined), as a 2D array (time :math:`\times` metallicity) in units of :math:`\mathrm{M}_\odot \, \mathrm{Gyr}^{-1}`. The ``component`` parameter selects which component's history to extract. Metallicity bin boundaries and, when the age grid is fixed per output, the time array are written as metadata to allow reconstruction of the full star formation history from the output dataset.
+    A property extractor that returns the stellar mass formed in each age and metallicity bin of the star formation history for a specified galaxy component (disk, spheroid, ``nuclearStarCluster``, or all combined), as a 2D array (time :math:`\times` metallicity) in units of :math:`\mathrm{M}_\odot \, \mathrm{Gyr}^{-1}`. The ``component`` parameter selects which component's history to extract. Metallicity bin boundaries and, when the age grid is fixed per output, the time array are written as metadata to allow reconstruction of the full star formation history from the output dataset.
     </description>
   </nodePropertyExtractor>
   !!]

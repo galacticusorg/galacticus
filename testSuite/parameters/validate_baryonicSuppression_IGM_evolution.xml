@@ -2,7 +2,7 @@
 <!-- Baryonic suppression validation model - reference IGM evolution. -->
 
 <parameters>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="57d4f71e7573f4666f3fa72fb74cfa7d646d1d2d" time="2026-10-14T21:57:40"/>
 
   <formatVersion>2</formatVersion>
   <verbosityLevel value="working"/>
@@ -191,6 +191,8 @@
 
   <!-- Halo accretion options -->
   <accretionHalo value="naozBarkana2007"/>
+  <!-- Use the filtering mass solved for along with the IGM state -->
+  <intergalacticMediumFilteringMass value="internal"/>
 
   <!-- Output options -->
   <outputFileName value="testSuite/outputs/validate_baryonicSuppression_IGM_evolution.hdf5"/>

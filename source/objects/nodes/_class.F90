@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
 !!}
@@ -484,10 +486,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: event
 
-    !$omp critical (nodeEventIncrement)
+    !$omp atomic capture
     eventID       =  eventID+1
     newEvent%ID   =  eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     newEvent%next => null()
     if (associated(self%event)) then
        event => self%event
@@ -792,7 +794,7 @@ module Galacticus_Nodes
     !!{RST
     Remove ``self`` from the linked list of its host node's satellites.
     !!}
-    use :: Display           , only : displayMessage, verbosityLevelInfo
+    use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: ISO_Varying_String, only : assignment(=) , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -804,9 +806,11 @@ module Galacticus_Nodes
     ! Remove from the mergee list of any merge target.
     if (associated(self%mergeTarget)) then
        nodeHost => self%mergeTarget
-       message='Mergee node ['
-       message=message//self%index()//'] being removed from merge target ['//nodeHost%index()//']'
-       call displayMessage(message,verbosityLevelInfo)
+       if (displayVerbosity() >= verbosityLevelInfo) then
+          message='Mergee node ['
+          message=message//self%index()//'] being removed from merge target ['//nodeHost%index()//']'
+          call displayMessage(message,verbosityLevelInfo)
+       end if
        if (associated(nodeHost%firstMergee,self)) then
           ! This is the first mergee, unlink it, and link to any sibling.
           nodeHost%firstMergee => self%siblingMergee
@@ -1539,10 +1543,10 @@ module Galacticus_Nodes
 
     allocate(eventNew)
     nullify(eventNew%next)
-    !$omp critical (nodeEventIncrement)
-    eventID=eventID+1
+    !$omp atomic capture
+    eventID    =eventID+1
     eventNew%ID=eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1671,9 +1675,9 @@ module Galacticus_Nodes
     type (treeEvent ), pointer       :: event
     
     !![
-    <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446" docformat="rst">
+    <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=94446" docformat="rst">
      <description>
-     Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+     Using the sizeof() intrinsic on a ``treeNode`` object causes a bogus "type mismatch" error when this module is used.
      </description>
     </workaround>
     !!]
@@ -1682,9 +1686,9 @@ module Galacticus_Nodes
     event => self%event
     do while (associated(event))
        !![
-       <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446" docformat="rst">
+       <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=94446" docformat="rst">
         <description>
-        Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+        Using the sizeof() intrinsic on a ``treeNode`` object causes a bogus "type mismatch" error when this module is used.
         </description>
        </workaround>
        !!]
@@ -1705,10 +1709,10 @@ module Galacticus_Nodes
 
     allocate(newEvent)
     nullify(newEvent%next)
-    !$omp critical (nodeEventIncrement)
-    eventID=eventID+1
+    !$omp atomic capture
+    eventID    =eventID+1
     newEvent%ID=eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1894,6 +1898,38 @@ module Galacticus_Nodes
     end do
     return
   end subroutine massDistributionsDestroy
+
+  subroutine Node_Component_Builder_Error(componentClass,implementationName,propertyName,rank,countFound,status,hostNode)
+    !!{RST
+    Report a failure to read a property of a node component from an XML definition of a node, as used when building
+    fully-specified merger trees. The message names the node, component, implementation, and property concerned, none of which
+    appear in the messages issued by the underlying XML layer.
+
+    A non-zero ``status`` is the ``iostat`` value returned by the FoX ``extractDataContent`` function, and indicates that the
+    content of the property element could not be parsed. A zero ``status`` instead indicates that ``countFound`` elements were
+    found for a property which must be specified by precisely one element.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: IO_XML            , only : XML_Extract_Error_Message
+    use :: ISO_Varying_String, only : varying_string           , assignment(=), operator(//)
+    use :: String_Handling   , only : operator(//)
+    implicit none
+    character(len=*         ), intent(in   )          :: componentClass, implementationName, propertyName
+    integer                  , intent(in   )          :: rank          , countFound        , status
+    type     (treeNode      ), intent(in   ), pointer :: hostNode
+    type     (varying_string)                         :: message
+
+    message="while building the '"//trim(implementationName)//"' implementation of the '"//trim(componentClass)//"' component"
+    if (associated(hostNode)) message=message//" of node "//hostNode%index()
+    message=message//":"//char(10)//"  "
+    if (status /= 0) then
+       message=message//XML_Extract_Error_Message(status,propertyName,rank)
+    else
+       message=message//"property '"//trim(propertyName)//"' must be specified by precisely one element, but "//countFound//" were found"
+    end if
+    call Error_Report(message//{introspection:location})
+    return
+  end subroutine Node_Component_Builder_Error
 
   subroutine nodeHierarchyWrapperDestructor(self)
     !!{RST

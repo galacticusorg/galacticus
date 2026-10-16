@@ -150,7 +150,7 @@
 
    **Requirements for Galacticus Input Parameters:** The following requirements must be met for the input parameters to Galacticus when using merger trees read from file:
 
-   * The cosmological parameters (:math:`\Omega_\mathrm{M}`, :math:`\Omega_\Lambda`, :math:`\Omega_\mathrm{b}`, :math:`H_0`, :math:`\sigma_8`), if defined in the file, must be set identically in the Galacticus input file unless you set ``[mismatchIsFatal]``\ :math:`=`\ ``false`` in which case you'll just be warned about any mismatch;
+   * The cosmological parameters (:math:`\Omega_\mathrm{M}`, :math:`\Omega_\Lambda`, :math:`\Omega_\mathrm{b}`, :math:`H_0`, :math:`\sigma_8`), if defined in the file, must be set identically in the Galacticus input file unless you set ``[fatalMismatches]``\ :math:`=`\ ``false`` in the :galacticus-class:`mergerTreeImporterGalacticus` importer in which case you'll just be warned about any mismatch;
    * Galacticus assumes by default that all merger trees exist at the final output time---if this is not the case set ``[allTreesExistAtFinalTime]``\ :math:`=`\ ``false``.
 
    **Dark Matter Scale Radii**:  If ``[presetScaleRadii]``\ :math:`=`\ ``true`` and the ``halfMassRadius`` dataset is available within the ``haloTrees`` group (see :ref:`here &lt;forest-halos-group&gt;`) then the half-mass radii of nodes will be used to compute the corresponding scale length of the dark matter halo profile\ [#]_. This requires a dark matter profile scale component which supports setting of the scale length (see :ref:`here &lt;manual-sec-ComponentClasses&gt;`).
@@ -391,7 +391,7 @@ contains
     <inputParameter docformat="rst">
       <name>fileNames</name>
       <description>
-      The name of the file(s) from which merger tree data should be read when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+      The name of the file(s) from which merger tree data should be read when using the ``[mergerTreeConstructor]``\ :math:`=`\ ``read`` tree construction method.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -610,7 +610,7 @@ contains
        <inputParameter docformat="rst">
          <name>presetNamedReals</name>
          <description>
-         Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+         Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstructor]``\ :math:`=`\ ``read`` tree construction method.
          </description>
          <source>parameters</source>
        </inputParameter>
@@ -622,7 +622,7 @@ contains
        <inputParameter docformat="rst">
          <name>presetNamedIntegers</name>
          <description>
-         Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstruct]``\ :math:`=`\ ``read`` tree construction method.
+         Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the ``[mergerTreeConstructor]``\ :math:`=`\ ``read`` tree construction method.
          </description>
          <source>parameters</source>
        </inputParameter>
@@ -1326,101 +1326,44 @@ contains
     Validate that the default node components support setting of all properties which are to be preset. The requirements depend
     only on the ``preset*`` options of this object, not on the tree being processed.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Component_List                   , Error_Report
-    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent
     implicit none
     class(mergerTreeConstructorRead), intent(inout) :: self
 
     if (self%presetPositions.or.self%presetOrbits) then
        ! Position and velocity methods are required.
-       if     (                                                                                                                                                &
-            &  .not.(                                                                                                                                          &
-            &         defaultPositionComponent%positionIsSettable()                                                                                            &
-            &        .and.                                                                                                                                     &
-            &         defaultPositionComponent%velocityIsSettable()                                                                                            &
-            &       )                                                                                                                                          &
-            & )                                                                                                                                                &
-            & call Error_Report                                                                                                                                &
-            &      (                                                                                                                                           &
-            &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'// &
-            &       Component_List(                                                                                                                            &
-            &                      'position'                                                                                                                , &
-            &                       defaultPositionComponent        %             positionAttributeMatch(requireSettable=.true.)                               &
-            &                      .intersection.                                                                                                              &
-            &                       defaultPositionComponent        %             velocityAttributeMatch(requireSettable=.true.)                               &
-            &                     )                                                                                                                         // &
-            &       char(10)                                                                                                                                // &
-            &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'         // &
-            &       {introspection:location}                                                                                                                   &
-            & )
+       !![
+       <componentPropertyAssert class="position" properties="position velocity" require="settable" message="presetting positions or orbits requires a component that supports setting of positions and velocities (e.g. set [componentPosition]=preset)."/>
+       !!]
     end if
     if (self%presetMergerTimes     ) then
        ! Time of merging property is required.
-       if (.not.defaultSatelliteComponent%timeOfMergingIsSettable                ())                                                                           &
-            & call Error_Report                                                                                                                                &
-            &      (                                                                                                                                           &
-            &       'presetting merging times requires a component that supports setting of merging times.'                                                 // &
-            &       Component_List(                                                                                                                            &
-            &                      'satellite'                                                                                                               , &
-            &                       defaultSatelliteComponent       %        timeOfMergingAttributeMatch(requireSettable=.true.)                               &
-            &                      )                                                                                                                        // &
-            &       {introspection:location}                                                                                                                   &
-            &      )
+       !![
+       <componentPropertyAssert class="satellite" properties="timeOfMerging" require="settable" message="presetting merging times requires a component that supports setting of merging times."/>
+       !!]
     end if
     if (self%presetScaleRadii      ) then
        ! Scale radius property is required.
-       if (.not.defaultDarkMatterProfileComponent%scaleIsSettable                ())                                                                           &
-            & call Error_Report                                                                                                                                &
-            &      (                                                                                                                                           &
-            &       'presetting scale radii requires a component that supports setting of scale radii.'                                                     // &
-            &       Component_List(                                                                                                                            &
-            &                      'darkMatterProfile'                                                                                                       , &
-            &                      defaultDarkMatterProfileComponent%                scaleAttributeMatch(requireSettable=.true.)                               &
-            &                     )                                                                                                                         // &
-            &       {introspection:location}                                                                                                                   &
-            &      )
+       !![
+       <componentPropertyAssert class="darkMatterProfile" properties="scale" require="settable" message="presetting scale radii requires a component that supports setting of scale radii."/>
+       !!]
     end if
     if (self%presetAngularMomenta  ) then
        ! Angular momentum property is required.
-       if (.not.defaultSpinComponent             %angularMomentumIsSettable      ())                                                                           &
-            & call Error_Report                                                                                                                                &
-            &      (                                                                                                                                           &
-            &       'presetting angular momenta requires a component that supports setting of angular momenta.'                                             // &
-            &       Component_List(                                                                                                                            &
-            &                      'spin'                                                                                                                    , &
-            &                      defaultSpinComponent             %      angularMomentumAttributeMatch(requireSettable=.true.)                               &
-            &                     )                                                                                                                         // &
-            &       {introspection:location}                                                                                                                   &
-            &      )
+       !![
+       <componentPropertyAssert class="spin" properties="angularMomentum" require="settable" message="presetting angular momenta requires a component that supports setting of angular momenta."/>
+       !!]
     end if
     if (self%presetAngularMomenta3D) then
        ! Spin property is required.
-       if (.not.defaultSpinComponent             %angularMomentumVectorIsSettable())                                                                           &
-            & call Error_Report                                                                                                                                &
-            &      (                                                                                                                                           &
-            &       'presetting angular momentum vectors requires a component that supports setting of angular momentum vectors.'                           // &
-            &       Component_List(                                                                                                                            &
-            &                      'spinVector'                                                                                                              , &
-            &                      defaultSpinComponent             %angularMomentumVectorAttributeMatch(requireSettable=.true.)                               &
-            &                     )                                                                                                                         // &
-            &       {introspection:location}                                                                                                                   &
-            &      )
+       !![
+       <componentPropertyAssert class="spin" properties="angularMomentumVector" require="settable" message="presetting angular momentum vectors requires a component that supports setting of angular momentum vectors."/>
+       !!]
     end if
     if (self%presetOrbits     ) then
        ! Orbit property is required.
-       if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                     &
-            & call Error_Report                                                                                                                                &
-            &      (                                                                                                                                           &
-            &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                            // &
-            &       Component_List(                                                                                                                            &
-            &                      'satellite'                                                                                                               , &
-            &                      defaultSatelliteComponent        %          virialOrbitAttributeMatch(requireSettable=.true.)                               &
-            &                     )                                                                                                                         // &
-            &       char(10)                                                                                                                                // &
-            &       'Alternatively, set [presetOrbits]=false to prevent attempts to set orbits)'                                                            // &
-            &       {introspection:location}                                                                                                                   &
-            &      )
+       !![
+       <componentPropertyAssert class="satellite" properties="virialOrbit" require="settable" message="presetting orbits requires a component that supports setting of orbits (e.g. set [componentSatellite]=preset)."/>
+       !!]
     end if
     return
   end subroutine readValidatePresetComponents
@@ -3155,8 +3098,8 @@ contains
     Build and attached bound mass histories to subhalos.
     !!}
     use :: Error                     , only : Error_Report
-    use :: Galacticus_Nodes          , only : defaultSatelliteComponent, nodeComponentPosition, nodeComponentSatellite, treeNodeList
-    use :: Histories                 , only : history                  , longIntegerHistory
+    use :: Galacticus_Nodes          , only : nodeComponentPosition, nodeComponentSatellite, treeNodeList
+    use :: Histories                 , only : history              , longIntegerHistory
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -3179,11 +3122,17 @@ contains
 
     if (self%presetSubhaloMasses.or.self%presetPositions.or.self%presetSubhaloIndices) then
        ! Check that preset subhalo masses are supported.
-       if (self%presetSubhaloMasses .and..not.defaultSatelliteComponent%boundMassHistoryIsSettable()) &
-            & call Error_Report('presetting subhalo masses requires a component that supports setting of node bound mass histories'//{introspection:location})
-       ! Check that preset subhalo masses are supported.
-       if (self%presetSubhaloIndices.and..not.defaultSatelliteComponent%nodeIndexHistoryIsSettable()) &
-            & call Error_Report('presetting subhalo indices requires a component that supports setting of node index histories'//{introspection:location})
+       if (self%presetSubhaloMasses ) then
+          !![
+          <componentPropertyAssert class="satellite" properties="boundMassHistory" require="settable" message="presetting subhalo masses requires a component that supports setting of node bound mass histories."/>
+          !!]
+       end if
+       ! Check that preset subhalo indices are supported.
+       if (self%presetSubhaloIndices) then
+          !![
+          <componentPropertyAssert class="satellite" properties="nodeIndexHistory" require="settable" message="presetting subhalo indices requires a component that supports setting of node index histories."/>
+          !!]
+       end if
        ! Get the default cosmology functions object.
        historyBuildNodeLoop: do iNode=1,size(nodes)
           historyBuildIsolatedSelect: if (nodes(iNode)%primaryIsolatedNodeIndex /= nodeReachabilityUnreachable%ID) then

@@ -1,11 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameters for testing the observational selection function applied to Local Group satellites. -->
+
 <!-- A deliberately small, low-resolution model: this tests the machinery which applies the selection    -->
+
 <!-- function, not the physics of the satellite population.                                             -->
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="57d4f71e7573f4666f3fa72fb74cfa7d646d1d2d" time="2026-10-14T21:57:40"/>
 
 
   <!-- Include required parameters -->

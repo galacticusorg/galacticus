@@ -33,6 +33,7 @@ Implements a dark matter halo mass function class which modifies another mass fu
 
    where :math:`\alpha=`\ ``[alpha]``, and :math:`\beta=`\ ``[beta]``.
    </description>
+   <forwards object="referenceMassFunction"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionSimpleSystematic

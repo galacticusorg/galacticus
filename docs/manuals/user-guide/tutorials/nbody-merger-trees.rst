@@ -22,7 +22,7 @@ you will use for the run:
      <outputTimeSnapTolerance  value="0.001"        />
      <presetMergerTimes        value="true"         />
      <presetOrbits             value="true"         />
-     <presetSpins              value="false"        />
+     <presetAngularMomenta     value="false"        />
      <presetPositions          value="true"         />
      <presetSubhaloMasses      value="false"        />
      <presetScaleRadii         value="false"        />
@@ -31,10 +31,10 @@ you will use for the run:
    <mergerTreeImporter value="galacticus">
      <fatalMismatches          value="true" />
      <reweightTrees            value="false"/>
-     <validate                 value="false"/>
+     <validateData             value="false"/>
    </mergerTreeImporter>
 
-The first of these ``mergerTreeConstruct=read`` tells Galacticus that merger trees will be
+The first of these ``mergerTreeConstructor=read`` tells Galacticus that merger trees will be
 constructed by reading them from a file. The second, ``mergerTreeImporter``, gives the type of importer to use - in this case we use the ``galacticus`` importer which knows how to import data from the standard Galacticus merger tree file format.
 
 There are many sub-parameters which can be set to change the behavior of merger tree reading. In order to choose sensible settings for the various parameters that
@@ -162,7 +162,7 @@ positions and velocities. Recommended settings are therefore:
 
 .. code-block:: xml
 
-   <componentPosition      value="preset"/>
+   <componentPosition      value="cartesian"/>
    <mergerTreeConstructor value="read">
      <presetPositions value="true"  />
    </mergerTreeConstructor>
@@ -236,7 +236,7 @@ settings are therefore:
 
    <mergerTreeConstructor value="read">
      <presetScaleRadii                     value="true"     />
-     <presetScaleRadiiFailureIsFatal       value="true"     />
+     <scaleRadiiFailureIsFatal             value="true"     />
      <presetScaleRadiiConcentrationMinimum value="3"        />
      <presetScaleRadiiConcentrationMaximum value="60"       />
      <presetScaleRadiiMinimumMass          value="see below"/>
@@ -260,10 +260,10 @@ Recommended settings are:
 
 .. code-block:: xml
 
-   <componentSpin          value="preset"/>
+   <componentSpin          value="scalar"/>
    <mergerTreeConstructor value="read">
-     <presetSpins           value="true"  />
-     <presetUnphysicalSpins value="true"  />
+     <presetAngularMomenta           value="true"  />
+     <presetUnphysicalAngularMomenta value="true"  />
    </mergerTreeConstructor>
 
 The last of these options causes any halos for which the spin given in
@@ -280,7 +280,7 @@ the recommended setting is:
 .. code-block:: xml
 
    <mergerTreeConstructor value="read">
-     <subhaloAngularMomenta value="summation"/>
+     <subhaloAngularMomentaMethod value="summation"/>
    </mergerTreeConstructor>
 
 If this information is not present
@@ -288,7 +288,7 @@ If this information is not present
 .. code-block:: xml
 
    <mergerTreeConstructor value="read">
-     <subhaloAngularMomenta value="scale"    />
+     <subhaloAngularMomentaMethod value="scale"    />
    </mergerTreeConstructor>
 
 should be used instead.
@@ -299,9 +299,9 @@ Galacticus by using the settings:
 
 .. code-block:: xml
 
-   <componentSpin          value="preset3D"/>
+   <componentSpin          value="vector"/>
    <mergerTreeConstructor value="read">
-     <presetSpins3D value="true"    />
+     <presetAngularMomenta3D value="true"    />
    </mergerTreeConstructor>
 
 **Subhalo Indices:** If your merger trees contain subhalos,
@@ -314,11 +314,12 @@ you can tell Galacticus to keep track of the indices of subhalos by setting:
      <presetSubhaloIndices value="true"  />
    </mergerTreeConstructor>
 
-The Galacticus output file will then contain ``satelliteNodeIndex``
-datasets which list the index (as given in the merger tree file) for all
-subhalos and halos. Without specifying this presetting, the index of
-subhalos is frozen at the index of the halo immediately prior to it
-becoming a subhalo.
+The ``nodeIndex`` of a subhalo is always frozen at the index of the
+halo just before it became a subhalo. With these settings the Galacticus output
+file also contains ``satelliteNodeIndex`` datasets. These give the index (as
+listed in the merger tree file) of each subhalo at the snapshot closest to the
+output time, and the ``nodeIndex`` of each isolated halo. See
+:ref:`sec-output-tree-structure-caveats` for details.
 
 The remainder of this section gives more detail about many of the
 parameters described above and how they affect handling of merger trees
@@ -343,7 +344,7 @@ tree construction method to preset node positions as follows:
 .. code-block:: xml
 
    <!-- Use merger tree node positions -->
-   <componentPosition      value="preset"/>
+   <componentPosition      value="cartesian"/>
    <mergerTreeConstructor value="read">
      <presetPositions value="true"  />
    </mergerTreeConstructor>
@@ -425,7 +426,7 @@ this way then instead set, for example,
 .. code-block:: xml
 
    <componentSatellite         value="standard" />
-   <satelliteMerging          value="jiang2008"/>
+   <satelliteMergingTimescales value="jiang2008"/>
    <mergerTreeConstructor value="read">
     <presetMergerNodes value="false"/>
    </mergerTreeConstructor>
@@ -467,9 +468,13 @@ node is updated accordingly.
 Subhalo Indices
 ~~~~~~~~~~~~~~~
 
-The indices of subhalos are usually frozen at the index of the halo just
-prior to becoming a subhalo. The index of the corresponding halo in the
-original tree (as read from file) can be tracked as follows:
+The ``nodeIndex`` of a subhalo is frozen at the index of the halo just
+before it became a subhalo. It does not change as the subhalo evolves, so
+looking up a subhalo's ``nodeIndex`` in the merger tree file finds the halo
+at an earlier snapshot than the output (see
+:ref:`sec-output-tree-structure-caveats`). The index of the corresponding
+subhalo in the original tree (as read from file) at each time can be tracked
+as follows:
 
 .. code-block:: xml
 
@@ -511,7 +516,7 @@ parameter in each node [#footnote4]_ by setting:
 .. code-block:: xml
 
    <mergerTreeConstructor value="read">
-    <presetSpins value="true"/>
+    <presetAngularMomenta value="true"/>
    </mergerTreeConstructor>
 
 The spin parameter is set using the spin of each node if available, or
@@ -523,7 +528,7 @@ the node's mass and :math:`E` is its energy. Additionally, by setting:
 
 .. code-block:: xml
 
-   <mergerTreeReadPresetSpins3D value="true"/>
+   <presetAngularMomenta3D value="true"/>
 
 the spin vector of each node will be set (assuming that the vector spin
 or angular momenta of nodes are available in the merger tree file)
@@ -704,7 +709,7 @@ should be set:
    </task>
    <mergerTreeConstructor value="read">
     <forestSizeMaximum          value="10000000"         />
-    <subresolutionMerging value="infinite"         />
+    <satelliteMergingTimescalesSubresolution value="infinite"/>
    </mergerTreeConstructor>
 
 Here, ``suspendToRAM`` specifies that merger trees
@@ -719,7 +724,7 @@ number for this depends on the details of the available RAM, the number
 of threads sharing that RAM, and the characteristics of the Galacticus model being
 used (which will affect the memory required per node).
 
-Finally, ``subresolutionMerging`` is set to
+Finally, ``satelliteMergingTimescalesSubresolution`` is set to
 ``infinite`` to prevent any merging (which is not supported for
 split forests at present, although it should be soon).
 

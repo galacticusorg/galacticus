@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes applied to `parameters/quickTest.xml` for `test-temporary-parameter-file.py`.        -->
+<!-- Only the output file is changed - the model itself is irrelevant to the test, which cares    -->
+<!-- solely about the temporary file used to accumulate the output parameter set.                 -->
+<changes>
+
+  <change type="replaceOrAppend" path="outputFileName">
+    <outputFileName value="testSuite/outputs/temporaryParameterFile.hdf5"/>
+  </change>
+
+</changes>

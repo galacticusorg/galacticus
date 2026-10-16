@@ -161,12 +161,13 @@ contains
     !!{RST
     Import data from a IRATE file.
     !!}
-    use :: Display     , only : displayIndent          , displayUnindent               , verbosityLevelStandard
-    use :: Error       , only : errorStatusSuccess
-    use :: Dictionaries, only : doubleDictionary       , integerSizeTDictionary        , rank1DoublePtrDictionary    , rank1IntegerSizeTPtrDictionary, &
-          &                    rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, varyingStringDictionary     , genericDictionary
+    use :: Display     , only : displayIndent           , displayUnindent                , verbosityLevelStandard
+    use :: Error       , only : errorStatusSuccess      , Error_Report_Allocation_Failure
+    use :: Dictionaries, only : doubleDictionary        , integerSizeTDictionary         , rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, &
+          &                     rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary , varyingStringDictionary , genericDictionary
     use :: HDF5_Access , only : hdf5Access
-    use :: IO_HDF5     , only : H5T_NATIVE_DOUBLES     , H5T_NATIVE_INTEGERS           , hdf5File, hdf5Group, hdf5Dataset
+    use :: IO_HDF5     , only : H5T_NATIVE_DOUBLES      , H5T_NATIVE_INTEGERS            , hdf5File                , hdf5Group                     , &
+         &                      hdf5Dataset
     use :: IO_IRATE    , only : irate
     implicit none
     class           (nbodyImporterIRATE), intent(inout)                              :: self
@@ -179,7 +180,8 @@ contains
     type            (hdf5Group         )                                             :: snapshotGroup
     type            (hdf5Dataset       )                                             :: dataset
     character       (len=13            )                                             :: snapshotLabel
-    integer                                                                          :: i              , status
+    integer                                                                          :: i              , status     , &
+         &                                                                              allocErr
     double precision                                                                 :: boxSize
 
     call displayIndent('import simulation from IRATE file',verbosityLevelStandard)
@@ -225,14 +227,16 @@ contains
        dataset=simulations(1)%analysis%openDataset(char(datasetNames(i)))
        call dataset%assertDatasetType(H5T_NATIVE_INTEGERS,1,status)
        if (status == errorStatusSuccess) then
-          allocate(propertyInteger(dataset%size(1)))
+          allocate(propertyInteger(dataset%size(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('propertyInteger',dataset%size(1),{introspection:location})
           call dataset       %readDatasetStatic    (                datasetValue=propertyInteger)
           call simulations(1)%propertiesInteger%set(datasetNames(i),             propertyInteger)
           nullify(propertyInteger)
        end if
        call dataset%assertDatasetType(H5T_NATIVE_DOUBLES ,1,status)
        if (status == errorStatusSuccess) then
-          allocate(propertyReal   (dataset%size(1)))
+          allocate(propertyReal   (dataset%size(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('propertyReal',dataset%size(1),{introspection:location})
           call dataset       %readDatasetStatic    (                datasetValue=propertyReal   )
           call simulations(1)%propertiesReal   %set(datasetNames(i),             propertyReal   )
           nullify(propertyReal   )

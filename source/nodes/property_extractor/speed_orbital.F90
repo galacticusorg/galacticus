@@ -24,7 +24,7 @@ Implements an orbital speed output analysis property extractor class.
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpeedOrbital" docformat="rst">
    <description>
-   Extracts the current orbital speed of a satellite node as it moves through its host halo potential, computed from the satellite's velocity vector, for use in orbital energy analyses and comparison with observed satellite velocity distributions.
+   Extracts the current orbital speed of a node: the magnitude of its velocity relative to the top-level halo of its sub-halo hierarchy, as computed by :galacticus-class:`nodePropertyExtractorVelocityOrbital`, for use in orbital energy analyses and comparison with observed satellite velocity distributions.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -70,30 +70,19 @@ contains
     !!{RST
     Implement a speedOrbital output analysis.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite
-    use :: Vectors         , only : Vector_Magnitude
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Node_Orbital_Offsets, only : Node_Orbital_Offset
+    use :: Vectors             , only : Vector_Magnitude
     implicit none
     class           (nodePropertyExtractorSpeedOrbital), intent(inout), target   :: self
     type            (treeNode                         ), intent(inout), target   :: node
     type            (multiCounter                     ), intent(inout), optional :: instance
-    type            (treeNode                         ), pointer                 :: nodeWork
-    class           (nodeComponentSatellite           ), pointer                 :: satellite
+    class           (nodeComponentBasic               ), pointer                 :: basic
     double precision                                   , dimension(3)            :: velocity
     !$GLC attributes unused :: self, instance
 
-    velocity =  0.0d0
-    nodeWork => node
-    ! Walk up through all host halos of this node, accumulating velocity offsets from the host node center.
-    do while (associated(nodeWork))
-       satellite =>  nodeWork %satellite()
-       velocity  =  +          velocity    &
-            &       +satellite%velocity ()
-       if (nodeWork%isSatellite()) then
-          nodeWork => nodeWork%parent
-       else
-          nodeWork => null()
-       end if
-    end do
+    basic => node%basic()
+    call Node_Orbital_Offset(node,basic%time(),velocity=velocity)
     speedOrbitalExtract=Vector_Magnitude(velocity)
     return
   end function speedOrbitalExtract

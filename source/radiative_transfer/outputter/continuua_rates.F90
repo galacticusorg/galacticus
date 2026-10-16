@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
   
   !![
@@ -39,6 +41,7 @@
      type            (varying_string                ), allocatable, dimension(:    ) :: sourceTypeName
      integer                                                                         :: countElements                         , atomicNumberMaximum
    contains
+     final     ::                        continuuaRatesDestructor
      procedure :: reset               => continuuaRatesReset
      procedure :: sourceProperties    => continuuaRatesSourceProperties
      procedure :: photonPacketEscapes => continuuaRatesPhotonPacketEscapes

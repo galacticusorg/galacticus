@@ -101,69 +101,21 @@ contains
   
   subroutine tidalMassLossSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
-    Perform star formation in a spheroid.
+    Apply tidal mass loss to the spheroid.
     !!}
-    use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentSpheroid  , nodeComponentHotHalo
-    use :: Abundances_Structure          , only : operator(*)
-    use :: Histories                     , only : operator(*)     , history
-    use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
+    use :: Galacticus_Nodes         , only : propertyInactive
+    use :: Tidal_Mass_Loss_Utilities, only : Tidal_Mass_Loss_Apply_Spheroid
     implicit none
-    class           (nodeOperatorTidalMassLossSpheroids), intent(inout), target  :: self
-    type            (treeNode                          ), intent(inout), target  :: node
-    logical                                             , intent(inout)          :: interrupt
-    procedure       (interruptTask                     ), intent(inout), pointer :: functionInterrupt
-    integer                                             , intent(in   )          :: propertyType
-    class           (nodeComponentSpheroid             )               , pointer :: spheroid
-    class           (nodeComponentHotHalo              )               , pointer :: hotHalo
-    type            (stellarLuminosities               ), save                   :: luminositiesTransferRate
-    !$omp threadprivate(luminositiesTransferRate)
-    double precision                                                             :: fractionGas             , fractionStellar, &
-         &                                                                          massLossRate
-    type            (history                           )                         :: historyTransferRate
+    class    (nodeOperatorTidalMassLossSpheroids), intent(inout), target  :: self
+    type     (treeNode                          ), intent(inout), target  :: node
+    logical                                      , intent(inout)          :: interrupt
+    procedure(interruptTask                     ), intent(inout), pointer :: functionInterrupt
+    integer                                      , intent(in   )          :: propertyType
+    !$GLC attributes unused :: interrupt, functionInterrupt
 
     ! Do nothing during inactive property solving.
-    if (propertyInactive(propertyType)                    ) return
-    ! Return if the spheroid has no mass.
-    spheroid => node%spheroid()
-    if (spheroid%massGas()+spheroid%massStellar() <= 0.0d0) return
-    ! Return if the tidal mass loss rate is zero.
-    massLossRate=self%tidalStripping_%rateMassLoss(spheroid)
-    if (massLossRate                              <= 0.0d0) return
-    ! Transfer stripped material from the spheroid.
-    !! Gas is moved to the hot halo component.
-    hotHalo         => node%hotHalo()
-    fractionGas     =  min(1.0d0,max(0.0d0,spheroid%massGas()/(spheroid%massGas()+spheroid%massStellar())))
-    fractionStellar =  1.0d0-fractionGas
-    if (fractionGas     > 0.0d0 .and. spheroid%massGas    () > 0.0d0) then
-       call        spheroid%                  massGasRate(-fractionGas    *massLossRate                                                                         )
-       call        spheroid%            abundancesGasRate(-fractionGas    *massLossRate*spheroid%abundancesGas    ()/ spheroid%massGas()                        )
-       call         hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                         )
-       call         hotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*spheroid%abundancesGas    ()/ spheroid%massGas()                        )
-       call         hotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*spheroid%angularMomentum  ()/(spheroid%massGas()+spheroid%massStellar()))
-    end if
-    ! Stellar mass is simply removed.
-    if (fractionStellar > 0.0d0 .and. spheroid%massStellar() > 0.0d0) then
-       ! If luminosities are being treated as inactive properties this is an error - they appear on the right-hand side
-       ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
-       ! luminosities to the spheroid by bar instabilities could work here.)
-       !! Stellar mass and metals.
-       call        spheroid%              massStellarRate(-fractionStellar*massLossRate                                                                         )
-       call        spheroid%        abundancesStellarRate(-fractionStellar*massLossRate*spheroid%abundancesStellar()/                    spheroid%massStellar() )
-       !! Stellar luminosities.
-       luminositiesTransferRate=max(zeroStellarLuminosities,spheroid%luminositiesStellar())
-       call        spheroid%      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesTransferRate    /                    spheroid%massStellar() )
-       !! Stellar properties history.
-       historyTransferRate=spheroid%stellarPropertiesHistory()
-       if (historyTransferRate%exists()) &
-            & call spheroid%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    spheroid%massStellar() )
-       call historyTransferRate%destroy()
-       !! Star formation history.
-       historyTransferRate=spheroid%starFormationHistory()
-       if (historyTransferRate%exists()) &
-            & call spheroid    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    spheroid%massStellar() )
-    end if
-    ! Angular momentum is lost.
-    call           spheroid%          angularMomentumRate(-                massLossRate*spheroid%angularMomentum  ()/(spheroid%massGas()+spheroid%massStellar()))
+    if (propertyInactive(propertyType)) return
+    call Tidal_Mass_Loss_Apply_Spheroid(node,self%tidalStripping_)
     return
   end subroutine tidalMassLossSpheroidsDifferentialEvolution
 

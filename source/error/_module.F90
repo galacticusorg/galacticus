@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements error reporting for the  Galacticus package.
 !!}
@@ -25,22 +27,34 @@ module Error
   !!{RST
   Implements error reporting for the  Galacticus package.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_int
+  use, intrinsic :: ISO_C_Binding     , only : c_int         , c_size_t
   use            :: ISO_Varying_String, only : varying_string
-  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom    , GSL_eRange  , &
+  use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom    , GSL_eRange, &
           &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eMaxIter, GSL_eRound
   implicit none
   private
-  public :: Error_Report               , Error_Handler_Register    , &
-       &    Component_List             , GSL_Error_Handler_Abort_On, &
-       &    GSL_Error_Handler_Abort_Off, GSL_Error_Status          , &
-       &    Warn                       , Error_Wait_Set            , &
-       &    GSL_Error_Details          , signalHandlerDeregister   , &
-       &    signalHandlerRegister      , signalHandlerInterface
+  public :: Error_Report               , Error_Handler_Register         , &
+       &    Component_List             , GSL_Error_Handler_Abort_On     , &
+       &    GSL_Error_Handler_Abort_Off, GSL_Error_Status               , &
+       &    Warn                       , Error_Wait_Set                 , &
+       &    GSL_Error_Details          , signalHandlerDeregister        , &
+       &    signalHandlerRegister      , signalHandlerInterface         , &
+       &    GSL_Error_Handler_Aborting , Error_Report_Allocation_Failure 
+
   interface Error_Report
      module procedure Error_Report_Char
      module procedure Error_Report_VarStr
   end interface Error_Report
+
+  interface Error_Report_Allocation_Failure
+     !!{RST
+        Report a failure to allocate memory. The element count is accepted as either a default integer or
+        a ``c_size_t``, since the counts which size such allocations are read from files and so are of
+        both kinds.
+     !!}
+     module procedure Error_Report_Allocation_Failure_Integer
+     module procedure Error_Report_Allocation_Failure_SizeT
+  end interface Error_Report_Allocation_Failure
 
   interface Warn
      module procedure Warn_Char
@@ -59,6 +73,12 @@ module Error
   integer, parameter, public :: errorStatusMaxIterations=GSL_eMaxIter ! Maximum iterations exceeded.
   integer, parameter, public :: errorStatusXCPU         =1025         ! CPU time limit exceeded.
   integer, parameter, public :: errorStatusNotExist     =1026         ! Entity does not exist.
+
+  ! Value passed to registered signal handlers when they are called other than in response to a
+  ! signal - that is, from `Error_Report`. Zero is not a valid POSIX signal number, so it cannot be
+  ! confused with one, and it is the value which a handler recording "no signal has been seen" would
+  ! hold anyway.
+  integer, parameter, public :: signalNone              =   0         ! Not a signal.
   
   !![
   <constant variable="Kernel_EACCES"       kernelSymbol="EACCES"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for permission denied."             group="Kernel"/>
@@ -82,14 +102,22 @@ module Error
 
   ! Type used to accumulate warning messages.
   type :: warning
-     type(varying_string)          :: message
-     type(warning       ), pointer :: next    => null()
+     type   (varying_string)          :: message
+     integer(c_size_t      )          :: count   =  0_c_size_t
+     type   (warning       ), pointer :: next    => null()
   end type warning
 
-  ! Record of warnings.
-  type   (warning), pointer :: warningList
-  logical                   :: warningsFound=.false.
-  
+  ! Record of warnings. Warnings are accumulated into a linked list, which is consumed only if the
+  ! run subsequently exits with an error. Since warnings can be issued very frequently (for example,
+  ! once per node), and since the list is maintained inside a global critical section, care is taken
+  ! to keep the cost of recording a warning bounded: repeated warnings are deduplicated on their
+  ! message text (with a count kept of the number of times each was issued), the number of unique
+  ! messages retained is limited to `warningsUniqueMaximum`, and a pointer to the tail of the list is
+  ! maintained so that appends need not walk the list.
+  integer(c_size_t), parameter :: warningsUniqueMaximum=  100_c_size_t
+  type   (warning ), pointer   :: warningList          => null()      , warningListTail => null()
+  integer(c_size_t)            :: warningsUnique       =    0_c_size_t, warningsTotal   =  0_c_size_t
+
   ! Linked-list of functions to call on error.
   abstract interface
      subroutine signalHandlerInterface(signal)
@@ -108,6 +136,55 @@ module Error
   !$omp threadprivate(signalHandlers,signalHandlerLast,inErrorHandling)
   
 contains
+
+  subroutine Error_Report_Allocation_Failure_Integer(name,elementCount,location)
+    !!{RST
+    Report a failure to allocate memory, for an element count given as a default integer.
+    !!}
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    character(len=*), intent(in   ) :: name        , location
+    integer         , intent(in   ) :: elementCount
+
+    call Error_Report_Allocation_Failure_SizeT(name,int(elementCount,kind=c_size_t),location)
+    return
+  end subroutine Error_Report_Allocation_Failure_Integer
+
+  subroutine Error_Report_Allocation_Failure_SizeT(name,elementCount,location)
+    !!{RST
+    Report a failure to allocate memory.
+
+    An ``allocate`` which fails without ``stat=`` aborts the process with no indication of what was
+    being allocated, which is of no help at all in deciding what to do about it. This reports the
+    name of the object and the number of elements requested.
+
+    It exists so that the cost at each call site is a scalar integer and one branch: the message is
+    built here, on the failing branch, and not in the caller where the machinery to build it would be
+    constructed and destroyed on every call including the overwhelming majority which succeed.
+    !!}
+    use            :: Display      , only : displayGreen, displayReset
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    character(len=*        ), intent(in   )              :: name        , location
+    integer  (c_size_t     ), intent(in   )              :: elementCount
+    character(len=32       )                             :: countLabel
+    character(len=:        ), allocatable                :: message
+
+    ! The message is assembled before being reported, rather than being built in the call to
+    ! `Error_Report`, because the location is supplied by the caller here: a call which builds its
+    ! message from literals is required to append `{introspection:location}` itself, and check 5 of
+    ! `staticAnalyzer.py` enforces that.
+    write (countLabel,'(i0)') elementCount
+    message='unable to allocate `'//name//'` ('//trim(countLabel)//' elements)'//char(10)        // &
+         &  displayGreen()//'HELP:'//displayReset()                                              // &
+         &  ' the run needs more memory than is available to it. Reduce the size of the problem' // &
+         &  ' (for example, the number of trees or particles being processed), reduce the number'// &
+         &  ' of OpenMP threads, since each holds its own copy of much of the state, or run'     // &
+         &  ' where more memory is available'                                                    // &
+         &  location
+    call Error_Report(message)
+    return
+  end subroutine Error_Report_Allocation_Failure_SizeT
 
   subroutine Error_Report_VarStr(message)
     !!{RST
@@ -153,11 +230,17 @@ contains
     !$    write (error_unit,*) " => Error occurred in master thread"
     !$ end if
     write (error_unit,*) " => Command line was: ",char(commandLine())
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message()
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
+    ! Call any registered signal handlers, so that a deliberate fatal error dumps the same context a
+    ! crash would. Handlers are `threadprivate`, so this reports the context of the thread which
+    ! failed and of no other - which is what is wanted, since that is the thread whose state is
+    ! relevant. `signalHandlersCall` will not re-enter the handlers if one of them itself raises an
+    ! error.
+    call signalHandlersCall(signalNone )
+    call BackTrace         (           )
+    call Warn_Review       (           )
+    call Error_Help_Message(           )
+    call Flush             (output_unit)
+    call Flush             ( error_unit)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -222,31 +305,43 @@ contains
     Display a warning message.
     !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelWarn
-    use :: ISO_Varying_String, only : assignment(=)
+    use :: ISO_Varying_String, only : assignment(=) , operator(==)
     implicit none
     character(len=*  ), intent(in   ) :: message
-    type     (warning), pointer       :: newWarning
+    type     (warning), pointer       :: warning_
 
     ! Display the message.
     call displayMessage(message,verbosity=verbosityLevelWarn)
+    ! If the message was displayed there is no need to record it - it will already have appeared in
+    ! the output.
+    if (displayVerbosity() >= verbosityLevelWarn) return
     ! Add this warning message to the list of warnings in case we need to display them on an
     ! error condition.
     !$omp critical (Warn)
-    if (displayVerbosity() < verbosityLevelWarn) then
-       if (.not.warningsFound) then
-          allocate(warningList)
-          newWarning => warningList
+    warningsTotal =  warningsTotal+1_c_size_t
+    ! Search for a matching message already in the list. The list is bounded in length, so this
+    ! search costs O(1).
+    warning_      => warningList
+    do while (associated(warning_))
+       if (warning_%message == message) exit
+       warning_ => warning_%next
+    end do
+    if      (associated(warning_)                  ) then
+       ! This warning has been issued before - simply count it.
+       warning_       %count   =  warning_%count+1_c_size_t
+    else if (warningsUnique < warningsUniqueMaximum) then
+       ! A previously unseen warning - append it to the tail of the list.
+       allocate(warning_)
+       warning_       %message =  message
+       warning_       %count   =  1_c_size_t
+       warning_       %next    => null()
+       if (associated(warningListTail)) then
+          warningListTail%next => warning_
        else
-          newWarning => warningList
-          do while (associated(newWarning%next))
-             newWarning => newWarning%next
-          end do
-          allocate(newWarning%next)
-          newWarning => newWarning%next
+          warningList          => warning_
        end if
-       newWarning   %next    => null   ()
-       newWarning   %message =  message
-       warningsFound         =  .true.
+       warningListTail         => warning_
+       warningsUnique          =  warningsUnique+1_c_size_t
     end if
     !$omp end critical (Warn)
     return
@@ -259,16 +354,29 @@ contains
     use, intrinsic :: ISO_Fortran_Env   , only : error_unit, output_unit
     use            :: ISO_Varying_String, only : char
     implicit none
-    type(warning), pointer :: warning_
+    type     (warning), pointer :: warning_
+    integer  (c_size_t)         :: countRecorded
+    character(len=64  )         :: label
 
     !$omp critical (Warn)
-    if (warningsFound) then
+    if (warningsTotal > 0_c_size_t) then
        write (error_unit,*) " => The following warnings were issued:"
-       warning_ => warningList
+       countRecorded =  0_c_size_t
+       warning_      => warningList
        do while (associated(warning_))
-          write (error_unit,*) char(warning_%message)
+          countRecorded=countRecorded+warning_%count
+          if (warning_%count > 1_c_size_t) then
+             write (label       ,'(a,i0,a)') " [issued ",warning_%count," times]"
+             write (error_unit  ,*         ) char(warning_%message)//trim(label)
+          else
+             write (error_unit  ,*         ) char(warning_%message)
+          end if
           warning_ => warning_%next
        end do
+       ! Report any warnings that were issued but not recorded - this happens once the limit on the
+       ! number of unique warning messages retained has been reached.
+       if (countRecorded < warningsTotal) &
+            & write (error_unit,'(a,i0,a,i0,a)') "  => (a further ",warningsTotal-countRecorded," warnings were issued but not recorded, as the limit of ",warningsUniqueMaximum," unique warning messages had been reached)"
     end if
     !$omp end critical (Warn)
     return
@@ -354,9 +462,10 @@ contains
     return
   end subroutine Signal_Handler_SIGINT
 
-  subroutine Signal_Handler_SIGSEGV()
+  subroutine Signal_Handler(signalNumber,description)
     !!{RST
-    Handle ``SIGSEGV`` signals, by flushing all data and then aborting.
+    Handle the signal with number ``signalNumber``, by flushing all data and then aborting. ``description`` describes the event
+    in the message reported (e.g. "a segfault").
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -367,17 +476,21 @@ contains
     use               :: System_Output     , only : stdOutIsATTY
     use               :: ISO_Varying_String, only : char
     implicit none
+    integer           , intent(in   ) :: signalNumber
+    character(len=*  ), intent(in   ) :: description
+    character(len=:  ), allocatable   :: message
 #ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
+    integer                           :: mpiRank     , error
+    character(len=128)                :: hostName
+    logical                           :: flag
 #endif
 
-    call signalHandlersCall(11)
+    call signalHandlersCall(signalNumber)
+    message='Galacticus experienced '//description//' - will try to flush data before exiting.'
     if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced a segfault - will try to flush data before exiting.'//displayReset()
+       write (error_unit,*) displayRed()//displayBold()//message//displayReset()
     else
-       write (error_unit,*)                              'Galacticus experienced a segfault - will try to flush data before exiting.'
+       write (error_unit,*)                              message
     end if
     !$ if (omp_in_parallel()) then
     !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -388,13 +501,13 @@ contains
 #ifndef UNCLEANEXIT
     call closeHDF5()
 #endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message(.true.)
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
+    call BackTrace         (           )
+    call Warn_Review       (           )
+    call Error_Help_Message(.true.     )
+    call Flush             (output_unit)
+    call Flush             ( error_unit)
 #ifdef UNCLEANEXIT
-    call Exit(11)
+    call Exit(signalNumber)
 #else
 #ifdef USEMPI
     call MPI_Initialized(flag,error)
@@ -408,8 +521,18 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call Exit(11)
+    call Exit(signalNumber)
 #endif
+    return
+  end subroutine Signal_Handler
+
+  subroutine Signal_Handler_SIGSEGV()
+    !!{RST
+    Handle ``SIGSEGV`` signals, by flushing all data and then aborting.
+    !!}
+    implicit none
+
+    call Signal_Handler(11,'a segfault')
     return
   end subroutine Signal_Handler_SIGSEGV
 
@@ -417,58 +540,9 @@ contains
     !!{RST
     Handle ``SIGFPE`` signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
-#ifdef USEMPI
-    use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
-#endif
-    !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use               :: Display           , only : displayBold       , displayRed     , displayReset
-    use               :: System_Output     , only : stdOutIsATTY
-    use               :: ISO_Varying_String, only : char
     implicit none
-#ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
-#endif
 
-    call signalHandlersCall(8)
-    if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced a floating point exception - will try to flush data before exiting.'//displayReset()
-    else
-       write (error_unit,*)                              'Galacticus experienced a floating point exception - will try to flush data before exiting.'
-    end if
-    !$ if (omp_in_parallel()) then
-    !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (error_unit,*) " => Error occurred in master thread"
-    !$ end if
-    write (error_unit,*) " => Command line was: ",char(commandLine())
-#ifndef UNCLEANEXIT
-    call closeHDF5()
-#endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Error_Help_Message(.true.)
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
-#ifdef UNCLEANEXIT
-    call Exit(8)
-#else
-#ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(output_unit)
-       call Flush( error_unit)
-       call Sleep(errorWaitTime)
-    end if
-#endif
-    call Exit(8)
-#endif
+    call Signal_Handler(8,'a floating point exception')
     return
   end subroutine Signal_Handler_SIGFPE
 
@@ -476,57 +550,9 @@ contains
     !!{RST
     Handle ``SIGBUS`` signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
-#ifdef USEMPI
-    use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
-#endif
-    !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use               :: Display           , only : displayBold       , displayRed     , displayReset
-    use               :: System_Output     , only : stdOutIsATTY
-    use               :: ISO_Varying_String, only : char
     implicit none
-#ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
-#endif
 
-    call signalHandlersCall(7)
-    if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced a bus error - will try to flush data before exiting.'//displayReset()
-    else
-       write (error_unit,*)                              'Galacticus experienced a bus error - will try to flush data before exiting.'
-    end if
-    !$ if (omp_in_parallel()) then
-    !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (error_unit,*) " => Error occurred in master thread"
-    !$ end if
-    write (error_unit,*) " => Command line was: ",char(commandLine())
-#ifndef UNCLEANEXIT
-    call closeHDF5()
-#endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
-#ifdef UNCLEANEXIT
-    call Exit(7)
-#else
-#ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(output_unit)
-       call Flush( error_unit)
-       call Sleep(errorWaitTime)
-    end if
-#endif
-    call Exit(7)
-#endif
+    call Signal_Handler(7,'a bus error')
     return
   end subroutine Signal_Handler_SIGBUS
 
@@ -534,57 +560,9 @@ contains
     !!{RST
     Handle ``SIGILL`` signals, by flushing all data and then aborting.
     !!}
-    use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
-#ifdef USEMPI
-    use               :: MPI_F08           , only : MPI_Comm_Rank     , MPI_Comm_World
-#endif
-    !$ use            :: OMP_Lib           , only : OMP_Get_Thread_Num, OMP_In_Parallel
-    use               :: Display           , only : displayBold       , displayRed     , displayReset
-    use               :: System_Output     , only : stdOutIsATTY
-    use               :: ISO_Varying_String, only : char
     implicit none
-#ifdef USEMPI
-    integer            :: mpiRank , error
-    character(len=128) :: hostName
-    logical            :: flag
-#endif
 
-    call signalHandlersCall(4)
-    if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//'Galacticus experienced an illegal instruction - will try to flush data before exiting.'//displayReset()
-    else
-       write (error_unit,*)                              'Galacticus experienced an illegal instruction - will try to flush data before exiting.'
-    end if
-    !$ if (omp_in_parallel()) then
-    !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
-    !$ else
-    !$    write (error_unit,*) " => Error occurred in master thread"
-    !$ end if
-    write (error_unit,*) " => Command line was: ",char(commandLine())
-#ifndef UNCLEANEXIT
-    call closeHDF5()
-#endif
-    call BackTrace  (           )
-    call Warn_Review(           )
-    call Flush      (output_unit)
-    call Flush      ( error_unit)
-#ifdef UNCLEANEXIT
-    call Exit(4)
-#else
-#ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (error_unit,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (error_unit,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(output_unit)
-       call Flush( error_unit)
-       call Sleep(errorWaitTime)
-    end if
-#endif
-    call Exit(4)
-#endif
+    call Signal_Handler(4,'an illegal instruction')
     return
   end subroutine Signal_Handler_SIGILL
 
@@ -741,6 +719,19 @@ contains
     abortOnErrorGSL=abortOnErrorGSL-1
     return
   end subroutine GSL_Error_Handler_Abort_Off
+
+  logical function GSL_Error_Handler_Aborting()
+    !!{RST
+    Return true if GSL errors will currently cause an abort, false otherwise.
+
+    Intended for assertions and debugging: calls to ``GSL_Error_Handler_Abort_Off()`` and ``GSL_Error_Handler_Abort_On()`` must
+    balance, so any routine which disables aborting should find this restored to true once it has re-enabled it.
+    !!}
+    implicit none
+
+    GSL_Error_Handler_Aborting=(abortOnErrorGSL == 0)
+    return
+  end function GSL_Error_Handler_Aborting
 
   integer function GSL_Error_Status()
     !!{RST

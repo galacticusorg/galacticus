@@ -50,7 +50,7 @@ jobs:
           python -m pip install --upgrade build
           python -m build
       - name: Upload distribution artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: python-distribution
           path: dist/
@@ -96,7 +96,7 @@ jobs:
       id-token: write
     steps:
       - name: Download distribution artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: python-distribution
           path: dist/
@@ -132,13 +132,28 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          # Only names `bleeding-edge` still refreshes may be listed here. An asset the deploy no longer
+          # uploads is never removed from that rolling release by `gh release upload --clobber`, so it sits
+          # there frozen at whatever commit last produced it -- and mirroring such a copy onto a new version
+          # tag would publish an artefact built from an unrelated commit. Missing names are warned about and
+          # skipped below, so a superseded name is dropped from this list rather than kept "just in case".
+          #
+          # Deliberately absent for that reason: the macOS Intel assets (`Galacticus_MacOS.exe`,
+          # `toolsMacOS.*`), whose builds have been retired (see `Build-Executable-MacOS-M1` in `cicd.yml`),
+          # and the superseded tools archives `tools.tar.bz2` and `toolsMacOSM1.zip`, which the deploy
+          # stopped publishing when the tools moved to a zstd tar (the macOS zip now exists only as the
+          # format `xcrun notarytool submit` accepts). Releases cut while those assets were still published
+          # keep their own copies, so existing installs are unaffected -- the launcher's fallback to a legacy
+          # archive name (see `download._tools_archive`) is what keeps those tags installable, and it reads
+          # each release's own assets, not this list.
           assets=(
             Galacticus.exe
-            Galacticus_MacOS.exe
             Galacticus_MacOS-M1.exe
-            tools.tar.bz2
-            toolsMacOS.zip
-            toolsMacOSM1.zip
+            tools.tar.zst
+            toolsMacOSM1.tar.zst
+            datasets.tar.zst
+            datasets.ref
+            parameters.catalog.json
           )
           mkdir -p release-assets
           for asset in "${assets[@]}"; do
@@ -147,12 +162,22 @@ jobs:
               --pattern "${asset}" --dir release-assets || \
               echo "WARNING: ${asset} not found on bleeding-edge; skipping."
           done
-          # Pin the datasets version: record the current datasets master HEAD
-          # commit so this release always installs against the same data. The
-          # launcher reads the `datasets.ref` asset; the value is also written
-          # into the release notes for users installing manually (not via pip).
-          datasets_sha=$(git ls-remote https://github.com/galacticusorg/datasets.git HEAD | cut -f1)
-          echo "datasets pinned to ${datasets_sha}"
+          # Pin the datasets version, so this release always installs against the same data. The launcher
+          # reads the `datasets.ref` asset; the value is also written into the release notes for users
+          # installing manually (not via pip).
+          #
+          # The pin has to name the commit the mirrored `datasets.tar.zst` snapshot was taken from, not
+          # whatever `master` happens to be right now -- otherwise the recorded commit and the data actually
+          # published here would disagree. Only when no snapshot was mirrored (a tag cut before the next
+          # `master` deploy) is the current remote HEAD used, which is what the repository-archive fallback
+          # would then fetch anyway.
+          if [ -s release-assets/datasets.ref ]; then
+            datasets_sha=$(cut -d' ' -f1 < release-assets/datasets.ref | tr -d '[:space:]')
+            echo "datasets pinned to ${datasets_sha} (from the mirrored snapshot)"
+          else
+            datasets_sha=$(git ls-remote https://github.com/galacticusorg/datasets.git HEAD | cut -f1)
+            echo "datasets pinned to ${datasets_sha} (no snapshot mirrored; using remote HEAD)"
+          fi
           printf '%s\n' "${datasets_sha}" > release-assets/datasets.ref
           # Create the release (with generated notes) if it does not yet exist.
           gh release view "${TAG}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1 || \

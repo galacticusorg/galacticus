@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Niusha Ahvazi
+  !+    Contributions to this file made by: Niusha Ahvazi, Claude.
   
   !!{RST
   Implementation of a mass distribution class for the SIDM parametric profile of :cite:t:`yang_parametric_2024`.
@@ -46,6 +46,7 @@
    contains
      procedure :: density                         => SIDMParametricProfileDensity
      procedure :: densityGradientRadial           => SIDMParametricProfileDensityGradientRadial
+     procedure :: densitySlopeLogarithmicGradient => SIDMParametricProfileDensitySlopeLogarithmicGradient
      procedure :: densitySlopeLogarithmicCentral  => SIDMParametricProfileDensitySlopeLogarithmicCentral
      procedure :: radiusEnclosingDensity          => SIDMParametricProfileRadiusEnclosingDensity
      procedure :: radiusEnclosingDensityNumerical => SIDMParametricProfileRadiusEnclosingDensityNumerical
@@ -209,6 +210,38 @@ contains
     return
   end function SIDMParametricProfileDensity
 
+  double precision function SIDMParametricProfileDensitySlopeLogarithmicGradient(self,coordinates) result(densitySlopeLogarithmicGradient)
+    !!{RST
+    Return the logarithmic gradient of the logarithmic density slope in a SIDM parametric mass distribution.
+
+    Differentiating the slope :math:`\mathrm{d}\ln\rho/\mathrm{d}\ln r = -1 + 1/(1+u) - 2r/(r+r_\mathrm{s})`, with
+    :math:`u=(r/r_\mathrm{c})^\beta` and :math:`\mathrm{d}u/\mathrm{d}\ln r = \beta u`, gives
+    :math:`-\beta u/(1+u)^2 - 2 r r_\mathrm{s}/(r+r_\mathrm{s})^2`.
+    !!}
+    implicit none
+    class           (massDistributionSIDMParametricProfile), intent(inout), target :: self
+    class           (coordinate                           ), intent(in   )         :: coordinates
+    double precision                                                               :: radius     , radiusCoreFreePowered
+
+    radius=coordinates%rSpherical()
+    if (radius > 0.0d0) then
+       radiusCoreFreePowered          =+(                                &
+            &                            +radius                         &
+            &                            /self%radiusCore                &
+            &                           )**self%beta
+       densitySlopeLogarithmicGradient=-self%beta                        &
+            &                          *       radiusCoreFreePowered     &
+            &                          /(1.0d0+radiusCoreFreePowered)**2 &
+            &                          -2.0d0                            &
+            &                          * radius                          &
+            &                          *        self%radiusScale         &
+            &                          /(radius+self%radiusScale)**2
+    else
+       densitySlopeLogarithmicGradient=+0.0d0
+    end if
+    return
+  end function SIDMParametricProfileDensitySlopeLogarithmicGradient
+
   double precision function SIDMParametricProfileDensityGradientRadial(self,coordinates,logarithmic) result(densityGradientRadial)
     !!{RST
     Return the density at the specified ``coordinates`` in a SIDM parametric mass distribution.
@@ -329,30 +362,30 @@ contains
        allocate(containerSIDMParametricProfile)
        call containerSIDMParametricProfile%initialize(2)
        ! Specify the number of tabulation points per interval in radius and each parameter.
-       containerSIDMParametricProfile%mass                      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%mass                      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%radiusEnclosingDensity    %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%radiusEnclosingDensity    %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%potential                 %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%potential                 %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%velocityDispersion1D      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%velocityDispersion1D      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%energy                    %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%energy                    %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefall            %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefall            %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefallIncreaseRate%radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%radiusFreefallIncreaseRate%parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment0      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment0      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment1      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment1      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment2      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment2      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment3      %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%densityRadialMoment3      %parametersCountPer   =+20_c_size_t
-       containerSIDMParametricProfile%fourierTransform          %radiusCountPer       =+20_c_size_t
-       containerSIDMParametricProfile%fourierTransform          %parametersCountPer   =+20_c_size_t
+       containerSIDMParametricProfile%mass                      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%mass                      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusEnclosingDensity    %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusEnclosingDensity    %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%potential                 %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%potential                 %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%velocityDispersion1D      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%velocityDispersion1D      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%energy                    %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%energy                    %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefall            %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefall            %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefallIncreaseRate%radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%radiusFreefallIncreaseRate%parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment0      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment0      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment1      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment1      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment2      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment2      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment3      %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%densityRadialMoment3      %parametersCountPer   =+ 6_c_size_t
+       containerSIDMParametricProfile%fourierTransform          %radiusCountPer       =+ 6_c_size_t
+       containerSIDMParametricProfile%fourierTransform          %parametersCountPer   =+ 6_c_size_t
        ! Specify names and descriptions of the parameters.
        containerSIDMParametricProfile%nameParameters                               (1)='radiusCoreOverRadiusScale'
        containerSIDMParametricProfile%descriptionParameters                        (1)='The ratio of core to scale radii.'
@@ -371,21 +404,22 @@ contains
     return
   end subroutine SIDMParametricProfileParameters
 
-  subroutine SIDMParametricProfileDescriptor(self,descriptor,includeClass,includeFileModificationTimes)
+  subroutine SIDMParametricProfileDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
     !!{RST
     Return an input parameter list descriptor which could be used to recreate this object.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
     class    (massDistributionSIDMParametricProfile), intent(inout)           :: self
     type     (inputParameters                      ), intent(inout)           :: descriptor
     logical                                         , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                                ), intent(in   ), optional :: parameterName
     character(len=18                               )                          :: parameterLabel
     type     (inputParameters                      )                          :: parameters
     !$GLC attributes unused :: includeFileModificationTimes
     
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('massDistribution','SIDMParametricProfile')
-    parameters=descriptor%subparameters('massDistribution')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('massDistribution',parameterName),'SIDMParametricProfile')
+    parameters=descriptor%subparameters(descriptorParameterName('massDistribution',parameterName))
     write (parameterLabel,'(e17.10)') self%densityNormalization
     call parameters%addParameter('densityNormalization',trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)') self%radiusScale

@@ -59,6 +59,7 @@ Implements the dark matter halo mass function class of :cite:t:`ondaro-mallea_no
 
     where :math:`D(a)` is the linear growth factor, :math:`a` is the expansion factor, and :math:`D(a_\mathrm{ev})=\gamma D(a)` with :math:`\gamma=4/5`.
     </description>
+    <forwards object="haloMassFunction_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionOndaroMallea2021

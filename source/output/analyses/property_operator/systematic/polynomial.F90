@@ -22,7 +22,7 @@ Implements a polynomial systematic shift output analysis property operator class
 !!}
 
   !![
-  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSystmtcPolynomial" docformat="rst">
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSystematicPolynomial" docformat="rst">
    <description>
    A polynomial systematic shift output analysis property operator class. This operator allows for a systematic shift in properties (to account for systematic uncertainties in the observational analysis) using a simple model. Specifically, properties are mapped by this model as follows
 
@@ -35,7 +35,7 @@ Implements a polynomial systematic shift output analysis property operator class
    </description>
   </outputAnalysisPropertyOperator>
   !!]
-  type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSystmtcPolynomial
+  type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSystematicPolynomial
      !!{RST
      A polynomial systematic shift output property operator class.
      !!}
@@ -43,26 +43,26 @@ Implements a polynomial systematic shift output analysis property operator class
      double precision                            :: zeroPoint
      double precision, allocatable, dimension(:) :: coefficient
    contains
-     procedure :: operate => systmtcPolynomialOperate
-  end type outputAnalysisPropertyOperatorSystmtcPolynomial
+     procedure :: operate => systematicPolynomialOperate
+  end type outputAnalysisPropertyOperatorSystematicPolynomial
 
-  interface outputAnalysisPropertyOperatorSystmtcPolynomial
+  interface outputAnalysisPropertyOperatorSystematicPolynomial
      !!{RST
-     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorSystmtcPolynomial` output analysis property operator class.
+     Constructors for the :galacticus-class:`outputAnalysisPropertyOperatorSystematicPolynomial` output analysis property operator class.
      !!}
-     module procedure systmtcPolynomialConstructorParameters
-     module procedure systmtcPolynomialConstructorInternal
-  end interface outputAnalysisPropertyOperatorSystmtcPolynomial
+     module procedure systematicPolynomialConstructorParameters
+     module procedure systematicPolynomialConstructorInternal
+  end interface outputAnalysisPropertyOperatorSystematicPolynomial
 
 contains
 
-  function systmtcPolynomialConstructorParameters(parameters) result(self)
+  function systematicPolynomialConstructorParameters(parameters) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSystmtcPolynomial` output analysis property operator class which takes a parameter set as input.
+    Constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSystematicPolynomial` output analysis property operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial)                              :: self
     type            (inputParameters                                ), intent(inout)               :: parameters
     double precision                                                                               :: zeroPoint
     double precision                                                 , allocatable  , dimension(:) :: coefficient
@@ -88,19 +88,19 @@ contains
     </inputParameter>
     !!]
     ! Construct the object.
-    self=outputAnalysisPropertyOperatorSystmtcPolynomial(zeroPoint,coefficient)
+    self=outputAnalysisPropertyOperatorSystematicPolynomial(zeroPoint,coefficient)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
-  end function systmtcPolynomialConstructorParameters
+  end function systematicPolynomialConstructorParameters
 
-  function systmtcPolynomialConstructorInternal(zeroPoint,coefficient) result(self)
+  function systematicPolynomialConstructorInternal(zeroPoint,coefficient) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSystmtcPolynomial` output analysis property operator class.
+    Internal constructor for the :galacticus-class:`outputAnalysisPropertyOperatorSystematicPolynomial` output analysis property operator class.
     !!}
     implicit none
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial)                              :: self
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial)                              :: self
     double precision                                                 , intent(in   )               :: zeroPoint
     double precision                                                 , intent(in   ), dimension(:) :: coefficient
     !![
@@ -108,15 +108,15 @@ contains
     !!]
 
     return
-  end function systmtcPolynomialConstructorInternal
+  end function systematicPolynomialConstructorInternal
 
-  double precision function systmtcPolynomialOperate(self,propertyValue,node,propertyType,outputIndex)
+  double precision function systematicPolynomialOperate(self,propertyValue,node,propertyType,outputIndex)
     !!{RST
-    Implement an systmtcPolynomial output analysis property operator.
+    Implement an systematicPolynomial output analysis property operator.
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (outputAnalysisPropertyOperatorSystmtcPolynomial), intent(inout)           :: self
+    class           (outputAnalysisPropertyOperatorSystematicPolynomial), intent(inout)           :: self
     double precision                                                 , intent(in   )           :: propertyValue
     type            (treeNode                                       ), intent(inout), optional :: node
     type            (enumerationOutputAnalysisPropertyTypeType      ), intent(inout), optional :: propertyType
@@ -124,7 +124,7 @@ contains
     integer                                                                                    :: i
     !$GLC attributes unused :: outputIndex, propertyType, node
 
-    systmtcPolynomialOperate=propertyValue
+    systematicPolynomialOperate=propertyValue
     ! Do not attempt to modify out-of-range values.
     if     (                              &
          &   propertyValue > -huge(0.0d0) &
@@ -132,7 +132,7 @@ contains
          &   propertyValue < +huge(0.0d0) &
          & ) then
        do i=1,size(self%coefficient)
-          systmtcPolynomialOperate=+systmtcPolynomialOperate &
+          systematicPolynomialOperate=+systematicPolynomialOperate &
                &                   +self%coefficient(i)      &
                &                   *(                        &
                &                     +     propertyValue     & 
@@ -141,4 +141,4 @@ contains
        end do
     end if
     return
-  end function systmtcPolynomialOperate
+  end function systematicPolynomialOperate

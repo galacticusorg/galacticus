@@ -130,8 +130,8 @@ contains
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                               , outputAnalysisDistributionNormalizerBinWidth  , outputAnalysisDistributionNormalizerSequence   , outputAnalysisDistributionNormalizerUnitarity
     use :: Output_Analysis_Target_Data             , only : outputAnalysisTargetDataStandard
     use :: Output_Analysis_Distribution_Operators  , only : distributionOperatorList                     , lensedPropertySize                            , outputAnalysisDistributionOperatorClass        , outputAnalysisDistributionOperatorDiskSizeInclntn, &
-          &                                                 outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorIdentity    , outputAnalysisDistributionOperatorSequence
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10      , outputAnalysisPropertyOperatorCsmlgyAnglrDstnc, outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10              , &
+          &                                                 outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorIdentity    , outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10      , outputAnalysisPropertyOperatorCosmologyAngularDistance, outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc, outputAnalysisPropertyOperatorLog10              , &
           &                                                 outputAnalysisPropertyOperatorMultiply       , outputAnalysisPropertyOperatorSequence        , propertyOperatorList
     use :: Output_Analysis_Utilities               , only : Output_Analysis_Output_Weight_Survey_Volume
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorNormal
@@ -147,7 +147,7 @@ contains
     type            (cosmologyFunctionsMatterLambda                 ), pointer                     :: cosmologyFunctionsData
     type            (nodePropertyExtractorRadiusHalfMassStellar     ), pointer                     :: nodePropertyExtractor_
     type            (nodePropertyExtractorMassStellar               ), pointer                     :: outputAnalysisWeightPropertyExtractor_
-    type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_
+    type            (outputAnalysisPropertyOperatorCosmologyAngularDistance ), pointer                     :: outputAnalysisPropertyOperatorCosmologyAngularDistance_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorLog10            ), pointer                     :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorMultiply         ), pointer                     :: outputAnalysisPropertyOperatorMultiply_
@@ -156,7 +156,7 @@ contains
     type            (outputAnalysisDistributionNormalizerSequence   ), pointer                     :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisPropertyOperatorAntiLog10        ), pointer                     :: outputAnalysisPropertyOperatorAntiLog10_
     type            (outputAnalysisDistributionOperatorSequence     ), pointer                     :: outputAnalysisDistributionOperator_
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng  ), pointer                     :: outputAnalysisDistributionOperatorGrvtnlLnsng_
+    type            (outputAnalysisDistributionOperatorGravitationalLensing  ), pointer                     :: outputAnalysisDistributionOperatorGravitationalLensing_
     class           (outputAnalysisDistributionOperatorClass        ), pointer                     :: outputAnalysisDistributionOperatorProjection_
     type            (distributionOperatorList                       ), pointer                     :: distributionOperatorSequence
     type            (surveyGeometryLiWhite2009SDSS                  ), pointer                     :: surveyGeometry_
@@ -269,9 +269,9 @@ contains
     !![
     <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10               (                                                                                                                                                            )"/>
     !!]
-    allocate(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_)
+    allocate(outputAnalysisPropertyOperatorCosmologyAngularDistance_)
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_"  constructor="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc    (cosmologyFunctions_             ,cosmologyFunctionsData,outputTimes_                                                                                        )"/>
+    <referenceConstruct object="outputAnalysisPropertyOperatorCosmologyAngularDistance_"  constructor="outputAnalysisPropertyOperatorCosmologyAngularDistance    (cosmologyFunctions_             ,cosmologyFunctionsData,outputTimes_                                                                                        )"/>
     !!]
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     !![
@@ -280,7 +280,7 @@ contains
     allocate(propertyOperatorSequence          )
     allocate(propertyOperatorSequence%next     )
     allocate(propertyOperatorSequence%next%next)
-    propertyOperatorSequence          %operator_ => outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_
+    propertyOperatorSequence          %operator_ => outputAnalysisPropertyOperatorCosmologyAngularDistance_
     propertyOperatorSequence%next     %operator_ => outputAnalysisPropertyOperatorMultiply_
     propertyOperatorSequence%next%next%operator_ => outputAnalysisPropertyOperatorLog10_
     allocate(outputAnalysisPropertyOperatorSequence_ )
@@ -319,11 +319,11 @@ contains
        end select
     end if
     ! Create a gravitational lensing distribution operator.
-    allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
+    allocate(outputAnalysisDistributionOperatorGravitationalLensing_)
     !![
-    <referenceConstruct object="outputAnalysisDistributionOperatorGrvtnlLnsng_">
+    <referenceConstruct object="outputAnalysisDistributionOperatorGravitationalLensing_">
     <constructor>
-    outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &amp;
+    outputAnalysisDistributionOperatorGravitationalLensing       (                                  &amp;
          &amp;                                           gravitationalLensing_           , &amp;
          &amp;                                           outputTimes_                    , &amp;
          &amp;                                           sizeSourceLensing               , &amp;
@@ -336,7 +336,7 @@ contains
     allocate(distributionOperatorSequence            )
     allocate(distributionOperatorSequence       %next)
     distributionOperatorSequence     %operator_ => outputAnalysisDistributionOperatorProjection_
-    distributionOperatorSequence%next%operator_ => outputAnalysisDistributionOperatorGrvtnlLnsng_
+    distributionOperatorSequence%next%operator_ => outputAnalysisDistributionOperatorGravitationalLensing_
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
     <constructor>
@@ -471,14 +471,14 @@ contains
     <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
     <objectDestructor name="outputAnalysisPropertyOperatorMultiply_"         />
     <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
-    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_" />
+    <objectDestructor name="outputAnalysisPropertyOperatorCosmologyAngularDistance_" />
     <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
     <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
     <objectDestructor name="outputAnalysisWeightOperator_"                   />
     <objectDestructor name="outputAnalysisDistributionOperator_"             />
-    <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"  />
+    <objectDestructor name="outputAnalysisDistributionOperatorGravitationalLensing_"  />
     <objectDestructor name="outputAnalysisDistributionOperatorProjection_"   />
     <objectDestructor name="galacticFilterAll_"                              />
     <objectDestructor name="galacticFilterMassStellarMinimum_"               />

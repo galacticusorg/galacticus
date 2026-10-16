@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the merger tree importer class for Galacticus format merger tree files.
   !!}
@@ -38,6 +40,58 @@
    <entry label="time"           />
    <entry label="expansionFactor"/>
    <entry label="redshift"       />
+  </enumeration>
+  !!]
+
+  type :: importerDataset
+     !!{RST
+     Type used to hold one dataset of the ``forestHalos`` group open for the lifetime of the importer, together with whether it
+     is present in the file at all.
+
+     The importer makes of order forty reads per forest, and every one of them was opening and closing its dataset under the
+     process-wide ``hdf5Access`` lock. For a file of many small forests - the case this importer is most often used for - that
+     serialized essentially the whole of tree construction: reading 20000 two-node forests took the same wall time on 64 threads
+     as on one, with 63 of the 64 threads spinning on the lock.
+     !!}
+     type     (hdf5Dataset) :: dataset
+     character(len=128    ) :: name     =''
+     logical                :: isPresent=.false., opened=.false.
+   contains
+     !![
+     <methods docformat="rst">
+       <method method="assignment(=)" description="Assign ``importerDataset`` objects."/>
+     </methods>
+     !!]
+     procedure ::                  importerDatasetAssign
+     generic   :: assignment(=) => importerDatasetAssign
+  end type importerDataset
+
+  !![
+  <enumeration docformat="rst">
+   <name>forestHalosDataset</name>
+   <description>
+   Enumeration of the datasets of the ``forestHalos`` group which the Galacticus-format merger tree importer reads by fixed
+   name. The members index the importer's table of open dataset handles, and each entry's label is the name of the dataset in
+   the file, so that the two cannot drift apart. Datasets requested by a caller through ``requireNamedReals`` and
+   ``requireNamedIntegers`` are appended to that table beyond ``forestHalosDatasetMax``.
+   </description>
+   <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <entry label="nodeIndex"         />
+   <entry label="hostIndex"         />
+   <entry label="descendantIndex"   />
+   <entry label="nodeMass"          />
+   <entry label="time"              />
+   <entry label="expansionFactor"   />
+   <entry label="redshift"          />
+   <entry label="scaleRadius"       />
+   <entry label="halfMassRadius"    />
+   <entry label="angularMomentum"   />
+   <entry label="spin"              />
+   <entry label="position"          />
+   <entry label="velocity"          />
+   <entry label="particleIndexStart"/>
+   <entry label="particleIndexCount"/>
   </enumeration>
   !!]
 
@@ -81,6 +135,7 @@
      integer                                                     , allocatable, dimension(:) :: firstNodes                         , nodeCounts
      integer         (kind=kind_int8                            ), allocatable, dimension(:) :: forestIndices
      double precision                                            , allocatable, dimension(:) :: weights
+     type            (importerDataset                           ), allocatable, dimension(:) :: datasets
      type            (hdf5Group                                 )                            :: particles
      type            (enumerationGalacticusParticleEpochTypeType)                            :: particleEpochType
      type            (varying_string                            )                            :: particleEpochDataSetName
@@ -166,10 +221,10 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
-    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"                            />
+    <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters" withholds="integrated:node"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"                            />
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"                            />
     !!]
     self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,validateData,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
     !![
@@ -238,7 +293,11 @@ contains
     type            (varying_string               ), intent(in   ) :: fileName
     type            (varying_string               )                :: message
     character       (len=14                       )                :: valueString
-    double precision                                               :: localLittleH0, localOmegaMatter, localOmegaDE, localOmegaBaryon, localSigma8, cosmologicalParameter
+    integer                                                        :: i
+    character       (len=128                      )                :: datasetName
+    double precision                                               :: localLittleH0, localOmegaMatter     , &
+         &                                                            localOmegaDE , localOmegaBaryon     , &
+         &                                                            localSigma8  , cosmologicalParameter
 
     ! Reset initialization status.
     self%hasSubhalos       %isSet=.false.
@@ -248,6 +307,10 @@ contains
     self%periodicPositions %isSet=.false.
     self%length            %isSet=.false.
     self%forestIndicesRead       =.false.
+    ! Release the handles held for any previously opened file. This routine is called once per input
+    ! file - `fileNames` may list several - and deallocating here closes those datasets before the
+    ! file they belong to is replaced below.
+    if (allocated(self%datasets)) deallocate(self%datasets)
     ! Get cosmological parameters. We do this in advance to avoid HDF5 thread conflicts.
     localLittleH0   =self%cosmologyParameters_     %HubbleConstant (hubbleUnitsLittleH)
     localOmegaMatter=self%cosmologyParameters_     %OmegaMatter    (                  )
@@ -407,6 +470,19 @@ contains
             call Error_Report("particles group must have one of time, redshift or expansionFactor datasets"//{introspection:location})
          end if
       end if
+      ! Resolve, once, which of the datasets this importer reads are present in the file, and open a handle to each which is.
+      ! Both the presence and the handle then serve every forest read, in place of probing for and reopening the dataset each
+      ! time. Datasets requested by name are appended to this table on first request - see `galacticusDatasetNamed`.
+      allocate(self%datasets(forestHalosDatasetMin:forestHalosDatasetMax))
+      do i=forestHalosDatasetMin,forestHalosDatasetMax
+         datasetName                =char(enumerationForestHalosDatasetDecode(i,includePrefix=.false.))
+         self%datasets(i)%name      =datasetName
+         self%datasets(i)%isPresent =self%forestHalos%hasDataset(datasetName)
+         if (self%datasets(i)%isPresent) then
+            self%datasets(i)%dataset=self%forestHalos%openDataset(datasetName)
+            self%datasets(i)%opened =.true.
+         end if
+      end do
       ! Check for type of angular momenta data available.
       self%angularMomentaIsScalar=.false.
       self%angularMomentaIsVector=.false.
@@ -685,11 +761,61 @@ contains
     return
   end function galacticusNodeCount
 
+  subroutine importerDatasetAssign(to,from)
+    !!{RST
+    Assign an importer dataset object.
+    !!}
+    implicit none
+    class(importerDataset), intent(  out) :: to
+    class(importerDataset), intent(in   ) :: from
+
+    to%dataset  =from%dataset
+    to%name     =from%name
+    to%isPresent=from%isPresent
+    to%opened   =from%opened
+    return
+  end subroutine importerDatasetAssign
+
+  integer function galacticusDatasetNamed(self,name)
+    !!{RST
+    Return the position in the handle table of the dataset ``name``, which is requested by a caller rather than read by fixed
+    name. The entry is appended, and its handle opened, on first request. Must be called with ``hdf5Access`` held.
+    !!}
+    implicit none
+    class    (mergerTreeImporterGalacticus), intent(inout)               :: self
+    character(len=*                       ), intent(in   )               :: name
+    type     (importerDataset             ), allocatable  , dimension(:) :: datasetsTemporary
+    integer                                                              :: i
+
+    do i=forestHalosDatasetMax+1,ubound(self%datasets,dim=1)
+       if (trim(self%datasets(i)%name) == trim(name)) then
+          galacticusDatasetNamed=i
+          return
+       end if
+    end do
+    ! Not requested before - append an entry for it. The table is copied one element at a time, as
+    ! assigning an array of a type with a component which has defined assignment is unreliable.
+    call Move_Alloc(self%datasets,datasetsTemporary)
+    allocate(self%datasets(lbound(datasetsTemporary,dim=1):ubound(datasetsTemporary,dim=1)+1))
+    do i=lbound(datasetsTemporary,dim=1),ubound(datasetsTemporary,dim=1)
+       self%datasets(i)=datasetsTemporary(i)
+    end do
+    deallocate(datasetsTemporary)
+    galacticusDatasetNamed                          =ubound(self%datasets,dim=1)
+    self%datasets(galacticusDatasetNamed)%name      =trim(name)
+    self%datasets(galacticusDatasetNamed)%isPresent =self%forestHalos%hasDataset(trim(name))
+    if (self%datasets(galacticusDatasetNamed)%isPresent) then
+       self%datasets(galacticusDatasetNamed)%dataset=self%forestHalos%openDataset(trim(name))
+       self%datasets(galacticusDatasetNamed)%opened =.true.
+    end if
+    return
+  end function galacticusDatasetNamed
+
   subroutine galacticusForestIndicesRead(self)
     !!{RST
     Read the tree indices.
     !!}
-    use :: Error                           , only : Error_Report
+    use :: Error                           , only : Error_Report, Error_Report_Allocation_Failure
     use :: HDF5                            , only : HSIZE_T
     use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear
@@ -698,13 +824,13 @@ contains
     class           (mergerTreeImporterGalacticus), intent(inout)             :: self
     type            (hdf5Group                   )                            :: treeIndexGroup
     integer         (kind=kind_int8              ), allocatable, dimension(:) :: descendantIndex
-    double precision                              , allocatable, dimension(:) :: nodeMass           , treeMass    , &
-         &                                                                       nodeTime           , treeTime
-    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex     , nodeCount
+    double precision                              , allocatable, dimension(:) :: nodeMass        , treeMass   , &
+         &                                                                       nodeTime        , treeTime
+    integer         (kind=HSIZE_T                )             , dimension(1) :: firstNodeIndex  , nodeCount
     integer         (kind=c_size_t               ), allocatable, dimension(:) :: sortOrder
-    integer                                                                   :: i
+    integer                                                                   :: i               , allocErr
     integer         (c_size_t                    )                            :: iNode
-    double precision                                                          :: massMinimum        , massMaximum
+    double precision                                                          :: massMinimum     , massMaximum
     logical                                                                   :: hasForestWeights
 
     if (self%forestIndicesRead) return
@@ -726,25 +852,28 @@ contains
           firstNodeIndex(1)=self%firstNodes(i)+1
           nodeCount     (1)=self%nodeCounts(i)
           ! Allocate the nodes array.
-          allocate(descendantIndex(nodeCount(1)))
-          allocate(nodeMass       (nodeCount(1)))
-          allocate(nodeTime       (nodeCount(1)))
-          call self%forestHalos%readDatasetStatic("descendantIndex",descendantIndex,firstNodeIndex,nodeCount)
-          call self%forestHalos%readDatasetStatic("nodeMass"       ,nodeMass       ,firstNodeIndex,nodeCount)
-          if      (self%forestHalos%hasDataset("time"           )) then
+          allocate(descendantIndex(nodeCount(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('descendantIndex',nodeCount(1),{introspection:location})
+          allocate(nodeMass       (nodeCount(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('nodeMass'       ,nodeCount(1),{introspection:location})
+          allocate(nodeTime       (nodeCount(1)),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('nodeTime'       ,nodeCount(1),{introspection:location})
+          call self%datasets(forestHalosDatasetDescendantIndex%ID)%dataset%readDatasetStatic(descendantIndex,firstNodeIndex,nodeCount)
+          call self%datasets(forestHalosDatasetNodeMass%ID       )%dataset%readDatasetStatic(nodeMass       ,firstNodeIndex,nodeCount)
+          if      (self%datasets(forestHalosDatasetTime%ID           )%isPresent) then
              ! Time is present, so read it.
-             call self%forestHalos%readDatasetStatic("time"           ,nodeTime,firstNodeIndex,nodeCount)
+             call self%datasets(forestHalosDatasetTime%ID)%dataset%readDatasetStatic(nodeTime,firstNodeIndex,nodeCount)
              nodeTime=importerUnitConvert(nodeTime,nodeTime,self%timeUnit,gigaYear,self%cosmologyParameters_,self%cosmologyFunctions_)
-          else if (self%forestHalos%hasDataset("expansionFactor")) then
+          else if (self%datasets(forestHalosDatasetExpansionFactor%ID)%isPresent) then
              ! Expansion factor is present, read it instead.
-             call self%forestHalos%readDatasetStatic("expansionFactor",nodeTime,firstNodeIndex,nodeCount)
+             call self%datasets(forestHalosDatasetExpansionFactor%ID)%dataset%readDatasetStatic(nodeTime,firstNodeIndex,nodeCount)
              ! Convert expansion factors to times.
              do iNode=1,nodeCount(1)
                 nodeTime(iNode)=self%cosmologyFunctions_%cosmicTime(nodeTime(iNode))
              end do
-          else if (self%forestHalos%hasDataset("redshift"       )) then
+          else if (self%datasets(forestHalosDatasetRedshift%ID       )%isPresent) then
              ! Redshift is present, read it instead.
-             call self%forestHalos%readDatasetStatic("redshift"       ,nodeTime,firstNodeIndex,nodeCount)
+             call self%datasets(forestHalosDatasetRedshift%ID)%dataset%readDatasetStatic(nodeTime,firstNodeIndex,nodeCount)
              ! Convert redshifts to times.
              do iNode=1,nodeCount(1)
                 nodeTime(iNode)=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(nodeTime(iNode)))
@@ -1022,10 +1151,10 @@ contains
     !!{RST
     Import the :math:`i^\mathrm{th}` merger tree.
     !!}
-    use :: Error                           , only : Error_Report       , Warn
+    use :: Error                           , only : Error_Report    , Warn     , Error_Report_Allocation_Failure
     use :: HDF5                            , only : hsize_t
     use :: HDF5_Access                     , only : hdf5Access
-    use :: Numerical_Constants_Astronomical, only : gigaYear           , massSolar      , megaParsec
+    use :: Numerical_Constants_Astronomical, only : gigaYear        , massSolar, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
@@ -1041,11 +1170,12 @@ contains
     integer         (hsize_t                     )                            , dimension(1  ) :: firstNodeIndex         , nodeCount
     integer         (c_size_t                    )                                             :: iNode
     integer         (c_size_t                    )               , allocatable, dimension(:  ) :: nodeSubsetOffset
+    integer                                                                                    :: allocErr
     double precision                                             , allocatable, dimension(:,:) :: angularMomentum3D      , position             , &
          &                                                                                        velocity               , spin3D
     double precision                                             , allocatable, dimension(:  ) :: namedReal
     integer         (kind_int8                   )               , allocatable, dimension(:  ) :: namedInteger
-    integer                                                                                    :: j
+    integer                                                                                    :: j                      , indexDataset
     logical                                                                                    :: timesAreInternal       , useNodeSubset
 
     ! Ensure tree indices have been read.
@@ -1066,46 +1196,48 @@ contains
     end if
     ! Allocate the nodes array.
     if (present(structureOnly).and.structureOnly) then
-       allocate(nodeDataMinimal    :: nodes(nodeCount(1)))
+       allocate(nodeDataMinimal    :: nodes(nodeCount(1)),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('nodes',nodeCount(1),{introspection:location})
     else
-       allocate(nodeDataGalacticus :: nodes(nodeCount(1)))
+       allocate(nodeDataGalacticus :: nodes(nodeCount(1)),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('nodes',nodeCount(1),{introspection:location})
     end if
     !$ call hdf5Access%set()
     if (useNodeSubset) then
        ! nodeIndex, hostIndex, parentNode
-       call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex                               ,readSelection=nodeSubsetOffset)
+       call self%datasets(forestHalosDatasetNodeIndex%ID         )%dataset%readDatasetStatic(nodes%nodeIndex                               ,readSelection=nodeSubsetOffset)
        ! hostIndex
-       call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex                               ,readSelection=nodeSubsetOffset)
+       call self%datasets(forestHalosDatasetHostIndex%ID         )%dataset%readDatasetStatic(nodes%hostIndex                               ,readSelection=nodeSubsetOffset)
        ! parentNode
-       call self%forestHalos%readDatasetStatic("descendantIndex",nodes%descendantIndex                         ,readSelection=nodeSubsetOffset)
+       call self%datasets(forestHalosDatasetDescendantIndex%ID   )%dataset%readDatasetStatic(nodes%descendantIndex                         ,readSelection=nodeSubsetOffset)
     else
        ! nodeIndex
-       call self%forestHalos%readDatasetStatic("nodeIndex"      ,nodes%nodeIndex      ,firstNodeIndex,nodeCount                               )
+       call self%datasets(forestHalosDatasetNodeIndex%ID         )%dataset%readDatasetStatic(nodes%nodeIndex      ,firstNodeIndex,nodeCount                               )
        ! hostIndex
-       call self%forestHalos%readDatasetStatic("hostIndex"      ,nodes%hostIndex      ,firstNodeIndex,nodeCount                               )
+       call self%datasets(forestHalosDatasetHostIndex%ID         )%dataset%readDatasetStatic(nodes%hostIndex      ,firstNodeIndex,nodeCount                               )
        ! parentNode
-       call self%forestHalos%readDatasetStatic("descendantIndex",nodes%descendantIndex,firstNodeIndex,nodeCount                               )
+       call self%datasets(forestHalosDatasetDescendantIndex%ID   )%dataset%readDatasetStatic(nodes%descendantIndex,firstNodeIndex,nodeCount                               )
     end if
     ! nodeTime
     timesAreInternal=.true.
-    if      (self%forestHalos%hasDataset("time"           )) then
+    if      (self%datasets(forestHalosDatasetTime%ID           )%isPresent) then
        ! Time is present, so read it.
        timesAreInternal=.false.
        if (useNodeSubset) then
-          call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime                         ,readSelection=nodeSubsetOffset)
+          call self%datasets(forestHalosDatasetTime%ID           )%dataset%readDatasetStatic(nodes%nodeTime                                ,readSelection=nodeSubsetOffset)
        else
-          call self%forestHalos%readDatasetStatic("time"           ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
+          call self%datasets(forestHalosDatasetTime%ID           )%dataset%readDatasetStatic(nodes%nodeTime       ,firstNodeIndex,nodeCount                               )
        end if
        if (self%validateData) then
           if (any(isNaN(nodes%nodeTime)        )) call Error_Report('"nodeTime" dataset contains NaN values'    //{introspection:location})
           if (any(      nodes%nodeTime <= 0.0d0)) call Error_Report('"nodeTime" dataset has non-positive values'//{introspection:location})
        end if
-    else if (self%forestHalos%hasDataset("expansionFactor")) then
+    else if (self%datasets(forestHalosDatasetExpansionFactor%ID)%isPresent) then
        ! Expansion factor is present, read it instead.
        if (useNodeSubset) then
-          call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime                         ,readSelection=nodeSubsetOffset)
+          call self%datasets(forestHalosDatasetExpansionFactor%ID)%dataset%readDatasetStatic(nodes%nodeTime                                ,readSelection=nodeSubsetOffset)
        else
-          call self%forestHalos%readDatasetStatic("expansionFactor",nodes%nodeTime,firstNodeIndex,nodeCount                               )
+          call self%datasets(forestHalosDatasetExpansionFactor%ID)%dataset%readDatasetStatic(nodes%nodeTime       ,firstNodeIndex,nodeCount                               )
        end if
        ! Validate expansion factors.
        if (self%validateData) then
@@ -1117,12 +1249,12 @@ contains
        do iNode=1,nodeCount(1)
           nodes(iNode)%nodeTime=self%cosmologyFunctions_%cosmicTime(nodes(iNode)%nodeTime)
        end do
-    else if (self%forestHalos%hasDataset("redshift"       )) then
+    else if (self%datasets(forestHalosDatasetRedshift%ID       )%isPresent) then
        ! Redshift is present, read it instead.
        if (useNodeSubset) then
-          call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime                         ,readSelection=nodeSubsetOffset)
+          call self%datasets(forestHalosDatasetRedshift%ID       )%dataset%readDatasetStatic(nodes%nodeTime                                ,readSelection=nodeSubsetOffset)
        else
-          call self%forestHalos%readDatasetStatic("redshift"       ,nodes%nodeTime,firstNodeIndex,nodeCount                               )
+          call self%datasets(forestHalosDatasetRedshift%ID       )%dataset%readDatasetStatic(nodes%nodeTime       ,firstNodeIndex,nodeCount                               )
        end if
        ! Validate redshifts.
        if (self%validateData) then
@@ -1139,9 +1271,9 @@ contains
     end if
     ! nodeMass
     if (useNodeSubset) then
-       call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass                                ,readSelection=nodeSubsetOffset)
+       call self%datasets(forestHalosDatasetNodeMass%ID          )%dataset%readDatasetStatic(nodes%nodeMass                                ,readSelection=nodeSubsetOffset)
     else
-       call self%forestHalos%readDatasetStatic("nodeMass"       ,nodes%nodeMass       ,firstNodeIndex,nodeCount                               )
+       call self%datasets(forestHalosDatasetNodeMass%ID          )%dataset%readDatasetStatic(nodes%nodeMass       ,firstNodeIndex,nodeCount                               )
     end if
     if (self%validateData) then
        if (any(isNaN(nodes%nodeMass))) call Error_Report('"nodeMass" dataset contains NaN values'//{introspection:location})
@@ -1154,12 +1286,12 @@ contains
        !$ call hdf5Access%set()
        ! Scale or half-mass radius.
        if (present(requireScaleRadii).and.requireScaleRadii) then
-          if (self%forestHalos%hasDataset("scaleRadius")) then
+          if (self%datasets(forestHalosDatasetScaleRadius%ID    )%isPresent) then
              nodes%halfMassRadius=-1.0d0
              if (useNodeSubset) then
-                call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius                            ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetScaleRadius%ID   )%dataset%readDatasetStatic(nodes%scaleRadius                            ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDatasetStatic("scaleRadius"   ,nodes%scaleRadius   ,firstNodeIndex,nodeCount                               )
+                call self%datasets(forestHalosDatasetScaleRadius%ID   )%dataset%readDatasetStatic(nodes%scaleRadius   ,firstNodeIndex,nodeCount                               )
              end if
              if (self%validateData) then
                 if (any(isNaN(nodes%scaleRadius))) call Error_Report('"scaleRadius" dataset contains NaN values'//{introspection:location})
@@ -1167,9 +1299,9 @@ contains
           else
              nodes%scaleRadius   =-1.0d0
              if (useNodeSubset) then
-                call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius                         ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetHalfMassRadius%ID)%dataset%readDatasetStatic(nodes%halfMassRadius                         ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDatasetStatic("halfMassRadius",nodes%halfMassRadius,firstNodeIndex,nodeCount                               )
+                call self%datasets(forestHalosDatasetHalfMassRadius%ID)%dataset%readDatasetStatic(nodes%halfMassRadius,firstNodeIndex,nodeCount                               )
              end if
              if (self%validateData) then
                 if (any(isNaN(nodes%halfMassRadius))) call Error_Report('"halfMassRadius" dataset contains NaN values'//{introspection:location})
@@ -1180,9 +1312,9 @@ contains
        if (present(requireAngularMomenta).and.requireAngularMomenta) then
           if (self%angularMomentaIsVector) then
              if (useNodeSubset) then
-                call self%forestHalos%readDataset("angularMomentum",angularMomentum3D                                                         ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetAngularMomentum%ID)%dataset%readDataset(angularMomentum3D                                                         ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+                call self%datasets(forestHalosDatasetAngularMomentum%ID)%dataset%readDataset(angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
              end if
              if (self%validateData) then
                 if (any(isNaN(angularMomentum3D))) call Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
@@ -1194,9 +1326,9 @@ contains
              deallocate(angularMomentum3D)
           else if (self%angularMomentaIsScalar) then
              if (useNodeSubset) then
-                call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum                                   ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetAngularMomentum%ID)%dataset%readDatasetStatic(nodes%angularMomentum                                   ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDatasetStatic("angularMomentum",nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)]                               )
+                call self%datasets(forestHalosDatasetAngularMomentum%ID)%dataset%readDatasetStatic(nodes%angularMomentum,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
              if (self%validateData) then
                 if (any(isNaN(nodes%angularMomentum))) call Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
@@ -1208,9 +1340,9 @@ contains
        if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
           if (.not.self%angularMomentaIsVector) call Error_Report("vector angular momentum is not available"//{introspection:location})
           if (useNodeSubset) then
-             call self%forestHalos%readDataset("angularMomentum",angularMomentum3D                                                         ,readSelection=nodeSubsetOffset)
+             call self%datasets(forestHalosDatasetAngularMomentum%ID)%dataset%readDataset(angularMomentum3D                                                         ,readSelection=nodeSubsetOffset)
           else
-             call self%forestHalos%readDataset("angularMomentum",angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             call self%datasets(forestHalosDatasetAngularMomentum%ID)%dataset%readDataset(angularMomentum3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
           end if
           if (self%validateData) then
              if (any(isNaN(angularMomentum3D))) call Error_Report('"angularMomentum" dataset contains NaN values'//{introspection:location})
@@ -1220,9 +1352,9 @@ contains
        if (present(requireSpin).and.requireSpin) then
           if (self%spinIsVector) then
              if (useNodeSubset) then
-                call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetSpin%ID)%dataset%readDataset(spin3D                                                         ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+                call self%datasets(forestHalosDatasetSpin%ID)%dataset%readDataset(spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
              end if
              if (self%validateData) then
                 if (any(isNaN(spin3D))) call Error_Report('"spin" dataset contains NaN values'//{introspection:location})
@@ -1234,9 +1366,9 @@ contains
           deallocate(spin3D)
           else if (self%spinIsScalar) then
              if (useNodeSubset) then
-                call self%forestHalos%readDatasetStatic("spin",nodes%spin                                   ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetSpin%ID)%dataset%readDatasetStatic(nodes%spin                                   ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDatasetStatic("spin",nodes%spin,[firstNodeIndex(1)],[nodeCount(1)]                               )
+                call self%datasets(forestHalosDatasetSpin%ID)%dataset%readDatasetStatic(nodes%spin,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
              if (self%validateData) then
                 if (any(isNaN(nodes%spin))) call Error_Report('"spin" dataset contains NaN values'//{introspection:location})
@@ -1248,9 +1380,9 @@ contains
        if (present(requireSpin3D).and.requireSpin3D) then
           if (.not.self%spinIsVector) call Error_Report("vector spin is not available"//{introspection:location})
           if (useNodeSubset) then
-             call self%forestHalos%readDataset("spin",spin3D                                                         ,readSelection=nodeSubsetOffset)
+             call self%datasets(forestHalosDatasetSpin%ID)%dataset%readDataset(spin3D                                                         ,readSelection=nodeSubsetOffset)
           else
-             call self%forestHalos%readDataset("spin",spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             call self%datasets(forestHalosDatasetSpin%ID)%dataset%readDataset(spin3D,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
           end if
           if (self%validateData) then
              if (any(isNaN(spin3D))) call Error_Report('"spin" dataset contains NaN values'//{introspection:location})
@@ -1267,12 +1399,13 @@ contains
              allocate(nodes(iNode)%reals   (size(requireNamedReals   )))
           end do
           do j=1,size(requireNamedReals   )
-             if (.not.self%forestHalos%hasDataset(char(requireNamedReals   (j)))) &
+             indexDataset=galacticusDatasetNamed(self,char(requireNamedReals   (j)))
+             if (.not.self%datasets(indexDataset)%isPresent) &
                   & call Error_Report('named dataset "'//char(requireNamedReals   (j))//'" is not available'//{introspection:location})
              if (useNodeSubset) then
-                call self%forestHalos%readDataset(char(requireNamedReals   (j)),namedReal                                      ,readSelection=nodeSubsetOffset)
+                call self%datasets(indexDataset)%dataset%readDataset(namedReal                                      ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDataset(char(requireNamedReals   (j)),namedReal   ,[firstNodeIndex(1)],[nodeCount(1)]                               )
+                call self%datasets(indexDataset)%dataset%readDataset(namedReal   ,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
              ! Transfer to nodes.
              forall(iNode=1:nodeCount(1))
@@ -1287,12 +1420,13 @@ contains
              allocate(nodes(iNode)%integers(size(requireNamedIntegers)))
           end do
           do j=1,size(requireNamedIntegers)
-             if (.not.self%forestHalos%hasDataset(char(requireNamedIntegers(j)))) &
+             indexDataset=galacticusDatasetNamed(self,char(requireNamedIntegers(j)))
+             if (.not.self%datasets(indexDataset)%isPresent) &
                   & call Error_Report('named dataset "'//char(requireNamedIntegers(j))//'" is not available'//{introspection:location})
              if (useNodeSubset) then
-                call self%forestHalos%readDataset(char(requireNamedIntegers(j)),namedInteger                                   ,readSelection=nodeSubsetOffset)
+                call self%datasets(indexDataset)%dataset%readDataset(namedInteger                                   ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDataset(char(requireNamedIntegers(j)),namedInteger,[firstNodeIndex(1)],[nodeCount(1)]                               )
+                call self%datasets(indexDataset)%dataset%readDataset(namedInteger,[firstNodeIndex(1)],[nodeCount(1)]                               )
              end if
              ! Transfer to nodes.
              forall(iNode=1:nodeCount(1))
@@ -1308,27 +1442,27 @@ contains
        if (present(requirePositions).and.requirePositions) then
           if (useNodeSubset) then
              ! position.
-             call self%forestHalos%readDataset("position",position                                                         ,readSelection=nodeSubsetOffset)
+             call self%datasets(forestHalosDatasetPosition%ID)%dataset%readDataset(position                                                         ,readSelection=nodeSubsetOffset)
              ! velocity.
-             call self%forestHalos%readDataset("velocity",velocity                                                         ,readSelection=nodeSubsetOffset)
+             call self%datasets(forestHalosDatasetVelocity%ID)%dataset%readDataset(velocity                                                         ,readSelection=nodeSubsetOffset)
           else
              ! position.
-             call self%forestHalos%readDataset("position",position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             call self%datasets(forestHalosDatasetPosition%ID)%dataset%readDataset(position,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
              ! velocity.
-             call self%forestHalos%readDataset("velocity",velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
+             call self%datasets(forestHalosDatasetVelocity%ID)%dataset%readDataset(velocity,[1_c_size_t,firstNodeIndex(1)],[3_c_size_t,nodeCount(1)]                               )
           end if
           if (self%validateData) then
              if (any(isNaN(position))) call Error_Report('"position" dataset contains NaN values'//{introspection:location})
              if (any(isNaN(velocity))) call Error_Report('"velocity" dataset contains NaN values'//{introspection:location})
           end if
           ! If a set of most bound particle indices are present, read them.
-          if (self%forestHalos%hasDataset("particleIndexStart").and.self%forestHalos%hasDataset("particleIndexCount")) then
+          if (self%datasets(forestHalosDatasetParticleIndexStart%ID)%isPresent.and.self%datasets(forestHalosDatasetParticleIndexCount%ID)%isPresent) then
              if (useNodeSubset) then
-                call self%forestHalos%readDatasetStatic("particleIndexStart",nodes%particleIndexStart                         ,readSelection=nodeSubsetOffset)
-                call self%forestHalos%readDatasetStatic("particleIndexCount",nodes%particleIndexCount                         ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetParticleIndexStart%ID)%dataset%readDatasetStatic(nodes%particleIndexStart                         ,readSelection=nodeSubsetOffset)
+                call self%datasets(forestHalosDatasetParticleIndexCount%ID)%dataset%readDatasetStatic(nodes%particleIndexCount                         ,readSelection=nodeSubsetOffset)
              else
-                call self%forestHalos%readDatasetStatic("particleIndexStart",nodes%particleIndexStart,firstNodeIndex,nodeCount                               )
-                call self%forestHalos%readDatasetStatic("particleIndexCount",nodes%particleIndexCount,firstNodeIndex,nodeCount                               )
+                call self%datasets(forestHalosDatasetParticleIndexStart%ID)%dataset%readDatasetStatic(nodes%particleIndexStart,firstNodeIndex,nodeCount                               )
+                call self%datasets(forestHalosDatasetParticleIndexCount%ID)%dataset%readDatasetStatic(nodes%particleIndexCount,firstNodeIndex,nodeCount                               )
              end if
           end if
        end if
@@ -1359,17 +1493,17 @@ contains
        if (self%  lengthUnit%status.and.self%  lengthUnit%unitsInSI <= 0.0d0) call Error_Report('non-positive units for length'  //{introspection:location})
        if (self%velocityUnit%status.and.self%velocityUnit%unitsInSI <= 0.0d0) call Error_Report('non-positive units for velocity'//{introspection:location})
        if (self%    timeUnit%status.and.self%    timeUnit%unitsInSI <= 0.0d0) call Error_Report('non-positive units for time'    //{introspection:location})
-       if (.not.timesAreInternal)                                                                                                                                         &
+       if (.not.timesAreInternal)                                                                                                                                                                                          &
             & nodes%nodeTime       =importerUnitConvert(nodes%nodeTime       ,nodes%nodeTime,self%timeUnit                                  ,gigaYear                 ,self%cosmologyParameters_,self%cosmologyFunctions_)
        nodes       %nodeMass       =importerUnitConvert(nodes%nodeMass       ,nodes%nodeTime,                                  self%massUnit,                massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
        if (present(requireScaleRadii).and.requireScaleRadii) then
           nodes    %scaleRadius    =importerUnitConvert(nodes%scaleRadius    ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               ,self%cosmologyParameters_,self%cosmologyFunctions_)
           nodes    %halfMassRadius =importerUnitConvert(nodes%halfMassRadius ,nodes%nodeTime,self%lengthUnit                                ,megaParsec               ,self%cosmologyParameters_,self%cosmologyFunctions_)
        end if
-       if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                  &
-            & nodes%angularMomentum   =importerUnitConvert(nodes%angularMomentum   ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
+       if (present(requireAngularMomenta     ).and.requireAngularMomenta     )                                                                                                                                             &
+            & nodes%angularMomentum=importerUnitConvert(nodes%angularMomentum,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
        if (present(requireAngularMomenta3D).and.requireAngularMomenta3D) then
-          angularmomentum3d=importerUnitConvert(angularmomentum3d,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
+          angularmomentum3d        =importerUnitConvert(angularmomentum3d    ,nodes%nodeTime,self%lengthUnit*self%velocityUnit*self%massUnit,megaParsec*kilo*massSolar,self%cosmologyParameters_,self%cosmologyFunctions_)
           ! Transfer to nodes.
           forall(iNode=1:nodeCount(1))
              nodes(iNode)%angularMomentum3D=angularMomentum3D(:,iNode)

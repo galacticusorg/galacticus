@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
   !!}
@@ -24,11 +26,11 @@
   use :: Cosmology_Functions                  , only : cosmologyFunctions                          , cosmologyFunctionsClass
   use :: Cosmology_Parameters                 , only : cosmologyParameters                         , cosmologyParametersClass
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass            , intergalacticMediumFilteringMassClass
-  use :: Spherical_Collapse_Solvers           , only : enumerationCllsnlssMttrDarkEnergyFixedAtType, sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
+  use :: Spherical_Collapse_Solvers           , only : enumerationCollisionlessMatterDarkEnergyFixedAtType, sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
   use :: Tables                               , only : table1D
 
   !![
-  <virialDensityContrast name="virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy" docformat="rst">
+  <virialDensityContrast name="virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy" alias="sphericalCollapseBaryonsDarkMatterDarkEnergy" docformat="rst">
    <description>
    Dark matter halo virial density contrasts based on the spherical collapse in a matter plus cosmological constant universe.
    </description>
@@ -46,14 +48,10 @@
      !!}
      private
      logical                                                                           :: tableInitialized                  =  .false., turnaroundInitialized              =  .false.
-     double precision                                                                  :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
-          &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum                  , &
-          &                                                                               turnaroundClusteredTimeMinimum              , turnaroundClusteredTimeMaximum               , &
-          &                                                                               turnaroundUnclusteredTimeMinimum            , turnaroundUnclusteredTimeMaximum
      integer                                                                           :: tablePointsPerOctave
      double precision                                                                  :: perturbationSmall
      logical                                                                           :: tableStore
-     type            (enumerationCllsnlssMttrDarkEnergyFixedAtType      )              :: energyFixedAt
+     type            (enumerationCollisionlessMatterDarkEnergyFixedAtType      )              :: energyFixedAt
      class           (table1D                                           ), allocatable :: deltaVirialClustered                        , deltaVirialUnclustered                       , &
           &                                                                               turnaroundClustered                         , turnaroundUnclustered
      class           (cosmologyParametersClass                          ), pointer     :: cosmologyParameters_              => null()
@@ -90,7 +88,7 @@ contains
     Constructor for the :galacticus-class:`virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy` dark matter halo virial density contrast class that takes a parameter set as input.
     !!}
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
-    use :: Spherical_Collapse_Solvers, only : enumerationCllsnlssMttrDarkEnergyFixedAtEncode
+    use :: Spherical_Collapse_Solvers, only : enumerationCollisionlessMatterDarkEnergyFixedAtEncode
     implicit none
     type   (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
     type   (inputParameters                                           ), intent(inout) :: parameters
@@ -139,7 +137,7 @@ contains
     <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
     <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
     !!]
-    self=virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy(tableStore,tablePointsPerOctave,enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
+    self=virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy(tableStore,tablePointsPerOctave,enumerationCollisionlessMatterDarkEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),perturbationSmall,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumFilteringMass_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"             />
@@ -158,7 +156,7 @@ contains
     class  (cosmologyParametersClass                                  ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass                                   ), intent(in   ), target :: cosmologyFunctions_
     class  (intergalacticMediumFilteringMassClass                     ), intent(in   ), target :: intergalacticMediumFilteringMass_
-    type   (enumerationCllsnlssMttrDarkEnergyFixedAtType              ), intent(in   )         :: energyFixedAt
+    type   (enumerationCollisionlessMatterDarkEnergyFixedAtType              ), intent(in   )         :: energyFixedAt
     double precision                                                  , intent(in   )         :: perturbationSmall
     logical                                                            , intent(in   )         :: tableStore
     integer                                                            , intent(in   )         :: tablePointsPerOctave
@@ -216,7 +214,17 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
-       remakeTable=(time < self%tableClusteredTimeMinimum .or. time > self%tableClusteredTimeMaximum .or. time < self%tableUnclusteredTimeMinimum .or. time > self%tableUnclusteredTimeMaximum)
+       ! Test the request against the tabulations' own bounds - see the critical overdensity variant of this class for why a
+       ! copy of them is not kept here.
+       remakeTable=(                                                                &
+            &        time < self%deltaVirialClustered  %x(+1)&
+            &       .or.                                                            &
+            &        time > self%deltaVirialClustered  %x(-1)&
+            &       .or.                                                            &
+            &        time < self%deltaVirialUnclustered%x(+1)&
+            &       .or.                                                            &
+            &        time > self%deltaVirialUnclustered%x(-1)&
+            &      )
     else
        remakeTable=.true.
     end if
@@ -224,10 +232,6 @@ contains
        call self%sphericalCollapseSolverUnclustered_%virialDensityContrast(time,self%tableStore,self%deltaVirialUnclustered)
        call self%sphericalCollapseSolverClustered_  %virialDensityContrast(time,self%tableStore,self%deltaVirialClustered  )
        self%tableInitialized=.true.
-       self%tableClusteredTimeMinimum  =self%deltaVirialClustered  %x(+1)
-       self%tableClusteredTimeMaximum  =self%deltaVirialClustered  %x(-1)
-       self%tableUnclusteredTimeMinimum=self%deltaVirialUnclustered%x(+1)
-       self%tableUnclusteredTimeMaximum=self%deltaVirialUnclustered%x(-1)
     end if
     return
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
@@ -300,7 +304,15 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%turnaroundInitialized) then
-       remakeTable=(time < self%turnaroundClusteredTimeMinimum .or. time > self%turnaroundClusteredTimeMaximum .or. time < self%turnaroundUnclusteredTimeMinimum .or. time > self%turnaroundUnclusteredTimeMaximum)
+       remakeTable=(                                                                &
+            &        time < self%turnaroundClustered  %x(+1)&
+            &       .or.                                                            &
+            &        time > self%turnaroundClustered  %x(-1)&
+            &       .or.                                                            &
+            &        time < self%turnaroundUnclustered%x(+1)&
+            &       .or.                                                            &
+            &        time > self%turnaroundUnclustered%x(-1)&
+            &      )
     else
        remakeTable=.true.
     end if
@@ -308,10 +320,6 @@ contains
        call self%sphericalCollapseSolverUnclustered_%radiusTurnaround(time,self%tableStore,self%turnaroundUnclustered)
        call self%sphericalCollapseSolverClustered_  %radiusTurnaround(time,self%tableStore,self%turnaroundClustered  )
        self%turnaroundInitialized=.true.
-       self%turnaroundClusteredTimeMinimum  =self%turnaroundClustered  %x(+1)
-       self%turnaroundClusteredTimeMaximum  =self%turnaroundClustered  %x(-1)
-       self%turnaroundUnclusteredTimeMinimum=self%turnaroundUnclustered%x(+1)
-       self%turnaroundUnclusteredTimeMaximum=self%turnaroundUnclustered%x(-1)
     end if
     return
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulateTurnaround

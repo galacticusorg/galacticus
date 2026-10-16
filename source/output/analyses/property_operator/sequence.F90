@@ -47,10 +47,12 @@ Implements a sequence output analysis property operator class.
        <method description="Append an operator to a sequence of property operators." method="apppend" />
      </methods>
      !!]
-     final     ::            sequenceDestructor
-     procedure :: operate => sequenceOperate
-     procedure :: prepend => sequencePrepend
-     procedure :: apppend => sequenceAppend
+     final     ::                      sequenceDestructor
+     procedure :: operate           => sequenceOperate
+     procedure :: isNodeDependent   => sequenceIsNodeDependent
+     procedure :: isOutputDependent => sequenceIsOutputDependent
+     procedure :: prepend           => sequencePrepend
+     procedure :: apppend           => sequenceAppend
   end type outputAnalysisPropertyOperatorSequence
 
   interface outputAnalysisPropertyOperatorSequence
@@ -192,3 +194,39 @@ contains
     operatorCurrent%next => operatorNew
     return
   end subroutine sequenceAppend
+
+  logical function sequenceIsNodeDependent(self) result(isNodeDependent)
+    !!{RST
+    Return true if any operator in the sequence reports `isNodeDependent`.
+    !!}
+    implicit none
+    class(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
+    type (propertyOperatorList                  ), pointer       :: operator_
+
+    ! The sequence depends on whatever any of its members depends on.
+    isNodeDependent =  .false.
+    operator_       => self%operators
+    do while (associated(operator_))
+       if (operator_%operator_%isNodeDependent()) isNodeDependent=.true.
+       operator_ => operator_%next
+    end do
+    return
+  end function sequenceIsNodeDependent
+
+  logical function sequenceIsOutputDependent(self) result(isOutputDependent)
+    !!{RST
+    Return true if any operator in the sequence reports `isOutputDependent`.
+    !!}
+    implicit none
+    class(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
+    type (propertyOperatorList                  ), pointer       :: operator_
+
+    ! The sequence depends on whatever any of its members depends on.
+    isOutputDependent =  .false.
+    operator_         => self%operators
+    do while (associated(operator_))
+       if (operator_%operator_%isOutputDependent()) isOutputDependent=.true.
+       operator_ => operator_%next
+    end do
+    return
+  end function sequenceIsOutputDependent

@@ -99,6 +99,7 @@ contains
       <description>
       The effective number of neutrino species.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>neutrinoMassSummed</name>
@@ -107,6 +108,7 @@ contains
       <description>
       The summed mass (in electron volts) of all neutrino species.
       </description>
+      <minimum>0.0</minimum>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>

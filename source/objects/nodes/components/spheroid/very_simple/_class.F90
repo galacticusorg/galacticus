@@ -27,6 +27,7 @@ module Node_Component_Spheroid_Very_Simple
   !!}
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Very_Simple_Post_Evolve, Node_Component_Spheroid_Very_Simple_Post_Step
   implicit none
   private
   public :: Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Post_Step          , &
@@ -192,8 +193,8 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-       call postEvolveEvent     %attach(thread,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
-       call satelliteMergerEvent%attach(thread,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
+       call postEvolveEvent     %attach(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
+       call satelliteMergerEvent%attach(thread,satelliteMerger                                ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
        !![
@@ -216,8 +217,8 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
-       if (postEvolveEvent     %isAttached(thread,postEvolve     )) call postEvolveEvent     %detach(thread,postEvolve     )
-       if (satelliteMergerEvent%isAttached(thread,satelliteMerger)) call satelliteMergerEvent%detach(thread,satelliteMerger)
+       if (postEvolveEvent     %isAttached(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve)) call postEvolveEvent     %detach(thread,Node_Component_Spheroid_Very_Simple_Post_Evolve)
+       if (satelliteMergerEvent%isAttached(thread,satelliteMerger                                )) call satelliteMergerEvent%detach(thread,satelliteMerger                                )
        !![
        <objectDestructor name="stellarPopulationProperties_" />
        <objectDestructor name="mergerMassMovements_"         />
@@ -251,115 +252,9 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve
 
-  subroutine postEvolve(self,node)
-    !!{RST
-    Catch rounding errors in the very simple spheroid gas evolution.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
-    use :: Histories       , only : history
-    implicit none
-    class(*                    ), intent(inout) :: self
-    type (treeNode             ), intent(inout) :: node
-    class(nodeComponentSpheroid), pointer       :: spheroid
-    class(nodeComponentBasic   ), pointer       :: basic
-    type (history              )                :: stellarPropertiesHistory
-    !$GLC attributes unused :: self
-    
-    ! Get the spheroid component.
-    spheroid => node%spheroid()
-    ! Check if a very simple spheroid component exists.
-    select type (spheroid)
-    class is (nodeComponentSpheroidVerySimple)
-       ! Trim the stellar populations properties future history.
-       basic => node%basic()
-       stellarPropertiesHistory=spheroid%stellarPropertiesHistory()
-       call stellarPropertiesHistory%trim(basic%time())
-       call spheroid%stellarPropertiesHistorySet(stellarPropertiesHistory)
-    end select
-    return
-  end subroutine postEvolve
-
   !![
   <postStepTask function="Node_Component_Spheroid_Very_Simple_Post_Step"/>
   !!]
-  subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
-    !!{RST
-    Catch rounding errors in the very simple spheroid gas evolution.
-    !!}
-    use :: Abundances_Structure          , only : abs                     , zeroAbundances
-    use :: Display                       , only : displayMessage          , verbosityLevelWarn
-    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid  , nodeComponentSpheroidVerySimple, treeNode
-    use :: Interface_GSL                 , only : GSL_Success             , GSL_Continue
-    use :: ISO_Varying_String            , only : assignment(=)           , operator(//)           , varying_string
-    use :: Stellar_Luminosities_Structure, only : abs                     , zeroStellarLuminosities
-    use :: String_Handling               , only : operator(//)
-    implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    integer                                 , intent(inout)          :: status
-    class           (nodeComponentSpheroid )               , pointer :: spheroid
-    double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                                 :: massSpheroid                  , fractionalError
-    character       (len=20                )                         :: valueString
-    type            (varying_string        ), save                   :: message
-    !$omp threadprivate(message)
-
-    ! Return immediately if this class is not in use.
-    if (.not.defaultSpheroidComponent%verySimpleIsActive()) return
-    ! Get the spheroid component.
-    spheroid => node%spheroid()
-    ! Check if a very simple spheroid component exists.
-    select type (spheroid)
-    class is (nodeComponentSpheroidVerySimple)
-       ! Trap negative gas masses. Note that "status" is not set to failure as this change in state of the spheroid should not
-       ! change any calculation of differential evolution rates as a negative gas mass was unphysical anyway.
-       if (spheroid%massGas() < 0.0d0) then
-          ! Check if this exceeds the maximum previously recorded error.
-          fractionalError=   abs(spheroid%massGas    ()) &
-               &          /(                             &
-               &                 spheroid%massStellar()  &
-               &            +abs(spheroid%massGas    ()) &
-               &           )
-          !$omp critical (Very_Simple_Spheroid_Post_Evolve_Check)
-          if (fractionalError > fractionalErrorMaximum) then
-             ! Report a warning.
-             message='Warning: spheroid has negative gas mass (fractional error exceeds any previously reported):'//char(10)
-             message=message//'  Node index        = '//node%index() //char(10)
-             write (valueString,'(e12.6)') spheroid%massGas()
-             message=message//'  Spheroid gas mass     = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') spheroid%massStellar()
-             message=message//'  Spheroid stellar mass = '//trim(valueString)//char(10)
-             write (valueString,'(e12.6)') fractionalError
-             message=message//'  Error measure     = '//trim(valueString)//char(10)
-             if (fractionalErrorMaximum == 0.0d0) then
-                ! This is the first time this warning has been issued, so give some extra information.
-                message=message//'  Gas mass will be reset to zero (in future cases also).'//char(10)
-                message=message//'  Future cases will be reported only when they exceed the previous maximum error measure.'//char(10)
-                message=message//'  Negative masses are due to numerical inaccuracy in the ODE solutions.'//char(10)
-                message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
-             end if
-             call displayMessage(message,verbosityLevelWarn)
-             ! Store the new maximum fractional error.
-             fractionalErrorMaximum=fractionalError
-          end if
-          !$omp end critical (Very_Simple_Spheroid_Post_Evolve_Check)
-          ! Get the total mass of the spheroid material
-          massSpheroid=+spheroid%massGas    () &
-               &       +spheroid%massStellar()
-          if (massSpheroid == 0.0d0) then
-             call spheroid%        massStellarSet(                  0.0d0)
-             call spheroid%  abundancesStellarSet(         zeroAbundances)
-             call spheroid%luminositiesStellarSet(zeroStellarLuminosities)
-          end if
-          ! Reset the gas mass of the spheroid.
-          call spheroid%      massGasSet(         0.0d0)
-          call spheroid%abundancesGasSet(zeroAbundances)
-          ! Indicate that ODE evolution should continue after this state change.
-          if (status == GSL_Success) status=GSL_Continue
-       end if
-    end select
-    return
-  end subroutine Node_Component_Spheroid_Very_Simple_Post_Step
-
   subroutine Node_Component_Spheroid_Very_Simple_Create(node)
     !!{RST
     Create properties in a very simple spheroid component.

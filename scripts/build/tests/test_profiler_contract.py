@@ -1,5 +1,5 @@
 """Integration tests for the `++Task:` contract between profiler.sh
-(producer, the SHELL wrapper of `GALACTICUS_BUILD_OPTION=compileprof`
+(producer, the SHELL wrapper of `BUILDPROFILE=yes`
 builds) and buildProfiler.py (consumer, the report generator) — an
 undocumented-by-code format pair where neither side knows the other exists.
 

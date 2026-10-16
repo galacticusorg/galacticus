@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The interface to EuclidEmulator2 requested in issue #59 was
-!+    drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed by applying the nonlinear correction factor emulated by the :term:`EuclidEmulator2` code of :cite:t:`euclid_collaboration_euclid_2021` to the linear theory power spectrum.

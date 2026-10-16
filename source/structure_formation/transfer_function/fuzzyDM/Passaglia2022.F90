@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a transfer function class for fuzzy dark matter using the fitting function of :cite:t:`passaglia_accurate_2022`.
   !!}
@@ -235,14 +237,14 @@ contains
     !!{RST
     Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative to a :term:`CDM` transfer function.
     !!}
-    use :: Error                   , only : errorStatusSuccess
-    use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Error                      , only : errorStatusSuccess
+    use :: Root_Finder                , only : rangeExpandMultiplicative             , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Transfer_Function_Utilities, only : Transfer_Function_Mass_From_Wavenumber
     implicit none
     class           (transferFunctionfuzzyDMPassaglia2022), intent(inout), target   :: self
     double precision                                      , intent(in   )           :: fraction
     integer                                               , intent(  out), optional :: status
-    double precision                                                                :: matterDensity, wavenumber
+    double precision                                                                :: wavenumber
     type            (rootFinder                          )                          :: finder
 
     ! There is no analytic solution for the fraction-mode mass so we resort to numerical root finding. This is complicated by the
@@ -262,18 +264,9 @@ contains
     self%solvingForMode                  =   .true.
     wavenumber                           =   finder%find(rootGuess=1.0d-2*self%wavenumberJeans)
     self%solvingForMode                  =   .false.
-    matterDensity                        =  +self%cosmologyParameters_%OmegaMatter    () &
-         &                                  *self%cosmologyParameters_%densityCritical()
     ! Compute corresponding mass scale. As a default choice, the wavenumber is converted to a length scale assuming
     ! R = λ/2 = π/k [see Eq.(9) of Schneider et al. (2012; http://adsabs.harvard.edu/abs/2012MNRAS.424..684S)].
-    fuzzyDMPassaglia2022FractionModeMass =  +4.0d0         &
-         &                                  *Pi            &
-         &                                  /3.0d0         &
-         &                                  *matterDensity &
-         &                                  *(             &
-         &                                    +Pi          &
-         &                                    /wavenumber  &
-         &                                   )**3
+    fuzzyDMPassaglia2022FractionModeMass=Transfer_Function_Mass_From_Wavenumber(wavenumber,self%cosmologyParameters_)
     if (present(status)) status=errorStatusSuccess
     return
   end function fuzzyDMPassaglia2022FractionModeMass

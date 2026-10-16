@@ -12,7 +12,7 @@ For this tutorial we require Galacticus to be compiled with `MPI <https://en.wik
 
 .. code-block:: bash
 
-   make -j8 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe
+   make -j8 MPI=yes Galacticus.exe
 
 Note that you must have MPI installed for this to work.
 
@@ -21,7 +21,7 @@ Once compilation is completed, to run the tutorial model:
 .. code-block:: bash
 
    export OMP_NUM_THREADS=1
-   mpirun -np 4 Galacticus.exe parameters/tutorials/mcmcConfig.xml
+   mpirun -np 4 Galacticus.exe_MPI parameters/tutorials/mcmcConfig.xml
 
 The ``export OMP_NUM_THREADS=1`` effectively switches off `OpenMP <https://en.wikipedia.org/wiki/OpenMP>`_ parallelism (which we don't want to use for this tutorial). The ``mpirun -np 4`` prefix command launches 4 parallel Galacticus processes which will communicate via MPI.
 
@@ -194,11 +194,10 @@ We begin by specifying the "task" to perform - we choose ``posteriorSample`` whi
    <posteriorSampleLikelihood value="galaxyPopulation">
      <baseParametersFileName   value="parameters/tutorials/mcmcBase.xml"/>
      <failedParametersFileName value="./failedParameters.xml"           />
-     <randomize                value="false"                            />
      <evolveForestsVerbosity   value="silent"                           />
    </posteriorSampleLikelihood>
 
-In this section we specify how the likelihood function for the model should be computed. Many different likelihood functions can be used, but here we use the ``galaxyPopulation`` likelihood function - which causes Galacticus to run a model generating a population of galaxies, computing some observables from that population, and then find the likelihood of that model given some target datasets. We specify a ``baseParametersFileName`` which gives the path to a parameter file describing the galaxy population model to run - this will be described in more detail below (note that a set of `parameter change files <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/parameter-files.html#changing-parameters>`_ can be applied to this base parameter file before it is used - these can be specified as a space-separated list via the ``changeParametersFileNames`` parameter added to the above section). We also specify a path for the output of failed parameter sets - sometimes while exploring the model parameter space a model will fail to complete - its parameters will be output to this file for further exploration. The ``randomize`` option specifies whether or not to change the random number seed for the model on each evaluation. Finally, we set ``evolveForestsVerbosity`` to ``silent`` to switch off output of logging messages while running the galaxy population calculation (this just keeps the amount of output reasonable).
+In this section we specify how the likelihood function for the model should be computed. Many different likelihood functions can be used, but here we use the ``galaxyPopulation`` likelihood function - which causes Galacticus to run a model generating a population of galaxies, computing some observables from that population, and then find the likelihood of that model given some target datasets. We specify a ``baseParametersFileName`` which gives the path to a parameter file describing the galaxy population model to run - this will be described in more detail below (note that a set of `parameter change files <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/tutorials/parameter-files.html#changing-parameters>`_ can be applied to this base parameter file before it is used - these can be specified as a space-separated list via the ``changeParametersFileNames`` parameter added to the above section). We also specify a path for the output of failed parameter sets - sometimes while exploring the model parameter space a model will fail to complete - its parameters will be output to this file for further exploration. Finally, we set ``evolveForestsVerbosity`` to ``silent`` to switch off output of logging messages while running the galaxy population calculation (this just keeps the amount of output reasonable).
 
 .. code-block:: xml
 

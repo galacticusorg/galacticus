@@ -11,7 +11,7 @@ Fix: keep multi-line text as-is (with its leading/trailing whitespace,
 including the trailing newline) and only treat it as empty when it is
 pure whitespace.  Single-line text continues to be stripped — many
 directives have human-formatted text content (descriptions, parameter
-values) that callers expect normalised.
+values) that callers expect normalized.
 """
 
 import xml.etree.ElementTree as ET
@@ -35,7 +35,7 @@ def test_multiline_directive_body_keeps_trailing_newline():
 
 def test_single_line_text_still_stripped():
     """Single-line text continues to be stripped — preserving the legacy
-    behaviour callers rely on."""
+    behavior callers rely on."""
     out = _parse('<description>  Foo bar.  </description>')
     assert out == 'Foo bar.'
 

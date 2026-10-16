@@ -235,7 +235,7 @@ def test_internal_constructor_names():
 # Output-array arguments (`intent(out), allocatable, dimension(:)`)
 # ---------------------------------------------------------------------------
 
-def test_output_array_arg_recognised_and_accepted():
+def test_output_array_arg_recognized_and_accepted():
     oa = _arg('double precision',
               attributes=['intent(out)', 'allocatable', 'dimension(:)'],
               name='wavenumbers')

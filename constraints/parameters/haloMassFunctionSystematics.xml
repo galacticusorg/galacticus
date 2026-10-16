@@ -1,7 +1,7 @@
 <!-- Definition of halo mass function systematic error model. The model assumes that     -->
 <!-- the fractional residual in the halo mass function can be described by a first-order -->
 <!-- polynomial in the log of halo mass. The priors of the two coefficients in that      -->
-<!-- polynomial is modelled as a mutltivariate Gaussian. This file defines two variables -->
+<!-- polynomial is modeled as a multivariate Gaussian. This file defines two variables   -->
 <!-- with unit normal priors, and defines the coefficients of the halo mass function     -->
 <!-- systematic error model as a linear transformation of these two variables. The       -->
 <!-- covariance of the parameters was determined by fitting the simple systematic error  -->

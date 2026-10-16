@@ -64,6 +64,7 @@ contains
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                           ), pointer                     :: gravitationalLensing_
+    class           (dustPropertiesClass                                 ), pointer                     :: dustProperties_
     double precision                                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                             :: covarianceBinomialBinsPerDecade
     double precision                                                                                    :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -174,19 +175,21 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    <objectBuilder class="dustProperties"       name="dustProperties_"       source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionMonteroDorta2009SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band)
+    self=outputAnalysisLuminosityFunctionMonteroDorta2009SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,dustProperties_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="outputTimes_"         />
     <objectDestructor name="gravitationalLensing_"/>
+    <objectDestructor name="dustProperties_"      />
     !!]
     return
   end function luminosityFunctionMonteroDorta2009SDSSConstructorParameters
 
-  function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
+  function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,dustProperties_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
     !!{RST
     Constructor for the :galacticus-class:`outputAnalysisLuminosityFunctionMonteroDorta2009SDSS` output analysis class for internal use.
     !!}
@@ -197,13 +200,14 @@ contains
     use :: Input_Paths                           , only : inputPath                                      , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryMonteroDorta2009SDSS
     use :: Gravitational_Lensing                 , only : gravitationalLensingClass
-    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGrvtnlLnsng, outputAnalysisDistributionOperatorRandomErrorPlynml, outputAnalysisDistributionOperatorSequence
-    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
+    use :: Output_Analysis_Distribution_Operators, only : distributionOperatorList                       , outputAnalysisDistributionOperatorGravitationalLensing, outputAnalysisDistributionOperatorRandomErrorPolynomial, outputAnalysisDistributionOperatorSequence
+    use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystematicPolynomial
     implicit none
     type            (outputAnalysisLuminosityFunctionMonteroDorta2009SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
     class           (outputTimesClass                                    ), intent(inout), target       :: outputTimes_
     class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
+    class           (dustPropertiesClass                                 ), intent(in   ), target       :: dustProperties_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
          &                                                                                                 sizeSourceLensing
     double precision                                                      , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                    , systematicErrorPolynomialCoefficient
@@ -212,9 +216,9 @@ contains
     character       (len=1                                               ), intent(in   )               :: band
     type            (galacticFilterStellarMass                           )               , pointer      :: galacticFilter_
     type            (surveyGeometryMonteroDorta2009SDSS                  )               , pointer      :: surveyGeometry_
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial     )               , pointer      :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisDistributionOperatorRandomErrorPlynml )               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPlynml_
-    type            (outputAnalysisDistributionOperatorGrvtnlLnsng       )               , pointer      :: outputAnalysisDistributionOperatorGrvtnlLnsng_
+    type            (outputAnalysisPropertyOperatorSystematicPolynomial     )               , pointer      :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisDistributionOperatorRandomErrorPolynomial )               , pointer      :: outputAnalysisDistributionOperatorRandomErrorPolynomial_
+    type            (outputAnalysisDistributionOperatorGravitationalLensing       )               , pointer      :: outputAnalysisDistributionOperatorGravitationalLensing_
     type            (outputAnalysisDistributionOperatorSequence          )               , pointer      :: outputAnalysisDistributionOperator_
     type            (cosmologyParametersSimple                           )               , pointer      :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                      )               , pointer      :: cosmologyFunctionsData
@@ -276,14 +280,14 @@ contains
     !! Systematic error model.
     allocate(outputAnalysisPropertyOperator_    )
     !![
-    <referenceConstruct object="outputAnalysisPropertyOperator_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    <referenceConstruct object="outputAnalysisPropertyOperator_" constructor="outputAnalysisPropertyOperatorSystematicPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
     !!]
     ! Build a random error distribution operator.
-    allocate(outputAnalysisDistributionOperatorRandomErrorPlynml_)
+    allocate(outputAnalysisDistributionOperatorRandomErrorPolynomial_)
     !![
-    <referenceConstruct object="outputAnalysisDistributionOperatorRandomErrorPlynml_">
+    <referenceConstruct object="outputAnalysisDistributionOperatorRandomErrorPolynomial_">
      <constructor>
-      outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
+      outputAnalysisDistributionOperatorRandomErrorPolynomial (                                  &amp;
         &amp;                                              randomErrorMinimum              , &amp;
         &amp;                                              randomErrorMaximum              , &amp;
         &amp;                                              errorPolynomialZeroPoint        , &amp;
@@ -293,11 +297,11 @@ contains
     </referenceConstruct>
     !!]
     ! Build a gravitational lensing distribution operator.
-    allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
+    allocate(outputAnalysisDistributionOperatorGravitationalLensing_)
     !![
-    <referenceConstruct object="outputAnalysisDistributionOperatorGrvtnlLnsng_">
+    <referenceConstruct object="outputAnalysisDistributionOperatorGravitationalLensing_">
      <constructor>
-      outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &amp;
+      outputAnalysisDistributionOperatorGravitationalLensing       (                                  &amp;
         &amp;                                              gravitationalLensing_           , &amp;
         &amp;                                              outputTimes_                    , &amp;
         &amp;                                              sizeSourceLensing                 &amp;
@@ -309,8 +313,8 @@ contains
     allocate(distributionOperatorSequence            )
     allocate(distributionOperatorSequence       %next)
     allocate(outputAnalysisDistributionOperator_     )
-    distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomErrorPlynml_
-    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
+    distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomErrorPolynomial_
+    distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGravitationalLensing_
     !![
     <referenceConstruct object="outputAnalysisDistributionOperator_">
      <constructor>
@@ -333,6 +337,7 @@ contains
          &                                               outputAnalysisPropertyOperator_                                                                                               , &
          &                                               outputAnalysisDistributionOperator_                                                                                           , &
          &                                               outputTimes_                                                                                                                  , &
+         &                                               dustProperties_                                                                                                               , &
          &                                               covarianceBinomialBinsPerDecade                                                                                               , &
          &                                               covarianceBinomialMassHaloMinimum                                                                                             , &
          &                                               covarianceBinomialMassHaloMaximum                                                                                             , &
@@ -348,8 +353,8 @@ contains
     <objectDestructor name="cosmologyFunctionsData"                              />
     <objectDestructor name="outputAnalysisPropertyOperator_"                     />
     <objectDestructor name="outputAnalysisDistributionOperator_"                 />
-    <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"      />
-    <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPlynml_"/>
+    <objectDestructor name="outputAnalysisDistributionOperatorGravitationalLensing_"      />
+    <objectDestructor name="outputAnalysisDistributionOperatorRandomErrorPolynomial_"/>
     !!]
     nullify(distributionOperatorSequence)
     return

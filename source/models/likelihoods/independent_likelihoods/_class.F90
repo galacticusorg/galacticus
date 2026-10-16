@@ -97,6 +97,7 @@ contains
     use :: Error           , only : Error_Report
     use :: Input_Parameters, only : inputParameter                         , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters, &
          &                          enumerationInputParameterErrorStatusType
+    use :: MPI_Utilities   , only : mpiSelf
     use :: String_Handling , only : String_Count_Words                      , String_Split_Words                 , char
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods)                              :: self

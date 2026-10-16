@@ -1,4 +1,4 @@
-"""Regression tests for top-level `Galacticus.Build.SourceTree` behaviour.
+"""Regression tests for top-level `Galacticus.Build.SourceTree` behavior.
 
 Bug class: embedded LaTeX (`!!{ … !!}`) and XML (`!![ … !!]`) blocks must
 survive the parse → serialize round-trip in a form the Fortran compiler
@@ -57,3 +57,34 @@ def test_embedded_xml_block_round_trips_as_directive():
     # The XML body line is commented (prefixed with `!<`).
     assert any('!<' in ln and '<reference' in ln
                for ln in out.splitlines()), out
+
+
+def test_unit_opener_keyword_prefilter_covers_every_opener():
+    """`_parse_units` tries the `UNIT_OPENERS` patterns only on lines that the
+    keyword prefilter accepts, so every opener pattern must require one of its
+    keywords — otherwise a new opener would silently never match."""
+    from Fortran.Utils import UNIT_OPENERS
+    from Galacticus.Build.SourceTree import _UNIT_OPENER_KEYWORDS_RE
+    for unit_type, spec in UNIT_OPENERS.items():
+        assert _UNIT_OPENER_KEYWORDS_RE.search(spec['regex'].pattern), unit_type
+
+
+def test_walk_tree_follows_links_lazily():
+    """`walk_tree` reads a node's `firstChild` only after yielding the node, and
+    its `sibling` only once its subtree is exhausted, so nodes grafted in
+    mid-walk are visited — callers rely on this."""
+    from Galacticus.Build.SourceTree import walk_tree
+    leaf    = {'name': 'leaf'   , 'firstChild': None, 'sibling': None}
+    grafted = {'name': 'grafted', 'firstChild': None, 'sibling': None}
+    a       = {'name': 'a'      , 'firstChild': None, 'sibling': None}
+    b       = {'name': 'b'      , 'firstChild': None, 'sibling': None}
+    root    = {'name': 'root'   , 'firstChild': a   , 'sibling': {'name': 'outside'}}
+    a['sibling'] = b
+    visited = []
+    for node in walk_tree(root):
+        visited.append(node['name'])
+        if node is a:
+            a['firstChild']    = leaf
+        if node is leaf:
+            leaf['sibling']    = grafted
+    assert visited == ['root', 'a', 'leaf', 'grafted', 'b']

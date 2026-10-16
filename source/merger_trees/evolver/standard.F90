@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the standard class for evolving merger trees.
   !!}
@@ -147,6 +149,8 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`mergerTreeEvolverStandard` merger tree evolver class which takes a parameter set as input.
     !!}
+    use :: Display         , only : displayMagenta, displayReset
+    use :: Error           , only : Warn
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolverStandard    )                :: self
@@ -158,10 +162,11 @@ contains
     class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
     class           (mergerTreeEvolveProfilerClass), pointer       :: mergerTreeEvolveProfiler_
     class           (metaTreeProcessingTimeClass  ), pointer       :: metaTreeProcessingTime_
-    logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
-         &                                                            backtrackToSatellites           , profileSteps
-    double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
+    logical                                                        :: allTreesExistAtFinalTime                , dumpTreeStructure   , &
+         &                                                            backtrackToSatellites                   , profileSteps
+    double precision                                               :: timestepHostRelative                    , timestepHostAbsolute, &
          &                                                            fractionTimestepSatelliteMinimum
+    logical                                        , save          :: warnedSatelliteDeferral         =.false.
 
     !![
     <inputParameter docformat="rst">
@@ -201,6 +206,8 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>
       The minimum fraction of the timestep imposed by the "satellite in host" criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.
+
+      A value of ``0`` (the default) disables this deferral. Merger events force hosts to take small timesteps, and without deferral each of their satellites then takes a correspondingly small step, each costing a full :term:`ODE` solve. The number of such steps grows rapidly with resolution, so run time then scales much more steeply than linearly with the inverse of the mass resolution. For a :math:`10^{13}\mathrm{M}_\odot` host, models run around 8 times slower than with a value of ``0.75`` at a host-to-resolution mass ratio of :math:`10^5`, and around 15 times slower at :math:`3\times 10^5` (see `issue #1431 &lt;https://github.com/galacticusorg/galacticus/issues/1431&gt;`_). The reference parameter files use ``0.75``, which is recommended for any model which resolves substructure.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -228,6 +235,14 @@ contains
     <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
     <objectBuilder class="metaTreeProcessingTime"   name="metaTreeProcessingTime_"   source="parameters"/>
     !!]
+    if (fractionTimestepSatelliteMinimum <= 0.0d0 .and. .not.warnedSatelliteDeferral) then
+       !$omp critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
+       if (.not.warnedSatelliteDeferral) then
+          call Warn(displayMagenta()//'WARNING:'//displayReset()//' [fractionTimestepSatelliteMinimum]=0 - satellite evolution will not be deferred, and satellites may take very many small timesteps; in high resolution models this can dominate run time - consider setting [fractionTimestepSatelliteMinimum]=0.75')
+          warnedSatelliteDeferral=.true.
+       end if
+       !$omp end critical(mergerTreeEvolverStandardSatelliteDeferralWarn)
+    end if
     self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,profileSteps,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_,mergerTreeEvolveProfiler_,metaTreeProcessingTime_)
     !![
     <inputParametersValidate source="parameters"/>
@@ -334,17 +349,16 @@ contains
     character       (len=24                       )                                    :: label
     character       (len=35                       )                                    :: message
     type            (varying_string               )                                    :: lockType                                       , vMessage
-    logical                                                                            :: anyTreeExistsAtOutputTime                      , hasInterTreeEvent, &
-         &                                                                                nodeProgressed                                 , nextNodeFound    , &
-         &                                                                                didEvolve                                      , interrupted      , &
-         &                                                                                nodesRemain
+    logical                                                                            :: anyTreeExistsAtOutputTime                      , nodeProgressed   , &
+         &                                                                                nextNodeFound                                  , didEvolve        , &
+         &                                                                                interrupted                                    , nodesRemain
 
     ! Initialize trees.
     suspendTree               =  .false.
     anyTreeExistsAtOutputTime =  .false.
     treeDidEvolve             =  .false.
-    call self%initializeTree(tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,hasInterTreeEvent,initializationLock)
-    if (.not.anyTreeExistsAtOutputTime.and..not.hasInterTreeEvent) then
+    call self%initializeTree(tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,initializationLock)
+    if (.not.anyTreeExistsAtOutputTime) then
        ! Mark the tree as evolved here, as the only reason that we did not evolve it was the given time target.
        treeDidEvolve=.true.
        return
@@ -635,31 +649,27 @@ contains
     return
   end subroutine standardEvolve
 
-  subroutine standardInitializeTree(self,tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,hasInterTreeEvent,initializationLock)
+  subroutine standardInitializeTree(self,tree,timeEnd,treeDidEvolve,anyTreeExistsAtOutputTime,initializationLock)
     !!{RST
     Initialize trees prior to evolution.
     !!}
-    use    :: Display            , only : displayBlue             , displayYellow , displayGreen                , displayBold                       , &
+    use    :: Display            , only : displayBlue       , displayYellow  , displayGreen , displayBold, &
          &                                displayReset
-    use    :: Galacticus_Nodes   , only : nodeComponentBasic      , nodeEvent     , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree
-    use    :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    use    :: String_Handling    , only : operator(//)            , stringXMLFormat
-    !$ use :: OMP_Lib            , only : OMP_Set_Lock            , OMP_Unset_Lock , omp_lock_kind
+    use    :: Galacticus_Nodes   , only : nodeComponentBasic, nodeEvent
+    use    :: String_Handling    , only : operator(//)      , stringXMLFormat
+    !$ use :: OMP_Lib            , only : OMP_Set_Lock      , OMP_Unset_Lock , omp_lock_kind
     implicit none
     class           (mergerTreeEvolverStandard)           , intent(inout) :: self
     type            (mergerTree               ), target   , intent(inout) :: tree
     double precision                                      , intent(in   ) :: timeEnd
     logical                                               , intent(inout) :: treeDidEvolve
     logical                                               , intent(inout) :: anyTreeExistsAtOutputTime
-    logical                                               , intent(  out) :: hasInterTreeEvent
     integer         (omp_lock_kind            ), optional , intent(inout) :: initializationLock
     double precision                           , parameter                :: timeTolerance            =1.0d-5
     type            (mergerTree               ), pointer                  :: currentTree
-    type            (treeNode                 ), pointer                  :: node
     class           (nodeComponentBasic       ), pointer                  :: basicBase
     class           (nodeEvent                ), pointer                  :: event
     type            (varying_string           )                           :: vMessage
-    type            (mergerTreeWalkerAllNodes )                           :: treeWalker
     character       (len=24                   )                           :: label
 
     currentTree => tree
@@ -719,28 +729,9 @@ contains
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do
-    ! If none of these trees exist at the output time, check if they contain any inter-tree events. If they do, we need to evolve
-    ! the tree anyway, as it interacts with another tree that may exist at the output time. Otherwise, we can ignore this tree.
-    hasInterTreeEvent=.false.
-    if (.not.anyTreeExistsAtOutputTime) then
-       ! Walk over all trees in the forest.
-       treeWalker       =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-       do while (treeWalker%next(node).and..not.hasInterTreeEvent)
-          ! Iterate over events.
-          event => node%event
-          do while (associated(event).and..not.hasInterTreeEvent)
-             select type (event)
-             type is (nodeEventSubhaloPromotionInterTree)
-                hasInterTreeEvent=.true.
-             type is (nodeEventBranchJumpInterTree      )
-                hasInterTreeEvent=.true.
-             end select
-             event => event%next
-          end do
-       end do
-       if (.not.hasInterTreeEvent) &
-            & treeDidEvolve=.true.   ! Mark the tree as evolved here, as the only reason that we did not evolve it was the given time target.
-    end if
+    ! If none of these trees exist at the output time, mark the tree as evolved here, as the only reason that we did not evolve it
+    ! was the given time target.
+    if (.not.anyTreeExistsAtOutputTime) treeDidEvolve=.true.
     return
   end subroutine standardInitializeTree
   
@@ -748,55 +739,27 @@ contains
     !!{RST
     Return true if the given ``node`` is evolvable.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeEventBranchJumpInterTree , nodeEventSubhaloPromotionInterTree, nodeEvent
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (mergerTreeEvolverStandard), intent(inout)          :: self
     type            (treeNode                 ), intent(inout)          :: node
     double precision                           , intent(in   )          :: timeEnd  , finalTimeInTree
-    class           (nodeEvent                )               , pointer :: event
     class           (nodeComponentBasic       )               , pointer :: basic
-    logical                                                             :: hasParent, treeLimited
-    
-    ! Evolve this node if it has a parent (or will transfer to another tree where it will have a parent), exists
-    ! before the output time, has no children (i.e. they've already all been processed), and either exists before
-    ! the final time in its tree, or exists precisely at that time and has some attached event yet to occur.
+    logical                                                             :: hasParent
+
+    ! Evolve this node if it has a parent, exists before the output time, has no children (i.e. they've already all been
+    ! processed), and either exists before the final time in its tree, or exists precisely at that time and has some attached
+    ! event yet to occur.
     basic       =>            node%basic ()
-    event       =>            node%event
     hasParent   =  associated(node%parent  )
-    treeLimited =  .true.
-    do while (associated(event).and.treeLimited)
-       ! Skip events which occur after the current evolution end time.
-       if (event%time <= timeEnd) then
-          ! Detect inter-tree events.
-          select type (event)
-          type is (nodeEventSubhaloPromotionInterTree)
-             hasParent  =.true.
-             treeLimited=.false.
-          type is (nodeEventBranchJumpInterTree      )
-             hasParent  =.true.
-             treeLimited=.false.
-          end select
-       end if
-       event => event%next
-    end do    
     standardNodeIsEvolvable= hasParent                           &
          &                  .and.                                &
          &                   .not.associated(node%firstChild  )  &
          &                  .and.                                &
-         &                   (                                   &
          &                     basic%time() <  timeEnd           &
-         &                    .or.                               &
-         &                     (                                 &
-         &                       .not.treeLimited                & ! For nodes that are not tree limited (i.e. have a node which
-         &                      .and.                            & ! will jump to another tree), allow them to evolve if the node
-         &                       basic%time() == timeEnd         & ! is at the end time also, since the jump may occur at that time.
-         &                     )                                 &
-         &                   )                                   &
          &                  .and.                                &
          &                   (                                   &
-         &                      .not.treeLimited                 &
-         &                   .or.                                &
-         &                       basic%time() <  finalTimeInTree &
+         &                     basic%time() <  finalTimeInTree   &
          &                   .or.                                &
          &                    (                                  &
          &                     (                                 &
@@ -815,11 +778,11 @@ contains
     !!{RST
     Determine the time to which ``node`` should be evolved.
     !!}
-    use :: Display               , only : displayIndent                     , displayMessage        , displayUnindent, verbosityLevelInfo
+    use :: Display               , only : displayIndent        , displayMessage        , displayUnindent, verbosityLevelInfo
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use :: Error                 , only : Error_Report
-    use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite, nodeEvent      , nodeEventBranchJumpInterTree, &
-          &                               nodeEventSubhaloPromotionInterTree, treeEvent             , treeNode
+    use :: Galacticus_Nodes      , only : nodeComponentBasic   , nodeComponentSatellite, nodeEvent      , treeEvent         , &
+          &                               treeNode
     use :: Merger_Tree_Timesteps , only : timestepTask
     use :: String_Handling       , only : operator(//)
     implicit none
@@ -886,15 +849,8 @@ contains
        if (max(event%time,timeNode) <= evolveToTime) then
           if (present(nodeLock)) nodeLock => event%node
           if (present(lockType)) then
-             lockType =  "event ("
-             select type (event)
-             type is (nodeEventSubhaloPromotionInterTree)
-                lockType=lockType//event%splitForestUniqueID//":"//event%pairedNodeID
-             type is (nodeEventBranchJumpInterTree      )
-                lockType=lockType//event%splitForestUniqueID//":"//event%pairedNodeID
-             class default
-                lockType=lockType//event%ID
-             end select
+             lockType="event ("
+             lockType=lockType//event%ID
              lockType=lockType//")"
           end if
           evolveToTime=max(event%time,timeNode)

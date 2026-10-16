@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node property extractor that appends a suffix to property names.
   !!}
@@ -77,9 +79,9 @@ contains
     Internal constructor for the :galacticus-class:`nodePropertyExtractorAppendSuffix` property extractor class.
     !!}
     implicit none
-    type(nodePropertyExtractorAppendSuffix)                :: self
-    type(multiExtractorList               ), intent(in   ) :: extractors
-    type(varying_string                   ), intent(in   ) :: suffix
+    type(nodePropertyExtractorAppendSuffix)                        :: self
+    type(multiExtractorList               ), intent(in   ), target :: extractors
+    type(varying_string                   ), intent(in   )         :: suffix
     !![
     <constructorAssign variables="suffix"/>
     !!]

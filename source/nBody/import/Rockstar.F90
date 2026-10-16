@@ -336,12 +336,12 @@ contains
     Import data from a Rockstar file.
     !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
-    use :: Display                     , only : displayCounter          , displayCounterClear           , displayIndent           , displayUnindent         , &
+    use :: Display                     , only : displayCounter          , displayCounterClear            , displayIndent           , displayUnindent               , &
           &                                     verbosityLevelStandard
-    use :: Error                       , only : Error_Report
+    use :: Error                       , only : Error_Report            , Error_Report_Allocation_Failure
     use :: File_Utilities              , only : Count_Lines_in_File
-    use :: Dictionaries                , only : doubleDictionary        , integerSizeTDictionary        , rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, &
-          &                                     rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary, varyingStringDictionary , genericDictionary
+    use :: Dictionaries                , only : doubleDictionary        , integerSizeTDictionary         , rank1DoublePtrDictionary, rank1IntegerSizeTPtrDictionary, &
+          &                                     rank2DoublePtrDictionary, rank2IntegerSizeTPtrDictionary , varyingStringDictionary , genericDictionary
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: String_Handling             , only : String_Split_Words      , String_Count_Words
     implicit none
@@ -359,7 +359,7 @@ contains
     integer                                                                                     :: status           , j         , &
          &                                                                                         file             , jInteger  , &
          &                                                                                         jReal            , columnMap , &
-         &                                                                                         lineStatus
+         &                                                                                         lineStatus       , allocErr
     character       (len=1024                  )                                                :: line
     character       (len=64                    )                                                :: columnName
     logical                                                                                     :: isComment
@@ -373,7 +373,8 @@ contains
     countTrees=                                                    0_c_size_t    
     ! Allocate storage
     if (self%expansionFactorNeeded) then
-       allocate(expansionFactor(countHalos))
+       allocate(expansionFactor(countHalos),stat=allocErr)
+       if (allocErr /= 0) call Error_Report_Allocation_Failure('expansionFactor',countHalos,{introspection:location})
     else
        allocate(expansionFactor(         0))
     end if
@@ -381,10 +382,12 @@ contains
        allocate(propertiesInteger(self%readColumnsIntegerCount))
        allocate(propertiesReal   (self%readColumnsRealCount   ))
        do i=1,self%readColumnsIntegerCount
-          allocate(propertiesInteger(i)%property(countHalos))
+          allocate(propertiesInteger(i)%property(countHalos),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('propertiesInteger',countHalos,{introspection:location})
        end do
        do i=1,self%readColumnsRealCount
-          allocate(propertiesReal   (i)%property(countHalos))
+          allocate(propertiesReal   (i)%property(countHalos),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('propertiesReal'   ,countHalos,{introspection:location})
        end do
     else
        allocate(propertiesInteger(0                           ))
@@ -644,8 +647,14 @@ contains
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrDictionary()
     simulations(1)%propertiesRealRank1   =rank2DoublePtrDictionary      ()
     if (allocated(self%readColumns)) then
-       if (self%havePosition) allocate(position(3,countHalos))
-       if (self%haveVelocity) allocate(velocity(3,countHalos))
+       if (self%havePosition) then
+          allocate(position(3,countHalos),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('position',3*countHalos,{introspection:location})
+       end if
+       if (self%haveVelocity) then
+          allocate(velocity(3,countHalos),stat=allocErr)
+          if (allocErr /= 0) call Error_Report_Allocation_Failure('velocity',3*countHalos,{introspection:location})
+       end if
        jInteger                        =0
        jReal                           =0
        do j=1,size(self%readColumns)

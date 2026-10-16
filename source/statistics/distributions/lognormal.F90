@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a log-normal 1D distribution function.
   !!}
@@ -46,6 +48,7 @@
      procedure :: inverse    => logNormalInverse
      procedure :: minimum    => logNormalMinimum
      procedure :: maximum    => logNormalMaximum
+     procedure :: descriptor => logNormalDescriptor
   end type distributionFunction1DLogNormal
 
   interface distributionFunction1DLogNormal
@@ -180,6 +183,9 @@ contains
     else
        call Error_Report('must specify both `mean` and `variance`, or `x0` and `sigma]'//{introspection:location})
     end if
+    ! Record the median and logarithmic width, however the distribution was specified.
+    self%x0   =exp (meanNormal    )
+    self%sigma=sqrt(varianceNormal)
     if (present(limitLower)) then
        if (present(limitUpper)) then
           self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal,limitLower=log(limitLower),limitUpper=log(limitUpper),randomNumberGenerator_=randomNumberGenerator_)
@@ -195,6 +201,39 @@ contains
     end if
     return
   end function logNormalConstructorInternal
+
+  subroutine logNormalDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
+    !!{RST
+    Return an input parameter list descriptor which could be used to recreate this object. The distribution is described by its
+    median, :math:`x_0`, and logarithmic width, :math:`\sigma` (however it was specified), and by any limits, all in terms of
+    :math:`x` rather than of the underlying normal distribution in :math:`\ln x`.
+    !!}
+    use :: Input_Parameters, only : inputParameters, descriptorParameterName
+    implicit none
+    class    (distributionFunction1DLogNormal), intent(inout)           :: self
+    type     (inputParameters                ), intent(inout)           :: descriptor
+    logical                                   , intent(in   ), optional :: includeClass  , includeFileModificationTimes
+    character(len=*                          ), intent(in   ), optional :: parameterName
+    character(len=18                         )                          :: parameterLabel
+    type     (inputParameters                )                          :: parameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('distributionFunction1D',parameterName),'logNormal')
+    parameters=descriptor%subparameters(descriptorParameterName('distributionFunction1D',parameterName))
+    write (parameterLabel,'(e17.10)') self%x0
+    call parameters%addParameter('x0'   ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)') self%sigma
+    call parameters%addParameter('sigma',trim(adjustl(parameterLabel)))
+    if (self%limitLowerExists) then
+       write (parameterLabel,'(e17.10)') exp(self%limitLower)
+       call parameters%addParameter('limitLower',trim(adjustl(parameterLabel)))
+    end if
+    if (self%limitUpperExists) then
+       write (parameterLabel,'(e17.10)') exp(self%limitUpper)
+       call parameters%addParameter('limitUpper',trim(adjustl(parameterLabel)))
+    end if
+    if (associated(self%randomNumberGenerator_)) call self%randomNumberGenerator_%descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    return
+  end subroutine logNormalDescriptor
 
   double precision function logNormalMinimum(self)
     !!{RST

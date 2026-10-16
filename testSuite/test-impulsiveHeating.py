@@ -11,6 +11,6 @@ subprocess.run("mkdir -p outputs", shell=True)
 # Run the model.
 status = subprocess.run("export OMP_NUM_THREADS=1; cd ..; ./Galacticus.exe testSuite/parameters/impulsiveHeating.xml", shell=True)
 if status.returncode == 0:
-    print("success: impulsive heating model ran successfully")
+    print("SUCCESS: impulsive heating model ran successfully")
 else:
-    print("FAIL: impulsive heating model failed to run")
+    print("FAILED: impulsive heating model failed to run")

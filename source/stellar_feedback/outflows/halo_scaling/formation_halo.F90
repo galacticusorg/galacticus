@@ -115,18 +115,14 @@ contains
     !!{RST
     Returns a pointer to the node from which to extract halo properties.
     !!}
-    use :: Galacticus_Nodes, only : treeNode
+    use :: Galacticus_Nodes    , only : treeNode
+    use :: Nodes_Formation_Node, only : nodeFormationRequired
     implicit none
     type (treeNode                                       ), pointer       :: node
     class(stellarFeedbackOutflowsHaloScalingFormationHalo), intent(inout) :: self
     class(nodeComponent                                  ), intent(in   ) :: component
     !$GLC attributes unused :: self
 
-    if (associated(component%hostNode%formationNode)) then
-       node => component%hostNode%formationNode
-    else
-       node => null()
-       call Error_Report('no formation node exists'//{introspection:location})
-    end if
+    node => nodeFormationRequired(component%hostNode,'the [haloScalingFormationHalo] stellar feedback outflows class')
     return
   end function haloScalingFormationHaloNode

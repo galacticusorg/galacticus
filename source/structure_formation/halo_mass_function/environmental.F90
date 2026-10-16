@@ -27,6 +27,8 @@ Implements a dark matter halo mass function class which handles the transition t
    <description>
    The halo mass function is computed by handling the transition though the environment mass scale.
    </description>
+   <forwards object="haloMassFunctionConditioned_"  />
+   <forwards object="haloMassFunctionUnconditioned_"/>
   </haloMassFunction>
   !!]
   type, extends(haloMassFunctionEnvironmentAveraged) :: haloMassFunctionEnvironmental

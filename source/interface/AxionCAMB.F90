@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
+!+    Contributions to this file made by: Andrew Benson, Xiaolong Du, Claude.
 
 !!{RST
 Contains a module which provides various interfaces to the :term:`AxionCAMB` code.
@@ -149,7 +149,7 @@ contains
     use               :: IO_HDF5                         , only : hdf5File                    , hdf5Group
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: ISO_Varying_String              , only : assignment(=)               , char                             , extract     , len           , &
-          &                                                       operator(==)                , varying_string                   , operator(//)
+          &                                                       operator(==)                , varying_string                   , operator(//), var_str
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Constants_Prefixes    , only : kilo
@@ -157,7 +157,7 @@ contains
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
-    use               :: System_Command                  , only : System_Command_Do           , shellEscape
+    use               :: System_Command                  , only : System_Command_Do           , shellEscape                      , System_Command_Failure_Report
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate, extrapolationTypeFix
     use               :: Tables                          , only : table                       , table1DGeneric
     implicit none
@@ -193,7 +193,9 @@ contains
          &                                                                         redshiftLabel                           , indexLabel
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                      , &
          &                                                                         transferFileName                        , fileName_                     , &
-         &                                                                         escapedExecutable                       , escapedParameterFile
+         &                                                                         escapedExecutable                       , escapedParameterFile          , &
+         &                                                                         logFile                                 , escapedLogFile                , &
+         &                                                                         helpMessage
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -477,10 +479,22 @@ contains
        write (axionCambParameterFile,'(a,1x,"=",1x,i1   )') 'l_accuracy_boost             ',1
        write (axionCambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
        close(axionCambParameterFile)
-       ! Run AxionCAMB.
+       ! Run AxionCAMB, capturing its output so that, if it fails, the reason it gives can be reported.
+       logFile             =outputRoot//'.log'
        escapedExecutable   =shellEscape(axionCambPath//"camb")
        escapedParameterFile=shellEscape(parameterFile        )
-       call System_Command_Do(escapedExecutable//" "//escapedParameterFile)
+       escapedLogFile      =shellEscape(logFile              )
+       call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
+       ! A failure is detected by a non-zero exit status, or by the absence of the transfer function file - AxionCAMB stops on
+       ! invalid parameters with a zero exit status. Note that the file name and message are built in assignments, not in the
+       ! argument lists below - `varying_string` expressions passed directly as arguments are not finalized by gfortran, and so
+       ! leak.
+       transferFileName=outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(1)))//'.dat'
+       if (status /= 0 .or. .not.File_Exists(transferFileName)) then
+          helpMessage=var_str('AxionCAMB most often fails because the cosmological parameters given to it are invalid -')// &
+               &      ' check those of [transferFunction]=axionCAMB. Its parameter file is "'//parameterFile//'".'
+          call System_Command_Failure_Report('AxionCAMB',logFile,helpMessage)
+       end if
        ! Read the AxionCAMB transfer function file.
        if (allocated(wavenumbers      )) deallocate(wavenumbers      )
        if (allocated(transferFunctions)) deallocate(transferFunctions)
@@ -523,6 +537,7 @@ contains
        transferFunctions=abs(transferFunctions)
        ! Remove temporary files.
        call File_Remove(parameterFile            )
+       call File_Remove(logFile                  )
        call File_Remove(outputRoot//'_params.ini')
        do i=1,countRedshiftsUnique
           call File_Remove(outputRoot//'_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat')

@@ -25,6 +25,8 @@ module String_Handling
   !!{RST
   Implements various useful functionality for manipulating character strings.
   !!}
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use            :: Kind_Numbers , only : kind_int8
   implicit none
   private
   public :: operator(//)              , char                        , String_Split_Words                 , String_Count_Words         , &
@@ -80,6 +82,22 @@ module String_Handling
    <entry label="integer" />
    <entry label="other"   />
   </enumeration>
+  !!]
+
+  ! Generic type instances used to generate the type-specific string functions.
+  !![
+  <generic identifier="wordstype">
+   <instance label="VarString"                                    intrinsic="type     (varying_string)"/>
+   <instance label="Char"                                         intrinsic="character(len=*         )"/>
+  </generic>
+  <generic identifier="concatenatetype">
+   <instance label=""                                             intrinsic="integer"                  />
+   <instance label="8"                                            intrinsic="integer(kind=kind_int8)"  />
+  </generic>
+  <generic identifier="extracttype">
+   <instance label=""          description="an integer"           intrinsic="integer"                  />
+   <instance label="_Size_T"   description="a ``size_t`` integer" intrinsic="integer(c_size_t)"        />
+  </generic>
   !!]
 
 contains
@@ -139,65 +157,13 @@ contains
     return
   end function String_Count_Words_Char
 
-  subroutine String_Split_Words_VarString(words,inputString,separator,bracketing)
-    !!{RST
-    Split ``inputString`` into words and return as an array.
-    !!}
-    use :: ISO_Varying_String, only : varying_string, assignment(=), index
-    implicit none
-    type     (varying_string), dimension(:), intent(  out)           :: words
-    character(len=*         )              , intent(in   )           :: inputString
-    character(len=*         )              , intent(in   ), optional :: separator
-    character(len=2         )              , intent(in   ), optional :: bracketing
-    logical                                                          :: inWord
-    integer                                                          :: iCharacter     , iCharacterStart, iWord, inBracket
-    type     (varying_string)                                        :: separatorActual
-
-    ! Decide what separator to use.
-    if (present(separator)) then
-       separatorActual=separator
-    else
-       separatorActual=charactersWhiteSpace
-    end if
-
-    words          =""
-    inWord         =.false.
-    iWord          = 0
-    inBracket      = 0
-    iCharacterStart=-1
-    do iCharacter=1,len_trim(inputString)
-       if (present(bracketing)) then
-          if (inputString(iCharacter:iCharacter) == bracketing(1:1)) inBracket=inBracket+1
-          if (inputString(iCharacter:iCharacter) == bracketing(2:2)) inBracket=inBracket-1
-       end if
-       if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
-          if (inBracket == 0) then
-             if (inWord) then
-                iWord=iWord+1
-                words(iWord)=inputString(iCharacterStart:iCharacter-1)
-                if (iWord == size(words)) return
-             end if
-             inWord=.false.
-          end if
-       else
-          if (.not.inWord) iCharacterStart=iCharacter
-          inWord=.true.
-       end if
-    end do
-    if (inWord) then
-       iWord=iWord+1
-       words(iWord)=inputString(iCharacterStart:len_trim(inputString))
-    end if
-    return
-  end subroutine String_Split_Words_VarString
-
-  subroutine String_Split_Words_Char(words,inputString,separator,bracketing)
+  subroutine String_Split_Words_{wordstype¦label}(words,inputString,separator,bracketing)
     !!{RST
     Split ``inputString`` into words and return as an array.
     !!}
     use :: ISO_Varying_String, only : varying_string, index, assignment(=)
     implicit none
-    character(len=*         ), dimension(:), intent(  out)           :: words
+    {wordstype¦intrinsic}    , dimension(:), intent(  out)           :: words
     character(len=*         )              , intent(in   )           :: inputString
     character(len=*         )              , intent(in   ), optional :: separator
     character(len=2         )              , intent(in   ), optional :: bracketing
@@ -241,40 +207,23 @@ contains
        words(iWord)=inputString(iCharacterStart:len_trim(inputString))
     end if
     return
-  end subroutine String_Split_Words_Char
+  end subroutine String_Split_Words_{wordstype¦label}
 
-  function Concatenate_VarStr_Integer(varStrVariable,intVariable)
+  function Concatenate_VarStr_Integer{concatenatetype¦label}(varStrVariable,intVariable)
     !!{RST
     Provides a concatenation operator to append an integer number to a ``varying_string``.
     !!}
     use :: ISO_Varying_String, only : varying_string, operator(//)
     implicit none
     type     (varying_string    ), intent(in   ) :: varStrVariable
-    integer                      , intent(in   ) :: intVariable
-    type     (varying_string    )                :: Concatenate_VarStr_Integer
+    {concatenatetype¦intrinsic}  , intent(in   ) :: intVariable
+    type     (varying_string    )                :: Concatenate_VarStr_Integer{concatenatetype¦label}
     character(len=maxIntegerSize)                :: intString
 
     write (intString,maxIntegerFormat) intVariable
-    Concatenate_VarStr_Integer=varStrVariable//trim(adjustl(intString))
+    Concatenate_VarStr_Integer{concatenatetype¦label}=varStrVariable//trim(adjustl(intString))
     return
-  end function Concatenate_VarStr_Integer
-
-  function Concatenate_VarStr_Integer8(varStrVariable,intVariable)
-    !!{RST
-    Provides a concatenation operator to append an integer number to a ``varying_string``.
-    !!}
-    use :: Kind_Numbers      , only : kind_int8
-    use :: ISO_Varying_String, only : varying_string, operator(//)
-    implicit none
-    type     (varying_string    ), intent(in   ) :: varStrVariable
-    integer  (kind=kind_int8    ), intent(in   ) :: intVariable
-    type     (varying_string    )                :: Concatenate_VarStr_Integer8
-    character(len=maxIntegerSize)                :: intString
-
-    write (intString,maxIntegerFormat) intVariable
-    Concatenate_VarStr_Integer8=varStrVariable//trim(adjustl(intString))
-    return
-  end function Concatenate_VarStr_Integer8
+  end function Concatenate_VarStr_Integer{concatenatetype¦label}
 
   function String_Upper_Case(stringInput) result (stringOutput)
     !!{RST
@@ -623,35 +572,20 @@ contains
     return
   end function String_Value_Extract_Float
   
-  integer function String_Value_Extract_Integer(input,status) result(valueInteger)
+  function String_Value_Extract_Integer{extracttype¦label}(input,status) result(valueInteger)
     !!{RST
-    Extract an integer value from a string.
+    Extract {extracttype¦description} value from a string.
     !!}
     implicit none
-    character(len=*), intent(in   )           :: input
-    integer         , intent(  out), optional :: status
-    integer                                   :: status_
+    {extracttype¦intrinsic}                          :: valueInteger
+    character(len=*)       , intent(in   )           :: input
+    integer                , intent(  out), optional :: status
+    integer                                          :: status_
 
     read (input,*,ioStat=status_) valueInteger
     if (present(status)) status=status_
     return
-  end function String_Value_Extract_Integer
-
-  function String_Value_Extract_Integer_Size_T(input,status) result(valueInteger)
-    !!{RST
-    Extract a ``size_t`` integer value from a string.
-    !!}
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    implicit none
-    integer  (c_size_t)                          :: valueInteger
-    character(len=*   ), intent(in   )           :: input
-    integer            , intent(  out), optional :: status
-    integer                                      :: status_
-    
-    read (input,*,ioStat=status_) valueInteger
-    if (present(status)) status=status_
-    return
-  end function String_Value_Extract_Integer_Size_T
+  end function String_Value_Extract_Integer{extracttype¦label}
 
   function stringSubstitute(string,find,replace)
     use :: ISO_Varying_String, only : varying_string, assignment(=), len, extract, &

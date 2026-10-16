@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.
   !!}
@@ -141,6 +143,8 @@ contains
          &                                                                                    propertyIsComoving                   , scatterIsComoving                     , &
          &                                                                                    likelihoodNormalize
 
+    unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
+    weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     !![
     <objectBuilder class="nodePropertyExtractor"    name="nodePropertyExtractor_"       source="parameters"          />
     <objectBuilder class="nodePropertyExtractor"    name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
@@ -152,8 +156,6 @@ contains
     <objectBuilder class="galacticFilter"                     name="galacticFilter_"                        source="parameters"          />
     <objectBuilder class="outputTimes"                        name="outputTimes_"                           source="parameters"          />
     !!]
-    unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
-    weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     allocate(binCenter   (int(parameters%count('binCenter'))                     ))
     allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
@@ -366,6 +368,8 @@ contains
     !!]
     if (parameters%isPresent('scatterValueTarget')) then
        if (parameters%isPresent('scatterCovarianceTarget')) then
+          allocate(scatterValueTarget       (parameters%count('scatterValueTarget'     )))
+          allocate(scatterCovarianceTarget1D(parameters%count('scatterCovarianceTarget')))
           !![
           <inputParameter docformat="rst">
             <name>scatterValueTarget</name>
@@ -507,7 +511,7 @@ contains
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyQuantity, propertyIsComoving, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterQuantity, scatterIsComoving, scatterUnitsInSI, *nodePropertyExtractor_, *outputAnalysisWeightPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisWeightPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *galacticFilter_, *outputTimes_, bufferCount, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
     !!]
 
-    ! Initialise the bundled target-data fields.  An explicit `targetData_` must be of the
+    ! Initialize the bundled target-data fields.  An explicit `targetData_` must be of the
     ! concrete `outputAnalysisTargetDataStandard` type (the only impl in the project today);
     ! without one we default-construct, matching the per-arg defaults the previous signature
     ! exposed.
@@ -682,7 +686,8 @@ contains
     !!{RST
     Implement a scatterFunction1D output analysis reduction.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout) :: self
     class(outputAnalysisClass            ), intent(inout) :: reduced
@@ -692,7 +697,7 @@ contains
        call self%meanFunction       %reduce(reduced%meanFunction       )
        call self%meanSquaredFunction%reduce(reduced%meanSquaredFunction)
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [outputAnalysisScatterFunction1D] class, but of ['//char(reduced%objectType())//'] class'//{introspection:location})
     end select
     return
   end subroutine scatterFunction1DReduce
@@ -828,18 +833,12 @@ contains
     !!{RST
     Return the log-likelihood of a scatterFunction1D output analysis.
     !!}
-    use :: Error                       , only : Error_Report
-    use :: Linear_Algebra              , only : assignment(=), matrix, operator(*), vector
-    use :: Numerical_Constants_Math    , only : Pi
-    use :: Interface_GSL               , only : GSL_Success
-    use :: Models_Likelihoods_Constants, only : logImprobable
+    use :: Error                    , only : Error_Report
+    use :: Output_Analysis_Utilities, only : Output_Analysis_Log_Likelihood_Normal
     implicit none
     class           (outputAnalysisScatterFunction1D), intent(inout)                 :: self
     double precision                                 , allocatable  , dimension(:,:) :: scatterCovarianceCombined
     double precision                                 , allocatable  , dimension(:  ) :: scatterValueDifference
-    type            (vector                         )                                :: residual
-    type            (matrix                         )                                :: covariance
-    integer                                                                          :: status
 
     ! Check for existence of a target distribution.
     if (self%targetData_%hasTarget()) then
@@ -853,18 +852,8 @@ contains
             &                    -self%targetData_%valueTarget
        scatterCovarianceCombined=+self%scatterCovariance             &
             &                    +self%targetData_%covarianceTarget
-       residual                 = vector(scatterValueDifference   )
-       covariance               = matrix(scatterCovarianceCombined)
        ! Compute the log-likelihood.
-       scatterFunction1DLogLikelihood          =-0.5d0*covariance%covarianceProduct(residual,status)
-       if (status == GSL_Success) then
-          if (self%likelihoodNormalize)                                                         &
-               & scatterFunction1DLogLikelihood=+scatterFunction1DLogLikelihood                 &
-               &                                -0.5d0*covariance%logarithmicDeterminant()      &
-               &                                -0.5d0*dble(size(self%binCenter))*log(2.0d0*Pi)
-       else
-          scatterFunction1DLogLikelihood       =+logImprobable
-       end if
+       scatterFunction1DLogLikelihood=Output_Analysis_Log_Likelihood_Normal(scatterValueDifference,scatterCovarianceCombined,self%likelihoodNormalize)
     else
        scatterFunction1DLogLikelihood=0.0d0
        call Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})

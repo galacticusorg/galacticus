@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 ! Specify an explicit dependence on the interface.GSL.C.root_finding.o object file.
 !: $(BUILDPATH)/interface/GSL/C/root_finding.o
 
@@ -594,18 +596,20 @@ contains
     use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
-    real            (kind=c_double       ), dimension(2), intent(in   )           :: rootRange             , rootRangeValues
+    real            (kind=c_double       ), dimension(2), intent(in   )           :: rootRange                , rootRangeValues
     logical                                             , intent(in   ), optional :: report
     integer                                             , intent(  out), optional :: status
     type            (rootFinderList      ), dimension(:), allocatable             :: currentFindersTmp
     class           (*                   ), pointer                               :: dummyPointer_
-    integer                               , parameter                             :: iterationMaximum =1000
-    integer                               , parameter                             :: findersIncrement =   3
-    logical                                                                       :: rangeChanged          , rangeLowerAsExpected, rangeUpperAsExpected
-    integer                                                                       :: iteration             , statusActual
-    double precision                                                              :: xHigh                 , xLow                , xRoot               , &
-         &                                                                           xRootPrevious         , fLow                , fHigh               , &
-         &                                                                           fDownwardLimit        , fUpwardLimit
+    integer                               , parameter                             :: iterationMaximum    =1000
+    integer                               , parameter                             :: findersIncrement    =   3
+    logical                                                                       :: rangeChanged             , rangeLowerAsExpected, rangeUpperAsExpected, &
+         &                                                                           errorHandlerDisabled
+    integer                                                                       :: iteration                , statusActual
+    double precision                                                              :: xHigh                    , xLow                , xRoot               , &
+         &                                                                           xRootPrevious            , fLow                , fHigh               , &
+         &                                                                           fDownwardLimit           , fUpwardLimit        , expandLimitUpward   , &
+         &                                                                           expandLimitDownward
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
@@ -615,6 +619,13 @@ contains
 
     ! Begin reporting.
     if (report_) call displayIndent("Root finder report:")
+    ! Find the largest magnitudes from which the range can be expanded multiplicatively without overflowing. Expansion stops
+    ! beyond these, so that a function whose root can not be bracketed is reported as such, rather than causing a floating point
+    ! exception.
+    expandLimitUpward  =huge(0.0d0)/max(1.0d0,abs(self%rangeExpandUpward  ))
+    expandLimitDownward=huge(0.0d0)/max(1.0d0,abs(self%rangeExpandDownward))
+    ! Record that this invocation has not (yet) disabled GSL's abort-on-error handler.
+    errorHandlerDisabled=.false.
     ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
     currentFinderIndex=currentFinderIndex+1
     if (allocated(currentFinders)) then
@@ -656,7 +667,7 @@ contains
           self%functionInitialized              =.true.
           ! Initialize resource managers.
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	    <description>
 	    ICE when passing a derived type component to a class(*) function argument.
 	    </description>
@@ -667,7 +678,7 @@ contains
 	  </workaround>
           !!]
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	    <description>
 	    ICE when passing a derived type component to a class(*) function argument.
 	    </description>
@@ -694,7 +705,7 @@ contains
           self%functionInitialized              =.true.
           ! Initialize resource managers.
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	    <description>
 	    ICE when passing a derived type component to a class(*) function argument.
 	    </description>
@@ -705,7 +716,7 @@ contains
 	  </workaround>
           !!]
           !![
-	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=105807" docformat="rst">
+	  <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
 	    <description>
 	    ICE when passing a derived type component to a class(*) function argument.
 	    </description>
@@ -741,8 +752,8 @@ contains
        if (.not.rangeLowerAsExpected) then
           if (present(status)) then
              status        =errorStatusOutOfRange
-             call popCurrentFinder()
              rootFinderFind=self%rangeDownwardLimit
+             call finalizeFind()
              return
           else
              message='root function has incorrect sign at downward limit'
@@ -772,8 +783,8 @@ contains
        if (.not.rangeUpperAsExpected) then
           if (present(status)) then
              status        =errorStatusOutOfRange
-             call popCurrentFinder()
              rootFinderFind=self%rangeUpwardLimit
+             call finalizeFind()
              return
           else
              message='root function has incorrect sign at upward limit'
@@ -787,10 +798,13 @@ contains
           call displayMessage(message)
        end if
     end if
-    ! Set error handler if necessary.
+    ! Set error handler if necessary. Note that 'errorHandlerDisabled' records that this invocation is responsible for
+    ! re-enabling the handler - it must not be re-enabled by any invocation which did not disable it, as the handler state is
+    ! tracked by a counter which disables aborts whenever it is non-zero.
     if (present(status)) then
        call GSL_Error_Handler_Abort_Off()
-       statusActual=errorStatusSuccess
+       errorHandlerDisabled=.true.
+       statusActual        =errorStatusSuccess
     end if
     ! Expand the range as necessary.
     if (self%useDerivative) then
@@ -895,6 +909,8 @@ contains
                   &   .or.                               &
                   &   .not.self%rangeUpwardLimitSet      &
                   &  )                                   &
+                  &  .and.                               &
+                  &  abs(xHigh) <= expandLimitUpward     &
                   & ) then
                 if (rangeLowerAsExpected) then
                    ! The lower end of the range has the expected sign. Therefore, we can shift the lower end of the range to the
@@ -929,6 +945,8 @@ contains
                   &   .or.                               &
                   &   .not.self%rangeDownwardLimitSet    &
                   &  )                                   &
+                  &  .and.                               &
+                  &  abs(xLow ) <= expandLimitDownward   &
                   & ) then
                 if (rangeUpperAsExpected) then
                    ! The upper end of the range has the expected sign. Therefore, we can shift the upper end of the range to the
@@ -950,7 +968,7 @@ contains
              end if
              if (present(status)) then
                 status=errorStatusOutOfRange
-                call popCurrentFinder()
+                call finalizeFind()
                 return
              else
                 fLow =self%finderFunction(xLow )
@@ -1063,15 +1081,28 @@ contains
        end if
        if (report_) call displayUnindent("done")
     end if
-    ! Reset error handler.
-    if (present(status)) call GSL_Error_Handler_Abort_On()
-    ! Restore state.
-    call popCurrentFinder()
-    ! Finish reporting.
-    if (report_) call displayUnindent("done")
+    ! Reset error handler, restore state, and finish reporting.
+    call finalizeFind()
     return
 
   contains
+
+    subroutine finalizeFind()
+      !!{RST
+      Perform all clean up necessary before returning from ``rootFinderFind``: re-enable GSL's abort-on-error handler if this invocation disabled it, unwind the active-finder stack, and close the report indent.
+
+      Every exit from ``rootFinderFind`` - including the early returns taken when the root is out of range - must pass through this routine. Returning directly would leave the (thread-local) abort handler disabled for the remainder of the run, so that later GSL errors anywhere in the code - including in callers which pass no ``status`` and so rely on GSL aborting - would fail silently instead of aborting.
+      !!}
+      implicit none
+
+      if (errorHandlerDisabled) then
+         call GSL_Error_Handler_Abort_On()
+         errorHandlerDisabled=.false.
+      end if
+      call popCurrentFinder()
+      if (report_) call displayUnindent("done")
+      return
+    end subroutine finalizeFind
 
     subroutine popCurrentFinder()
       !!{RST

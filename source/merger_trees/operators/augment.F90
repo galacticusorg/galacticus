@@ -27,7 +27,7 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorAugment" docformat="rst">
    <description>
-   Provides a merger tree operator which augments the mass resolution of existing merger trees by inserting high-resolution branches built to match the original tree structure. Resolution limits for new branches are set by the delegate mass resolution object, with tolerance and retry behavior controlled by ``[toleranceScale]``, ``[attemptsBeforeRescale]``, and ``[attemptsMaximum]``.
+   Provides a merger tree operator which augments the mass resolution of existing merger trees by inserting high-resolution branches built to match the original tree structure. Resolution limits for new branches are set by the delegate mass resolution object, with tolerance and retry behavior controlled by ``[toleranceScale]``, ``[retryMaximum]``, and ``[attemptsMaximum]``.
    </description>
   </mergerTreeOperator>
   !!]

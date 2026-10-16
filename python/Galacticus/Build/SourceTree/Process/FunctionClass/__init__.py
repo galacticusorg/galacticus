@@ -20,12 +20,12 @@ Andrew Benson (ported to Python 2026)
 
 import os
 import re
-import xml.etree.ElementTree as ET
 
 
 from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
-from XML.Utils                                               import xml_to_dict, xml_escape
+from XML.Utils                                               import xml_escape
+from Galacticus.Build                                        import Catalogs
 from Galacticus.Build.StateStorables                         import (
     function_class_names    as _shared_function_class_names,
     function_class_instances as _shared_function_class_instances,
@@ -47,6 +47,7 @@ from Galacticus.Build.SourceTree.Parse.Visibilities          import update_visib
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
     class_dependencies,
 )
+from Galacticus.Build.Capabilities                           import parse_requires
 from Galacticus.Build.SourceTree.Process.SourceIntrospection import location
 from Galacticus.Build.FileChanges                            import update as file_changes_update
 
@@ -114,9 +115,38 @@ def _short_name(full_name, directive_name):
     return short
 
 
+def _selector_names(non_abstract_class, directive_name):
+    """Return `(canonical, accepted)` parameter-file values for an implementation.
+
+    `accepted` is every value the parameter reader will match, `canonical` the
+    one written into descriptors, documentation, and error listings.
+
+    Where an implementation carries an `alias`, the alias is canonical and the
+    abbreviated short name remains accepted, so existing parameter files keep
+    working.  An alias exists only where the readable name would push a
+    generated Fortran identifier past the 63-character limit -- see the
+    *Naming conventions* section of the developer guide.
+    """
+    short = _short_name(non_abstract_class['name'], directive_name)
+    alias = (non_abstract_class.get('alias') or '').strip()
+    if not alias:
+        return short, [short]
+    return alias, [short, alias]
+
+
 def _xml_escape(s):
     """Escape `&`, `<`, `>`, `"` for XML attribute / text contexts."""
     return xml_escape(s)
+
+
+# Patterns applied per line, or per declaration, while scanning implementations.
+_SUB_PARAMETERS_RE = re.compile(
+    r'^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)\s*%\s*subParameters\s*\(')
+_INTENT_RE         = re.compile(r'intent\s*\(\s*(in|out|inout)\s*\)', re.IGNORECASE)
+_EXTERNAL_RE       = re.compile(r'external', re.IGNORECASE)
+_KIND_PREFIX_RE    = re.compile(r'^.+=')
+_WHITESPACE_RE     = re.compile(r'\s')
+_DIGITS_RE         = re.compile(r'^\d+$')
 
 
 # Module-level caches.  The helpers take the state explicitly as
@@ -138,7 +168,7 @@ def _load_xml(name, cache_attr):
     if not os.path.exists(path):
         cache_attr['value'] = {}
         return cache_attr['value']
-    cache_attr['value'] = xml_to_dict(ET.parse(path).getroot())
+    cache_attr['value'] = Catalogs.load(path)
     return cache_attr['value']
 
 
@@ -285,14 +315,11 @@ def _build_object_type_method(directive, non_abstract_classes, methods):
     )
     for non_abstract in non_abstract_classes:
         class_name = non_abstract['name']
-        # shortName is computed the same way loadAndSortClasses does —
-        # lowercase the first letter unless the remainder is already an
-        # all-caps acronym of 2+ letters.
-        type_short = class_name
-        if type_short.startswith(directive_name):
-            type_short = type_short[len(directive_name):]
-        if not re.match(r'^[A-Z]{2,}', type_short):
-            type_short = type_short[:1].lower() + type_short[1:]
+        # The short form is the value naming this implementation in a parameter
+        # file: its `alias` where it has one, else the class name with the
+        # directive prefix stripped (lowercasing the first letter unless the
+        # remainder is already an all-caps acronym of 2+ letters).
+        type_short = _selector_names(non_abstract, directive_name)[0]
         code += (
             f"type is ({class_name})\n"
             "if (short_) then\n"
@@ -308,6 +335,107 @@ def _build_object_type_method(directive, non_abstract_classes, methods):
         'pass':        'yes',
         'modules':     'ISO_Varying_String',
         'argument':    ['logical, intent(in   ), optional :: short'],
+        'code':        code,
+    }
+
+
+def _build_requires_method(directive, classes, methods, loc_expr):
+    """Populate `methods['requires']`, which reports whether an object can only
+    answer `method` when given its optional `argument`.
+
+    The answer is assembled from the `<requires>` and `<forwards>` elements of
+    each implementation's directive (see `Galacticus.Build.Capabilities`): an
+    implementation requires what it declares, what the implementations it
+    extends declare, and whatever the objects it forwards to require. Asking
+    about a pair which is not an optional argument of one of the class' methods
+    is an error, so that a misspelled query can not silently answer false.
+    """
+    directive_name = directive['name']
+    result         = directive_name + 'Requires'
+
+    # The optional arguments of the class' own methods - the only arguments an
+    # implementation can require and a consumer can withhold.
+    optional = {}
+    for method_name, method in methods.items():
+        if method_name in _SHIM_FRAMEWORK_METHODS or method_name == 'destructor':
+            continue
+        for argument in as_array(method.get('argument') or []):
+            declaration = parse_declaration(argument)
+            if declaration is None or 'optional' not in (declaration.get('attributes') or []):
+                continue
+            optional.setdefault(method_name, []).extend(declaration.get('variableNames') or [])
+
+    # Each implementation's own declarations, checked against those arguments.
+    declared = {}
+    for type_name, record in classes.items():
+        try:
+            requires, forwards = parse_requires(record)
+        except ValueError as error:
+            raise RuntimeError(
+                f"process_function_class: implementation '{type_name}': {error}")
+        for method_name, argument in requires:
+            if argument not in optional.get(method_name, []):
+                raise RuntimeError(
+                    f"process_function_class: implementation '{type_name}' requires "
+                    f"'{method_name}:{argument}', but '{argument}' is not an optional "
+                    f"argument of a '{method_name}' method of class '{directive_name}'")
+        declared[type_name] = (requires, forwards)
+
+    def inherited(type_name):
+        """Merge the declarations of `type_name` and of the implementations it extends."""
+        requires, forwards, seen = [], [], set()
+        while type_name in declared and type_name not in seen:
+            seen.add(type_name)
+            requires += [pair for pair in declared[type_name][0] if pair not in requires]
+            forwards += [name for name in declared[type_name][1] if name not in forwards]
+            type_name = classes[type_name].get('extends')
+        return requires, forwards
+
+    def case_list(pairs, indent):
+        return (', &\n' + indent + '& ').join(f"'{pair}'" for pair in pairs)
+
+    code  = "select case (method//':'//argument)\n"
+    valid = sorted(f"{method_name}:{argument}" for method_name in optional for argument in optional[method_name])
+    if valid:
+        code += "case (" + case_list(valid, '     ') + ")\n"
+        code += "   ! A recognized method and optional argument.\n"
+    code += (
+        "case default\n"
+        f"   call Error_Report('\"'//method//'\" is not a method of class \"{directive_name}\" "
+        f"with an optional argument \"'//argument//'\"'//{loc_expr})\n"
+        "end select\n"
+        f"{result}=.false.\n"
+    )
+    branches = ''
+    for type_name in sorted(classes):
+        requires, forwards = inherited(type_name)
+        if not requires and not forwards:
+            continue
+        branches += f"class is ({type_name})\n"
+        if requires:
+            branches += (
+                "   select case (method//':'//argument)\n"
+                "   case (" + case_list([f"{m}:{a}" for m, a in requires], '        ') + ")\n"
+                f"      {result}=.true.\n"
+                "   end select\n"
+            )
+        for object_name in forwards:
+            branches += (
+                f"   if (.not.{result} .and. associated(self%{object_name})) "
+                f"{result}=self%{object_name}%requires(method,argument)\n"
+            )
+    if branches:
+        code += "select type (self)\n" + branches + "end select\n"
+    methods['requires'] = {
+        'description': (
+            'Return true if this object can only answer ``method`` when given its optional argument ``argument``. A '
+            'consumer which never supplies that argument should reject such an object when it is built.'
+        ),
+        'type':        'logical',
+        'pass':        'yes',
+        'recursive':   'yes',
+        'modules':     'Error',
+        'argument':    ['character(len=*), intent(in   ) :: method, argument'],
         'code':        code,
     }
 
@@ -399,13 +527,18 @@ def _load_and_sort_classes(directive, directive_locations):
         if not re.match(r'^[A-Z]{2,}', short):
             short = short[:1].lower() + short[1:]
         non_abstract['shortName'] = short
+        # An implementation may carry a readable `alias` where its Fortran name
+        # had to be abbreviated; either form may name it as the class default.
+        non_abstract['canonicalName'] = (
+            (non_abstract.get('alias') or '').strip() or short)
 
     # Validate optional `default` attribute.
     if 'default' in directive:
         wanted = directive['default']
-        if not any(wanted == c['shortName'] for c in non_abstract_classes):
+        if not any(wanted in (c['shortName'], c['canonicalName'])
+                   for c in non_abstract_classes):
             allowed = '\n'.join(
-                f"    {c['shortName']}" for c in non_abstract_classes)
+                f"    {c['canonicalName']}" for c in non_abstract_classes)
             raise RuntimeError(
                 f"unrecognized default '{wanted}' for class "
                 f"'{directive['name']}'\n  allowed defaults are:\n{allowed}"
@@ -418,6 +551,16 @@ def _load_and_sort_classes(directive, directive_locations):
 # Output injection + submodule writing
 # ---------------------------------------------------------------------------
 
+def _enclosing_file_name(node):
+    """Return the name of the outermost file node enclosing `node`, or None if there is none."""
+    name = None
+    while node is not None:
+        if node.get('type') == 'file' and node.get('name'):
+            name = node['name']
+        node = node.get('parent')
+    return name
+
+
 def _insert_and_write_output(node, code_content, pre, post, classes, directive):
     """Re-parse the accumulated pre/post-contains content, run it through
     process_tree so nested directives expand, and inject the trees into
@@ -428,16 +571,17 @@ def _insert_and_write_output(node, code_content, pre, post, classes, directive):
     temp file and rename only when the content differs (using a simple
     `os.path.exists` + `open/read` compare).
     """
-    tree_pre  = parse_code(
-        pre['content'],
-        name='Galacticus.Build.SourceTree.Process.FunctionClass'
-             '.process_function_class()',
-    )
-    tree_post = parse_code(
-        post['content'],
-        name='Galacticus.Build.SourceTree.Process.FunctionClass'
-             '.process_function_class()',
-    )
+    # The generated content carries the bodies of methods defined in the class directive, whose
+    # `{introspection:location}` placeholders were tagged with their line numbers in the class file
+    # when it was parsed, and which are expanded by `process_tree()` below - before the trees are
+    # inserted into the class file's tree. The trees are therefore named for the class file, so that
+    # those locations report it (rather than this generator). Their `source` remains this generator,
+    # as the generated lines themselves have no counterpart in the class file.
+    source    = ('Galacticus.Build.SourceTree.Process.FunctionClass'
+                 '.process_function_class()')
+    name      = _enclosing_file_name(node) or source
+    tree_pre  = parse_code(pre ['content'], name=name, source=source)
+    tree_post = parse_code(post['content'], name=name, source=source)
     process_tree(tree_pre)
     process_tree(tree_post)
 
@@ -663,6 +807,13 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                 result_m = re.search(
                     r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
                 result = result_m.group(1) if result_m else name
+                # Compiled once per constructor, not once per line scanned.
+                parent_constructor_re = (
+                    re.compile(
+                        r'^\s*' + re.escape(result)
+                        + r'\s*%\s*' + re.escape(extension_of)
+                        + r'\s*=')
+                    if extension_of else None)
 
                 sub_iter = walk_tree(node)
                 next(sub_iter)
@@ -687,21 +838,15 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                             if not raw_line and not processed_line:
                                 break
                             # Subparameter sources.
-                            sm = re.match(
-                                r'^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)'
-                                r'\s*%\s*subParameters\s*\(',
-                                processed_line)
+                            sm = _SUB_PARAMETERS_RE.match(processed_line)
                             if sm:
                                 sub_parameters[sm.group(1)] = {
                                     'parent': sm.group(2),
                                     'source': processed_line,
                                 }
                             # Parent constructor usage.
-                            if extension_of and re.match(
-                                    r'^\s*' + re.escape(result)
-                                    + r'\s*%\s*' + re.escape(extension_of)
-                                    + r'\s*=',
-                                    processed_line):
+                            if (parent_constructor_re
+                                    and parent_constructor_re.match(processed_line)):
                                 parent_constructor_used = True
                     elif ctype == 'inputParameter':
                         d = cnode.setdefault('directive', {})
@@ -798,8 +943,9 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                                for o in potential_names.get('objects', [])):
                             descriptor_parameters.setdefault(
                                 'objects', []).append({
-                                    'name':   obj_name,
-                                    'source': d['source'],
+                                    'name':          obj_name,
+                                    'source':        d['source'],
+                                    'parameterName': d.get('parameterName'),
                                 })
                         elif obj_name in potential_names.get(
                                 'linkedListObjects', []):
@@ -832,7 +978,7 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
 def _build_descriptor_methods(directive, non_abstract_classes, classes,
                               methods, tree, state_storables):
     """Populate `methods['descriptor']` (and in step 5c `hashedDescriptor`)
-    with the auto-descriptor code that serialises the class's parameter
+    with the auto-descriptor code that serializes the class's parameter
     constructor into an inputParameters tree.
 
     This
@@ -869,12 +1015,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         from Galacticus.Build.SourceTree.Process.FunctionClass.Utils \
             import declaration_rank
 
-        short = non_abstract['name']
-        if short.startswith(directive['name']):
-            short = short[len(directive['name']):]
-        if not re.match(r'^[A-Z]{2,}', short):
-            short = short[:1].lower() + short[1:]
-        label = short
+        label = _selector_names(non_abstract, directive['name'])[0]
 
         descriptor_code += f"type is ({non_abstract['name']})\n"
 
@@ -896,15 +1037,19 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                 descriptor_code += " else\n"
                 descriptor_code += "  includeClass_=.true.\n"
                 descriptor_code += " end if\n"
+                # The object is added under `parameterName` if given (i.e. if it was built from a parameter whose name
+                # differs from that of its class), otherwise under the name of its class.
                 descriptor_code += (
                     f" if (includeClass_) call descriptor%addParameter"
-                    f"('{directive['name']}','{label}')\n"
+                    f"(descriptorParameterName('{directive['name']}',"
+                    f"parameterName),'{label}')\n"
                 )
                 if descriptor_parameters:
                     add_sub_parameters['parameters'] = True
                     descriptor_code += (
                         f"parameters=descriptor%subparameters"
-                        f"('{directive['name']}')\n"
+                        f"(descriptorParameterName('{directive['name']}',"
+                        f"parameterName))\n"
                     )
                     for sp_name in sorted(sub_parameters.keys()):
                         add_sub_parameters[sp_name] = True
@@ -1238,12 +1383,19 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                                 )
 
                     for obj in descriptor_parameters.get('objects') or []:
+                        # An object built from a parameter whose name differs from that of its class must be described
+                        # under that name, or two objects of the same class (e.g. a prior and a perturber) collide.
+                        parameter_name = (
+                            f",parameterName='{obj['parameterName']}'"
+                            if obj.get('parameterName') else ''
+                        )
                         descriptor_code += (
                             f"if (associated(self%{obj['name']})) "
                             f"call self%{obj['name']}%descriptor"
                             f"(parameters,includeClass=.true.,"
                             f"includeFileModificationTimes="
-                            f"includeFileModificationTimes)\n"
+                            f"includeFileModificationTimes"
+                            f"{parameter_name})\n"
                         )
                     for linked in descriptor_parameters.get(
                             'linkedLists') or []:
@@ -1259,7 +1411,8 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
                         f"call self%{extension_of}%descriptor"
                         f"(descriptor,includeClass=.false.,"
                         f"includeFileModificationTimes="
-                        f"includeFileModificationTimes)\n"
+                        f"includeFileModificationTimes,"
+                        f"parameterName=parameterName)\n"
                     )
             elif (not declaration_matches
                     and 'descriptorSpecial' not in non_abstract):
@@ -1382,7 +1535,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
         descriptor_code = "logical :: includeClass_\n" + descriptor_code
     else:
         descriptor_code = (
-            " !$GLC attributes unused :: descriptor, includeClass\n"
+            " !$GLC attributes unused :: descriptor, includeClass, parameterName\n"
             + descriptor_code
         )
     if add_sub_parameters:
@@ -1414,6 +1567,7 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
             'type(inputParameters), intent(inout) :: descriptor',
             'logical, intent(in   ), optional :: includeClass, '
             'includeFileModificationTimes',
+            'character(len=*), intent(in   ), optional :: parameterName',
         ],
         'code':        descriptor_code,
     }
@@ -1550,6 +1704,11 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                     result_m = re.search(
                         r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
                     result = result_m.group(1) if result_m else name
+                    # Compiled once per constructor, not once per line scanned.
+                    parent_assignment_re = re.compile(
+                        r'^\s*' + re.escape(result)
+                        + r'%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)'
+                        + r'\(\s*parameters\s*\)')
 
                     # Walk the function subtree.
                     sub_iter = walk_tree(node)
@@ -1579,11 +1738,7 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                                 # not None.
                                 if not raw_line and not processed_line:
                                     break
-                                pm = re.match(
-                                    r'^\s*' + re.escape(result)
-                                    + r'%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)'
-                                    + r'\(\s*parameters\s*\)',
-                                    processed_line)
+                                pm = parent_assignment_re.match(processed_line)
                                 if pm:
                                     allowed_parameters[class_name][
                                         'classParent'] = pm.group(1)
@@ -2993,6 +3148,20 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
 
     if 'default' in directive:
         default = directive['default']
+        # `default` names the implementation internally: it builds the class
+        # name looked up below and the OpenMP critical-section identifier, both
+        # of which must stay within Fortran's 63-character limit, so it always
+        # uses the (possibly abbreviated) short name.  `default_value` is the
+        # value written into the parameter tree, which uses the alias where one
+        # exists so a model built from defaults records the readable name.
+        default_value = default
+        for _c in non_abstract_classes:
+            short, accepted = (_short_name(_c['name'], directive_name),
+                               _selector_names(_c, directive_name)[1])
+            if default in accepted:
+                default, default_value = short, _selector_names(
+                    _c, directive_name)[0]
+                break
         default_uc = _ucfirst(default)
         # Find the matching default class entry.
         target_name = directive_name + default_uc
@@ -3017,7 +3186,7 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
             f".and. copyInstance_ == 1 "
             f".and. .not.parameters%isPresent(char(parameterName_))) then\n"
             f"        call parameters%addParameter"
-            f"('{directive_name}','{default}')\n"
+            f"('{directive_name}','{default_value}')\n"
             f"        parameterNode => parameters%node"
             f"('{directive_name}',requireValue=.true.)\n"
         )
@@ -3081,8 +3250,9 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         '      select case (char(instanceName))\n'
     )
     for c in non_abstract_classes:
-        name = _short_name(c['name'], directive_name)
-        post['content'] += f"     case ('{name}')\n"
+        _, accepted = _selector_names(c, directive_name)
+        labels = ','.join(f"'{a}'" for a in accepted)
+        post['content'] += f"     case ({labels})\n"
         post['content'] += f"        allocate({c['name']} :: self)\n"
         if c.get('recursive') == 'yes':
             # Record the in-progress object on the (already-pushed) build-stack entry so a re-entrant build that
@@ -3101,9 +3271,9 @@ def _generate_constructor(directive, classes_ordered, non_abstract_classes,
         "         message='Unrecognized type \"'//trim(instanceName)//'\" "
         "Available options are:'\n"
     )
-    class_names = sorted([c['name'] for c in non_abstract_classes])
-    for cn in class_names:
-        sn = _short_name(cn, directive_name)
+    for sn in sorted(
+            _selector_names(c, directive_name)[0]
+            for c in non_abstract_classes):
         post['content'] += (
             f"         message=message//char(10)//'   -> {sn}'\n"
         )
@@ -3301,15 +3471,8 @@ def _emit_submodule_function_interface(class_node, code_content,
                     v.lower() for v in (declaration.get('variables') or [])
                 ]
                 attributes = declaration.get('attributes') or []
-                has_intent = any(
-                    re.match(r'intent\s*\(\s*(in|out|inout)\s*\)', a,
-                             re.IGNORECASE)
-                    for a in attributes
-                )
-                external = any(
-                    re.match(r'external', a, re.IGNORECASE)
-                    for a in attributes
-                )
+                has_intent = any(_INTENT_RE.match(a) for a in attributes)
+                external   = any(_EXTERNAL_RE.match(a) for a in attributes)
                 if ((return_name or '').lower() in variables_lc
                         or has_intent):
                     # Function-result + intent() declarations always go into
@@ -3381,9 +3544,9 @@ def _capture_declaration_type(declaration, module_symbols):
     t = declaration.get('type')
     if t is None:
         return
-    t = re.sub(r'^.+=', '', t)
-    t = re.sub(r'\s', '', t)
-    if re.match(r'^\d+$', t):
+    t = _KIND_PREFIX_RE.sub('', t)
+    t = _WHITESPACE_RE.sub('', t)
+    if _DIGITS_RE.match(t):
         return
     module_symbols.append(t)
 
@@ -3698,7 +3861,7 @@ def _generate_method_functions(directive, methods, post, node):
         if 'code' in method:
             modules = method.get('modules')
             if modules is not None:
-                module_list = _normalise_modules(modules)
+                module_list = _normalize_modules(modules)
                 for mod in module_list:
                     prefix = '!$ ' if 'OMP_Lib' in mod['name'] else ''
                     only_clause = ''
@@ -3945,13 +4108,14 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
         f'   end function {shim_type}ObjectType\n\n'
     )
     post['content'] += (
-        f'   subroutine {shim_type}Descriptor(self,descriptor,includeClass,includeFileModificationTimes)\n'
+        f'   subroutine {shim_type}Descriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)\n'
         '      use Input_Parameters, only : inputParameters\n'
         '      implicit none\n'
         f'      class({shim_type}    ), intent(inout)           :: self\n'
         '      type (inputParameters), intent(inout)           :: descriptor\n'
         '      logical               , intent(in   ), optional :: includeClass, includeFileModificationTimes\n'
-        '      call self%recursiveSelf%descriptor(descriptor,includeClass,includeFileModificationTimes)\n'
+        '      character(len=*)      , intent(in   ), optional :: parameterName\n'
+        '      call self%recursiveSelf%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)\n'
         f'   end subroutine {shim_type}Descriptor\n\n'
     )
     post['content'] += (
@@ -4036,8 +4200,8 @@ def _generate_recursive_shim(directive, methods, non_abstract_classes,
     )
 
 
-def _normalise_modules(modules):
-    """Normalise the `modules` entry on a method dict into a list of
+def _normalize_modules(modules):
+    """Normalize the `modules` entry on a method dict into a list of
     `{name, only}` shapes.
     """
     if isinstance(modules, list):
@@ -4133,6 +4297,8 @@ def process_function_class(tree, options):
             directive, non_abstract_classes, classes, methods, tree,
             state_storables)
         _build_object_type_method(directive, non_abstract_classes, methods)
+        _build_requires_method(
+            directive, classes, methods, location(node, node.get('line', 0)))
         _build_allowed_parameters_method(
             directive, classes_ordered, methods)
         _build_assignment_method(

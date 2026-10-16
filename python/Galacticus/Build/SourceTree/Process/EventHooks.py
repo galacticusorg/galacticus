@@ -11,7 +11,6 @@ import hashlib
 import io
 import os
 import re
-import xml.etree.ElementTree as ET
 
 
 from Galacticus.Build.FortranUtils                           import get_fortran_line
@@ -19,7 +18,7 @@ from Fortran.Utils                                 import (
     INTRINSIC_DECLARATIONS, extract_variables,
 )
 from List.ExtraUtils                               import as_array
-from XML.Utils                                     import xml_to_dict
+from Galacticus.Build                              import Catalogs
 from Galacticus.Build.Directives                   import extract_directives
 from Galacticus.Build.SourceTree                   import (
     walk_tree, parse_code, children, set_visibility,
@@ -46,7 +45,7 @@ def _load_directive_locations():
     if not build_path:
         raise RuntimeError("process_event_hooks: BUILDPATH is not set")
     path = os.path.join(build_path, 'directiveLocations.xml')
-    _DIRECTIVE_LOCATIONS = xml_to_dict(ET.parse(path).getroot())
+    _DIRECTIVE_LOCATIONS = Catalogs.load(path)
     return _DIRECTIVE_LOCATIONS
 
 
@@ -495,7 +494,7 @@ def _render_imports_and_uses(hook, manager_parent):
     if module_block is None:
         return ''
     # The directive XML may hold one `<module>` entry or many.  xml_to_dict
-    # emits a list for many entries and a single dict for one, so normalise
+    # emits a list for many entries and a single dict for one, so normalize
     # via `as_array`; also accept a dict keyed by module name.
     if isinstance(module_block, dict) and 'name' in module_block:
         modules = [module_block]
@@ -840,7 +839,7 @@ def _process_event_hook_manager(node):
 
 def process_event_hooks(tree, options):
     """Process event-hook related nodes throughout the tree."""
-    # Materialise the walk up front because we mutate the tree as we go.
+    # Materialize the walk up front because we mutate the tree as we go.
     for node in list(walk_tree(tree)):
         ntype = node.get('type')
         # Read-only access to `directive` here; we only call setdefault inside

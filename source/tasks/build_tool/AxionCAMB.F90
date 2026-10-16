@@ -24,14 +24,13 @@
    </description>
   </task>
   !!]
-  type, extends(taskClass) :: taskBuildToolAxionCAMB
+  type, extends(taskBuildTool) :: taskBuildToolAxionCAMB
      !!{RST
      Implementation of a task which builds the AxionCAMB tool.
      !!}
      private
    contains
-     procedure :: perform            => buildToolAxionCAMBPerform
-     procedure :: requiresOutputFile => buildToolAxionCAMBRequiresOutputFile
+     procedure :: perform => buildToolAxionCAMBPerform
   end type taskBuildToolAxionCAMB
 
   interface taskBuildToolAxionCAMB
@@ -59,42 +58,15 @@ contains
 
   subroutine buildToolAxionCAMBPerform(self,status)
     !!{RST
-    Builds the tabulation.
+    Builds the tool.
     !!}
-    use :: Display             , only : displayIndent                 , displayMessage, displayUnindent
-    use :: Error               , only : errorStatusSuccess
-    use :: Interfaces_AxionCAMB, only : Interface_AxionCAMB_Initialize
+    use :: Interfaces_AxionCAMB      , only : Interface_AxionCAMB_Initialize
+    use :: Tasks_Build_Tool_Utilities, only : Task_Build_Tool
     implicit none
     class  (taskBuildToolAxionCAMB), intent(inout), target   :: self
     integer                        , intent(  out), optional :: status
-    type   (varying_string        )                          :: axionCambPath, axionCambVersion
     !$GLC attributes unused :: self
-#include "os.inc"
 
-    call displayIndent  ('Begin task: AxionCAMB tool build')
-    call Interface_AxionCAMB_Initialize(                         &
-         &                                     axionCambPath   , &
-         &                                     axionCambVersion, &
-#ifdef __APPLE__
-         &                              static=.false.           &
-#else
-         &                              static=.true.            &
-#endif
-         &                             )
-    call displayMessage('AxionCAMB version '//axionCambVersion//' successfully built in: '//axionCambPath)
-    if (present(status)) status=errorStatusSuccess
-    call displayUnindent('Done task: AxionCAMB tool build')
+    call Task_Build_Tool('AxionCAMB',Interface_AxionCAMB_Initialize,status)
     return
   end subroutine buildToolAxionCAMBPerform
-
-  logical function buildToolAxionCAMBRequiresOutputFile(self)
-    !!{RST
-    Specifies that this task does not requires the main output file.
-    !!}
-    implicit none
-    class(taskBuildToolAxionCAMB), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    buildToolAxionCAMBRequiresOutputFile=.false.
-    return
-  end function buildToolAxionCAMBRequiresOutputFile

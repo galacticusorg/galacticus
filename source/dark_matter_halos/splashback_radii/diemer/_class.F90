@@ -24,7 +24,7 @@
   the coefficient sets.
   !!}
 
-  !+ Implemented by Andrew Benson with assistance from Claude.
+  !+ Contributions to this file made by: Andrew Benson, Claude.
 
   use :: Cosmology_Functions                        , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                       , only : cosmologyParametersClass

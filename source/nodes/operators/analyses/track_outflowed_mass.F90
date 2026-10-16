@@ -139,8 +139,10 @@ contains
     !!{RST
     Respond to mass removal from the hot halo component.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentHotHalo
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
     implicit none
     class           (*                   ), intent(inout) :: self
     class           (nodeComponentHotHalo), intent(inout) :: hotHalo
@@ -150,8 +152,10 @@ contains
     class is (nodeOperatorTrackOutflowedMass)
        call hotHalo%floatRank0MetaPropertyRate(self%massOutflowedID      ,-hotHalo%floatRank0MetaPropertyGet(self%massOutflowedID      )*massRate/hotHalo%mass())
        call hotHalo%floatRank0MetaPropertyRate(self%massMetalsOutflowedID,-hotHalo%floatRank0MetaPropertyGet(self%massMetalsOutflowedID)*massRate/hotHalo%mass())
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorTrackOutflowedMass] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorTrackOutflowedMass] class'//{introspection:location})
     end select
     return
   end subroutine trackOutflowedMassHotHaloMassRemoval
@@ -163,6 +167,8 @@ contains
     use :: Error               , only : Error_Report
     use :: Galacticus_Nodes    , only : nodeComponentHotHalo
     use :: Abundances_Structure, only : abundances
+    use :: ISO_Varying_String  , only : char
+    use :: Function_Classes    , only : functionClass
     implicit none
     class           (*                    ), intent(inout) :: self
     class           (nodeComponentHotHalo ), intent(inout) :: hotHalo
@@ -173,8 +179,10 @@ contains
     class is (nodeOperatorTrackOutflowedMass)
        call hotHalo%floatRank0MetaPropertyRate(self%massOutflowedID      ,rateMassReturn                    )
        call hotHalo%floatRank0MetaPropertyRate(self%massMetalsOutflowedID,rateAbundancesReturn%metallicity())
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorTrackOutflowedMass] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
     class default
-       call Error_Report('incorrect class'//{introspection:location})
+       call Error_Report('object is not of [nodeOperatorTrackOutflowedMass] class'//{introspection:location})
     end select
     return
   end subroutine trackOutflowedMassHotHaloMassReincorporation

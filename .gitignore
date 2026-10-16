@@ -4,11 +4,13 @@
 *.swo
 *.swn
 *.exe
+*.exe_*
 galacticusConfig.xml
 galacticus.py
+/galacticus.hdf5
 libgalacticus.so
 galacticus/
-docs/tutorials/*.ipynb
+docs/tutorials/*/*.ipynb
 parameters.catalog.json
 work
 testSuite/*.log

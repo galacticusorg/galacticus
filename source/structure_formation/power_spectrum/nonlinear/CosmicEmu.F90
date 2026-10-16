@@ -17,8 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson. The correction to the dark energy equation of state parameter
-!+    w_a was diagnosed and drafted with assistance from Claude, and reviewed and verified by Andrew Benson.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the code of :cite:t:`moran_mira-titan_2023`.
@@ -265,8 +264,6 @@ contains
        call Directory_Make(inputPath(pathTypeDataDynamic)//"largeScaleStructure")
        powerSpectrumFile=inputPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
        powerSpectrumFile=powerSpectrumFile//"_"//Hash_MD5(uniqueLabel)
-       parameterFile    =File_Name_Temporary("cosmicEmuParameters",char(inputPath(pathTypeDataDynamic)//"largeScaleStructure"))//"/xstar.dat"
-       call Directory_Make(File_Path(parameterFile))
        parameters       =''
        write (parameterLabel,'(f5.3)') +self%cosmologyParameters_     %OmegaMatter              (                                  )
        powerSpectrumFile=powerSpectrumFile//"_OmegaMatter"//trim(adjustl(parameterLabel))
@@ -301,8 +298,19 @@ contains
        ! Check for existence of the power spectrum, building it if necessary.
        call File_Lock(powerSpectrumFile,self%fileLock,lockIsShared=.true.)
        if (.not.File_Exists(powerSpectrumFile)) then
-          call File_Unlock(self%fileLock)
-          call File_Lock(powerSpectrumFile,self%fileLock,lockIsShared=.false.)
+          ! The power spectrum must be built, so upgrade to an exclusive lock. No sync is requested when releasing the shared lock
+          ! - nothing has been written under it, and, since `File_Unlock()` syncs by opening the file with `status='unknown'`, a
+          ! sync here would create an empty power spectrum file, causing the re-test below to always find it.
+          call File_Unlock(self%fileLock,sync=.false.)
+          call File_Lock  (powerSpectrumFile,self%fileLock,lockIsShared=.false.)
+       end if
+       ! Re-test for the file - another thread or process may have built it while we were waiting for the exclusive lock.
+       if (.not.File_Exists(powerSpectrumFile)) then
+          ! Create a working directory, and write the parameter file into it. This is done only if CosmicEmu must actually be run
+          ! - otherwise the working directory would be created (and left behind, as the clean up below is never reached) on every
+          ! call for which the time had changed.
+          parameterFile=File_Name_Temporary("cosmicEmuParameters",char(inputPath(pathTypeDataDynamic)//"largeScaleStructure"))//"/xstar.dat"
+          call Directory_Make(File_Path(parameterFile))
           open(newUnit=powerSpectrumUnit,file=char(parameterFile),status='unknown',form='formatted')
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)

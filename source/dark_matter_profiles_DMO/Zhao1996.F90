@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of :cite:t:`zhao_analytical_1996` dark matter halo profiles.
   !!}
@@ -80,6 +82,7 @@ contains
       <description>
       The parameter :math:`\alpha` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
       </description>
+      <minimum inclusive="false">0.0</minimum>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>beta</name>
@@ -94,6 +97,7 @@ contains
       <description>
       The parameter :math:`\gamma` of the :cite:t:`zhao_analytical_1996` dark matter density profile.
       </description>
+      <maximum inclusive="false">3.0</maximum>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
@@ -218,14 +222,11 @@ contains
     !!{RST
     Compute the scale radius of the ``zhao1996`` dark matter halo profile.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
-    class(darkMatterProfileDMOZhao1996  ), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: node
-    class(nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    class(darkMatterProfileDMOZhao1996), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
 
-    darkMatterProfile   => node             %darkMatterProfile()
-    zhao1996ScaleRadius =  darkMatterProfile%scale            ()
+    zhao1996ScaleRadius=self%scaleRadiusValidated(node)
     return
   end function zhao1996ScaleRadius
 

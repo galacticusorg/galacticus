@@ -36,11 +36,12 @@ module Statistics_NBody_Halo_Mass_Errors
    <default>null</default>
    <method name="errorFractional" >
     <description>
-    Return the fractional error on the mass of an N-body halo corresponding to the given ``node``.
+    Return the fractional error on the mass of an N-body halo corresponding to the given ``node``. If present, ``nodeReference`` is a later halo (e.g. the parent halo) from which ``node`` was reached by tracing back through a merger tree---error models which depend on this tracing (such as :galacticus-class:`nbodyHaloMassErrorTreeConstruction`) use it, while others ignore it.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>type(treeNode), intent(inout)           :: node         </argument>
+    <argument>type(treeNode), intent(inout), optional :: nodeReference</argument>
    </method>
    <method name="correlation" >
     <description>

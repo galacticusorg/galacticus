@@ -27,7 +27,7 @@ for model in models:
         shell=True
     )
     if status.returncode != 0:
-        print(f"FAIL: failed to run model 'powerSpectrum{model['label']}.xml'")
+        print(f"FAILED: failed to run model 'powerSpectrum{model['label']}.xml'")
         sys.exit(0)
 
     # Read data.
@@ -72,7 +72,7 @@ for model in models:
         indexTarget      = np.argmin(np.abs(wn - wavenumberTarget))
         error            = abs(tf[indexTarget] - transferFunctions["AxionCAMB"]["transferFunction"][indexTarget]) / transferFunctions["AxionCAMB"]["transferFunction"][indexTarget]
         errorPercent     = f"{100.0 * error:4.1f}%"
-        status_str       = "FAIL" if error > model["toleranceCutOff"] else "SUCCESS"
+        status_str       = "FAILED" if error > model["toleranceCutOff"] else "SUCCESS"
         print(f"{label} T(k=4 Mpc\u207b\u00b9): {errorPercent} ({status_str})")
 
     # Test locations and amplitudes of peaks.
@@ -91,7 +91,7 @@ for model in models:
             )
             errorWavenumberPercent = f"{100.0 * errorWavenumber:4.1f}%"
             errorAmplitudePercent  = f"{100.0 * errorAmplitude:4.1f}%"
-            statusWavenumber = "FAIL" if errorWavenumber > model["tolerancePeakWavenumber"] else "SUCCESS"
-            statusAmplitude  = "FAIL" if errorAmplitude  > model["tolerancePeakAmplitude"]  else "SUCCESS"
+            statusWavenumber = "FAILED" if errorWavenumber > model["tolerancePeakWavenumber"] else "SUCCESS"
+            statusAmplitude  = "FAILED" if errorAmplitude  > model["tolerancePeakAmplitude"]  else "SUCCESS"
             print(f"{label} k{subscripts[peak+1]}: {errorWavenumberPercent} ({statusWavenumber})")
             print(f"{label} T{subscripts[peak+1]}: {errorAmplitudePercent} ({statusAmplitude})")

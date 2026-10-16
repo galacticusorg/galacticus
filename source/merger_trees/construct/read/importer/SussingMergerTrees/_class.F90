@@ -208,7 +208,7 @@ contains
       <name>badValueTest</name>
       <defaultValue>var_str('lessThan')</defaultValue>
       <description>
-      Use for bad value detection in "Sussing" merger trees. Values which exceed the threshold in ths specified direction are assumed to be bad.
+      Use for bad value detection in "Sussing" merger trees. Values which exceed the threshold in this specified direction are assumed to be bad.
       </description>
       <source>parameters</source>
       <variable>badValueTestText</variable>

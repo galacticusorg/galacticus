@@ -26,7 +26,7 @@ Implements an N-body data operator which determines the environmental overdensit
   !![
   <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity" docformat="rst">
    <description>
-   An N-body data operator which measures the local environmental overdensity around each particle by counting neighbors within a spherical aperture and comparing to the mean simulation density. The aperture radius is set by ``[radiusEnvironment]``, periodic boundary conditions by ``[usePeriodic]``, and sampling efficiency by ``[sampleRate]``.
+   An N-body data operator which measures the local environmental overdensity around each particle by counting neighbors within a spherical aperture and comparing to the mean simulation density. The aperture radius is set by ``[radiusSphere]``, periodic boundary conditions by ``[periodic]``, and sampling efficiency by ``[sampleRate]``.
    </description>
   </nbodyOperator>
   !!]

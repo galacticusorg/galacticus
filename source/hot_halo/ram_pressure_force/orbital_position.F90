@@ -73,30 +73,13 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`hotHaloRamPressureForceOrbitalPosition` hot halo ram pressure force class.
     !!}
-    use :: Array_Utilities , only : operator(.intersection.)
-    use :: Error           , only : Error_Report             , Component_List
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type (hotHaloRamPressureForceOrbitalPosition) :: self
 
     ! Ensure that required methods are supported.
-    if     (                                                                                                                         &
-         &  .not.                                                                                                                    &
-         &       (                                                                                                                   &
-         &        defaultSatelliteComponent%positionIsGettable().and.                                                                &
-         &        defaultSatelliteComponent%velocityIsGettable()                                                                     &
-         &  )                                                                                                                        &
-         & ) call Error_Report                                                                                                       &
-         &        (                                                                                                                  &
-         &         'this method requires that position, and velocity properties must all be gettable for the satellite component.'// &
-         &         Component_List(                                                                                                   &
-         &                        'satellite'                                                                                     ,  &
-         &                        defaultSatelliteComponent%positionAttributeMatch(requireGettable=.true.).intersection.             &
-         &                        defaultSatelliteComponent%velocityAttributeMatch(requireGettable=.true.)                           &
-         &                       )                                                                                                // &
-         &         {introspection:location}                                                                                          &
-         &        )
-    
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]    
     return
   end function orbitalPositionConstructorInternal
 

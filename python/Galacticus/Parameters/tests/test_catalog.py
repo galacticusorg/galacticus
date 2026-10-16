@@ -183,7 +183,7 @@ def test_normalize_default():
 
 
 def test_capture_constraints():
-    # Bare text -> inclusive by default; an `inclusive` attribute is honoured.
+    # Bare text -> inclusive by default; an `inclusive` attribute is honored.
     assert _capture_constraints({
         'minimum': '0.0',
         'maximum': {'inclusive': 'false', 'content': '1.0'},
@@ -338,7 +338,7 @@ def test_build_catalog_end_to_end(tmp_path):
 
 
 def test_build_catalog_parallel_matches_serial(tmp_path):
-    """The catalog feeds a committed, diffed artefact: it must not depend on the
+    """The catalog feeds a committed, diffed artifact: it must not depend on the
     worker count."""
     source_root = _write_tree(tmp_path)
     assert build_catalog(str(source_root), jobs=4) == \
@@ -409,7 +409,7 @@ def _backdate(source_root, seconds=10):
 
 
 def test_cache_matches_uncached(tmp_path):
-    """The cache is an optimisation: it must never change the catalog."""
+    """The cache is an optimization: it must never change the catalog."""
     source_root = _write_tree(tmp_path)
     blob = str(tmp_path / 'cache.blob')
 
@@ -580,3 +580,47 @@ def test_code_fingerprint_is_stable_and_specific():
     from Galacticus.Parameters.catalog import _code_fingerprint
     assert _code_fingerprint() == _code_fingerprint()
     assert len(_code_fingerprint()) == 64      # sha256 hex
+
+
+# ---------------------------------------------------------------------------
+# Capability markers: `<requires>` / `<forwards>` and `withholds`
+# ---------------------------------------------------------------------------
+
+def test_harvest_records_capability_markers(tmp_path):
+    """`<requires>` and `<forwards>` on the registration, and `withholds` on an
+    objectBuilder, are recorded for the validator's capability check."""
+    source_root = tmp_path / "source"
+    (source_root / "my").mkdir(parents=True)
+    impl = source_root / "my" / "impl.F90"
+    impl.write_text(_SNIPPET.replace(
+        '<description>A synthetic implementation for testing.</description>\n',
+        '<description>A synthetic implementation for testing.</description>\n'
+        '       <requires method="value" argument="node"/>\n'
+        '       <requires method="rate"  argument="node"/>\n'
+        '       <forwards object="cosmologyFunctions_"/>\n'
+    ).replace(
+        'name="cosmologyFunctions_" source="parameters"/>',
+        'name="cosmologyFunctions_" source="parameters" withholds="distance:mass, time:mass"/>'
+    ))
+
+    entry = harvest_file(str(impl), {"myClass"}, str(source_root))[0]
+    assert entry['requires'] == [{'method': 'value', 'argument': 'node'},
+                                 {'method': 'rate',  'argument': 'node'}]
+    assert entry['forwards'] == ['cosmologyFunctions_']
+    objects = {o['parameterName']: o for o in entry['objects']}
+    assert objects['cosmologyFunctions']['withholds'] == [
+        {'method': 'distance', 'argument': 'mass'},
+        {'method': 'time',     'argument': 'mass'},
+    ]
+
+
+def test_harvest_without_capability_markers(tmp_path):
+    source_root = tmp_path / "source"
+    (source_root / "my").mkdir(parents=True)
+    impl = source_root / "my" / "impl.F90"
+    impl.write_text(_SNIPPET)
+
+    entry = harvest_file(str(impl), {"myClass"}, str(source_root))[0]
+    assert entry['requires'] == []
+    assert entry['forwards'] == []
+    assert all(o['withholds'] == [] for o in entry['objects'])
