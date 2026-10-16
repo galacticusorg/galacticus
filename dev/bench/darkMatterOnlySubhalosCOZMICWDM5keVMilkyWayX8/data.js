@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791758800457,
+  "lastUpdate": 1792124796146,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 5keV resolutionX8)": [
@@ -4316,6 +4316,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 8.027261440064496,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c",
+          "message": "Merge pull request #1617 from galacticusorg/feat/gaseous-dynamical-friction\n\nfeat(dynamical_friction): gaseous dynamical friction for the hot halo (Kim & Kim 2007)",
+          "timestamp": "2026-10-15T16:10:39Z",
+          "tree_id": "baf184c93366b288a6920d69e38f107a301b7efd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c"
+        },
+        "date": 1792124795256,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 6.578999795245593,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 10.562566179558175,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 9.93248679686542,
             "unit": "-logℒ"
           }
         ]
