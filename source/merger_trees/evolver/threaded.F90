@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements an OpenMP threaded merger tree evolver.
   !!}
@@ -133,9 +135,11 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>fractionTimestepSatelliteMinimum</name>
-      <defaultValue>0.0d0</defaultValue>
+      <defaultValue>0.75d0</defaultValue>
       <description>
       The minimum fraction of the timestep imposed by the "satellite in host" criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.
+
+      A value of ``0`` disables this deferral. Merger events force hosts to take small timesteps, and without deferral each of their satellites then takes a correspondingly small step, each costing a full :term:`ODE` solve. The number of such steps grows rapidly with resolution, so run time then scales much more steeply than linearly with the inverse of the mass resolution. For a :math:`10^{13}\mathrm{M}_\odot` host, models run around 8 times slower than with the default value of ``0.75`` at a host-to-resolution mass ratio of :math:`10^5`, and around 15 times slower at :math:`3\times 10^5` (see `issue #1431 &lt;https://github.com/galacticusorg/galacticus/issues/1431&gt;`_). The default was ``0`` until it was changed as part of that issue; ``scripts/aux/parametersMigrate.py`` sets ``0`` explicitly in older parameter files which select this evolver explicitly, to retain their behavior.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -173,6 +177,7 @@ contains
     else
        parameters_ => parameters
     end if
+    call standardSatelliteDeferralWarn(fractionTimestepSatelliteMinimum)
     self=mergerTreeEvolverThreaded(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,profileSteps,reportTiming,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,mergerTreeEvolveConcurrency_,metaTreeProcessingTime_,galacticStructureSolver_,mergerTreeEvolveProfiler_,parameters_)
     !![
     <inputParametersValidate source="parameters"/>
