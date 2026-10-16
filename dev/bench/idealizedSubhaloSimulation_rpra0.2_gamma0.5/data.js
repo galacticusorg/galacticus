@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791758848055,
+  "lastUpdate": 1792124845981,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "edaed8127ec61cd37e40196fddad4631220f8e6c",
-          "message": "Merge pull request #703 from galacticusorg/fixStreamImpactFinalTime\n\nNever pass nodes at the final output time in the `streamImpact` galactic filter",
-          "timestamp": "2024-09-18T22:56:29Z",
-          "tree_id": "f5fa79a4f50a2dbdaa04e11648fbab363fdebcbf",
-          "url": "https://github.com/galacticusorg/galacticus/commit/edaed8127ec61cd37e40196fddad4631220f8e6c"
-        },
-        "date": 1726723049704,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": "40.96817544561751",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "22.396247055290942",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "20.390676857968522",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9926,6 +9887,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/4cfef566eeb3aeb6cffb3f920429dc41afff43cb"
         },
         "date": 1791758847220,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": -40.84993633738501,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -22.398185392986846,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -20.390863347317786,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c",
+          "message": "Merge pull request #1617 from galacticusorg/feat/gaseous-dynamical-friction\n\nfeat(dynamical_friction): gaseous dynamical friction for the hot halo (Kim & Kim 2007)",
+          "timestamp": "2026-10-15T16:10:39Z",
+          "tree_id": "baf184c93366b288a6920d69e38f107a301b7efd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c"
+        },
+        "date": 1792124845165,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
