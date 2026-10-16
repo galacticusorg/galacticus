@@ -6,7 +6,7 @@ import numpy as np
 import h5py
 
 # Test fuzzy dark matter halo mass function against Du et al. (2017) results.
-# Yu Zhao (13-October-2026)
+# Yu Zhao (3-October-2026)
 
 # Specify digitized FDM halo mass function from Du et al. (2017), Figure 3 (upper panel), z = 0.
 du2017DataPath = "data/haloMassFunction/du2017haloMassFunction_z0.txt"
@@ -89,10 +89,6 @@ differenceLogarithmic = np.abs(
     np.log10(massFunctionComparison) -
     np.log10(massFunctionGalacticusInterpolated)
 )
-
-differenceLogarithmicMaximum = np.max(differenceLogarithmic)
-
-print(f"Maximum logarithmic difference: {differenceLogarithmicMaximum:.4f} dex")
 
 if differenceLogarithmicMaximum > 1.5e-1:
     print("FAILED: [fuzzyDarkMatterDu2017] mass function differs")
