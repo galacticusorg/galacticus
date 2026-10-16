@@ -12,7 +12,7 @@ import h5py
 du2017DataPath = "data/haloMassFunction/du2017haloMassFunction_z0.txt"
 
 # Specify the Galacticus output file.
-fileName = "outputs/haloMassFunctionDu2017_new.hdf5"
+fileName = "outputs/haloMassFunctionDu2017.hdf5"
 
 # Create output path.
 try:
@@ -74,7 +74,7 @@ massComparison = mass[selection]
 massFunctionComparison = massFunction[selection]
 
 if len(massComparison) == 0:
-    print("FAILED: [fuzzyDarkMatterDu2017] no valid comparison points")
+    print("FAILED: fuzzyDarkMatterDu2017 no valid comparison points")
     sys.exit(0)
 
 # Interpolate the Galacticus mass function to the Du et al. (2017) masses.
@@ -90,9 +90,11 @@ differenceLogarithmic = np.abs(
     np.log10(massFunctionGalacticusInterpolated)
 )
 
+differenceLogarithmicMaximum = np.max(differenceLogarithmic)
+
 if differenceLogarithmicMaximum > 1.5e-1:
-    print("FAILED: [fuzzyDarkMatterDu2017] mass function differs")
+    print("FAILED: fuzzyDarkMatterDu2017 halo mass function differs")
     sys.exit(0)
 else:
-    print("success: [fuzzyDarkMatterDu2017] mass functions agree")
+    print("SUCCESS: fuzzyDarkMatterDu2017 halo mass function agrees")
 

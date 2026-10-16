@@ -160,7 +160,7 @@
     </darkMatterProfileScaleRadius>
 
   <!-- Output options -->
-  <outputFileName value="testSuite/outputs/haloMassFunctionDu2017_new.hdf5"/>
+  <outputFileName value="testSuite/outputs/haloMassFunctionDu2017.hdf5"/>
   <outputTimes value="list">
     <redshifts value="0.0"/>
   </outputTimes>
