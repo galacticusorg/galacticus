@@ -2594,6 +2594,7 @@
           <xs:enumeration value="positionTraceDarkMatter"/>
           <xs:enumeration value="presetNamedShift"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="ramPressureMassLossDisks"/>
           <xs:enumeration value="ramPressureMassLossSpheroids"/>
           <xs:enumeration value="satelliteDecelerationSIDM"/>
@@ -2768,6 +2769,7 @@
           <xs:enumeration value="radiusVelocityMaximum"/>
           <xs:enumeration value="radiusVirial"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="rateCooling"/>
           <xs:enumeration value="rateInfallColdMode"/>
           <xs:enumeration value="ratio"/>
