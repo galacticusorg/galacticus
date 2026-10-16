@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791758743291,
+  "lastUpdate": 1792124727104,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "431e2304f95a27be5f2e24e7a832a934e9134ae2",
-          "message": "Merge pull request #898 from yzhaoastro/solitonNFW-radius-coreMass\n\nAdd a radiusEnclosingDensity function and scatter to core-Mass relation for the Soliton-NFW profile",
-          "timestamp": "2025-08-15T14:02:51Z",
-          "tree_id": "31d544f260d4f22b6ac47d7701eded379a463c76",
-          "url": "https://github.com/galacticusorg/galacticus/commit/431e2304f95a27be5f2e24e7a832a934e9134ae2"
-        },
-        "date": 1755290602088,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 60.654,
-            "unit": "seconds",
-            "range": 0.0641903419531021
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8804,6 +8774,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14480.796016778633,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c",
+          "message": "Merge pull request #1617 from galacticusorg/feat/gaseous-dynamical-friction\n\nfeat(dynamical_friction): gaseous dynamical friction for the hot halo (Kim & Kim 2007)",
+          "timestamp": "2026-10-15T16:10:39Z",
+          "tree_id": "baf184c93366b288a6920d69e38f107a301b7efd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c"
+        },
+        "date": 1792124722575,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 30.494,
+            "range": "0.08533697908878636",
+            "unit": "seconds"
           }
         ]
       }
