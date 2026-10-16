@@ -1231,6 +1231,7 @@ jobs:
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
                       tests.kinematic_distributions.NFW.exe,
+                      tests.kinematic_distributions.velocity_dispersion_gradient.exe,
                       tests.prompt_cusps.exe,
                       tests.math_special_functions.exe,
                       tests.math_distributions.exe,
