@@ -9,7 +9,9 @@ name: 'PGO Build'
 #   * scheduled and manually-dispatched runs build the commit that the `bleeding-edge` release currently points to, and
 #     publish to that release - skipping the work if it already carries a PGO executable for that commit (unless `force`
 #     is set), or if that commit predates the `PGO` build option;
-#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`).
+#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`);
+#   * manual dispatches with `test` set build the commit of the ref dispatched on, and publish nothing - for testing
+#     changes to this workflow on a branch (`gh workflow run pgo.yml --ref <branch> -f test=true`).
 # The executable is published as `Galacticus.exe_PGO`, with `Galacticus.exe_PGO.sha256` (its checksum) and
 # `Galacticus.exe_PGO.commit` (the commit it was built from). It is deliberately not listed in `SHA256SUMS`, which the
 # CI/CD `Deploy` job rewrites, nor mirrored by `publish.yml`, whose asset list is fixed.
@@ -24,6 +26,10 @@ on:
     inputs:
       force:
         description: 'Build even if bleeding-edge already carries a PGO executable for its commit'
+        type: boolean
+        default: false
+      test:
+        description: 'Build the commit of the ref dispatched on, and publish nothing (for testing this workflow)'
         type: boolean
         default: false
 # Queue rather than cancel: each run takes hours, and a newer one should not discard an older one's work.
@@ -54,11 +60,15 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
           SHA: ${{ github.sha }}
           FORCE: ${{ inputs.force }}
+          TEST: ${{ inputs.test }}
         run: |
           set -euo pipefail
           if [[ "${EVENT}" == "push" && "${REF_TYPE}" == "tag" ]]; then
             sha="${SHA}"
             release="${REF_NAME}"
+          elif [[ "${EVENT}" == "workflow_dispatch" && "${TEST}" == "true" ]]; then
+            sha="${SHA}"
+            release=""
           else
             # The commit `bleeding-edge` points to (dereferencing an annotated tag if necessary).
             refs=$(git ls-remote "https://github.com/${REPOSITORY}" 'refs/tags/bleeding-edge' 'refs/tags/bleeding-edge^{}')
@@ -117,8 +127,38 @@ jobs:
         with:
           name: galacticus-exec-pgo-instrumented
           path: 'Galacticus.exe'
+  Build-Standard:
+    # A standard (uninstrumented) build of the same commit, used only to warm the dynamic-data cache before training (see
+    # `Train`). It runs alongside `Build-Instrumented`, so costs runner time but not wall-clock time.
+    needs: Select-Commit
+    if: ${{ needs.Select-Commit.outputs.build == 'true' }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 330
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.Select-Commit.outputs.sha }}
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+      - name: Build the standard executable
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          set -o pipefail
+          make -j2 Galacticus.exe 2>&1 | tee build.log
+          set +o pipefail
+          grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
+      - name: Upload the standard executable
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-exec-pgo-standard
+          path: 'Galacticus.exe'
   Train:
-    needs: [Select-Commit, Build-Instrumented]
+    needs: [Select-Commit, Build-Instrumented, Build-Standard]
     runs-on: ubuntu-latest
     # The same container as the build: the instrumented executable writes its profiles to the (absolute) paths of the
     # object files it was built from, which must therefore be the same here as in the `Build-*` jobs.
@@ -134,6 +174,37 @@ jobs:
         with:
           repository: galacticusorg/datasets
           path: datasets
+      - name: Cache dynamically-generated datasets
+        # The tables the training models build (and the CAMB build, as the tools path defaults to the same directory) are
+        # restored from the most recent successful run, so the warm-up below need only fill any gaps. The key is unique to
+        # each run, so each successful run saves its (possibly extended) cache, which the next restores by prefix; nothing
+        # is saved if the job fails. The prefix includes the training models, so changing them starts afresh.
+        #
+        # Entries are scoped to the branch that saved them, and the repository's cache budget is shared with (and usually
+        # filled by) the CI/CD workflow's caches, so an entry may well be evicted before the next weekly run. It saves time
+        # chiefly when runs are close together (test dispatches, or a release soon after a scheduled run), and costs
+        # nothing when it misses. FSPS itself (its ~1 GB tarball, and the ~2.6 GB source tree holding its spectral and
+        # isochrone libraries) is excluded: once the tables built from its output exist nothing needs FSPS, so caching it
+        # would only make each entry ~3 GB rather than ~0.1 GB. Also excluded is the Gaussian ellipsoid acceleration table
+        # (~1.1 GB, used for dynamical friction from disks), which takes only ~10 minutes to rebuild. The path lists the
+        # directory's entries (`dynamic/*`), not the directory itself: actions/cache resolves paths without implicit
+        # descendants and archives each resolved path whole, so with `dynamic` alone the exclusions below would match
+        # nothing. For the same reason `galacticStructure` is excluded as a whole and its entries are listed in turn, so
+        # that the exclusion of the ellipsoid table within it applies.
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          # Relative paths (resolved against the workspace inside the container), not `${{ github.workspace }}`, which in a
+          # container job can give the host's path.
+          path: |
+            datasets/dynamic/*
+            !datasets/dynamic/fsps*
+            !datasets/dynamic/FSPS_*
+            !datasets/dynamic/galacticStructure
+            datasets/dynamic/galacticStructure/*
+            !datasets/dynamic/galacticStructure/massDistributionGaussianEllipsoid_*
+          key: pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-${{ github.run_id }}
+          restore-keys: |
+            pgo-dynamic-${{ hashFiles('testSuite/parameters/pgo/*.xml') }}-
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
@@ -142,24 +213,61 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: galacticus-exec-pgo-instrumented
+      - name: Download the standard executable
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: galacticus-exec-pgo-standard
+          path: standard
       - name: Run the training models
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u+x Galacticus.exe
           mkdir -p testSuite/outputs
+          echo "Runner: $(nproc) CPUs, $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2-), $(free -g | awk '/Mem:/ {print $2}') GB"
           # Both models run at once (the runner has four cores): the dark matter-only model on one thread, the galaxy
           # formation model (two trees) on two. Profile counters are updated atomically and profile files are merged
-          # under a lock, so concurrent runs are safe.
-          OMP_NUM_THREADS=1 ./Galacticus.exe testSuite/parameters/pgo/darkMatterOnlySubHalos.xml > train.darkMatterOnlySubHalos.log 2>&1 &
+          # under a lock, so concurrent runs are safe. Each run's output streams into this log, prefixed with a
+          # timestamp, its phase and its name, and is kept in a file for the artifact uploaded below. Each run is limited
+          # to well within the job's time limit, so that a run which overruns still leaves its logs.
+          run() {
+            phase=$1
+            executable=$2
+            model=$3
+            threads=$4
+            limit=$5
+            OMP_NUM_THREADS=$threads timeout $limit $executable testSuite/parameters/pgo/$model.xml 2>&1 \
+              | while IFS= read -r line; do echo "[$(date -u +%H:%M:%S) $phase $model] $line"; done | tee $phase.$model.log
+            return ${PIPESTATUS[0]}
+          }
+          # A heartbeat: every ten minutes, record the load and the training processes' CPU use, to tell a slow run
+          # from a stalled one.
+          ( while true; do sleep 600; echo "[$(date -u +%H:%M:%S) heartbeat] load: $(cut -d' ' -f1-3 /proc/loadavg)"; ps -C Galacticus.exe -o pid=,etime=,time=,pcpu=,rss= | sed "s/^/[heartbeat]   /"; done ) &
+          heartbeat=$!
+          # First warm the dynamic-data cache, by running both models with the standard executable. Starting from a fresh
+          # checkout of the datasets, a model must first build every table it needs - for the galaxy formation model this
+          # includes downloading, building and running FSPS for every metallicity, and tabulating stellar populations
+          # and luminosities from its output - all serial, and several times slower in the instrumented executable.
+          # Training on a cold cache therefore takes hours, and profiles mostly that one-off work rather than the tree
+          # evolution that a PGO build should be optimized for.
+          chmod u+x standard/Galacticus.exe
+          run warmup standard/Galacticus.exe darkMatterOnlySubHalos 1 150m &
           pidDMO=$!
-          OMP_NUM_THREADS=2 ./Galacticus.exe testSuite/parameters/pgo/galaxyFormation.xml        > train.galaxyFormation.log        2>&1 &
+          run warmup standard/Galacticus.exe galaxyFormation        2 150m &
           pidGalaxies=$!
           status=0
-          wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos training run failed"; status=1; }
-          wait $pidGalaxies || { echo "FAIL: galaxyFormation training run failed";        status=1; }
+          wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos warm-up run failed (status $?; 124 means it timed out)"; status=1; }
+          wait $pidGalaxies || { echo "FAIL: galaxyFormation warm-up run failed (status $?; 124 means it timed out)";        status=1; }
+          [ $status -eq 0 ] || { kill $heartbeat 2> /dev/null || true; exit 1; }
+          # Then train.
+          run train ./Galacticus.exe darkMatterOnlySubHalos 1 120m &
+          pidDMO=$!
+          run train ./Galacticus.exe galaxyFormation        2 120m &
+          pidGalaxies=$!
+          wait $pidDMO      || { echo "FAIL: darkMatterOnlySubHalos training run failed (status $?; 124 means it timed out)"; status=1; }
+          wait $pidGalaxies || { echo "FAIL: galaxyFormation training run failed (status $?; 124 means it timed out)";        status=1; }
+          kill $heartbeat 2> /dev/null || true
           # A run that evolves no trees trains nothing, yet exits successfully - so check that every one evolved some.
           for model in darkMatterOnlySubHalos galaxyFormation; do
-            tail -n 20 train.$model.log
             count=$(grep -c 'Evolving tree' train.$model.log || true)
             echo "$model: evolved $count tree(s)"
             [ "$count" -gt 0 ] || { echo "FAIL: $model training run evolved no trees"; status=1; }
@@ -169,6 +277,21 @@ jobs:
           echo "Profiles recorded: $(wc -l < profiles.list)"
           [ -s profiles.list ] || { echo "FAIL: no profiles were recorded"; exit 1; }
           tar cf profiles.tar -T profiles.list
+      - name: Report the dynamic data to be cached
+        if: ${{ always() }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          echo "datasets/dynamic: $(du -sh datasets/dynamic | cut -f1) in all; its entries, largest last:"
+          # A diagnostic only: never fail the job.
+          { du -sh datasets/dynamic/* datasets/dynamic/.[!.]* 2> /dev/null || true; } | sort -h
+      - name: Upload the training logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: galacticus-pgo-training-logs
+          path: |
+            warmup.*.log
+            train.*.log
       - name: Upload the profiles
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -246,6 +369,9 @@ jobs:
       - name: Run the validation model
         run: |
           cd $GALACTICUS_EXEC_PATH
+          # The validation scripts read the commit from the repository (as in `testModel.yml`), which git refuses in the
+          # container unless the checkout is marked safe.
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           chmod u+x Galacticus.exe
           cd testSuite
           set -o pipefail
