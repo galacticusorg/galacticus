@@ -793,7 +793,7 @@ contains
     massCore          =+massCoreNormal       &
             &          *10.0d0**randomOffset
     ! Extract basic properties of the node.
-    expansionFactor   =+self%cosmologyFunctions_%expansionFactor(basic%time())
+    expansionFactor   =+self%cosmologyFunctions_%expansionFactor(basic%timeLastIsolated())
     radiusCore        =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
             &          /(self%massParticle/1.0d-23)**2  &
             &          /expansionFactor                 &

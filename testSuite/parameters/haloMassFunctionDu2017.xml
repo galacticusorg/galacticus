@@ -1,0 +1,168 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for computing the halo mass function for fuzzy dark matter (FDM) -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="6b5a4ec8aa300f7b1ecac2138b40563b9c60514b" time="2026-10-16T18:05:49"/>
+
+
+  <!-- Specify tasks to perform -->
+  <task value="haloMassFunction">
+    <massHaloMinimum value="1.0e7"/>    
+    <pointsPerDecade value="100.0"/>
+  </task>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+
+  <darkMatterParticle value="fuzzyDarkMatter">
+    <mass value="1.0"/> <!-- In units of 1.0e-22 eV -->
+    <densityFraction value=" 1.0"/>
+  </darkMatterParticle>
+
+  <!-- Cosmological parameters -->
+  <!-- Cosmological parameters: Du, Behrens & Niemeyer (2017), Planck 2015 -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="67.81000"/>
+    <OmegaMatter value="0.30600"/>
+    <OmegaDarkEnergy value="0.69400"/>
+    <OmegaBaryon value="0.0"/>
+    <temperatureCMB value="2.7255"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <!-- Use axionCAMB to compute the FDM transfer function -->
+  <transferFunction value="axionCAMB">
+    <cosmologyParameters value="simple">
+        <HubbleConstant value="67.81000"/>
+    	<OmegaMatter value="0.30600"/>
+    	<OmegaDarkEnergy value="0.69400"/>
+    	<OmegaBaryon value="0.04840"/>
+    	<temperatureCMB value="2.7255"/>
+      </cosmologyParameters>
+    </transferFunction>
+
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.9677"/> 
+    <wavenumberReference value="1.0000"/>
+    <running value="0.0000"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <cosmologicalMassVariance value="filteredPower">
+    <monotonicInterpolation value="true" />
+    <nonMonotonicIsFatal value="false" />
+    <powerSpectrumWindowFunction value="topHat"/>
+    <sigma_8 value="0.8149" />
+    <tolerance value="3.0e-4" />
+    <toleranceTopHat value="3.0e-4" />
+  </cosmologicalMassVariance>
+
+    
+    <!-- Structure formation options -->
+    <linearGrowth value="collisionlessMatter"/>
+
+    <!-- Dark matter halo mass function solver -->
+    <haloMassFunction value="pressSchechter"/>
+
+    <excursionSetBarrier value="remapShethMoTormen">
+      <a value="0.707"/>
+      <b value="0.500"/>
+      <c value="0.600"/>
+      <applyTo value="nonRates"/>
+      <excursionSetBarrier value="criticalOverdensity"/>
+    </excursionSetBarrier>
+
+    <excursionSetFirstCrossing value="farahiMidpoint">
+      <timeNumberPerDecade value="1000"/>
+      <varianceNumberPerUnitProbability value="2000"/>
+      <varianceNumberPerUnit value="40"/>
+      <varianceNumberPerDecade value="400"/>
+      <fractionalTimeStep value="0.001"/>
+    </excursionSetFirstCrossing>
+
+    <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+    <!-- FDM critical overdensity -->
+    <criticalOverdensity value="marsh2016FDM">
+      <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+        <darkMatterParticle value="CDM"/>
+      </criticalOverdensity>
+    </criticalOverdensity>
+
+
+    <!-- Dark matter halo structure options -->
+    <darkMatterProfileDMO value="NFW"/>
+
+    <darkMatterProfileScaleRadius value="concentrationLimiter">
+      <concentrationMinimum value="0.1"/>
+      <concentrationMaximum value="100.0"/>
+
+      <darkMatterProfileScaleRadius value="concentration">
+        <correctForConcentrationDefinition value="true"/>
+        <useMeanConcentration value="true"/>
+
+        <darkMatterProfileConcentration value="schneider2015">
+
+          <!-- Define a reference CDM universe -->
+          <reference>
+            <darkMatterParticle value="CDM"/>
+
+            <darkMatterProfileConcentration value="diemerJoyce2019">
+              <scatter value="0.0"/>
+              <truncateConcentration value="true"/>
+              <includeUpturn value="false"/>
+            </darkMatterProfileConcentration>
+
+            <cosmologicalMassVariance value="filteredPower">
+              <sigma_8 value="0.8149"/>
+              <tolerance value="3.0e-4"/>
+              <toleranceTopHat value="3.0e-4"/>
+              <nonMonotonicIsFatal value="false"/>
+              <monotonicInterpolation value="true"/>
+            </cosmologicalMassVariance>
+
+            <criticalOverdensity value="environmental">
+              <a value="0.077"/>
+              <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt">
+                <darkMatterParticle value="CDM"/>
+              </criticalOverdensity>
+            </criticalOverdensity>
+
+            <powerSpectrumPrimordial value="powerLaw">
+              <index value="0.9677"/>
+              <wavenumberReference value="1.0000"/>
+              <running value="0.0000"/>
+            </powerSpectrumPrimordial>
+
+            <powerSpectrumPrimordialTransferred value="simple"/>
+
+            <powerSpectrumWindowFunction value="topHat"/>
+
+            <transferFunction value="CAMB">
+              <redshift value="100.0"/>
+              <cosmologyParameters value="simple">
+                <HubbleConstant value="67.81000"/>
+                <OmegaMatter value="0.30600"/>
+                <OmegaDarkEnergy value="0.69400"/>
+                <OmegaBaryon value="0.04840"/>
+                <temperatureCMB value="2.7255"/>
+              </cosmologyParameters>
+              <darkMatterParticle value="CDM"/>
+            </transferFunction>
+
+          </reference>
+
+        </darkMatterProfileConcentration>
+      </darkMatterProfileScaleRadius>
+    </darkMatterProfileScaleRadius>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/haloMassFunctionDu2017.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+</parameters>
