@@ -42,29 +42,30 @@ module Node_Components_Galactic_Mass_Distributions
 
 contains
 
-  function Node_Component_Mass_Distribution_Scaled_{geometry¦label}(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,scalerStellarPool,scalerGasPool) result(massDistribution_)
+  function Node_Component_Mass_Distribution_Scaled_{geometry¦label}(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistributionStellar_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool) result(massDistribution_)
     !!{RST
     Return the mass distribution of a galactic component with the given stellar and gas masses and scale radius, built by
     scaling the component's dimensionless stellar and gas mass distributions. Scalers are drawn from the given per-thread pools,
     re-initialized if re-used or constructed if not. A null distribution is returned if the scale radius is non-positive, or
-    if neither stars nor gas are to be included.
+    if neither stars nor gas are to be included. The stellar and gas distributions are given the kinematics distributions
+    ``kinematicDistributionStellar_`` and ``kinematicDistributionGas_`` respectively.
     !!}
     use :: Mass_Distributions, only : massDistributionClass, {geometry¦intrinsic}       , {geometry¦scaler}          , massDistributionComposite, &
-         &                            massDistributionList , massDistributionListAcquire, kinematicsDistributionLocal
+         &                            massDistributionList , massDistributionListAcquire, kinematicsDistributionClass
     use :: Object_Pools      , only : objectPool
     implicit none
     class           (massDistributionClass      ), pointer                :: massDistribution_
-    logical                                      , intent(in   )          :: includeStars              , includeGas
-    double precision                             , intent(in   )          :: massStellar               , massGas             , &
+    logical                                      , intent(in   )          :: includeStars                 , includeGas
+    double precision                             , intent(in   )          :: massStellar                  , massGas                  , &
          &                                                                   radiusScale
-    class           (massDistributionClass      ), intent(in   ), pointer :: massDistributionStellar_  , massDistributionGas_
-    type            (kinematicsDistributionLocal), intent(in   ), pointer :: kinematicDistribution_
-    type            (objectPool                 ), intent(inout)          :: scalerStellarPool         , scalerGasPool
-    type            ({geometry¦scaler}          ), pointer                :: massDistributionStellar   , massDistributionGas
+    class           (massDistributionClass      ), intent(in   ), pointer :: massDistributionStellar_     , massDistributionGas_
+    class           (kinematicsDistributionClass), intent(in   ), target  :: kinematicDistributionStellar_, kinematicDistributionGas_
+    type            (objectPool                 ), intent(inout)          :: scalerStellarPool            , scalerGasPool
+    type            ({geometry¦scaler}          ), pointer                :: massDistributionStellar      , massDistributionGas
     type            (massDistributionComposite  ), pointer                :: massDistributionTotal
     type            (massDistributionList       ), pointer                :: massDistributionComponents
-    logical                                                               :: reusedStellar             , reusedGas
-    integer                                                               :: iStellar                  , iGas
+    logical                                                               :: reusedStellar                , reusedGas
+    integer                                                               :: iStellar                     , iGas
 
     if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
        ! The component has non-positive size, or no components matched. Return a null distribution.
@@ -90,7 +91,7 @@ contains
                    !!]
                 end select
              end if
-             call scaler_%setKinematicsDistribution(kinematicDistribution_)
+             call scaler_%setKinematicsDistribution(kinematicDistributionStellar_)
              ! Add the local-handle reference (the pool retains its own); from here the function manages
              ! this handle exactly as it would a freshly-constructed scaler.
              !![
@@ -115,7 +116,7 @@ contains
                    !!]
                 end select
              end if
-             call scaler_%setKinematicsDistribution(kinematicDistribution_)
+             call scaler_%setKinematicsDistribution(kinematicDistributionGas_)
              !![
              <referenceCountIncrement object="scaler_"/>
              !!]

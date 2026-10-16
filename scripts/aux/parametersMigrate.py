@@ -1517,6 +1517,45 @@ def dynamical_friction_gaseous(input_doc, parameters, is_grid):
     append_indented(parameters, gaseous)
 
 
+def interstellar_medium_kinematics(input_doc, parameters, is_grid):
+    """Retain the collisionless treatment of dynamical friction from the interstellar medium.
+
+    The gas of the standard disk, spheroid, and nuclear star cluster components is now described by
+    the `kinematicsDistributionInterstellarMedium` class, which defaults to `effectiveSoundSpeed` - a
+    collisional distribution for which dynamical friction is computed using the `dynamicalFrictionGaseous`
+    class. Previously this gas shared the collisionless `local` kinematics of the stars, so parameter
+    files predating this change expect that behavior, which we retain by explicitly selecting
+    `kinematicsDistributionInterstellarMedium=local`.
+
+    The option matters only where dynamical friction is computed (by a `satelliteDynamicalFriction`
+    node operator, or any non-`zero` `satelliteDynamicalFriction` class) *and* a standard disk,
+    spheroid, or nuclear star cluster component is present (the disk and spheroid default to
+    `standard`, the nuclear star cluster to `null`). Elsewhere it would have no effect (other than on
+    any output of the velocity dispersion of the gas), so we do not add it.
+    """
+    if len(parameters.xpath(".//kinematicsDistributionInterstellarMedium[@value]")) > 0:
+        return
+    friction = parameters.xpath(".//satelliteDynamicalFriction[@value]")
+    operator = parameters.xpath(".//nodeOperator[@value='satelliteDynamicalFriction']")
+    if len(friction) == 0 and len(operator) == 0:
+        return
+    if len(friction) > 0 and all(element.get("value") == "zero" for element in friction):
+        return
+    def has_standard(name, default):
+        elements = parameters.xpath(f".//{name}[@value]")
+        if len(elements) == 0:
+            return default
+        return any(element.get("value") == "standard" for element in elements)
+    if not (has_standard("componentDisk", True) or has_standard("componentSpheroid", True) or has_standard("componentNSC", False)):
+        return
+    print("   insert kinematicsDistributionInterstellarMedium local to retain collisionless dynamical friction from the interstellar medium")
+    kinematics = etree.Element("kinematicsDistributionInterstellarMedium")
+    kinematics.set("value", "local")
+    if is_grid:
+        kinematics.set("iterable", "no")
+    append_indented(parameters, kinematics)
+
+
 def vitvitska_subresolution_method(input_doc, parameters, is_grid):
     """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
     nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
@@ -1842,6 +1881,7 @@ SPECIAL_FUNCTIONS = {
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
     "dynamical_friction_gaseous": dynamical_friction_gaseous,
+    "interstellar_medium_kinematics": interstellar_medium_kinematics,
 }
 
 

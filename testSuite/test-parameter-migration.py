@@ -75,5 +75,12 @@ if len(gaseous) != 1 or gaseous[0].get("value") != "chandrasekhar1943":
     print("FAILED: missing 'dynamicalFrictionGaseous' set to 'chandrasekhar1943'")
     failures += 1
 
+# Dynamical friction from the interstellar medium must retain the collisionless treatment (using the `local` kinematics of the
+# stars) that predates the `kinematicsDistributionInterstellarMedium` parameter.
+interstellar = root.findall("kinematicsDistributionInterstellarMedium")
+if len(interstellar) != 1 or interstellar[0].get("value") != "local":
+    print("FAILED: missing 'kinematicsDistributionInterstellarMedium' set to 'local'")
+    failures += 1
+
 if failures == 0:
     print("SUCCESS: migrated parameter file has the expected content")

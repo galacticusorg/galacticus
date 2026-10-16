@@ -1753,6 +1753,7 @@
           <xs:enumeration value="collisionless"/>
           <xs:enumeration value="collisionlessTabulated"/>
           <xs:enumeration value="cuspNFW"/>
+          <xs:enumeration value="effectiveSoundSpeed"/>
           <xs:enumeration value="enzoHydrostatic"/>
           <xs:enumeration value="finiteResolutionNFW"/>
           <xs:enumeration value="heated"/>

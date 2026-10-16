@@ -4,7 +4,7 @@
 <!-- It enables the dark matter profile component (with a settable scale radius) in addition to the basic component. -->
 
 <parameters>
-  <lastModified revision="57d4f71e7573f4666f3fa72fb74cfa7d646d1d2d" time="2026-10-14T21:57:40"/>
+  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
   <formatVersion>2</formatVersion>
 
   <componentBasic             value="standard"/>
