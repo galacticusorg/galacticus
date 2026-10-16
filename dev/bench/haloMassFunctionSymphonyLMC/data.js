@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791758895643,
+  "lastUpdate": 1792124895097,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony LMC)": [
@@ -1072,6 +1072,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony LMC CDM resolutionX1 z=0.000 (38 realizations)",
             "value": 2003.4591823579372,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c",
+          "message": "Merge pull request #1617 from galacticusorg/feat/gaseous-dynamical-friction\n\nfeat(dynamical_friction): gaseous dynamical friction for the hot halo (Kim & Kim 2007)",
+          "timestamp": "2026-10-15T16:10:39Z",
+          "tree_id": "baf184c93366b288a6920d69e38f107a301b7efd",
+          "url": "https://github.com/galacticusorg/galacticus/commit/64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c"
+        },
+        "date": 1792124894236,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony LMC CDM resolutionX1 z=0.000 (38 realizations)",
+            "value": 2003.4591764460083,
             "unit": "-logℒ"
           }
         ]
