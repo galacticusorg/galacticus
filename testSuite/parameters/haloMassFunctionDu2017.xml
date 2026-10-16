@@ -3,12 +3,12 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="a3e1665914d944c9fa844f662a028072e84740a5" time="2026-07-28T17:29:21"/>
+  <lastModified revision="6b5a4ec8aa300f7b1ecac2138b40563b9c60514b" time="2026-10-16T18:05:49"/>
 
 
   <!-- Specify tasks to perform -->
   <task value="haloMassFunction">
-    <haloMassMinimum value="1.0e7"/>    
+    <massHaloMinimum value="1.0e7"/>    
     <pointsPerDecade value="100.0"/>
   </task>
 
