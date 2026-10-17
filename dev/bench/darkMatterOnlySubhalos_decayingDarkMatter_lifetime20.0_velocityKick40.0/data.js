@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792124870515,
+  "lastUpdate": 1792204850212,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -7213,6 +7213,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 48.35533580856923,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f964d4fd548947ccbfd346a60cdafa035aa2b419",
+          "message": "Merge pull request #1624 from galacticusorg/feat/agn-torus-skirtor\n\nfeat(dust): SKIRTOR AGN torus attenuation and emission classes",
+          "timestamp": "2026-10-16T17:30:08Z",
+          "tree_id": "bc60ca62c0f7a63ae1de9707bce4d06ed801d4e1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f964d4fd548947ccbfd346a60cdafa035aa2b419"
+        },
+        "date": 1792204849287,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 35.112975016666766,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 60.81469382985671,
             "unit": "-logℒ"
           }
         ]
