@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792204855538,
+  "lastUpdate": 1792362064070,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -7237,6 +7237,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/f964d4fd548947ccbfd346a60cdafa035aa2b419"
         },
         "date": 1792204854480,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 14.044827054255983,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 21.720436736331415,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3b0d8b886de81d5d76c5930be5939b4c96eb89e1",
+          "message": "Merge pull request #1631 from galacticusorg/dependabot/github_actions/actions/create-github-app-token-3.3.0\n\nchore(deps): bump actions/create-github-app-token from 3.2.0 to 3.3.0",
+          "timestamp": "2026-10-18T16:37:06Z",
+          "tree_id": "0e2888043db290dfb1705f02f85ba064c1871121",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3b0d8b886de81d5d76c5930be5939b4c96eb89e1"
+        },
+        "date": 1792362063257,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
