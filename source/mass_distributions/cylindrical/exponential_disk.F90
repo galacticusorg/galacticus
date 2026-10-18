@@ -1196,7 +1196,6 @@ contains
     use    :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
     use    :: String_Handling      , only : operator(//)
     use    :: Table_Labels         , only : extrapolationTypeExtrapolate
-    !$ use :: OMP_Lib              , only : OMP_In_Parallel
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)                   :: self
     logical                                          , intent(in   )                   :: midplane
@@ -1224,7 +1223,7 @@ contains
     double precision                                 , allocatable  , dimension(:,:,:) :: kernelTable
     double precision                                 , allocatable  , dimension(:    ) :: rotationCurveRadii                         , rotationCurveSquared                       , &
          &                                                                                heightsKernel
-    logical                                                                            :: tableRead                                  , tabulateInParallel
+    logical                                                                            :: tableRead
 
     solutionTabulate: block
       type     (varying_string) :: fileName
@@ -1301,13 +1300,7 @@ contains
          wavenumberKernelLogarithmicMinimum =log(wavenumberKernelMinimum)
          wavenumberKernelLogarithmicInterval=log(wavenumberKernelMaximum/wavenumberKernelMinimum)/dble(countWavenumbers-1)
          allocate(kernelTable(countWavenumbers,countHeightsKernel,3))
-         ! Parallelize the tabulation only if not already within a parallel region. The tables are usually first needed during
-         ! tree evolution, within the parallel region over trees, where all threads are already occupied. A nested parallel region
-         ! there would start new threads, whose threadprivate data (e.g. the copies of event hooks made on entry to each parallel
-         ! region) are never freed when those threads exit.
-         tabulateInParallel=.true.
-         !$ tabulateInParallel=.not.OMP_In_Parallel()
-         !$omp parallel private(iWavenumber,wavenumber) if (tabulateInParallel)
+         !$omp parallel private(iWavenumber,wavenumber)
          allocate(integratorKernel         )
          allocate(integratorKernelGradient )
          allocate(integratorKernelGradient2)
@@ -1331,7 +1324,7 @@ contains
          !$omp end parallel
          if (midplane) then
             ! Tabulate the mid-plane rotation curve, V_c²(R) = -R a_R(R,z=0).
-            !$omp parallel if (tabulateInParallel)
+            !$omp parallel
             call integratorsAllocate()
             height     =heightsKernel(1)
             indexHeight=              1
@@ -1349,7 +1342,7 @@ contains
             call displayIndent("tabulating gravitational accelerations for exponential disk",verbosityLevelWorking)
             countWork=0
             do iRadius=1,countRadii
-               !$omp parallel if (tabulateInParallel)
+               !$omp parallel
                radius=self%accelerationRadii(iRadius)
                call integratorsAllocate()
                !$omp do schedule(dynamic)
