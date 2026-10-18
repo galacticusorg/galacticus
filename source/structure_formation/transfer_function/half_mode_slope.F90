@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a transfer function class based on the non-cold dark matter fitting function of :cite:t:`murgia_non-cold_2017`, restricted to :math:`\gamma=-5` and with properties specified via the half-mode mass, :math:`M_{1/2}` and the slope of the transfer function at the corresponding half-mode wavenumber, :math:`\mathrm{d}\log T / \mathrm{d} \log k`.
   !!}
@@ -28,7 +30,7 @@
 
     .. math::
 
-       k_{1/2} = \left(\frac{3 M_{1/2}}{4 \pi \bar{\rho}}\right)^{1/3},
+       k_{1/2} = \pi \left(\frac{4 \pi \bar{\rho}}{3 M_{1/2}}\right)^{1/3},
 
     where :math:`\bar{\rho}` is the mean density of the universe. In terms of the :cite:t:`murgia_non-cold_2017` parameters we have:
 
