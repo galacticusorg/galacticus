@@ -83,7 +83,8 @@
    **Tabulation.** The library is read from ``[fileName]``, in the ``dust/agnTorus`` directory of the dynamic datasets
    path; if it is not present it is downloaded from ``[url]``. The file is made from the SKIRTOR library, as distributed
    by its authors, by ``dataPreparation/convertSKIRTOR.py`` of the ``galacticusDevTools`` repository
-   (https://github.com/galacticusorg/galacticusDevTools).
+   (https://github.com/galacticusorg/galacticusDevTools). By default it is downloaded from the copy archived on Zenodo
+   (https://doi.org/10.5281/zenodo.23424967), which is redistributed with the permission of the authors of SKIRTOR.
    </description>
   </dustAttenuation>
   !!]
@@ -147,7 +148,7 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>url</name>
-      <defaultValue>var_str('none')</defaultValue>
+      <defaultValue>var_str('https://zenodo.org/records/23424967/files/SKIRTOR_2016-7-18.hdf5')</defaultValue>
       <description>
       The URL from which to download ``fileName`` if it is not already present. If ``none``, the file must be supplied
       by other means.

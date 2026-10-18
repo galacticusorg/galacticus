@@ -58,7 +58,9 @@
 
    The library is read from ``[fileName]``, in the ``dust/agnTorus`` directory of the dynamic datasets path; if it is not
    present it is downloaded from ``[url]``. It is made from the CLUMPY library by ``dataPreparation/convertCLUMPY.py`` of
-   the ``galacticusDevTools`` repository (https://github.com/galacticusorg/galacticusDevTools).
+   the ``galacticusDevTools`` repository (https://github.com/galacticusorg/galacticusDevTools). By default it is
+   downloaded from the copy archived on Zenodo (https://doi.org/10.5281/zenodo.23420867), which is redistributed with the
+   permission of the authors of CLUMPY.
    </description>
   </dustEmissionSpectrum>
   !!]
@@ -116,7 +118,7 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>url</name>
-      <defaultValue>var_str('none')</defaultValue>
+      <defaultValue>var_str('https://zenodo.org/records/23420867/files/CLUMPY_201410_tvavg.hdf5')</defaultValue>
       <description>
       The URL from which to download ``fileName`` if it is not already present. If ``none``, the file must be supplied
       by other means.
