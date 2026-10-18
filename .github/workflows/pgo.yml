@@ -123,7 +123,7 @@ jobs:
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
           grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
       - name: Upload the instrumented executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-pgo-instrumented
           path: 'Galacticus.exe'
@@ -153,7 +153,7 @@ jobs:
           set +o pipefail
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
       - name: Upload the standard executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-pgo-standard
           path: 'Galacticus.exe'
@@ -286,14 +286,14 @@ jobs:
           { du -sh datasets/dynamic/* datasets/dynamic/.[!.]* 2> /dev/null || true; } | sort -h
       - name: Upload the training logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-pgo-training-logs
           path: |
             warmup.*.log
             train.*.log
       - name: Upload the profiles
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-pgo-profiles
           path: 'profiles.tar'
@@ -327,7 +327,7 @@ jobs:
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
           grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
       - name: Upload the PGO executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-pgo
           path: 'Galacticus.exe'
