@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792204780143,
+  "lastUpdate": 1792361976864,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6keV resolutionX8)": [
@@ -4394,6 +4394,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 23.742631595938963,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3b0d8b886de81d5d76c5930be5939b4c96eb89e1",
+          "message": "Merge pull request #1631 from galacticusorg/dependabot/github_actions/actions/create-github-app-token-3.3.0\n\nchore(deps): bump actions/create-github-app-token from 3.2.0 to 3.3.0",
+          "timestamp": "2026-10-18T16:37:06Z",
+          "tree_id": "0e2888043db290dfb1705f02f85ba064c1871121",
+          "url": "https://github.com/galacticusorg/galacticus/commit/3b0d8b886de81d5d76c5930be5939b4c96eb89e1"
+        },
+        "date": 1792361975780,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 4.776556456148195,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 3.6037071892137487,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 24.261277421553824,
             "unit": "-logℒ"
           }
         ]
