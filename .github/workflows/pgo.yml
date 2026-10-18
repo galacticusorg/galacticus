@@ -210,11 +210,11 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download the instrumented executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo-instrumented
       - name: Download the standard executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo-standard
           path: standard
@@ -312,7 +312,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
       - name: Download the profiles
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-pgo-profiles
       - name: Build the PGO executable
@@ -359,7 +359,7 @@ jobs:
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download the PGO executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo
       - name: Install packages
@@ -386,7 +386,7 @@ jobs:
       contents: write # required to upload release assets
     steps:
       - name: Download the PGO executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo
       - name: Upload the PGO executable to the release
