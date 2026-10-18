@@ -892,16 +892,19 @@ contains
     end if
     ! Compute the moment.
     if (present(radiusMinimum)) then
-       integralLow =-Gamma_Function_Incomplete(moment+1.0d0,radiusMinimum)
+       integralLow =-Gamma_Function_Incomplete(moment+1.0d0,radiusMinimum/self%radiusScale)
     else
-       integralLow =-Gamma_Function_Incomplete(moment+1.0d0,0.0d0        )
+       integralLow =-Gamma_Function_Incomplete(moment+1.0d0,0.0d0                         )
     end if
     if (present(radiusMaximum)) then
-       integralHigh=-Gamma_Function_Incomplete(moment+1.0d0,radiusMaximum)
+       integralHigh=-Gamma_Function_Incomplete(moment+1.0d0,radiusMaximum/self%radiusScale)
     else
        integralHigh=+0.0d0
     end if
-    exponentialDiskSurfaceDensityRadialMoment=(integralHigh-integralLow)*Gamma_Function(moment+1.0d0)*self%radiusScale**(moment+1.0d0)
+    exponentialDiskSurfaceDensityRadialMoment=+(integralHigh-integralLow)                       &
+         &                                    *Gamma_Function(moment+1.0d0)                     &
+         &                                    *self%surfaceDensityNormalization                 &
+         &                                    *self%radiusScale                **(moment+1.0d0)
     return
   end function exponentialDiskSurfaceDensityRadialMoment
 

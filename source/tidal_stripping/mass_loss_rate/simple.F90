@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a simple tidal stripping class.
   !!}
@@ -136,28 +138,32 @@ contains
     return
   end subroutine simpleDestructor
 
-  double precision function simpleRateMassLoss(self,component)
+  double precision function simpleRateMassLoss(self,component,ratioSpecificAngularMomentum)
     !!{RST
-    Computes the mass loss rate due to tidal stripping assuming a simple model.
+    Computes the mass loss rate due to tidal stripping assuming a simple model. Stripped material is assumed to carry the mean
+    specific angular momentum of the component.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDisk    , nodeComponentSpheroid, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentDisk    , nodeComponentSpheroid, nodeComponentNSC, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Mass_Distributions              , only : massDistributionClass
     implicit none
-    class           (tidalStrippingSimple ), intent(inout) :: self
-    class           (nodeComponent        ), intent(inout) :: component
-    type            (treeNode             ), pointer       :: node
-    class           (massDistributionClass), pointer       :: massDistribution_
-    double precision                                       :: forceGravitational    , forceTidal    , &
-         &                                                    rateMassLossFractional, radiusHalfMass, &
-         &                                                    tidalTensorRadial     , timeDynamical , &
-         &                                                    velocityRotation      , velocity      , &
-         &                                                    massGas               , massStellar   , &
-         &                                                    radius
+    class           (tidalStrippingSimple ), intent(inout)           :: self
+    class           (nodeComponent        ), intent(inout)           :: component
+    double precision                       , intent(  out), optional :: ratioSpecificAngularMomentum
+    type            (treeNode             ), pointer                 :: node
+    class           (massDistributionClass), pointer                 :: massDistribution_
+    double precision                                                 :: forceGravitational          , forceTidal    , &
+         &                                                              rateMassLossFractional      , radiusHalfMass, &
+         &                                                              tidalTensorRadial           , timeDynamical , &
+         &                                                              velocityRotation            , velocity      , &
+         &                                                              massGas                     , massStellar   , &
+         &                                                              radius
 
     ! Assume no mass loss rate due to tidal by default.
     simpleRateMassLoss=0.0d0
+    ! Stripped material carries the mean specific angular momentum of the component.
+    if (present(ratioSpecificAngularMomentum)) ratioSpecificAngularMomentum=1.0d0
     ! Return immediately if this is not a satellite.
     node => component%hostNode
     if (.not.node%isSatellite()) return
@@ -170,6 +176,12 @@ contains
        massGas       =component%massGas       ()
        massStellar   =component%massStellar   ()
     class is (nodeComponentSpheroid)
+       radius        =component%radius        ()
+       radiusHalfMass=component%halfMassRadius()
+       velocity      =component%velocity      ()
+       massGas       =component%massGas       ()
+       massStellar   =component%massStellar   ()
+    class is (nodeComponentNSC     )
        radius        =component%radius        ()
        radiusHalfMass=component%halfMassRadius()
        velocity      =component%velocity      ()

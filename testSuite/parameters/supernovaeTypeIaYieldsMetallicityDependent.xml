@@ -5,7 +5,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="51ff8d78923fbad302e487dc22db8d56ca796838" time="2026-08-23T04:06:13"/>
+  <lastModified revision="3f3a89da608c1523c846e36645c955cf980f41a9" time="2026-10-15T17:27:47"/>
 
 
   <!-- Component selection -->
@@ -117,6 +117,7 @@
     <odeToleranceRelative value="1.0e-4"/>
   </mergerTreeNodeEvolver>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
   </mergerTreeEvolver>

@@ -3395,7 +3395,7 @@ attributeValue=trim(attributeValue)
     return
   end function IO_HDF5_Dataset_Rank
 
-  function IO_HDF5_Open_Dataset(inObject,datasetName,comment,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel) result(self)
+  function IO_HDF5_Open_Dataset(inObject,datasetName,comment,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel,preExistedIn) result(self)
     !!{RST
     Open an dataset in ``inObject``.
     !!}
@@ -3415,7 +3415,8 @@ attributeValue=trim(attributeValue)
     integer                                , intent(in   ), optional :: compressionLevel                           , datasetDataType, &
          &                                                              appendDimension
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: datasetDimensions
-    logical                                , intent(in   ), optional :: appendTo                                   , isOverwritable
+    logical                                , intent(in   ), optional :: appendTo                                   , isOverwritable , &
+         &                                                              preExistedIn
     integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType
     class    (hdf5Group     )              , intent(in   ), target   :: inObject
     integer  (kind=HSIZE_T  ), parameter                             :: chunkSizeMaximum        =4294967296_hsize_t ! Maximum chunk size of 4GB (see https://support.hdfgroup.org/documentation/hdf5-docs/advanced_topics/chunking_in_hdf5.html).
@@ -3428,7 +3429,7 @@ attributeValue=trim(attributeValue)
          &                                                              iDimension
     integer  (kind=HID_T    )                                        :: dataSpaceID                                , dataTypeID             , &
          &                                                              locationID                                 , propertyList
-    logical                                                          :: appendToActual
+    logical                                                          :: appendToActual                             , preExisted
     type     (varying_string)                                        :: locationPath                               , message
     class    (*             ), pointer                               :: dummyPointer_
 
@@ -3495,8 +3496,15 @@ attributeValue=trim(attributeValue)
     ! Inherit the temporary status of the containing file - whichever object holds the final reference to the file is the
     ! one which closes it, and so the one which must remove it from the file system (see `IO_HDF5_Finalize_Shared`).
     self%isTemporary   =self%parentObject%isTemporary
-    ! Check if the dataset exists.
-    if (inObject%hasDataset(datasetName)) then
+    ! Check if the dataset exists. Every path in this module which probes for the dataset before opening it - each dataset write,
+    ! to decide whether a pre-existing dataset is being overwritten, and each dataset read, to report a missing dataset - passes
+    ! the answer in, so that the file is probed once per operation rather than twice.
+    if (present(preExistedIn)) then
+       preExisted=preExistedIn
+    else
+       preExisted=inObject%hasDataset(datasetName)
+    end if
+    if (preExisted) then
        ! Open the dataset.
        call h5dopen_f(locationID,trim(datasetName),self%objectID,errorCode)
        if (errorCode /= 0) then
@@ -3709,13 +3717,14 @@ attributeValue=trim(attributeValue)
     Check if ``self`` has a dataset with the given ``datasetName``.
     !!}
     use :: Error             , only : Error_Report
-    use :: HDF5              , only : HID_T        , h5dclose_f  , h5dopen_f, h5eset_auto_f
-    use :: ISO_Varying_String, only : assignment(=), operator(//)
+    use :: HDF5              , only : H5O_INFO_BASIC_F     , H5O_TYPE_DATASET_F, h5eset_auto_f, h5o_info_t, &
+         &                            h5oget_info_by_name_f
+    use :: ISO_Varying_String, only : assignment(=)        , operator(//)
     implicit none
     class    (hdf5Group     ), intent(in   ) :: self
     character(len=*         ), intent(in   ) :: datasetName
-    integer                                  :: errorCode
-    integer  (kind=HID_T    )                :: datasetID
+    integer                                  :: errorCode  , errorCodeQuery
+    type     (h5o_info_t    )                :: objectInfo
     type     (varying_string)                :: message
 
     ! Check that this module is initialized.
@@ -3727,25 +3736,31 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
 
-    ! Check if the object exists.
+    ! Query the object of this name. Only the basic fields of the object information are requested, as the type of the object is
+    ! all that is needed here. This is much cheaper than opening the object as a dataset would be: it reads the object header, but
+    ! builds none of the state - dataset layout, chunk cache, and so on - that `h5dopen_f` builds only for it to be discarded
+    ! again by the matching `h5dclose_f`. That matters because this function is called for every dataset read and write.
+    !
+    ! The query fails if nothing of this name can be reached, which is not an error here, so HDF5's own error reporting is
+    ! switched off around it.
     call h5eset_auto_f(0,errorCode)
     if (errorCode /= 0) then
        message="failed to switch HDF5 error report off"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    call h5dopen_f(self%objectID,trim(datasetName),datasetID,errorCode)
-    IO_HDF5_Has_Dataset=(errorCode == 0)
+    call h5oget_info_by_name_f(self%objectID,trim(datasetName),objectInfo,errorCodeQuery,fields=H5O_INFO_BASIC_F)
     call h5eset_auto_f(1,errorCode)
     if (errorCode /= 0) then
        message="failed to switch HDF5 error report on"
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
-    if (IO_HDF5_Has_Dataset) then
-       call h5dclose_f(datasetID,errorCode)
-       if (errorCode /= 0) then
-          message="failed to close dataset '"//trim(datasetName)//"'"
-          call Error_Report(message//self%locationReport()//{introspection:location})
-       end if
+    ! A failed query means that nothing of this name could be reached - either no link of this name exists, or it is a link which
+    ! does not resolve to an object. A successful query reports the type of the object found, which is a dataset only for the
+    ! names we are being asked about: a group of this name, as before, is reported as not being a dataset.
+    if (errorCodeQuery == 0) then
+       IO_HDF5_Has_Dataset=objectInfo%type == H5O_TYPE_DATASET_F
+    else
+       IO_HDF5_Has_Dataset=.false.
     end if
     return
   end function IO_HDF5_Has_Dataset
@@ -3962,7 +3977,7 @@ attributeValue=trim(attributeValue)
     preExisted=self%hasDataset(datasetName)
     ! Open the dataset.
     datasetObject=self%openDataset(datasetName,comment,{Type¦dataType},datasetDimensions,appendTo&
-         &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
+         &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel,preExistedIn=preExisted)
     ! Check that the type and rank of any pre-existing dataset match.
     if (preExisted) call datasetObject%assertDatasetType({Type¦h5TypesWrite},rank(datasetValue))
     ! If this dataset if not overwritable, report an error.
@@ -4178,7 +4193,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDatasetStatic(datasetValue,readBegin=readBegin,readCount=readCount,readSelection=readSelection)
     return
   end subroutine IO_HDF5_Read_Dataset_{Type¦label}_Array_Static
@@ -4567,7 +4582,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDataset(datasetValue,readBegin=readBegin,readCount=readCount,readSelection=readSelection)
     return
   end subroutine IO_HDF5_Read_Dataset_{Type¦label}_Array_Allocatable
@@ -4999,7 +5014,7 @@ attributeValue=trim(attributeValue)
     preExisted=self%hasDataset(datasetName)
     ! Open the dataset.
     datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeCharacter,datasetDimensions,useDataType&
-         &=dataTypeID,appendTo =appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+         &=dataTypeID,appendTo =appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel,preExistedIn=preExisted)
     ! Check that pre-existing object is a 1D integer.
     if (preExisted) call datasetObject%assertDatasetType([dataTypeID],1)
     ! If this dataset if not overwritable, report an error.
@@ -5252,7 +5267,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDatasetStatic(datasetValue,readBegin=readBegin,readCount=readCount)
     return
   end subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Static
@@ -5534,7 +5549,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDataset(datasetValue,readBegin=readBegin,readCount=readCount)
     return
   end subroutine IO_HDF5_Read_Dataset_Character_1D_Array_Allocatable
@@ -5825,7 +5840,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDataset(datasetValue)
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Allocatable
@@ -5946,7 +5961,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDatasetStatic(datasetValue)
     return
   end subroutine IO_HDF5_Read_Dataset_VarString_1D_Array_Static
@@ -6068,7 +6083,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDataset(datasetValue,readBegin=readBegin,readCount=readCount,readSelection=readSelection)
     return
   end subroutine IO_HDF5_Read_Dataset_{VlenType¦label}_Array_Allocatable
@@ -6427,7 +6442,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDataset(datasetValue,readBegin=readBegin,readCount=readCount,readSelection=readSelection)
     return
   end subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable
@@ -6785,7 +6800,7 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     ! Open the dataset and delegate the read.
-    datasetObject=self%openDataset(datasetName)
+    datasetObject=self%openDataset(datasetName,preExistedIn=.true.)
     call datasetObject%readDataset(datasetValue,readBegin=readBegin,readCount=readCount,readSelection=readSelection)
     return
   end subroutine IO_HDF5_Read_Dataset_VarDouble_2D_Array_Allocatable
@@ -7159,7 +7174,7 @@ attributeValue=trim(attributeValue)
     preExisted=self%hasDataset(datasetName)
     ! Open the dataset.
     datasetObject=self%openDataset(datasetName,comment,{VlenType¦dataType},datasetDimensions,appendTo&
-         &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+         &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel,preExistedIn=preExisted)
     ! Check that the type of any pre-existing dataset matches.
     if (preExisted) call datasetObject%assertDatasetType({VlenType¦h5VlenType},1)
     ! If this dataset if not overwritable, report an error.
@@ -7374,7 +7389,7 @@ attributeValue=trim(attributeValue)
     preExisted=self%hasDataset(datasetName)
     ! Open the dataset.
     datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeVlenVlenDouble,datasetDimensions,appendTo&
-         &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+         &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel,preExistedIn=preExisted)
     ! Check that pre-existing object is a 1D vlen-vlen double.
     if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_VLEN_DOUBLE,1)
     ! If this dataset if not overwritable, report an error.
@@ -7597,7 +7612,7 @@ attributeValue=trim(attributeValue)
     preExisted=self%hasDataset(datasetName)
     ! Open the dataset.
     datasetObject=self%openDataset(datasetName,comment,hdf5DataTypeVlenDouble,datasetDimensions,appendTo&
-         &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+         &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel,preExistedIn=preExisted)
     ! Check that pre-existing object is a 1D double.
     if (preExisted) call datasetObject%assertDatasetType(H5T_VLEN_DOUBLE,2)
     ! If this dataset if not overwritable, report an error.

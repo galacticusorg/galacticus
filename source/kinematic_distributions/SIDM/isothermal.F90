@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Provides a kinematic distribution class implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
@@ -33,8 +35,9 @@
      A kinematic distribution class implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
    contains
-     procedure :: isCollisional        => sidmIsothermalIsCollisional
-     procedure :: velocityDispersion1D => sidmIsothermalVelocityDispersion1D
+     procedure :: isCollisional                           => sidmIsothermalIsCollisional
+     procedure :: velocityDispersion1D                    => sidmIsothermalVelocityDispersion1D
+     procedure :: velocityDispersion1DGradientLogarithmic => sidmIsothermalVelocityDispersion1DGradientLogarithmic
   end type kinematicsDistributionSIDMIsothermal
 
   interface kinematicsDistributionSIDMIsothermal
@@ -110,3 +113,34 @@ contains
     end if
     return
   end function sidmIsothermalVelocityDispersion1D
+
+  double precision function sidmIsothermalVelocityDispersion1DGradientLogarithmic(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersionGradient)
+    !!{RST
+    Return the logarithmic gradient of the 1D velocity dispersion at the specified ``coordinates`` in an SIDM isothermal kinematic
+    distribution. Within the interaction radius of a self-gravitating distribution the velocity dispersion is constant, so its
+    gradient is zero. Elsewhere the velocity dispersion is the solution of the Jeans equation, and the default gradient applies.
+    !!}
+    implicit none
+    class           (kinematicsDistributionSIDMIsothermal), intent(inout)          :: self
+    class           (coordinate                          ), intent(in   )          :: coordinates
+    class           (massDistributionClass               ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
+    class           (massDistributionClass               )               , pointer :: massDistribution__
+    double precision                                                               :: radiusInteraction
+
+    radiusInteraction  =  -1.0d0
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalSIDMIsothermal       )
+          radiusInteraction=massDistributionEmbedding%radiusInteraction()
+       class is (massDistributionSphericalSIDMIsothermalBaryons)
+          radiusInteraction=massDistributionEmbedding%radiusInteraction()
+       end select
+    end if
+    if (coordinates%rSpherical() <= radiusInteraction) then
+       velocityDispersionGradient=+0.0d0
+    else
+       velocityDispersionGradient=+self%jeansEquationGradientLogarithmic(coordinates,massDistribution_,massDistributionEmbedding,self%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding))
+    end if
+    return
+  end function sidmIsothermalVelocityDispersion1DGradientLogarithmic

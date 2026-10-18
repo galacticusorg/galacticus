@@ -22,7 +22,7 @@
   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="d9e70bf8ba3690bc1e0742fdb27c5d02aabc16fa" time="2026-09-17T00:00:00"/>
+  <lastModified revision="3f3a89da608c1523c846e36645c955cf980f41a9" time="2026-10-15T17:27:47"/>
 
   <!-- Cosmology. Planck 2018 values, matching the reference calculation. -->
   <cosmologyParameters value="simple">

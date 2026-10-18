@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of isothermal dark matter halo profiles.
   !!}
@@ -144,8 +146,9 @@ contains
     !![
     <referenceConstruct object="kinematicsDistribution_">
       <constructor>
-        kinematicsDistributionIsothermal(                                                                                &amp;
-        &amp;                            velocityDispersion_=self %darkMatterHaloScale_%velocityVirial(node)/sqrt(2.0d0) &amp;
+        kinematicsDistributionIsothermal(                                                                                 &amp;
+        &amp;                            velocityDispersion_=self %darkMatterHaloScale_%velocityVirial(node)/sqrt(2.0d0), &amp;
+        &amp;                            collisional        =.false.                                                      &amp;
         &amp;                           )
 	 </constructor>
     </referenceConstruct>

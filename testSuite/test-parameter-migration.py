@@ -68,5 +68,19 @@ else:
         print("FAILED: atlasCompendium has no dustProperties object carrying its dust-to-metals ratio")
         failures += 1
 
+# Dynamical friction from the hot halo must retain the collisionless Chandrasekhar (1943) treatment that predates the
+# `dynamicalFrictionGaseous` class.
+gaseous = root.findall("dynamicalFrictionGaseous")
+if len(gaseous) != 1 or gaseous[0].get("value") != "chandrasekhar1943":
+    print("FAILED: missing 'dynamicalFrictionGaseous' set to 'chandrasekhar1943'")
+    failures += 1
+
+# The standard merger tree evolver must retain the absence of satellite deferral that predates the change of the default
+# of `fractionTimestepSatelliteMinimum` from 0 to 0.75.
+fraction = root.findall("mergerTreeEvolver[@value='standard']/fractionTimestepSatelliteMinimum")
+if len(fraction) != 1 or float(fraction[0].get("value")) != 0.0:
+    print("FAILED: missing 'fractionTimestepSatelliteMinimum' set to 0 in the standard merger tree evolver")
+    failures += 1
+
 if failures == 0:
     print("SUCCESS: migrated parameter file has the expected content")

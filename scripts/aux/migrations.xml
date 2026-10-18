@@ -481,6 +481,18 @@
     <translation function="extended_schmidt_normalization_per_gigayear"/>
   </migration>
 
+  <migration commit="b3ff1596d63d4132d90031c9598249499eb60e51">
+    <!-- Dynamical friction from gaseous components now defaults to the Kim & Kim (2007) treatment; retain the -->
+    <!-- collisionless Chandrasekhar (1943) formula previously used for them.                                    -->
+    <translation function="dynamical_friction_gaseous"/>
+  </migration>
+
+  <migration commit="baae269b17f8fdc2c1b73be7816049e84a2f6cbc">
+    <!-- The default of `fractionTimestepSatelliteMinimum` in the standard and threaded merger tree evolvers changed -->
+    <!-- from 0 to 0.75 (issue #1431); retain the absence of satellite deferral in explicitly-selected evolvers.       -->
+    <translation function="satellite_deferral_default"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

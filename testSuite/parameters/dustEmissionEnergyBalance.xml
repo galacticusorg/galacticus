@@ -1,6 +1,6 @@
 <!-- Default parameters for Galacticus v0.9.4 --><!-- 30-October-2011                          --><parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="51ff8d78923fbad302e487dc22db8d56ca796838" time="2026-08-23T04:06:13"/>
+  <lastModified revision="3f3a89da608c1523c846e36645c955cf980f41a9" time="2026-10-15T17:27:47"/>
 
 
   <!-- Component selection -->
@@ -290,6 +290,7 @@
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
   </mergerTreeEvolver>
@@ -670,6 +671,117 @@
         <nodePropertyExtractor value="luminosityEmissionLine">
           <component value="all"/>
           <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Luminosity absorbed by each phase of a sequence of a dusty AGN torus, which attenuates only the continuum of the
+         accretion disk, followed by the diffuse dust of the galaxy. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <outputAbsorbed value="true"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="AGNTorus">
+          <galacticInclination value="fixed">
+            <inclination value="60.0"/>
+          </galacticInclination>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="8.0e2"/>
+        <wavelengthMaximum value="4.0e4"/>
+        <resolution value="50.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SED">
+        <component value="spheroid"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="8.0e2"/>
+        <wavelengthMaximum value="4.0e4"/>
+        <resolution value="50.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="luminosityEmissionLine">
+        <component value="all"/>
+        <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SEDAGN">
+        <frame value="rest"/>
+        <wavelengthMinimum value="8.0e2"/>
+        <wavelengthMaximum value="4.0e4"/>
+        <resolution value="50.0"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- Thermal emission from dust heated by the same light. The torus emits with a spectrum of fixed shape, and holds
+         none of the dust mass of the galaxy. -->
+    <nodePropertyExtractor value="SEDDustEmission">
+      <frame value="rest"/>
+      <wavelengthMinimum value="1.0e3"/>
+      <wavelengthMaximum value="1.0e8"/>
+      <resolution value="50.0"/>
+      <outputPhases value="true"/>
+      <fractionsMassPhase value="0.0 1.0"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="AGNTorus">
+          <galacticInclination value="fixed">
+            <inclination value="60.0"/>
+          </galacticInclination>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <dustEmissionSpectrum value="AGNTorus"/>
+      <dustEmissionSpectrum value="blackBodyModified">
+        <heatingCMB value="false"/>
+      </dustEmissionSpectrum>
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="SED">
+          <component value="disk"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SED">
+          <component value="spheroid"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="luminosityEmissionLine">
+          <component value="all"/>
+          <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
         </nodePropertyExtractor>
       </nodePropertyExtractor>
     </nodePropertyExtractor>

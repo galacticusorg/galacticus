@@ -2,7 +2,7 @@
 <!-- Compute prompt cusp parameters - used in testing the calculation again Sten Delos' implementation. -->
 
 <parameters>
-  <lastModified revision="51ff8d78923fbad302e487dc22db8d56ca796838" time="2026-08-23T04:06:13"/>
+  <lastModified revision="3f3a89da608c1523c846e36645c955cf980f41a9" time="2026-10-15T17:27:47"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -389,6 +389,7 @@
   
   <!-- Merger tree evolution -->
   <mergerTreeEvolver value="threaded">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <!-- Standard merger tree evolver with parameters chosen to (somewhat) optimize the evolution. -->
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>

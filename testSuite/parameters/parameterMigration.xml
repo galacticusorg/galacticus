@@ -5,11 +5,17 @@
 
   <spheroidVerySimpleTrackLuminosities value="false"/>
 
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+  </mergerTreeEvolver>
+
   <nodeOperator value="multi">
     <nodeOperator value="satelliteDestructionMassThreshold" >
       <massDestruction           value="1.0"/>
       <massDestructionFractional value="0.0"/>
     </nodeOperator>
+    <!-- Dynamical friction with a hot halo present: the collisionless treatment of gaseous components must be retained. -->
+    <nodeOperator value="satelliteDynamicalFriction"/>
   </nodeOperator>
 
   <!-- Dust attenuators predating the `dustProperties` class: the birth cloud coefficient becomes a column of gas, and the
