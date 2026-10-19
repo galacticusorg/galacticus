@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
   !!}
@@ -42,8 +44,9 @@
      Implementation of a satellite tidal friction class which assumes spherical symmetry.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_     => null()
      double precision                                    :: factorBoost
+     logical                                             :: orbitalPositionSupported
    contains
      !![
      <methods docformat="rst">
@@ -107,6 +110,7 @@ contains
     double precision                                      , intent(in   )         :: factorBoost
     !![
     <constructorAssign variables="factorBoost, *darkMatterHaloScale_"/>
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable" assignTo="self%orbitalPositionSupported"/>
     !!]
 
     return
@@ -168,6 +172,9 @@ contains
        velocityOrbital=[0.0d0        ,speedOrbital,0.0d0]
     else
        ! Use the current orbital position/velocity.
+       !![
+       <componentPropertyAssert class="satellite" properties="position velocity" require="gettable" condition="self%orbitalPositionSupported"/>
+       !!]
        positionOrbital=satellite%position()
        velocityOrbital=satellite%velocity()
        radiusOrbital  =Vector_Magnitude(positionOrbital)

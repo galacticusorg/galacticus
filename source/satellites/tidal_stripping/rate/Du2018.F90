@@ -98,6 +98,10 @@ contains
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="no"/>
     !!]
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function du2018ConstructorInternal
 

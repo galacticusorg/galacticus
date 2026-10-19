@@ -88,6 +88,10 @@ contains
     ! Set the fixed (and unused by this class) `logarithmCoulomb` of the parent class to an
     ! unphysical value.
     self%logarithmCoulomb=-huge(0.0d0)
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function lancaster2020ConstructorInternal
   
