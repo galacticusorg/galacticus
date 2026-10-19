@@ -29,6 +29,7 @@
   <nodeOperator name="nodeOperatorTidalMassLossNuclearStarClusters" docformat="rst">
    <description>
    Computes and applies gravitational tidal stripping of stellar and gaseous mass from the nuclear star clusters of satellite galaxies as they orbit within the host halo tidal field (see :galacticus-class:`tidalStripping`). Stripped gas is moved to the outflowing reservoir of the satellite's hot halo, while stripped stars are removed.
+   The degree of tidal truncation of the nuclear star cluster, :math:`x=-\log f` where :math:`f` is the fraction of the mass of its untruncated mass distribution which it retains, is tracked in its ``tidalTruncation`` meta-property (see :galacticus-class:`galacticComponentTruncation`).
    </description>
   </nodeOperator>
   !!]
@@ -37,10 +38,12 @@
      A node operator class that performs tidal mass loss in nuclear star clusters.
      !!}
      private
-     class(tidalStrippingClass), pointer :: tidalStripping_ => null()
+     class  (tidalStrippingClass), pointer :: tidalStripping_   => null()
+     integer                             :: tidalTruncationID
    contains
-     final     ::                          tidalMassLossNuclearStarClustersDestructor
-     procedure :: differentialEvolution => tidalMassLossNuclearStarClustersDifferentialEvolution
+     final     ::                                tidalMassLossNuclearStarClustersDestructor
+     procedure :: differentialEvolution       => tidalMassLossNuclearStarClustersDifferentialEvolution
+     procedure :: differentialEvolutionScales => tidalMassLossNuclearStarClustersDifferentialEvolutionScales
   end type nodeOperatorTidalMassLossNuclearStarClusters
   
   interface nodeOperatorTidalMassLossNuclearStarClusters
@@ -83,6 +86,7 @@ contains
     class(tidalStrippingClass                         ), intent(in   ), target :: tidalStripping_
     !![
     <constructorAssign variables="*tidalStripping_"/>
+    <addMetaProperty component="NSC" name="tidalTruncation" id="self%tidalTruncationID" isEvolvable="yes" isCreator="yes"/>
     !!]
 
     return
@@ -101,6 +105,27 @@ contains
     return
   end subroutine tidalMassLossNuclearStarClustersDestructor
   
+  subroutine tidalMassLossNuclearStarClustersDifferentialEvolutionScales(self,node)
+    !!{RST
+    Set absolute ODE solver scale for the degree of tidal truncation of the nuclear star cluster.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentNSC
+    implicit none
+    class           (nodeOperatorTidalMassLossNuclearStarClusters), intent(inout) :: self
+    type            (treeNode                                    ), intent(inout) :: node
+    class           (nodeComponentNSC                            ), pointer       :: component
+    double precision                                               , parameter     :: scaleTruncation=1.0d-2
+
+    component => node%NSC()
+    select type (component)
+    type is (nodeComponentNSC)
+       ! Component does not yet exist - nothing to do here.
+    class default
+       call component%floatRank0MetaPropertyScale(self%tidalTruncationID,scaleTruncation)
+    end select
+    return
+  end subroutine tidalMassLossNuclearStarClustersDifferentialEvolutionScales
+
   subroutine tidalMassLossNuclearStarClustersDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
     Apply tidal mass loss to the nuclear star cluster.
@@ -117,7 +142,7 @@ contains
 
     ! Do nothing during inactive property solving.
     if (propertyInactive(propertyType)) return
-    call Tidal_Mass_Loss_Apply_NSC(node,self%tidalStripping_)
+    call Tidal_Mass_Loss_Apply_NSC(node,self%tidalStripping_,self%tidalTruncationID)
     return
   end subroutine tidalMassLossNuclearStarClustersDifferentialEvolution
 

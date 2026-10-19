@@ -1224,6 +1224,7 @@ jobs:
                       tests.dust.attenuation_stellar_mass_redshift.exe,
                       tests.dust.attenuation_AGN_torus.exe,
                       tests.dust.attenuation_AGN_torus_SKIRTOR.exe,
+                      tests.dust.emission_AGN_torus_CLUMPY.exe,
                       tests.output_analyses.attenuation_scatter.exe,
                       tests.make_ranges.exe,
                       tests.tabulations_inverse.exe,
@@ -1716,6 +1717,8 @@ jobs:
                 testSuite/parameters/constrainedMilkyWay.xml,
                 testSuite/parameters/test-nuclear-star-cluster.xml,
                 testSuite/parameters/tidalStrippingGalacticComponents.xml,
+                testSuite/parameters/tidalStrippingGalacticComponentsTruncated.xml,
+                parameters/examples/tidalStrippingBaryonicSubhalo.xml,
                 testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
                 testSuite/parameters/subhaloOrbitOnZAxis.xml ]
     uses: ./.github/workflows/testModel.yml

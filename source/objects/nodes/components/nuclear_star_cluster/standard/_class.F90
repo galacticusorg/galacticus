@@ -204,7 +204,7 @@ contains
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : defaultNSCComponent      , nodeComponentNSCStandard
     use :: Input_Parameters                , only : inputParameter           , inputParameters
-    use :: Node_Component_NSC_Standard_Data, only : radiusNormalization
+    use :: Node_Component_NSC_Standard_Data, only : radiusNormalization      , tidalTruncationID
     implicit none
     type(inputParameters         ), intent(inout) :: parameters
     type(nodeComponentNSCStandard)                :: NSCStandardComponent
@@ -213,6 +213,11 @@ contains
     if (defaultNSCComponent%standardIsActive()) then
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
+       ! Find the meta-property giving the degree of tidal truncation of the nuclear star cluster. This exists only if some class
+       ! (e.g. a tidal mass loss node operator) creates it.
+       !![
+       <addMetaProperty component="NSC" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
+       !!]
        ! Bind deferred functions.
        call NSCStandardComponent%             massGasSinkRateFunction(Node_Component_NSC_Standard_Mass_Gas_Sink_Rate         )
        call NSCStandardComponent%    starFormationHistoryRateFunction(Node_Component_NSC_Standard_Star_Formation_History_Rate)
@@ -272,7 +277,8 @@ contains
     use :: Galacticus_Nodes                , only : defaultNSCComponent
     use :: Input_Parameters                , only : inputParameter                 , inputParameters
     use :: Mass_Distributions              , only : massDistributionSpherical      , kinematicsDistributionLocal
-    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_       , massDistributionGas_       , kinematicDistribution_, kinematicDistributionGas_
+    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_       , massDistributionGas_       , kinematicDistribution_           , &
+         &                                          galacticComponentTruncation_, kinematicDistributionGas_
     use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar            , massTypeGaseous
     implicit none
     type(inputParameters), intent(inout) :: parameters
@@ -293,6 +299,7 @@ contains
        <objectBuilder class="starFormationHistory"                                            name="starFormationHistory_"        source="subParameters"                    />
        <objectBuilder class="mergerMassMovements"                                             name="mergerMassMovements_"         source="subParameters"                    />
        <objectBuilder class="mergerRemnantSize"                                               name="mergerRemnantSize_"           source="subParameters"                    />
+       <objectBuilder class="galacticComponentTruncation"                                     name="galacticComponentTruncation_" source="subParameters" threadPrivate="yes"/>
        <objectBuilder class="massDistribution"            parameterName="massDistributionNSC" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionNSC value="hernquist">
@@ -343,8 +350,8 @@ contains
     !!}
     use :: Events_Hooks                    , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                , only : defaultNSCComponent
-    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_     , kinematicDistribution_           , scalerStellarPool, &
-         &                                          scalerGasPool           , kinematicDistributionGas_
+    use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
+         &                                          scalerGasPool           , galacticComponentTruncation_, kinematicDistributionGas_
     implicit none
 
     if (defaultNSCComponent%standardIsActive()) then
@@ -360,6 +367,7 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="mergerRemnantSize_"          />
+       <objectDestructor name="galacticComponentTruncation_"/>
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        <objectDestructor name="kinematicDistribution_"      />

@@ -315,8 +315,8 @@ contains
        end if
     else if (momentInteger >= 1 .and. momentInteger <= 3) then
        ! Limited range of radii, integer moment - use the analytic solution.
-       hernquistDensityRadialMoment=+momentIndefinite(radiusMaximumScaleFree) &
-            &                       -momentIndefinite(radiusMinimumScaleFree)
+       hernquistDensityRadialMoment=+momentCumulative(radiusMaximumScaleFree) &
+            &                       -momentCumulative(radiusMinimumScaleFree)
     else
        ! Limited range of radii, general moment - compute numerically.
        if (.not.present(radiusMaximum)) call Error_Report('a maximum radius must be provided for non-integer moments over a limited range'//{introspection:location})
@@ -330,31 +330,62 @@ contains
 
   contains
 
-    double precision function momentIndefinite(x)
+    double precision function momentCumulative(x)
       !!{RST
-      Indefinite integral, :math:`\int x^{m-1}/(1+x)^3 \mathrm{d}x`, of the scale-free Hernquist density moment, for integer
-      :math:`m=1`, 2, or 3. For :math:`m=1` and 2 the constant of integration is chosen such that the integral vanishes as
-      :math:`x \rightarrow \infty`, which is also used to evaluate the case of no upper limit.
+      Cumulative integral, :math:`\int_0^x x^{\prime m-1}/(1+x^\prime)^3 \mathrm{d}x^\prime`, of the scale-free Hernquist density
+      moment, for integer :math:`m=1`, 2, or 3. For small :math:`x` the integral is evaluated from its power series,
+
+      .. math::
+
+         \int_0^x \frac{x^{\prime m-1}}{(1+x^\prime)^3} \mathrm{d}x^\prime = \sum_{k=0}^\infty (-1)^k \frac{(k+1)(k+2)}{2}
+         \frac{x^{k+m}}{k+m},
+
+      since the closed-form solutions are differences of terms of order unity which cancel catastrophically as :math:`x
+      \rightarrow 0`.
       !!}
       implicit none
       double precision, intent(in   ) :: x
+      double precision, parameter     :: xSeriesMaximum=1.0d-1
+      integer         , parameter     :: countTermsMaximum=100
+      double precision                :: term                 , power
+      integer                         :: k
 
       if (x >= huge(0.0d0)) then
-         momentIndefinite=0.0d0
-         return
+         ! The m=3 case is infinite here, but is excluded above, so only the m=1 and m=2 cases are reached.
+         momentCumulative=0.5d0
+      else if (x < xSeriesMaximum) then
+         momentCumulative=0.0d0
+         power           =x**momentInteger
+         do k=0,countTermsMaximum
+            term            =+dble((-1)**k*(k+1)*(k+2)/2) &
+                 &           *power                       &
+                 &           /dble(k+momentInteger)
+            momentCumulative=+momentCumulative            &
+                 &           +term
+            if (abs(term) <= epsilon(0.0d0)*abs(momentCumulative)) exit
+            power           =+power                       &
+                 &           *x
+         end do
+      else
+         select case (momentInteger)
+         case (1)
+            momentCumulative=+0.5d0                                                                       &
+                 &           -0.5d0/(1.0d0+x)**2
+         case (2)
+            momentCumulative=+0.5d0                                                                       &
+                 &           -1.0d0/(1.0d0+x)                                                             &
+                 &           +0.5d0/(1.0d0+x)**2
+         case (3)
+            momentCumulative=+log(1.0d0+x)                                                                &
+                 &           +2.0d0/(1.0d0+x)                                                             &
+                 &           -0.5d0/(1.0d0+x)**2                                                          &
+                 &           -1.5d0
+         case default
+            momentCumulative=0.0d0
+         end select
       end if
-      select case (momentInteger)
-      case (1)
-         momentIndefinite=-0.5d0/(1.0d0+x)**2
-      case (2)
-         momentIndefinite=-1.0d0/(1.0d0+x)+0.5d0/(1.0d0+x)**2
-      case (3)
-         momentIndefinite=+log(1.0d0+x)+2.0d0/(1.0d0+x)-0.5d0/(1.0d0+x)**2
-      case default
-         momentIndefinite=0.0d0
-      end select
       return
-    end function momentIndefinite
+    end function momentCumulative
 
   end function hernquistDensityRadialMoment
 

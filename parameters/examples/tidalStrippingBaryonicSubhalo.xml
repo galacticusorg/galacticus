@@ -1,0 +1,178 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Example model: a single subhalo, containing a stellar disk and spheroid, orbiting in a fixed (isothermal) host potential. The -->
+<!-- dark matter of the subhalo is tidally stripped and heated, while its disk and spheroid are tidally stripped (see the          -->
+<!-- tidalStrippingZentner2005 class), with the mass distribution of the spheroid being truncated as it is stripped (see the       -->
+<!-- galacticComponentTruncationExponential class). Gas, star formation, and feedback are omitted, so that all evolution of the    -->
+<!-- disk and spheroid is due to tidal stripping. Plot the results with scripts/analysis/tidalStrippingBaryonicSubhalo.py.         -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c" time="2026-10-15T00:00:00"/>
+
+  <!-- Task -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="scale"   />
+  <componentDisk              value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="orbiting"/>
+  <componentSpheroid          value="standard">
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin              value="null"    />
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Cosmological parameters - a static universe, so that the host potential does not evolve -->
+  <cosmologyFunctions  value="staticUniverse"/>
+  <cosmologyParameters value="simple"        >
+    <HubbleConstant  value="67.000000"/>
+    <OmegaMatter     value=" 0.320000"/>
+    <OmegaDarkEnergy value=" 0.680000"/>
+    <OmegaBaryon     value=" 0.050000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"/>
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"   />
+    <densityType          value="critical"/>
+  </virialDensityContrast>
+
+  <!-- Merger tree - a single subhalo orbiting in its host -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="%EXECPATH%/parameters/examples/tidalStrippingBaryonicSubhaloTree.xml"/>
+  </mergerTreeConstructor>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure: an isothermal host, and an NFW subhalo which is tidally heated -->
+  <darkMatterProfile    value="darkMatterOnly"/>
+  <darkMatterProfileDMO value="multiple"      >
+    <darkMatterProfileDMOHost      value="isothermal"     />
+    <darkMatterProfileDMOSatellite value="heatedMonotonic">
+      <nonAnalyticSolver    value="numerical"           />
+      <darkMatterProfileDMO value="truncatedExponential">
+    	<nonAnalyticSolver     value="numerical"/>
+    	<radiusFractionalDecay value="1.0"      />
+        <darkMatterProfileDMO value="NFW"/>
+      </darkMatterProfileDMO>
+    </darkMatterProfileDMOSatellite>
+  </darkMatterProfileDMO>
+  <darkMatterProfileHeating value="tidal">
+    <coefficientSecondOrder0   value="+0.030"/>
+    <coefficientSecondOrder1   value="-0.320"/>
+    <correlationVelocityRadius value="-0.333"/>
+  </darkMatterProfileHeating>
+  <darkMatterProfileConcentration value="fixed">
+    <concentration value="10.0"/>
+  </darkMatterProfileConcentration>
+
+  <!-- No accretion onto halos -->
+  <accretionHalo           value="zero"/>
+  <hotHaloMassDistribution value="null"/>
+
+  <!-- Galactic structure: sizes of the disk and spheroid are found from their angular momenta, in equilibrium with the (stripped
+       and heated) dark matter halo -->
+  <galacticStructureSolver value="equilibrium"/>
+
+  <!-- Satellite orbits and dark matter tidal physics -->
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+  <mergerRemnantSize          value="null"/>
+  <satelliteDynamicalFriction value="chandrasekhar1943">
+    <logarithmCoulomb value="1.3"/>
+  </satelliteDynamicalFriction>
+  <satelliteTidalHeatingRate  value="gnedin1999"       >
+    <epsilon value="5.30"/>
+    <gamma   value="1.50"/>
+  </satelliteTidalHeatingRate>
+  <satelliteTidalStripping    value="zentner2005"      >
+    <efficiency value="3.00"/>
+  </satelliteTidalStripping>
+
+  <!-- Tidal stripping of the disk and spheroid, with truncation of the spheroid -->
+  <tidalStripping              value="zentner2005"/>
+  <galacticComponentTruncation value="exponential"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Subhalo orbits, and tidal stripping and heating of dark matter -->
+    <nodeOperator value="satelliteOrbit"                   />
+    <nodeOperator value="satelliteDynamicalFriction"       />
+    <nodeOperator value="satelliteTidalMassLoss"           />
+    <nodeOperator value="satelliteTidalHeating"            />
+    <nodeOperator value="satelliteMergingRadiusTrigger"     >
+      <radiusVirialFraction value="0.01"/>
+    </nodeOperator>
+    <nodeOperator value="satelliteDestructionMassThreshold" >
+      <massDestructionAbsolute           value="0.0e+0"/>
+      <massDestructionMassInfallFraction value="1.0e-9"/>
+      <massDestructionMassTreeFraction   value="0.0e+0"/>
+    </nodeOperator>
+    <!-- Tidal stripping of galactic components -->
+    <nodeOperator value="tidalMassLossDisks"    />
+    <nodeOperator value="tidalMassLossSpheroids"/>
+  </nodeOperator>
+
+  <!-- Tree evolution -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.00"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01" />
+    <odeToleranceRelative value="0.01" />
+    <reuseODEStepSize     value="false"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple"              >
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.000"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite"           >
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output options -->
+  <outputFileName value="tidalStrippingBaryonicSubhalo.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="uniformSpacingInTime">
+    <timeMinimum value=" 1.0"/>
+    <timeMaximum value="13.0"/>
+    <countTimes  value="241" />
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"    />
+    <nodePropertyExtractor value="time"           />
+    <nodePropertyExtractor value="radiusOrbital"  />
+    <nodePropertyExtractor value="radiusTidal"    />
+    <nodePropertyExtractor value="tidalTruncation"/>
+  </nodePropertyExtractor>
+
+</parameters>

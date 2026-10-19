@@ -26,12 +26,13 @@ Contains a module which builds the mass distributions of the galactic (disk, sph
 module Node_Components_Galactic_Mass_Distributions
   !!{RST
   Builds the mass distributions of the galactic (disk, spheroid, and nuclear star cluster) node components, by scaling their
-  dimensionless stellar and gas mass distributions to the size and masses of a particular component. The procedure is written
-  once as a template and instantiated for cylindrical and spherical distributions.
+  dimensionless stellar and gas mass distributions (optionally truncated, in the case of spherical distributions) to the size
+  and masses of a particular component. The procedure for untruncated distributions is written once as a template and
+  instantiated for cylindrical and spherical distributions.
   !!}
   implicit none
   private
-  public :: Node_Component_Mass_Distribution_Scaled_Cylindrical, Node_Component_Mass_Distribution_Scaled_Spherical
+  public :: Node_Component_Mass_Distribution_Scaled_Cylindrical, Node_Component_Mass_Distribution_Scaled_Spherical, Node_Component_Mass_Distribution_Truncated_Spherical
 
   !![
   <generic identifier="geometry">
@@ -50,8 +51,7 @@ contains
     if neither stars nor gas are to be included. The stellar and gas distributions are given the kinematics distributions
     ``kinematicDistributionStellar_`` and ``kinematicDistributionGas_`` respectively.
     !!}
-    use :: Mass_Distributions, only : massDistributionClass, {geometry¦intrinsic}       , {geometry¦scaler}          , massDistributionComposite, &
-         &                            massDistributionList , massDistributionListAcquire, kinematicsDistributionClass
+    use :: Mass_Distributions, only : massDistributionClass, {geometry¦intrinsic}, {geometry¦scaler}, kinematicsDistributionClass
     use :: Object_Pools      , only : objectPool
     implicit none
     class           (massDistributionClass      ), pointer                :: massDistribution_
@@ -61,9 +61,7 @@ contains
     class           (massDistributionClass      ), intent(in   ), pointer :: massDistributionStellar_     , massDistributionGas_
     class           (kinematicsDistributionClass), intent(in   ), target  :: kinematicDistributionStellar_, kinematicDistributionGas_
     type            (objectPool                 ), intent(inout)          :: scalerStellarPool            , scalerGasPool
-    type            ({geometry¦scaler}          ), pointer                :: massDistributionStellar      , massDistributionGas
-    type            (massDistributionComposite  ), pointer                :: massDistributionTotal
-    type            (massDistributionList       ), pointer                :: massDistributionComponents
+    class           (massDistributionClass      ), pointer                :: massDistributionStellar      , massDistributionGas
     logical                                                               :: reusedStellar                , reusedGas
     integer                                                               :: iStellar                     , iGas
 
@@ -124,29 +122,121 @@ contains
           end select
        end if
        ! Combine the distributions as necessary.
-       if      (includeStars .and. includeGas) then
-          ! Composite the stellar and gas distributions.
-          allocate(massDistributionTotal          )
-          massDistributionComponents                        => massDistributionListAcquire()
-          massDistributionComponents%next                   => massDistributionListAcquire()
-          massDistributionComponents     %massDistribution_ => massDistributionStellar
-          massDistributionComponents%next%massDistribution_ => massDistributionGas
-          !![
-          <referenceConstruct object="massDistributionTotal" constructor="massDistributionComposite(massDistributionComponents)"/>
-          <objectDestructor name="massDistributionStellar"/>
-          <objectDestructor name="massDistributionGas"    />
-          !!]
-          nullify(massDistributionComponents)
-          massDistribution_ => massDistributionTotal
-       else if (includeStars                 ) then
-          ! Return just the stellar component.
-          massDistribution_ => massDistributionStellar
-       else if (                   includeGas) then
-          ! Return just the gas component.
-          massDistribution_ => massDistributionGas
-       end if
+       massDistribution_ => Node_Component_Mass_Distribution_Combine(includeStars,includeGas,massDistributionStellar,massDistributionGas)
     end if
     return
   end function Node_Component_Mass_Distribution_Scaled_{geometry¦label}
+
+  function Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistributionStellar_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained) result(massDistribution_)
+    !!{RST
+    Return the mass distribution of a spherical galactic component with the given stellar and gas masses and scale radius, built
+    by truncating the component's dimensionless stellar and gas mass distributions (using ``galacticComponentTruncation_``) such
+    that they retain a fraction ``fractionMassRetained`` of their mass, and then scaling them to the size and masses of the
+    component. Since the truncated distributions differ from node to node they are constructed afresh, rather than being drawn
+    from a pool. A null distribution is returned if the scale radius is non-positive, or if neither stars nor gas are to be
+    included. The stellar and gas distributions are given the kinematics distributions ``kinematicDistributionStellar_`` and
+    ``kinematicDistributionGas_`` respectively.
+    !!}
+    use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass
+    use :: Mass_Distributions            , only : massDistributionClass           , kinematicsDistributionClass
+    implicit none
+    class           (massDistributionClass           ), pointer                :: massDistribution_
+    logical                                           , intent(in   )          :: includeStars                , includeGas
+    double precision                                  , intent(in   )          :: massStellar                 , massGas             , &
+         &                                                                        radiusScale                 , fractionMassRetained
+    class           (massDistributionClass           ), intent(in   ), pointer :: massDistributionStellar_    , massDistributionGas_
+    class           (kinematicsDistributionClass     ), intent(in   ), target  :: kinematicDistributionStellar_, kinematicDistributionGas_
+    class           (galacticComponentTruncationClass), intent(inout)          :: galacticComponentTruncation_
+    class           (massDistributionClass           ), pointer                :: massDistributionStellar     , massDistributionGas
+
+    if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
+       ! The component has non-positive size, or no components matched. Return a null distribution.
+       massDistribution_ => null()
+    else
+       ! Build the individual distributions.
+       massDistributionStellar => null()
+       massDistributionGas     => null()
+       if (includeStars) massDistributionStellar => scaledTruncated(massDistributionStellar_,massStellar,kinematicDistributionStellar_)
+       if (includeGas  ) massDistributionGas     => scaledTruncated(massDistributionGas_    ,massGas    ,kinematicDistributionGas_    )
+       ! Combine the distributions as necessary.
+       massDistribution_ => Node_Component_Mass_Distribution_Combine(includeStars,includeGas,massDistributionStellar,massDistributionGas)
+    end if
+    return
+
+  contains
+
+    function scaledTruncated(massDistributionDimensionless_,mass,kinematicsDistribution_) result(massDistributionScaled)
+      !!{RST
+      Truncate the given dimensionless mass distribution, and scale it to the size and the given mass of the component, giving it
+      the kinematics distribution ``kinematicsDistribution_``.
+      !!}
+      use :: Error             , only : Error_Report
+      use :: Mass_Distributions, only : massDistributionSpherical, massDistributionSphericalScaler
+      implicit none
+      class           (massDistributionClass          ), pointer                :: massDistributionScaled
+      class           (massDistributionClass          ), intent(in   ), pointer :: massDistributionDimensionless_
+      double precision                                 , intent(in   )          :: mass
+      class           (kinematicsDistributionClass    ), intent(in   )          :: kinematicsDistribution_
+      class           (massDistributionSpherical      ), pointer                :: massDistributionTruncated
+      type            (massDistributionSphericalScaler), pointer                :: massDistributionScaler
+
+      select type (massDistributionDimensionless_)
+      class is (massDistributionSpherical)
+         massDistributionTruncated => galacticComponentTruncation_%massDistribution(massDistributionDimensionless_,fractionMassRetained)
+      class default
+         massDistributionTruncated => null()
+         call Error_Report('truncation requires a spherically-symmetric mass distribution'//{introspection:location})
+      end select
+      ! Scale the truncated distribution such that its total mass is that of the component.
+      allocate(massDistributionScaler)
+      !![
+      <referenceConstruct object="massDistributionScaler" constructor="massDistributionSphericalScaler(factorScalingLength=radiusScale,factorScalingMass=mass/massDistributionTruncated%massTotal(),massDistribution_=massDistributionTruncated)"/>
+      <objectDestructor name="massDistributionTruncated"/>
+      !!]
+      call massDistributionScaler%setKinematicsDistribution(kinematicsDistribution_)
+      massDistributionScaled => massDistributionScaler
+      return
+    end function scaledTruncated
+
+  end function Node_Component_Mass_Distribution_Truncated_Spherical
+
+  function Node_Component_Mass_Distribution_Combine(includeStars,includeGas,massDistributionStellar,massDistributionGas) result(massDistribution_)
+    !!{RST
+    Combine the stellar and gas mass distributions of a galactic component, returning a composite of the two if both are
+    included, or the one which is included otherwise. Ownership of the references held by ``massDistributionStellar`` and
+    ``massDistributionGas`` passes to the returned distribution.
+    !!}
+    use :: Mass_Distributions, only : massDistributionClass, massDistributionComposite, massDistributionList, massDistributionListAcquire
+    implicit none
+    class  (massDistributionClass    ), pointer                :: massDistribution_
+    logical                           , intent(in   )          :: includeStars              , includeGas
+    class  (massDistributionClass    ), intent(inout), pointer :: massDistributionStellar   , massDistributionGas
+    type   (massDistributionComposite), pointer                :: massDistributionTotal
+    type   (massDistributionList     ), pointer                :: massDistributionComponents
+
+    massDistribution_ => null()
+    if      (includeStars .and. includeGas) then
+       ! Composite the stellar and gas distributions.
+       allocate(massDistributionTotal          )
+       massDistributionComponents                        => massDistributionListAcquire()
+       massDistributionComponents%next                   => massDistributionListAcquire()
+       massDistributionComponents     %massDistribution_ => massDistributionStellar
+       massDistributionComponents%next%massDistribution_ => massDistributionGas
+       !![
+       <referenceConstruct object="massDistributionTotal" constructor="massDistributionComposite(massDistributionComponents)"/>
+       <objectDestructor name="massDistributionStellar"/>
+       <objectDestructor name="massDistributionGas"    />
+       !!]
+       nullify(massDistributionComponents)
+       massDistribution_ => massDistributionTotal
+    else if (includeStars                 ) then
+       ! Return just the stellar component.
+       massDistribution_ => massDistributionStellar
+    else if (                   includeGas) then
+       ! Return just the gas component.
+       massDistribution_ => massDistributionGas
+    end if
+    return
+  end function Node_Component_Mass_Distribution_Combine
 
 end module Node_Components_Galactic_Mass_Distributions

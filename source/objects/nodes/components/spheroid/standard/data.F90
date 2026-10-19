@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module of data for standard spheroid components.
 !!}
@@ -25,8 +27,9 @@ module Node_Component_Spheroid_Standard_Data
   !!{RST
   Contains data for standard spheroid components.
   !!}
-  use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal, kinematicsDistributionClass
-  use :: Object_Pools      , only : objectPool
+  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass
+  use :: Mass_Distributions            , only : massDistributionClass           , kinematicsDistributionLocal, kinematicsDistributionClass
+  use :: Object_Pools                  , only : objectPool
   implicit none
   public
 
@@ -42,5 +45,10 @@ module Node_Component_Spheroid_Standard_Data
   ! never changes on re-use. Released in the component's thread uninitialization task.
   type (objectPool                 )          :: scalerStellarPool        , scalerGasPool
   !$omp threadprivate(scalerStellarPool,scalerGasPool)
+
+  ! The model of truncation of the mass distribution, and the ID of the meta-property giving the degree of tidal truncation.
+  class  (galacticComponentTruncationClass), pointer :: galacticComponentTruncation_
+  !$omp threadprivate(galacticComponentTruncation_)
+  integer                                            :: tidalTruncationID
 
 end module Node_Component_Spheroid_Standard_Data

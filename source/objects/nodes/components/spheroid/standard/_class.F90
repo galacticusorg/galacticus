@@ -201,9 +201,10 @@ contains
     !!{RST
     Initializes the tree node standard spheroid methods module.
     !!}
-    use :: Abundances_Structure, only : Abundances_Property_Count
-    use :: Galacticus_Nodes    , only : defaultSpheroidComponent , nodeComponentSpheroidStandard
-    use :: Input_Parameters    , only : inputParameter           , inputParameters
+    use :: Abundances_Structure                 , only : Abundances_Property_Count
+    use :: Galacticus_Nodes                     , only : defaultSpheroidComponent , nodeComponentSpheroidStandard
+    use :: Input_Parameters                     , only : inputParameter           , inputParameters
+    use :: Node_Component_Spheroid_Standard_Data, only : tidalTruncationID
     implicit none
     type(inputParameters              ), intent(inout) :: parameters
     type(nodeComponentSpheroidStandard)                :: spheroidStandardComponent
@@ -214,6 +215,12 @@ contains
 
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
+
+       ! Find the meta-property giving the degree of tidal truncation of the spheroid. This exists only if some class (e.g. a
+       ! tidal mass loss node operator) creates it.
+       !![
+       <addMetaProperty component="spheroid" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
+       !!]
 
        ! Bind deferred functions.
        call spheroidStandardComponent%          energyGasInputRateFunction(Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate      )
@@ -283,7 +290,7 @@ contains
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter           , inputParameters
     use :: Mass_Distributions                   , only : massDistributionSpherical, kinematicsDistributionLocal
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_, kinematicDistributionGas_
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_    , galacticComponentTruncation_, kinematicDistributionGas_
     use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                  , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
@@ -309,6 +316,7 @@ contains
        <objectBuilder class="starFormationHistory"                                                 name="starFormationHistory_"        source="subParameters"                    />
        <objectBuilder class="mergerMassMovements"                                                  name="mergerMassMovements_"         source="subParameters"                    />
        <objectBuilder class="mergerRemnantSize"                                                    name="mergerRemnantSize_"           source="subParameters"                    />
+       <objectBuilder class="galacticComponentTruncation"                                          name="galacticComponentTruncation_" source="subParameters" threadPrivate="yes"/>
        <objectBuilder class="massDistribution"            parameterName="massDistributionSpheroid" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionSpheroid value="hernquist">
@@ -388,8 +396,8 @@ contains
     !!}
     use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_     , kinematicDistribution_           , scalerStellarPool, &
-         &                                               scalerGasPool           , kinematicDistributionGas_
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
+         &                                               scalerGasPool           , galacticComponentTruncation_, kinematicDistributionGas_
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -405,6 +413,7 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="mergerRemnantSize_"          />
+       <objectDestructor name="galacticComponentTruncation_"/>
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        <objectDestructor name="kinematicDistribution_"      />

@@ -106,7 +106,7 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>url</name>
-      <defaultValue>var_str('none')</defaultValue>
+      <defaultValue>var_str('https://zenodo.org/records/23424967/files/SKIRTOR_2016-7-18.hdf5')</defaultValue>
       <description>
       The URL from which to download ``fileName`` if it is not already present. If ``none``, the file must be supplied
       by other means.

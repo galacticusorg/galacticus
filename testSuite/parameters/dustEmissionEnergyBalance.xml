@@ -785,6 +785,169 @@
         </nodePropertyExtractor>
       </nodePropertyExtractor>
     </nodePropertyExtractor>
+    <!-- The same, with the torus emitting with a spectrum from the CLUMPY library. That spectrum includes light scattered by
+         the torus, and so extends to 0.01 microns: the grid begins there to capture all of it. -->
+    <nodePropertyExtractor value="SEDDustEmission">
+      <frame value="rest"/>
+      <wavelengthMinimum value="1.0e2"/>
+      <wavelengthMaximum value="1.0e8"/>
+      <resolution value="50.0"/>
+      <outputPhases value="true"/>
+      <appendSuffix value="CLUMPY"/>
+      <fractionsMassPhase value="0.0 1.0"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="AGNTorus">
+          <galacticInclination value="fixed">
+            <inclination value="60.0"/>
+          </galacticInclination>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <dustEmissionSpectrum value="AGNTorusCLUMPY"/>
+      <dustEmissionSpectrum value="blackBodyModified">
+        <heatingCMB value="false"/>
+      </dustEmissionSpectrum>
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="SED">
+          <component value="disk"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SED">
+          <component value="spheroid"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="luminosityEmissionLine">
+          <component value="all"/>
+          <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- The same, with the torus attenuating and emitting according to the SKIRTOR library. -->
+    <nodePropertyExtractor value="dustAttenuation">
+      <outputUnattenuated value="false"/>
+      <outputSum value="false"/>
+      <outputAbsorbed value="true"/>
+      <appendSuffix value="SKIRTOR"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="AGNTorusSKIRTOR">
+          <galacticInclination value="fixed">
+            <inclination value="60.0"/>
+          </galacticInclination>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <nodePropertyExtractor value="SED">
+        <component value="disk"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="8.0e2"/>
+        <wavelengthMaximum value="4.0e4"/>
+        <resolution value="50.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SED">
+        <component value="spheroid"/>
+        <frame value="rest"/>
+        <wavelengthMinimum value="8.0e2"/>
+        <wavelengthMaximum value="4.0e4"/>
+        <resolution value="50.0"/>
+        <toleranceRelative value="1.0e-2"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="luminosityEmissionLine">
+        <component value="all"/>
+        <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SEDAGN">
+        <frame value="rest"/>
+        <wavelengthMinimum value="8.0e2"/>
+        <wavelengthMaximum value="4.0e4"/>
+        <resolution value="50.0"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="SEDDustEmission">
+      <frame value="rest"/>
+      <wavelengthMinimum value="1.0e3"/>
+      <wavelengthMaximum value="1.0e8"/>
+      <resolution value="50.0"/>
+      <outputPhases value="true"/>
+      <appendSuffix value="SKIRTOR"/>
+      <fractionsMassPhase value="0.0 1.0"/>
+      <dustAttenuation value="sequence">
+        <dustAttenuation value="AGNTorusSKIRTOR">
+          <galacticInclination value="fixed">
+            <inclination value="60.0"/>
+          </galacticInclination>
+        </dustAttenuation>
+        <dustAttenuation value="screenSurfaceDensityMetals">
+          <coefficient value="1.0"/>
+          <dustExtinctionCurve value="powerLaw">
+            <exponent value="0.7"/>
+            <wavelengthReference value="5500.0"/>
+          </dustExtinctionCurve>
+        </dustAttenuation>
+      </dustAttenuation>
+      <dustEmissionSpectrum value="AGNTorusSKIRTOR"/>
+      <dustEmissionSpectrum value="blackBodyModified">
+        <heatingCMB value="false"/>
+      </dustEmissionSpectrum>
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="SED">
+          <component value="disk"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SED">
+          <component value="spheroid"/>
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+          <toleranceRelative value="1.0e-2"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="luminosityEmissionLine">
+          <component value="all"/>
+          <lineNames value="balmerAlpha6565 balmerBeta4863 oxygenII3727"/>
+        </nodePropertyExtractor>
+        <nodePropertyExtractor value="SEDAGN">
+          <frame value="rest"/>
+          <wavelengthMinimum value="8.0e2"/>
+          <wavelengthMaximum value="4.0e4"/>
+          <resolution value="50.0"/>
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
     <!-- The same emission in the observed frame, on a grid twice as long in wavelength: at redshift one it must equal the
          rest-frame emission, bin by bin. -->
     <nodePropertyExtractor value="SEDDustEmission">
