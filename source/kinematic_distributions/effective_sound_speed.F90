@@ -40,10 +40,11 @@
      !!}
      double precision :: soundSpeedEffective
    contains
-     procedure :: isCollisional        => effectiveSoundSpeedIsCollisional
-     procedure :: soundSpeed           => effectiveSoundSpeedSoundSpeed
-     procedure :: temperature          => effectiveSoundSpeedTemperature
-     procedure :: velocityDispersion1D => effectiveSoundSpeedVelocityDispersion1D
+     procedure :: isCollisional                           => effectiveSoundSpeedIsCollisional
+     procedure :: soundSpeed                              => effectiveSoundSpeedSoundSpeed
+     procedure :: temperature                             => effectiveSoundSpeedTemperature
+     procedure :: velocityDispersion1D                    => effectiveSoundSpeedVelocityDispersion1D
+     procedure :: velocityDispersion1DGradientLogarithmic => effectiveSoundSpeedVelocityDispersion1DGradientLogarithmic
   end type kinematicsDistributionEffectiveSoundSpeed
 
   interface kinematicsDistributionEffectiveSoundSpeed
@@ -162,3 +163,18 @@ contains
     effectiveSoundSpeedVelocityDispersion1D=self%soundSpeedEffective
     return
   end function effectiveSoundSpeedVelocityDispersion1D
+
+  double precision function effectiveSoundSpeedVelocityDispersion1DGradientLogarithmic(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersionGradient)
+    !!{RST
+    Return the logarithmic gradient of the 1D velocity dispersion at the specified ``coordinates`` in an effective sound speed
+    kinematic distribution. The velocity dispersion is uniform, so this is zero.
+    !!}
+    implicit none
+    class(kinematicsDistributionEffectiveSoundSpeed), intent(inout)         :: self
+    class(coordinate                               ), intent(in   )         :: coordinates
+    class(massDistributionClass                    ), intent(inout), target :: massDistribution_, massDistributionEmbedding
+    !$GLC attributes unused :: self, coordinates, massDistribution_, massDistributionEmbedding
+
+    velocityDispersionGradient=0.0d0
+    return
+  end function effectiveSoundSpeedVelocityDispersion1DGradientLogarithmic
