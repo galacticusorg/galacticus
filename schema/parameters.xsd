@@ -1032,6 +1032,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="AGNTorus"/>
+          <xs:enumeration value="AGNTorusCLUMPY"/>
           <xs:enumeration value="AGNTorusSKIRTOR"/>
           <xs:enumeration value="blackBodyModified"/>
           <xs:enumeration value="daleHelou2002"/>

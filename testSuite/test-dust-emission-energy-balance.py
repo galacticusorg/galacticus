@@ -38,19 +38,23 @@ LUMINOSITY_SOLAR = 3.845e26
 RESOLUTION       = 50.0
 FACTOR           = (1.0 + np.sqrt(1.0 + 4.0 * RESOLUTION**2)) / 2.0 / RESOLUTION
 
-# Each case gives the attenuator, the suffix appended to the name of its emission extractor, and the phases of dust.
+# Each case gives the name (attenuator and any suffix) of the absorbed luminosities, that of the emission, and the phases
+# of dust. Several emission models may share one set of absorbed luminosities.
 CASES = (
-    ("charlotFall2000"           , ""          , ("birthCloud", "screenSurfaceDensityMetals")),
-    ("charlotFall2000"           , ":templates", ("birthCloud", "screenSurfaceDensityMetals")),
-    ("charlotFall2000"           , ":PAH"      , ("birthCloud", "screenSurfaceDensityMetals")),
-    ("screenSurfaceDensityMetals", ""          , ("screenSurfaceDensityMetals",)              ),
-    ("atlasFerrara2000"          , ""          , ("atlasFerrara2000",)                        ),
-    ("sequence"                  , ""          , ("AGNTorus", "screenSurfaceDensityMetals")   ),
+    ("charlotFall2000"           , "charlotFall2000"           , ("birthCloud", "screenSurfaceDensityMetals")       ),
+    ("charlotFall2000"           , "charlotFall2000:templates" , ("birthCloud", "screenSurfaceDensityMetals")       ),
+    ("charlotFall2000"           , "charlotFall2000:PAH"       , ("birthCloud", "screenSurfaceDensityMetals")       ),
+    ("screenSurfaceDensityMetals", "screenSurfaceDensityMetals", ("screenSurfaceDensityMetals",)                    ),
+    ("atlasFerrara2000"          , "atlasFerrara2000"          , ("atlasFerrara2000",)                              ),
+    ("sequence"                  , "sequence"                  , ("AGNTorus", "screenSurfaceDensityMetals")         ),
+    ("sequence"                  , "sequence:CLUMPY"           , ("AGNTorus", "screenSurfaceDensityMetals")         ),
+    ("sequence:SKIRTOR"          , "sequence:SKIRTOR"          , ("AGNTorusSKIRTOR", "screenSurfaceDensityMetals")  ),
 )
 # Phases which must absorb light in at least one galaxy, so that their energy balance is genuinely tested. Light from an
 # AGN is absorbed by its torus only if some galaxy has an accreting black hole.
-PHASES_REQUIRED = {"sequence": ("AGNTorus",)}
-# Every emission extractor is on the same grid of wavelengths, whose values are written only for the first.
+PHASES_REQUIRED = {"sequence": ("AGNTorus",), "sequence:SKIRTOR": ("AGNTorusSKIRTOR",)}
+# Emission extractors on the same grid of wavelengths have its values written only for the first of them. All but the
+# CLUMPY case share the grid of this one.
 GRID_FIRST = "dustEmissionSED:charlotFall2000"
 
 # This script runs with the working directory set to testSuite/, while the model is run from the repository root.
@@ -70,16 +74,18 @@ if status.returncode != 0 or not os.path.exists(outputPath):
     sys.exit(0)
 
 
-def columnValues(nodes, name, fallback):
+def columnValues(nodes, name, fallbacks):
     """Return the wavelengths of the columns of an array property.
 
     The outputter writes a `ColumnValues` dataset only for the first property on a given grid of columns, so later
-    properties on the same grid have none of their own. In that case the grid of the `fallback` property is used, which
-    must be on the same grid.
+    properties on the same grid have none of their own. In that case the grid of the first of the `fallbacks` properties
+    to have one is used, which must be on the same grid.
     """
-    if name + "ColumnValues" in nodes:
-        return nodes[name + "ColumnValues"][:]
-    return nodes[fallback + "ColumnValues"][:]
+    for candidate in (name,) + tuple(fallbacks):
+        if candidate + "ColumnValues" in nodes:
+            return nodes[candidate + "ColumnValues"][:]
+    print(f"FAILED: no column values for '{name}', nor for any of {list(fallbacks)}")
+    sys.exit(0)
 
 
 def heatingGrid(nodes, name, length):
@@ -109,6 +115,10 @@ def absorbedLuminosities(nodes, attenuator):
     for name in nodes.keys():
         if marker not in name or name.endswith("ColumnValues") or name.endswith("Columns"):
             continue
+        # Absorbed luminosities of an attenuator with a further suffix (e.g. `sequence:SKIRTOR` when this is `sequence`)
+        # belong to a different case.
+        if ":" in name.split(marker)[1]:
+            continue
         phase = name.split(":")[-1]
         data  = nodes[name][:]
         # Units are recorded in a compound `units` attribute, whose `unitsInSI` field gives the conversion to SI.
@@ -127,10 +137,10 @@ def absorbedLuminosities(nodes, attenuator):
     return absorbed
 
 
-def emittedLuminosity(nodes, name, fallback):
+def emittedLuminosity(nodes, name, fallbacks):
     """Return the integral over frequency of an emission spectrum, in L☉, summing over its resolution elements."""
     spectrum    = nodes[name][:]
-    wavelengths = columnValues(nodes, name, fallback)
+    wavelengths = columnValues(nodes, name, fallbacks)
     return np.sum(spectrum * (SPEED_OF_LIGHT / wavelengths) * (FACTOR - 1.0 / FACTOR), axis=1)
 
 
@@ -140,13 +150,13 @@ with h5py.File(outputPath, "r") as f:
     for outputName, expansionFactor in sorted(expansionFactors.items()):
         redshiftLabel = f"z={1.0 / expansionFactor - 1.0:.1f}"
         nodes = f["Outputs"][outputName]["nodeData"]
-        for attenuator, suffix, phases in CASES:
-            label = f"{attenuator}{suffix} at {redshiftLabel}"
+        for attenuator, emission, phases in CASES:
+            label = f"{emission} at {redshiftLabel}"
             try:
                 absorbed = absorbedLuminosities(nodes, attenuator)
-                total    = f"dustEmissionSED:{attenuator}{suffix}"
-                emitted  = emittedLuminosity   (nodes, total, GRID_FIRST)
-                emittedPhases = {phase: emittedLuminosity(nodes, f"{total}:{phase}", GRID_FIRST) for phase in phases}
+                total    = f"dustEmissionSED:{emission}"
+                emitted  = emittedLuminosity   (nodes, total, (GRID_FIRST,))
+                emittedPhases = {phase: emittedLuminosity(nodes, f"{total}:{phase}", (total, GRID_FIRST)) for phase in phases}
             except KeyError as e:
                 print(f"FAILED: {label}: expected dataset or attribute missing from the output: {e}")
                 sys.exit(0)
@@ -187,8 +197,8 @@ with h5py.File(outputPath, "r") as f:
     try:
         rest     = nodes["dustEmissionSED:charlotFall2000"         ][:]
         observed = nodes["dustEmissionSED:charlotFall2000:observed"][:]
-        wavelengthsRest     = columnValues(nodes, "dustEmissionSED:charlotFall2000"         , "dustEmissionSED:charlotFall2000")
-        wavelengthsObserved = columnValues(nodes, "dustEmissionSED:charlotFall2000:observed", "dustEmissionSED:charlotFall2000:observed")
+        wavelengthsRest     = columnValues(nodes, "dustEmissionSED:charlotFall2000"         , ())
+        wavelengthsObserved = columnValues(nodes, "dustEmissionSED:charlotFall2000:observed", ())
     except KeyError as e:
         print(f"FAILED: expected observed-frame dataset missing from the output: {e}")
         sys.exit(0)
