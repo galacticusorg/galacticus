@@ -255,6 +255,7 @@ Implements a excursion set first crossing statistics class using the algorithm o
        <method description="Read excursion set solutions from file."                                                                       method="fileRead"                  />
        <method description="Write excursion set solutions to file."                                                                        method="fileWrite"                 />
        <method description="Initialize the file name for storing excursion set data."                                                      method="fileNameInitialize"        />
+       <method description="Set the variances at which the first crossing probability is tabulated from the variance lattice."             method="varianceProbabilityFromLattice"/>
      </methods>
      !!]
      final     ::                               farahiDestructor
@@ -267,6 +268,7 @@ Implements a excursion set first crossing statistics class using the algorithm o
      procedure :: fileRead                   => farahiFileRead
      procedure :: fileWrite                  => farahiFileWrite
      procedure :: fileNameInitialize         => farahiFileNameInitialize
+     procedure :: varianceProbabilityFromLattice => farahiVarianceProbabilityFromLattice
      procedure :: varianceRange              => farahiVarianceRange
      procedure :: varianceLimit              => farahiVarianceLimit
      procedure :: varianceLimitHard          => farahiVarianceLimitHard
@@ -1596,7 +1598,7 @@ contains
          call Table_Cache_Lattice_Read(dataGroup,'variance',gridSchemePerUnit  ,self%varianceNumberPerUnitProbability,self%latticeVariance,self%countVariance+1)
          call Table_Cache_Lattice_Read(dataGroup,'time'    ,gridSchemePerDecade,self%timeNumberPerDecade             ,self%latticeTime    ,self%countTime      )
          if (self%latticeVariance%isDefined() .and. self%latticeTime%isDefined()) then
-            self%variance        =self%latticeVariance%values ()
+            call self%varianceProbabilityFromLattice()
             self%time            =self%latticeTime    %values ()
             self%varianceStep    =self%latticeVariance%step   ()
             self%timeMinimum     =self%latticeTime    %minimum()
@@ -1844,6 +1846,18 @@ contains
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileWrite
+
+  subroutine farahiVarianceProbabilityFromLattice(self)
+    !!{RST
+    Set the variances at which the first crossing probability is tabulated from the variance lattice. In this class these are
+    simply the lattice points.
+    !!}
+    implicit none
+    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
+
+    self%variance=self%latticeVariance%values()
+    return
+  end subroutine farahiVarianceProbabilityFromLattice
 
   function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
     !!{RST
