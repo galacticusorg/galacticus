@@ -81,6 +81,7 @@
       <varianceNumberPerUnit value="40"/>
       <varianceNumberPerDecade value="400"/>
       <fractionalTimeStep value="0.001"/>
+      <fileName value="auto"/>
     </excursionSetFirstCrossing>
 
     <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
