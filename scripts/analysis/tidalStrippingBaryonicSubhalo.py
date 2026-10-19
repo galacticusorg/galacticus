@@ -17,7 +17,8 @@ Three panels are shown as a function of time:
 
 The spheroid truncation radius is not output by Galacticus, so is reconstructed here from the degree of truncation, x, for the case
 of a Hernquist spheroid truncated by the "exponential" galacticComponentTruncation class (the model used by the example parameter
-file). It is omitted for any other model.
+file). It is omitted for any other model. If the spheroid is also heated (see the galacticComponentHeating class) this is the
+truncation radius before heating, which moves the truncation outward along with the rest of the spheroid.
 
 Andrew Benson, Claude (2026)
 """
