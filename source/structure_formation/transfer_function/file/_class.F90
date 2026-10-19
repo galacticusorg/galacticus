@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a file-based transfer function class.
   !!}
@@ -132,6 +134,8 @@
          }
       }
       }
+
+   The tabulated transfer function may have an arbitrary normalization (for example, that output by CAMB or CLASS includes the growth factor at the epoch of the tabulation). It is normalized to unity at the smallest tabulated wavenumber, which is assumed to lie on the large-scale plateau of the transfer function. A warning is issued if the logarithmic slope of the tabulated transfer function there exceeds :math:`10^{-2}` in magnitude, suggesting that the plateau has not been reached.
 
    If an optional :galacticus-class:`transferFunctionClass` object named ``transferFunctionReference`` is supplied then that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to ``transferFunctionReference`` are also computed.
    </description>
@@ -318,33 +322,33 @@ contains
     !!{RST
     Internal constructor for the file transfer function class.
     !!}    
-    use :: Cosmology_Parameters   , only : cosmologyParametersSimple
-    use :: Display                , only : displayReset                    , displayGreen                      , displayMagenta, &
-         &                                 displayMessage
-    use :: Error                  , only : Error_Report
-    use :: HDF5_Access            , only : hdf5Access
-    use :: IO_HDF5                , only : hdf5File                        , hdf5Group
-    use :: Numerical_Comparison   , only : Values_Differ
-    use :: Numerical_Interpolation, only : GSL_Interp_cSpline
-    use :: File_Utilities         , only : File_Name_Expand                , File_Lock                         , File_Unlock
-    use :: Table_Labels           , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
-    use :: String_Handling        , only : stringXMLFormat
+    use :: Cosmology_Parameters        , only : cosmologyParametersSimple
+    use :: Display                     , only : displayReset                    , displayGreen                      , displayMagenta, &
+         &                                      displayMessage
+    use :: Error                       , only : Error_Report
+    use :: HDF5_Access                 , only : hdf5Access
+    use :: IO_HDF5                     , only : hdf5File                        , hdf5Group
+    use :: Numerical_Comparison        , only : Values_Differ
+    use :: Numerical_Interpolation     , only : GSL_Interp_cSpline
+    use :: File_Utilities              , only : File_Name_Expand                , File_Lock                         , File_Unlock
+    use :: Table_Labels                , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
+    use :: String_Handling             , only : stringXMLFormat
     implicit none
     class           (transferFunctionFile            ), intent(inout)               :: self
     character       (len=*                           ), intent(in   )               :: fileName
     logical                                           , intent(in   ), optional     :: invalidateCache                , lockCache
-    double precision                                  , allocatable  , dimension(:) :: transfer                       , wavenumber               , &
-         &                                                                             transferLogarithmic            , wavenumberLogarithmic    , &
+    double precision                                  , allocatable  , dimension(:) :: transfer                       , wavenumber                     , &
+         &                                                                             transferLogarithmic            , wavenumberLogarithmic          , &
          &                                                                             transferDarkMatter             , transferBaryons
     class           (cosmologyParametersClass        ), pointer                     :: cosmologyParametersFile
-    double precision                                  , parameter                   :: toleranceUniformity     =1.0d-6
-    double precision                                                                :: HubbleConstant                 , OmegaBaryon              , &
-         &                                                                             OmegaMatter                    , OmegaDarkEnergy          , &
-         &                                                                             temperatureCMB
+    double precision                                  , parameter                   :: toleranceUniformity     =1.0d-6, toleranceSlopeLargeScale=1.0d-2
+    double precision                                                                :: HubbleConstant                 , OmegaBaryon                    , &
+         &                                                                             OmegaMatter                    , OmegaDarkEnergy                , &
+         &                                                                             temperatureCMB                 , slopeLargeScale
     type            (enumerationExtrapolationTypeType)                              :: extrapolateWavenumberLow       , extrapolateWavenumberHigh
-    integer                                                                         :: versionNumber                  , i                        , &
+    integer                                                                         :: versionNumber                  , i                              , &
          &                                                                             countLocalMinima               , useCache
-    character       (len=32                          )                              :: datasetName
+    character       (len=32                          )                              :: datasetName                    , label
     type            (varying_string                  )                              :: limitTypeVar                   , hashedDescriptor
     type            (lockDescriptor                  )                              :: fileLock
     !$GLC attributes initialized :: wavenumber, transfer
@@ -466,6 +470,23 @@ contains
        case default
           call Error_Report('unknown transfer function type'//{introspection:location})
        end select
+       ! Normalize the transfer function to unity on large scales. Tabulated transfer functions (e.g. those output by CAMB or
+       ! CLASS) typically carry an arbitrary normalization (which may also include the growth factor at the epoch of the
+       ! tabulation). We take the value at the smallest tabulated wavenumber to be the large-scale limit, and warn if the
+       ! tabulation does not appear to have reached a plateau there.
+       if (size(transfer) > 1) then
+          slopeLargeScale=+log(transfer  (2)/transfer  (1)) &
+               &          /log(wavenumber(2)/wavenumber(1))
+          if (abs(slopeLargeScale) > toleranceSlopeLargeScale) then
+             write (label,'(e10.3)') slopeLargeScale
+             call displayMessage(                                                                                                                                                            &
+                  &              displayMagenta()//'WARNING: '//displayReset()//'transfer function in file "'//trim(fileName)//'" does not appear to reach a plateau at small wavenumbers'// &
+                  &              ' (d log T / d log k = '//trim(adjustl(label))//') - normalizing to unity at the smallest tabulated wavenumber'                                             &
+                  &             )
+          end if
+       end if
+       transfer=+transfer    &
+            &   /transfer(1)
        ! Cache this transfer function for possible later reuse.
        !$omp critical(transferFunctionFileCache)
        useCache=0

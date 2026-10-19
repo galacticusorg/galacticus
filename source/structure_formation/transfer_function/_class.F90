@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a class that implements transfer functions.
 !!}
@@ -33,7 +35,7 @@ module Transfer_Functions
    <name>transferFunction</name>
    <descriptiveName>Transfer Function</descriptiveName>
    <description>
-   Class providing transfer functions :math:`T(k)` for the matter power spectrum. The transfer function encodes the modification of the primordial power spectrum by physical processes between inflation and matter-radiation equality, including baryon acoustic oscillations, Silk damping, and free-streaming of dark matter particles. It is defined such that the linear power spectrum at late times is :math:`P(k) \propto k^{n_s} T^2(k)`. Implementations may also return the wavenumber at which :math:`T(k)` is suppressed by a given factor, characterizing the small-scale cutoff scale.
+   Class providing transfer functions :math:`T(k)` for the matter power spectrum. The transfer function encodes the modification of the primordial power spectrum by physical processes between inflation and matter-radiation equality, including baryon acoustic oscillations, Silk damping, and free-streaming of dark matter particles. It is defined such that the linear power spectrum at late times is :math:`P(k) \propto k^{n_s} T^2(k)`. All implementations must be normalized such that :math:`T(k) \rightarrow 1` as :math:`k \rightarrow 0`, i.e. on scales larger than any at which the transfer function departs from a constant. Implementations may also return the wavenumber at which :math:`T(k)` is suppressed by a given factor, characterizing the small-scale cutoff scale.
    </description>
    <default>eisensteinHu1999</default>
    <method name="value" >

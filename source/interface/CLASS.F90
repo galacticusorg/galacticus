@@ -595,7 +595,7 @@ contains
          call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
          extrapolationGroup          =classOutput       %openGroup('extrapolation')
          extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-         call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+         call extrapolationWavenumberGroup%writeAttribute('fix'        ,'low' )
          call extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
        end block hdf5WriteScope
        !$ call hdf5Access%unset()

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program that tests transfer function calculations.
 !!}
@@ -53,6 +55,7 @@ program Tests_Transfer_Functions
   integer                                                   , parameter                                  :: wavenumberCount                          =1000
   double precision                                          , parameter                                  :: wavenumberMinimum                        =1.0d-3
   double precision                                          , parameter                                  :: wavenumberMaximum                        =1.0d+2
+  double precision                                          , parameter                                  :: wavenumberLargeScale                     =1.0d-7
   double precision                                                     , dimension(wavenumberCount     ) :: transferFunctionLogarithmicDerivativeEH99        , transferFunctionLogarithmicDerivativeFiniteDifferenceEH99, &
        &                                                                                                    transferFunctionLogarithmicDerivativeEH98        , transferFunctionLogarithmicDerivativeFiniteDifferenceEH98, &
        &                                                                                                    powerSpectrumLogarithmicDerivativeEH98           , powerSpectrumLogarithmicDerivativeFiniteDifferenceEH98   , &
@@ -174,12 +177,10 @@ program Tests_Transfer_Functions
      transferFunctionLogarithmicDerivativeFiniteDifferenceEH99(j)=+log(transferFunctionValueEH99_(2)/transferFunctionValueEH99_(1)) &
           &                                                       /log(wavenumber                (2)/wavenumber                (1))
   end do
-  ! Normalize transfer functions to their large-scale values.
-  transferFunctionValueEisensteinHu1999=+transferFunctionValueEisensteinHu1999    &
-       &                                /transferFunctionValueEisensteinHu1999(1)
-  transferFunctionValueCAMB            =+transferFunctionValueCAMB                &
-       &                                /transferFunctionValueCAMB            (1)
-  ! We expect agreement between Eisenstein & Hu (1999) and CAMB over only a limited range of wavenumbers. Outside of that range force them to be equal to avoid failed assertions.
+  ! No normalization is applied here - all transfer functions are required to be normalized to unity on large scales, so CAMB
+  ! (whose raw output carries an arbitrary normalization) and Eisenstein & Hu (1999) must agree without any rescaling.  We expect
+  ! agreement between Eisenstein & Hu (1999) and CAMB over only a limited range of wavenumbers. Outside of that range force them
+  ! to be equal to avoid failed assertions.
   where(wavenumbers < 1.0d-1 .or. wavenumbers > 1.0d+0)
      transferFunctionValueEisensteinHu1999=transferFunctionValueCAMB
   end where  
@@ -188,6 +189,17 @@ program Tests_Transfer_Functions
   call Assert('Eisenstein-Hu 1998 T(k)'                                           ,transferFunctionLogarithmicDerivativeEH98,transferFunctionLogarithmicDerivativeFiniteDifferenceEH98,relTol=2.0d+0*stepLogarithmic              )
   call Assert('Eisenstein-Hu 1999 T(k) log-derivative with non-zero neutrino mass',transferFunctionLogarithmicDerivativeEH99,transferFunctionLogarithmicDerivativeFiniteDifferenceEH99,relTol=2.0d+0*stepLogarithmic              )
   call Assert('CAMB vs. Eisenstein-Hu T(k) match'                                 ,transferFunctionValueEisensteinHu1999    ,transferFunctionValueCAMB                                ,relTol=4.0d-2                              )
+  ! Check that transfer functions are normalized to unity on large scales. The wavenumber used must be very small: with massive
+  ! neutrinos the Eisenstein & Hu (1999) transfer function exceeds unity by up to 3% at k ~ 10⁻⁴ Mpc⁻¹ (due to the B(k) factor
+  ! of their eqn. 22), approaching unity only for k < 10^-6 Mpc^-1. The CAMB transfer function is tabulated only down to k ~
+  ! 5×10⁻⁵ Mpc⁻¹ and is normalized to unity there, below which it is held fixed at its value at the smallest tabulated
+  ! wavenumber, so should be unity to rounding error.
+  call Unit_Tests_Begin_Group("Large-scale normalization, T(k → 0) = 1")
+  call Assert('Eisenstein-Hu 1998'                    ,transferFunctionEisensteinHu1998_        %value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
+  call Assert('Eisenstein-Hu 1999'                    ,transferFunctionEisensteinHu1999_        %value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
+  call Assert('Eisenstein-Hu 1999, massless neutrinos',transferFunctionEisensteinHu1999Massless_%value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
+  call Assert('CAMB'                                  ,transferFunctionCAMB_                    %value(wavenumberLargeScale),1.0d0,relTol=1.0d-6)
+  call Unit_Tests_End_Group()
   ! Check that the tabulations built by the accelerator and envelope transfer functions do not depend on the order in which
   ! wavenumbers are requested of them. Both build their tabulation on an absolute lattice, so the wavenumbers they evaluate
   ! depend only on which lattice points are spanned - two objects asked for the same set of wavenumbers must therefore agree
@@ -211,6 +223,10 @@ program Tests_Transfer_Functions
      envelopeDescending   (i)=transferFunctionEnvelopeDescending_   %value(wavenumbersOrder(i))
   end do
   call Assert('envelope T(k) is independent of the order in which wavenumbers are requested',envelopeAscending,envelopeDescending,absTol=0.0d0)
+  ! The envelope is constructed from tangents lying above the (concave downward on large scales) transfer function, so exceeds
+  ! unity by ~2x10^-4 on large scales.
+  call Assert('accelerator T(k → 0) = 1',transferFunctionAcceleratorAscending_%value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
+  call Assert('envelope T(k → 0) = 1'   ,transferFunctionEnvelopeAscending_   %value(wavenumberLargeScale),1.0d0,relTol=1.0d-3)
   ! The warm dark matter modifier of Bode et al. (2001). The class applies
   !
   !   T(k) -> T(k) [1 + (ε k R_c)^(2 ν)]^(-η/ν),
@@ -306,6 +322,7 @@ program Tests_Transfer_Functions
   ! Limits: the modifier leaves large scales untouched, suppresses monotonically, and gives a lower half-mode mass for a heavier
   ! particle - the cut-off scale going as m^-1.15, so the mass as m^-3.45.
   call Assert('T(k) is unmodified on large scales',suppressionClass(1),1.0d0,relTol=1.0d-6)
+  call Assert('T(k -> 0) = 1'                     ,transferFunctionBode2001_%value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
   call Assert('suppression is monotonic'          ,all(suppressionClass(2:wavenumberCountBode) < suppressionClass(1:wavenumberCountBode-1)),.true.)
   call Assert('a heavier particle has a lower half-mode mass',transferFunctionBode2001Heavy_%halfModeMass() < transferFunctionBode2001_%halfModeMass(),.true.)
   call Assert('half-mode mass scales as m^-3.45'  ,transferFunctionBode2001_%halfModeMass()/transferFunctionBode2001Heavy_%halfModeMass(),(massWDMHeavy/massWDM)**(3.0d0*1.15d0),relTol=1.0d-9)
