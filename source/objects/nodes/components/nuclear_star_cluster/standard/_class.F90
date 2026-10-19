@@ -278,7 +278,7 @@ contains
     use :: Input_Parameters                , only : inputParameter                 , inputParameters
     use :: Mass_Distributions              , only : massDistributionSpherical      , kinematicsDistributionLocal
     use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_       , massDistributionGas_       , kinematicDistribution_           , &
-         &                                          galacticComponentTruncation_, kinematicDistributionGas_
+         &                                          galacticComponentTruncation_   , kinematicDistributionGas_
     use :: Galactic_Structure_Options      , only : componentTypeNuclearStarCluster, massTypeStellar            , massTypeGaseous
     implicit none
     type(inputParameters), intent(inout) :: parameters

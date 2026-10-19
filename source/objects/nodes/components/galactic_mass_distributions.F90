@@ -141,13 +141,13 @@ contains
     use :: Mass_Distributions            , only : massDistributionClass           , kinematicsDistributionClass
     implicit none
     class           (massDistributionClass           ), pointer                :: massDistribution_
-    logical                                           , intent(in   )          :: includeStars                , includeGas
-    double precision                                  , intent(in   )          :: massStellar                 , massGas             , &
-         &                                                                        radiusScale                 , fractionMassRetained
-    class           (massDistributionClass           ), intent(in   ), pointer :: massDistributionStellar_    , massDistributionGas_
+    logical                                           , intent(in   )          :: includeStars                 , includeGas
+    double precision                                  , intent(in   )          :: massStellar                  , massGas                  , &
+         &                                                                        radiusScale                  , fractionMassRetained
+    class           (massDistributionClass           ), intent(in   ), pointer :: massDistributionStellar_     , massDistributionGas_
     class           (kinematicsDistributionClass     ), intent(in   ), target  :: kinematicDistributionStellar_, kinematicDistributionGas_
     class           (galacticComponentTruncationClass), intent(inout)          :: galacticComponentTruncation_
-    class           (massDistributionClass           ), pointer                :: massDistributionStellar     , massDistributionGas
+    class           (massDistributionClass           ), pointer                :: massDistributionStellar      , massDistributionGas
 
     if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
        ! The component has non-positive size, or no components matched. Return a null distribution.
