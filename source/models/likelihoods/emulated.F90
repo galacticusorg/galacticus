@@ -148,7 +148,10 @@
 
    The variance of the log-likelihood due to the uncertainty of the emulation is estimated to first order as
    :math:`\sum_i g_i^2 \sigma_i^2`, where :math:`g_i` is the derivative of the log-likelihood with respect to the predicted
-   mean in bin :math:`i` (:math:`\mathbf{g} = \mathsf{S}^{-1} \Delta` for the Gaussian forms).
+   mean in bin :math:`i` (:math:`\mathbf{g} = \mathsf{S}^{-1} \Delta` for the Gaussian forms). If ``[includeEmulatorVariance]``
+   is false (and ``[pathSamples]`` is ``none``) the emulators are treated as exact: the variance of their predictions is not
+   computed (which avoids the cost, in time and memory, of the Cholesky factors of the Gaussian processes), and this variance
+   of the log-likelihood is zero.
 
    The likelihood is not evaluated for states outside the support of the prior (at which the prior quantiles, the inputs to
    the emulators, are undefined).
@@ -268,7 +271,9 @@ contains
       <name>includeEmulatorVariance</name>
       <defaultValue>.true.</defaultValue>
       <description>
-      If true, the variance of each emulator's predictions is added to the variance of the target data in the likelihood.
+      If true, the variance of each emulator's predictions is added to the variance of the target data in the likelihood. If
+      false, the emulators are treated as exact, and the variance of their predictions is not computed (unless written to file by
+      ``[pathSamples]``).
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -622,7 +627,14 @@ contains
          end do
          allocate(mean    (size(state%yTarget)))
          allocate(variance(size(state%yTarget)))
-         call emulator_%emulator_%predict(quantiles,mean,variance)
+         ! The variance of the emulation is costly (in time, and in the memory of the Cholesky factors of the emulators), and is
+         ! needed only if it is included in the likelihood, or written to file. Otherwise, it is taken to be zero.
+         if (self%includeEmulatorVariance .or. self%pathSamples /= 'none') then
+            call emulator_%emulator_%predict(quantiles,mean,variance)
+         else
+            call emulator_%emulator_%predict(quantiles,mean         )
+            variance=0.0d0
+         end if
          ! Write the predictions to file if needed.
          if (self%pathSamples /= 'none') then
             open(newUnit=state%unitSamples,file=char(state%fileNameSamples),form='formatted',status='unknown',position='append')

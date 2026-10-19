@@ -128,13 +128,15 @@ module Statistics_Emulators
    </method>
    <method name="predict" >
     <description>
-    Predict the mean and variance of the emulated observable, in each of its bins, given the prior ``quantiles`` of the
-    emulator's inputs (in the order of ``inputNames``). The arrays ``mean`` and ``variance`` must have size ``countOutputs``.
+    Predict the mean and (optionally) the variance of the emulated observable, in each of its bins, given the prior
+    ``quantiles`` of the emulator's inputs (in the order of ``inputNames``). The arrays ``mean`` and ``variance`` must have size
+    ``countOutputs``. The variance can be much more costly to compute than the mean, so should be requested only if needed.
     </description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ), dimension(:) :: quantiles</argument>
-    <argument>double precision, intent(  out), dimension(:) :: mean     , variance</argument>
+    <argument>double precision, intent(in   ), dimension(:)           :: quantiles</argument>
+    <argument>double precision, intent(  out), dimension(:)           :: mean     </argument>
+    <argument>double precision, intent(  out), dimension(:), optional :: variance </argument>
    </method>
   </functionClass>
   !!]
