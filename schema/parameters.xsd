@@ -1855,6 +1855,7 @@
           <xs:enumeration value="sphericalFiniteResolutionNFW"/>
           <xs:enumeration value="sphericalHeated"/>
           <xs:enumeration value="sphericalHeatedMonotonic"/>
+          <xs:enumeration value="sphericalHeatedTracer"/>
           <xs:enumeration value="sphericalSIDM"/>
           <xs:enumeration value="sphericalSIDMCoreNFW"/>
           <xs:enumeration value="sphericalSIDMIsothermal"/>
