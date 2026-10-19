@@ -110,6 +110,12 @@ module Cosmological_Density_Field
              &amp;       )
         finderInitialized=.true.
      end if
+     ! If the critical overdensity is non-positive (as can occur if a large-scale environmental overdensity is included in it)
+     ! then σ(M) &gt; δ_c on all mass scales - all masses have collapsed, and there is no root to find.
+     if (self%value(time=collapseTime,mass=massGuess,node=node) &lt;= 0.0d0) then
+        criticalOverdensityCollapsingMass=huge(0.0d0)
+        return
+     end if
      globalSelf                           => self
      self      %time                      =  collapseTime
      self      %nodePresent               =  present(node)
@@ -672,7 +678,9 @@ contains
                &                                               /globalSelf%cosmologicalMassVariance_%rootVariance(time=time,mass=globalSelf%mass                     )
        end if
     else
-       if (globalSelf%nodePresent) then
+       if (globalSelf%nodePresent .or. globalSelf%treePresent) then
+          ! A tree-dependent (but node-independent) critical overdensity still requires the node (as a route to its tree). The
+          ! node is assigned only if it is node- or tree-dependent, so must not be passed otherwise.
           collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        else
