@@ -42,11 +42,11 @@ program Tests_Transfer_Functions
   use :: Cosmology_Parameters                , only : hubbleUnitsLittleH
   use :: Transfer_Functions                  , only : transferFunctionAccelerator             , transferFunctionEnvelope
   implicit none
-  type            (cosmologyParametersSimple               )                                             :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda          )                                             :: cosmologyFunctions_
+  type            (cosmologyParametersSimple               )                                             :: cosmologyParameters_                             , cosmologyParametersOpen_
+  type            (cosmologyFunctionsMatterLambda          )                                             :: cosmologyFunctions_                              , cosmologyFunctionsOpen_
   type            (transferFunctionEisensteinHu1999        )                                             :: transferFunctionEisensteinHu1999_                , transferFunctionEisensteinHu1999Massless_
   type            (transferFunctionEisensteinHu1998        )                                             :: transferFunctionEisensteinHu1998_
-  type            (transferFunctionCAMB                    )                                             :: transferFunctionCAMB_
+  type            (transferFunctionCAMB                    )                                             :: transferFunctionCAMB_                            , transferFunctionCAMBOpen_
   type            (darkMatterParticleCDM                   )                                             :: darkMatterParticle_
   type            (linearGrowthCollisionlessMatter         )                                             :: linearGrowthCollisionlessMatter_
   type            (powerSpectrumPrimordialTransferredSimple)                                             :: powerSpectrumPrimordialTransferredSimple_
@@ -56,6 +56,7 @@ program Tests_Transfer_Functions
   double precision                                          , parameter                                  :: wavenumberMinimum                        =1.0d-3
   double precision                                          , parameter                                  :: wavenumberMaximum                        =1.0d+2
   double precision                                          , parameter                                  :: wavenumberLargeScale                     =1.0d-7
+  double precision                                          , parameter                                  :: wavenumberCurvature                      =2.0d-4
   double precision                                                     , dimension(wavenumberCount     ) :: transferFunctionLogarithmicDerivativeEH99        , transferFunctionLogarithmicDerivativeFiniteDifferenceEH99, &
        &                                                                                                    transferFunctionLogarithmicDerivativeEH98        , transferFunctionLogarithmicDerivativeFiniteDifferenceEH98, &
        &                                                                                                    powerSpectrumLogarithmicDerivativeEH98           , powerSpectrumLogarithmicDerivativeFiniteDifferenceEH98   , &
@@ -199,6 +200,33 @@ program Tests_Transfer_Functions
   call Assert('Eisenstein-Hu 1999'                    ,transferFunctionEisensteinHu1999_        %value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
   call Assert('Eisenstein-Hu 1999, massless neutrinos',transferFunctionEisensteinHu1999Massless_%value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
   call Assert('CAMB'                                  ,transferFunctionCAMB_                    %value(wavenumberLargeScale),1.0d0,relTol=1.0d-6)
+  call Unit_Tests_End_Group()
+  ! Check that the curvature factor, 1-3K/k², is removed from tabulated transfer functions in a curved universe. For Ω_k=0.1 the
+  ! curvature scale is |K|^½ ≈ 7×10⁻⁵ Mpc⁻¹, and the CAMB tabulation begins just above this. Including the curvature factor, the
+  ! transfer function (normalized to unity at the smallest tabulated wavenumber) would fall to ≈0.4 by k=2×10⁻⁴ Mpc⁻¹. With
+  ! that factor removed it remains within 10⁻³ of unity there - the residual being the physical departure of the transfer
+  ! function from a constant on these scales.
+  cosmologyParametersOpen_ =cosmologyParametersSimple     (                                                &
+       &                                                   OmegaMatter         = 0.300d0                 , &
+       &                                                   OmegaBaryon         = 0.045d0                 , &
+       &                                                   OmegaDarkEnergy     = 0.600d0                 , &
+       &                                                   temperatureCMB      = 2.700d0                 , &
+       &                                                   HubbleConstant      =70.0d0                     &
+       &                                                  )
+  cosmologyFunctionsOpen_  =cosmologyFunctionsMatterLambda(                                                &
+       &                                                   cosmologyParameters_=cosmologyParametersOpen_   &
+       &                                                  )
+  transferFunctionCAMBOpen_=transferFunctionCAMB          (                                                &
+       &                                                   darkMatterParticle_ =darkMatterParticle_      , &
+       &                                                   cosmologyParameters_=cosmologyParametersOpen_ , &
+       &                                                   cosmologyFunctions_ =cosmologyFunctionsOpen_  , &
+       &                                                   transferFunctionType=transferFunctionTypeTotal, &
+       &                                                   redshift            =0.0d0                    , &
+       &                                                   cambCountPerDecade  =0                          &
+       &                                                  )
+  call Unit_Tests_Begin_Group("Curvature, Ω_k = 0.1")
+  call Assert('CAMB, T(k → 0) = 1'           ,transferFunctionCAMBOpen_%value(wavenumberLargeScale),1.0d0,relTol=1.0d-6)
+  call Assert('CAMB, T(k = 2×10⁻⁴ Mpc⁻¹) = 1',transferFunctionCAMBOpen_%value(wavenumberCurvature ),1.0d0,relTol=2.0d-3)
   call Unit_Tests_End_Group()
   ! Check that the tabulations built by the accelerator and envelope transfer functions do not depend on the order in which
   ! wavenumbers are requested of them. Both build their tabulation on an absolute lattice, so the wavenumbers they evaluate

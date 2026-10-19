@@ -151,8 +151,10 @@
   ! normalized to unity on large scales. The stored normalization of the power spectrum is relative to the normalization of the
   ! transfer function, so a tabulation made before that change would misnormalize the power spectrum. Such files can not be
   ! detected through the file name (whose source digest does not include that of the transfer function), so are instead
-  ! rejected on this version.
-  integer                         , parameter :: filteredPowerFileFormatCurrent=2
+  ! rejected on this version. Version 3 marks tabulations made after the curvature parameter passed to CAMB and CLASS was
+  ! corrected, and the curvature factor 1-3K/k² removed from tabulated transfer functions, both of which change the transfer
+  ! function in non-flat cosmologies.
+  integer                         , parameter :: filteredPowerFileFormatCurrent=3
 
   ! Seed range of masses to tabulate. Every tabulation contains this range, so any two which are never asked for a mass outside
   ! it span *exactly* the same range - which matters here beyond the usual guarantee that two ranges overlap and so can be
