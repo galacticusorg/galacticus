@@ -208,20 +208,22 @@ module Cosmological_Density_Field
    <default>uniform</default>
    <method name="overdensityLinear" >
     <description>
-    Return the linear (pre-collapse) large-scale environmental overdensity for the given ``node``, optionally evaluated at the present day rather than at the node's cosmic time.
+    Return the linear (pre-collapse) large-scale environmental overdensity for the given ``node``, optionally evaluated at the present day rather than at the node's cosmic time. If a ``time`` (or ``expansionFactor``) is given, the overdensity is evaluated at that epoch instead of the node's cosmic time. The ``node`` may be omitted only for environments which are neither node- nor tree-dependent.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout)           :: node</argument>
-    <argument>logical          , intent(in   ), optional :: presentDay</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
+    <argument>logical                   , intent(in   ), optional :: presentDay                 </argument>
+    <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
    </method>
    <method name="overdensityLinearGradientTime" >
     <description>
-    Return the gradient with time of the environmental linear overdensity for the given ``node``.
+    Return the gradient with time of the environmental linear overdensity for the given ``node``. If a ``time`` (or ``expansionFactor``) is given, the gradient is evaluated at that epoch instead of the node's cosmic time. The ``node`` may be omitted only for environments which are neither node- nor tree-dependent.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout)           :: node</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                 </argument>
+    <argument>double precision          , intent(in   ), optional :: time, expansionFactor</argument>
    </method>
    <method name="overdensityNonLinear" >
     <description>
@@ -674,7 +676,7 @@ contains
           collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        else
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                                          ) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        end if
     end if
