@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   use :: Cosmological_Density_Field               , only : cosmologicalMassVarianceClass          , criticalOverdensityClass         , haloEnvironmentClass
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                     , only : cosmologyParametersClass
@@ -597,7 +599,7 @@ contains
          &                                                                                              massHaloMinimum                                        , massHaloMaximum              , &
          &                                                                                              massHalfModeReference                                  , slopeHalfMode                , &
          &                                                                                              slopeQuarterMode                                       , wavenumberHalfMode           , &
-         &                                                                                              wavenumberQuarterMode
+         &                                                                                              wavenumberQuarterMode                                  , criticalOverdensityHalo
     type            (hdf5Group                              )                                        :: outputsGroup                                           , outputGroup                  , &
          &                                                                                              containerGroup                                         , powerSpectrumGroup           , &
          &                                                                                              cosmologyGroup
@@ -654,7 +656,7 @@ contains
        outputRedshifts            (iOutput)=self%cosmologyFunctions_   %redshiftFromExpansionFactor(                               outputExpansionFactors(iOutput))
        outputGrowthFactors        (iOutput)=self%linearGrowth_         %value                      (                               outputTimes           (iOutput))
        outputCharacteristicMass   (iOutput)=self%criticalOverdensity_  %collapsingMass             (                               outputTimes           (iOutput))
-       if (outputCharacteristicMass(iOutput) > 0.0d0) then
+       if (outputCharacteristicMass(iOutput) > 0.0d0 .and. outputCharacteristicMass(iOutput) < huge(0.0d0)) then
           massCritical=outputCharacteristicMass(iOutput)
        else
           massCritical=self%massHaloMinimum
@@ -727,7 +729,7 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,scaleIsSettable,shapeIsSettable,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,scaleIsSettable,shapeIsSettable,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_,criticalOverdensityHalo)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )
@@ -833,8 +835,13 @@ contains
           ! Compute halo properties.
           densityFieldRootVariance                      (iMass,iOutput)=+cosmologicalMassVariance_         %rootVariance                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                                           )
           densityFieldRootVarianceGradientLogarithmic   (iMass,iOutput)=+cosmologicalMassVariance_         %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                                           )
-          if (densityFieldRootVariance(iMass,iOutput) > 0.0d0) then
-             peakHeight                                 (iMass,iOutput)=+criticalOverdensity_              %value                          (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                                           )    &
+          criticalOverdensityHalo                                      =+criticalOverdensity_              %value                          (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                                           )
+          if (criticalOverdensityHalo <= 0.0d0) then
+             ! A non-positive critical overdensity (as can occur if a large-scale environmental overdensity which has itself already
+             ! collapsed is included in it) leaves the peak height and bias undefined.
+             peakHeight                                 (iMass,iOutput)=-huge(0.0d0)
+          else if (densityFieldRootVariance(iMass,iOutput) > 0.0d0) then
+             peakHeight                                 (iMass,iOutput)=+criticalOverdensityHalo                                                                                                                                                                                       &
                   &                                                     /densityFieldRootVariance                                          (                           iMass                                    ,                 iOutput)
           else
              peakHeight                                 (iMass,iOutput)=+0.0d0
@@ -877,7 +884,11 @@ contains
           else
              peakHeightMassFunction                     (iMass,iOutput)=+0.0d0
           end if
-          biasHalo                                      (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%nodeBase                        )
+          if (criticalOverdensityHalo > 0.0d0) then
+             biasHalo                                   (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%nodeBase                        )
+          else
+             biasHalo                                   (iMass,iOutput)=-huge(0.0d0)
+          end if
           velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %velocityVirial                 (                                                                                               node=tree%nodeBase                        )
           temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %temperatureVirial              (                                                                                               node=tree%nodeBase                        )
           radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %radiusVirial                   (                                                                                               node=tree%nodeBase                        )
