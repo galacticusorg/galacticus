@@ -1289,6 +1289,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="fixed"/>
+          <xs:enumeration value="misaligned"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="random"/>
           <xs:enumeration value="spinVector"/>
@@ -2582,6 +2583,7 @@
           <xs:enumeration value="massCooled"/>
           <xs:enumeration value="massHostMaximum"/>
           <xs:enumeration value="massProgenitorMaximum"/>
+          <xs:enumeration value="misalignmentRandom"/>
           <xs:enumeration value="multi"/>
           <xs:enumeration value="nodeFormationTimeCole2000"/>
           <xs:enumeration value="nodeFormationTimeMassFraction"/>

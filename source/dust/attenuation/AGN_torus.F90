@@ -72,9 +72,12 @@
    others through :galacticus-class:`dustAttenuationSequence`, listing it first, since the torus is where the light is
    emitted.
 
-   **Orientation.** The axis of the torus is taken to be that of its host galaxy, so the torus is seen at the
-   inclination given by the ``[galacticInclination]`` object (or by the ``inclination`` passed in when averaging over
-   orientation), with :math:`\beta=\pi/2-i`.
+   **Orientation.** The torus is seen at the inclination :math:`i` given by the ``[galacticInclination]`` object, with
+   :math:`\beta=\pi/2-i`. With most classes that is the inclination of the host galaxy, so that the axis of the torus
+   is that of its galaxy; with :galacticus-class:`galacticInclinationMisaligned` the axis of the torus is misaligned
+   from that of its galaxy. When averaging over orientation, at the ``inclination`` of the galaxy passed in, the
+   average is taken also over the orientations of the torus relative to its galaxy that the ``[galacticInclination]``
+   object gives through its ``inclinationsMisaligned`` method.
    </description>
   </dustAttenuation>
   !!]
@@ -295,7 +298,10 @@ contains
     !!{RST
     Return the transmission through a clumpy torus of dust. Only accretion disk emission from the central black hole is
     attenuated; everything else is transmitted in full. The angular width of the torus, and the number of clouds along
-    the line of sight, are found once for all parcels.
+    the line of sight, are found once for all parcels. If the axis of the torus may be misaligned from that of its
+    galaxy, an average over orientation (made by supplying ``inclination``) averages also over the orientation of the
+    torus relative to its galaxy, through the ``inclinationsMisaligned`` method of the ``[galacticInclination]``
+    object.
     !!}
     use :: Dust_Attenuation_Descriptors, only : emissionSourceAccretionDisk
     use :: Error                       , only : Error_Report
@@ -307,14 +313,14 @@ contains
     type            (emissionDescriptor     ), intent(in   ), dimension(:                ) :: descriptors
     double precision                         , intent(in   ), optional                     :: inclination
     double precision                                        , dimension(size(descriptors)) :: transmission
-    double precision                                                                       :: inclination_, countClouds, &
-         &                                                                                    widthAngular
+    double precision                         , allocatable  , dimension(:                ) :: inclinations, countClouds, &
+         &                                                                                    weights
+    double precision                                                                       :: widthAngular
     logical                                                                                :: computed
     integer                                                                                :: i
 
     transmission=1.0d0
     computed    =.false.
-    countClouds =0.0d0
     do i=1,size(descriptors)
        if     (                                                             &
             &   descriptors(i)%componentType /= componentTypeBlackHole      &
@@ -323,27 +329,32 @@ contains
             & ) cycle
        if (.not.computed) then
           if (present(inclination)) then
-             inclination_=inclination
+             call self%galacticInclination_%inclinationsMisaligned(node,inclination,inclinations,weights)
           else if (self%inclinationAvailable) then
-             inclination_=self%galacticInclination_%inclination(node)
+             inclinations=[self%galacticInclination_%inclination(node)]
+             weights     =[1.0d0                                      ]
           else
-             inclination_=0.0d0
+             inclinations=[0.0d0]
+             weights     =[1.0d0]
              call Error_Report('this attenuator depends on orientation, but no inclination is available: either set `galacticInclination` to a class which supplies one, or wrap this attenuator in `inclinationAveraged`'//{introspection:location})
           end if
           widthAngular=self%widthAngular(node)
-          countClouds =+self%countCloudsEquatorial                      &
-               &       *exp(-((Pi/2.0d0-inclination_)/widthAngular)**2)
+          countClouds =+self%countCloudsEquatorial                       &
+               &       *exp(-((Pi/2.0d0-inclinations)/widthAngular)**2)
           computed    =.true.
        end if
-       transmission(i)=exp(                                                                                 &
-            &              -countClouds                                                                     &
-            &              *(                                                                               &
-            &                +1.0d0                                                                         &
-            &                -exp(                                                                          &
-            &                     -self%depthOpticalCloudV                                                  &
-            &                     *self%dustExtinctionCurve_%attenuationRelative(descriptors(i)%wavelength) &
-            &                    )                                                                          &
-            &               )                                                                               &
+       transmission(i)=sum(                                                                                      &
+            &              +weights                                                                              &
+            &              *exp(                                                                                 &
+            &                   -countClouds                                                                     &
+            &                   *(                                                                               &
+            &                     +1.0d0                                                                         &
+            &                     -exp(                                                                          &
+            &                          -self%depthOpticalCloudV                                                  &
+            &                          *self%dustExtinctionCurve_%attenuationRelative(descriptors(i)%wavelength) &
+            &                         )                                                                          &
+            &                    )                                                                               &
+            &                  )                                                                                 &
             &             )
     end do
     return
