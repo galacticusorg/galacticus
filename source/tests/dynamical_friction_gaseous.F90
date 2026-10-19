@@ -136,11 +136,11 @@ program Tests_Dynamical_Friction_Gaseous
   call Assert("Chandrasekhar integral, collisionless, Chandrasekhar (1943)",integralVector,[0.0d0,-density*chandrasekhar1943%forceFactor(speed/velocityDispersion,logarithmCoulomb)/speed**2,0.0d0],relTol=1.0d-9)
   ! Effective sound speed kinematics, as used for the interstellar medium.
   kinematicsDistributionISM=kinematicsDistributionEffectiveSoundSpeed(soundSpeedEffective=soundSpeedISM)
-  call Assert("Effective sound speed: collisional"                     ,kinematicsDistributionISM%isCollisional       (                                                  ),.true.                                        )
-  call Assert("Effective sound speed: sound speed"                     ,kinematicsDistributionISM%soundSpeed          (position                                          ),soundSpeedISM                  ,relTol=1.0d-12)
-  call Assert("Effective sound speed: velocity dispersion"             ,kinematicsDistributionISM%velocityDispersion1D(position,massDistributionHost,massDistributionHost),soundSpeedISM                  ,relTol=1.0d-12)
-  call Assert("Effective sound speed: velocity dispersion gradient"    ,kinematicsDistributionISM%velocityDispersion1DGradientLogarithmic(position,massDistributionHost,massDistributionHost),0.0d0,absTol=1.0d-30)
-  call Assert("Effective sound speed: isothermal temperature"          ,Ideal_Gas_Sound_Speed(kinematicsDistributionISM%temperature(position))                            ,sqrt(5.0d0/3.0d0)*soundSpeedISM,relTol=1.0d-09)
+  call Assert("Effective sound speed: collisional"                     ,kinematicsDistributionISM%isCollisional                          (                                                  ),.true.                                        )
+  call Assert("Effective sound speed: sound speed"                     ,kinematicsDistributionISM%soundSpeed                             (position                                          ),soundSpeedISM                  ,relTol=1.0d-12)
+  call Assert("Effective sound speed: velocity dispersion"             ,kinematicsDistributionISM%velocityDispersion1D                   (position,massDistributionHost,massDistributionHost),soundSpeedISM                  ,relTol=1.0d-12)
+  call Assert("Effective sound speed: velocity dispersion gradient"    ,kinematicsDistributionISM%velocityDispersion1DGradientLogarithmic(position,massDistributionHost,massDistributionHost),0.0d0                          ,absTol=1.0d-30)
+  call Assert("Effective sound speed: isothermal temperature"          ,Ideal_Gas_Sound_Speed(kinematicsDistributionISM%temperature(position))                                               ,sqrt(5.0d0/3.0d0)*soundSpeedISM,relTol=1.0d-09)
   ! Chandrasekhar integral of a collisional (gaseous) cylindrical distribution. The perturber moves vertically through the disk
   ! plane with a speed relative to the rotating gas corresponding to a Mach number of 1.5. It is much more compact than its own
   ! enclosed mass within the scale height of the disk, so that no suppression due to its extent is applied. The integral must then
