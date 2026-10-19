@@ -66,10 +66,10 @@
      A node operator class that accumulates the ram pressure history of orbiting satellites.
      !!}
      private
-     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
-     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_    => null()
+     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_        => null()
      double precision                                        :: efficiencyDecay
-     integer                                                 :: ramPressureTimeIntegratedID         , ramPressureMaximumID
+     integer                                                 :: ramPressureTimeIntegratedID          , ramPressureMaximumID
    contains
      final     ::                                  ramPressureHistoryDestructor
      procedure :: differentialEvolutionScales   => ramPressureHistoryDifferentialEvolutionScales
@@ -170,8 +170,8 @@ contains
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentSatellite        ), pointer       :: satellite
     class           (nodeComponentBasic            ), pointer       :: basic
-    double precision                                , parameter     :: scaleRelative =1.0d-2
-    double precision                                                :: radiusVirial         , velocityVirial, &
+    double precision                                , parameter     :: scaleRelative    =1.0d-2
+    double precision                                                :: radiusVirial            , velocityVirial, &
          &                                                             ramPressureVirial
 
     satellite => node%satellite()
@@ -188,7 +188,7 @@ contains
             &               /Pi                &
             &               /radiusVirial  **3 &
             &               *velocityVirial**2
-       call satellite%floatRank0MetaPropertyScale(self%ramPressureMaximumID       ,scaleRelative*ramPressureVirial                                            )
+       call satellite%floatRank0MetaPropertyScale(self%ramPressureMaximumID       ,scaleRelative*ramPressureVirial                                              )
        call satellite%floatRank0MetaPropertyScale(self%ramPressureTimeIntegratedID,scaleRelative*ramPressureVirial*radiusVirial/velocityVirial*MpcPerKmPerSToGyr)
     end select
     return
@@ -218,17 +218,17 @@ contains
     call satellite%floatRank0MetaPropertyRate(self%ramPressureTimeIntegratedID,+self%hotHaloRamPressureForce_%force(node))
     if (self%efficiencyDecay <= 0.0d0) return
     periodOrbital=Satellite_Orbit_Period(node,self%darkMatterHaloScale_)
-    call satellite%floatRank0MetaPropertyRate(                                                                     &
-         &                                                                          self%ramPressureTimeIntegratedID , &
-         &                                    -self     %efficiencyDecay                                             &
-         &                                    *satellite%floatRank0MetaPropertyGet (self%ramPressureTimeIntegratedID)  &
-         &                                    /          periodOrbital                                               &
+    call satellite%floatRank0MetaPropertyRate(                                                                        &
+         &                                                                         self%ramPressureTimeIntegratedID , &
+         &                                    -self     %efficiencyDecay                                              &
+         &                                    *satellite%floatRank0MetaPropertyGet(self%ramPressureTimeIntegratedID)  &
+         &                                    /          periodOrbital                                                &
          &                                   )
-    call satellite%floatRank0MetaPropertyRate(                                                                     &
-         &                                                                          self%ramPressureMaximumID        , &
-         &                                    -self     %efficiencyDecay                                             &
-         &                                    *satellite%floatRank0MetaPropertyGet (self%ramPressureMaximumID       )  &
-         &                                    /          periodOrbital                                               &
+    call satellite%floatRank0MetaPropertyRate(                                                                        &
+         &                                                                         self%ramPressureMaximumID        , &
+         &                                    -self     %efficiencyDecay                                              &
+         &                                    *satellite%floatRank0MetaPropertyGet(self%ramPressureMaximumID       )  &
+         &                                    /          periodOrbital                                                &
          &                                   )
     return
   end subroutine ramPressureHistoryDifferentialEvolution

@@ -144,7 +144,7 @@ contains
     allocate(ramPressureHistoryExtract(3))
     if (node%isSatellite()) then
        satellite                 => node%satellite()
-       ramPressureHistoryExtract =  [                                                                                &
+       ramPressureHistoryExtract =  [                                                                                           &
             &                        satellite                    %floatRank0MetaPropertyGet(self%ramPressureMaximumID       ), &
             &                        satellite                    %floatRank0MetaPropertyGet(self%ramPressureTimeIntegratedID), &
             &                        self%hotHaloRamPressureForce_%force                    (node                            )  &
@@ -183,9 +183,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(descriptions(3))
-    descriptions(1)=var_str('The (decaying) running maximum of the ram pressure experienced by the satellite [M☉ (km/s)² Mpc⁻³].')
+    descriptions(1)=var_str('The (decaying) running maximum of the ram pressure experienced by the satellite [M☉ (km/s)² Mpc⁻³].'  )
     descriptions(2)=var_str('The (decaying) time integral of the ram pressure experienced by the satellite [M☉ (km/s)² Mpc⁻³ Gyr].')
-    descriptions(3)=var_str('The instantaneous ram pressure experienced by the satellite [M☉ (km/s)² Mpc⁻³].')
+    descriptions(3)=var_str('The instantaneous ram pressure experienced by the satellite [M☉ (km/s)² Mpc⁻³].'                      )
     return
   end subroutine ramPressureHistoryDescriptions
 
