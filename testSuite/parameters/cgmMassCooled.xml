@@ -110,6 +110,7 @@
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
   </mergerTreeEvolver>

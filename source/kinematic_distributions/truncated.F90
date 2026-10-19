@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a kinematic distribution class for truncated mass distributions.
   !!}
@@ -36,8 +38,9 @@
           &              densityTruncateMinimum
      logical          :: velocityDispersionTruncateMinimumComputed
    contains
-     procedure :: isCollisional        => truncatedIsCollisional
-     procedure :: velocityDispersion1D => truncatedVelocityDispersion1D
+     procedure :: isCollisional                           => truncatedIsCollisional
+     procedure :: velocityDispersion1D                    => truncatedVelocityDispersion1D
+     procedure :: velocityDispersion1DGradientLogarithmic => truncatedVelocityDispersion1DGradientLogarithmic
   end type kinematicsDistributionTruncated
 
   interface kinematicsDistributionTruncated
@@ -165,4 +168,71 @@ contains
     end if
     return
   end function truncatedVelocityDispersion1D
+
+  double precision function truncatedVelocityDispersion1DGradientLogarithmic(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersionGradient)
+    !!{RST
+    Return the logarithmic gradient of the 1D velocity dispersion at the specified ``coordinates`` in a truncated kinematic
+    distribution. Where ``velocityDispersion1D()`` uses the piecewise solution,
+    :math:`\sigma^2 = \sigma_\mathrm{d}^2 + (\rho_\mathrm{t}/\rho)(\sigma_\mathrm{t}^2-\sigma_\mathrm{d,t}^2)`, that expression is
+    differentiated, so that the gradient of the decorated distribution's velocity dispersion, :math:`\sigma_\mathrm{d}`, is taken from its own
+    kinematics distribution. Elsewhere the velocity dispersion is the numerical solution of the Jeans equation, and the default
+    gradient applies.
+    !!}
+    implicit none
+    class           (kinematicsDistributionTruncated), intent(inout)          :: self
+    class           (coordinate                     ), intent(in   )          :: coordinates
+    class           (massDistributionClass          ), intent(inout), target  :: massDistribution_      , massDistributionEmbedding
+    class           (massDistributionClass          )               , pointer :: massDistribution__     , massDistributionDecorated
+    class           (kinematicsDistributionClass    )               , pointer :: kinematicsDistribution_
+    double precision                                                          :: velocityDispersion     , velocityDispersionDecorated, &
+         &                                                                       density                , radiusTruncateMinimum
+
+    massDistributionDecorated => null()
+    massDistribution__        => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalTruncated           )
+          radiusTruncateMinimum     =  massDistributionEmbedding%radiusTruncateMinimum
+          massDistributionDecorated => massDistributionEmbedding%massDistribution_
+       class is (massDistributionSphericalTruncatedExponential)
+          radiusTruncateMinimum     =  massDistributionEmbedding%radiusTruncateMinimum
+          massDistributionDecorated => massDistributionEmbedding%massDistribution_
+       class default
+          radiusTruncateMinimum     =  0.0d0
+          call Error_Report('mass distribution must be of the `massDistributionSphericalTruncated` or `massDistributionSphericalTruncatedExponential` class'//{introspection:location})
+       end select
+       if (coordinates%rSpherical() >= radiusTruncateMinimum) massDistributionDecorated => null()
+    end if
+    if (associated(massDistributionDecorated)) then
+       ! Evaluate the velocity dispersion first - this ensures that the values at the minimum truncation radius are computed.
+       velocityDispersion            =  +    self                     %velocityDispersion1D                     (coordinates,            massDistribution_        ,massDistributionEmbedding)
+       kinematicsDistribution_       =>      massDistributionDecorated%kinematicsDistribution                   (                                                                           )
+       velocityDispersionDecorated   =  +    kinematicsDistribution_  %velocityDispersion1D                     (coordinates,            massDistributionDecorated,massDistributionDecorated)
+       density                       =  +    massDistributionEmbedding%density                                  (coordinates                                                                )
+       if (velocityDispersion > 0.0d0 .and. density > 0.0d0) then
+          velocityDispersionGradient =  +(                                                                                                                                                        &
+               &                          +2.0d0                                                                                                                                                  &
+               &                          *                            velocityDispersionDecorated                                                                                            **2 &
+               &                          *  kinematicsDistribution_  %velocityDispersion1DGradientLogarithmic   (coordinates,            massDistributionDecorated,massDistributionDecorated)    &
+               &                          -  self                     %densityTruncateMinimum                                                                                                     &
+               &                          /                            density                                                                                                                    &
+               &                          *(                                                                                                                                                      &
+               &                            +self                     %velocityDispersionTruncateMinimum                                                                                      **2 &
+               &                            -self                     %velocityDispersionDecoratedTruncateMinimum                                                                             **2 &
+               &                           )                                                                                                                                                      &
+               &                          *  massDistributionEmbedding%densityGradientRadial                     (coordinates,logarithmic=.true.                                             )    &
+               &                         )                                                                                                                                                        &
+               &                        /2.0d0                                                                                                                                                    &
+               &                        /velocityDispersion**2
+       else
+          velocityDispersionGradient =  +0.0d0
+       end if
+       !![
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]
+    else
+       velocityDispersionGradient   =+self%jeansEquationGradientLogarithmic(coordinates,massDistribution_,massDistributionEmbedding,self%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding))
+    end if
+    return
+  end function truncatedVelocityDispersion1DGradientLogarithmic
   

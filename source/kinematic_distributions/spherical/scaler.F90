@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a spherical scaler kinematic distribution class.
   !!}
@@ -35,9 +37,10 @@
      class           (kinematicsDistributionClass), pointer :: kinematicsDistribution_ => null()
      double precision                                       :: factorScalingLength              , factorScalingMass
    contains
-     final     ::                         kinematicsSphericalScalerDestructor
-     procedure :: isCollisional        => kinematicsSphericalScalerIsCollisional
-     procedure :: velocityDispersion1D => kinematicsSphericalScalerVelocityDispersion1D
+     final     ::                                            kinematicsSphericalScalerDestructor
+     procedure :: isCollisional                           => kinematicsSphericalScalerIsCollisional
+     procedure :: velocityDispersion1D                    => kinematicsSphericalScalerVelocityDispersion1D
+     procedure :: velocityDispersion1DGradientLogarithmic => kinematicsSphericalScalerVelocityDispersionGradient
   end type kinematicsDistributionSphericalScaler
 
   interface kinematicsDistributionSphericalScaler
@@ -132,19 +135,22 @@ contains
     implicit none
     class(kinematicsDistributionSphericalScaler), intent(inout)          :: self
     class(coordinate                           ), intent(in   )          :: coordinates
-    class(massDistributionClass                ), intent(inout), target  :: massDistribution_  , massDistributionEmbedding
+    class(massDistributionClass                ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
     class(massDistributionClass                )               , pointer :: massDistribution__
+    class(coordinate                           ), allocatable            :: coordinatesScaled
 
     massDistribution__ => massDistribution_
     if (associated(massDistribution__,massDistributionEmbedding)) then
+       ! The scaled distribution at radius r corresponds to the unscaled distribution at radius r/fᵣ.
+       call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
        ! For the case of a self-gravitating scaled distribution we have an analytic solution for the velocity dispersion.
        select type (massDistributionEmbedding)
        class is (massDistributionSphericalScaler)
-          velocityDispersion=+sqrt(                                                                                                                                                  &
-               &                   +self%factorScalingMass                                                                                                                           &
-               &                   /self%factorScalingLength                                                                                                                         &
-               &                  )                                                                                                                                                  &
-               &             *self%kinematicsDistribution_%velocityDispersion1D(coordinates,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+          velocityDispersion=+sqrt(                                                                                                                                                        &
+               &                   +self%factorScalingMass                                                                                                                                 &
+               &                   /self%factorScalingLength                                                                                                                               &
+               &                  )                                                                                                                                                        &
+               &             *self%kinematicsDistribution_%velocityDispersion1D(coordinatesScaled,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
        class default
           velocityDispersion=0.0d0
           call Error_Report('expecting a spherical scaler mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
@@ -155,3 +161,34 @@ contains
     end if
     return
   end function kinematicsSphericalScalerVelocityDispersion1D
+
+  double precision function kinematicsSphericalScalerVelocityDispersionGradient(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersionGradient)
+    !!{RST
+    Return the logarithmic gradient of the 1D velocity dispersion at the specified ``coordinates`` in a spherical scaler kinematic
+    distribution. For a self-gravitating scaled distribution the velocity dispersion is a constant multiple of that of the
+    unscaled distribution evaluated at radius :math:`r/f_\mathrm{r}`, so the logarithmic gradient is that of the unscaled
+    distribution at that radius.
+    !!}
+    implicit none
+    class(kinematicsDistributionSphericalScaler), intent(inout)          :: self
+    class(coordinate                           ), intent(in   )          :: coordinates
+    class(massDistributionClass                ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
+    class(massDistributionClass                )               , pointer :: massDistribution__
+    class(coordinate                           ), allocatable            :: coordinatesScaled
+
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+       ! The scaled distribution at radius r corresponds to the unscaled distribution at radius r/fᵣ.
+       call coordinates%scale(1.0d0/self%factorScalingLength,coordinatesScaled)
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalScaler)
+          velocityDispersionGradient=+self%kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(coordinatesScaled,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_                                                                                   )
+       class default
+          velocityDispersionGradient=+0.0d0
+          call Error_Report('expecting a spherical scaler mass distribution, but received '//char(massDistributionEmbedding%objectType())//{introspection:location})
+       end select
+    else
+       velocityDispersionGradient   =+self                        %jeansEquationGradientLogarithmic       (coordinates      ,massDistribution_                          ,massDistributionEmbedding                  ,self%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding))
+    end if
+    return
+  end function kinematicsSphericalScalerVelocityDispersionGradient

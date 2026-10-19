@@ -303,6 +303,7 @@
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <metaTreeProcessingTime value="totalEvolveTime">
       <updateInterval value="0.01"/>
     </metaTreeProcessingTime>

@@ -21,6 +21,7 @@
   </mergerTreeConstructor>
   <outputFileName value="testSuite/outputs/bug1066052.hdf5"/>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <allTreesExistAtFinalTime value="false"/>
   </mergerTreeEvolver>
 

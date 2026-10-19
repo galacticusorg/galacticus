@@ -75,6 +75,13 @@ if len(gaseous) != 1 or gaseous[0].get("value") != "chandrasekhar1943":
     print("FAILED: missing 'dynamicalFrictionGaseous' set to 'chandrasekhar1943'")
     failures += 1
 
+# The standard merger tree evolver must retain the absence of satellite deferral that predates the change of the default
+# of `fractionTimestepSatelliteMinimum` from 0 to 0.75.
+fraction = root.findall("mergerTreeEvolver[@value='standard']/fractionTimestepSatelliteMinimum")
+if len(fraction) != 1 or float(fraction[0].get("value")) != 0.0:
+    print("FAILED: missing 'fractionTimestepSatelliteMinimum' set to 0 in the standard merger tree evolver")
+    failures += 1
+
 # Dynamical friction from the interstellar medium must retain the collisionless treatment (using the `local` kinematics of the
 # stars) that predates the `kinematicsDistributionInterstellarMedium` parameter.
 interstellar = root.findall("kinematicsDistributionInterstellarMedium")

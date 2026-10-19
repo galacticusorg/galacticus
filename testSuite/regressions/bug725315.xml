@@ -250,6 +250,7 @@
   </accretionHalo>
 
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <timestepHostRelative value="0.1"/>
     <timestepHostAbsolute value="1"/>
   </mergerTreeEvolver>

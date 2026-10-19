@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a kinematic distribution class for heated mass distributions.
   !!}
@@ -35,10 +37,11 @@
      logical                                    :: velocityDispersionApproximate
      type   (enumerationNonAnalyticSolversType) :: nonAnalyticSolver
    contains
-     procedure :: isCollisional          => heatedIsCollisional
-     procedure :: velocityDispersion1D   => heatedVelocityDispersion1D
-     procedure :: jeansEquationIntegrand => heatedJeansEquationIntegrand
-     procedure :: jeansEquationRadius    => heatedJeansEquationRadius
+     procedure :: isCollisional                           => heatedIsCollisional
+     procedure :: velocityDispersion1D                    => heatedVelocityDispersion1D
+     procedure :: velocityDispersion1DGradientLogarithmic => heatedVelocityDispersion1DGradientLogarithmic
+     procedure :: jeansEquationIntegrand                  => heatedJeansEquationIntegrand
+     procedure :: jeansEquationRadius                     => heatedJeansEquationRadius
   end type kinematicsDistributionHeated
 
   interface kinematicsDistributionHeated
@@ -193,6 +196,107 @@ contains
     end if
     return
   end function heatedVelocityDispersion1D
+
+  double precision function heatedVelocityDispersion1DGradientLogarithmic(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersionGradient)
+    !!{RST
+    Return the logarithmic gradient of the 1D velocity dispersion at the specified ``coordinates`` in a heated kinematic
+    distribution. Each case of ``velocityDispersion1D()`` is differentiated separately:
+
+    * where the velocity dispersion of the unheated distribution is used, so is its gradient;
+    * under the approximate solution, :math:`\sigma_\mathrm{r}^2(r^\prime) = \sigma_\mathrm{r,0}^2(r) - (2/3) \epsilon(r)`, where
+      :math:`r` is the initial radius corresponding to the final radius :math:`r^\prime`, the gradient is
+
+      .. math::
+
+         \frac{\mathrm{d}\log \sigma_\mathrm{r}}{\mathrm{d}\log r^\prime} = \frac{1}{2\sigma_\mathrm{r}^2} \left[ 2 \sigma_\mathrm{r,0}^2 \frac{\mathrm{d}\log \sigma_\mathrm{r,0}}{\mathrm{d}\log r} - \frac{2}{3} r \frac{\mathrm{d}\epsilon}{\mathrm{d}r} \right] \frac{r^\prime}{r} \left( \frac{\mathrm{d}r^\prime}{\mathrm{d}r} \right)^{-1},
+
+      in which the Jeans equation is not assumed;
+    * where the velocity dispersion is the numerical solution of the Jeans equation, the default gradient applies.
+    !!}
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
+    implicit none
+    class           (kinematicsDistributionHeated), intent(inout)          :: self
+    class           (coordinate                  ), intent(in   )          :: coordinates
+    class           (massDistributionClass       ), intent(inout), target  :: massDistribution_         , massDistributionEmbedding
+    class           (massDistributionClass       )               , pointer :: massDistribution__
+    double precision                                                       :: radiusInitial             , energySpecific                    , &
+         &                                                                    velocityDispersionSquare  , radius                            , &
+         &                                                                    velocityDispersionUnheated, velocityDispersionUnheatedGradient, &
+         &                                                                    densityInitial            , massEnclosed                      , &
+         &                                                                    radiusFinalDerivative
+    type            (coordinateSpherical         )                         :: coordinatesInitial
+
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalHeated)
+          if (massDistributionEmbedding%massDistributionHeating_%specificEnergyIsEverywhereZero() .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+             ! The original, unheated profile velocity dispersion is used.
+             velocityDispersionGradient        =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(coordinates       ,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+          else if (self%velocityDispersionApproximate) then
+             ! The approximate solution for velocity dispersion is used.
+             radius       =+coordinates              %rSpherical   (      )
+             radiusInitial=+massDistributionEmbedding%radiusInitial(radius)
+             if (radius == radiusInitial .or. (radius > 0.0d0 .and. radiusInitial == 0.0d0)) then
+                ! The velocity dispersion of the unheated profile at this radius is used.
+                velocityDispersionGradient     =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(coordinates       ,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+                return
+             end if
+             coordinatesInitial                =[radiusInitial,0.0d0,0.0d0]
+             densityInitial                    =+massDistributionEmbedding%massDistribution_                               %density                                (coordinatesInitial                                                                                        )
+             massEnclosed                      =+massDistributionEmbedding%massDistribution_                               %massEnclosedBySphere                   (radiusInitial                                                                                             )
+             if (massEnclosed <= 0.0d0) then
+                velocityDispersionGradient=+0.0d0
+                return
+             end if
+             ! Find dlog(r)/dlog(r′), where r is the initial radius and r′ the final radius.
+             radiusFinalDerivative             =+massDistributionEmbedding%radiusFinalDerivative(radiusInitial,radius,densityInitial,massEnclosed)
+             if (radiusFinalDerivative <= 0.0d0) then
+                ! Shells cross here, so the mapping between initial and final radii is not invertible. Use the gradient of the
+                ! unheated profile, as the density does in this case.
+                velocityDispersionGradient     =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(coordinates       ,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+                return
+             end if
+             energySpecific                    =+massDistributionEmbedding%massDistributionHeating_                        %specificEnergy                         (radiusInitial     ,massDistributionEmbedding%massDistribution_                                            )
+             velocityDispersionUnheated        =+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1D                   (coordinatesInitial,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+             velocityDispersionUnheatedGradient=+massDistributionEmbedding%massDistribution_       %kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(coordinatesInitial,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_)
+             velocityDispersionSquare          =+velocityDispersionUnheated**2 &
+                  &                             -2.0d0/3.0d0*energySpecific
+             if (velocityDispersionSquare <= 0.0d0) then
+                ! The velocity dispersion of the unheated profile at the initial radius is used.
+                velocityDispersionGradient     =+velocityDispersionUnheatedGradient
+             else
+                velocityDispersionGradient     =+(                                                                                                                                      &
+                     &                            +2.0d0                                                                                                                                &
+                     &                            *velocityDispersionUnheated        **2                                                                                                &
+                     &                            *velocityDispersionUnheatedGradient                                                                                                   &
+                     &                            -2.0d0/3.0d0                                                                                                                          &
+                     &                            *radiusInitial                                                                                                                        &
+                     &                            *massDistributionEmbedding%massDistributionHeating_%specificEnergyGradient(radiusInitial,massDistributionEmbedding%massDistribution_) &
+                     &                           )                                                                                                                                      &
+                     &                          /2.0d0                                                                                                                                  &
+                     &                          /velocityDispersionSquare
+             end if
+             ! Convert from a gradient with respect to the initial radius to one with respect to the final radius.
+             velocityDispersionGradient     =+velocityDispersionGradient &
+                  &                          *radius                     &
+                  &                          /radiusInitial              &
+                  &                          /radiusFinalDerivative
+          else
+             ! The numerical solution of the Jeans equation is used.
+             velocityDispersionGradient     =+self%jeansEquationGradientLogarithmic(coordinates,massDistributionEmbedding,massDistributionEmbedding,self%velocityDispersion1D(coordinates,massDistributionEmbedding,massDistributionEmbedding))
+          end if
+       class default
+          velocityDispersionGradient        =+0.0d0
+          call Error_Report('mass distribution must be of the `massDistributionSphericalHeated` class but found `'//char(massDistributionEmbedding%objectType())//'`'//{introspection:location})
+       end select
+    else
+       ! Our heated distribution is embedded in another distribution, and its velocity dispersion is the numerical solution of the
+       ! Jeans equation.
+       velocityDispersionGradient      =+self%jeansEquationGradientLogarithmic(coordinates,massDistribution_,massDistributionEmbedding,self%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding))
+    end if
+    return
+  end function heatedVelocityDispersion1DGradientLogarithmic
   
   double precision function heatedJeansEquationIntegrand(self,radius,massDistribution_,massDistributionEmbedding)
     !!{RST

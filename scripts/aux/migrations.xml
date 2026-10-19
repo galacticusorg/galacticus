@@ -487,6 +487,12 @@
     <translation function="dynamical_friction_gaseous"/>
   </migration>
 
+  <migration commit="baae269b17f8fdc2c1b73be7816049e84a2f6cbc">
+    <!-- The default of `fractionTimestepSatelliteMinimum` in the standard and threaded merger tree evolvers changed -->
+    <!-- from 0 to 0.75 (issue #1431); retain the absence of satellite deferral in explicitly-selected evolvers.       -->
+    <translation function="satellite_deferral_default"/>
+  </migration>
+
   <migration commit="1a5ec938b51c297ef411ccf8cb7f9593b224d74c">
     <!-- The interstellar medium of standard disks, spheroids, and nuclear star clusters is now collisional by default, so that       -->
     <!-- dynamical friction from it uses the gaseous treatment; retain the collisionless kinematics previously shared with the stars. -->
