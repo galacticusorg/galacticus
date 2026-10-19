@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a model of the ram pressure stripping force from hot halos based on orbital position within the host halo.
   !!}
@@ -113,7 +115,7 @@ contains
     !!{RST
     Return a ram pressure force due to the hot halo based on orbital position within the host halo.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentPosition, nodeComponentBasic
+    use :: Galacticus_Nodes          , only : nodeComponentPosition
     use :: Vectors                   , only : Vector_Magnitude
     use :: Mass_Distributions        , only : massDistributionClass
     use :: Coordinates               , only : coordinateSpherical  , assignment(=)
@@ -122,45 +124,16 @@ contains
     class           (hotHaloRamPressureForceRelativePosition), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
     class           (nodeComponentPosition                  ), pointer       :: position         , positionHost
-    class           (nodeComponentBasic                     ), pointer       :: basic            , basicPrevious   , &
-         &                                                                      basicCurrent     , basicHost
-    type            (treeNode                               ), pointer       :: nodeHost         , nodeHostPrevious, &
-         &                                                                      nodeHostCurrent
+    type            (treeNode                               ), pointer       :: nodeHost
     class           (massDistributionClass                  ), pointer       :: massDistribution_
     type            (coordinateSpherical                    )                :: coordinates
     double precision                                                         :: radiusRelative   , velocityRelative
 
-    ! Find the host node. Seek the descendant of the node closest in time to our satellite node. This is necessary as satellites
-    ! can evolve ahead of their hosts.
-    nodeHostPrevious => node%parent
-    nodeHostCurrent  => node%parent
-    basic            => node            %basic()
-    basicCurrent     => nodeHostCurrent %basic()
-    basicPrevious    => nodeHostPrevious%basic()
-    do while (associated(nodeHostCurrent))
-       if (basicCurrent%time() > basic%time()) exit
-       nodeHostPrevious    => nodeHostCurrent
-       nodeHostCurrent     => nodeHostCurrent%parent
-       basicPrevious       => basicCurrent
-       if (associated(nodeHostCurrent))                &
-            & basicCurrent => nodeHostCurrent%basic ()
-    end do
-    if     (                                         &
-         &    abs(basicPrevious%time()-basic%time()) &
-         &   <                                       &
-         &    abs(basicCurrent %time()-basic%time()) &
-         &  .or.                                     &
-         &   .not.associated(nodeHostCurrent)        &
-         & ) then
-       nodeHost  => nodeHostPrevious
-       basicHost => basicPrevious
-    else
-       nodeHost  => nodeHostCurrent
-       basicHost => basicCurrent
-    end if
+    ! Find the host node closest in time to our satellite node. This is necessary as satellites can evolve ahead of their hosts.
+    nodeHost         =>  node    %hostContemporaneous()
     ! Get the position components.
-    position         =>  node    %position()
-    positionHost     =>  nodeHost%position()
+    position         =>  node    %position           ()
+    positionHost     =>  nodeHost%position           ()
     ! Compute orbital position and velocity.
     radiusRelative   =  +Vector_Magnitude(position%position()-positionHost%position())
     velocityRelative =  +Vector_Magnitude(position%velocity()-positionHost%velocity())
