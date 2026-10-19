@@ -33,6 +33,7 @@
     <fractionMassThreshold      value="0.1"/>
     <subsamplingRateAtThreshold value="1.0"/>
     <exponent                   value="1.0"/>
+    <limitWeights               value="true"/>
   </mergerTreeBuildController>
 
   <!-- Merger tree evolution -->
