@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a merger tree build controller class which performs subsampling of branches.
 !!}
@@ -53,6 +55,8 @@ Implements a merger tree build controller class which performs subsampling of br
 
      where :math:`M_0=`\ ``[massThreshold]``, :math:`P_0=`\ ``[subsamplingRateAtThreshold]`` and :math:`\alpha=`\ ``[exponent]``, otherwise being pruned. Node weights are adjusted to account for this pruning.
 
+     A node inherits the weight, :math:`W`, of its parent branch. By default a retained node has its weight increased to :math:`W/P(M)`, so weights compound multiplicatively along nested subsampled branches, giving rare nodes of very high weight which make statistics of low-mass progenitors extremely noisy. If ``[limitWeights]`` is true the retention probability is instead :math:`\min[1,W P(M)]`, such that the weight of a retained node is the larger of :math:`W` and :math:`1/P(M)`.
+
      If, after pruning, a section of tree is branchless, the nodes along that branch can be consolidated into fewer nodes with the constraint that the mass of the node increases by a fractional amount ``[factorMassGrowthConsolidate]`` relative to its child node. This avoids having very long, non-branching runs of nodes with only tiny mass differences between each parent and child. If ``[factorMassGrowthConsolidate]``\ :math:`\le 0` no consolidation will be performed.
      !!}
      private
@@ -60,7 +64,7 @@ Implements a merger tree build controller class which performs subsampling of br
      double precision                                               :: massThreshold                            , subsamplingRateAtThreshold , &
           &                                                            exponent                                 , factorMassGrowthConsolidate, &
           &                                                            fractionMassThreshold
-     logical                                                        :: useFractionalThreshold
+     logical                                                        :: useFractionalThreshold                   , limitWeights
      type            (enumerationDestroyStubsType        )          :: destroyStubs
      integer         (kind_int8                          )          :: uniqueIDKnownMainBranchNode
   contains
@@ -94,6 +98,7 @@ contains
          &                                                                  exponent                       , factorMassGrowthConsolidate, &
          &                                                                  fractionMassThreshold
     type            (varying_string                     )                :: destroyStubs
+    logical                                                              :: limitWeights
 
     if (parameters%isPresent('massThreshold')) then
        if (parameters%isPresent('fractionMassThreshold')) call Error_Report('only one of [massThreshold] and [fractionMassThreshold] may be present'//{introspection:location})
@@ -151,9 +156,17 @@ contains
       Parameter controlling when to destroy stub branches. Options are `always`, `never`, and `sideBranchesOnly`.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>limitWeights</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, the probability of retaining a node is multiplied by the weight that it inherits from its parent branch (limited to be no more than 1), such that weights do not compound multiplicatively along nested subsampled branches. If false, the probability of retaining a node is independent of its inherited weight.
+      </description>
+    </inputParameter>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     <conditionalCall>
-      <call>self=mergerTreeBuildControllerSubsample(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,enumerationDestroyStubsEncode(destroyStubs,includesPrefix=.false.){conditions})</call>
+      <call>self=mergerTreeBuildControllerSubsample(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,enumerationDestroyStubsEncode(destroyStubs,includesPrefix=.false.),limitWeights{conditions})</call>
       <argument name="massThreshold"         value="massThreshold"         parameterPresent="parameters"/>
       <argument name="fractionMassThreshold" value="fractionMassThreshold" parameterPresent="parameters"/>
     </conditionalCall>
@@ -163,7 +176,7 @@ contains
     return
   end function subsampleConstructorParameters
 
-  function subsampleConstructorInternal(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,destroyStubs,massThreshold,fractionMassThreshold) result(self)
+  function subsampleConstructorInternal(mergerTreeBranchingProbability_,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate,destroyStubs,limitWeights,massThreshold,fractionMassThreshold) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`mergerTreeBuildControllerSubsample` merger tree build controller class.
     !!}
@@ -172,11 +185,12 @@ contains
     type            (mergerTreeBuildControllerSubsample )                          :: self
     class           (mergerTreeBranchingProbabilityClass), intent(in   ), target   :: mergerTreeBranchingProbability_
     double precision                                     , intent(in   )           :: factorMassGrowthConsolidate    , subsamplingRateAtThreshold , &
-         &                                                                            exponent                       , 
+         &                                                                            exponent
     type            (enumerationDestroyStubsType        ), intent(in   )           :: destroyStubs
+    logical                                              , intent(in   )           :: limitWeights
     double precision                                     , intent(in   ), optional :: massThreshold                  , fractionMassThreshold
     !![
-    <constructorAssign variables="massThreshold, fractionMassThreshold, subsamplingRateAtThreshold, exponent, factorMassGrowthConsolidate, destroyStubs, *mergerTreeBranchingProbability_"/>
+    <constructorAssign variables="massThreshold, fractionMassThreshold, subsamplingRateAtThreshold, exponent, factorMassGrowthConsolidate, destroyStubs, limitWeights, *mergerTreeBranchingProbability_"/>
     !!]
 
     if (     present(massThreshold).and.     present(fractionMassThreshold)) call Error_Report('only one of `massThreshold` or `fractionMassThreshold` can be supplied'//{introspection:location})
@@ -250,6 +264,16 @@ contains
             &            +basic%mass         ()         &
             &            /      massThreshold           &
             &           )**self%exponent
+       ! The node inherits the weight of its parent branch, which already represents that many branches. If weights are to be
+       ! limited, reduce the sampling rate accordingly, such that the weight of a kept node is the larger of the inherited weight
+       ! and the inverse of the nominal rate. Otherwise, weights compound multiplicatively along nested subsampled branches,
+       ! giving rare, very-high-weight nodes which make statistics of low-mass progenitors extremely noisy.
+       if (self%limitWeights)                                &
+            & rateSubsampling=min(                           &
+            &                     +1.0d0                   , &
+            &                     +rateSubsampling           &
+            &                     *node%subsamplingWeight()  &
+            &                    )
        if (node%hostTree%randomNumberGenerator_%uniformSample() < rateSubsampling) then
           ! Node is to be kept - increase its weight to account for corresponding branches which will have been lost.
           call node%subsamplingWeightSet(node%subsamplingWeight()/rateSubsampling)
