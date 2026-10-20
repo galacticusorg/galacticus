@@ -124,6 +124,12 @@ contains
 
     where :math:`G(u) = u \Phi(u) + \phi(u)` is the integral of the cumulative normal distribution, :math:`\Phi(u)`, and
     :math:`\phi(u)` is the normal distribution.
+
+    Far into the tails, :math:`G(u) \approx u` for :math:`u \gg 1`, so the four terms cancel almost exactly and the
+    difference is lost to rounding (giving spurious, possibly negative, weights beyond about 8σ). When the target bin lies
+    wholly above or below the source bin all four arguments share a sign, and the identity :math:`G(u) = \max(u,0) + G(-|u|)`
+    lets the linear terms, which cancel exactly, be dropped. :math:`G(-|u|)` is then evaluated using the scaled complementary
+    error function.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -149,16 +155,32 @@ contains
           cycle
        end if
        do i=1,size(distribution)
-          randomErrorOperateDistribution(i)=+randomErrorOperateDistribution(i)                                                          &
-               &                            +distribution(j)                                                                            &
-               &                            *rootVariance                                                                               &
-               &                            /widthBin                                                                                   &
-               &                            *(                                                                                          &
-               &                              +normalCumulativeIntegral((propertyValueMaximum(i)-propertyValueMinimum(j))/rootVariance) &
-               &                              -normalCumulativeIntegral((propertyValueMaximum(i)-propertyValueMaximum(j))/rootVariance) &
-               &                              -normalCumulativeIntegral((propertyValueMinimum(i)-propertyValueMinimum(j))/rootVariance) &
-               &                              +normalCumulativeIntegral((propertyValueMinimum(i)-propertyValueMaximum(j))/rootVariance) &
-               &                             )
+          if (propertyValueMinimum(i) >= propertyValueMaximum(j) .or. propertyValueMaximum(i) <= propertyValueMinimum(j)) then
+             ! Target bin lies wholly above or below the source bin - the linear parts of G(u) cancel exactly, so use only the
+             ! tail parts, G(-|u|), to avoid loss of precision.
+             randomErrorOperateDistribution(i)=+randomErrorOperateDistribution(i)                                                              &
+                  &                            +distribution(j)                                                                                &
+                  &                            *rootVariance                                                                                   &
+                  &                            /widthBin                                                                                       &
+                  &                            *(                                                                                              &
+                  &                              +normalCumulativeIntegralTail((propertyValueMaximum(i)-propertyValueMinimum(j))/rootVariance) &
+                  &                              -normalCumulativeIntegralTail((propertyValueMaximum(i)-propertyValueMaximum(j))/rootVariance) &
+                  &                              -normalCumulativeIntegralTail((propertyValueMinimum(i)-propertyValueMinimum(j))/rootVariance) &
+                  &                              +normalCumulativeIntegralTail((propertyValueMinimum(i)-propertyValueMaximum(j))/rootVariance) &
+                  &                             )
+          else
+             ! Target bin overlaps the source bin - no catastrophic cancellation occurs.
+             randomErrorOperateDistribution(i)=+randomErrorOperateDistribution(i)                                                          &
+                  &                            +distribution(j)                                                                            &
+                  &                            *rootVariance                                                                               &
+                  &                            /widthBin                                                                                   &
+                  &                            *(                                                                                          &
+                  &                              +normalCumulativeIntegral((propertyValueMaximum(i)-propertyValueMinimum(j))/rootVariance) &
+                  &                              -normalCumulativeIntegral((propertyValueMaximum(i)-propertyValueMaximum(j))/rootVariance) &
+                  &                              -normalCumulativeIntegral((propertyValueMinimum(i)-propertyValueMinimum(j))/rootVariance) &
+                  &                              +normalCumulativeIntegral((propertyValueMinimum(i)-propertyValueMaximum(j))/rootVariance) &
+                  &                             )
+          end if
        end do
     end do
     return
@@ -179,5 +201,26 @@ contains
            &                   /sqrt(2.0d0*Pi)
       return
     end function normalCumulativeIntegral
+
+    double precision function normalCumulativeIntegralTail(u)
+      !!{RST
+      The tail part of the integral of the cumulative normal distribution, :math:`G(-|u|) = G(u) - \max(u,0) = \phi(u) - |u|
+      \Phi(-|u|)`. This is evaluated as :math:`\phi(u) [1 - |u| \sqrt{\pi/2} \mathrm{erfcx}(|u|/\sqrt{2})]`, using the scaled
+      complementary error function, :math:`\mathrm{erfcx}(x) = \exp(x^2) \mathrm{erfc}(x)`, which does not underflow.
+      !!}
+      use :: Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: u
+
+      normalCumulativeIntegralTail=+exp        (-u**2/2.0d0)          &
+           &                       /sqrt       (2.0d0*Pi   )          &
+           &                       *(                                 &
+           &                         +1.0d0                           &
+           &                         -abs        (u)                  &
+           &                         *sqrt       (Pi/2.0d0)           &
+           &                         *erfc_scaled(abs(u)/sqrt(2.0d0)) &
+           &                        )
+      return
+    end function normalCumulativeIntegralTail
 
   end function randomErrorOperateDistribution

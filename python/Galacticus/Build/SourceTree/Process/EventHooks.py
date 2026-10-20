@@ -621,11 +621,12 @@ _RESTORE_HEAD = """subroutine eventsHooksFilterRestore_()
    use    :: Error             , only : Error_Report
    use    :: ISO_Varying_String, only : var_str                    , operator(//)      , varying_string, assignment(=)
    use    :: String_Handling   , only : operator(//)
-   !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
+   !$ use :: OMP_Lib           , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level     , OMP_Get_Thread_Num
    implicit none
    type   (eventHookList ), pointer :: eventHookBackup
-   type   (varying_string)          :: threadLabel    , message
+   type   (varying_string)          :: threadLabel         , message
    integer                          :: i
+   logical                          :: isEncounteringThread
 
    threadLabel=""
    !$ threadLabel=" from thread "
@@ -633,17 +634,32 @@ _RESTORE_HEAD = """subroutine eventsHooksFilterRestore_()
    !$    if (i > 0) threadLabel=threadLabel//" -> "
    !$    threadLabel=threadLabel//OMP_Get_Ancestor_Thread_Num(i)
    !$ end do
+   ! Only the thread that encountered the parallel region (thread 0 of the team) continues after the region ends, so only it
+   ! needs its hooks restored. The other threads of the team do nothing until they next join a parallel region, at which point
+   ! eventsHooksFilterCopyIn() sets their hooks afresh. For those threads we instead discard the hooks. This matters for nested
+   ! parallel regions, whose worker threads may exit after the region ends - gfortran does not deallocate threadprivate
+   ! allocatables when a thread exits, so any hooks restored into such a thread would be leaked.
+   isEncounteringThread=.true.
+   !$ isEncounteringThread=OMP_Get_Thread_Num() == 0
 """
 _RESTORE_PER_HOOK = """   eventHookBackup     => {$name}EventBackups
    {$name}EventBackups => {$name}EventBackups%next
    select type (eventHook_ => eventHookBackup%eventHook_)
    type is (eventHook{$interfaceType})
       if (allocated({$name}Event%hooks_)) deallocate({$name}Event%hooks_)
-      {$name}Event        =  eventHook_
+      if (isEncounteringThread) then
+         {$name}Event        =  eventHook_
+      else
+         {$name}Event%count_ =  0
+      end if
    class default
       call Error_Report('eventHook has incorrect class'//{$location})
    end select
-   message=var_str("{$name}: restoring ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel
+   if (isEncounteringThread) then
+      message=var_str("{$name}: restoring " )//eventHookBackup%eventHook_%count_//" hooks"//threadLabel
+   else
+      message=var_str("{$name}: discarding ")//eventHookBackup%eventHook_%count_//" hooks"//threadLabel
+   end if
    call displayMessage(message,verbosityLevelInfo)
    deallocate(eventHookBackup)
    nullify   (eventHookBackup)

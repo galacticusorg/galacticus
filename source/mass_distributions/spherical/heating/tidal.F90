@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a tidal mass distribution heating class.
   !!}
@@ -24,7 +26,7 @@
   !![
   <massDistributionHeating name="massDistributionHeatingTidal" docformat="rst">
     <description>
-    A mass distribution heating model which accounts for heating due to tidal shocking. The model follows the general approach of :cite:t:`gnedin_tidal_1999`. The change in the specific energy of particles at radius :math:`r` in a halo is given by :math:`\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2`, where :math:`\Delta \epsilon_1`, and :math:`\Delta \epsilon_2` are the first and second order perturbations respectively. The first order term is given by :math:`\Delta \epsilon_1 = Q r^2` where :math:`Q` is the tidal tensor integrated along the orbital path (see, for example, :cite:author:`taylor_dynamics_2001` :cite:year:`taylor_dynamics_2001`), while the second order term is given by :math:`\Delta \epsilon_2 = \sqrt{2} f (1+\chi_\mathrm{r,v}) \sigma_\mathrm{r}(r) \sqrt{\Delta \epsilon_1}`, in the form given by :cite:t:`benson_tidal_2022` following :cite:t:`gnedin_tidal_1999`. Here :math:`\sigma_\mathrm{r}(r)` is the one-dimensional (radial) velocity dispersion of the *unheated* dark matter profile, taken from its kinematics distribution, and :math:`\sqrt{\Delta \epsilon_1} = \sqrt{Q} r`. The position-velocity correlation function, :math:`\chi_\mathrm{r,v}`, is taken to be a constant given by the parameter ``[correlationVelocityRadius]``. The coefficient, :math:`f = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`, with :math:`a_0=`\ ``[coefficientSecondOrder0]``, :math:`a_1=`\ ``[coefficientSecondOrder1]``, and :math:`a_2=`\ ``[coefficientSecondOrder2]``, is introduced to allow some freedom to adjust the contribution of the second order term. It is degenerate with the value of :math:`\chi_\mathrm{r,v}` but is introduced to allow for possible future promotion of :math:`\chi_\mathrm{r,v}` from a constant to a function of the dark matter profile potential :cite:p:`gnedin_self-consistent_1999`.
+    A mass distribution heating model which accounts for heating due to tidal shocking. The model follows the general approach of :cite:t:`gnedin_tidal_1999`. The change in the specific energy of particles at radius :math:`r` in a halo is given by :math:`\Delta \epsilon = \Delta \epsilon_1 + \Delta \epsilon_2`, where :math:`\Delta \epsilon_1`, and :math:`\Delta \epsilon_2` are the first and second order perturbations respectively. The first order term is given by :math:`\Delta \epsilon_1 = Q r^2` where :math:`Q` is the tidal tensor integrated along the orbital path (see, for example, :cite:author:`taylor_dynamics_2001` :cite:year:`taylor_dynamics_2001`), while the second order term is given by :math:`\Delta \epsilon_2 = \sqrt{2} f (1+\chi_\mathrm{r,v}) \sigma_\mathrm{r}(r) \sqrt{\Delta \epsilon_1}`, in the form given by :cite:t:`benson_tidal_2022` following :cite:t:`gnedin_tidal_1999`. Here :math:`\sigma_\mathrm{r}(r)` is the one-dimensional (radial) velocity dispersion of the *unheated* dark matter profile, taken (along with its gradient, which is needed to find the density of the heated profile) from its kinematics distribution, and :math:`\sqrt{\Delta \epsilon_1} = \sqrt{Q} r`. The position-velocity correlation function, :math:`\chi_\mathrm{r,v}`, is taken to be a constant given by the parameter ``[correlationVelocityRadius]``. The coefficient, :math:`f = a_0 + a_1 \mathrm{d}\log \rho/\mathrm{d} \log r + a_2 (\mathrm{d}\log \rho/\mathrm{d} \log r)^2`, with :math:`a_0=`\ ``[coefficientSecondOrder0]``, :math:`a_1=`\ ``[coefficientSecondOrder1]``, and :math:`a_2=`\ ``[coefficientSecondOrder2]``, is introduced to allow some freedom to adjust the contribution of the second order term. It is degenerate with the value of :math:`\chi_\mathrm{r,v}` but is introduced to allow for possible future promotion of :math:`\chi_\mathrm{r,v}` from a constant to a function of the dark matter profile potential :cite:p:`gnedin_self-consistent_1999`.
     </description>
   </massDistributionHeating>
   !!]
@@ -184,21 +186,20 @@ contains
     !!{RST
     Returns the gradient of the specific energy of heating.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
-    use :: Coordinates                     , only : coordinateSpherical           , assignment(=)
+    use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
     class           (massDistributionHeatingTidal), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
     class           (massDistributionClass       ), intent(inout) :: massDistribution_
     double precision                                              :: energyPerturbationFirstOrder, energyPerturbationSecondOrder, &
-         &                                                           densityLogSlope             , velocityDispersion1D         , &
-         &                                                           coefficientSecondOrder      , densityLogSlopeGradient      , &
-         &                                                           gradientCoefficient
+         &                                                           densityLogSlope             , coefficientSecondOrder       , &
+         &                                                           densityLogSlopeGradient     , gradientCoefficient
     type            (coordinateSpherical         )                :: coordinates
 
     if (radius > 0.0d0) then
-       call self%specificEnergyTerms(radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope,velocityDispersion1D)
+       call self%specificEnergyTerms(radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope)
        if (energyPerturbationSecondOrder /= 0.0d0) then
+          coordinates=[radius,0.0d0,0.0d0]
           ! The coefficient of the second-order term, f=a₀+a₁s+a₂s², depends on radius through the density logarithmic slope
           ! s, so its own logarithmic derivative, dlog[f]/dlog[r]=(a₁+2a₂s)(ds/dlog r)/f, enters the gradient. Omitting it
           ! left the heated density inconsistent with the Jacobian of the initial-to-final radius mapping which the same
@@ -211,7 +212,6 @@ contains
                &  .or.                                   &
                &   self%coefficientSecondOrder2 /= 0.0d0 &
                & ) then
-             coordinates            =[radius,0.0d0,0.0d0]
              coefficientSecondOrder =+self%coefficientSecondOrder0                    &
                   &                  +self%coefficientSecondOrder1*densityLogSlope    &
                   &                  +self%coefficientSecondOrder2*densityLogSlope**2
@@ -226,23 +226,21 @@ contains
           else
              gradientCoefficient    =+0.0d0
           end if
-          energySpecificGradient=+(                                                                                   &
-               &                   +energyPerturbationFirstOrder *  2.0d0                                             & !   dlog[r²    ]/dlog(r) term
-               &                   +energyPerturbationSecondOrder*(                                                   &
-               &                                                   -0.5d0                                             & ! ⎧ dlog[σ_r(r)]/dlog[r] term
-               &                                                   *densityLogSlope                                   & ! ⎥
-               &                                                   -0.5d0                                             & ! ⎥ Assumes the Jeans equation in
-               &                                                   *gravitationalConstant_internal                    & ! ⎥ spherical symmetry with anisotropy
-               &                                                   *massDistribution_%massEnclosedBySphere(radius)    & ! ⎥ parameter β=0. Would be better to
-               &                                                   /                                       radius     & ! ⎥ have this provided by the
-               &                                                   /velocityDispersion1D                          **2 & ! ⎩ darkMatterProfileDMO class.
-               &                                                   +1.0d0                                             & !   dlog[r     ]/dlog(r) term
-               &                                                   +gradientCoefficient                               & !   dlog[f     ]/dlog(r) term
-               &                                                  )                                                   &
-               &                  )                                                                                   &
+          energySpecificGradient=+(                                                                                                                                       &
+               &                   +energyPerturbationFirstOrder *  2.0d0                                                                                                 & !   dlog[r²    ]/dlog(r) term
+               &                   +energyPerturbationSecondOrder*(                                                                                                       &
+               &                                                   +massDistribution_%kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(                    & !   dlog[σ_r(r)]/dlog[r] term
+               &                                                                                                                                      coordinates      ,  &
+               &                                                                                                                                      massDistribution_,  &
+               &                                                                                                                                      massDistribution_   &
+               &                                                                                                                                     )                    &
+               &                                                   +1.0d0                                                                                                 & !   dlog[r     ]/dlog(r) term
+               &                                                   +gradientCoefficient                                                                                   & !   dlog[f     ]/dlog(r) term
+               &                                                  )                                                                                                       &
+               &                  )                                                                                                                                       &
                &                 /radius
        else
-          energySpecificGradient=+  energyPerturbationFirstOrder *  2.0d0                                             & !   dlog[r²    ]/dlog(r) term
+          energySpecificGradient=+  energyPerturbationFirstOrder *  2.0d0                                                                                                 & !   dlog[r²    ]/dlog(r) term
                &                 /radius
        end if
     else
@@ -251,9 +249,9 @@ contains
     return
   end function tidalSpecificEnergyGradient
 
-  subroutine tidalSpecificEnergyTerms(self,radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope,velocityDispersion1D)
+  subroutine tidalSpecificEnergyTerms(self,radius,massDistribution_,energyPerturbationFirstOrder,energyPerturbationSecondOrder,densityLogSlope)
     !!{RST
-    Compute the first and second order perturbations to the energy. The optional ``densityLogSlope`` and ``velocityDispersion1D`` arguments return intermediate quantities used to compute the second-order term, allowing callers (e.g.\ ``specificEnergyGradient()``) to avoid recomputing them.
+    Compute the first and second order perturbations to the energy. The optional ``densityLogSlope`` argument returns the logarithmic slope of the density used to compute the second-order term, allowing callers (e.g.\ ``specificEnergyGradient()``) to avoid recomputing it.
     !!}
     use :: Coordinates, only : coordinateSpherical, assignment(=)
     implicit none
@@ -261,7 +259,7 @@ contains
     double precision                              , intent(in   )           :: radius
     class           (massDistributionClass       ), intent(inout)           :: massDistribution_
     double precision                              , intent(  out)           :: energyPerturbationFirstOrder, energyPerturbationSecondOrder
-    double precision                              , intent(  out), optional :: densityLogSlope             , velocityDispersion1D
+    double precision                              , intent(  out), optional :: densityLogSlope
     double precision                                                        :: coefficientSecondOrder      , densityLogSlope_             , &
          &                                                                     velocityDispersion1D_
     type            (coordinateSpherical         )                          :: coordinates
@@ -299,10 +297,8 @@ contains
     else
        energyPerturbationSecondOrder=+0.0d0
        densityLogSlope_             =+0.0d0
-       velocityDispersion1D_        =+0.0d0
     end if
-    if (present(densityLogSlope     )) densityLogSlope     =densityLogSlope_
-    if (present(velocityDispersion1D)) velocityDispersion1D=velocityDispersion1D_
+    if (present(densityLogSlope)) densityLogSlope=densityLogSlope_
     return
   end subroutine tidalSpecificEnergyTerms
 

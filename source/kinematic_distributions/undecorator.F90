@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a kinematic distribution class for decorated mass distributions, that uses the undecorated mass distribution.
   !!}
@@ -34,9 +36,10 @@
      !!}
      class(kinematicsDistributionClass), pointer :: kinematicsDistribution_ => null()
    contains
-     final     ::                         undecoratorDestructor
-     procedure :: isCollisional        => undecoratorIsCollisional
-     procedure :: velocityDispersion1D => undecoratorVelocityDispersion1D
+     final     ::                                            undecoratorDestructor
+     procedure :: isCollisional                           => undecoratorIsCollisional
+     procedure :: velocityDispersion1D                    => undecoratorVelocityDispersion1D
+     procedure :: velocityDispersion1DGradientLogarithmic => undecoratorVelocityDispersion1DGradientLogarithmic
   end type kinematicsDistributionUndecorator
 
   interface kinematicsDistributionUndecorator
@@ -133,3 +136,29 @@ contains
     end if
     return
   end function undecoratorVelocityDispersion1D
+
+  double precision function undecoratorVelocityDispersion1DGradientLogarithmic(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersionGradient)
+    !!{RST
+    Return the logarithmic gradient of the 1D velocity dispersion at the specified ``coordinates`` in an undecorator kinematic distribution.
+    !!}
+    implicit none
+    class(kinematicsDistributionUndecorator), intent(inout)          :: self
+    class(coordinate                       ), intent(in   )          :: coordinates
+    class(massDistributionClass            ), intent(inout), target  :: massDistribution_ , massDistributionEmbedding
+    class(massDistributionClass            )               , pointer :: massDistribution__
+
+    massDistribution__ => massDistribution_
+    if (associated(massDistribution__,massDistributionEmbedding)) then
+       ! For the case of a self-gravitating distribution we can use the undecorated kinematic distribution in its own mass distribution.
+       select type (massDistributionEmbedding)
+       class is (massDistributionSphericalDecorator)
+          velocityDispersionGradient=+self%kinematicsDistribution_%velocityDispersion1DGradientLogarithmic(coordinates,massDistributionEmbedding%massDistribution_,massDistributionEmbedding%massDistribution_                                                                                   )
+       class default
+          velocityDispersionGradient=+0.0d0
+          call Error_Report('mass distribution must be of the `massDistributionSphericalDecorator` class but found `'//char(massDistributionEmbedding%objectType())//'`'//{introspection:location})
+       end select
+    else
+       velocityDispersionGradient   =+self                        %jeansEquationGradientLogarithmic       (coordinates,massDistribution_                          ,massDistributionEmbedding                  ,self%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding))
+    end if
+    return
+  end function undecoratorVelocityDispersion1DGradientLogarithmic

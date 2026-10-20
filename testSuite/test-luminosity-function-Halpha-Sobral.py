@@ -21,6 +21,12 @@ Black holes in the base model accrete too little for their H-alpha emission (at 
 between luminosity bins, so Bondi-Hoyle accretion is made stronger (and not restricted to the hot mode), which makes it
 significant. This is applied to all three runs, which therefore differ only in the options of the analysis.
 
+The comparisons between runs require that each run evolves exactly the same galaxies, which holds only if each sees the same
+state of the dynamic data cache. A run which tabulates (rather than reads back) the spherical collapse critical overdensity
+obtains values differing at the 1e-9 level from those of a run which reads the tabulation from file (see
+`sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt`), which is enough to change the branching of the merger trees built, and so
+the galaxy population. The model is therefore first run once, with its results discarded, to populate the cache.
+
 Andrew Benson, Claude (23-September-2026).
 
 """
@@ -113,6 +119,10 @@ def moments(luminosity, function):
 
 
 def main():
+    # Run once, discarding the results, to populate the dynamic data cache so that every run compared below sees the same cache
+    # state, and so evolves the same galaxies.
+    if run("cache", analysis()) is None:
+        return
     results = {}
     for label, element in (("mean"   , analysis()                            ),
                            ("AGN"    , analysis(includeAGN=True)             ),
@@ -135,7 +145,8 @@ def main():
     if bool(np.array_equal(results["AGN"][1], results["mean"][1])):
         print("FAILED: adding AGN emission did not change the luminosity function")
     elif bool(np.any(brighterAGN < brighter * (1.0 - 1.0e-9))):
-        print("FAILED: adding AGN emission reduced the number of galaxies brighter than some luminosity")
+        index = int(np.argmin(np.where(brighter > 0.0, brighterAGN / np.where(brighter > 0.0, brighter, 1.0), np.inf)))
+        print(f"FAILED: adding AGN emission reduced the number of galaxies brighter than some luminosity (by a factor {brighterAGN[index] / brighter[index]:.12f} at log10(L)={np.log10(luminosity[index]):.2f})")
     else:
         print(f"SUCCESS: AGN emission increases the number of galaxies brighter than each luminosity (by up to a factor {np.max(brighterAGN[brighter > 0.0] / brighter[brighter > 0.0]):.2f})")
     # Scatter in the attenuation must change, and broaden, the luminosity function.

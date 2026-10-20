@@ -42,11 +42,13 @@ module Tidal_Mass_Loss_Utilities
 
 contains
 
-  subroutine Tidal_Mass_Loss_Apply_{tidalcomponent¦label}(node,tidalStripping_)
+  subroutine Tidal_Mass_Loss_Apply_{tidalcomponent¦label}(node,tidalStripping_,tidalTruncationID)
     !!{RST
     Apply the rates of tidal mass loss from the {tidalcomponent¦name} of ``node``: gas is moved to the outflowed reservoir of the
     hot halo, stellar mass is removed, and angular momentum is lost at the specific angular momentum of the stripped material
-    (as given by ``tidalStripping_``).
+    (as given by ``tidalStripping_``). The degree of tidal truncation of the {tidalcomponent¦name}, :math:`x=-\log f` where
+    :math:`f` is the fraction of the mass of its untruncated mass distribution which it retains (stored in the meta-property
+    with ID ``tidalTruncationID``), is increased at rate :math:`\dot{x} = \dot{M}_\mathrm{strip}/M`.
     !!}
     use :: Abundances_Structure          , only : operator(*)
     use :: Galacticus_Nodes              , only : {tidalcomponent¦intrinsic}, nodeComponentHotHalo, treeNode
@@ -56,6 +58,7 @@ contains
     implicit none
     type            (treeNode                  ), intent(inout), target  :: node
     class           (tidalStrippingClass       ), intent(inout)          :: tidalStripping_
+    integer                                     , intent(in   )          :: tidalTruncationID
     class           ({tidalcomponent¦intrinsic})               , pointer :: component
     class           (nodeComponentHotHalo      )               , pointer :: hotHalo
     type            (stellarLuminosities       ), save                   :: luminositiesTransferRate
@@ -105,6 +108,8 @@ contains
     end if
     ! Angular momentum is lost at the specific angular momentum of the stripped material.
     call component          % angularMomentumRate         (-                massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar())*ratioSpecificAngularMomentum)
+    ! The degree of truncation increases in proportion to the fractional rate of mass loss.
+    call component          % floatRank0MetaPropertyRate  (tidalTruncationID,+massLossRate                            /(component%massGas()+component%massStellar())                             )
     return
   end subroutine Tidal_Mass_Loss_Apply_{tidalcomponent¦label}
 
