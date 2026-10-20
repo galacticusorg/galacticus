@@ -194,7 +194,8 @@ contains
          &                                                                                                                      massRatio                         , rootOneMinusCorrelationSquared, &
          &                                                                                                                      massRatioMinimum                  , massRatioMaximum              , &
          &                                                                                                                      massParentLimitLower              , massParentLimitUpper          , &
-         &                                                                                                                      massRatioLimitLower               , massRatioLimitUpper 
+         &                                                                                                                      massRatioLimitLower               , massRatioLimitUpper           , &
+         &                                                                                                                      massBias                          , propertyValueObserved
     integer         (c_size_t                                        )                                                       :: binIndex
     type            (integrator                                      )                                                       :: integrator_
     !$GLC attributes unused :: outputIndex
@@ -218,6 +219,20 @@ contains
        massRatio= 0.0d0
        call Error_Report('unsupported property type'//{introspection:location})
     end select
+    ! Apply any systematic bias in the progenitor mass, so that the measured mass ratio is distributed about its biased mean. The
+    ! progenitor was reached by tracing back from the parent, so the parent is passed as the reference node. The property value
+    ! is recomputed only if the bias is non-zero, so that unbiased results are unchanged.
+    propertyValueObserved=propertyValue
+    massBias             =self%nbodyHaloMassError_%biasFractional(node,nodeReference=nodeParent)
+    if (massBias /= 0.0d0) then
+       massRatio=massRatio*(1.0d0+massBias)
+       select case (propertyType%ID)
+       case (outputAnalysisPropertyTypeLinear%ID)
+          propertyValueObserved=      massRatio
+       case (outputAnalysisPropertyTypeLog10 %ID)
+          propertyValueObserved=log10(massRatio)
+       end select
+    end if
     ! Get the uncertainties and correlation of the masses. The progenitor was reached by tracing back from the parent, so the parent
     ! is passed as the reference node for the progenitor mass error.
     massUncertaintyRatio       =+self%nbodyHaloMassError_%errorFractional(node,nodeReference=nodeParent)*massRatio
@@ -228,14 +243,14 @@ contains
        ! Zero uncertainties - add the full weight to the bin if the progenitor and parent are within range.
        massRatioNBodyOperateScalar=0.0d0
        if (massParent <  self%massParentMinimum .or. massParent >=      self%massParentMaximum    ) return
-       binIndex=searchArray(propertyValueMinimum,propertyValue)
+       binIndex=searchArray(propertyValueMinimum,propertyValueObserved)
        !! Capture the final bin.
-       if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValue > propertyValueMaximum(binIndex)) binIndex=size(propertyValueMinimum)
+       if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValueObserved > propertyValueMaximum(binIndex)) binIndex=size(propertyValueMinimum)
        if (binIndex   <= 0                      .or. binIndex   >  size(     propertyValueMinimum)) return
-       if     (                                                 &
-            &   propertyValue >= propertyValueMinimum(binIndex) &
-            &  .and.                                            &
-            &   propertyValue <  propertyValueMaximum(binIndex) &
+       if     (                                                         &
+            &   propertyValueObserved >= propertyValueMinimum(binIndex) &
+            &  .and.                                                    &
+            &   propertyValueObserved <  propertyValueMaximum(binIndex) &
             & ) massRatioNBodyOperateScalar(binIndex)=1.0d0
     else if (massUncertaintyParent <= 0.0d0) then
        ! Zero uncertainty in the parent mass only. The parent mass is exact, so (in both the "normal" and "hinkley" models) the
