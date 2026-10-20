@@ -34,6 +34,8 @@ def _parse_args():
                         help='Directory for generated output files')
     parser.add_argument('--countParticlesMinimum',       default=300, type=int,
                         help='Minimum particles per halo for constraints (default: 300)')
+    parser.add_argument('--countParticlesParentMinimum', default=0, type=int,
+                        help='Minimum particles per parent halo (at the parent mass bin centre) for a parent mass bin to be included in the constraints (default: 0)')
     parser.add_argument('--convergeAfterCount',   default=-1, type=int,
                         help='Number of steps after which to declare convergence (-1 to never stop; default: 1000)')
     parser.add_argument('--correlationStopAfterCount',   default=1000, type=int,
@@ -92,6 +94,7 @@ def _base_files(entry_groups,options):
     pipeline_path          = options['pipelinePath']
     output_dir             = options['outputDirectory']
     count_particles_min    = options['countParticlesMinimum']
+    count_particles_parent_min = options['countParticlesParentMinimum']
     fraction_mass_primary  = 5.0
     data_path              = os.environ.get('GALACTICUS_DATA_PATH', '')
 
@@ -407,6 +410,9 @@ def _base_files(entry_groups,options):
                 in_range         = (mass_ratios >= mass_ratio_min) & (mass_ratios <= 1.0)
                 if np.count_nonzero(count_bins[i,in_range,j]) == 0:
                     # Skip bins (of progenitor mass, redshift) that have no useable target data.
+                    continue
+                if mass_bins[j] < count_particles_parent_min * float(res['massParticle']):
+                    # Skip parent mass bins too poorly resolved to define the progenitor mass function.
                     continue
                 base += (
                     f'    <outputAnalysis value="progenitorMassFunction">\n'
