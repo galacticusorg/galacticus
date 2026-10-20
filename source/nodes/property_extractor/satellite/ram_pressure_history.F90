@@ -147,13 +147,13 @@ contains
 
     allocate(ramPressureHistoryExtract(3))
     if (node%isSatellite()) then
-       ramPressureHistoryExtract =  [                                                          &
-            &                        self%hotHaloRamPressureHistory_%forceMaximum       (node), &
-            &                        self%hotHaloRamPressureHistory_%forceTimeIntegrated(node), &
-            &                        self%hotHaloRamPressureForce_  %force              (node)  &
-            &                       ]
+       ramPressureHistoryExtract=[                                                           &
+            &                     self%hotHaloRamPressureHistory_%forceMaximum       (node), &
+            &                     self%hotHaloRamPressureHistory_%forceTimeIntegrated(node), &
+            &                     self%hotHaloRamPressureForce_  %force              (node)  &
+            &                    ]
     else
-       ramPressureHistoryExtract =  0.0d0
+       ramPressureHistoryExtract=0.0d0
     end if
     return
   end function ramPressureHistoryExtract

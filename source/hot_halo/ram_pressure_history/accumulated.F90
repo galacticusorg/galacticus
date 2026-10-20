@@ -99,7 +99,7 @@ contains
     class(nodeComponentSatellite              ), pointer       :: satellite
 
     if (node%isSatellite()) then
-       satellite               => node     %satellite                (                        )
+       satellite               => node     %satellite                (                         )
        accumulatedForceMaximum =  satellite%floatRank0MetaPropertyGet(self%ramPressureMaximumID)
     else
        accumulatedForceMaximum =  0.0d0
@@ -119,7 +119,7 @@ contains
     class(nodeComponentSatellite              ), pointer       :: satellite
 
     if (node%isSatellite()) then
-       satellite                      => node     %satellite                (                               )
+       satellite                      => node     %satellite                (                                )
        accumulatedForceTimeIntegrated =  satellite%floatRank0MetaPropertyGet(self%ramPressureTimeIntegratedID)
     else
        accumulatedForceTimeIntegrated =  0.0d0

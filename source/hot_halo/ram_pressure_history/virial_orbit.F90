@@ -59,10 +59,10 @@
      Implementation of a hot halo ram pressure history class which integrates the satellite's virial orbit through its host.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_     => null()
-     double precision                                    :: efficiencyDecay                   , toleranceRelative
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_        => null()
+     double precision                                    :: efficiencyDecay                      , toleranceRelative
      integer         (kind_int8               )          :: uniqueIDPrevious
-     double precision                                    :: timePrevious                      , forceMaximumPrevious, &
+     double precision                                    :: timePrevious                         , forceMaximumPrevious, &
           &                                                 forceTimeIntegratedPrevious
    contains
      !![
@@ -86,9 +86,9 @@
 
   ! Objects used in the ODE functions.
   class           (hotHaloRamPressureHistoryVirialOrbit), pointer :: self_
-  class           (massDistributionClass               ), pointer :: massDistributionHost_, massDistributionHotHalo_, &
+  class           (massDistributionClass               ), pointer :: massDistributionHost_     , massDistributionHotHalo_, &
        &                                                             massDistributionSatellite_
-  double precision                                                :: massBoundSatellite_  , timescaleDynamicalHost_
+  double precision                                                :: massBoundSatellite_       , timescaleDynamicalHost_
   !$omp threadprivate(self_,massDistributionHost_,massDistributionHotHalo_,massDistributionSatellite_,massBoundSatellite_,timescaleDynamicalHost_)
 
   ! Indices of the variables in the ODE system.
@@ -212,18 +212,18 @@ contains
     use            :: Numerical_Constants_Math        , only : Pi
     use            :: Numerical_ODE_Solvers           , only : odeSolver
     implicit none
-    class           (hotHaloRamPressureHistoryVirialOrbit), intent(inout), target  :: self
-    type            (treeNode                            ), intent(inout)          :: node
-    class           (nodeComponentBasic                  ), pointer                :: basic                , basicHost
-    class           (nodeComponentSatellite              ), pointer                :: satellite
-    type            (treeNode                            ), pointer                :: nodeHost
-    double precision                                      , dimension(countVariables) :: variables          , scales
-    double precision                                      , parameter              :: fractionStepInitial=1.0d-3
-    type            (odeSolver                           )                         :: solver
-    type            (keplerOrbit                         )                         :: orbit
-    double precision                                                               :: time                 , timeInfall       , &
-         &                                                                            radiusVirial         , velocityVirial   , &
-         &                                                                            ramPressureVirial
+    class           (hotHaloRamPressureHistoryVirialOrbit), intent(inout), target     :: self
+    type            (treeNode                            ), intent(inout)             :: node
+    class           (nodeComponentBasic                  ), pointer                   :: basic                     , basicHost
+    class           (nodeComponentSatellite              ), pointer                   :: satellite
+    type            (treeNode                            ), pointer                   :: nodeHost
+    double precision                                      , dimension(countVariables) :: variables                 , scales
+    double precision                                      , parameter                 :: fractionStepInitial=1.0d-3
+    type            (odeSolver                           )                            :: solver
+    type            (keplerOrbit                         )                            :: orbit
+    double precision                                                                  :: time                      , timeInfall    , &
+         &                                                                               radiusVirial              , velocityVirial, &
+         &                                                                               ramPressureVirial
 
     ! Non-satellites have no ram pressure history.
     if (.not.node%isSatellite()) then
@@ -250,11 +250,11 @@ contains
     orbit     =  satellite%virialOrbit()
     ! Get the mass distributions needed in the ODE functions.
     self_                      => self
-    massDistributionHost_      => nodeHost%massDistribution(                                    )
-    massDistributionHotHalo_   => nodeHost%massDistribution(componentTypeHotHalo,massTypeGaseous)
-    massDistributionSatellite_ => node    %massDistribution(                                    )
-    massBoundSatellite_        =  satellite                %boundMass         (        )
-    timescaleDynamicalHost_    =  self     %darkMatterHaloScale_%timescaleDynamical(nodeHost)
+    massDistributionHost_      => nodeHost                      %massDistribution  (                                    )
+    massDistributionHotHalo_   => nodeHost                      %massDistribution  (componentTypeHotHalo,massTypeGaseous)
+    massDistributionSatellite_ => node                          %massDistribution  (                                    )
+    massBoundSatellite_        =  satellite                     %boundMass         (                                    )
+    timescaleDynamicalHost_    =  self     %darkMatterHaloScale_%timescaleDynamical(nodeHost                            )
     ! Set scales for the ODE variables. The ram pressure scale is the mean density within the host's virial radius times its virial
     ! velocity squared, and the scale for its time integral is that times the virial crossing time.
     radiusVirial     =+self%darkMatterHaloScale_%radiusVirial  (nodeHost)
@@ -275,15 +275,15 @@ contains
     variables(indexTimeIntegrated                )=0.0d0
     variables(indexMaximum                       )=0.0d0
     ! Integrate the orbit up to the present time.
-    solver=odeSolver(                                                         &
-         &           int(countVariables,c_size_t)                           , &
-         &           virialOrbitODEs                                        , &
-         &           toleranceAbsolute=self%toleranceRelative               , &
-         &           toleranceRelative=self%toleranceRelative               , &
-         &           scale            =scales                               , &
-         &           hStart           =fractionStepInitial                  &
-         &                             *timescaleDynamicalHost_             , &
-         &           postStep         =virialOrbitPostStep                    &
+    solver=odeSolver(                                            &
+         &           int(countVariables,c_size_t)              , &
+         &           virialOrbitODEs                           , &
+         &           toleranceAbsolute=self%toleranceRelative  , &
+         &           toleranceRelative=self%toleranceRelative  , &
+         &           scale            =scales                  , &
+         &           hStart           =fractionStepInitial       &
+         &                             *timescaleDynamicalHost_, &
+         &           postStep         =virialOrbitPostStep       &
          &          )
     call solver%solve(timeInfall,time,variables)
     ! The running maximum must include the final state.
@@ -303,7 +303,7 @@ contains
     The equations of motion of the satellite, and the rates of change of the time integral and running maximum of the ram
     pressure.
     !!}
-    use :: Coordinates                     , only : coordinateCartesian           , assignment(=)
+    use :: Coordinates                     , only : coordinateCartesian, assignment(=)
     use :: Interface_GSL                   , only : GSL_Success
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
     implicit none
@@ -313,35 +313,35 @@ contains
     double precision                     , parameter                   :: massRatioMinimum     =0.0d0, massRatioMaximum=1.0d3
     double precision                     , dimension(3)                :: acceleration
     type            (coordinateCartesian)                              :: coordinates
-    double precision                                                   :: radius                     , massEnclosedHost, &
-         &                                                                massEnclosedSatellite      , massRatio       , &
+    double precision                                                   :: radius                     , massEnclosedHost      , &
+         &                                                                massEnclosedSatellite      , massRatio             , &
          &                                                                rateDecay
     !$GLC attributes unused :: time
 
-    radius                                                         =+sqrt(sum(variables(indexPosition:indexPosition+1)**2))
-    variablesRateOfChange(indexPosition:indexPosition+1)           =+variables(indexVelocity:indexVelocity+1) &
-         &                                                          /MpcPerKmPerSToGyr
-    variablesRateOfChange(indexVelocity:indexVelocity+1)           =+0.0d0
+    radius                                              =+sqrt(sum(variables(indexPosition:indexPosition+1)**2))
+    variablesRateOfChange(indexPosition:indexPosition+1)=+variables(indexVelocity:indexVelocity+1) &
+         &                                               /MpcPerKmPerSToGyr
+    variablesRateOfChange(indexVelocity:indexVelocity+1)=+0.0d0
     if (radius > 0.0d0) then
        ! Gravitational acceleration, matching that applied by the satelliteOrbit node operator.
        coordinates          =[variables(indexPosition),variables(indexPosition+1),0.0d0]
-       acceleration         =massDistributionHost_%acceleration(coordinates)
-       massEnclosedHost     =massDistributionHost_%massEnclosedBySphere(radius)
-       massEnclosedSatellite=max(                                                                 &
-            &                                         0.0d0                                     , &
-            &                    min(                                                             &
-            &                        massDistributionSatellite_%massEnclosedBySphere(radius)    , &
-            &                        massBoundSatellite_                                          &
-            &                       )                                                             &
+       acceleration         =massDistributionHost_%acceleration        (coordinates)
+       massEnclosedHost     =massDistributionHost_%massEnclosedBySphere(radius     )
+       massEnclosedSatellite=max(                                                             &
+            &                                         0.0d0                                 , &
+            &                    min(                                                         &
+            &                        massDistributionSatellite_%massEnclosedBySphere(radius), &
+            &                        massBoundSatellite_                                      &
+            &                       )                                                         &
             &                   )
        if (massEnclosedHost > 0.0d0) then
-          massRatio=min(                                     &
-               &            +massRatioMaximum              , &
-               &        max(                                 &
-               &            +massRatioMinimum              , &
-               &            +massEnclosedSatellite           &
-               &            /massEnclosedHost                &
-               &           )                                 &
+          massRatio=min(                            &
+               &            +massRatioMaximum     , &
+               &        max(                        &
+               &            +massRatioMinimum     , &
+               &            +massEnclosedSatellite  &
+               &            /massEnclosedHost       &
+               &           )                        &
                &       )
           variablesRateOfChange(indexVelocity:indexVelocity+1)=+acceleration(1:2) &
                &                                               *(                 &
@@ -366,8 +366,8 @@ contains
     !!{RST
     Update the running maximum of the ram pressure after each step of the orbit integration.
     !!}
-    use, intrinsic :: ISO_C_Binding, only : c_double     , c_int
-    use            :: Interface_GSL, only : GSL_Continue , GSL_Success
+    use, intrinsic :: ISO_C_Binding, only : c_double    , c_int
+    use            :: Interface_GSL, only : GSL_Continue, GSL_Success
     implicit none
     real            (c_double), intent(in   ), value        :: time
     real            (c_double), intent(inout), dimension(*) :: variables
@@ -394,7 +394,7 @@ contains
     type            (coordinateSpherical)                              :: coordinates
 
     coordinates           =[sqrt(sum(variables(indexPosition:indexPosition+1)**2)),0.0d0,0.0d0]
-    virialOrbitRamPressure=+massDistributionHotHalo_%density(coordinates)          &
+    virialOrbitRamPressure=+massDistributionHotHalo_%density(coordinates)    &
          &                 *sum(variables(indexVelocity:indexVelocity+1)**2)
     return
   end function virialOrbitRamPressure
@@ -416,14 +416,14 @@ contains
        virialOrbitPeriod=timescaleDynamicalHost_
        return
     end if
-    frequencyAngular=+abs(                                                           &
-         &                +variables(indexPosition  )*variables(indexVelocity+1)     &
-         &                -variables(indexPosition+1)*variables(indexVelocity  )     &
-         &               )                                                           &
-         &           /radius**2                                                      &
+    frequencyAngular=+abs(                                                       &
+         &                +variables(indexPosition  )*variables(indexVelocity+1) &
+         &                -variables(indexPosition+1)*variables(indexVelocity  ) &
+         &               )                                                       &
+         &           /radius**2                                                  &
          &           /MpcPerKmPerSToGyr
     frequencyRadial =+abs(sum(variables(indexPosition:indexPosition+1)*variables(indexVelocity:indexVelocity+1))) &
-         &           /radius**2                                                      &
+         &           /radius**2                                                                                   &
          &           /MpcPerKmPerSToGyr
     frequencyOrbital=max(frequencyAngular,frequencyRadial)
     if (frequencyOrbital > frequencyFractionalTiny/timescaleDynamicalHost_) then
