@@ -125,32 +125,38 @@ contains
     use :: MPI_Utilities   , only : mpiBarrier                  , mpiSelf
     use :: Numerical_Ranges, only : Range_Pinned                , Range_Lattice_Offset , gridSchemePerUnit, gridSchemePerDecade, &
           &                         rangeLattice
+    !$ use :: OMP_Lib      , only : OMP_Get_Num_Threads         , OMP_Get_Thread_Num
     use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
-    double precision                                         , intent(in   )                 :: variance                              , time
+    double precision                                         , intent(in   )                 :: variance                                , time
     type            (treeNode                               ), intent(inout)                 :: node
-    double precision                                                        , dimension(0:1) :: hTime                                 , hVariance
-    double precision                                         , parameter                     :: varianceTolerance              =1.0d-6
-    type            (rangeLattice                           )                                :: latticeVariance                       , latticeTime
+    double precision                                                        , dimension(0:1) :: hTime                                   , hVariance
+    double precision                                         , parameter                     :: varianceTolerance                =1.0d-6
+    double precision                                         , parameter                     :: efficiencyParallelOverTimeMinimum=0.9d+0
+    type            (rangeLattice                           )                                :: latticeVariance                         , latticeTime
     double precision                                         , allocatable  , dimension(:,:) :: firstCrossingProbabilityPrevious
-    integer                                                                                  :: offsetTime                            , countTimePrevious, &
+    integer                                                                                  :: offsetTime                              , countTimePrevious       , &
          &                                                                                      countVariancePrevious
     logical                                                                                  :: reuseSolutions
-    double precision                                         , allocatable  , dimension( : ) :: varianceMidpoint                      , barrier          , &
+    double precision                                         , allocatable  , dimension( : ) :: varianceMidpoint                        , barrier                 , &
          &                                                                                      barrierMidpoint
     double precision                                                                         :: barrierTest
     class           (excursionSetBarrierClass               ), pointer                       :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), pointer                       :: cosmologicalMassVariance_
     logical                                                                                  :: makeTable
-    integer         (c_size_t                               )                                :: iTime                                 , iVariance        , &
-         &                                                                                      loopCount                             , loopCountTotal   , &
-         &                                                                                      i                                     , j                , &
-         &                                                                                      jTime                                 , jVariance        , &
-         &                                                                                      iVarianceStart
-    double precision                                                                         :: probabilityCrossingPrior
+    integer         (c_size_t                               )                                :: iTime                                   , iVariance               , &
+         &                                                                                      loopCount                               , loopCountTotal          , &
+         &                                                                                      i                                       , j                       , &
+         &                                                                                      jTime                                   , jVariance               , &
+         &                                                                                      iVarianceStart                          , iTimeNext               , &
+         &                                                                                      jStart                                  , jEnd
+    integer                                                                                  :: countThreads                            , indexThread
+    logical                                                                                  :: parallelOverTime
+    double precision                                         , allocatable  , dimension( : ) :: probabilityCrossingPriorThread
+    double precision                                                                         :: probabilityCrossingPrior                , firstCrossingProbability
     double precision                                                                         :: integralKernel
-    real            (kind_quad                              )                                :: offsetEffective                       , varianceResidual
+    real            (kind_quad                              )                                :: offsetEffective                         , varianceResidual
     character       (len =9                                 )                                :: label
     type            (varying_string                         )                                :: message
     type            (lockDescriptor                         )                                :: fileLock
@@ -305,8 +311,20 @@ contains
           ! is initialized and covers the whole range in which we are interested.
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
-          ! Enter an OpenMP parallel region. Each parallel thread will solve for the first crossing distribution at a different epoch.
-          !$omp parallel private(iTime,i,j,iVarianceStart,probabilityCrossingPrior,integralKernel,excursionSetBarrier_,cosmologicalMassVariance_,barrier,barrierMidpoint,offsetEffective,varianceResidual) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          ! Enter an OpenMP parallel region. The solution at each epoch is sequential in variance, as the solution at each variance
+          ! depends on those at all smaller variances. Each thread can solve for the first crossing distribution at a different
+          ! epoch, but this leaves threads idle in the final round of epochs if the number of epochs is not a multiple of the number
+          ! of threads (and leaves most threads idle if there are fewer epochs than threads). The efficiency of this approach is the
+          ! number of epochs divided by the number of thread-epochs available in the rounds required. If this efficiency is too low
+          ! all threads instead step through the epochs and variances together, and the sum over smaller variances at each variance
+          ! is divided between them. This requires synchronizing the threads at each variance, but keeps all threads busy.
+          iTimeNext=0
+          !$omp parallel private(iTime,i,j,jStart,jEnd,iVarianceStart,probabilityCrossingPrior,firstCrossingProbability,integralKernel,excursionSetBarrier_,cosmologicalMassVariance_,barrier,barrierMidpoint,offsetEffective,varianceResidual,countThreads,indexThread,parallelOverTime) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          countThreads=1
+          indexThread =0
+          !$ countThreads=OMP_Get_Num_Threads()
+          !$ indexThread =OMP_Get_Thread_Num ()
+          parallelOverTime=dble(self%countTime)/dble(countThreads*((self%countTime+countThreads-1)/countThreads)) >= efficiencyParallelOverTimeMinimum
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
@@ -317,11 +335,23 @@ contains
           <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
 	  !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !$omp barrier
+          !$omp single
+          allocate(probabilityCrossingPriorThread(0:countThreads-1))
+          !$omp end single
           allocate(barrier        (0:self%countVariance))
           allocate(barrierMidpoint(0:self%countVariance))
-          !$omp do schedule(dynamic)
-          do iTime=1,self%countTime
+          iTime=0
+          do while (.true.)
+             ! Select the next epoch. When parallelizing over epochs, epochs are handed out dynamically from a shared counter.
+             if (parallelOverTime) then
+                !$omp atomic capture
+                iTimeNext=iTimeNext+1
+                iTime    =iTimeNext
+                !$omp end atomic
+             else
+                iTime=iTime+1
+             end if
+             if (iTime > self%countTime) exit
 #ifdef USEMPI
              if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
@@ -338,7 +368,6 @@ contains
                 ! Find the first crossing distribution at the first grid point.
                 offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad),0.0_kind_quad,real(barrier(1),kind_quad),real(barrierMidpoint(1),kind_quad),cosmologicalMassVariance_)
                 varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),real(varianceMidpoint(1),kind_quad)                                                                            ,cosmologicalMassVariance_)
-                self%firstCrossingProbability(0,iTime)=+0.0d0
                 integralKernel                        =+real(                                                                    &
                      &                                       Error_Function_Complementary(                                       &
                      &                                                                    +offsetEffective                       &
@@ -348,27 +377,46 @@ contains
                      &                                       )
                 offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                      ,0.0_kind_quad,real(barrier(1),kind_quad),0.0_kind_quad                      ,cosmologicalMassVariance_)
                 varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(1),kind_quad),0.0_kind_quad                                                                                                   ,cosmologicalMassVariance_)
-                self%firstCrossingProbability(1,iTime)=+Error_Function_Complementary(                                   &
-                     &                                                               +barrier(1)                        &
-                     &                                                               /sqrt(2.0d0*self%variance(1)) &
-                     &                                                              )                                   &
-                     &                                 /self%varianceStep                                               &
-                     &                                 /integralKernel
+                ! When parallelizing over variance, only one thread writes to the shared table.
+                if (parallelOverTime .or. indexThread == 0) then
+                   self%firstCrossingProbability(0,iTime)=+0.0d0
+                   self%firstCrossingProbability(1,iTime)=+Error_Function_Complementary(                              &
+                        &                                                               +barrier(1)                   &
+                        &                                                               /sqrt(2.0d0*self%variance(1)) &
+                        &                                                              )                              &
+                        &                                 /self%varianceStep                                          &
+                        &                                 /integralKernel
+                end if
+             end if
+             ! When parallelizing over variance, all threads must see the solution at the first grid point before proceeding.
+             if (.not.parallelOverTime) then
+                !$omp barrier
              end if
              ! Iterate over remaining variance grid points and solve for the first crossing rate.
              do i=iVarianceStart,self%countVariance
+                if (parallelOverTime .or. indexThread == 0) then
 #ifdef USEMPI
-                if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+                   if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-                   call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
+                      call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
 #ifdef USEMPI
+                   end if
+#endif
+                   !$omp atomic
+                   loopCount            =loopCount+(i-1)
                 end if
-#endif
-                !$omp atomic
-                loopCount               =loopCount+(i-1)
+                ! Determine the range of smaller variances to be summed over by this thread - all of them if parallelizing over
+                ! epochs, otherwise a contiguous share of them.
+                if (parallelOverTime) then
+                   jStart=1
+                   jEnd  =i-1
+                else
+                   jStart=1+((i-1)*indexThread    )/countThreads
+                   jEnd  =  ((i-1)*(indexThread+1))/countThreads
+                end if
                 ! Iterate over smaller variances, accumulating their contribution to the first crossing rate at the current variance.
                 probabilityCrossingPrior=0.0d0
-                do j=1,i-1
+                do j=jStart,jEnd
                    offsetEffective         =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(j),kind_quad),0.0_kind_quad,real(barrier(i),kind_quad),real(barrierMidpoint(j),kind_quad),cosmologicalMassVariance_)
                    varianceResidual        =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(j),kind_quad)                                                                            ,cosmologicalMassVariance_)
                    probabilityCrossingPrior=+probabilityCrossingPrior                                                &
@@ -381,6 +429,13 @@ contains
                         &                         kind=kind_dble                                                     &
                         &                        )
                 end do
+                ! When parallelizing over variance, combine the sums from all threads. These are summed in order of thread number,
+                ! so that the result is independent of the order in which threads finish.
+                if (.not.parallelOverTime) then
+                   probabilityCrossingPriorThread(indexThread)=    probabilityCrossingPrior
+                   !$omp barrier
+                   probabilityCrossingPrior                   =sum(probabilityCrossingPriorThread)
+                end if
                 ! Compute the resulting first crossing distribution.
                 offsetEffective =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(i),kind_quad),0.0_kind_quad,real(barrier(i),kind_quad),real(barrierMidpoint(i),kind_quad),cosmologicalMassVariance_)
                 varianceResidual=+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),real(varianceMidpoint(i),kind_quad)                                                                            ,cosmologicalMassVariance_)
@@ -392,37 +447,46 @@ contains
                         &              kind=kind_dble                                                     &
                         &             )
                 if (integralKernel==0.0d0) then
-                   self%firstCrossingProbability(i,iTime)=0.0d0
+                   firstCrossingProbability=0.0d0
                 else
-                   offsetEffective                       =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),0.0_kind_quad,0.0_kind_quad,real(barrier(i),kind_quad),0.0_kind_quad,cosmologicalMassVariance_)
-                   varianceResidual                      =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),0.0_kind_quad                                                        ,cosmologicalMassVariance_)
-                   self%firstCrossingProbability(i,iTime)=+max(                                                                            &
-                        &                                      +0.0d0,                                                                     &
-                        &                                      +(                                                                          &
-                        &                                        +real(                                                                    &
-                        &                                              Error_Function_Complementary(                                       &
-                        &                                                                           +offsetEffective                       &
-                        &                                                                           /sqrt(2.0_kind_quad*varianceResidual)  &
-                        &                                                                          )                                     , &
-                        &                                              kind=kind_dble                                                      &
-                        &                                             )                                                                    &
-                        &                                        /self%varianceStep                                                        &
-                        &                                        -probabilityCrossingPrior                                                 &
-                        &                                       )                                                                          &
-                        &                                      /integralKernel                                                             &
-                        &                                     )
+                   offsetEffective         =+self%offsetEffective (self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),0.0_kind_quad,0.0_kind_quad,real(barrier(i),kind_quad),0.0_kind_quad,cosmologicalMassVariance_)
+                   varianceResidual        =+self%varianceResidual(self%time(iTime),0.0_kind_quad,real(self%variance(i),kind_quad),0.0_kind_quad                                                       ,cosmologicalMassVariance_)
+                   firstCrossingProbability=+max(                                                                            &
+                        &                        +0.0d0,                                                                     &
+                        &                        +(                                                                          &
+                        &                          +real(                                                                    &
+                        &                                Error_Function_Complementary(                                       &
+                        &                                                             +offsetEffective                       &
+                        &                                                             /sqrt(2.0_kind_quad*varianceResidual)  &
+                        &                                                            )                                     , &
+                        &                                kind=kind_dble                                                      &
+                        &                               )                                                                    &
+                        &                          /self%varianceStep                                                        &
+                        &                          -probabilityCrossingPrior                                                 &
+                        &                         )                                                                          &
+                        &                        /integralKernel                                                             &
+                        &                       )
+                end if
+                ! When parallelizing over variance, only one thread writes to the shared table, and all threads must see the result
+                ! (and have finished with the per-thread sums) before moving to the next variance.
+                if (parallelOverTime .or. indexThread == 0) self%firstCrossingProbability(i,iTime)=firstCrossingProbability
+                if (.not.parallelOverTime) then
+                   !$omp barrier
                 end if
              end do
              ! Force the probability at maximum variance to zero.
-             self%firstCrossingProbability(self%countVariance,iTime)=0.0d0
+             if (parallelOverTime .or. indexThread == 0) self%firstCrossingProbability(self%countVariance,iTime)=0.0d0
           end do
-          !$omp end do
           !![
           <objectDestructor name="excursionSetBarrier_"     />
           <objectDestructor name="cosmologicalMassVariance_"/>
 	  !!]
           deallocate(barrier        )
           deallocate(barrierMidPoint)
+          !$omp barrier
+          !$omp single
+          deallocate(probabilityCrossingPriorThread)
+          !$omp end single
           !$omp end parallel
           ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
           ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
