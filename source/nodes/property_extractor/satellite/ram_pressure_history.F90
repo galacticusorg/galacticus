@@ -23,17 +23,19 @@
   Implements a property extractor class for the ram pressure history of satellites.
   !!}
 
-  use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
+  use :: Hot_Halo_Ram_Pressure_Forces   , only : hotHaloRamPressureForceClass
+  use :: Hot_Halo_Ram_Pressure_Histories, only : hotHaloRamPressureHistoryClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRamPressureHistory" docformat="rst">
    <description>
-   A property extractor class which extracts the ram pressure history of satellites, as accumulated by the
-   :galacticus-class:`nodeOperatorRamPressureHistory` node operator: the (decaying) running maximum of the ram pressure,
+   A property extractor class which extracts the ram pressure history of satellites, as given by the
+   :galacticus-class:`hotHaloRamPressureHistoryClass`: the (decaying) running maximum of the ram pressure,
    ``satelliteRamPressureMaximum``, and its (decaying) time integral, ``satelliteRamPressureTimeIntegrated``. The instantaneous
    ram pressure, ``satelliteRamPressure``, computed using the :galacticus-class:`hotHaloRamPressureForceClass`, is also
-   extracted. All three are zero for non-satellite nodes. The :galacticus-class:`nodeOperatorRamPressureHistory` node operator
-   must be included in the model.
+   extracted. All three are zero for non-satellite nodes. With the default
+   :galacticus-class:`hotHaloRamPressureHistoryAccumulated` class the
+   :galacticus-class:`nodeOperatorRamPressureHistory` node operator must be included in the model.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -42,8 +44,8 @@
      A property extractor class for the ram pressure history of satellites.
      !!}
      private
-     class  (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_    => null()
-     integer                                        :: ramPressureTimeIntegratedID          , ramPressureMaximumID
+     class(hotHaloRamPressureForceClass  ), pointer :: hotHaloRamPressureForce_   => null()
+     class(hotHaloRamPressureHistoryClass), pointer :: hotHaloRamPressureHistory_ => null()
    contains
      final     ::                 ramPressureHistoryDestructor
      procedure :: elementCount => ramPressureHistoryElementCount
@@ -73,29 +75,31 @@ contains
     type (nodePropertyExtractorRamPressureHistory)                :: self
     type (inputParameters                        ), intent(inout) :: parameters
     class(hotHaloRamPressureForceClass           ), pointer       :: hotHaloRamPressureForce_
+    class(hotHaloRamPressureHistoryClass         ), pointer       :: hotHaloRamPressureHistory_
 
     !![
-    <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    <objectBuilder class="hotHaloRamPressureForce"   name="hotHaloRamPressureForce_"   source="parameters"/>
+    <objectBuilder class="hotHaloRamPressureHistory" name="hotHaloRamPressureHistory_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorRamPressureHistory(hotHaloRamPressureForce_)
+    self=nodePropertyExtractorRamPressureHistory(hotHaloRamPressureForce_,hotHaloRamPressureHistory_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="hotHaloRamPressureForce_"/>
+    <objectDestructor name="hotHaloRamPressureForce_"  />
+    <objectDestructor name="hotHaloRamPressureHistory_"/>
     !!]
     return
   end function ramPressureHistoryConstructorParameters
 
-  function ramPressureHistoryConstructorInternal(hotHaloRamPressureForce_) result(self)
+  function ramPressureHistoryConstructorInternal(hotHaloRamPressureForce_,hotHaloRamPressureHistory_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorRamPressureHistory` property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorRamPressureHistory)                        :: self
     class(hotHaloRamPressureForceClass           ), intent(in   ), target :: hotHaloRamPressureForce_
+    class(hotHaloRamPressureHistoryClass         ), intent(in   ), target :: hotHaloRamPressureHistory_
     !![
-    <constructorAssign variables="*hotHaloRamPressureForce_"/>
-    <addMetaProperty component="satellite" name="ramPressureTimeIntegrated" id="self%ramPressureTimeIntegratedID" isEvolvable="yes" isCreator="no"/>
-    <addMetaProperty component="satellite" name="ramPressureMaximum"        id="self%ramPressureMaximumID"        isEvolvable="yes" isCreator="no"/>
+    <constructorAssign variables="*hotHaloRamPressureForce_, *hotHaloRamPressureHistory_"/>
     !!]
 
     return
@@ -109,7 +113,8 @@ contains
     type(nodePropertyExtractorRamPressureHistory), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    <objectDestructor name="self%hotHaloRamPressureForce_"  />
+    <objectDestructor name="self%hotHaloRamPressureHistory_"/>
     !!]
     return
   end subroutine ramPressureHistoryDestructor
@@ -131,23 +136,21 @@ contains
     !!{RST
     Implement a ram pressure history property extractor.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
     double precision                                         , dimension(:) , allocatable :: ramPressureHistoryExtract
     class           (nodePropertyExtractorRamPressureHistory), intent(inout), target      :: self
     type            (treeNode                               ), intent(inout), target      :: node
     double precision                                         , intent(in   )              :: time
     type            (multiCounter                           ), intent(inout), optional    :: instance
-    class           (nodeComponentSatellite                 ), pointer                    :: satellite
     !$GLC attributes unused :: time, instance
 
     allocate(ramPressureHistoryExtract(3))
     if (node%isSatellite()) then
-       satellite                 => node%satellite()
-       ramPressureHistoryExtract =  [                                                                                           &
-            &                        satellite                    %floatRank0MetaPropertyGet(self%ramPressureMaximumID       ), &
-            &                        satellite                    %floatRank0MetaPropertyGet(self%ramPressureTimeIntegratedID), &
-            &                        self%hotHaloRamPressureForce_%force                    (node                            )  &
+       ramPressureHistoryExtract =  [                                                          &
+            &                        self%hotHaloRamPressureHistory_%forceMaximum       (node), &
+            &                        self%hotHaloRamPressureHistory_%forceTimeIntegrated(node), &
+            &                        self%hotHaloRamPressureForce_  %force              (node)  &
             &                       ]
     else
        ramPressureHistoryExtract =  0.0d0
