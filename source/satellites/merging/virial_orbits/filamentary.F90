@@ -219,12 +219,12 @@ contains
     implicit none
     type            (keplerOrbit           )                                :: filamentaryOrbit
     class           (virialOrbitFilamentary), intent(inout), target         :: self
-    type            (treeNode              ), intent(inout)                 :: host                   , node
+    type            (treeNode              ), intent(inout)                 :: host               , node
     logical                                 , intent(in   )                 :: acceptUnboundOrbits
     double precision                        , allocatable  , dimension(:,:) :: axes
-    double precision                                       , dimension(3  ) :: axis                   , direction, &
-         &                                                                     tangent                , binormal
-    double precision                                                        :: cosineTheta            , phi      , &
+    double precision                                       , dimension(3  ) :: axis               , direction, &
+         &                                                                     tangent            , binormal
+    double precision                                                        :: cosineTheta        , phi      , &
          &                                                                     uniformDeviate
     integer                                                                 :: i
 
@@ -238,7 +238,7 @@ contains
        axis=axes(:,i)
        ! Draw the angle from the axis from the von Mises-Fisher distribution. Its cumulative distribution inverts analytically.
        uniformDeviate=node%hostTree%randomNumberGenerator_%uniformSample()
-       cosineTheta   =+1.0d0                                                                            &
+       cosineTheta   =+1.0d0                                                                     &
             &         +log(uniformDeviate+(1.0d0-uniformDeviate)*exp(-2.0d0*self%concentration)) &
             &         /                                                     self%concentration
        cosineTheta   =max(-1.0d0,min(+1.0d0,cosineTheta))
@@ -251,7 +251,7 @@ contains
        end if
        tangent  =tangent/sqrt(sum(tangent**2))
        binormal =Vector_Product(axis,tangent)
-       direction=+                         cosineTheta                  *axis     &
+       direction=+           cosineTheta                               *axis      &
             &    +sqrt(1.0d0-cosineTheta**2)*(cos(phi)*tangent+sin(phi)*binormal)
     else
        ! Draw from an isotropic distribution.
@@ -263,8 +263,8 @@ contains
             &                  cosineTheta               &
             &      ]
     end if
-    call filamentaryOrbit%thetaSet  (acos  (max(-1.0d0,min(+1.0d0,direction(3)))))
-    call filamentaryOrbit%phiSet    (modulo(atan2(direction(2),direction(1)),2.0d0*Pi))
+    call filamentaryOrbit%thetaSet(acos  (max(-1.0d0,min(+1.0d0,direction(3)))))
+    call filamentaryOrbit%phiSet  (modulo(atan2(direction(2),direction(1)),2.0d0*Pi))
     ! The tangential velocity is oriented isotropically.
     call filamentaryOrbit%epsilonSet(2.0d0*Pi*node%hostTree%randomNumberGenerator_%uniformSample())
     return
@@ -283,7 +283,7 @@ contains
     basic => host%basic()
     ! The collapsing mass depends only on time, so retain the last value computed.
     if (basic%time() /= self%timePrevious) then
-       self%timePrevious          =                                           basic%time()
+       self%timePrevious          =                                              basic%time()
        self%massCollapsingPrevious=self%criticalOverdensity_%collapsingMass(time=basic%time())
     end if
     if (self%fractionFilamentaryLogarithmicSlope == 0.0d0) then
