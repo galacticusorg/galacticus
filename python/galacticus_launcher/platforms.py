@@ -21,6 +21,11 @@ from collections import namedtuple
 #   retired       -- None for a platform still built, or a message explaining
 #                    that it is not, used when a release turns out to publish no
 #                    binary for it (see `download._require_published_binary`).
+#   binary_pgo    -- name of the profile-guided optimization (PGO) build of the
+#                    executable, published beside `binary` by the PGO workflow
+#                    (`.github/workflows/pgo.yml`), or None if the platform has
+#                    none. Used in preference to `binary` where a release carries
+#                    one built from its own commit (see `download._pgo_published`).
 #
 # Two tools archives are named per platform because a release only ever carries
 # the format that was current when it was cut: releases published before the
@@ -31,8 +36,8 @@ from collections import namedtuple
 PlatformAssets = namedtuple(
     "PlatformAssets",
     ["binary", "tools", "tools_format", "tools_legacy", "tools_legacy_format", "key",
-     "retired"],
-    defaults=(None,),
+     "retired", "binary_pgo"],
+    defaults=(None, None),
 )
 
 # The last released version whose assets include a macOS Intel build.
@@ -77,7 +82,8 @@ def detect(system=None, machine=None):
             return PlatformAssets("Galacticus.exe",
                                   "tools.tar.zst", "tar.zst",
                                   "tools.tar.bz2", "tar.bz2",
-                                  "Linux x86-64")
+                                  "Linux x86-64",
+                                  binary_pgo="Galacticus.exe_PGO")
         raise UnsupportedPlatform(
             f"Galacticus provides no pre-built Linux binary for machine '{machine}'. "
             "Build from source: https://galacticus.readthedocs.io/en/latest/"
