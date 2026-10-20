@@ -62,8 +62,9 @@ Implements an excursion set first crossing statistics class using the algorithm 
      !!}
      private
    contains
-     procedure :: probability  => farahiMidpointProbability
-     procedure :: rateTabulate => farahiMidpointRateTabulate
+     procedure :: probability                    => farahiMidpointProbability
+     procedure :: rateTabulate                   => farahiMidpointRateTabulate
+     procedure :: varianceProbabilityFromLattice => farahiMidpointVarianceProbabilityFromLattice
   end type excursionSetFirstCrossingFarahiMidpoint
 
   interface excursionSetFirstCrossingFarahiMidpoint
@@ -479,6 +480,20 @@ contains
     end do
     return
   end function farahiMidpointProbability
+
+  subroutine farahiMidpointVarianceProbabilityFromLattice(self)
+    !!{RST
+    Set the variances at which the first crossing probability is tabulated from the variance lattice. In this class the first
+    crossing probability is tabulated at the midpoints between lattice points, except at the first and last points, exactly as
+    constructed when the table is built.
+    !!}
+    implicit none
+    class(excursionSetFirstCrossingFarahiMidpoint), intent(inout) :: self
+
+    call self%excursionSetFirstCrossingFarahi%varianceProbabilityFromLattice()
+    self%variance(1:self%countVariance-1)=(self%variance(0:self%countVariance-2)+self%variance(1:self%countVariance-1))/2.0d0
+    return
+  end subroutine farahiMidpointVarianceProbabilityFromLattice
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
     !!{RST
