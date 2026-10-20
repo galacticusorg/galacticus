@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Host + subhalo pair used by testSuite/test-ram-pressure-history.py. The host carries a hot halo which supplies the ram
+     pressure; the satellite is on an eccentric orbit, so that the ram pressure it experiences varies strongly along the orbit
+     and both its running maximum and its time integral are non-trivial. -->
+<tree>
+  <!-- Host halo at the initial time. -->
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <firstSatellite>3</firstSatellite>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0263</scale>
+    </darkMatterProfile>
+    <hotHalo>
+      <!-- Host CGM: supplies the ram pressure force on the satellite. Outer
+           radius equals the host virial radius, so the host itself is in the
+           ordinary regime. -->
+      <isInitialized>true</isInitialized>
+      <mass>1.0e11</mass>
+      <outerRadius>0.26312</outerRadius>
+      <angularMomentum>1.0e11</angularMomentum>
+    </hotHalo>
+  </node>
+  <!-- Host halo at the final time (no growth: static universe, zero accretion). -->
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>7.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0263</scale>
+    </darkMatterProfile>
+    <hotHalo>
+      <isInitialized>true</isInitialized>
+      <mass>1.0e11</mass>
+      <outerRadius>0.26312</outerRadius>
+      <angularMomentum>1.0e11</angularMomentum>
+    </hotHalo>
+  </node>
+  <!-- Satellite, on an eccentric orbit inside the host virial radius. -->
+  <node>
+    <index>3</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>1.0e10</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.0057</scale>
+    </darkMatterProfile>
+    <hotHalo>
+      <isInitialized>true</isInitialized>
+      <mass>1.0e9</mass>
+      <outerRadius>0.05671</outerRadius>
+      <angularMomentum>1.0e9</angularMomentum>
+    </hotHalo>
+    <satellite>
+      <boundMass>1.0e10</boundMass>
+      <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
+      <position>0.15</position>
+      <position>0.0</position>
+      <position>0.0</position>
+      <velocity>-60.0</velocity>
+      <velocity>+60.0</velocity>
+      <velocity>0.0</velocity>
+      <tidalTensorPathIntegrated>
+        <x00>0.0</x00>
+        <x01>0.0</x01>
+        <x02>0.0</x02>
+        <x11>0.0</x11>
+        <x12>0.0</x12>
+        <x22>0.0</x22>
+      </tidalTensorPathIntegrated>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+      <virialOrbit>
+        <radius>0.15</radius>
+        <velocityRadial>-60.0</velocityRadial>
+        <velocityTangential>60.0</velocityTangential>
+        <massHost>1.0e12</massHost>
+        <massSatellite>1.0e10</massSatellite>
+      </virialOrbit>
+    </satellite>
+  </node>
+</tree>
