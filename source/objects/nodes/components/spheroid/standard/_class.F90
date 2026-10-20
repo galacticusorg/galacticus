@@ -290,7 +290,7 @@ contains
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter           , inputParameters
     use :: Mass_Distributions                   , only : massDistributionSpherical, kinematicsDistributionLocal
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_    , galacticComponentTruncation_
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_    , galacticComponentTruncation_, kinematicDistributionGas_
     use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                  , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
@@ -348,6 +348,11 @@ contains
        allocate(kinematicDistribution_)
        !![
        <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+       <objectBuilder class="kinematicsDistribution" parameterName="kinematicsDistributionInterstellarMedium" name="kinematicDistributionGas_" source="parameters" threadPrivate="yes">
+        <default>
+         <kinematicsDistributionInterstellarMedium value="effectiveSoundSpeed"/>
+        </default>
+       </objectBuilder>
        !!]
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
@@ -389,10 +394,10 @@ contains
     !!{RST
     Uninitializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
-         &                                               scalerGasPool           , galacticComponentTruncation_
+         &                                               scalerGasPool           , galacticComponentTruncation_, kinematicDistributionGas_
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -412,6 +417,7 @@ contains
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        <objectDestructor name="kinematicDistribution_"      />
+       <objectDestructor name="kinematicDistributionGas_"   />
        !!]
     end if
     return
@@ -1544,7 +1550,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1552,7 +1558,7 @@ contains
 
     call displayMessage('Storing state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
     write (stateFile) ratioAngularMomentumScaleRadius
     return
@@ -1567,7 +1573,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1575,7 +1581,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
     read (stateFile) ratioAngularMomentumScaleRadius
     return

@@ -46,6 +46,12 @@ module Satellite_Dynamical_Friction_Gaseous
    :math:`c_\mathrm{s}`, of the gas, and :math:`\ln\Lambda` is the Coulomb logarithm. This takes the place of the factor
    :math:`\ln\Lambda[\mathrm{erf}(x)-2x\exp(-x^2)/\sqrt{\pi}]` in the :cite:t:`chandrasekhar_dynamical_1943` formula for a
    collisionless medium.
+
+   This drag is applied to every mass distribution component whose kinematics are collisional. This includes the hot halo and,
+   for the standard disk, spheroid, and nuclear star cluster components, the interstellar medium, whose kinematics are given by
+   ``[kinematicsDistributionInterstellarMedium]`` (by default a uniform effective sound speed). For a disk, :math:`V` is the
+   speed of the perturber relative to the rotating gas. Note that the drag is computed as for a uniform medium, which is a poor
+   approximation for a perturber crossing a thin gaseous disk.
    </description>
    <default>kimKim2007</default>
    <method name="forceFactor" >

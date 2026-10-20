@@ -1023,7 +1023,6 @@ contains
     use :: Coordinates               , only : coordinateCartesian  , assignment(=)
     use :: Numerical_Constants_Math  , only : Pi
     use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll
-    use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
     use :: Error                     , only : Error_Report
     implicit none
     type            (coordinateCartesian          )                :: integral
@@ -1056,7 +1055,7 @@ contains
          &             /velocity_         **3
     if (self%kinematicsDistribution_%isCollisional()) then
        ! Collisional (gaseous) medium - the drag depends on the Mach number of the perturber.
-       soundSpeed=Ideal_Gas_Sound_Speed(self%kinematicsDistribution_%temperature(coordinates))
+       soundSpeed=self%kinematicsDistribution_%soundSpeed(coordinates)
        if (soundSpeed > 0.0d0) then
           machNumber=+velocity_  &
                &     /soundSpeed
