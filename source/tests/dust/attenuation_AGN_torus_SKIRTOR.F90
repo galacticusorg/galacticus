@@ -46,27 +46,27 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
   !!}
   use :: Black_Hole_Torus_Covering_Fractions, only : blackHoleTorusCoveringFractionFixed
   use :: Display                            , only : displayVerbositySet                , verbosityLevelStandard
-  use :: Dust_Attenuation_Descriptors       , only : emissionDescriptor                 , emissionSourceAccretionDisk      , emissionSourceNebular, emissionSourceStellar
+  use :: Dust_Attenuation_Descriptors       , only : emissionDescriptor                 , emissionSourceAccretionDisk      , emissionSourceNebular  , emissionSourceStellar
   use :: Dust_Attenuations                  , only : dustAttenuationAGNTorusSKIRTOR
   use :: Dust_Emission_Spectra              , only : dustEmissionSpectrumAGNTorusSKIRTOR
   use :: Error                              , only : Error_Handler_Register
   use :: Events_Hooks                       , only : eventsHooksInitialize
   use :: File_Utilities                     , only : Directory_Make
   use :: Functions_Global_Utilities         , only : Functions_Global_Set
-  use :: Galactic_Inclinations              , only : galacticInclinationFixed
+  use :: Galactic_Inclinations              , only : galacticInclinationFixed           , galacticInclinationMisaligned    , galacticInclinationNull
   use :: Galactic_Structure_Options         , only : componentTypeBlackHole             , componentTypeDisk
   use :: Galacticus_Nodes                   , only : nodeClassHierarchyInitialize       , treeNode
   use :: HDF5_Access                        , only : hdf5Access
   use :: Input_Parameters                   , only : inputParameters
   use :: Input_Paths                        , only : inputPath                          , pathTypeDataDynamic
   use :: IO_HDF5                            , only : hdf5File
-  use :: ISO_Varying_String                 , only : assignment(=)                      , char                             , operator(//)         , var_str              , &
+  use :: ISO_Varying_String                 , only : assignment(=)                      , char                             , operator(//)           , var_str              , &
        &                                             varying_string
   use :: Node_Components                    , only : Node_Components_Initialize         , Node_Components_Thread_Initialize
   use :: Numerical_Constants_Math           , only : Pi
   use :: Numerical_Constants_Physical       , only : speedLight
   use :: Numerical_Constants_Units          , only : metersToAngstroms                  , micronsToAngstroms
-  use :: Unit_Tests                         , only : Assert                             , Unit_Tests_Begin_Group           , Unit_Tests_End_Group , Unit_Tests_Finish
+  use :: Unit_Tests                         , only : Assert                             , Unit_Tests_Begin_Group           , Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
   ! The synthetic tabulation: wavelengths (in μm), inclinations and angles of the torus (in degrees).
   integer                                              , parameter                                             :: countWavelength  =6             , countInclination    =10   , &
@@ -89,12 +89,15 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
   type            (inputParameters                    )                                                         :: parameters
   type            (treeNode                           ), pointer                                                :: node
   type            (galacticInclinationFixed           ), pointer                                                :: galacticInclination_
+  type            (galacticInclinationNull            ), pointer                                                :: galacticInclinationNull_
+  type            (galacticInclinationMisaligned      ), pointer                                                :: galacticInclinationMisaligned_
   type            (blackHoleTorusCoveringFractionFixed), pointer                                                :: blackHoleTorusCoveringFraction_
-  type            (dustAttenuationAGNTorusSKIRTOR     ), pointer                                                :: torus_
+  type            (dustAttenuationAGNTorusSKIRTOR     ), pointer                                                :: torus_                         , torusMisaligned_
   type            (dustEmissionSpectrumAGNTorusSKIRTOR), pointer                                                :: emission_
   type            (emissionDescriptor                 ), dimension(5)                                           :: descriptors
   type            (varying_string                     )                                                         :: fileName                       , pathDirectory
-  double precision                                     , dimension(5)                                           :: transmission
+  double precision                                     , dimension(5)                                           :: transmission                   , transmissionExpected
+  double precision                                     , allocatable  , dimension(:)                            :: inclinations                   , weights
   double precision                                     , dimension(countWavelength,countInclination,countModel) :: transmissionDirect             , transmissionScattered
   double precision                                     , dimension(countWavelength,                 countModel) :: emissionDustMean
   double precision                                     , dimension(                countInclination           ) :: inclinationTable
@@ -251,6 +254,38 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
   !![
   <objectDestructor name="torus_"                         />
   <objectDestructor name="blackHoleTorusCoveringFraction_"/>
+  !!]
+  call Unit_Tests_End_Group()
+
+  ! A torus whose axis is independent of its galaxy transmits, averaged over orientation, the weighted sum of an aligned
+  ! torus at the inclinations of the torus returned for averaging.
+  call Unit_Tests_Begin_Group("Dust attenuation: SKIRTOR AGN torus, misaligned")
+  allocate(galacticInclinationNull_       )
+  allocate(galacticInclinationMisaligned_ )
+  allocate(blackHoleTorusCoveringFraction_)
+  allocate(torus_                         )
+  allocate(torusMisaligned_               )
+  !![
+  <referenceConstruct object="galacticInclinationNull_"        constructor="galacticInclinationNull()"                                                                                                                       />
+  <referenceConstruct object="galacticInclinationMisaligned_"  constructor="galacticInclinationMisaligned(90.0d0,8,16,galacticInclinationNull_)"                                                                             />
+  <referenceConstruct object="blackHoleTorusCoveringFraction_" constructor="blackHoleTorusCoveringFractionFixed(0.5d0*(coveringFractionModel(1)+coveringFractionModel(2)))"                                                  />
+  <referenceConstruct object="torus_"                          constructor="dustAttenuationAGNTorusSKIRTOR(fileName,var_str('none'),7.0d0,1.0d0,1.0d0,20.0d0,galacticInclination_          ,blackHoleTorusCoveringFraction_)"/>
+  <referenceConstruct object="torusMisaligned_"                constructor="dustAttenuationAGNTorusSKIRTOR(fileName,var_str('none'),7.0d0,1.0d0,1.0d0,20.0d0,galacticInclinationMisaligned_,blackHoleTorusCoveringFraction_)"/>
+  !!]
+  call galacticInclinationMisaligned_%inclinationsMisaligned(node,50.0d0*Pi/180.0d0,inclinations,weights)
+  transmissionExpected=0.0d0
+  do i=1,size(inclinations)
+     transmissionExpected=transmissionExpected+weights(i)*torus_%transmission(node,descriptors,inclination=inclinations(i))
+  end do
+  transmission=torusMisaligned_%transmission(node,descriptors,inclination=50.0d0*Pi/180.0d0)
+  call Assert('transmission is the average over the orientations of the torus',transmission,transmissionExpected,relTol=1.0d-12)
+  call Assert('the average differs from the aligned torus'                   ,abs(transmission(2)-sum(torus_%transmission(node,descriptors(2:2),inclination=50.0d0*Pi/180.0d0))) > 1.0d-3*transmission(2),.true.)
+  !![
+  <objectDestructor name="torusMisaligned_"               />
+  <objectDestructor name="torus_"                         />
+  <objectDestructor name="blackHoleTorusCoveringFraction_"/>
+  <objectDestructor name="galacticInclinationMisaligned_" />
+  <objectDestructor name="galacticInclinationNull_"       />
   !!]
   call Unit_Tests_End_Group()
 

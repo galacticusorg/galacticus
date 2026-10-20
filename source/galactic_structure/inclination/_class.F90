@@ -47,6 +47,9 @@ module Galactic_Inclinations
     only if it is used.
   * :galacticus-class:`galacticInclinationFixed` returns a single angle for every galaxy, for testing and for
     face-on/edge-on comparisons.
+  * :galacticus-class:`galacticInclinationMisaligned` gives the inclination not of the galaxy but of a component of
+    it whose axis is misaligned from that of the galaxy---the dusty torus around an AGN, for example. It wraps
+    another class, which gives the orientation of the galaxy.
 
   The angle is returned in radians.
   !!}
@@ -87,6 +90,32 @@ module Galactic_Inclinations
     <code>
      !$GLC attributes unused :: self
      galacticInclinationIsAvailable=.true.
+    </code>
+   </method>
+   <method name="inclinationsMisaligned" >
+    <description>
+    Given the inclination, ``inclinationHost``, of the galaxy in ``node`` to the line of sight, return the inclinations
+    at which a component of the galaxy is seen whose axis may be misaligned from that of the galaxy, each with a
+    weight, for averaging over the orientation of that component relative to the galaxy. The weights sum to one.
+
+    Consumers which average over the orientation of the galaxy call this at each inclination of the galaxy that they
+    average over, so that a component misaligned from its galaxy is averaged over correctly. The default, appropriate to
+    a class giving the orientation of the galaxy itself, returns ``inclinationHost`` with unit weight; see
+    :galacticus-class:`galacticInclinationMisaligned` for a class which does not.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout), target                    :: node                    </argument>
+    <argument>double precision          , intent(in   )                            :: inclinationHost         </argument>
+    <argument>double precision          , intent(inout), allocatable, dimension(:) :: inclinations   , weights</argument>
+    <code>
+     !$GLC attributes unused :: self, node
+     if (allocated(inclinations)) deallocate(inclinations)
+     if (allocated(weights     )) deallocate(weights     )
+     allocate(inclinations(1))
+     allocate(weights     (1))
+     inclinations=inclinationHost
+     weights     =1.0d0
     </code>
    </method>
   </functionClass>

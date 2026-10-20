@@ -89,7 +89,8 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   !!}
   use :: Mass_Distributions                         , only : massDistributionClass                            , massDistributionMatches_
   use :: Node_Component_NSC_Standard_Data           , only : massDistributionStellar_                         , massDistributionGas_                                , kinematicDistribution_      , scalerStellarPool        , &
-       &                                                     scalerGasPool                                    , galacticComponentTruncation_                        , tidalTruncationID           , galacticComponentHeating_
+       &                                                     scalerGasPool                                    , galacticComponentTruncation_                        , tidalTruncationID           , galacticComponentHeating_, &
+       &                                                     kinematicDistributionGas_
   use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Spherical, Node_Component_Mass_Distribution_Truncated_Spherical
   use :: Galactic_Structure_Options                 , only : componentTypeNuclearStarCluster                  , massTypeStellar                                     , massTypeGaseous             , enumerationWeightByType  , &
        &                                                     weightByMass                                     , weightByLuminosity                                  , enumerationComponentTypeType, enumerationMassTypeType  , &
@@ -143,14 +144,14 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
      darkMatterProfile           => self             %hostNode%darkMatterProfile(                                         )
      massDistributionDarkMatter_ => darkMatterProfile         %massDistribution (componentType=componentTypeDarkMatterOnly)
      if (.not.associated(massDistributionDarkMatter_)) call Error_Report('heating of the nuclear star cluster requires a dark matter mass distribution'//{introspection:location})
-     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,galacticComponentTruncation_,fractionMassRetained,galacticComponentHeating_,massDistributionDarkMatter_)
+     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained,galacticComponentHeating_,massDistributionDarkMatter_)
      !![
      <objectDestructor name="massDistributionDarkMatter_"/>
      !!]
   else if (fractionMassRetained < 1.0d0) then
-     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,galacticComponentTruncation_,fractionMassRetained)
+     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained)
   else
-     massDistribution_ => Node_Component_Mass_Distribution_Scaled_Spherical   (includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,scalerStellarPool,scalerGasPool                      )
+     massDistribution_ => Node_Component_Mass_Distribution_Scaled_Spherical   (includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool                      )
   end if
   return
 end function Node_Component_NSC_Standard_Mass_Distribution

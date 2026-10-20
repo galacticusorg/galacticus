@@ -70,10 +70,12 @@ Commands
 ``galacticus install``
    Download (or complete) the install without running a model. Pass
    ``--no-tools`` to skip the pre-built tools archive — see
-   :ref:`pip-no-tools` below.
+   :ref:`pip-no-tools` below — and ``--no-pgo`` to install the standard build
+   of the executable rather than the faster PGO build — see :ref:`pip-pgo`.
 
 ``galacticus update``
-   Re-download the install for the current package version.
+   Re-download the install for the current package version. It takes the same
+   ``--tools``/``--no-tools`` and ``--pgo``/``--no-pgo`` switches.
 
 ``galacticus validate <file> [change files...]``
    Validate a parameter file without running it. Validation is performed on the
@@ -184,6 +186,28 @@ download the archive you just declined. Add the tools at any time with::
 A model that *does* need a tool will fail without it: a binary-only install has
 no compilers, so Galacticus cannot build the missing tool itself. ``galacticus
 info`` reports whether tools are installed or were skipped.
+
+.. _pip-pgo:
+
+The PGO build of the executable
+-------------------------------
+
+On Linux (x86-64), a release can also carry a *profile-guided optimization*
+(PGO) build of the executable, compiled using a profile of Galacticus running
+representative models. It ran models 6--13% faster in tests. Where a release
+carries one built from the release's own commit, the launcher installs it in
+place of the standard build. Otherwise, or if anything about it can not be
+verified, it installs the standard build. ``galacticus info`` reports which
+build is installed.
+
+The PGO build passes the same validation models as the standard build, but its
+results can differ from the standard build's at the level of floating-point
+round-off, and a difference that small can grow to a visibly different result
+for individual galaxies. To install the standard build instead::
+
+   galacticus update --no-pgo
+
+The choice is remembered. ``galacticus update --pgo`` returns to the PGO build.
 
 Where things are stored
 -----------------------

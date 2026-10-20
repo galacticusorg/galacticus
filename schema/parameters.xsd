@@ -1321,6 +1321,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="fixed"/>
+          <xs:enumeration value="misaligned"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="random"/>
           <xs:enumeration value="spinVector"/>
@@ -1788,6 +1789,7 @@
           <xs:enumeration value="collisionless"/>
           <xs:enumeration value="collisionlessTabulated"/>
           <xs:enumeration value="cuspNFW"/>
+          <xs:enumeration value="effectiveSoundSpeed"/>
           <xs:enumeration value="enzoHydrostatic"/>
           <xs:enumeration value="finiteResolutionNFW"/>
           <xs:enumeration value="heated"/>
@@ -2615,6 +2617,7 @@
           <xs:enumeration value="massCooled"/>
           <xs:enumeration value="massHostMaximum"/>
           <xs:enumeration value="massProgenitorMaximum"/>
+          <xs:enumeration value="misalignmentRandom"/>
           <xs:enumeration value="multi"/>
           <xs:enumeration value="nodeFormationTimeCole2000"/>
           <xs:enumeration value="nodeFormationTimeMassFraction"/>
@@ -2630,6 +2633,7 @@
           <xs:enumeration value="positionTraceDarkMatter"/>
           <xs:enumeration value="presetNamedShift"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="ramPressureMassLossDisks"/>
           <xs:enumeration value="ramPressureMassLossSpheroids"/>
           <xs:enumeration value="satelliteDecelerationSIDM"/>
@@ -2804,6 +2808,7 @@
           <xs:enumeration value="radiusVelocityMaximum"/>
           <xs:enumeration value="radiusVirial"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="rateCooling"/>
           <xs:enumeration value="rateInfallColdMode"/>
           <xs:enumeration value="ratio"/>

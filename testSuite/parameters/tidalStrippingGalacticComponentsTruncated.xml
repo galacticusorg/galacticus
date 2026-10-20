@@ -2,7 +2,7 @@
 <!-- Tests tidal stripping of galactic components (disks, spheroids, and nuclear star clusters) using the tidal radius of the satellite, with truncation of the mass distributions of tidally-stripped spheroids and nuclear star clusters. -->
 
 <parameters>
-  <lastModified revision="5a3d6a042d93ce35f1ab78b4e7e5df56c4d1eeb0" time="2026-10-15T16:07:45"/>
+  <lastModified revision="ba03522a6eac95fb0664ad10dbab5ce38da479b4" time="2026-10-19T21:14:41"/>
 
   <formatVersion>2</formatVersion>
   <!-- Specify tasks to perform -->
@@ -330,5 +330,6 @@
     <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
   <dynamicalFrictionGaseous value="chandrasekhar1943"/>
+  <kinematicsDistributionInterstellarMedium value="local"/>
   
 </parameters>

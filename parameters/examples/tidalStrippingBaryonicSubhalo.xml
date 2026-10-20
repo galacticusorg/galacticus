@@ -10,7 +10,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="64e1d6ca6b0fe9f3c0c28d4e76a379e15593968c" time="2026-10-15T00:00:00"/>
+  <lastModified revision="ba03522a6eac95fb0664ad10dbab5ce38da479b4" time="2026-10-19T21:14:41"/>
 
   <!-- Task -->
   <task value="evolveForests"/>
@@ -216,5 +216,6 @@
                               "/>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
+  <kinematicsDistributionInterstellarMedium value="local"/>
 
 </parameters>

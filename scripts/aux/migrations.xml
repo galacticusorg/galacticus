@@ -493,6 +493,12 @@
     <translation function="satellite_deferral_default"/>
   </migration>
 
+  <migration commit="1a5ec938b51c297ef411ccf8cb7f9593b224d74c">
+    <!-- The interstellar medium of standard disks, spheroids, and nuclear star clusters is now collisional by default, so that       -->
+    <!-- dynamical friction from it uses the gaseous treatment; retain the collisionless kinematics previously shared with the stars. -->
+    <translation function="interstellar_medium_kinematics"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

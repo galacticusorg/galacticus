@@ -243,36 +243,38 @@ Implements a excursion set first crossing statistics class using the algorithm o
    contains
      !![
      <methods docformat="rst">
-       <method description="Interpolate in the tabulated excursion set barrier crossing rates."                                            method="rateInterpolate"           />
-       <method description="Interpolate in the tabulated excursion set barrier non-crossing rates."                                        method="rateNonCrossingInterpolate"/>
-       <method description="Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time." method="rateTabulate"              />
-       <method description="Build a range of variances at which to tabulate the excursion set solutions."                                  method="varianceRange"             />
-       <method description="Return the maximum variance to which to tabulate."                                                             method="varianceLimit"             />
-       <method description="Return a hard upper limit on the variance to which to tabulate, or `huge(0)` if there is none."                method="varianceLimitHard"         />
-       <method description="Return the lattice on which the variance of the current halo is tabulated for barrier crossing rates."         method="rateVarianceLattice"       />
-       <method description="Compute the residual variance between two points."                                                             method="varianceResidual"          />
-       <method description="Compute the effective offset between two points."                                                              method="offsetEffective"           />
-       <method description="Read excursion set solutions from file."                                                                       method="fileRead"                  />
-       <method description="Write excursion set solutions to file."                                                                        method="fileWrite"                 />
-       <method description="Initialize the file name for storing excursion set data."                                                      method="fileNameInitialize"        />
+       <method description="Interpolate in the tabulated excursion set barrier crossing rates."                                            method="rateInterpolate"               />
+       <method description="Interpolate in the tabulated excursion set barrier non-crossing rates."                                        method="rateNonCrossingInterpolate"    />
+       <method description="Tabulate excursion set barrier crossing rates ensuring that they span the given progenitor variance and time." method="rateTabulate"                  />
+       <method description="Build a range of variances at which to tabulate the excursion set solutions."                                  method="varianceRange"                 />
+       <method description="Return the maximum variance to which to tabulate."                                                             method="varianceLimit"                 />
+       <method description="Return a hard upper limit on the variance to which to tabulate, or `huge(0)` if there is none."                method="varianceLimitHard"             />
+       <method description="Return the lattice on which the variance of the current halo is tabulated for barrier crossing rates."         method="rateVarianceLattice"           />
+       <method description="Compute the residual variance between two points."                                                             method="varianceResidual"              />
+       <method description="Compute the effective offset between two points."                                                              method="offsetEffective"               />
+       <method description="Read excursion set solutions from file."                                                                       method="fileRead"                      />
+       <method description="Write excursion set solutions to file."                                                                        method="fileWrite"                     />
+       <method description="Initialize the file name for storing excursion set data."                                                      method="fileNameInitialize"            />
+       <method description="Set the variances at which the first crossing probability is tabulated from the variance lattice."             method="varianceProbabilityFromLattice"/>
      </methods>
      !!]
-     final     ::                               farahiDestructor
-     procedure :: probability                => farahiProbability
-     procedure :: rate                       => farahiRate
-     procedure :: rateNonCrossing            => farahiRateNonCrossing
-     procedure :: rateInterpolate            => farahiRateInterpolate
-     procedure :: rateNonCrossingInterpolate => farahiRateNonCrossingInterpolate
-     procedure :: rateTabulate               => farahiRateTabulate
-     procedure :: fileRead                   => farahiFileRead
-     procedure :: fileWrite                  => farahiFileWrite
-     procedure :: fileNameInitialize         => farahiFileNameInitialize
-     procedure :: varianceRange              => farahiVarianceRange
-     procedure :: varianceLimit              => farahiVarianceLimit
-     procedure :: varianceLimitHard          => farahiVarianceLimitHard
-     procedure :: rateVarianceLattice        => farahiRateVarianceLattice
-     procedure :: varianceResidual           => farahiVarianceResidual
-     procedure :: offsetEffective            => farahiOffsetEffective
+     final     ::                                   farahiDestructor
+     procedure :: probability                    => farahiProbability
+     procedure :: rate                           => farahiRate
+     procedure :: rateNonCrossing                => farahiRateNonCrossing
+     procedure :: rateInterpolate                => farahiRateInterpolate
+     procedure :: rateNonCrossingInterpolate     => farahiRateNonCrossingInterpolate
+     procedure :: rateTabulate                   => farahiRateTabulate
+     procedure :: fileRead                       => farahiFileRead
+     procedure :: fileWrite                      => farahiFileWrite
+     procedure :: fileNameInitialize             => farahiFileNameInitialize
+     procedure :: varianceProbabilityFromLattice => farahiVarianceProbabilityFromLattice
+     procedure :: varianceRange                  => farahiVarianceRange
+     procedure :: varianceLimit                  => farahiVarianceLimit
+     procedure :: varianceLimitHard              => farahiVarianceLimitHard
+     procedure :: rateVarianceLattice            => farahiRateVarianceLattice
+     procedure :: varianceResidual               => farahiVarianceResidual
+     procedure :: offsetEffective                => farahiOffsetEffective
   end type excursionSetFirstCrossingFarahi
 
   interface excursionSetFirstCrossingFarahi
@@ -1596,7 +1598,7 @@ contains
          call Table_Cache_Lattice_Read(dataGroup,'variance',gridSchemePerUnit  ,self%varianceNumberPerUnitProbability,self%latticeVariance,self%countVariance+1)
          call Table_Cache_Lattice_Read(dataGroup,'time'    ,gridSchemePerDecade,self%timeNumberPerDecade             ,self%latticeTime    ,self%countTime      )
          if (self%latticeVariance%isDefined() .and. self%latticeTime%isDefined()) then
-            self%variance        =self%latticeVariance%values ()
+            call self%varianceProbabilityFromLattice()
             self%time            =self%latticeTime    %values ()
             self%varianceStep    =self%latticeVariance%step   ()
             self%timeMinimum     =self%latticeTime    %minimum()
@@ -1844,6 +1846,18 @@ contains
     !$ call hdf5Access%unset()
     return
   end subroutine farahiFileWrite
+
+  subroutine farahiVarianceProbabilityFromLattice(self)
+    !!{RST
+    Set the variances at which the first crossing probability is tabulated from the variance lattice. In this class these are
+    simply the lattice points.
+    !!}
+    implicit none
+    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
+
+    self%variance=self%latticeVariance%values()
+    return
+  end subroutine farahiVarianceProbabilityFromLattice
 
   function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
     !!{RST

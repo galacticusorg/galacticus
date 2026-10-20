@@ -27,7 +27,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   !!}
   use :: Mass_Distributions                         , only : massDistributionClass                              , massDistributionMatches_
   use :: Node_Component_Disk_Standard_Data          , only : massDistributionStellar_                           , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
-       &                                                     scalerGasPool
+       &                                                     scalerGasPool                                      , kinematicDistributionGas_
   use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Cylindrical
   use :: Galactic_Structure_Options                 , only : componentTypeDisk                                  , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
        &                                                     weightByMass                                       , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
@@ -64,7 +64,7 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   end if
   ! Build the disk mass distribution.
   radiusScale       =  self%radius()
-  massDistribution_ => Node_Component_Mass_Distribution_Scaled_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,scalerStellarPool,scalerGasPool)
+  massDistribution_ => Node_Component_Mass_Distribution_Scaled_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool)
   return
 end function Node_Component_Disk_Standard_Mass_Distribution
 

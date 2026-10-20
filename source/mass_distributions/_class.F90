@@ -868,6 +868,19 @@ module Mass_Distributions
       kinematicsDistributionTemperatureGradientLogarithmic=0.0d0
     </code>
    </method>
+   <method name="soundSpeed" >
+    <description>
+    Return the sound speed of the distribution at the given coordinates. By default this is the sound speed of an ideal gas at
+    the temperature of the distribution.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <modules>Ideal_Gases_Thermodynamics</modules>
+    <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+    <code>
+      kinematicsDistributionSoundSpeed=Ideal_Gas_Sound_Speed(self%temperature(coordinates))
+    </code>
+   </method>
    <method name="velocityRadial" >
     <description>
     Return the mean radial velocity at the given coordinate.
