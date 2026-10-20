@@ -28,21 +28,13 @@
     <HubbleConstant value="67.81000"/>
     <OmegaMatter value="0.30600"/>
     <OmegaDarkEnergy value="0.69400"/>
-    <OmegaBaryon value="0.0"/>
+    <OmegaBaryon value="0.04840"/>
     <temperatureCMB value="2.7255"/>
   </cosmologyParameters>
 
   <!-- Power spectrum options -->
   <!-- Use axionCAMB to compute the FDM transfer function -->
-  <transferFunction value="axionCAMB">
-    <cosmologyParameters value="simple">
-        <HubbleConstant value="67.81000"/>
-    	<OmegaMatter value="0.30600"/>
-    	<OmegaDarkEnergy value="0.69400"/>
-    	<OmegaBaryon value="0.04840"/>
-    	<temperatureCMB value="2.7255"/>
-      </cosmologyParameters>
-    </transferFunction>
+  <transferFunction value="axionCAMB"/>
 
   <powerSpectrumPrimordial value="powerLaw">
     <index value="0.9677"/> 
@@ -144,13 +136,6 @@
 
             <transferFunction value="CAMB">
               <redshift value="100.0"/>
-              <cosmologyParameters value="simple">
-                <HubbleConstant value="67.81000"/>
-                <OmegaMatter value="0.30600"/>
-                <OmegaDarkEnergy value="0.69400"/>
-                <OmegaBaryon value="0.04840"/>
-                <temperatureCMB value="2.7255"/>
-              </cosmologyParameters>
               <darkMatterParticle value="CDM"/>
             </transferFunction>
 

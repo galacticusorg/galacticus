@@ -94,7 +94,24 @@ differenceLogarithmicMaximum = np.max(differenceLogarithmic)
 
 if differenceLogarithmicMaximum > 1.5e-1:
     print("FAILED: fuzzyDarkMatterDu2017 halo mass function differs")
+    print(
+        f"{'mass':>16s} "
+        f"{'reference HMF':>16s} "
+        f"{'Galacticus HMF':>16s} "
+        f"{'difference [dex]':>16s}"
+    )
+    for mass_, massFunctionReference_, massFunctionGalacticus_, difference_ in zip(
+        massComparison,
+        massFunctionComparison,
+        massFunctionGalacticusInterpolated,
+        differenceLogarithmic
+    ):
+        print(
+            f"{mass_:16.8e} "
+            f"{massFunctionReference_:16.8e} "
+            f"{massFunctionGalacticus_:16.8e} "
+            f"{difference_:16.8e}"
+        )
     sys.exit(0)
 else:
     print("SUCCESS: fuzzyDarkMatterDu2017 halo mass function agrees")
-
