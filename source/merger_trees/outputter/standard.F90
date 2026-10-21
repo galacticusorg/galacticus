@@ -1098,11 +1098,11 @@ contains
        ! Array property extractor - increment the double property output count by the number of elements.
        self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(time)
     class is (nodePropertyExtractorList         )
-       ! List property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1
+       ! List property extractor - increment the double property output count by the number of elements.
+       self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(    )
     class is (nodePropertyExtractorList2D       )
-       ! 2D list property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount =self%doublePropertyCount +1
+       ! 2D list property extractor - increment the double property output count by the number of elements.
+       self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(    )
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - simply increment the integer property output count by one.
        self%integerPropertyCount=self%integerPropertyCount+1
@@ -1110,8 +1110,8 @@ contains
        ! Integer tuple property extractor - increment the integer property output count by the number of elements.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(time)
     class is (nodePropertyExtractorIntegerList  )
-       ! Integer list property extractor - simply increment the integer property output count by one.
-       self%integerPropertyCount=self%integerPropertyCount+1
+       ! Integer list property extractor - increment the integer property output count by the number of elements.
+       self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(    )
     class is (nodePropertyExtractorMulti        )
        ! Multi property extractor - increment double and integer property output counts.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
@@ -1233,8 +1233,10 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%units     =extractor_%units      (                       )
-       call    extractor_%metaData(node            ,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
-       doubleProperty =doubleProperty +1
+       do i=1,extractor_%elementCount(                       )
+          call extractor_%metaData(node            ,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
+       end do
+       doubleProperty =doubleProperty +extractor_%elementCount()
     class is (nodePropertyExtractorList2D       )
        ! 2D list property extractor - get the name, description, and units.
        call extractor_%names       (namesTmp            )
@@ -1242,8 +1244,10 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%name      =namesTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                       ))%units     =extractor_%units      (                       )
-       call    extractor_%metaData(node  ,time,self%doubleProperty (doubleProperty +1)%metaDataRank0,self%doubleProperty (doubleProperty +1)%metaDataRank1)
-       doubleProperty =doubleProperty +1
+       do i=1,extractor_%elementCount(                       )
+          call extractor_%metaData(node  ,time,self%doubleProperty (doubleProperty +i)%metaDataRank0,self%doubleProperty (doubleProperty +i)%metaDataRank1)
+       end do
+       doubleProperty =doubleProperty +extractor_%elementCount()
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - get the name, description, and units.
        self%integerProperty(integerProperty+1                                                                 )%name     =extractor_%name        (                       )
@@ -1271,8 +1275,10 @@ contains
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%name      =namesTmp
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%comment   =descriptionsTmp
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                       ))%units     =extractor_%units      (                       )
-       call    extractor_%metaData(node            ,self%integerProperty(integerProperty+1)%metaDataRank0,self%integerProperty(integerProperty+1)%metaDataRank1)
-       integerProperty =integerProperty +1
+       do i=1,extractor_%elementCount(                       )
+          call extractor_%metaData(node       ,self%integerProperty(integerProperty+i)%metaDataRank0,self%integerProperty(integerProperty+i)%metaDataRank1)
+       end do
+       integerProperty=integerProperty+extractor_%elementCount()
     class is (nodePropertyExtractorMulti        )
        ! Multi property extractor - get the names, descriptions, and units.
        if (extractor_%elementCount(elementTypeDouble ,time) > 0) then

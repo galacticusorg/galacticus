@@ -1541,6 +1541,7 @@ jobs:
                 test-output-times.py,
                 test-output-tree-contiguousity.py,
                 test-output-variable-length-datasets.py,
+                test-output-list-extractor-top-level.py,
                 test-outputSelector.py,
                 test-parameter-validation.py,
                 test-python-modules.py,
