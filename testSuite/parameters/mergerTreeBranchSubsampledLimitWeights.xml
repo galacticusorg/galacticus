@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to the merger tree branch subsampling test model to limit the weights of subsampled branches. -->
+<changes>
+  <change type="replaceOrAppend" path="mergerTreeBuildController/limitWeights"><limitWeights value="true"/></change>
+  <change type="update"          path="outputFileName" value="testSuite/outputs/mergerTreeBranchSubsampledLimitWeights.hdf5"/>
+</changes>
