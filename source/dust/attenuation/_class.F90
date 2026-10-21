@@ -57,11 +57,12 @@ module Dust_Attenuations
   than in an implementation file, because each implementation is generated into its own submodule and so cannot see
   module-level declarations made by its siblings.
   !!}
-  use :: Dust_Attenuation_Descriptors, only : decompositionRequest  , emissionDescriptor
-  use :: Dust_Properties             , only : componentGasProperties, densitySurfaceGasDepthOpticalVUnitMilkyWay, dustPropertiesClass
-  use :: Galactic_Structure_Options  , only : componentTypeAll      , enumerationComponentTypeType
-  use :: Galacticus_Nodes            , only : treeNode
-  use :: ISO_Varying_String          , only : varying_string
+  use :: Dust_Attenuation_Descriptors        , only : decompositionRequest  , emissionDescriptor
+  use :: Dust_Properties                     , only : componentGasProperties, densitySurfaceGasDepthOpticalVUnitMilkyWay, dustPropertiesClass
+  use :: Galactic_Structure_Options          , only : componentTypeAll      , enumerationComponentTypeType
+  use :: Galacticus_Nodes                    , only : treeNode
+  use :: ISO_Varying_String                  , only : varying_string
+  use :: Numerical_Quadrature_Gauss_Legendre , only : gaussLegendreRule
   private
   ! Made public so that it survives into the object file: it is called only from the submodules into which the
   ! implementations of this class are generated, never from this module itself, and a private procedure with no
@@ -259,62 +260,6 @@ contains
     end do
     return
   end function absorbedFractionsPhases
-
-  subroutine gaussLegendreRule(order,abscissae,weights)
-    !!{RST
-    Return the abscissae and weights of the Gauss-Legendre rule of the given ``order`` on the interval
-    :math:`[0,1]`.
-
-    The nodes are the roots of the Legendre polynomial of that order, found by Newton iteration from the standard
-    Chebyshev-like starting guess, with the polynomial and its derivative evaluated by the usual recurrence. Both are
-    then mapped from :math:`[-1,1]` onto :math:`[0,1]`, and the weights scaled by the half-width of the interval so
-    that they sum to unity---which is what makes the result an average rather than an integral.
-
-    Averages over orientation are needed both by :galacticus-class:`dustAttenuationInclinationAveraged` and by any
-    consumer of ``absorbedFractions``, so the rule lives here rather than in an implementation.
-    !!}
-    use :: Numerical_Constants_Math, only : Pi
-    implicit none
-    integer                       , intent(in   )               :: order
-    double precision, allocatable , intent(inout), dimension(:) :: abscissae                     , weights
-    double precision              , parameter                   :: toleranceRelative     =1.0d-15
-    integer                       , parameter                   :: countIterationsMaximum=100
-    double precision                                            :: root                          , rootPrevious , &
-         &                                                         legendre                      , legendreLower, &
-         &                                                         legendreLowerLower            , derivative
-    integer                                                     :: i                             , j            , &
-         &                                                         countIterations
-
-    if (allocated(abscissae)) deallocate(abscissae)
-    if (allocated(weights  )) deallocate(weights  )
-    allocate(abscissae(order))
-    allocate(weights  (order))
-    do i=1,order
-       ! Initial guess for the i'th root of the Legendre polynomial of this order.
-       root=cos(Pi*(dble(i)-0.25d0)/(dble(order)+0.5d0))
-       countIterations=0
-       do
-          ! Evaluate the Legendre polynomial and its derivative at the current estimate by recurrence.
-          legendre     =1.0d0
-          legendreLower=0.0d0
-          do j=1,order
-             legendreLowerLower=legendreLower
-             legendreLower     =legendre
-             legendre          =(dble(2*j-1)*root*legendreLower-dble(j-1)*legendreLowerLower)/dble(j)
-          end do
-          derivative  =dble(order)*(root*legendre-legendreLower)/(root**2-1.0d0)
-          rootPrevious=root
-          root        =rootPrevious-legendre/derivative
-          countIterations=countIterations+1
-          if (abs(root-rootPrevious) <= toleranceRelative*abs(root) .or. countIterations >= countIterationsMaximum) exit
-       end do
-       ! Map from [-1,1] onto [0,1]. The weights are halved along with the interval, so that they sum to unity and
-       ! the quadrature returns a mean.
-       abscissae(i)=0.5d0*(1.0d0-root)
-       weights  (i)=1.0d0/((1.0d0-root**2)*derivative**2)
-    end do
-    return
-  end subroutine gaussLegendreRule
 
   double precision function radiusSpheroidRelative(node) result(radiusSpheroid)
     !!{RST

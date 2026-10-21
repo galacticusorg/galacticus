@@ -147,6 +147,15 @@
   ! discrete set of ranges which can result.
   integer                         , parameter :: anchorEveryMass=pointsPerDecade, anchorEveryTime    =  1
 
+  ! Format version of stored σ(M) tabulations. Version 2 marks tabulations made after transfer functions were required to be
+  ! normalized to unity on large scales. The stored normalization of the power spectrum is relative to the normalization of the
+  ! transfer function, so a tabulation made before that change would misnormalize the power spectrum. Such files can not be
+  ! detected through the file name (whose source digest does not include that of the transfer function), so are instead
+  ! rejected on this version. Version 3 marks tabulations made after the curvature parameter passed to CAMB and CLASS was
+  ! corrected, and the curvature factor 1-3K/k² removed from tabulated transfer functions, both of which change the transfer
+  ! function in non-flat cosmologies.
+  integer                         , parameter :: filteredPowerFileFormatCurrent=3
+
   ! Seed range of masses to tabulate. Every tabulation contains this range, so any two which are never asked for a mass outside
   ! it span *exactly* the same range - which matters here beyond the usual guarantee that two ranges overlap and so can be
   ! merged. σ(M) is interpolated with a cubic spline, every coefficient of which depends on every tabulated value, so σ at a
@@ -1534,7 +1543,8 @@ contains
     integer                                                , dimension(:,:), allocatable :: indexTmp
     type            (rangeLattice                         )                              :: latticeMass    , latticeTime
     logical                                                , dimension(:  ), allocatable :: isComputed
-    integer                                                                              :: i              , useCache
+    integer                                                                              :: i              , useCache       , &
+         &                                                                                  fileFormat
 
     latticeMass=rangeLattice()
     latticeTime=rangeLattice()
@@ -1577,8 +1587,13 @@ contains
          ! Note that an undefined time lattice is a legitimate record - it is what is written where growth is mass-independent
          ! and sigma(M) is tabulated at a single epoch - so a missing record is told apart from that one through the mass axis,
          ! which is never undefined in a usable file.
-         call Table_Cache_Lattice_Read(dataFile,'mass',gridSchemePerDecade,pointsPerDecade    ,latticeMass)
-         call Table_Cache_Lattice_Read(dataFile,'time',gridSchemePerDecade,timePointsPerDecade,latticeTime)
+         ! A file of any other format version is ignored by leaving the mass lattice undefined.
+         fileFormat=0
+         if (dataFile%hasAttribute('fileFormat')) call dataFile%readAttribute('fileFormat',fileFormat)
+         if (fileFormat == filteredPowerFileFormatCurrent) then
+            call Table_Cache_Lattice_Read(dataFile,'mass',gridSchemePerDecade,pointsPerDecade    ,latticeMass)
+            call Table_Cache_Lattice_Read(dataFile,'time',gridSchemePerDecade,timePointsPerDecade,latticeTime)
+         end if
          if (latticeMass%isDefined()) then
             call dataFile%readDataset  ('times'             ,     timesTmp             )
             call dataFile%readDataset  ('mass'              ,     massTmp              )
@@ -1750,14 +1765,15 @@ contains
        hdf5WriteScope: block
          type(hdf5File  ) :: dataFile
          dataFile=hdf5File(self%fileName,overWrite=.true.,objectsOverwritable=.true.,chunkSize=100_hsize_t,compressionLevel=9)
-         call dataFile%writeDataset  (self%times                ,'times'             )
-         call dataFile%writeDataset  (     massTmp              ,'mass'              )
-         call dataFile%writeDataset  (     rootVarianceTmp      ,'rootVariance'      )
-         call dataFile%writeDataset  (     rootVarianceUniqueTmp,'rootVarianceUnique')
-         call dataFile%writeDataset  (     indexTmp             ,'indexUnique'       )
-         call dataFile%writeDataset  (     uniqueSizeTmp        ,'uniqueSize'        )
-         call dataFile%writeAttribute(self%sigma8Value          ,'sigma8'            )
-         call dataFile%writeAttribute(self%sigmaNormalization   ,'sigmaNormalization')
+         call dataFile%writeDataset  (self%times                         ,'times'             )
+         call dataFile%writeDataset  (     massTmp                       ,'mass'              )
+         call dataFile%writeDataset  (     rootVarianceTmp               ,'rootVariance'      )
+         call dataFile%writeDataset  (     rootVarianceUniqueTmp         ,'rootVarianceUnique')
+         call dataFile%writeDataset  (     indexTmp                      ,'indexUnique'       )
+         call dataFile%writeDataset  (     uniqueSizeTmp                 ,'uniqueSize'        )
+         call dataFile%writeAttribute(self%sigma8Value                   ,'sigma8'            )
+         call dataFile%writeAttribute(self%sigmaNormalization            ,'sigmaNormalization')
+         call dataFile%writeAttribute(     filteredPowerFileFormatCurrent,'fileFormat'        )
          ! Record the lattices on which the two axes are built. The bounds and interpolating factors which were formerly stored
          ! alongside them are not: each is a function of the lattices and of the epochs, and is recomputed when the file is read,
          ! so that a restored tabulation cannot come to be described differently from a freshly built one.

@@ -592,6 +592,7 @@ mpirun
 multi
 multilinear
 multinomial
+multiplicatively
 multistream
 nanometers
 noncentral
@@ -808,6 +809,7 @@ timesteps
 tokenized
 triaxial
 truncations
+heatings
 ttfamily
 tuple
 unaccreted
@@ -1220,3 +1222,4 @@ heteroscedastic
 hyperparameter
 hyperparameters
 scikit
+misalignments

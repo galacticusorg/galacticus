@@ -28,9 +28,11 @@
      A Gaussian process emulating one principal component coefficient.
      !!}
      double precision                              :: amplitude
-     double precision, allocatable, dimension(:  ) :: lengthScales    , alpha
+     double precision, allocatable, dimension(:  ) :: lengthScales    , alpha, &
+          &                                           noiseVariance
      ! The transpose of the lower-triangular Cholesky factor, L, of the covariance matrix of the training data (so that
-     ! factorTransposed(:,i) holds row i of L, and the triangular solve accesses memory contiguously).
+     ! factorTransposed(:,i) holds row i of L, and the triangular solve accesses memory contiguously). It is needed only for the
+     ! variance of predictions, and costs 8N² bytes, so is read (or computed) only when a variance is first requested.
      double precision, allocatable, dimension(:,:) :: factorTransposed
   end type emulatorGaussianProcessComponent
 
@@ -63,7 +65,7 @@
      type            (emulatorGaussianProcessComponent), allocatable, dimension(:  ) :: components
      double precision                                                                :: jitter              , floor_          , &
           &                                                                             rootVarianceFloored_
-     logical                                                                         :: hasFloor
+     logical                                                                         :: hasFloor            , factorized
    contains
      procedure :: countInputs     => gaussianProcessCountInputs
      procedure :: inputNames      => gaussianProcessInputNames
@@ -76,6 +78,7 @@
      procedure :: counts          => gaussianProcessCounts
      procedure :: trainingPoints  => gaussianProcessTrainingPoints
      procedure :: predict         => gaussianProcessPredict
+     procedure :: factorize       => gaussianProcessFactorize
   end type emulatorGaussianProcess
 
   interface emulatorGaussianProcess
@@ -131,22 +134,19 @@ contains
     use            :: IO_HDF5           , only : hdf5File     , hdf5Group
     use            :: ISO_Varying_String, only : char         , operator(//) , operator(/=)  , operator(==), &
          &                                       var_str      , assignment(=)
-    use            :: Linear_Algebra    , only : assignment(=), matrix       , matrixCholesky
     use            :: String_Handling   , only : operator(//)
     implicit none
     type            (emulatorGaussianProcess)                              :: self
     type            (varying_string         ), intent(in   )               :: fileName       , label
-    double precision                         , allocatable, dimension(:,:) :: covariance     , factor         , &
-         &                                                                    valuesDesign
+    double precision                         , allocatable, dimension(:,:) :: valuesDesign
     integer         (c_size_t               ), allocatable, dimension(:  ) :: pointIndex
     type            (varying_string         ), allocatable, dimension(:  ) :: namesDesign
-    double precision                         , allocatable, dimension(:  ) :: logLengthScales, noiseVariance
+    double precision                         , allocatable, dimension(:  ) :: logLengthScales
     type            (varying_string         )                              :: formatName     , kernel
     integer                                                                :: formatVersion  , countComponents, &
          &                                                                    k              , i              , &
          &                                                                    j
     double precision                                                       :: logAmplitude
-    logical                                                                :: hasFactor
     !![
     <constructorAssign variables="fileName, label"/>
     !!]
@@ -212,37 +212,18 @@ contains
          block
            type(hdf5Group) :: componentGroup_
            componentGroup_=emulatorGroup%openGroup(char(var_str('component')//k))
-           call componentGroup_%readAttribute('logAmplitude'   ,logAmplitude                )
-           call componentGroup_%readDataset  ('logLengthScales',logLengthScales             )
-           call componentGroup_%readDataset  ('alpha'          ,self%components(k)%alpha    )
-           call componentGroup_%readDataset  ('noiseVariance'  ,noiseVariance               )
-           hasFactor=componentGroup_%hasDataset('choleskyFactor')
-           if (hasFactor) call componentGroup_%readDataset('choleskyFactor',self%components(k)%factorTransposed)
+           call componentGroup_%readAttribute('logAmplitude'   ,logAmplitude                    )
+           call componentGroup_%readDataset  ('logLengthScales',logLengthScales                 )
+           call componentGroup_%readDataset  ('alpha'          ,self%components(k)%alpha        )
+           call componentGroup_%readDataset  ('noiseVariance'  ,self%components(k)%noiseVariance)
          end block
          self%components(k)%amplitude   =exp(logAmplitude   )
          self%components(k)%lengthScales=exp(logLengthScales)
-         if (.not.hasFactor) then
-            ! No stored factor - compute it from the covariance matrix of the training data.
-            allocate(covariance(size(self%inputs,dim=2),size(self%inputs,dim=2)))
-            allocate(factor    (size(self%inputs,dim=2),size(self%inputs,dim=2)))
-            do i=1,size(self%inputs,dim=2)
-               do j=1,i
-                  covariance(i,j)=gaussianProcessKernel(self%inputs(:,i),self%inputs(:,j),self%components(k)%amplitude,self%components(k)%lengthScales)
-                  covariance(j,i)=covariance(i,j)
-               end do
-               covariance(i,i)=covariance(i,i)+noiseVariance(i)+self%jitter
-            end do
-            block
-              type(matrixCholesky) :: decomposition
-              decomposition=matrixCholesky(matrix(covariance))
-              factor       =decomposition
-            end block
-            self%components(k)%factorTransposed=transpose(factor)
-            deallocate(covariance,factor)
-         end if
       end do
     end block
     !$ call hdf5Access%unset()
+    ! The Cholesky factors are found only when a variance is first requested.
+    self%factorized=.false.
     ! Validate shapes.
     if (size(self%inputNames_) /= size(self%inputs,dim=1)) call Error_Report('inconsistent number of inputs'//{introspection:location})
     if (size(self%pcaComponents,dim=1) /= size(self%binMean) .or. size(self%pcaComponents,dim=2) /= countComponents) &
@@ -437,34 +418,45 @@ contains
     Predict the mean and variance of the emulated observable. For each component, :math:`k`, the Gaussian process gives a mean
     :math:`m_k = \mathbf{k}_*^\mathrm{T} \alpha_k` and variance :math:`v_k = A_k - |\mathsf{L}_k^{-1} \mathbf{k}_*|^2`
     (limited to be non-negative), which are transformed back to the coefficients of the principal components and projected
-    onto the bins.
+    onto the bins. The variance requires a triangular solve, costing :math:`\mathrm{O}(N^2)` operations for :math:`N` training
+    points (compared to :math:`\mathrm{O}(N)` for the mean), and the Cholesky factor of each Gaussian process, so is computed
+    only if ``variance`` is present.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    class           (emulatorGaussianProcess), intent(inout)               :: self
-    double precision                         , intent(in   ), dimension(:) :: quantiles
-    double precision                         , intent(  out), dimension(:) :: mean           , variance
-    double precision                         , allocatable  , dimension(:) :: covarianceCross, solved
-    double precision                                                       :: meanComponent  , varianceComponent  , &
-         &                                                                    coefficient    , varianceCoefficient
-    integer                                                                :: k              , i                  , &
-         &                                                                    countPoints
+    class           (emulatorGaussianProcess), intent(inout)                         :: self
+    double precision                         , intent(in   ), dimension(:)           :: quantiles
+    double precision                         , intent(  out), dimension(:)           :: mean
+    double precision                         , intent(  out), dimension(:), optional :: variance
+    double precision                         , allocatable  , dimension(:)           :: covarianceCross, solved
+    double precision                                                                 :: meanComponent  , varianceComponent  , &
+         &                                                                              coefficient    , varianceCoefficient
+    integer                                                                          :: k              , i                  , &
+         &                                                                              countPoints
 
-    if (size(quantiles) /= size(self%inputNames_)                                          ) &
+    if (size(quantiles) /= size(self%inputNames_)) &
          & call Error_Report('incorrect number of inputs' //{introspection:location})
-    if (size(mean     ) /= size(self%binMean    ) .or. size(variance) /= size(self%binMean)) &
+    if (size(mean     ) /= size(self%binMean    )) &
          & call Error_Report('incorrect number of outputs'//{introspection:location})
+    if (present(variance)) then
+       if (size(variance) /= size(self%binMean)) call Error_Report('incorrect number of outputs'//{introspection:location})
+       if (.not.self%factorized) call self%factorize()
+    end if
     countPoints=size(self%inputs,dim=2)
     allocate(covarianceCross(countPoints))
-    allocate(solved         (countPoints))
-    mean    =self%binMean
-    variance=0.0d0
+    if (present(variance)) allocate(solved(countPoints))
+    mean=self%binMean
+    if (present(variance)) variance=0.0d0
     do k=1,size(self%components)
        ! The covariance between the input point and each training point.
        do i=1,countPoints
           covarianceCross(i)=gaussianProcessKernel(quantiles,self%inputs(:,i),self%components(k)%amplitude,self%components(k)%lengthScales)
        end do
        meanComponent=dot_product(covarianceCross,self%components(k)%alpha)
+       ! Transform back to the coefficient of this principal component, and project onto the bins.
+       coefficient  =self%coefficientMean(k)+self%coefficientScale(k)*meanComponent
+       mean         =mean+self%binScale*coefficient*self%pcaComponents(:,k)
+       if (.not.present(variance)) cycle
        ! Solve L v = k* by forward substitution; the variance is A - |v|².
        do i=1,countPoints
           solved(i)=+(                                                                         &
@@ -474,11 +466,64 @@ contains
                &    /self%components(k)%factorTransposed(i,i)
        end do
        varianceComponent  =max(self%components(k)%amplitude-dot_product(solved,solved),0.0d0)
-       ! Transform back to the coefficient of this principal component, and project onto the bins.
-       coefficient        =self%coefficientMean (k)+self%coefficientScale(k)   *meanComponent
-       varianceCoefficient=                         self%coefficientScale(k)**2*varianceComponent
-       mean               =mean    +self%binScale   *coefficient        *self%pcaComponents(:,k)
+       varianceCoefficient=self%coefficientScale(k)**2*varianceComponent
        variance           =variance+self%binScale**2*varianceCoefficient*self%pcaComponents(:,k)**2
     end do
     return
   end subroutine gaussianProcessPredict
+
+  subroutine gaussianProcessFactorize(self)
+    !!{RST
+    Find the Cholesky factor of the covariance matrix of the training data of each Gaussian process, reading it from the
+    emulator file if stored there, and computing it otherwise. Called on the first request for the variance of a prediction.
+    !!}
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5File     , hdf5Group
+    use :: ISO_Varying_String, only : char         , var_str
+    use :: Linear_Algebra    , only : assignment(=), matrix   , matrixCholesky
+    use :: String_Handling   , only : operator(//)
+    implicit none
+    class           (emulatorGaussianProcess), intent(inout)               :: self
+    double precision                         , allocatable, dimension(:,:) :: covariance, factor
+    integer                                                                :: k         , i     , &
+         &                                                                    j
+    logical                                                                :: hasFactor
+
+    !$omp critical (gaussianProcessFactorize)
+    if (.not.self%factorized) then
+       do k=1,size(self%components)
+          !$ call hdf5Access%set()
+          block
+            type(hdf5File ) :: file
+            type(hdf5Group) :: componentGroup_
+            file           =hdf5File(char(self%fileName),readOnly=.true.)
+            componentGroup_=file%openGroup(char(var_str('emulators/')//self%label//'/component'//k))
+            hasFactor      =componentGroup_%hasDataset('choleskyFactor')
+            if (hasFactor) call componentGroup_%readDataset('choleskyFactor',self%components(k)%factorTransposed)
+          end block
+          !$ call hdf5Access%unset()
+          if (.not.hasFactor) then
+             ! No stored factor - compute it from the covariance matrix of the training data.
+             allocate(covariance(size(self%inputs,dim=2),size(self%inputs,dim=2)))
+             allocate(factor    (size(self%inputs,dim=2),size(self%inputs,dim=2)))
+             do i=1,size(self%inputs,dim=2)
+                do j=1,i
+                   covariance(i,j)=gaussianProcessKernel(self%inputs(:,i),self%inputs(:,j),self%components(k)%amplitude,self%components(k)%lengthScales)
+                   covariance(j,i)=covariance(i,j)
+                end do
+                covariance(i,i)=covariance(i,i)+self%components(k)%noiseVariance(i)+self%jitter
+             end do
+             block
+               type(matrixCholesky) :: decomposition
+               decomposition=matrixCholesky(matrix(covariance))
+               factor       =decomposition
+             end block
+             self%components(k)%factorTransposed=transpose(factor)
+             deallocate(covariance,factor)
+          end if
+       end do
+       self%factorized=.true.
+    end if
+    !$omp end critical (gaussianProcessFactorize)
+    return
+  end subroutine gaussianProcessFactorize

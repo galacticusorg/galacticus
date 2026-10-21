@@ -1200,6 +1200,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="galacticComponentHeating">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="none"/>
+          <xs:enumeration value="tracer"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="galacticComponentTruncation">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -1305,6 +1321,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="fixed"/>
+          <xs:enumeration value="misaligned"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="random"/>
           <xs:enumeration value="spinVector"/>
@@ -1772,6 +1789,7 @@
           <xs:enumeration value="collisionless"/>
           <xs:enumeration value="collisionlessTabulated"/>
           <xs:enumeration value="cuspNFW"/>
+          <xs:enumeration value="effectiveSoundSpeed"/>
           <xs:enumeration value="enzoHydrostatic"/>
           <xs:enumeration value="finiteResolutionNFW"/>
           <xs:enumeration value="heated"/>
@@ -1855,6 +1873,7 @@
           <xs:enumeration value="sphericalFiniteResolutionNFW"/>
           <xs:enumeration value="sphericalHeated"/>
           <xs:enumeration value="sphericalHeatedMonotonic"/>
+          <xs:enumeration value="sphericalHeatedTracer"/>
           <xs:enumeration value="sphericalSIDM"/>
           <xs:enumeration value="sphericalSIDMCoreNFW"/>
           <xs:enumeration value="sphericalSIDMIsothermal"/>
@@ -2598,6 +2617,7 @@
           <xs:enumeration value="massCooled"/>
           <xs:enumeration value="massHostMaximum"/>
           <xs:enumeration value="massProgenitorMaximum"/>
+          <xs:enumeration value="misalignmentRandom"/>
           <xs:enumeration value="multi"/>
           <xs:enumeration value="nodeFormationTimeCole2000"/>
           <xs:enumeration value="nodeFormationTimeMassFraction"/>
@@ -2613,6 +2633,7 @@
           <xs:enumeration value="positionTraceDarkMatter"/>
           <xs:enumeration value="presetNamedShift"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="ramPressureMassLossDisks"/>
           <xs:enumeration value="ramPressureMassLossSpheroids"/>
           <xs:enumeration value="satelliteDecelerationSIDM"/>
@@ -2787,6 +2808,7 @@
           <xs:enumeration value="radiusVelocityMaximum"/>
           <xs:enumeration value="radiusVirial"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="rateCooling"/>
           <xs:enumeration value="rateInfallColdMode"/>
           <xs:enumeration value="ratio"/>

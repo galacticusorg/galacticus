@@ -1086,6 +1086,19 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-haloMassFunction${{ matrix.group }}
     secrets: inherit
+  Validate-Halo-Mass-Function-Fuzzy-Dark-Matter:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy
+      file: validate-haloMassFunction-fuzzyDarkMatter.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      # The excursion set first crossing tabulation dominates the run time (about 14 minutes on four threads with a cold
+      # cache), and is written to file, so cache it.
+      cacheData: 1
+      ompNumThreads: 4
+    secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
@@ -1223,6 +1236,7 @@ jobs:
                       tests.dust.emission_spectra.exe,
                       tests.dust.attenuation_stellar_mass_redshift.exe,
                       tests.dust.attenuation_AGN_torus.exe,
+                      tests.dust.attenuation_AGN_torus_misaligned.exe,
                       tests.dust.attenuation_AGN_torus_SKIRTOR.exe,
                       tests.dust.emission_AGN_torus_CLUMPY.exe,
                       tests.output_analyses.attenuation_scatter.exe,
@@ -1528,6 +1542,7 @@ jobs:
                 test-outputAnalysisLikelihoods.py,
                 test-morphologicalFractionGAMAMoffett2016.py,
                 test-dust-emission-energy-balance.py,
+                test-AGN-torus-misalignment.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
                 test-mass-host-maximum.py,
@@ -1599,6 +1614,7 @@ jobs:
                 test-node-trajectory.py,
                 test-virial-orbit-loss-cone.py,
                 test-CGM-ram-pressure-outer-radius.py,
+                test-ram-pressure-history.py,
                 test-parameter-resolver.py,
                 test-prompt-cusps-unformed.py,
                 test-radius-specifiers-soliton.py,
@@ -1718,6 +1734,7 @@ jobs:
                 testSuite/parameters/test-nuclear-star-cluster.xml,
                 testSuite/parameters/tidalStrippingGalacticComponents.xml,
                 testSuite/parameters/tidalStrippingGalacticComponentsTruncated.xml,
+                testSuite/parameters/tidalStrippingGalacticComponentsHeated.xml,
                 parameters/examples/tidalStrippingBaryonicSubhalo.xml,
                 testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
                 testSuite/parameters/subhaloOrbitOnZAxis.xml ]

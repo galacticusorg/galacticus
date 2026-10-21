@@ -23,6 +23,10 @@
 	  <expansionFactors value="1.00000 0.67120 0.50320 0.33030 0.24770"/>
 	  <snapshots        value="102     84      71      52      39     "/>
 	</haloMassFunction>
+	<progenitorMassFunction>
+	  <treeMasses     value="sampled"/>
+	  <treesPerDecade value="4000"   />
+	</progenitorMassFunction>
       </resolution>
     </group>
     <group name="BigMDPL" detectionEfficiencyClass="2">
@@ -36,6 +40,10 @@
 	  <expansionFactors value="1.00000 0.67040 0.50000 0.31800 0.25700"/>
 	  <snapshots        value="79      34      11      9       7      "/>
 	</haloMassFunction>
+	<progenitorMassFunction>
+	  <treeMasses     value="sampled"/>
+	  <treesPerDecade value="1000"   />
+	</progenitorMassFunction>
       </resolution>
     </group>
     <group name="MDPL2" detectionEfficiencyClass="3">
@@ -66,6 +74,10 @@
 	  <expansionFactors value="1.00000 0.66430 0.50000 0.33100 0.24800"/>
 	  <snapshots        value="116     70      48      38      31     "/>
 	</haloMassFunction>
+	<progenitorMassFunction>
+	  <treeMasses     value="sampled"/>
+	  <treesPerDecade value="1000"   />
+	</progenitorMassFunction>
       </resolution>
     </group>
     <group name="VSMDPL" detectionEfficiencyClass="4">
@@ -79,6 +91,10 @@
 	  <expansionFactors value="1.00000 0.67110 0.50250 0.33000 0.24750"/>
 	  <snapshots        value="150     132     119     100     87     "/>
 	</haloMassFunction>
+	<progenitorMassFunction>
+	  <treeMasses     value="sampled"/>
+	  <treesPerDecade value="1000"   />
+	</progenitorMassFunction>
       </resolution>
     </group>
   </suite>

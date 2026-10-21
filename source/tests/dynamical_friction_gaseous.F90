@@ -25,6 +25,9 @@ Tests of the dimensionless drag force for dynamical friction in a gaseous medium
 :cite:t:`chandrasekhar_dynamical_1943` class from the collisionless formula. The Chandrasekhar integral of a collisional
 spherical mass distribution is also checked against the drag computed directly from the sound speed of the gas, and that of
 an isothermal distribution flagged as collisionless against the collisionless formula, whichever gaseous drag is supplied.
+For a collisional (gaseous) cylindrical distribution, with a uniform effective sound speed, the Chandrasekhar integral is
+checked against the drag computed directly from the velocity of the perturber relative to the rotating gas, while for a
+collisionless cylindrical distribution it is checked to be independent of the gaseous drag supplied.
 !!}
 
 program Tests_Dynamical_Friction_Gaseous
@@ -32,28 +35,37 @@ program Tests_Dynamical_Friction_Gaseous
   use :: Display                             , only : displayVerbositySet                      , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: Ideal_Gases_Thermodynamics          , only : Ideal_Gas_Sound_Speed
-  use :: Mass_Distributions                  , only : kinematicsDistributionIsothermal         , massDistributionIsothermal
+  use :: IO_HDF5                             , only : ioHDF5AccessInitialize
+  use :: Mass_Distributions                  , only : kinematicsDistributionIsothermal         , massDistributionIsothermal        , &
+  &                                                   kinematicsDistributionEffectiveSoundSpeed, kinematicsDistributionLocal       , &
+  &                                                   massDistributionExponentialDisk
   use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousChandrasekhar1943, dynamicalFrictionGaseousKimKim2007
   use :: Unit_Tests                          , only : Assert                                   , Unit_Tests_Begin_Group            , &
   &                                                   Unit_Tests_End_Group                     , Unit_Tests_Finish
   implicit none
-  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact                  , kimKim2007
+  type            (dynamicalFrictionGaseousKimKim2007       )               :: kimKim2007Exact                         , kimKim2007
   type            (dynamicalFrictionGaseousChandrasekhar1943)               :: chandrasekhar1943
-  type            (massDistributionIsothermal               )               :: massDistributionHost             , massDistributionPerturber                 , &
+  type            (massDistributionIsothermal               )               :: massDistributionHost                    , massDistributionPerturber                 , &
        &                                                                       massDistributionHostCollisionless
-  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas        , kinematicsDistributionCollisionless
-  type            (coordinateCartesian                      )               :: position                         , velocity                                  , &
+  type            (kinematicsDistributionIsothermal         )               :: kinematicsDistributionGas               , kinematicsDistributionCollisionless
+  type            (kinematicsDistributionEffectiveSoundSpeed)               :: kinematicsDistributionISM
+  type            (kinematicsDistributionLocal              )               :: kinematicsDistributionStellar
+  type            (massDistributionExponentialDisk          )               :: massDistributionDiskGas                 , massDistributionDiskStellar
+  type            (coordinateCartesian                      )               :: position                                , velocity                                  , &
        &                                                                       integral
-  double precision                                           , dimension(3) :: integralVector
-  double precision                                                          :: forceFactorBelow                 , forceFactorAbove                          , &
-       &                                                                       soundSpeed                       , density                                   , &
-       &                                                                       speed
-  double precision                                           , parameter    :: velocityDispersion       =2.0d+2 , offsetMachNumber                   =1.0d-9, &
-       &                                                                       logarithmCoulomb         =2.5d+0 , machNumber                         =1.5d+0, &
-       &                                                                       massPerturber            =1.0d+9
+  double precision                                           , dimension(3) :: integralVector                          , integralVectorChandrasekhar1943           , &
+       &                                                                       velocityDisk                            , velocityRelative
+  double precision                                                          :: forceFactorBelow                        , forceFactorAbove                          , &
+       &                                                                       soundSpeed                              , density                                   , &
+       &                                                                       speed                                   , velocityCircular
+  double precision                                           , parameter    :: velocityDispersion               =2.0d+2, offsetMachNumber                   =1.0d-9, &
+       &                                                                       logarithmCoulomb                 =2.5d+0, machNumber                         =1.5d+0, &
+       &                                                                       massPerturber                    =1.0d+9, soundSpeedISM                      =1.0d+1, &
+       &                                                                       massPerturberCompact             =1.0d+5
 
-  call displayVerbositySet  (verbosityLevelStandard)
-  call eventsHooksInitialize(                      )
+  call displayVerbositySet   (verbosityLevelStandard)
+  call eventsHooksInitialize (                      )
+  call ioHDF5AccessInitialize(                      )
   call Unit_Tests_Begin_Group("Gaseous dynamical friction")
   kimKim2007Exact  =dynamicalFrictionGaseousKimKim2007       (widthTransition=0.00d0)
   kimKim2007       =dynamicalFrictionGaseousKimKim2007       (widthTransition=0.05d0)
@@ -122,6 +134,38 @@ program Tests_Dynamical_Friction_Gaseous
   integral  =massDistributionHostCollisionless%chandrasekharIntegral(massDistributionHostCollisionless,massDistributionPerturber,massPerturber,position,velocity,logarithmCoulomb,chandrasekhar1943)
   integralVector=integral
   call Assert("Chandrasekhar integral, collisionless, Chandrasekhar (1943)",integralVector,[0.0d0,-density*chandrasekhar1943%forceFactor(speed/velocityDispersion,logarithmCoulomb)/speed**2,0.0d0],relTol=1.0d-9)
+  ! Effective sound speed kinematics, as used for the interstellar medium.
+  kinematicsDistributionISM=kinematicsDistributionEffectiveSoundSpeed(soundSpeedEffective=soundSpeedISM)
+  call Assert("Effective sound speed: collisional"                     ,kinematicsDistributionISM%isCollisional                          (                                                  ),.true.                                        )
+  call Assert("Effective sound speed: sound speed"                     ,kinematicsDistributionISM%soundSpeed                             (position                                          ),soundSpeedISM                  ,relTol=1.0d-12)
+  call Assert("Effective sound speed: velocity dispersion"             ,kinematicsDistributionISM%velocityDispersion1D                   (position,massDistributionHost,massDistributionHost),soundSpeedISM                  ,relTol=1.0d-12)
+  call Assert("Effective sound speed: velocity dispersion gradient"    ,kinematicsDistributionISM%velocityDispersion1DGradientLogarithmic(position,massDistributionHost,massDistributionHost),0.0d0                          ,absTol=1.0d-30)
+  call Assert("Effective sound speed: isothermal temperature"          ,Ideal_Gas_Sound_Speed(kinematicsDistributionISM%temperature(position))                                               ,sqrt(5.0d0/3.0d0)*soundSpeedISM,relTol=1.0d-09)
+  ! Chandrasekhar integral of a collisional (gaseous) cylindrical distribution. The perturber moves vertically through the disk
+  ! plane with a speed relative to the rotating gas corresponding to a Mach number of 1.5. It is much more compact than its own
+  ! enclosed mass within the scale height of the disk, so that no suppression due to its extent is applied. The integral must then
+  ! be -ρ v I(M,lnΛ)/V³, with v the velocity of the perturber relative to the gas.
+  massDistributionDiskGas=massDistributionExponentialDisk(radiusScale=3.0d-3,scaleHeight=3.0d-4,mass=1.0d10)
+  call massDistributionDiskGas%setKinematicsDistribution(kinematicsDistributionISM)
+  position        =[3.0d-3,0.0d0,0.0d0]
+  velocityCircular=massDistributionDiskGas%rotationCurve(3.0d-3)
+  velocityDisk    =[0.0d0,-velocityCircular,0.0d0]
+  velocityRelative=[0.0d0,0.0d0,machNumber*soundSpeedISM]
+  velocity        =velocityDisk+velocityRelative
+  density         =massDistributionDiskGas%density(position)
+  integral        =massDistributionDiskGas%chandrasekharIntegral(massDistributionDiskGas,massDistributionPerturber,massPerturberCompact,position,velocity,logarithmCoulomb,kimKim2007)
+  integralVector  =integral
+  call Assert("Chandrasekhar integral, cylindrical, collisional"        ,integralVector,-density*velocityRelative*kimKim2007%forceFactor(machNumber,logarithmCoulomb)/(machNumber*soundSpeedISM)**3,relTol=1.0d-9)
+  ! Chandrasekhar integral of a collisionless cylindrical distribution must not depend on the gaseous drag.
+  kinematicsDistributionStellar=kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))
+  massDistributionDiskStellar  =massDistributionExponentialDisk(radiusScale=3.0d-3,scaleHeight=3.0d-4,mass=1.0d10)
+  call massDistributionDiskStellar%setKinematicsDistribution(kinematicsDistributionStellar)
+  integral                       =massDistributionDiskStellar%chandrasekharIntegral(massDistributionDiskStellar,massDistributionPerturber,massPerturberCompact,position,velocity,logarithmCoulomb,kimKim2007       )
+  integralVector                 =integral
+  integral                       =massDistributionDiskStellar%chandrasekharIntegral(massDistributionDiskStellar,massDistributionPerturber,massPerturberCompact,position,velocity,logarithmCoulomb,chandrasekhar1943)
+  integralVectorChandrasekhar1943=integral
+  call Assert("Chandrasekhar integral, cylindrical, collisionless"      ,integralVector,integralVectorChandrasekhar1943,relTol=1.0d-12)
+  call Assert("Chandrasekhar integral, cylindrical, collisionless, drag",integralVector(3) < 0.0d0,.true.)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 end program Tests_Dynamical_Friction_Gaseous

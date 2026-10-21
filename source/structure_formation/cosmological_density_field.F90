@@ -110,6 +110,12 @@ module Cosmological_Density_Field
              &amp;       )
         finderInitialized=.true.
      end if
+     ! If the critical overdensity is non-positive (as can occur if a large-scale environmental overdensity is included in it)
+     ! then σ(M) &gt; δ_c on all mass scales - all masses have collapsed, and there is no root to find.
+     if (self%value(time=collapseTime,mass=massGuess,node=node) &lt;= 0.0d0) then
+        criticalOverdensityCollapsingMass=huge(0.0d0)
+        return
+     end if
      globalSelf                           => self
      self      %time                      =  collapseTime
      self      %nodePresent               =  present(node)
@@ -208,20 +214,22 @@ module Cosmological_Density_Field
    <default>uniform</default>
    <method name="overdensityLinear" >
     <description>
-    Return the linear (pre-collapse) large-scale environmental overdensity for the given ``node``, optionally evaluated at the present day rather than at the node's cosmic time.
+    Return the linear (pre-collapse) large-scale environmental overdensity for the given ``node``, optionally evaluated at the present day rather than at the node's cosmic time. If a ``time`` (or ``expansionFactor``) is given, the overdensity is evaluated at that epoch instead of the node's cosmic time. The ``node`` may be omitted only for environments which are neither node- nor tree-dependent.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout)           :: node</argument>
-    <argument>logical          , intent(in   ), optional :: presentDay</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
+    <argument>logical                   , intent(in   ), optional :: presentDay                 </argument>
+    <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
    </method>
    <method name="overdensityLinearGradientTime" >
     <description>
-    Return the gradient with time of the environmental linear overdensity for the given ``node``.
+    Return the gradient with time of the environmental linear overdensity for the given ``node``. If a ``time`` (or ``expansionFactor``) is given, the gradient is evaluated at that epoch instead of the node's cosmic time. The ``node`` may be omitted only for environments which are neither node- nor tree-dependent.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout)           :: node</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                 </argument>
+    <argument>double precision          , intent(in   ), optional :: time, expansionFactor</argument>
    </method>
    <method name="overdensityNonLinear" >
     <description>
@@ -670,11 +678,13 @@ contains
                &                                               /globalSelf%cosmologicalMassVariance_%rootVariance(time=time,mass=globalSelf%mass                     )
        end if
     else
-       if (globalSelf%nodePresent) then
+       if (globalSelf%nodePresent .or. globalSelf%treePresent) then
+          ! A tree-dependent (but node-independent) critical overdensity still requires the node (as a route to its tree). The
+          ! node is assigned only if it is node- or tree-dependent, so must not be passed otherwise.
           collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        else
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                                          ) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        end if
     end if

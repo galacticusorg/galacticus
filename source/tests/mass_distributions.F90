@@ -27,24 +27,26 @@ program Test_Mass_Distributions
   !!{RST
   Tests mass distributions.
   !!}
-  use :: Coordinates               , only : assignment(=)                        , coordinateSpherical                , coordinateCartesian
-  use :: Display                   , only : displayVerbositySet                  , verbosityLevelStandard
-  use :: Error_Functions           , only : Error_Function
-  use :: Error                     , only : Error_Report
-  use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass  , galacticComponentTruncationExponential
-  use :: Galactic_Structure_Options, only : componentTypeSpheroid                , componentTypeDisk
-  use :: IO_HDF5                   , only : ioHDF5AccessInitialize
-  use :: Linear_Algebra            , only : assignment(=)                        , vector
-  use :: Mass_Distributions        , only : massDistributionBetaProfile          , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid           , &
-       &                                    massDistributionHernquist            , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite                   , &
-       &                                    massDistributionList                 , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
-       &                                    massDistributionCylindricalScaler    , massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
-       &                                    massDistributionIsothermal           , kinematicsDistributionClass        , kinematicsDistributionLocal            , kinematicsDistributionCollisionlessTabulated, &
-       &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole          , massDistributionSoliton                , massDistributionSolitonNFW
+  use :: Coordinates                   , only : assignment(=)                    , coordinateSpherical                   , coordinateCartesian
+  use :: Display                       , only : displayVerbositySet              , verbosityLevelStandard
+  use :: Error_Functions               , only : Error_Function
+  use :: Error                         , only : Error_Report
+  use :: Events_Hooks                  , only : eventsHooksInitialize
+  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass , galacticComponentTruncationExponential
+  use :: Galactic_Structure_Options    , only : componentTypeSpheroid            , componentTypeDisk                     , radiusLarge
+  use :: IO_HDF5                       , only : ioHDF5AccessInitialize
+  use :: Linear_Algebra                , only : assignment(=)                    , vector
+  use :: Mass_Distributions            , only : massDistributionBetaProfile      , massDistributionClass                 , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid           , &
+       &                                    massDistributionHernquist            , massDistributionSersic                , massDistributionSpherical              , massDistributionComposite                   , &
+       &                                    massDistributionList               , massDistributionSymmetryCylindrical   , enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
+       &                                    massDistributionCylindricalScaler    , massDistributionCylindrical           , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
+       &                                    massDistributionIsothermal           , kinematicsDistributionClass           , kinematicsDistributionLocal            , kinematicsDistributionCollisionlessTabulated, &
+       &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
+       &                                    massDistributionSphericalHeated      , massDistributionHeatingTidal          , massDistributionHeatingClass           , massDistributionSphericalHeatedTracer       , &
+       &                                    nonAnalyticSolversNumerical
   use :: Numerical_Constants_Math  , only : Pi                                   , e
   use :: Tensors                   , only : assignment(=)
-  use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
+  use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
        &                                    compareEquals                        , compareNotEqual
   implicit none
   class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated         , &
@@ -260,6 +262,173 @@ program Test_Mass_Distributions
   <objectDestructor name="massDistributionUntruncated_"/>
   !!]
   deallocate(galacticComponentTruncation_)
+  call Unit_Tests_End_Group()
+
+  ! Heating of a tracer population along with a heated reference (dark matter) distribution.
+  call Unit_Tests_Begin_Group("Heated tracer")
+  block
+    class           (massDistributionSpherical   ), pointer      :: darkMatter_                                    , darkMatterHeated_          , &
+         &                                                          tracerNFW_                                     , tracerHernquist_           , &
+         &                                                          tracerHeated_
+    class           (massDistributionHeatingClass), pointer      :: heating_
+    double precision                              , parameter    :: heatingNormalized=1.0d+7                       , massTracer          =1.0d10, &
+         &                                                          fractionStep     =1.0d-2
+    double precision                              , dimension(4) :: radii            =[3.0d-3,1.0d-2,3.0d-2,1.0d-1]
+    double precision                                             :: radiusHalfMass                                 , radiusHalfMassHeated       , &
+         &                                                          massDerivative
+    type            (coordinateSpherical         )               :: coordinates_
+    integer                                                      :: j
+    character       (len=7                       )               :: labelRadius_
+
+    ! Build an NFW dark matter distribution, and a heated version of it.
+    allocate(massDistributionNFW :: darkMatter_)
+    select type (darkMatter_)
+    type is (massDistributionNFW)
+       !![
+       <referenceConstruct object="darkMatter_" constructor="massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=1.0d12,dimensionless=.false.)"/>
+       !!]
+    end select
+    allocate(massDistributionHeatingTidal :: heating_)
+    select type (heating_)
+    type is (massDistributionHeatingTidal)
+       !![
+       <referenceConstruct object="heating_" constructor="massDistributionHeatingTidal(heatingNormalized,0.0d0,0.0d0,0.0d0,0.0d0)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalHeated :: darkMatterHeated_)
+    select type (darkMatterHeated_)
+    type is (massDistributionSphericalHeated)
+       !![
+       <referenceConstruct object="darkMatterHeated_" constructor="massDistributionSphericalHeated(nonAnalyticSolversNumerical,.false.,.false.,.false.,1.0d-12,1.0d-3,darkMatter_,heating_)"/>
+       !!]
+    end select
+    ! A tracer with the same profile as the dark matter must be heated identically to the dark matter.
+    allocate(massDistributionNFW :: tracerNFW_)
+    select type (tracerNFW_)
+    type is (massDistributionNFW)
+       !![
+       <referenceConstruct object="tracerNFW_" constructor="massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=massTracer,dimensionless=.false.)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalHeatedTracer :: tracerHeated_)
+    select type (tracerHeated_)
+    type is (massDistributionSphericalHeatedTracer)
+       !![
+       <referenceConstruct object="tracerHeated_" constructor="massDistributionSphericalHeatedTracer(tracerNFW_,darkMatterHeated_)"/>
+       !!]
+    end select
+    do j=1,size(radii)
+       write (labelRadius_,'(es7.1)') radii(j)
+       coordinates_=[radii(j),0.0d0,0.0d0]
+       call Assert("Same profile as dark matter: mass enclosed (r="//labelRadius_//")",tracerHeated_%massEnclosedBySphere(radii(j)    ),massTracer/1.0d12*darkMatterHeated_%massEnclosedBySphere(radii(j)    ),relTol=1.0d-6)
+       call Assert("Same profile as dark matter: density       (r="//labelRadius_//")",tracerHeated_%density             (coordinates_),massTracer/1.0d12*darkMatterHeated_%density             (coordinates_),relTol=1.0d-6)
+    end do
+    !![
+    <objectDestructor name="tracerHeated_"/>
+    !!]
+    ! A compact Hernquist tracer.
+    allocate(massDistributionHernquist :: tracerHernquist_)
+    select type (tracerHernquist_)
+    type is (massDistributionHernquist)
+       !![
+       <referenceConstruct object="tracerHernquist_" constructor="massDistributionHernquist(dimensionless=.false.,mass=massTracer,scaleLength=5.0d-3)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalHeatedTracer :: tracerHeated_)
+    select type (tracerHeated_)
+    type is (massDistributionSphericalHeatedTracer)
+       !![
+       <referenceConstruct object="tracerHeated_" constructor="massDistributionSphericalHeatedTracer(tracerHernquist_,darkMatterHeated_)"/>
+       !!]
+    end select
+    radiusHalfMass      =tracerHernquist_%radiusHalfMass()
+    radiusHalfMassHeated=tracerHeated_   %radiusHalfMass()
+    call Assert("Hernquist tracer: mass is conserved"                      ,tracerHeated_%massTotal           (                    ),massTracer      ,relTol=1.0d-12)
+    call Assert("Hernquist tracer: half-mass radius increases"             ,radiusHalfMassHeated > radiusHalfMass                   ,.true.                         )
+    call Assert("Hernquist tracer: half-mass radius encloses half the mass",tracerHeated_%massEnclosedBySphere(radiusHalfMassHeated),0.5d0*massTracer,relTol=1.0d-4 )
+    ! The density must be consistent with the derivative of the enclosed mass.
+    do j=1,size(radii)
+       write (labelRadius_,'(es7.1)') radii(j)
+       coordinates_  =[radii(j),0.0d0,0.0d0]
+       massDerivative=+(                                                                    &
+            &           +tracerHeated_%massEnclosedBySphere(radii(j)*(1.0d0+fractionStep)) &
+            &           -tracerHeated_%massEnclosedBySphere(radii(j)*(1.0d0-fractionStep)) &
+            &          )                                                                    &
+            &         /2.0d0                                                                &
+            &         /fractionStep                                                         &
+            &         /radii(j)
+       call Assert("Hernquist tracer: density is consistent with enclosed mass (r="//labelRadius_//")",massDerivative,4.0d0*Pi*radii(j)**2*tracerHeated_%density(coordinates_),relTol=3.0d-3)
+    end do
+    !![
+    <objectDestructor name="tracerHeated_"    />
+    <objectDestructor name="darkMatterHeated_"/>
+    <objectDestructor name="heating_"         />
+    !!]
+    ! With strong heating the outer shells of the dark matter (and so of the tracer) become unbound, and are moved to
+    ! infinity. All of the tracer mass must still be enclosed by the largest radius, and the radius enclosing all but a little
+    ! of the mass must be found without error.
+    allocate(massDistributionHeatingTidal :: heating_)
+    select type (heating_)
+    type is (massDistributionHeatingTidal)
+       !![
+       <referenceConstruct object="heating_" constructor="massDistributionHeatingTidal(1.0d3*heatingNormalized,0.0d0,0.0d0,0.0d0,0.0d0)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalHeated :: darkMatterHeated_)
+    select type (darkMatterHeated_)
+    type is (massDistributionSphericalHeated)
+       !![
+       <referenceConstruct object="darkMatterHeated_" constructor="massDistributionSphericalHeated(nonAnalyticSolversNumerical,.false.,.false.,.false.,1.0d-12,1.0d-3,darkMatter_,heating_)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalHeatedTracer :: tracerHeated_)
+    select type (tracerHeated_)
+    type is (massDistributionSphericalHeatedTracer)
+       !![
+       <referenceConstruct object="tracerHeated_" constructor="massDistributionSphericalHeatedTracer(tracerHernquist_,darkMatterHeated_)"/>
+       !!]
+    end select
+    call Assert("Strong heating: the outermost shells are unbound"            ,tracerHeated_%massEnclosedBySphere        (1.0d3                ) < massTracer,.true.                   )
+    call Assert("Strong heating: all mass is enclosed by large radii"         ,tracerHeated_%massEnclosedBySphere        (2.0d0*radiusLarge    )             ,massTracer,relTol=1.0d-12)
+    call Assert("Strong heating: radius enclosing 99% of the mass"            ,tracerHeated_%radiusEnclosingMass         (massFractional=0.99d0) > 0.0d0     ,.true.                   )
+    call Assert("Strong heating: radius enclosing 99% of the mass (numerical)",tracerHeated_%radiusEnclosingMassNumerical(massFractional=0.99d0) > 0.0d0     ,.true.                   )
+    !![
+    <objectDestructor name="tracerHeated_"    />
+    <objectDestructor name="darkMatterHeated_"/>
+    <objectDestructor name="heating_"         />
+    !!]
+    ! With zero heating the tracer must be unchanged.
+    allocate(massDistributionHeatingTidal :: heating_)
+    select type (heating_)
+    type is (massDistributionHeatingTidal)
+       !![
+       <referenceConstruct object="heating_" constructor="massDistributionHeatingTidal(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalHeated :: darkMatterHeated_)
+    select type (darkMatterHeated_)
+    type is (massDistributionSphericalHeated)
+       !![
+       <referenceConstruct object="darkMatterHeated_" constructor="massDistributionSphericalHeated(nonAnalyticSolversNumerical,.false.,.false.,.false.,1.0d-12,1.0d-3,darkMatter_,heating_)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalHeatedTracer :: tracerHeated_)
+    select type (tracerHeated_)
+    type is (massDistributionSphericalHeatedTracer)
+       !![
+       <referenceConstruct object="tracerHeated_" constructor="massDistributionSphericalHeatedTracer(tracerHernquist_,darkMatterHeated_)"/>
+       !!]
+    end select
+    call Assert("Zero heating: mass enclosed is unchanged",tracerHeated_%massEnclosedBySphere(radii(2)),tracerHernquist_%massEnclosedBySphere(radii(2)),relTol=1.0d-12)
+    !![
+    <objectDestructor name="tracerHeated_"    />
+    <objectDestructor name="darkMatterHeated_"/>
+    <objectDestructor name="heating_"         />
+    <objectDestructor name="tracerHernquist_" />
+    <objectDestructor name="tracerNFW_"       />
+    <objectDestructor name="darkMatter_"      />
+    !!]
+  end block
   call Unit_Tests_End_Group()
 
   ! Radial moments. Reference values were computed by direct numerical quadrature (scipy.integrate.quad) of ρ(r) rᵐ (or

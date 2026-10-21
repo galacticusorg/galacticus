@@ -25,6 +25,7 @@
   
   use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
   use :: Galactic_Filters                      , only : galacticFilterAll
+  use :: Kind_Numbers                          , only : kind_int8
   use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo
   use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorNbodyMass
   use :: Output_Analysis_Distribution_Operators, only : enumerationMassRatioDistributionType
@@ -66,6 +67,7 @@
           &                                                                                massRatioLikelihoodMaximum                      , countConversionFactor
      integer                                                                            :: indexParent                                     , indexRedshift
      integer         (c_size_t                             )                            :: countMassRatio                                  , indexOutput
+     integer         (kind_int8                            )                            :: uniqueIDTreePrevious
      logical                                                                            :: alwaysIsolatedOnly                              , covarianceDiagonalize               , &
           &                                                                                covarianceTargetOnly                            , likelihoodInLog                     , &
           &                                                                                weightsFinalized                                , likelihoodInCounts                  , &
@@ -687,7 +689,8 @@ contains
        call Error_Report(message//{introspection:location})
     end if
     ! Initialize accumulated weight of parent nodes.
-    self%weightParents=0.0d0
+    self%weightParents       =0.0d0
+    self%uniqueIDTreePrevious=-huge(0_kind_int8)
     ! Compute conversion from progenitor mass function to counts.
     valueSum     =     sum  (self%massRatios*dble(functionCountTarget)/functionValueTarget,mask=functionValueTarget > 0.0d0)
     valueSumTotal=dble(count(                                                              mask=functionValueTarget > 0.0d0))
@@ -926,10 +929,16 @@ contains
     double precision                                                               :: weight                , mass
     type            (enumerationOutputAnalysisPropertyTypeType    )                :: propertyType 
     type            (enumerationOutputAnalysisPropertyQuantityType)                :: propertyQuantity
+    logical                                                                        :: treeIsNew
 
     ! Only accumulate tree weight if the output corresponds to the one for which we are constructing the conditional mass
-    ! function.
-    if (iOutput /= self%indexOutput) return
+    ! function. A tree is output only at those outputs after the earliest time in the tree. So, a tree with no node at or before
+    ! the progenitor time is first output at a later output, and never at this one. Its parents must still be counted (they simply
+    ! have no progenitors in range), so accumulate their weight at the first output of such a tree. Outputs are indexed in order
+    ! of increasing time, and each tree is passed through all of its outputs before the next tree is begun.
+    treeIsNew                =tree%nodeBase%uniqueID() /= self%uniqueIDTreePrevious
+    self%uniqueIDTreePrevious=tree%nodeBase%uniqueID()
+    if (.not.(iOutput == self%indexOutput .or. (treeIsNew .and. iOutput > self%indexOutput))) return
     ! Walk the tree, applying a filter to find parent nodes, and accumulate their weights.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
