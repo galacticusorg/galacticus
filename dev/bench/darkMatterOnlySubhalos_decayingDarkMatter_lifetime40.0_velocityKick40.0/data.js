@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792362069545,
+  "lastUpdate": 1792582113888,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)": [
@@ -7271,6 +7271,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/3b0d8b886de81d5d76c5930be5939b4c96eb89e1"
         },
         "date": 1792362068522,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 28.01629447878575,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 4.294742887607227,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "41e0071930a146ab1f64d2f306e86a47bf24e516",
+          "message": "Merge pull request #1623 from galacticusorg/feat/gaseous-dynamical-friction-ism\n\nfeat(dynamical_friction): gaseous dynamical friction from the interstellar medium",
+          "timestamp": "2026-10-20T19:49:34Z",
+          "tree_id": "3b60dcf9813b2f2c3b2f4f1c7f7ee5ad53ab23e1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/41e0071930a146ab1f64d2f306e86a47bf24e516"
+        },
+        "date": 1792582113121,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
