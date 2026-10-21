@@ -260,6 +260,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="chandrasekharIntegral"/>
           <xs:enumeration value="standard"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
