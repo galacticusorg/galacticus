@@ -44,7 +44,7 @@
       \dot{v}_\mathrm{DF}=- {2 \pi \mathrm{G}^2 M_\bullet \over V_\mathrm{C}^2} \sum_{i} \rho_i \log(1+\Lambda_i^2) \left[
       \hbox{erf}(X_i)-\left\{ {2 X_i \over \sqrt{\pi}} \exp\left(-X_i^2\right) \right\} \right],
 
-   where the sum is taken over the spheroid (gaseous plus stellar mass) and dark matter halo components\ [#]_. Here,
+   where the sum is taken over the spheroid (including any nuclear star cluster, gaseous plus stellar mass) and dark matter halo components. The disk is excluded, as the black hole is assumed to be on a circular orbit in the plane of, and co-rotating with, the disk. The spheroid and nuclear star cluster are treated as collisionless, and are assigned the velocity dispersion of the spheroid. Here,
 
    .. math::
 
@@ -66,8 +66,6 @@
       \log\left({\mathrm{G} M_{\bullet, 2} \over 4 \sigma_\mathrm{spheroid}^2 a }\right) \right]^2 , 1 \right\},
 
    if ``[stellarDensityChangeBinaryMotion]``\ :math:`=`\ ``true`` to account for the ejection of stars from the loss cone.
-
-   .. [#] The disk is ignored as the black hole is assumed to be orbiting in a circular orbit in the disk.
    </description>
   </blackHoleBinarySeparationGrowthRate>
   !!]
@@ -354,11 +352,12 @@ contains
     !!{RST
     Return the acceleration (in units of km/s/Gyr, and negative for a decelerating black hole) due to dynamical friction of a black
     hole in a binary, moving at speed ``velocityRotation``, using the :cite:t:`chandrasekhar_dynamical_1943` formula applied to the
-    galactic components (with the velocity dispersion, ``velocityDispersionSpheroid``, of the spheroid) and the dark matter halo
-    (with velocity dispersion ``velocityDispersionDarkMatter``).
+    spheroid and nuclear star cluster components (with the velocity dispersion, ``velocityDispersionSpheroid``, of the spheroid)
+    and the dark matter halo (with velocity dispersion ``velocityDispersionDarkMatter``).
     !!}
     use :: Coordinates                     , only : coordinate
-    use :: Galactic_Structure_Options      , only : componentTypeDarkHalo , massTypeDark                  , massTypeGalactic
+    use :: Galactic_Structure_Options      , only : componentTypeDarkHalo , componentTypeNuclearStarCluster, componentTypeSpheroid, &
+         &                                          massTypeDark          , massTypeGalactic
     use :: Galacticus_Nodes                , only : treeNode
     use :: Mass_Distributions              , only : massDistributionClass
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr     , gravitationalConstant_internal
@@ -366,22 +365,26 @@ contains
     implicit none
     class           (blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
-    class           (nodeComponentBlackHole                     ), intent(inout) :: blackHole                      , blackHoleCentral
+    class           (nodeComponentBlackHole                     ), intent(inout) :: blackHole                          , blackHoleCentral
     class           (coordinate                                 ), intent(in   ) :: coordinates
-    double precision                                             , intent(in   ) :: velocityRotation               , velocityDispersionSpheroid, &
+    double precision                                             , intent(in   ) :: velocityRotation                   , velocityDispersionSpheroid, &
          &                                                                          velocityDispersionDarkMatter
-    class           (massDistributionClass                      ), pointer       :: massDistributionDarkMatterHalo_, massDistributionGalactic_
-    double precision                                                             :: coulombLogarithmDarkMatter     , coulombLogarithmSpheroid  , &
-         &                                                                          densityDarkMatter              , densitySpheroid           , &
-         &                                                                          dynamicalFrictionXDarkMatter   , dynamicalFrictionXSpheroid
+    class           (massDistributionClass                      ), pointer       :: massDistributionDarkMatterHalo_    , massDistributionSpheroid_ , &
+         &                                                                          massDistributionNuclearStarCluster_
+    double precision                                                             :: coulombLogarithmDarkMatter         , coulombLogarithmSpheroid  , &
+         &                                                                          densityDarkMatter                  , densitySpheroid           , &
+         &                                                                          dynamicalFrictionXDarkMatter       , dynamicalFrictionXSpheroid
     !$GLC attributes unused :: self
 
     ! Get required mass distributions.
-    massDistributionDarkMatterHalo_ => node%massDistribution(componentType=componentTypeDarkHalo,massType=massTypeDark    )
-    massDistributionGalactic_       => node%massDistribution(                                    massType=massTypeGalactic)
-    ! Compute the total density, including dark matter.
-    densitySpheroid  =massDistributionGalactic_      %density(coordinates)
-    densityDarkMatter=massDistributionDarkMatterHalo_%density(coordinates)
+    massDistributionDarkMatterHalo_     => node%massDistribution(componentType=componentTypeDarkHalo          ,massType=massTypeDark    )
+    massDistributionSpheroid_           => node%massDistribution(componentType=componentTypeSpheroid          ,massType=massTypeGalactic)
+    massDistributionNuclearStarCluster_ => node%massDistribution(componentType=componentTypeNuclearStarCluster,massType=massTypeGalactic)
+    ! Compute the densities of the spheroid (including any nuclear star cluster) and dark matter. The disk is excluded as the black
+    ! hole is assumed to be on a circular orbit in the plane of, and co-rotating with, the disk.
+    densitySpheroid  =+massDistributionSpheroid_          %density(coordinates) &
+         &            +massDistributionNuclearStarCluster_%density(coordinates)
+    densityDarkMatter=+massDistributionDarkMatterHalo_    %density(coordinates)
     ! Compute the Coulomb logarithms for dynamical friction.
     coulombLogarithmSpheroid  = (                                     &
          &                          blackHole       %radialPosition() &
@@ -449,8 +452,9 @@ contains
          &                           )                                         &
          &                         )
     !![
-    <objectDestructor name="massDistributionDarkMatterHalo_"/>
-    <objectDestructor name="massDistributionGalactic_"      />
+    <objectDestructor name="massDistributionDarkMatterHalo_"    />
+    <objectDestructor name="massDistributionSpheroid_"          />
+    <objectDestructor name="massDistributionNuclearStarCluster_"/>
     !!]
     return
   end function standardAccelerationDynamicalFriction
