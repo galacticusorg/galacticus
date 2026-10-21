@@ -202,28 +202,42 @@ contains
     !!}
     use :: Abundances_Structure            , only : Abundances_Property_Count
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : defaultNSCComponent      , nodeComponentNSCStandard
-    use :: Input_Parameters                , only : inputParameter           , inputParameters
-    use :: Node_Component_NSC_Standard_Data, only : radiusNormalization      , tidalTruncationID
+    use :: Galacticus_Nodes                , only : defaultNSCComponent             , nodeComponentNSCStandard
+    use :: Galactic_Component_Truncations  , only : galacticComponentTruncationClass
+    use :: Input_Parameters                , only : inputParameter                  , inputParameters
+    use :: Node_Component_NSC_Standard_Data, only : radiusNormalization             , tidalTruncationID
     implicit none
-    type(inputParameters         ), intent(inout) :: parameters
-    type(nodeComponentNSCStandard)                :: NSCStandardComponent
-    type(inputParameters         )                :: subParameters
+    type (inputParameters                 ), intent(inout) :: parameters
+    type (nodeComponentNSCStandard        )                :: NSCStandardComponent
+    type (inputParameters                 )                :: subParameters
+    class(galacticComponentTruncationClass), pointer       :: galacticComponentTruncation__
 
     if (defaultNSCComponent%standardIsActive()) then
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-       ! Find the meta-property giving the degree of tidal truncation of the nuclear star cluster. This exists only if some class
-       ! (e.g. a tidal mass loss node operator) creates it.
-       !![
-       <addMetaProperty component="NSC" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
-       !!]
        ! Bind deferred functions.
        call NSCStandardComponent%             massGasSinkRateFunction(Node_Component_NSC_Standard_Mass_Gas_Sink_Rate         )
        call NSCStandardComponent%    starFormationHistoryRateFunction(Node_Component_NSC_Standard_Star_Formation_History_Rate)
        call NSCStandardComponent%stellarPropertiesHistoryRateFunction(Node_Component_NSC_Standard_Stellar_Prprts_History_Rate)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentNSC')
+       ! Find the meta-property giving the degree of tidal truncation of the nuclear star cluster, which exists only if some class
+       ! (e.g. a tidal mass loss node operator) creates it. This is needed only if the nuclear star cluster is truncated. It is
+       ! not registered otherwise since every registered evolvable meta-property adds a variable to the ODE system of every node,
+       ! whether or not it is created.
+       !![
+       <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation__" source="subParameters"/>
+       !!]
+       if (galacticComponentTruncation__%isActive()) then
+          !![
+          <addMetaProperty component="NSC" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
+          !!]
+       else
+          tidalTruncationID=-1
+       end if
+       !![
+       <objectDestructor name="galacticComponentTruncation__"/>
+       !!]
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter docformat="rst">
