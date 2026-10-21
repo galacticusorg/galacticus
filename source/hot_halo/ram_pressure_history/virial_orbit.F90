@@ -66,7 +66,7 @@
           &                                                 forceTimeIntegratedPrevious
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="compute" description="Compute the ram pressure history of the given node."/>
      </methods>
      !!]
