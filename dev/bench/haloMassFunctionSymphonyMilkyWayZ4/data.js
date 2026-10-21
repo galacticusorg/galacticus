@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792362110413,
+  "lastUpdate": 1792582145467,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=4)": [
@@ -1159,6 +1159,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
             "value": 2739.9045455835317,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "41e0071930a146ab1f64d2f306e86a47bf24e516",
+          "message": "Merge pull request #1623 from galacticusorg/feat/gaseous-dynamical-friction-ism\n\nfeat(dynamical_friction): gaseous dynamical friction from the interstellar medium",
+          "timestamp": "2026-10-20T19:49:34Z",
+          "tree_id": "3b60dcf9813b2f2c3b2f4f1c7f7ee5ad53ab23e1",
+          "url": "https://github.com/galacticusorg/galacticus/commit/41e0071930a146ab1f64d2f306e86a47bf24e516"
+        },
+        "date": 1792582144875,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
+            "value": 2739.903729314098,
             "unit": "-logℒ"
           }
         ]
