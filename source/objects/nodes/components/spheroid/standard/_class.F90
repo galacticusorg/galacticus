@@ -176,17 +176,22 @@ module Node_Component_Spheroid_Standard
   !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: efficiencyEnergeticOutflow     , toleranceAbsoluteMass           , &
-       &                                         toleranceRelativeMetallicity
-  logical                                     :: inactiveLuminositiesStellar    , postStepZeroNegativeMasses
+  double precision                            :: efficiencyEnergeticOutflow             , toleranceAbsoluteMass            , &
+       &                                         toleranceRelativeMetallicity           , fractionMassImplausibleNegligible
+  logical                                     :: inactiveLuminositiesStellar            , postStepZeroNegativeMasses
 
   ! Spheroid structural parameters.
   double precision                            :: ratioAngularMomentumScaleRadius
 
   ! Minimum absolute scales for physically plausible spheroids.
-  double precision, parameter                 :: radiusMinimum                       =1.0d-12
-  double precision, parameter                 :: massMinimum                         =1.0d-06
-  double precision, parameter                 :: angularMomentumMinimum              =1.0d-20
+  double precision, parameter                 :: radiusMinimum                  =1.0d-12
+  double precision, parameter                 :: massMinimum                    =1.0d-06
+  double precision, parameter                 :: angularMomentumMinimum         =1.0d-20
+
+  ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be
+  ! physically plausible for a spheroid.
+  double precision, parameter                 :: angularMomentumPlausibleMaximum=1.0d+01
+  double precision, parameter                 :: angularMomentumPlausibleMinimum=1.0d-06
 
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
@@ -253,6 +258,17 @@ contains
          <defaultValue>1.0d-6</defaultValue>
          <description>
          The mass tolerance used to judge whether the spheroid is physically plausible.
+         </description>
+         <source>subParameters</source>
+       </inputParameter>
+       <inputParameter docformat="rst">
+         <name>fractionMassImplausibleNegligible</name>
+         <defaultValue>1.0d-3</defaultValue>
+         <description>
+         The fraction of the galaxy mass below which a spheroid with physically implausible angular momentum is considered
+         negligible. Such a spheroid is excluded from radius solving, but does not prevent the radii of other components from
+         being solved for. A spheroid with implausible angular momentum and a larger mass prevents the radii of all components
+         from being solved for.
          </description>
          <source>subParameters</source>
        </inputParameter>
@@ -1260,15 +1276,14 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !!{RST
-    Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and
+    angular momentum. A spheroid with implausible angular momentum, but with a mass that is a negligible fraction of the galaxy
+    mass, does not render the node implausible - instead it is excluded from radius solving.
     !!}
-    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Galacticus_Nodes               , only : defaultSpheroidComponent                                      , treeNode
+    use :: Node_Components_Galactic_Shared, only : Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum, plausibilityAngularMomentumImplausible
     implicit none
-    type            (treeNode                ), intent(inout) :: node
-    class           (nodeComponentSpheroid   ), pointer       :: spheroid
-    double precision                          , parameter     :: angularMomentumMaximum=1.0d+1
-    double precision                          , parameter     :: angularMomentumMinimum=1.0d-6
-    double precision                                          :: angularMomentumScale
+    type(treeNode), intent(inout) :: node
 
     ! Return immediately if our method is not selected.
     if     (                                                &
@@ -1282,28 +1297,14 @@ contains
          &   )                                              &
          & ) return
 
-    ! Determine the plausibility of the current spheroid.
-    spheroid => node%spheroid()
-    select type (spheroid)
-    class is (nodeComponentSpheroidStandard)
-       if (spheroid%massStellar()+spheroid%massGas() >= 0.0d0 .and. spheroid%angularMomentum() > 0.0d0) then
-          angularMomentumScale=(                                           &
-               &                 spheroid%massStellar()                    &
-               &                +spheroid%massGas    ()                    &
-               &               )                                           &
-               &               * darkMatterHaloScale_%radiusVirial  (node) &
-               &               * darkMatterHaloScale_%velocityVirial(node)
-          if     (                                                                          &
-               &   spheroid%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-               &  .or.                                                                      &
-               &   spheroid%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
-               & ) then
-             ! Ignore spheroids with angular momenta greatly exceeding that which would be expected if they had a radius
-             ! comparable to the virial radius of their halo.
-             node%isPhysicallyPlausible=.false.
-          end if
-       end if
-    end select
+    ! Determine the plausibility of the current spheroid. Ignore spheroids with angular momenta greatly exceeding that which would
+    ! be expected if they had a radius comparable to the virial radius of their halo (or greatly less than this), unless their
+    ! mass is negligible.
+    if     (                                                                                                                                                                                             &
+         &   Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum(node,darkMatterHaloScale_,angularMomentumPlausibleMinimum,angularMomentumPlausibleMaximum,fractionMassImplausibleNegligible) &
+         &  ==                                                                                                                                                                                           &
+         &   plausibilityAngularMomentumImplausible                                                                                                                                                      &
+         & ) node%isPhysicallyPlausible=.false.
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility
 
@@ -1373,8 +1374,9 @@ contains
     !!{RST
     Interface for the size solver algorithm.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentSpheroid       , nodeComponentSpheroidStandard, treeNode
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, componentTypeSpheroid
+    use :: Galacticus_Nodes               , only : nodeComponentSpheroid                                         , nodeComponentSpheroidStandard                   , treeNode
+    use :: Galactic_Structure_Options     , only : enumerationComponentTypeType                                  , componentTypeSpheroid
+    use :: Node_Components_Galactic_Shared, only : Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum, plausibilityAngularMomentumImplausibleNegligible
     implicit none
     type            (treeNode                                         ), intent(inout)          :: node
     logical                                                            , intent(  out)          :: componentActive
@@ -1394,7 +1396,11 @@ contains
     specificAngularMomentum =  0.0d0
     select type (spheroid)
        class is (nodeComponentSpheroidStandard)
-       componentActive=.true.
+       ! A spheroid with implausible angular momentum, but negligible mass, is excluded from radius solving.
+       componentActive=   Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum(node,darkMatterHaloScale_,angularMomentumPlausibleMinimum,angularMomentumPlausibleMaximum,fractionMassImplausibleNegligible) &
+            &          /=                                                                                                                                                                                             &
+            &             plausibilityAngularMomentumImplausibleNegligible
+       if (.not.componentActive) return
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then
           angularMomentum=spheroid%angularMomentum()
