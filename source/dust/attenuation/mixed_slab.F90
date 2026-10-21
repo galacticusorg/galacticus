@@ -57,6 +57,7 @@
      procedure :: request                => mixedSlabRequest
      procedure :: supportsComponent      => mixedSlabSupportsComponent
      procedure :: isOrientationDependent => mixedSlabIsOrientationDependent
+     procedure :: includesTorus          => mixedSlabIncludesTorus
   end type dustAttenuationMixedSlab
 
   interface dustAttenuationMixedSlab
@@ -198,3 +199,14 @@ contains
     isOrientationDependent=self%dustAttenuation_%isOrientationDependent()
     return
   end function mixedSlabIsOrientationDependent
+
+  logical function mixedSlabIncludesTorus(self) result(includesTorus)
+    !!{RST
+    Return true if the wrapped attenuator includes a model of the dusty torus around an AGN.
+    !!}
+    implicit none
+    class(dustAttenuationMixedSlab), intent(inout) :: self
+
+    includesTorus=self%dustAttenuation_%includesTorus()
+    return
+  end function mixedSlabIncludesTorus

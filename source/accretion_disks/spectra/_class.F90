@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module that implements calculations of accretion disk spectra.
 !!}
@@ -61,6 +63,20 @@ module Accretion_Disk_Spectra
     <pass>yes</pass>
     <argument>integer                                    , intent(  out) :: wavelengthsCount</argument>
     <argument>double precision, allocatable, dimension(:), intent(  out) :: wavelengths</argument>
+   </method>
+   <method name="includesTorusEmission" >
+    <description>
+    Return true if the spectrum already includes the thermal emission of the dusty torus around the AGN---as an
+    empirical spectrum of AGN, measured with their tori, does. Such a spectrum must not be attenuated by a model of the
+    torus (see :galacticus-class:`dustAttenuationAGNTorus`), which would add the emission of the torus a second time,
+    and attenuate emission that comes from the torus itself. The default is false.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     accretionDiskSpectraIncludesTorusEmission=.false.
+    </code>
    </method>
    <generic name="spectrum">
     <method>spectrumNode</method>
