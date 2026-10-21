@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Claude.
 
 !!{RST
 Contains custom functions for the standard nuclear star cluster component.
@@ -25,9 +25,11 @@ Contains custom functions for the standard nuclear star cluster component.
 
 double precision function Node_Component_NSC_Standard_Radius(self) result(radius)
    !!{RST
-   Return the radius of the standard nuclear star cluster.
+   Return the radius of the standard nuclear star cluster. If the mass distribution of the nuclear star cluster is tidally
+   truncated, this is the scale radius of its untruncated mass distribution, and so is computed from the mass of that
+   untruncated distribution.
    !!}
-   use :: Node_Component_NSC_Standard_Data, only : radiusNormalization
+   use :: Node_Component_NSC_Standard_Data, only : radiusNormalization, galacticComponentTruncation_, tidalTruncationID
    implicit none
    class           (nodeComponentNSCStandard), intent(inout) :: self
    double precision                                          :: massNuclearStarCluster
@@ -35,6 +37,10 @@ double precision function Node_Component_NSC_Standard_Radius(self) result(radius
 
    massNuclearStarCluster=+self%massGas    () &
         &                 +self%massStellar()
+   if (galacticComponentTruncation_%isActive()) then
+      if (self%floatRank0MetaPropertyIsCreated(tidalTruncationID)) massNuclearStarCluster=+massNuclearStarCluster                                    &
+           &                                                                              *exp(+self%floatRank0MetaPropertyGet(tidalTruncationID))
+   end if
    ! The radius is computed using the radius model from F. Antonini, E. Barausse & J. Silk (2015; https://ui.adsabs.harvard.edu/abs/2015ApJ...812...72A).
    if (massNuclearStarCluster > 0.0d0) then
       radius=+radiusNormalization          &
@@ -82,9 +88,9 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   Return the mass distribution for the standard nuclear star cluster component.
   !!}
   use :: Mass_Distributions                         , only : massDistributionClass                            , massDistributionMatches_
-  use :: Node_Component_NSC_Standard_Data           , only : massDistributionStellar_                         , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
-       &                                                     scalerGasPool
-  use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Spherical
+  use :: Node_Component_NSC_Standard_Data           , only : massDistributionStellar_                         , massDistributionGas_                                , kinematicDistribution_      , scalerStellarPool      , &
+       &                                                     scalerGasPool                                    , galacticComponentTruncation_                        , tidalTruncationID                    , kinematicDistributionGas_
+  use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Spherical, Node_Component_Mass_Distribution_Truncated_Spherical
   use :: Galactic_Structure_Options                 , only : componentTypeNuclearStarCluster                  , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
        &                                                     weightByMass                                     , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
@@ -97,7 +103,7 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
   type            (stellarLuminosities            ), save                    :: luminosities
   !$omp threadprivate(luminosities)
   double precision                                                           :: massStellar      , massGas     , &
-       &                                                                        radiusScale
+       &                                                                        radiusScale      , fractionMassRetained
   logical                                                                    :: includeGas       , includeStars
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
@@ -118,9 +124,17 @@ function Node_Component_NSC_Standard_Mass_Distribution(self,componentType,massTy
      massDistribution_ => null()
      return
   end if
-  ! Build the nuclear star cluster mass distribution.
-  radiusScale       =  self%radius()
-  massDistribution_ => Node_Component_Mass_Distribution_Scaled_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,scalerStellarPool,scalerGasPool)
+  ! Build the nuclear star cluster mass distribution, truncated if the nuclear star cluster has been tidally stripped.
+  radiusScale         =  self%radius()
+  fractionMassRetained=  1.0d0
+  if (galacticComponentTruncation_%isActive()) then
+     if (self%floatRank0MetaPropertyIsCreated(tidalTruncationID)) fractionMassRetained=exp(-self%floatRank0MetaPropertyGet(tidalTruncationID))
+  end if
+  if (fractionMassRetained < 1.0d0) then
+     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained)
+  else
+     massDistribution_ => Node_Component_Mass_Distribution_Scaled_Spherical   (includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool                      )
+  end if
   return
 end function Node_Component_NSC_Standard_Mass_Distribution
 
@@ -166,18 +180,34 @@ end function Node_Component_NSC_Standard_Angular_Momentum
 
 double precision function Node_Component_NSC_Standard_Half_Mass_Radius(self) result(radiusHalfMass)
   !!{RST
-  Return the half-mass radius of the standard nuclear star cluster.
+  Return the half-mass radius of the standard nuclear star cluster, accounting for any tidal truncation of its mass
+  distribution.
   !!}
   use :: Error                           , only : Error_Report
   use :: Mass_Distributions              , only : massDistributionSpherical
-  use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_
+  use :: Node_Component_NSC_Standard_Data, only : massDistributionStellar_ , galacticComponentTruncation_, tidalTruncationID
   implicit none
-  class(nodeComponentNSCStandard), intent(inout) :: self
+  class           (nodeComponentNSCStandard ), intent(inout) :: self
+  class           (massDistributionSpherical), pointer       :: massDistributionTruncated
+  double precision                                           :: fractionMassRetained
 
- select type (massDistributionStellar_)
+  fractionMassRetained=1.0d0
+  if (galacticComponentTruncation_%isActive()) then
+     if (self%floatRank0MetaPropertyIsCreated(tidalTruncationID)) fractionMassRetained=exp(-self%floatRank0MetaPropertyGet(tidalTruncationID))
+  end if
+  select type (massDistributionStellar_)
   class is (massDistributionSpherical)
-     radiusHalfMass=+massDistributionStellar_%radiusHalfMass() &
-          &         *self                    %radius        ()
+     if (fractionMassRetained < 1.0d0) then
+        massDistributionTruncated => galacticComponentTruncation_%massDistribution(massDistributionStellar_,fractionMassRetained)
+        radiusHalfMass=+massDistributionTruncated%radiusHalfMass() &
+             &         *self                     %radius        ()
+        !![
+        <objectDestructor name="massDistributionTruncated"/>
+        !!]
+     else
+        radiusHalfMass=+massDistributionStellar_ %radiusHalfMass() &
+             &         *self                     %radius        ()
+     end if
   class default
      radiusHalfMass=+0.0d0
      call Error_Report('nuclear star cluster mass distribution is not spherically-symmetric'//{introspection:location})

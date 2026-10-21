@@ -7,6 +7,7 @@ parameter-catalog download/generate fallback are all exercised against real
 archives on disk.
 """
 
+import hashlib
 import io
 import json
 import tarfile
@@ -364,3 +365,156 @@ def test_a_retired_platform_already_installed_keeps_working(
     monkeypatch.setattr(download, "load_checksums",
                         lambda tag, log=print: _checksums("tools.tar.zst"))
     assert download.provision(retired_install, log=_quiet) == []
+
+
+# --- the profile-guided optimization (PGO) build of the executable --------
+
+_COMMIT = "0123456789abcdef0123456789abcdef01234567"
+_STANDARD = "#!/bin/true\n"
+_PGO = "#!/bin/true\n# the PGO build\n"
+
+
+@pytest.fixture
+def pgo_install(install):
+    """A managed install on a platform which has a PGO build."""
+    return install._replace(assets=install.assets._replace(binary_pgo="Galacticus.exe_PGO"))
+
+
+@pytest.fixture
+def pgo_release(release, fetched, monkeypatch):
+    """Add to the fixture release a PGO executable built from the release's own commit, as `pgo.yml` publishes it."""
+    binary = release / "Galacticus.exe_PGO"
+    binary.write_text(_PGO)
+    digest = hashlib.sha256(binary.read_bytes()).hexdigest()
+    (release / "Galacticus.exe_PGO.sha256").write_text(f"{digest}  Galacticus.exe_PGO\n")
+    (release / "Galacticus.exe_PGO.commit").write_text(_COMMIT + "\n")
+    read = []
+
+    def _text(url):
+        read.append(url)
+        source = release / Path(url).name
+        return source.read_text() if source.is_file() else None
+
+    monkeypatch.setattr(download, "_read_remote_text", _text)
+    monkeypatch.setattr(download, "_release_commit", lambda tag: _COMMIT)
+    return read
+
+
+def _executable(install):
+    return (install.exec_path / "Galacticus.exe").read_text()
+
+
+def test_the_pgo_build_is_installed_where_the_release_carries_one(pgo_install, fetched, pgo_release):
+    done = download.provision(pgo_install, log=_quiet)
+    assert "exec" in done
+    assert _executable(pgo_install) == _PGO
+    assert download.pgo_installed(pgo_install)
+    assert any(url.endswith("/Galacticus.exe_PGO") for url in fetched)
+    assert not any(url.endswith("/Galacticus.exe") for url in fetched)
+
+
+def test_a_pgo_build_failing_its_checksum_is_fatal(pgo_install, fetched, pgo_release, release):
+    (release / "Galacticus.exe_PGO.sha256").write_text("0" * 64 + "  Galacticus.exe_PGO\n")
+    with pytest.raises(RuntimeError, match="checksum mismatch"):
+        download.provision(pgo_install, log=_quiet)
+    assert not (pgo_install.exec_path / "Galacticus.exe").exists()
+
+
+def test_a_pgo_build_from_another_commit_is_not_installed(pgo_install, fetched, pgo_release, monkeypatch):
+    """`bleeding-edge` keeps a PGO executable from an older commit once it moves on: it must not be paired with the newer
+    release's other assets."""
+    monkeypatch.setattr(download, "_release_commit", lambda tag: "f" * 40)
+    messages = []
+    download.provision(pgo_install, log=messages.append)
+    assert _executable(pgo_install) == _STANDARD
+    assert not download.pgo_installed(pgo_install)
+    assert any("built from commit 0123456789" in message for message in messages)
+
+
+def test_the_standard_build_is_used_if_the_release_commit_is_unknown(pgo_install, fetched, pgo_release, monkeypatch):
+    monkeypatch.setattr(download, "_release_commit", lambda tag: None)
+    download.provision(pgo_install, log=_quiet)
+    assert _executable(pgo_install) == _STANDARD
+
+
+def test_the_standard_build_is_used_without_a_valid_pgo_checksum(pgo_install, fetched, pgo_release, release):
+    (release / "Galacticus.exe_PGO.sha256").unlink()
+    download.provision(pgo_install, log=_quiet)
+    assert _executable(pgo_install) == _STANDARD
+
+
+def test_a_release_without_a_pgo_build_installs_the_standard_one(pgo_install, fetched):
+    download.provision(pgo_install, log=_quiet)
+    assert _executable(pgo_install) == _STANDARD
+    assert not download.pgo_installed(pgo_install)
+
+
+def test_a_platform_without_a_pgo_build_ignores_a_published_one(install, fetched, pgo_release):
+    download.provision(install, log=_quiet)
+    assert _executable(install) == _STANDARD
+
+
+def test_no_pgo_installs_the_standard_build_and_records_the_choice(pgo_install, fetched, pgo_release):
+    download.provision(pgo_install, pgo=False, log=_quiet)
+    assert _executable(pgo_install) == _STANDARD
+    assert download.pgo_skipped(pgo_install)
+    # An update (re-provisioning everything) keeps to the recorded choice.
+    download.provision(pgo_install, force=True, log=_quiet)
+    assert _executable(pgo_install) == _STANDARD
+
+
+def test_declining_pgo_replaces_an_installed_pgo_build(pgo_install, fetched, pgo_release):
+    download.provision(pgo_install, log=_quiet)
+    assert download.pgo_installed(pgo_install)
+    assert "exec" in download.provision(pgo_install, pgo=False, log=_quiet)
+    assert _executable(pgo_install) == _STANDARD
+    assert not download.pgo_installed(pgo_install)
+
+
+def test_asking_for_pgo_replaces_an_installed_standard_build(pgo_install, fetched, pgo_release):
+    download.provision(pgo_install, pgo=False, log=_quiet)
+    assert "exec" in download.provision(pgo_install, pgo=True, log=_quiet)
+    assert _executable(pgo_install) == _PGO
+    assert not download.pgo_skipped(pgo_install)
+
+
+def test_asking_for_pgo_keeps_the_standard_build_if_none_is_available(pgo_install, fetched, pgo_release,
+                                                                     monkeypatch):
+    download.provision(pgo_install, pgo=False, log=_quiet)
+    monkeypatch.setattr(download, "_release_commit", lambda tag: "f" * 40)
+    assert "exec" not in download.provision(pgo_install, pgo=True, log=_quiet)
+    assert _executable(pgo_install) == _STANDARD
+
+
+def test_provisioning_on_demand_does_not_look_for_a_pgo_build(pgo_install, fetched, pgo_release, release):
+    """`galacticus run` provisions on demand (pgo=None): once installed, it must make no further requests."""
+    (release / "Galacticus.exe_PGO.commit").unlink()
+    download.provision(pgo_install, log=_quiet)       # No PGO build available: the standard one is installed.
+    (release / "Galacticus.exe_PGO.commit").write_text(_COMMIT + "\n")
+    pgo_release.clear()
+    assert download.provision(pgo_install, log=_quiet) == []
+    assert not pgo_release
+    assert _executable(pgo_install) == _STANDARD
+
+
+@pytest.mark.parametrize("responses, expected", [
+    # A lightweight tag points straight at the commit.
+    ({"ref": {"object": {"type": "commit", "sha": "a" * 40}}}, "a" * 40),
+    # An annotated tag points at a tag object, which points at the commit.
+    ({"ref": {"object": {"type": "tag", "sha": "b" * 40, "url": "tagObject"}},
+      "tagObject": {"object": {"type": "commit", "sha": "c" * 40}}}, "c" * 40),
+    # No such tag, or the API unreachable.
+    ({}, None),
+])
+def test_release_commit_resolves_lightweight_and_annotated_tags(monkeypatch, responses, expected):
+    def _api(url):
+        return responses.get("ref") if "/git/ref/tags/" in url else responses.get(url)
+
+    monkeypatch.setattr(download, "_github_api_json", _api)
+    assert download._release_commit("bleeding-edge") == expected
+
+
+def test_only_linux_x86_64_has_a_pgo_build():
+    assert platforms.detect("Linux", "x86_64").binary_pgo == "Galacticus.exe_PGO"
+    assert platforms.detect("Darwin", "arm64").binary_pgo is None
+

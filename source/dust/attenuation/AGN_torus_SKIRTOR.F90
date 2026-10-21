@@ -77,13 +77,16 @@
 
    **What is attenuated.** As for :galacticus-class:`dustAttenuationAGNTorus`, only the continuum emission of the
    accretion disk of the central black hole (``emissionSourceAccretionDisk`` emitted by ``componentTypeBlackHole``) is
-   attenuated, and the axis of the torus is taken to be that of its host galaxy, seen at the inclination given by the
-   ``[galacticInclination]`` object (or by the ``inclination`` passed in when averaging over orientation).
+   attenuated, and the torus is seen at the inclination given by the ``[galacticInclination]`` object---that of its
+   host galaxy, or, with :galacticus-class:`galacticInclinationMisaligned`, that of a torus whose axis is misaligned
+   from that of its galaxy, in which case averages over orientation are taken also over the orientation of the torus
+   relative to its galaxy.
 
    **Tabulation.** The library is read from ``[fileName]``, in the ``dust/agnTorus`` directory of the dynamic datasets
    path; if it is not present it is downloaded from ``[url]``. The file is made from the SKIRTOR library, as distributed
    by its authors, by ``dataPreparation/convertSKIRTOR.py`` of the ``galacticusDevTools`` repository
-   (https://github.com/galacticusorg/galacticusDevTools).
+   (https://github.com/galacticusorg/galacticusDevTools). By default it is downloaded from the copy archived on Zenodo
+   (https://doi.org/10.5281/zenodo.23424967), which is redistributed with the permission of the authors of SKIRTOR.
    </description>
   </dustAttenuation>
   !!]
@@ -147,7 +150,7 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>url</name>
-      <defaultValue>var_str('none')</defaultValue>
+      <defaultValue>var_str('https://zenodo.org/records/23424967/files/SKIRTOR_2016-7-18.hdf5')</defaultValue>
       <description>
       The URL from which to download ``fileName`` if it is not already present. If ``none``, the file must be supplied
       by other means.
@@ -283,8 +286,10 @@ contains
   function agnTorusSKIRTORTransmission(self,node,descriptors,inclination) result(transmission)
     !!{RST
     Return the transmission through the SKIRTOR torus. Only accretion disk emission from the central black hole is
-    attenuated; everything else is transmitted in full. The models, and inclination, to interpolate between are found
-    once for all parcels.
+    attenuated; everything else is transmitted in full. The models, and inclinations, to interpolate between are found
+    once for all parcels. If the axis of the torus may be misaligned from that of its galaxy, an average over
+    orientation (made by supplying ``inclination``) averages also over the orientation of the torus relative to its
+    galaxy, through the ``inclinationsMisaligned`` method of the ``[galacticInclination]`` object.
     !!}
     use :: Dust_Attenuation_Descriptors, only : emissionSourceAccretionDisk
     use :: Error                       , only : Error_Report
@@ -295,14 +300,16 @@ contains
     type            (emissionDescriptor            ), intent(in   ), dimension(:                ) :: descriptors
     double precision                                , intent(in   ), optional                     :: inclination
     double precision                                               , dimension(size(descriptors)) :: transmission
-    double precision                                               , dimension(2,2              ) :: weightsModel
-    double precision                                                                              :: inclination_    , coveringFraction     , &
-         &                                                                                           weightModel     , weightInclination    , &
-         &                                                                                           weightWavelength, wavelengthLogarithmic
+    double precision                                , allocatable  , dimension(:                ) :: inclinations      , weights              , &
+         &                                                                                           weightsInclination
+    integer                                         , allocatable  , dimension(:                ) :: indicesInclination
+    double precision                                                                              :: coveringFraction  , weightModel          , &
+         &                                                                                           weightWavelength  , wavelengthLogarithmic, &
+         &                                                                                           weight
     logical                                                                                       :: computed
-    integer                                                                                       :: i               , indexModel           , &
-         &                                                                                           indexInclination, indexWavelength      , &
-         &                                                                                           j               , k
+    integer                                                                                       :: i                 , indexModel           , &
+         &                                                                                           indexWavelength   , j                    , &
+         &                                                                                           k                 , l
 
     transmission=1.0d0
     computed    =.false.
@@ -314,11 +321,13 @@ contains
             & ) cycle
        if (.not.computed) then
           if (present(inclination)) then
-             inclination_=inclination
+             call self%galacticInclination_%inclinationsMisaligned(node,inclination,inclinations,weights)
           else if (self%inclinationAvailable) then
-             inclination_=self%galacticInclination_%inclination(node)
+             inclinations=[self%galacticInclination_%inclination(node)]
+             weights     =[1.0d0                                      ]
           else
-             inclination_=0.0d0
+             inclinations=[0.0d0]
+             weights     =[1.0d0]
              call Error_Report('this attenuator depends on orientation, but no inclination is available: either set `galacticInclination` to a class which supplies one, or wrap this attenuator in `inclinationAveraged`'//{introspection:location})
           end if
           ! Find the models bracketing the required covering fraction, and the weight of each.
@@ -332,16 +341,16 @@ contains
           indexModel       =max(1,min(size(self%coveringFractions)-1,count(self%coveringFractions <= coveringFraction)))
           weightModel      =+(     coveringFraction               -self%coveringFractions(indexModel)) &
                &            /(self%coveringFractions(indexModel+1)-self%coveringFractions(indexModel))
-          ! Find the bracketing inclinations, and the weight of each.
-          inclination_     =max(self%inclination(1),min(self%inclination(size(self%inclination)),inclination_))
-          indexInclination =max(1,min(size(self%inclination)-1,count(self%inclination <= inclination_)))
-          weightInclination=+(inclination_                        -self%inclination(indexInclination)) &
-               &            /(self%inclination(indexInclination+1)-self%inclination(indexInclination))
-          weightsModel(1,1)=(1.0d0-weightInclination)*(1.0d0-weightModel)
-          weightsModel(2,1)=       weightInclination *(1.0d0-weightModel)
-          weightsModel(1,2)=(1.0d0-weightInclination)*       weightModel
-          weightsModel(2,2)=       weightInclination *       weightModel
-          computed         =.true.
+          ! Find the inclinations bracketing each inclination of the torus, and the weight of the upper one.
+          allocate(indicesInclination(size(inclinations)))
+          allocate(weightsInclination(size(inclinations)))
+          do l=1,size(inclinations)
+             inclinations      (l)=max(self%inclination(1),min(self%inclination(size(self%inclination)),inclinations(l)))
+             indicesInclination(l)=max(1,min(size(self%inclination)-1,count(self%inclination <= inclinations(l))))
+             weightsInclination(l)=+(inclinations    (                      l   )-self%inclination(indicesInclination(l))) &
+                  &                /(self%inclination(indicesInclination(l)+1   )-self%inclination(indicesInclination(l)))
+          end do
+          computed=.true.
        end if
        ! Interpolate in the logarithm of wavelength, holding the transmission fixed beyond the tabulated range.
        wavelengthLogarithmic=max(self%wavelengthLogarithmic(1),min(self%wavelengthLogarithmic(size(self%wavelengthLogarithmic)),log(descriptors(i)%wavelength)))
@@ -349,14 +358,19 @@ contains
        weightWavelength     =+(     wavelengthLogarithmic                   -self%wavelengthLogarithmic(indexWavelength)) &
             &                /(self%wavelengthLogarithmic(indexWavelength+1)-self%wavelengthLogarithmic(indexWavelength))
        transmission(i)=0.0d0
-       do k=1,2
-          do j=1,2
-             transmission(i)=+transmission(i)                                                                                              &
-                  &          +weightsModel(j,k)                                                                                            &
-                  &          *(                                                                                                            &
-                  &            +(1.0d0-weightWavelength)*self%transmissionTabulated(indexWavelength  ,indexInclination+j-1,indexModel+k-1) &
-                  &            +       weightWavelength *self%transmissionTabulated(indexWavelength+1,indexInclination+j-1,indexModel+k-1) &
-                  &           )
+       do l=1,size(inclinations)
+          do k=1,2
+             do j=1,2
+                weight         =+weights(l)                                                      &
+                     &          *merge(1.0d0-weightsInclination(l),weightsInclination(l),j == 1) &
+                     &          *merge(1.0d0-weightModel          ,weightModel          ,k == 1)
+                transmission(i)=+transmission(i)                                                                                                   &
+                     &          +weight                                                                                                            &
+                     &          *(                                                                                                                 &
+                     &            +(1.0d0-weightWavelength)*self%transmissionTabulated(indexWavelength  ,indicesInclination(l)+j-1,indexModel+k-1) &
+                     &            +       weightWavelength *self%transmissionTabulated(indexWavelength+1,indicesInclination(l)+j-1,indexModel+k-1) &
+                     &           )
+             end do
           end do
        end do
     end do

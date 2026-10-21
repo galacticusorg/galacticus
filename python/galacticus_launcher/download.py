@@ -42,6 +42,7 @@ import contextlib
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -72,6 +73,11 @@ DATASETS_REF_ASSET = "datasets.ref"
 
 # Sentinel recording that the tools archive is deliberately not wanted.
 TOOLS_SKIPPED = "tools-skipped"
+
+# Sentinels recording that the profile-guided optimization (PGO) build of the executable is deliberately not wanted, and
+# which build of the executable is installed ("pgo" or "standard"). See `_pgo_published`.
+PGO_SKIPPED = "pgo-skipped"
+EXEC_VARIANT = "exec-variant"
 
 # Tool executables in the pre-built tools archive whose execute bit must be
 # restored after unpacking a zip.  Tar archives -- the current format on every
@@ -253,13 +259,20 @@ class _Context:
             tempfile.TemporaryDirectory(dir=beside.parent, prefix=_STAGING)))
 
 
-def provision(install, *, force=False, log=print, tools=None):
+def provision(install, *, force=False, log=print, tools=None, pgo=None):
     """Download and unpack any missing components of a managed `install`.
 
     `tools` selects whether the (large) pre-built tools archive is fetched:
     ``True`` fetches it, ``False`` skips it and records that choice, and ``None``
     (the default) fetches it unless an earlier ``--no-tools`` install recorded
     that it is not wanted.
+
+    `pgo` likewise selects whether the profile-guided optimization (PGO) build of
+    the executable is installed where the release carries one built from its own
+    commit (see `_pgo_published`): ``True`` asks for it, ``False`` declines it and
+    records that choice, and ``None`` (the default) keeps the earlier choice. The
+    PGO build is wanted unless declined, but is only looked for when the
+    executable is fetched, or when ``True`` is passed explicitly.
 
     Returns the list of component names that were (re)provisioned.  Raises if
     `install` is not managed.
@@ -284,7 +297,7 @@ def provision(install, *, force=False, log=print, tools=None):
     with contextlib.ExitStack() as stack:
         context = _Context(install=install, checksums=checksums, force=force,
                            log=log, fetcher=fetcher, stack=stack)
-        plans = [plan for plan in (_plan_exec(context),
+        plans = [plan for plan in (_plan_exec(context, pgo),
                                    _plan_datasets(context),
                                    _plan_tools(context, tools),
                                    _plan_catalog(context))
@@ -413,6 +426,94 @@ def _sentinel(directory, name):
     return Path(directory) / f".galacticus-{name}"
 
 
+def pgo_installed(install):
+    """True if the installed executable of `install` is the PGO build."""
+    if install.exec_path is None:
+        return False
+    variant = _sentinel(install.exec_path, EXEC_VARIANT)
+    return variant.is_file() and variant.read_text().strip() == "pgo"
+
+
+def pgo_skipped(install):
+    """True if the PGO build of the executable was deliberately declined for `install`."""
+    return install.exec_path is not None and _sentinel(install.exec_path, PGO_SKIPPED).exists()
+
+
+def _pgo_wanted(install, pgo):
+    """Decide whether the PGO build of the executable is wanted, recording an explicit choice.
+
+    As for the tools archive (see `_tools_wanted`) the choice persists, so that commands which provision on demand honor
+    it: `None` means "as decided before" (wanted, unless declined), `True` clears an earlier refusal, and `False` records
+    one.
+    """
+    marker = _sentinel(install.exec_path, PGO_SKIPPED)
+    if pgo is None:
+        return not marker.exists()
+    if pgo:
+        marker.unlink(missing_ok=True)
+        return True
+    marker.write_text(install.tag)
+    return False
+
+
+def _github_api_json(url):
+    """Return the decoded JSON body of GitHub API `url`, or None if it is absent, unreachable, or not JSON."""
+    try:
+        response = requests.get(url, timeout=30, headers={"Accept": "application/vnd.github+json"})
+        if response.status_code == 200:
+            return response.json()
+    except (requests.RequestException, ValueError):  # pragma: no cover - network
+        pass
+    return None
+
+
+def _release_commit(tag):
+    """Return the commit that the git tag of release `tag` points to, or None if that can not be determined."""
+    target = (_github_api_json(f"https://api.github.com/repos/{REPO}/git/ref/tags/{tag}") or {}).get("object") or {}
+    # A lightweight tag points at the commit itself; an annotated tag at a tag object, which points at the commit.
+    for _ in range(2):
+        if target.get("type") == "commit":
+            return target.get("sha")
+        if target.get("type") != "tag" or not target.get("url"):
+            return None
+        target = (_github_api_json(target["url"]) or {}).get("object") or {}
+    return None
+
+
+def _pgo_published(install, *, log=print):
+    """Return the SHA-256 of release `install.tag`'s PGO executable if it may be installed, or None to use the standard one.
+
+    The PGO workflow (`.github/workflows/pgo.yml`) publishes the PGO executable beside the standard one, with a `.sha256`
+    file holding its checksum and a `.commit` file naming the commit it was built from. It may be used only if that is the
+    commit the release's tag points to: the workflow publishes to `bleeding-edge` only while that holds, but when
+    `bleeding-edge` later moves on, the PGO executable left behind is from an older commit, and must not be installed
+    alongside the newer release's source and data. So any doubt - no PGO executable, the release's commit undeterminable,
+    a different commit, no valid checksum - means the standard executable.
+    """
+    name = install.assets.binary_pgo
+    if not name:
+        return None
+    record = _read_remote_text(asset_url(install.tag, f"{name}.commit"))
+    if not record or not record.split():
+        return None  # The release carries no PGO executable: nothing to report.
+    built = record.split()[0]
+    release = _release_commit(install.tag)
+    if release is None:
+        log(f"  note: could not determine the commit of release {install.tag}, so can not check its PGO executable; "
+            "using the standard executable.")
+        return None
+    if built != release:
+        log(f"  note: the PGO executable on release {install.tag} was built from commit {built[:10]}, not the release's "
+            f"{release[:10]}; using the standard executable.")
+        return None
+    sums = _read_remote_text(asset_url(install.tag, f"{name}.sha256"))
+    digest = sums.split()[0].lower() if sums and sums.split() else ""
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        log(f"  note: release {install.tag} publishes no valid checksum for {name}; using the standard executable.")
+        return None
+    return digest
+
+
 def _require_published_binary(context):
     """Refuse, with the reason, to install a retired platform from a release which
     carries no binary for it.
@@ -441,13 +542,33 @@ def _require_published_binary(context):
     )
 
 
-def _plan_exec(context):
+def _plan_exec(context, pgo=None):
     install, log = context.install, context.log
     sentinel = _sentinel(install.exec_path, "exec")
+    wanted = bool(install.assets.binary_pgo) and _pgo_wanted(install, pgo)
+    digest = None
     if sentinel.exists() and not context.force:
-        return None
+        installed = pgo_installed(install)
+        # Re-provision only to change the build installed: to the standard one when the PGO build is declined, or to the
+        # PGO build when it is explicitly asked for and available. A command which provisions on demand (`pgo` None) never
+        # goes looking for a PGO executable, so that `galacticus run` stays free of network requests.
+        if installed and not wanted:
+            log("Replacing the PGO build of the executable with the standard one ...")
+        elif not installed and wanted and pgo:
+            digest = _pgo_published(install, log=log)
+            if digest is None:
+                log(f"  no PGO executable is available for release {install.tag}; keeping the standard one.")
+                return None
+        else:
+            return None
     _require_published_binary(context)
+    if wanted and digest is None:
+        digest = _pgo_published(install, log=log)
+    binary_asset = install.assets.binary_pgo if digest else install.assets.binary
+    checksums = {binary_asset: digest} if digest else context.checksums
     log(f"Fetching Galacticus source ({install.tag}) ...")
+    if digest:
+        log("  using the profile-guided optimization (PGO) build of the executable.")
     work = context.workspace(install.exec_path)
     archive = work / "source.zip"
     # The executable is staged beside the archive rather than downloaded straight
@@ -456,17 +577,18 @@ def _plan_exec(context):
     # top-level names.
     staged_binary = work / "Galacticus.exe"
     context.fetcher.enqueue(source_url(install.tag), archive, label="source.zip")
-    context.fetcher.enqueue(asset_url(install.tag, install.assets.binary),
-                            staged_binary, label=install.assets.binary)
+    context.fetcher.enqueue(asset_url(install.tag, binary_asset),
+                            staged_binary, label=binary_asset)
 
     def unpack():
         _extract_strip_top(archive, install.exec_path, log=log)
         # Verify before making the file executable, so that a file which fails the check is never left runnable.
-        _verify(staged_binary, install.assets.binary, context.checksums, log=log)
+        _verify(staged_binary, binary_asset, checksums, log=log)
         binary = install.exec_path / "Galacticus.exe"
         binary.unlink(missing_ok=True)
         shutil.move(str(staged_binary), str(binary))
         binary.chmod(0o755)
+        _sentinel(install.exec_path, EXEC_VARIANT).write_text("pgo" if digest else "standard")
         sentinel.write_text(install.tag)
         return True
 

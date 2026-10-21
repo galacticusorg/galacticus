@@ -123,7 +123,7 @@ jobs:
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
           grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
       - name: Upload the instrumented executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-pgo-instrumented
           path: 'Galacticus.exe'
@@ -153,7 +153,7 @@ jobs:
           set +o pipefail
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
       - name: Upload the standard executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-pgo-standard
           path: 'Galacticus.exe'
@@ -210,11 +210,11 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
       - name: Download the instrumented executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo-instrumented
       - name: Download the standard executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo-standard
           path: standard
@@ -286,14 +286,14 @@ jobs:
           { du -sh datasets/dynamic/* datasets/dynamic/.[!.]* 2> /dev/null || true; } | sort -h
       - name: Upload the training logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-pgo-training-logs
           path: |
             warmup.*.log
             train.*.log
       - name: Upload the profiles
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-pgo-profiles
           path: 'profiles.tar'
@@ -312,7 +312,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
       - name: Download the profiles
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-pgo-profiles
       - name: Build the PGO executable
@@ -327,7 +327,7 @@ jobs:
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
           grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
       - name: Upload the PGO executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-pgo
           path: 'Galacticus.exe'
@@ -359,7 +359,7 @@ jobs:
           echo "PYTHONPATH=$GITHUB_WORKSPACE/python" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Download the PGO executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo
       - name: Install packages
@@ -386,7 +386,7 @@ jobs:
       contents: write # required to upload release assets
     steps:
       - name: Download the PGO executable
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-pgo
       - name: Upload the PGO executable to the release

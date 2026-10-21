@@ -42,7 +42,7 @@ Each of the following make variables (settable on the command line or from the e
    ``no`` (default) or ``yes``: profile the build itself. Every recipe is run through the ``profiler.sh`` wrapper SHELL to collect timing and memory data (see Section :galacticus-ref:`buildProfiling`). This does not change the code built.
 
 ``PGO``
-   ``no`` (default), ``generate``, or ``use``: the two phases of a profile-guided optimization build, which made the executable 6--17% faster, depending on the model, in tests on one machine (see issue #1449). The profiles that the second phase uses are located by object file path, so both phases use the same build directory (``work/buildPGO/`` on its own):
+   ``no`` (default), ``generate``, or ``use``: the two phases of a profile-guided optimization build, which made the executable 6--13% faster, depending on the model, in tests on one machine (see issue #1449). The profiles that the second phase uses are located by object file path, so both phases use the same build directory (``work/buildPGO/`` on its own):
 
    #. ``make PGO=generate Galacticus.exe`` builds an instrumented executable, ``Galacticus.exe_PGOInstrumented``, which runs several times slower than a normal build. Each run of it adds execution counts to ``*.gcda`` profile files in the build directory. Run it, from the repository root, on the training models in ``testSuite/parameters/pgo/``. Counters are updated atomically, so training runs may use several OpenMP threads.
    #. ``make PGO=use Galacticus.exe`` rebuilds using those profiles, producing ``Galacticus.exe_PGO``. It stops with an error if there are no profiles.

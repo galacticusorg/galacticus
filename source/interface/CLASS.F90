@@ -595,7 +595,7 @@ contains
          call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
          extrapolationGroup          =classOutput       %openGroup('extrapolation')
          extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-         call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+         call extrapolationWavenumberGroup%writeAttribute('fix'        ,'low' )
          call extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
        end block hdf5WriteScope
        !$ call hdf5Access%unset()
@@ -852,7 +852,7 @@ contains
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'T_cmb           ',       cosmologyParameters_%temperatureCMB()
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_b         ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm       ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'Omega_k         ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+    write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'Omega_k         ', 1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy()
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'N_ur            ',3.044d+0
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'YHe             ',heliumByMassPrimordial
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'A_s             ',normalizationAs
