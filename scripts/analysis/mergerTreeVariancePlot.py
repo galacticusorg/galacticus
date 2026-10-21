@@ -42,6 +42,9 @@ with PdfPages(args.outputFileName) as pdf:
             variance   = group.attrs['countVariance']
             mean       = group.attrs['countMean']
             delta      = group['splits/delta'        ][:]
+            # The estimate of Δ² summed in the analysis (with the cross-product estimator this excludes the noise of the n₁
+            # table, which squaring Δ would include). Older outputs lack it, so fall back to Δ².
+            deltaSquared = group['splits/deltaSquared'][:] if 'deltaSquared' in group['splits'] else delta**2
             redshift   = group['splits/redshift'     ][:]
             massTotal  = group['splits/mass'         ][:]
             massSecond = group['splits/massSecondary'][:]
@@ -53,11 +56,11 @@ with PdfPages(args.outputFileName) as pdf:
                 continue
             # Cumulative variance from splits at redshift < z.
             order = np.argsort(redshift)
-            axes[0,0].plot(redshift[order],np.cumsum(delta[order]**2)/countTrees/variance,color=color,lw=2,label=label)
+            axes[0,0].plot(redshift[order],np.cumsum(deltaSquared[order])/countTrees/variance,color=color,lw=2,label=label)
             # Contribution to Var(N) in bins of x.
             bins = np.linspace(-4.0,np.log10(0.5),25)
             for select, style, name in classes:
-                h, _ = np.histogram(np.log10(x[select]),bins=bins,weights=delta[select]**2/countTrees/variance)
+                h, _ = np.histogram(np.log10(x[select]),bins=bins,weights=deltaSquared[select]/countTrees/variance)
                 axes[0,1].step(bins[1:],h,where='pre',color=color,ls=style,lw=2,label=label+' '+name)
             # Non-additivity of structural splits.
             structural = (massSecond >= 4.0*m) & (n1Parent > 0.0)

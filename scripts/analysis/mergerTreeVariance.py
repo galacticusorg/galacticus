@@ -45,7 +45,7 @@ statisticNames = {
 
 # Parse command line arguments.
 parser = argparse.ArgumentParser(prog='mergerTreeVariance.py',description='Decompose the variance of progenitor/subhalo counts in merger trees into contributions from individual splits.')
-parser.add_argument('treeFileName'                                                                                                                                                                   )
+parser.add_argument('treeFileNames'     ,nargs='+'                                                          ,help='one or more files of exported trees, analyzed together as a single sample (they must share a cosmology)')
 parser.add_argument('--outputFileName'  ,action='store',default='mergerTreeVariance.hdf5'                    ,help='the HDF5 file to which results are written'                                       )
 parser.add_argument('--statistics'      ,action='store',default='ABC'                                        ,help='the statistics to compute, any of "A", "B", "C"'                                  )
 parser.add_argument('--massThresholds'  ,action='store',default='1.0e10,3.0e10,1.0e11'                       ,help='comma-separated list of threshold masses, m'                                      )
@@ -348,13 +348,12 @@ def weightedVariance(weights,values):
 def weightedMean(weights,values):
     return (weights@values)/weights.sum(axis=1)
 
-treeFileWorker = None
-def treeFileOpen():
-    # Return this process' handle to the tree file (HDF5 file handles must not be shared between processes).
-    global treeFileWorker
-    if treeFileWorker is None:
-        treeFileWorker = h5py.File(args.treeFileName,'r')
-    return treeFileWorker
+treeFilesWorker = {}
+def treeFileOpen(indexFile):
+    # Return this process' handle to a tree file (HDF5 file handles must not be shared between processes).
+    if indexFile not in treeFilesWorker:
+        treeFilesWorker[indexFile] = h5py.File(args.treeFileNames[indexFile],'r')
+    return treeFilesWorker[indexFile]
 
 def mapChunks(function,items):
     # Apply a function to each item, yielding results in order, using a pool of worker processes if requested. Workers are
@@ -365,30 +364,39 @@ def mapChunks(function,items):
     with multiprocessing.get_context('fork').Pool(args.processes) as pool:
         yield from pool.imap(function,items)
 
-# Open the exported trees, and divide the forests into chunks of roughly the requested number of nodes.
-print('Reading trees from "'+args.treeFileName+'"')
-treeFile      = h5py.File(args.treeFileName,'r')
-OmegaMatter   = treeFile['cosmology'].attrs['OmegaMatter']
-OmegaLambda   = treeFile['cosmology'].attrs['OmegaLambda']
-numberOfNodes = treeFile['forestIndex/numberOfNodes'][:].astype(np.int64)
-countForests  = len(numberOfNodes)
-nodesBefore   = np.concatenate(([0],np.cumsum(numberOfNodes)))
-# Chunks are read as contiguous ranges of nodes, so forests must be stored contiguously and in order.
-if np.any(treeFile['forestIndex/firstNode'][:].astype(np.int64) != nodesBefore[:-1]):
-    sys.exit('mergerTreeVariance.py: forests are not stored contiguously in order')
-chunkBoundaries = np.unique(np.concatenate((np.searchsorted(nodesBefore,np.arange(0,nodesBefore[-1],args.chunkNodes),side='right')-1,[countForests])))
-chunks        = list(zip(chunkBoundaries[:-1],chunkBoundaries[1:]))
+# Open the exported trees, and divide the forests of each file into chunks of roughly the requested number of nodes. A chunk is
+# (index of file, first forest, last forest+1); trees are numbered globally in the order of files, then of chunks.
+nodesBefore = []
+chunks      = []
+countForests, countNodesAll = 0, 0
+for indexFile, treeFileName in enumerate(args.treeFileNames):
+    print('Reading trees from "'+treeFileName+'"')
+    treeFile      = h5py.File(treeFileName,'r')
+    cosmology     = (treeFile['cosmology'].attrs['OmegaMatter'],treeFile['cosmology'].attrs['OmegaLambda'])
+    if indexFile == 0:
+        OmegaMatter, OmegaLambda = cosmology
+    elif cosmology != (OmegaMatter,OmegaLambda):
+        sys.exit('mergerTreeVariance.py: tree files do not share a cosmology')
+    numberOfNodes = treeFile['forestIndex/numberOfNodes'][:].astype(np.int64)
+    nodesBefore.append(np.concatenate(([0],np.cumsum(numberOfNodes))))
+    # Chunks are read as contiguous ranges of nodes, so forests must be stored contiguously and in order.
+    if np.any(treeFile['forestIndex/firstNode'][:].astype(np.int64) != nodesBefore[-1][:-1]):
+        sys.exit('mergerTreeVariance.py: forests are not stored contiguously in order')
+    chunkBoundaries = np.unique(np.concatenate((np.searchsorted(nodesBefore[-1],np.arange(0,nodesBefore[-1][-1],args.chunkNodes),side='right')-1,[len(numberOfNodes)])))
+    chunks.extend((indexFile,forestStart,forestEnd) for forestStart, forestEnd in zip(chunkBoundaries[:-1],chunkBoundaries[1:]))
+    countForests  += len(numberOfNodes)
+    countNodesAll += nodesBefore[-1][-1]
+    treeFile.close()
 del numberOfNodes
 omega1        = args.deltaCritical0/linearGrowthFactor(args.redshiftTarget,OmegaMatter,OmegaLambda)
-print('  {:d} forests, {:d} nodes, in {:d} chunk(s)'.format(countForests,nodesBefore[-1],len(chunks)))
-treeFile.close()
+print('  {:d} forests, {:d} nodes, in {:d} file(s) and {:d} chunk(s)'.format(countForests,countNodesAll,len(args.treeFileNames),len(chunks)))
 
 # Pass 1: global ranges of mass and redshift (which set the n₁ table ranges), and the number of trees in each chunk (which sets
 # the global index of each tree, used to assign trees to folds).
 def passRanges(chunk):
-    forestStart, forestEnd = chunk
-    nodeStart, nodeEnd = nodesBefore[forestStart], nodesBefore[forestEnd]
-    treeFile_     = treeFileOpen()
+    indexFile, forestStart, forestEnd = chunk
+    nodeStart, nodeEnd = nodesBefore[indexFile][forestStart], nodesBefore[indexFile][forestEnd]
+    treeFile_     = treeFileOpen(indexFile)
     massChunk     = treeFile_['forestHalos/nodeMass'       ][nodeStart:nodeEnd]
     redshiftChunk = treeFile_['forestHalos/redshift'       ][nodeStart:nodeEnd]
     countRoots    = np.count_nonzero(treeFile_['forestHalos/descendantIndex'][nodeStart:nodeEnd] < 0)
@@ -433,8 +441,8 @@ def passTables(group):
                    'omegaSplitsActive': {statistic: [] for statistic in args.statistics},
                    'countSplits': 0, 'countMultiple': 0, 'depthMaximum': 0, 'omegaSpreadMaximum': 0.0}
     for indexChunk in group:
-        forestStart, forestEnd = chunks[indexChunk]
-        chunk = chunkOfTrees(treeFileOpen(),forestStart,forestEnd,treeOffsets[indexChunk])
+        indexFile, forestStart, forestEnd = chunks[indexChunk]
+        chunk = chunkOfTrees(treeFileOpen(indexFile),forestStart,forestEnd,treeOffsets[indexChunk])
         if chunk.countTrees != treeCounts[indexChunk]:
             sys.exit('mergerTreeVariance.py: inconsistent count of trees in chunk')
         summary['countSplits'       ] += chunk.countSplits
@@ -479,7 +487,7 @@ for key in tables:
     for table in tables[key]:
         table.finalize()
 massRoot, redshiftFormation, omegaFormation = perTree['massRoot'], perTree['redshiftFormation'], perTree['omegaFormation']
-print('  {:d} trees, {:d} nodes, {:d} splits, maximum depth {:d}'.format(countTrees,nodesBefore[-1],countSplits,depthMaximum))
+print('  {:d} trees, {:d} nodes, {:d} splits, maximum depth {:d}'.format(countTrees,countNodesAll,countSplits,depthMaximum))
 if countMultiple > 0:
     print('  note: {:d} nodes have more than two progenitors'.format(countMultiple))
 print('  maximum ω difference between progenitors of a split: {:.3e}'.format(omegaSpreadMaximum))
@@ -492,7 +500,7 @@ for statistic in args.statistics:
 del omegaSplitsActive
 
 output = h5py.File(args.outputFileName,'w')
-output.attrs['treeFileName'      ] = args.treeFileName
+output.attrs['treeFileName'      ] = ','.join(args.treeFileNames)
 output.attrs['redshiftTarget'    ] = args.redshiftTarget
 output.attrs['omegaTarget'       ] = omega1
 output.attrs['crossFit'          ] = args.crossFit
@@ -513,8 +521,8 @@ treeQuantities = ('count','n1Root','sumDelta','sumDrift','sumDeltaSquared','sumD
                   'sumDeltaSquaredMain','sumDeltaSquaredSide','sumDeltaSquaredBeforeFormation','telescopeResidual')
 nodeTypeNames  = ('root','primary at split','secondary at split','accretion')
 def passJumps(indexChunk):
-    forestStart, forestEnd = chunks[indexChunk]
-    chunk   = chunkOfTrees(treeFileOpen(),forestStart,forestEnd,treeOffsets[indexChunk])
+    indexFile, forestStart, forestEnd = chunks[indexChunk]
+    chunk   = chunkOfTrees(treeFileOpen(indexFile),forestStart,forestEnd,treeOffsets[indexChunk])
     returns = {}
     for statistic, indexThreshold, massThreshold in cases:
         tablesCase  = tables[(statistic,indexThreshold)]
@@ -618,7 +626,7 @@ def passJumps(indexChunk):
             result['expectation'][i] = expectation
             result['sumBefore'  ][i] = chunk.treeSum(deltaSquared,before)
         # Per-split values.
-        result['splits'] = (('tree',chunk.treeOfNode[s]),('delta',delta[s]),('omega',chunk.omegaSplit[s]),
+        result['splits'] = (('tree',chunk.treeOfNode[s]),('delta',delta[s]),('deltaSquared',deltaSquared[s]),('omega',chunk.omegaSplit[s]),
                             ('redshift',chunk.redshift[chunk.primaryChild[s]]),('mass',chunk.massChildren[s]),('massPrimary',chunk.mass[chunk.primaryChild[s]]),
                             ('massSecondary',chunk.massSecondary[s]),('massRoot',chunk.massRoot[chunk.treeLocal[s]]),('n1Parent',n1End[s]),
                             ('isMainBranch',chunk.isMain[s].astype(np.int8)),('hierarchyDepth',chunk.hierarchyDepth[s]),('countAdded',countAdded[s]))
@@ -651,7 +659,7 @@ for indexChunk, returns in enumerate(mapChunks(passJumps,range(len(chunks)))):
         # Per-split output, appended chunk by chunk.
         if result['splits'] is None:
             splitGroup = output.create_group('statistic'+statistic+'/threshold{:d}/splits'.format(indexThreshold))
-            result['splits'] = {name: splitGroup.create_dataset(name,data=values,maxshape=(None,),chunks=True,compression='gzip') for name, values in chunkResult['splits']}
+            result['splits'] = {name: splitGroup.create_dataset(name,data=values,maxshape=(None,),chunks=True,compression='gzip',compression_opts=1) for name, values in chunkResult['splits']}
         else:
             for name, values in chunkResult['splits']:
                 dataset = result['splits'][name]
