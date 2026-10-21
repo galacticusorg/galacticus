@@ -68,14 +68,16 @@
 
       M_3 = M_1 (1-F) - M_2
 
-   where :math:`F` is the fraction of the parent halo mass gained through sub-resolution accretion in this timestep. As the sub-resolution accretion is removed entirely from the mass :math:`M_3` and not from :math:`M_2` this can lead to an asymmetry in progenitor mass functions close to :math:`M_1/2`. Therefore, we instead set the progenitor masses by first drawing a mass :math:`M_2^\prime` from the mass branching distribution function and then setting
+   where :math:`F` is the fraction of the parent halo mass gained through sub-resolution accretion in this timestep. As the sub-resolution accretion is removed entirely from the mass :math:`M_3` and not from :math:`M_2` this can lead to an asymmetry in progenitor mass functions close to :math:`M_1/2`.
+
+   In this implementation, several timesteps may be taken along a branch before a new node is created, so :math:`F` is the cumulative fraction of the parent halo mass, :math:`M_1`, accreted at sub-resolution scales since that node, including the current timestep. The branching distribution function at each step is evaluated for the current branch mass, :math:`M_\mathrm{b} = M_1 (1-F_\mathrm{prev})`, where :math:`F_\mathrm{prev}` is the cumulative accreted fraction before this timestep. We set the progenitor masses by first drawing a mass :math:`M_2^\prime` from the mass branching distribution function for a halo of mass :math:`M_\mathrm{b}`, and then setting
 
    .. math::
 
-      M_2 &amp; = M_2^\prime (1-F), \nonumber \\
-      M_3 &amp; = (M_1 - M_2^\prime) (1-F),
+      M_2 &amp; = \frac{M_2^\prime}{M_\mathrm{b}} M_1 (1-F), \nonumber \\
+      M_3 &amp; = M_1 (1-F) - M_2,
 
-   which ensures a symmetric treatment of subresolution accretion close to :math:`M_1/2`.
+   so that the mass fraction :math:`M_2^\prime/M_\mathrm{b}` drawn from the branching distribution function is preserved in the split of the total progenitor mass, :math:`M_1 (1-F)`. This ensures a symmetric treatment of subresolution accretion close to :math:`M_1/2`, and that accretion in earlier timesteps is not removed a second time from the progenitors.
 
    .. [#] Note that we do not have to concern ourselves in the subsequent timestep with the fact that no branching occurred in the previous timestep because of the memorylessness nature of the negative exponential distribution. That is, the distribution of branching intervals conditioned on the fact that no branching occurred in the previous timestep, is just the same negative exponential distribution.
    </description>
@@ -831,11 +833,11 @@ contains
                    self_%nodeIndex =  self_%nodeIndex+1
                    nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
                    basicNew1       => nodeNew1%basic(autoCreate=.true.)
-                   ! Compute mass of one of the new nodes.
+                   ! Compute mass of one of the new nodes. The mass is drawn for a parent of the current branch mass, and the resulting
+                   ! mass fraction is then applied to the total progenitor mass, which accounts for all accretion since the node.
                    nodeMass1       =  mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor_,self_%workers(numberWorker)%randomNumberGenerator_,nodeCurrent)
-                   nodeMass2       =  basic_%mass()-nodeMass1
-                   nodeMass1       =  nodeMass1*(1.0d0-accretionFractionCumulative)
-                   nodeMass2       =  nodeMass2*(1.0d0-accretionFractionCumulative)
+                   nodeMass1       =  nodeMass1/branchMassCurrent*basic_%mass()*(1.0d0-accretionFractionCumulative)
+                   nodeMass2       =                              basic_%mass()*(1.0d0-accretionFractionCumulative)-nodeMass1
                    ! Compute the critical overdensity of the first new node.
                    deltaCritical1 =  self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
