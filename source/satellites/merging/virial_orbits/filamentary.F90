@@ -57,6 +57,16 @@
    ``radiusFilamentFractional``, as its radius, :math:`x`, in units of the virial radius of the host. Its angular half-width
    on the virial sphere is then :math:`\theta_\mathrm{half} = \sin^{-1}[\min(1,x)]`, and :math:`\kappa = 1/\theta_\mathrm{half}^2`.
 
+   Two consequences of this convention should be noted. First, :math:`\theta_\mathrm{half}` is the dispersion of the angle
+   from the axis in the limit of large :math:`\kappa` (for which that distribution is Gaussian, with
+   :math:`\sigma=\kappa^{-1/2}`), not the half-width at half maximum, which is larger (:math:`32^\circ` for the default
+   :math:`\theta_\mathrm{half}=27^\circ`). Second, :math:`\kappa` does not vanish for wide filaments: any :math:`x \ge 1`
+   gives :math:`\theta_\mathrm{half}=\pi/2` and :math:`\kappa=4/\pi^2\approx 0.41`, for which infall directions of the
+   filamentary component are still :math:`\cosh(4/\pi^2)\approx 1.08` times more probable along the filament than
+   perpendicular to it. Increasing the width of the filaments therefore never makes infall fully isotropic. Isotropic infall
+   is obtained only with :math:`f=0`, i.e. with ``fractionFilamentaryCharacteristic`` and
+   ``fractionFilamentaryLogarithmicSlope`` both set to zero.
+
    The default parameters are from a fit of this model, for a single filament passing through the halo (i.e. :math:`N=2`
    opposite axes), to the distribution of the angle between the points at which subhalos enter their hosts and the axis of
    slowest collapse of the velocity shear tensor (smoothed on a scale of four virial radii) measured by
@@ -153,7 +163,9 @@ contains
       <source>parameters</source>
       <description>
       The radius of a filament, :math:`x`, in units of the virial radius of the host, which sets the angular half-width,
-      :math:`\theta_\mathrm{half} = \sin^{-1}[\min(1,x)]`, of the filament on the virial sphere.
+      :math:`\theta_\mathrm{half} = \sin^{-1}[\min(1,x)]`, of the filament on the virial sphere. All values :math:`x \ge 1`
+      give the same, weak but non-zero, concentration of infall about the filament, :math:`\kappa=4/\pi^2`. Infall is
+      isotropic only if the filamentary fraction is zero.
       </description>
     </inputParameter>
     <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters"/>
