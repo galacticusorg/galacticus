@@ -1200,6 +1200,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="galacticComponentHeating">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="none"/>
+          <xs:enumeration value="tracer"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="galacticComponentTruncation">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -1857,6 +1873,7 @@
           <xs:enumeration value="sphericalFiniteResolutionNFW"/>
           <xs:enumeration value="sphericalHeated"/>
           <xs:enumeration value="sphericalHeatedMonotonic"/>
+          <xs:enumeration value="sphericalHeatedTracer"/>
           <xs:enumeration value="sphericalSIDM"/>
           <xs:enumeration value="sphericalSIDMCoreNFW"/>
           <xs:enumeration value="sphericalSIDMIsothermal"/>

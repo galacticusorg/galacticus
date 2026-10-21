@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that performs tidal heating in spheroids.
   !!}
@@ -33,7 +35,7 @@
 
       \dot{J}_\mathrm{spheroid} = |\mathcal{T}| ( M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars} ) r_\mathrm{spheroid}^2,
 
-   where :math:`\mathcal{T}` is the radial tidal tensor evaluated at pericenter (see :galacticus-class:`satelliteTidalFieldClass`), and :math:`r_\mathrm{spheroid}` is the scale radius of the spheroid. No heating is applied if the spheroid has non-positive mass or radius, if its radius already exceeds the virial radius of the halo, or if its angular momentum already exceeds :math:`(M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars}) r_\mathrm{virial} V_\mathrm{virial}`.
+   where :math:`\mathcal{T}` is the radial tidal tensor evaluated at pericenter (see :galacticus-class:`satelliteTidalFieldClass`), and :math:`r_\mathrm{spheroid}` is the scale radius of the spheroid. This node operator can not be used together with heating of the spheroid by a :galacticus-class:`galacticComponentHeatingClass` (other than :galacticus-class:`galacticComponentHeatingNone`). No heating is applied if the spheroid has non-positive mass or radius, if its radius already exceeds the virial radius of the halo, or if its angular momentum already exceeds :math:`(M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars}) r_\mathrm{virial} V_\mathrm{virial}`.
    </description>
   </nodeOperator>
   !!]
@@ -70,6 +72,7 @@ contains
     class(darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
     class(satelliteTidalFieldClass         ), pointer       :: satelliteTidalField_
 
+    call tidalHeatingSpheroidsExclusivityCheck(parameters)
     !![
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
@@ -82,6 +85,42 @@ contains
     !!]
     return
   end function tidalHeatingSpheroidsConstructorParameters
+
+  subroutine tidalHeatingSpheroidsExclusivityCheck(parameters)
+    !!{RST
+    Check that heating of spheroids by a :galacticus-class:`galacticComponentHeatingClass` is not also in use. Heating by this
+    node operator and by such a class would double count the heating.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : varying_string , operator(/=)   , assignment(=)
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), pointer       :: parametersRoot
+    type(inputParameters)                :: parametersSpheroid
+    type(varying_string )                :: galacticComponentHeating
+
+    ! Find the root parameters. The spheroid component finds its heating class in its own parameters, or, failing that, in the root
+    ! parameters, so check both in that order.
+    parametersRoot => parameters%parent
+    if (.not.associated(parametersRoot)) return
+    do while (associated(parametersRoot%parent))
+       parametersRoot => parametersRoot%parent
+    end do
+    galacticComponentHeating='none'
+    if (parametersRoot%isPresent('componentSpheroid')) then
+       parametersSpheroid=parametersRoot%subParameters('componentSpheroid')
+       if (parametersSpheroid%isPresent('galacticComponentHeating')) then
+          call parametersSpheroid%value('galacticComponentHeating',galacticComponentHeating)
+       else if (parametersRoot%isPresent('galacticComponentHeating')) then
+          call parametersRoot    %value('galacticComponentHeating',galacticComponentHeating)
+       end if
+    else if (parametersRoot%isPresent('galacticComponentHeating')) then
+       call parametersRoot%value('galacticComponentHeating',galacticComponentHeating)
+    end if
+    if (galacticComponentHeating /= 'none') call Error_Report('this node operator can not be used together with heating of the spheroid by a `galacticComponentHeating` class'//{introspection:location})
+    return
+  end subroutine tidalHeatingSpheroidsExclusivityCheck
 
   function tidalHeatingSpheroidsConstructorInternal(darkMatterHaloScale_,satelliteTidalField_) result(self)
     !!{RST

@@ -26,8 +26,8 @@ Contains a module which builds the mass distributions of the galactic (disk, sph
 module Node_Components_Galactic_Mass_Distributions
   !!{RST
   Builds the mass distributions of the galactic (disk, spheroid, and nuclear star cluster) node components, by scaling their
-  dimensionless stellar and gas mass distributions (optionally truncated, in the case of spherical distributions) to the size
-  and masses of a particular component. The procedure for untruncated distributions is written once as a template and
+  dimensionless stellar and gas mass distributions (optionally truncated and heated, in the case of spherical distributions) to
+  the size and masses of a particular component. The procedure for untruncated distributions is written once as a template and
   instantiated for cylindrical and spherical distributions.
   !!}
   implicit none
@@ -127,27 +127,32 @@ contains
     return
   end function Node_Component_Mass_Distribution_Scaled_{geometry¦label}
 
-  function Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistributionStellar_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained) result(massDistribution_)
+  function Node_Component_Mass_Distribution_Truncated_Spherical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistributionStellar_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained,galacticComponentHeating_,massDistributionDarkMatter_) result(massDistribution_)
     !!{RST
     Return the mass distribution of a spherical galactic component with the given stellar and gas masses and scale radius, built
     by truncating the component's dimensionless stellar and gas mass distributions (using ``galacticComponentTruncation_``) such
     that they retain a fraction ``fractionMassRetained`` of their mass, and then scaling them to the size and masses of the
-    component. Since the truncated distributions differ from node to node they are constructed afresh, rather than being drawn
-    from a pool. A null distribution is returned if the scale radius is non-positive, or if neither stars nor gas are to be
-    included. The stellar and gas distributions are given the kinematics distributions ``kinematicDistributionStellar_`` and
-    ``kinematicDistributionGas_`` respectively.
+    component. If ``galacticComponentHeating_`` and ``massDistributionDarkMatter_`` are present the scaled distributions are
+    then heated consistently with the given heated dark matter mass distribution. Since the truncated and heated distributions
+    differ from node to node they are constructed afresh, rather than being drawn from a pool. A null distribution is returned if
+    the scale radius is non-positive, or if neither stars nor gas are to be included. The stellar and gas distributions are given
+    the kinematics distributions ``kinematicDistributionStellar_`` and ``kinematicDistributionGas_`` respectively.
     !!}
+    use :: Error                         , only : Error_Report
+    use :: Galactic_Component_Heatings   , only : galacticComponentHeatingClass
     use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass
-    use :: Mass_Distributions            , only : massDistributionClass           , kinematicsDistributionClass
+    use :: Mass_Distributions            , only : massDistributionClass           , kinematicsDistributionClass, massDistributionSpherical
     implicit none
-    class           (massDistributionClass           ), pointer                :: massDistribution_
-    logical                                           , intent(in   )          :: includeStars                 , includeGas
-    double precision                                  , intent(in   )          :: massStellar                  , massGas                  , &
-         &                                                                        radiusScale                  , fractionMassRetained
-    class           (massDistributionClass           ), intent(in   ), pointer :: massDistributionStellar_     , massDistributionGas_
-    class           (kinematicsDistributionClass     ), intent(in   ), target  :: kinematicDistributionStellar_, kinematicDistributionGas_
-    class           (galacticComponentTruncationClass), intent(inout)          :: galacticComponentTruncation_
-    class           (massDistributionClass           ), pointer                :: massDistributionStellar      , massDistributionGas
+    class           (massDistributionClass           ), pointer                          :: massDistribution_
+    logical                                           , intent(in   )                    :: includeStars                 , includeGas
+    double precision                                  , intent(in   )                    :: massStellar                  , massGas                  , &
+         &                                                                                  radiusScale                  , fractionMassRetained
+    class           (massDistributionClass           ), intent(in   ), pointer           :: massDistributionStellar_     , massDistributionGas_
+    class           (kinematicsDistributionClass     ), intent(in   ), target            :: kinematicDistributionStellar_, kinematicDistributionGas_
+    class           (galacticComponentTruncationClass), intent(inout)                    :: galacticComponentTruncation_
+    class           (galacticComponentHeatingClass   ), intent(inout), optional          :: galacticComponentHeating_
+    class           (massDistributionClass           ), intent(inout), optional, target  :: massDistributionDarkMatter_
+    class           (massDistributionClass           ), pointer                          :: massDistributionStellar      , massDistributionGas
 
     if (radiusScale <= 0.0d0 .or. .not.(includeGas .or. includeStars)) then
        ! The component has non-positive size, or no components matched. Return a null distribution.
@@ -167,8 +172,8 @@ contains
 
     function scaledTruncated(massDistributionDimensionless_,mass,kinematicsDistribution_) result(massDistributionScaled)
       !!{RST
-      Truncate the given dimensionless mass distribution, and scale it to the size and the given mass of the component, giving it
-      the kinematics distribution ``kinematicsDistribution_``.
+      Truncate the given dimensionless mass distribution, scale it to the size and the given mass of the component, and heat it
+      if required, giving it the kinematics distribution ``kinematicsDistribution_``.
       !!}
       use :: Error             , only : Error_Report
       use :: Mass_Distributions, only : massDistributionSpherical, massDistributionSphericalScaler
@@ -177,7 +182,7 @@ contains
       class           (massDistributionClass          ), intent(in   ), pointer :: massDistributionDimensionless_
       double precision                                 , intent(in   )          :: mass
       class           (kinematicsDistributionClass    ), intent(in   )          :: kinematicsDistribution_
-      class           (massDistributionSpherical      ), pointer                :: massDistributionTruncated
+      class           (massDistributionSpherical      ), pointer                :: massDistributionTruncated    , massDistributionHeated
       type            (massDistributionSphericalScaler), pointer                :: massDistributionScaler
 
       select type (massDistributionDimensionless_)
@@ -195,6 +200,21 @@ contains
       !!]
       call massDistributionScaler%setKinematicsDistribution(kinematicsDistribution_)
       massDistributionScaled => massDistributionScaler
+      ! Heat the scaled distribution if required.
+      if (present(galacticComponentHeating_) .and. present(massDistributionDarkMatter_)) then
+         select type (massDistributionDarkMatter_)
+         class is (massDistributionSpherical)
+            massDistributionHeated => galacticComponentHeating_%massDistribution(massDistributionScaler,massDistributionDarkMatter_)
+         class default
+            massDistributionHeated => null()
+            call Error_Report('heating requires a spherically-symmetric dark matter mass distribution'//{introspection:location})
+         end select
+         !![
+         <objectDestructor name="massDistributionScaler"/>
+         !!]
+         call massDistributionHeated%setKinematicsDistribution(kinematicsDistribution_)
+         massDistributionScaled => massDistributionHeated
+      end if
       return
     end function scaledTruncated
 
