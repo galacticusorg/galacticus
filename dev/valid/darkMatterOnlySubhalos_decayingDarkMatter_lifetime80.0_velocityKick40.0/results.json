@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "3b0d8b886de81d5d76c5930be5939b4c96eb89e1",
-        "message": "Merge pull request #1631 from galacticusorg/dependabot/github_actions/actions/create-github-app-token-3.3.0\n\nchore(deps): bump actions/create-github-app-token from 3.2.0 to 3.3.0\n",
-        "timestamp": "2026-10-18 16:37:06+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/3b0d8b886de81d5d76c5930be5939b4c96eb89e1"
+        "id": "41e0071930a146ab1f64d2f306e86a47bf24e516",
+        "message": "Merge pull request #1623 from galacticusorg/feat/gaseous-dynamical-friction-ism\n\nfeat(dynamical_friction): gaseous dynamical friction from the interstellar medium\n",
+        "timestamp": "2026-10-20 19:49:34+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/41e0071930a146ab1f64d2f306e86a47bf24e516"
     },
     "results": [
         {
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=80.0 Gyr; vₖ=40.0 km/s)",
-                "logLikelihood": "-70.73047204190877",
+                "logLikelihood": "-70.73047204190878",
                 "type": "function1D"
             },
             "data": {
@@ -102,11 +102,11 @@ window.ANALYSES_DATA = {
                     0.08469415950123864,
                     0.778176517442937,
                     3.06562607142858,
-                    27.197797113459604,
-                    43.49268657723116,
-                    47.13350440138271,
-                    47.13350440138271,
-                    47.13350440138271
+                    27.197797113459597,
+                    43.492686577231154,
+                    47.1335044013827,
+                    47.1335044013827,
+                    47.1335044013827
                 ],
                 "yDatasetTarget": [
                     2.0,
