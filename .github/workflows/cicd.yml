@@ -49,7 +49,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: '3.x'
+          # Pinned rather than '3.x': h5py publishes no wheel for a new Python release until some time after it, and
+          # without one pip builds h5py from source, which fails here as the runner has no HDF5 library. Python 3.15.0
+          # did exactly this while it was rolling out to the runners, failing this job whenever a runner resolved '3.x'
+          # to 3.15. Raise this once h5py has wheels for the newer release.
+          python-version: '3.14'
       - name: Install pytest
         # platformdirs + requests are needed by the galacticus_launcher tests and
         # lxml by the parameter-resolver tests (the third-party deps in the
