@@ -18,11 +18,14 @@ from contextlib import contextmanager
 _failures = 0
 
 
-def check(label, actual, expected, rtol=1.0e-6, fmt=".2f", unit=""):
-    """Compare actual vs expected; print SUCCESS/FAILED and tally failures."""
+def check(label, actual, expected, rtol=1.0e-6, atol=0.0, fmt=".2f", unit=""):
+    """Compare actual vs expected; print SUCCESS/FAILED and tally failures.
+
+    The absolute tolerance defaults to zero (rather than np.isclose's 1e-8) so
+    that rtol is the tolerance actually applied, even for small expected values."""
     global _failures
     suffix = f" {unit}" if unit else ""
-    if np.isclose(actual, expected, rtol=rtol):
+    if np.isclose(actual, expected, rtol=rtol, atol=atol):
         print(f'   SUCCESS: {label} = {actual:{fmt}}{suffix}')
     else:
         _failures += 1
@@ -100,7 +103,10 @@ with safe_section("transferFunctionCAMB"):
     # 8577, which is coarser near k=2 and shifts this value by ~4e-6 fractionally. Both tabulations
     # are self-consistent, so the spread is the accuracy this implementation actually delivers, not
     # a regression. Do not tighten without fixing the underlying tabulation.
-    check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0), 14637.977457291503, rtol=1.0e-4)
+    # Transfer functions are normalized to unity on large scales, so T(k=2 Mpc⁻¹) is small - use
+    # scientific notation so that the value is readable.
+    check("T(k=2 Mpc⁻¹)", transferFunction.value(2.0   ), 7.689442302874723e-4, rtol=1.0e-4, fmt=".6e")
+    check("T(k→0)"      , transferFunction.value(1.0e-7), 1.0                                          )
     # Output-array method (`intent(out), allocatable, dimension(:)`): CAMB
     # inherits the base default `allocate(wavenumbers(0))`, so this
     # exercises the wrapper's zero-size/null-pointer guard — the caller
@@ -120,7 +126,7 @@ with safe_section("linearGrowthCollisionlessMatter"):
 # CAMB tabulation-extent sensitivity described above - roughly doubled, since P ∝ T².
 with safe_section("powerSpectrumPrimordialTransferredSimple"):
     powerSpectrumTransferred = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth)
-    check("P(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferred.power(wavenumber=2.0,time=6.0), 165111727.92963067, rtol=1.0e-4)
+    check("P(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferred.power(wavenumber=2.0,time=6.0), 4.556228825604437e-7, rtol=1.0e-4, fmt=".6e")
 
 # Cosmological mass variance.
 with safe_section("cosmologicalMassVarianceFilteredPower"):

@@ -389,7 +389,7 @@ contains
              write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'k_eta_max_tensor             ',3000.0d0
              write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'ombh2                        ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
              write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omch2                        ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
-             write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omk                          ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+             write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omk                          ', 1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy()
              write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omnuh2                       ',(0.0d0                                                                             )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
              write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'hubble                       ',                                                                                     cosmologyParameters_%HubbleConstant(                  )
              write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'w                            ',-1.0d0
@@ -560,7 +560,7 @@ contains
                call parametersGroup%writeAttribute(cosmologyParameters_%temperatureCMB (),'temperatureCMB' )
                extrapolationGroup          =cambOutput        %openGroup('extrapolation')
                extrapolationWavenumberGroup=extrapolationGroup%openGroup('wavenumber'   )
-               call extrapolationWavenumberGroup%writeAttribute('extrapolate','low' )
+               call extrapolationWavenumberGroup%writeAttribute('fix'        ,'low' )
                call extrapolationWavenumberGroup%writeAttribute('extrapolate','high')
              end block hdf5WriteScope
              !$ call hdf5Access%unset()
