@@ -35,7 +35,7 @@ def _parse_args():
     parser.add_argument('--countParticlesMinimum',       default=300, type=int,
                         help='Minimum particles per halo for constraints (default: 300)')
     parser.add_argument('--countParticlesParentMinimum', default=0, type=int,
-                        help='Minimum particles per parent halo (at the parent mass bin centre) for a parent mass bin to be included in the constraints (default: 0)')
+                        help='Minimum particles per parent halo (at the parent mass bin center) for a parent mass bin to be included in the constraints (default: 0)')
     parser.add_argument('--convergeAfterCount',   default=-1, type=int,
                         help='Number of steps after which to declare convergence (-1 to never stop; default: 1000)')
     parser.add_argument('--correlationStopAfterCount',   default=1000, type=int,
@@ -91,14 +91,14 @@ def _base_files(entry_groups,options):
 
     Returns config_likelihood.
     """
-    pipeline_path          = options['pipelinePath']
-    output_dir             = options['outputDirectory']
-    count_particles_min    = options['countParticlesMinimum']
+    pipeline_path              = options['pipelinePath']
+    output_dir                 = options['outputDirectory']
+    count_particles_min        = options['countParticlesMinimum']
     count_particles_parent_min = options['countParticlesParentMinimum']
-    fraction_mass_primary  = 5.0
-    data_path              = os.environ.get('GALACTICUS_DATA_PATH', '')
+    fraction_mass_primary      = 5.0
+    data_path                  = os.environ.get('GALACTICUS_DATA_PATH', '')
 
-    config_likelihood      = ''
+    config_likelihood = ''
     for identifier in sorted(entry_groups):
         group   = entry_groups[identifier]
         entry   = group[0]

@@ -164,9 +164,9 @@ contains
     <constructorAssign variables="normalization, exponentMass, exponentTimeLag, biasMaximum, biasParticleNumber, biasExponentParticleNumber, biasExponentTimeLag, massParticle, *cosmologyFunctions_"/>
     !!]
 
-    if (normalization      <   0.0d0                            ) call Error_Report('normalization must be non-negative'                     //{introspection:location})
-    if (biasMaximum        <= -1.0d0                            ) call Error_Report('biasMaximum must be greater than -1'                    //{introspection:location})
-    if (biasParticleNumber <=  0.0d0                            ) call Error_Report('biasParticleNumber must be positive'                    //{introspection:location})
+    if (normalization      <   0.0d0                            ) call Error_Report('normalization must be non-negative'                      //{introspection:location})
+    if (biasMaximum        <= -1.0d0                            ) call Error_Report('biasMaximum must be greater than -1'                     //{introspection:location})
+    if (biasParticleNumber <=  0.0d0                            ) call Error_Report('biasParticleNumber must be positive'                     //{introspection:location})
     if (biasMaximum        /=  0.0d0 .and. massParticle <= 0.0d0) call Error_Report('massParticle must be positive if biasMaximum is non-zero'//{introspection:location})
     return
   end function treeConstructionConstructorInternal
@@ -235,9 +235,9 @@ contains
     basicReference => nodeReference%basic()
     if (basic%time() >= basicReference%time()) return
     ! Evaluate the time lag between the halo and the reference halo.
-    timeLag                       =+log(                                                                  &
-         &                              +self%cosmologyFunctions_%expansionFactor(basicReference%time())  &
-         &                              /self%cosmologyFunctions_%expansionFactor(basic         %time())  &
+    timeLag                       =+log(                                                                 &
+         &                              +self%cosmologyFunctions_%expansionFactor(basicReference%time()) &
+         &                              /self%cosmologyFunctions_%expansionFactor(basic         %time()) &
          &                             )
     treeConstructionBiasFractional=+self%biasMaximum                                                &
          &                         *(                                                               &

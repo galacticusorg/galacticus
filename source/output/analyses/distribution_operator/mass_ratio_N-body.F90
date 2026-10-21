@@ -245,8 +245,8 @@ contains
        if (massParent <  self%massParentMinimum .or. massParent >=      self%massParentMaximum    ) return
        binIndex=searchArray(propertyValueMinimum,propertyValueObserved)
        !! Capture the final bin.
-       if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValueObserved > propertyValueMaximum(binIndex)) binIndex=size(propertyValueMinimum)
-       if (binIndex   <= 0                      .or. binIndex   >  size(     propertyValueMinimum)) return
+       if (binIndex == size(propertyValueMinimum)-1_c_size_t .and. propertyValueObserved >       propertyValueMaximum(binIndex) ) binIndex=size(propertyValueMinimum)
+       if (binIndex <= 0                                     .or.  binIndex              >  size(propertyValueMinimum          )) return
        if     (                                                         &
             &   propertyValueObserved >= propertyValueMinimum(binIndex) &
             &  .and.                                                    &

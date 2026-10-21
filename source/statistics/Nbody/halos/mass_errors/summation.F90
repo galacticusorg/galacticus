@@ -162,13 +162,13 @@ contains
     type (treeNode                   ), intent(inout), optional :: nodeReference
     type (nbodyHaloMassErrorList     ), pointer                 :: member
 
-    summationBiasFractional=1.0d0
-    member => self%nbodyHaloMassErrors
+    summationBiasFractional =  1.0d0
+    member                  => self%nbodyHaloMassErrors
     do while (associated(member))
-       summationBiasFractional=+summationBiasFractional                                          &
-            &                  *(                                                                &
-            &                    +1.0d0                                                          &
-            &                    +member%nbodyHaloMassError_%biasFractional(node,nodeReference)  &
+       summationBiasFractional=+summationBiasFractional                                         &
+            &                  *(                                                               &
+            &                    +1.0d0                                                         &
+            &                    +member%nbodyHaloMassError_%biasFractional(node,nodeReference) &
             &                   )
        member => member%next
     end do
