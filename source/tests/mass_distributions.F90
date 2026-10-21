@@ -27,25 +27,26 @@ program Test_Mass_Distributions
   !!{RST
   Tests mass distributions.
   !!}
-  use :: Coordinates               , only : assignment(=)                        , coordinateSpherical                , coordinateCartesian
-  use :: Display                   , only : displayVerbositySet                  , verbosityLevelStandard
-  use :: Error_Functions           , only : Error_Function
-  use :: Error                     , only : Error_Report
-  use :: Events_Hooks              , only : eventsHooksInitialize
-  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass  , galacticComponentTruncationExponential
-  use :: Galactic_Structure_Options, only : componentTypeSpheroid                , componentTypeDisk
-  use :: IO_HDF5                   , only : ioHDF5AccessInitialize
-  use :: Linear_Algebra            , only : assignment(=)                        , vector
-  use :: Mass_Distributions        , only : massDistributionBetaProfile          , massDistributionClass              , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid           , &
-       &                                    massDistributionHernquist            , massDistributionSersic             , massDistributionSpherical              , massDistributionComposite                   , &
-       &                                    massDistributionList                 , massDistributionSymmetryCylindrical, enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
-       &                                    massDistributionCylindricalScaler    , massDistributionCylindrical        , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
-       &                                    massDistributionIsothermal           , kinematicsDistributionClass        , kinematicsDistributionLocal            , kinematicsDistributionCollisionlessTabulated, &
-       &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole          , massDistributionSoliton                , massDistributionSolitonNFW
-  use :: Numerical_Constants_Math  , only : Pi                                   , e
-  use :: Tensors                   , only : assignment(=)
-  use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
-       &                                    compareEquals                        , compareNotEqual
+  use :: Coordinates                   , only : assignment(=)                        , coordinateSpherical                   , coordinateCartesian
+  use :: Display                       , only : displayVerbositySet                  , verbosityLevelStandard
+  use :: Error_Functions               , only : Error_Function
+  use :: Error                         , only : Error_Report
+  use :: Events_Hooks                  , only : eventsHooksInitialize
+  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass     , galacticComponentTruncationExponential
+  use :: Galactic_Structure_Options    , only : componentTypeSpheroid                , componentTypeDisk
+  use :: IO_HDF5                       , only : ioHDF5AccessInitialize
+  use :: Linear_Algebra                , only : assignment(=)                        , vector
+  use :: Mass_Distributions            , only : massDistributionBetaProfile          , massDistributionClass                 , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid           , &
+       &                                        massDistributionHernquist            , massDistributionSersic                , massDistributionSpherical              , massDistributionComposite                   , &
+       &                                        massDistributionList                 , massDistributionSymmetryCylindrical   , enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
+       &                                        massDistributionCylindricalScaler    , massDistributionCylindrical           , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
+       &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
+       &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
+       &                                        kinematicsDistributionClass          , kinematicsDistributionLocal
+  use :: Numerical_Constants_Math      , only : Pi                                   , e
+  use :: Tensors                       , only : assignment(=)
+  use :: Unit_Tests                    , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
+       &                                        compareEquals                        , compareNotEqual
   implicit none
   class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated         , &
        &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid        , &
@@ -58,6 +59,12 @@ program Test_Mass_Distributions
   class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_       , &
        &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
   class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistribution_
+  ! Objects for the spherical scaler re-initialization (pool re-use) test.
+  class           (massDistributionClass                  )                                    , pointer     :: massDistributionScalerInnerA                                                                                            , massDistributionScalerInnerB
+  class           (massDistributionClass                  )                                    , allocatable :: massDistributionScalerFresh
+  class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistributionInnerA                                                                                            , kinematicsDistributionInnerB    , &
+       &                                                                                                        kinematicsDistributionScaler_
+  double precision                                         , dimension(5)                                    :: scalerReinitializeFresh                                                                                                 , scalerReinitializeReused
   ! Objects for the galactic component truncation tests.
   class           (galacticComponentTruncationClass       )                                    , allocatable :: galacticComponentTruncation_
   class           (massDistributionSpherical              )                                    , pointer     :: massDistributionUntruncated_                                                                                            , massDistributionTruncated_
@@ -1019,6 +1026,93 @@ program Test_Mass_Distributions
   deallocate(massDistributionScalerTest )
   call Unit_Tests_End_Group()
 
+  ! Spherical scaler re-initialization (pool re-use).
+  ! `darkMatterProfileDarkMatterOnly` re-uses pooled scalers (wrapping, for example, NFW distributions) by re-pointing them (and
+  ! their attached scaled kinematics distributions) to the distribution for a new node via their "reinitialize" methods. Verify
+  ! that a scaler which has been used for one distribution, and then re-initialized to a second, returns results identical to
+  ! those of a scaler freshly constructed for the second. The tidal tensor is evaluated at the same position for both
+  ! distributions, so that a stale memoized tensor would be detected.
+  call Unit_Tests_Begin_Group("Spherical scaler (re-initialization for pool re-use)")
+  allocate(massDistributionNFW       :: massDistributionScalerInnerA)
+  allocate(massDistributionNFW       :: massDistributionScalerInnerB)
+  allocate(kinematicsDistributionNFW :: kinematicsDistributionInnerA)
+  allocate(kinematicsDistributionNFW :: kinematicsDistributionInnerB)
+  select type (massDistributionScalerInnerA)
+  type is (massDistributionNFW)
+     massDistributionScalerInnerA=massDistributionNFW(mass=1.0d11,radiusVirial=0.1d0,scaleLength=0.01d0)
+  end select
+  select type (massDistributionScalerInnerB)
+  type is (massDistributionNFW)
+     massDistributionScalerInnerB=massDistributionNFW(mass=1.0d12,radiusVirial=0.2d0,scaleLength=0.03d0)
+  end select
+  select type (kinematicsDistributionInnerA)
+  type is (kinematicsDistributionNFW)
+     kinematicsDistributionInnerA=kinematicsDistributionNFW(useSeriesApproximation=.false.)
+  end select
+  select type (kinematicsDistributionInnerB)
+  type is (kinematicsDistributionNFW)
+     kinematicsDistributionInnerB=kinematicsDistributionNFW(useSeriesApproximation=.false.)
+  end select
+  call massDistributionScalerInnerA%setKinematicsDistribution(kinematicsDistributionInnerA)
+  call massDistributionScalerInnerB%setKinematicsDistribution(kinematicsDistributionInnerB)
+  position=[2.0d-2,Pi/3.0d0,Pi/5.0d0]
+  ! Reference results from a scaler freshly constructed around distribution B.
+  allocate(massDistributionSphericalScaler :: massDistributionScalerFresh)
+  select type (massDistributionScalerFresh)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionScalerInnerB)
+     class is (massDistributionSpherical)
+        massDistributionScalerFresh=massDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,massDistribution_=massDistributionScalerInnerB)
+     end select
+  end select
+  allocate(kinematicsDistributionSphericalScaler :: kinematicsDistributionScaler_)
+  select type (kinematicsDistributionScaler_)
+  type is (kinematicsDistributionSphericalScaler)
+     kinematicsDistributionScaler_=kinematicsDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,kinematicsDistribution_=kinematicsDistributionInnerB)
+  end select
+  call massDistributionScalerFresh%setKinematicsDistribution(kinematicsDistributionScaler_)
+  call scalerReinitializeEvaluate(massDistributionScalerFresh,scalerReinitializeFresh,tidalTensorScalerReference)
+  ! A scaler constructed around distribution A, used, and then re-initialized to distribution B.
+  allocate(massDistributionSphericalScaler :: massDistributionScalerTest)
+  select type (massDistributionScalerTest)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionScalerInnerA)
+     class is (massDistributionSpherical)
+        massDistributionScalerTest=massDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,massDistribution_=massDistributionScalerInnerA)
+     end select
+  end select
+  allocate(kinematicsDistributionSphericalScaler :: kinematicsDistributionScaler_)
+  select type (kinematicsDistributionScaler_)
+  type is (kinematicsDistributionSphericalScaler)
+     kinematicsDistributionScaler_=kinematicsDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,kinematicsDistribution_=kinematicsDistributionInnerA)
+  end select
+  call massDistributionScalerTest%setKinematicsDistribution(kinematicsDistributionScaler_)
+  call scalerReinitializeEvaluate(massDistributionScalerTest,scalerReinitializeReused,tidalTensorScalerDisplaced)
+  call Assert("distribution A differs from distribution B",any(scalerReinitializeReused /= scalerReinitializeFresh),.true.)
+  select type (massDistributionScalerTest)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionScalerInnerB)
+     class is (massDistributionSpherical)
+        call massDistributionScalerTest%reinitialize(massDistributionScalerInnerB)
+     end select
+  end select
+  select type (kinematicsDistributionScaler_)
+  type is (kinematicsDistributionSphericalScaler)
+     call kinematicsDistributionScaler_%reinitialize(kinematicsDistributionInnerB)
+  end select
+  call scalerReinitializeEvaluate(massDistributionScalerTest,scalerReinitializeReused,tidalTensorComponents)
+  call Assert("re-use A->B: mass enclosed"                   ,scalerReinitializeReused(1),scalerReinitializeFresh(1),absTol=0.0d0)
+  call Assert("re-use A->B: density"                         ,scalerReinitializeReused(2),scalerReinitializeFresh(2),absTol=0.0d0)
+  call Assert("re-use A->B: potential"                       ,scalerReinitializeReused(3),scalerReinitializeFresh(3),absTol=0.0d0)
+  call Assert("re-use A->B: radius enclosing mass"           ,scalerReinitializeReused(4),scalerReinitializeFresh(4),absTol=0.0d0)
+  call Assert("re-use A->B: velocity dispersion"             ,scalerReinitializeReused(5),scalerReinitializeFresh(5),absTol=0.0d0)
+  call Assert("re-use A->B: tidal tensor"                    ,tidalTensorComponents      ,tidalTensorScalerReference,absTol=0.0d0)
+  ! The scalers hold counted references to their inner distributions, and to their attached kinematics distributions, and
+  ! destroy them in their own destructors, so only the scalers themselves are deallocated here.
+  deallocate(massDistributionScalerFresh)
+  deallocate(massDistributionScalerTest )
+  call Unit_Tests_End_Group()
+
   ! Composite subset: all-match fast path & list-node free-list re-use.
   ! Exercises the optimizations in compositeSubset: (1) when every member matches the requested
   ! filter the whole composite is returned directly ("self") instead of rebuilding a duplicate, and
@@ -1476,4 +1570,30 @@ program Test_Mass_Distributions
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
+
+contains
+
+  subroutine scalerReinitializeEvaluate(massDistributionScaler,results,tidalTensor)
+    !!{RST
+    Evaluate the quantities compared in the spherical scaler re-initialization test.
+    !!}
+    implicit none
+    class           (massDistributionClass      ), intent(inout), target        :: massDistributionScaler
+    double precision                             , intent(  out), dimension(5  ) :: results
+    double precision                             , intent(  out), dimension(3,3) :: tidalTensor
+    class           (kinematicsDistributionClass), pointer                       :: kinematicsDistributionScaler
+
+    kinematicsDistributionScaler => massDistributionScaler%kinematicsDistribution()
+    results(1) =massDistributionScaler      %massEnclosedBySphere         (radius=2.0d-2                                         )
+    results(2) =massDistributionScaler      %density                      (coordinates=position                                  )
+    results(3) =massDistributionScaler      %potential                    (coordinates=position                                  )
+    results(4) =massDistributionScaler      %radiusEnclosingMass          (mass=1.0d11                                           )
+    results(5) =kinematicsDistributionScaler%velocityDispersion1D         (position,massDistributionScaler,massDistributionScaler)
+    tidalTensor=massDistributionScaler      %tidalTensor                  (position                                              )
+    !![
+    <objectDestructor name="kinematicsDistributionScaler"/>
+    !!]
+    return
+  end subroutine scalerReinitializeEvaluate
+
 end program Test_Mass_Distributions
