@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a class that implements errors on dark matter halo masses in N-body simulations.
 !!}
@@ -42,6 +44,19 @@ module Statistics_NBody_Halo_Mass_Errors
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout)           :: node         </argument>
     <argument>type(treeNode), intent(inout), optional :: nodeReference</argument>
+   </method>
+   <method name="biasFractional" >
+    <description>
+    Return the fractional systematic bias, :math:`\delta`, in the mass of an N-body halo corresponding to the given ``node``, such that the measured mass is distributed about a mean of :math:`(1+\delta) M`, where :math:`M` is the true mass. As for the ``errorFractional`` method, ``nodeReference`` (if present) is a later halo from which ``node`` was reached by tracing back through a merger tree. Models which have no systematic bias need not implement this method, which then returns zero.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout)           :: node         </argument>
+    <argument>type(treeNode), intent(inout), optional :: nodeReference</argument>
+    <code>
+     !$GLC attributes unused :: self, node, nodeReference
+     nbodyHaloMassErrorBiasFractional=0.0d0
+    </code>
    </method>
    <method name="correlation" >
     <description>
