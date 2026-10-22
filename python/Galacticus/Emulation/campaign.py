@@ -352,6 +352,12 @@ class Campaign:
         if not runs:
             return None
         job = self.array_script(runs, job_options)
+        # Remove any log from an earlier attempt, so that its exit sentinel is not mistaken for this attempt's. This must be
+        # done before submitting, as an array task may start (and open its log) before submission returns.
+        for run in runs:
+            log_file = self.path(run.log_file)
+            if os.path.exists(log_file):
+                os.remove(log_file)
         job_id = manager.submit_detached(job)
         for run in runs:
             run.attempts += 1
@@ -359,10 +365,6 @@ class Campaign:
             run.job_id = str(job_id)
             run.exit_status = None
             run.message = ''
-            # Remove any log from an earlier attempt, so that its exit sentinel is not mistaken for this attempt's.
-            log_file = self.path(run.log_file)
-            if os.path.exists(log_file):
-                os.remove(log_file)
         self.save()
         return job_id
 

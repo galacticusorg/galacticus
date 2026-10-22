@@ -236,6 +236,24 @@ def test_submit_array_job(workspace):
     assert summary['submitted'] == 4
 
 
+class EagerManager(FakeManager):
+    """A queue manager whose array task for run 2 starts (and finishes) before submission returns."""
+
+    def submit_detached(self, job):
+        environment = dict(os.environ, SLURM_ARRAY_TASK_ID='2')
+        subprocess.run(['bash', '-c', job['command']], env=environment, capture_output=True, text=True, check=True)
+        return super().submit_detached(job)
+
+
+def test_submit_keeps_logs_of_started_tasks(workspace):
+    path, campaign, _ = workspace
+    campaign.submit(EagerManager())
+    # The log written by the task which started early must survive the removal of earlier attempts' logs.
+    assert (path / campaign.runs[2].log_file).exists()
+    campaign.refresh()
+    assert campaign.runs[2].status == 'complete'
+
+
 def test_validate(workspace):
     path, campaign, values = workspace
     extremes = campaign.extreme_runs()
