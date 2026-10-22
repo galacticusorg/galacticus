@@ -202,25 +202,21 @@ contains
     Initializes the tree node standard spheroid methods module.
     !!}
     use :: Abundances_Structure                 , only : Abundances_Property_Count
-    use :: Galacticus_Nodes                     , only : defaultSpheroidComponent , nodeComponentSpheroidStandard
-    use :: Input_Parameters                     , only : inputParameter           , inputParameters
+    use :: Galacticus_Nodes                     , only : defaultSpheroidComponent        , nodeComponentSpheroidStandard
+    use :: Galactic_Component_Truncations       , only : galacticComponentTruncationClass
+    use :: Input_Parameters                     , only : inputParameter                  , inputParameters
     use :: Node_Component_Spheroid_Standard_Data, only : tidalTruncationID
     implicit none
-    type(inputParameters              ), intent(inout) :: parameters
-    type(nodeComponentSpheroidStandard)                :: spheroidStandardComponent
-    type(inputParameters              )                :: subParameters
+    type (inputParameters                 ), intent(inout) :: parameters
+    type (nodeComponentSpheroidStandard   )                :: spheroidStandardComponent
+    type (inputParameters                 )                :: subParameters
+    class(galacticComponentTruncationClass), pointer       :: galacticComponentTruncation__
 
     ! Initialize the module if necessary.
     if (defaultSpheroidComponent%standardIsActive()) then
 
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-
-       ! Find the meta-property giving the degree of tidal truncation of the spheroid. This exists only if some class (e.g. a
-       ! tidal mass loss node operator) creates it.
-       !![
-       <addMetaProperty component="spheroid" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
-       !!]
 
        ! Bind deferred functions.
        call spheroidStandardComponent%          energyGasInputRateFunction(Node_Component_Spheroid_Standard_Energy_Gas_Input_Rate      )
@@ -230,6 +226,23 @@ contains
 
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
+       ! Find the meta-property giving the degree of tidal truncation of the spheroid, which exists only if some class (e.g. a
+       ! tidal mass loss node operator) creates it. This is needed only if the spheroid is truncated. It is not registered
+       ! otherwise since every registered evolvable meta-property adds a variable to the ODE system of every node, whether or not
+       ! it is created.
+       !![
+       <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation__" source="subParameters"/>
+       !!]
+       if (galacticComponentTruncation__%isActive()) then
+          !![
+          <addMetaProperty component="spheroid" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
+          !!]
+       else
+          tidalTruncationID=-1
+       end if
+       !![
+       <objectDestructor name="galacticComponentTruncation__"/>
+       !!]
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter docformat="rst">
