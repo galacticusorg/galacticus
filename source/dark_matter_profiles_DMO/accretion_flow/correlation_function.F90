@@ -151,6 +151,7 @@ contains
     <objectDestructor name="self%cosmologicalMassVariance_"   />
     <objectDestructor name="self%criticalOverdensity_"        />
     <objectDestructor name="self%darkMatterProfileDMO_"       />
+    <objectDestructor name="self%darkMatterHaloScale_"        />
     <objectDestructor name="self%correlationFunctionTwoPoint_"/>
     <objectDestructor name="self%darkMatterHaloBias_"         />
     <objectDestructor name="self%linearGrowth_"               />
