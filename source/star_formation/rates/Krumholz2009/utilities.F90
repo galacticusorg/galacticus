@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Claude.
 
   !!{RST
   Contains a module that implements various useful utility functions for calculations for the :cite:t:`krumholz_star_2009` star formation surface density rate law.
@@ -41,7 +41,6 @@ contains
     double precision, intent(in   ) :: s
     double precision, parameter     :: sTiny        =1.000000d-06
     double precision, parameter     :: sHuge        =1.000000d+10
-    double precision, parameter     :: deltaInfinity=0.214008d+00 ! The value of δ for s → ∞.
     double precision, parameter     :: sMaximum     =1.000000d+01
     double precision                :: delta
 
@@ -52,8 +51,10 @@ contains
        ! Truncate to zero for extremely large s.
        fraction=0.0d0
     else if (s >= sMaximum) then
-       ! Simplified form for very large s.
-       fraction=1.0d0/(0.75d0/(1.0d0+deltaInfinity))**5/5.0d0/s**5
+       ! Simplified form for very large s - the leading order term of the series expansion of the full expression, using the
+       ! value of δ at this s so that the fraction is continuous at s=sMaximum.
+       delta   =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
+       fraction=((1.0d0+delta)/0.75d0/s)**5/5.0d0
     else
        ! Full expression.
        delta   =0.0712d0/((0.1d0/s+0.675d0)**2.8d0)
