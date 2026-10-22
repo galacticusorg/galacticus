@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements an output analysis class that computes the stellar mass-halo mass relation in the Local Group.
+  Implements an output analysis class that computes the occupation fraction of halos by Local Group satellite galaxies.
   !!}
 
   !![

@@ -21,7 +21,7 @@
 
 program Tests_Excursion_Sets
   !!{RST
-  Tests of merger tree branching rates.
+  Tests of excursion set calculations.
   !!}
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower          , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda

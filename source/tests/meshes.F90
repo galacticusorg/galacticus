@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a program to test the array functions.
+Contains a program to test mesh functions.
 !!}
 
 program Test_Meshes

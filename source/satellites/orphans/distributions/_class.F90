@@ -23,7 +23,7 @@ Contains a module that provides a class for distributions of orphan satellites.
 
 module Satellite_Oprhan_Distributions
   !!{RST
-  Provides a class for dark matter halo spin distributions.
+  Provides a class for distributions of orphan satellites.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private

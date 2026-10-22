@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a pruning-by-mass operator on merger trees.
+Implements a clone-pruning operator on merger trees.
 !!}
 
   !![

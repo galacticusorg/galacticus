@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Claude.
 
   !!{RST
-  Implements a stellar vs halo mass relation analysis class.
+  Implements a morphological fraction output analysis class for comparison with the :cite:t:`moffett_galaxy_2016` GAMA measurements.
   !!}
 
   !![
