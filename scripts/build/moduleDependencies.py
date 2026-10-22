@@ -230,7 +230,7 @@ def _scan_file(file_path, entry, source_root):
 
 
 # ---------------------------------------------------------------------------
-# Per-file processing (parallelised across files)
+# Per-file processing (parallelized across files)
 # ---------------------------------------------------------------------------
 #
 # Each source file is scanned independently: it reads the file (and any
@@ -242,7 +242,7 @@ def _scan_file(file_path, entry, source_root):
 #
 # A fork-based process pool is used rather than threads so the workers are fully
 # isolated -- no assumptions are made about the thread-safety of the parser --
-# and the regex/AST parsing parallelises too. Workers inherit the read-only
+# and the regex/AST parsing parallelizes too. Workers inherit the read-only
 # `locations` map and `source_root` via copy-on-write fork, so nothing large is
 # pickled per task; only the small result dicts come back.
 

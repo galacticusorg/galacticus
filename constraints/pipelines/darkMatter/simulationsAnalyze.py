@@ -32,7 +32,7 @@ def _parse_param_xml(path):
 
 
 def _write_param_xml(root, path):
-    """Serialise a Galacticus parameter XML element tree to file."""
+    """Serialize a Galacticus parameter XML element tree to file."""
     ET.indent(root)
     tree = ET.ElementTree(root)
     tree.write(path, xml_declaration=True, encoding='utf-8')
@@ -221,7 +221,7 @@ def symphony_preprocess_extract_halos_locate(entry, jobs, options):
 def symphony_preprocess_extract_halos_uncontaminated(entry, jobs, options):
     """Find the uncontaminated high-resolution region around the primary halo.
 
-    Reads primaryHalo_*.xml to cache the halo centre on entry, then submits a
+    Reads primaryHalo_*.xml to cache the halo center on entry, then submits a
     Galacticus.exe job to measure the uncontaminated radius if not done yet.
     """
     omp_threads = options.get('ompThreadsResolved', 1)
@@ -231,7 +231,7 @@ def symphony_preprocess_extract_halos_uncontaminated(entry, jobs, options):
         af_label     = f'sphericalOrigin:a{a:.3f}'
         primary_file = entry['path'] + f'primaryHalo_{rl}.xml'
 
-        # Cache halo centre coordinates and central mass from the primaryHalo XML.
+        # Cache halo center coordinates and central mass from the primaryHalo XML.
         primary_root = ET.parse(primary_file).getroot()
         entry[af_label]      = (primary_root.get('x') + ' '
                                 + primary_root.get('y') + ' '
@@ -1670,7 +1670,7 @@ def _parse_args():
 def main():
     args = _parse_args()
 
-    # Normalise paths to end with '/'.
+    # Normalize paths to end with '/'.
     for attr in ('simulationDataPath', 'pipelinePath'):
         val = getattr(args, attr)
         if not val.endswith('/'):
@@ -1683,7 +1683,7 @@ def main():
     active_analyses = {a: True for a in args.analyses.split(',')}
     active_steps    = _build_active_steps(active_analyses)
 
-    # Initialise the queue manager.
+    # Initialize the queue manager.
     manager = queueManager.factory(args)
 
     # Resolve the number of OMP threads and store in options so symphony hooks can read it.

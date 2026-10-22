@@ -2672,7 +2672,7 @@ jobs:
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst --clobber
           # Record the checksums of the assets the launcher downloads and executes, before the local copies are removed. These are
           # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it. The
-          # launcher also reads this file as the release's asset manifest -- an artefact listed here is one the release carries,
+          # launcher also reads this file as the release's asset manifest -- an artifact listed here is one the release carries,
           # which is how it chooses between the current and the legacy form of an archive without probing for a 404.
           sha256sum Galacticus.exe tools.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst
