@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of :cite:t:`bryan_statistical_1998` dark matter halo virial density contrasts.
   !!}
@@ -257,7 +259,7 @@ contains
        ! http://adsabs.harvard.edu/abs/2005A%26A...443..819P)
        bryanNorman1998TurnAroundOverVirialRadii=2.0d0
     else
-       bryanNorman1998TurnAroundOverVirialRadii=self%turnAroundOverVirialRadii(mass,time,expansionFactor,collapsing)
+       bryanNorman1998TurnAroundOverVirialRadii=self%virialDensityContrastTopHat_%turnAroundOverVirialRadii(mass,time,expansionFactor,collapsing)
     end if
     return
   end function bryanNorman1998TurnAroundOverVirialRadii
