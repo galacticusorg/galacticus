@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree operator which accumulates conditional mass functions for trees.
   !!}
@@ -1499,8 +1501,8 @@ contains
        self%normalizationCovariance         =self%normalizationCovariance              /self%massRatioLogarithmicBinWidthInverse**2/log(10.0d0)**2
     end if
     if (self%extendedStatistics) then
-       self%normalizationSubhaloMassFunction=self%normalizationSubhaloMassFunction     /self%massRatioLogarithmicBinWidthInverse   /log(10.0d0)
-       self%normalizationSubhaloMassFunction=self%normalizationSubhaloMassFunctionError/self%massRatioLogarithmicBinWidthInverse**2/log(10.0d0)**2
+       self%normalizationSubhaloMassFunction     =self%normalizationSubhaloMassFunction     /self%massRatioLogarithmicBinWidthInverse   /log(10.0d0)
+       self%normalizationSubhaloMassFunctionError=self%normalizationSubhaloMassFunctionError/self%massRatioLogarithmicBinWidthInverse**2/log(10.0d0)**2
     end if
     ! Populate lower triangles of covariance matrices. We consider only the diagonal blocks of the output time dimensions, since
     ! throughout this module we assume no correlation between times. Also note that the indices on the parent mass dimensions must
