@@ -250,7 +250,7 @@ contains
     self%units_       (7)=unitType(1.0d0)
     self%names_       (8)='angularWeight'
     self%descriptions_(8)='Number of such galaxies per unit area [degrees⁻²].'
-    self%units_       (8)=unitType(degreesToRadians**2,'degrees⁻²','deg^-2')
+    self%units_       (8)=unitType(1.0d0/degreesToRadians**2,'degrees⁻²','deg^-2')
     if (includeObservedRedshift) then
        self%names_       (self%redshiftObservedOffset  +1)='lightconeRedshiftObserved'
        self%descriptions_(self%redshiftObservedOffset  +1)='Observed redshift of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity).'
@@ -352,7 +352,12 @@ contains
          &                                                                            )                        &
          &                                                                           )                         &
          &                                                                          )
-    lightconeExtract   (8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
+    if (self%geometryLightcone_%solidAngle() > 0.0d0) then
+       lightconeExtract(8  )=degreesToRadians**2/self%geometryLightcone_%solidAngle()
+    else
+       ! Lightcone geometries with no defined solid angle (e.g. cylindrical) have no angular weight.
+       lightconeExtract(8  )=0.0d0
+    end if
     ! Compute observed redshift if needed.
     if (self%includeObservedRedshift .or. self%includeObservedPosition) then
        ! Compute the line-of-sight peculiar velocity divided by the speed of light: β_los=v_los/c.
