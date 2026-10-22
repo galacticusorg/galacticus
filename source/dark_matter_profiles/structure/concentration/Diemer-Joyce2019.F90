@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Xiaolong Du
+  !+    Contributions to this file made by: Xiaolong Du, Claude.
   
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`diemer_accurate_2019` algorithm.
@@ -27,6 +27,7 @@
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
+  use :: Kind_Numbers              , only : kind_int8
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
   use :: Linear_Growth             , only : linearGrowthClass
   use :: Root_Finder               , only : rootFinder
@@ -63,6 +64,7 @@
           &                                                          cAlpha                                    , timePrevious , &
           &                                                          concentrationMeanPrevious                 , massPrevious , &
           &                                                          GTildePrevious
+     integer         (kind_int8                    )              :: uniqueIDPrevious
      logical                                                      :: truncateConcentration                     , includeUpturn, &
           &                                                          truncateUpturn
    contains
@@ -236,6 +238,7 @@ contains
     self%massPrevious             =-1.0d0
     self%concentrationMeanPrevious=-1.0d0
     self%GTildePrevious           =-1.0d0
+    self%uniqueIDPrevious         =-1_kind_int8
     self%finder                   =rootFinder(                                                             &
          &                                    rootFunction                 =GRoot                        , &
          &                                    rangeExpandDownward          =0.5d0                        , &
@@ -341,10 +344,13 @@ contains
          &                                                                                     GTilde        , termUpturn
 
     basic => node%basic()
-    if     (                                   &
-         &   basic%mass() /= self%massPrevious &
-         &  .or.                               &
-         &   basic%time() /= self%timePrevious &
+    ! The critical overdensity may depend on the node (e.g. on its environment), so the node is included in the memoization key.
+    if     (                                           &
+         &   node %uniqueID() /= self%uniqueIDPrevious &
+         &  .or.                                       &
+         &   basic%mass    () /= self%massPrevious     &
+         &  .or.                                       &
+         &   basic%time    () /= self%timePrevious     &
          & ) then
        peakHeight        =+self%criticalOverdensity_     %value                               (time=basic%time(),mass=basic%mass(),node=node) &
             &             /self%cosmologicalMassVariance_%rootVariance                        (time=basic%time(),mass=basic%mass()          )
@@ -394,6 +400,7 @@ contains
        self%concentrationMeanPrevious   = C*GTilde
        self%massPrevious                = basic%mass()
        self%timePrevious                = basic%time()
+       self%uniqueIDPrevious            = node %uniqueID()
     end if
     diemerJoyce2019ConcentrationMean=self%concentrationMeanPrevious
     return
