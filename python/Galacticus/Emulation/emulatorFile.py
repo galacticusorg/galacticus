@@ -341,6 +341,8 @@ def predict(emulator, quantiles):
     quantiles = np.asarray(quantiles, dtype=float)
     single = quantiles.ndim == 1
     quantiles = np.atleast_2d(quantiles)
+    if quantiles.ndim != 2 or quantiles.shape[1] != len(emulator.input_names):
+        raise ValueError(f'predict: quantiles must have {len(emulator.input_names)} inputs per point')
     count_components = len(emulator.components)
     means = np.empty((quantiles.shape[0], count_components))
     variances = np.empty((quantiles.shape[0], count_components))
