@@ -21,6 +21,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a :cite:t:`giocoli_population_2008` unevolved dark matter subhalo mass function class.
 !!}
@@ -129,7 +131,7 @@ contains
          &                  /self%exponent               &
          &                  /massHost                    &
          &                  /x**(1.0d0+self%exponent)    &
-         &                  /exp(                        &
+         &                  *exp(                        &
          &                       -coefficientExponential &
          &                       *x**3                   &
          &                      )
@@ -169,38 +171,17 @@ contains
 
     double precision function gammaIncomplete(x)
       !!{RST
-      Evaluate the incomplete gamma function, possibly for a negative exponent.
+      Evaluate the (unnormalized, upper) incomplete gamma function :math:`\Gamma(-\alpha/3,c x^3)`, for which the exponent may be
+      negative.
       !!}
-      use :: Error          , only : Error_Report
-      use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete
+      use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
       implicit none
       double precision, intent(in   ) :: x
 
-      if      (self%exponent < 0.0d0) then
-         gammaIncomplete=+Gamma_Function_Incomplete(                                               &
-              &                                           -self%exponent/3.0d0                   , &
-              &                                     +coefficientExponential*x**3                   &
-              &                                    )                                               &
-              &          *Gamma_Function           (                                               &
-              &                                           -self%exponent/3.0d0                     &
-              &                                    )
-      else if (self%exponent < 3.0d0) then
-         gammaIncomplete=+Gamma_Function_Incomplete(                                               &
-              &                                     +1.0d0-self%exponent/3.0d0                   , &
-              &                                     +coefficientExponential*x**3                   &
-              &                                    )                                               &
-              &          *Gamma_Function           (                                               &
-              &                                     +1.0d0-self%exponent/3.0d0                     &
-              &                                    )                                               &
-              &          *exp                      (                                               &
-              &                                     -coefficientExponential*x**3                   &
-              &                                    )                                               &
-              &          /                           coefficientExponential**(self%exponent/3.0d0) &
-              &          /                           x                     ** self%exponent
-      else
-         gammaIncomplete=0.0d0
-         call Error_Report('exponent out of range'//{introspection:location})
-      end if
+      gammaIncomplete=Gamma_Function_Incomplete_Unnormalized(                                &
+           &                                                 -self%exponent/3.0d0          , &
+           &                                                 +coefficientExponential*x**3    &
+           &                                                )
       return
     end function gammaIncomplete
 
