@@ -239,17 +239,17 @@ program Test_Cooling_Functions
   !![
   <referenceConstruct object="coolingFunctionMixed_">
    <constructor>
-    coolingFunctionSummation      (                                           &amp;
-     &amp;                         coolants             =coolantsMixed        &amp;
+    coolingFunctionSummation      (                                        &amp;
+     &amp;                         coolants        =coolantsMixed          &amp;
      &amp;                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="coolingTime_"         >
    <constructor>
-    coolingTimeSimple             (                                           &amp;
-     &amp;                         degreesOfFreedom     =3.0d0               , &amp;
-     &amp;                         coolingFunction_     =coolingFunctionMixed_, &amp;
-     &amp;                         chemicalState_       =chemicalState_         &amp;
+    coolingTimeSimple             (                                        &amp;
+     &amp;                         degreesOfFreedom=3.0d0                , &amp;
+     &amp;                         coolingFunction_=coolingFunctionMixed_, &amp;
+     &amp;                         chemicalState_  =chemicalState_         &amp;
      &amp;                        )
    </constructor>
   </referenceConstruct>
@@ -269,19 +269,19 @@ program Test_Cooling_Functions
   coolantAtomicCIECloudy=coolingFunctionAtomicCIECloudy_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   call Assert('CIE and CMB Compton cooling are comparable',abs(log10(coolantAtomicCIECloudy/coolantCMBCompton)) < 1.0d0,.true.)
   ! Compute the gradients, and their finite difference estimates.
-  gradientDensity          =+coolingTime_%gradientDensityLogarithmic    (node,temperature                 ,density                 ,gasAbundances,chemicalDensities,radiation)
-  gradientTemperature      =+coolingTime_%gradientTemperatureLogarithmic(node,temperature                 ,density                 ,gasAbundances,chemicalDensities,radiation)
-  gradientDensityNumerical =+log(                                                                                                                                                &
-       &                         +coolingTime_%time                     (node,temperature                 ,density*exp(+stepLogarithmic),gasAbundances,chemicalDensities,radiation) &
-       &                         /coolingTime_%time                     (node,temperature                 ,density*exp(-stepLogarithmic),gasAbundances,chemicalDensities,radiation) &
-       &                        )                                                                                                                                                &
-       &                    /2.0d0                                                                                                                                              &
+  gradientDensity          =+coolingTime_%gradientDensityLogarithmic    (node,temperature                      ,density                      ,gasAbundances,chemicalDensities,radiation)
+  gradientTemperature      =+coolingTime_%gradientTemperatureLogarithmic(node,temperature                      ,density                      ,gasAbundances,chemicalDensities,radiation)
+  gradientDensityNumerical =+log(                                                                                                                                                        &
+       &                         +coolingTime_%time                     (node,temperature                      ,density*exp(+stepLogarithmic),gasAbundances,chemicalDensities,radiation) &
+       &                         /coolingTime_%time                     (node,temperature                      ,density*exp(-stepLogarithmic),gasAbundances,chemicalDensities,radiation) &
+       &                        )                                                                                                                                                        &
+       &                    /2.0d0                                                                                                                                                       &
        &                    /stepLogarithmic
-  gradientTemperatureNumerical=+log(                                                                                                                                             &
-       &                            +coolingTime_%time                  (node,temperature*exp(+stepLogarithmic),density                 ,gasAbundances,chemicalDensities,radiation) &
-       &                            /coolingTime_%time                  (node,temperature*exp(-stepLogarithmic),density                 ,gasAbundances,chemicalDensities,radiation) &
-       &                           )                                                                                                                                             &
-       &                       /2.0d0                                                                                                                                           &
+  gradientTemperatureNumerical=+log(                                                                                                                                                     &
+       &                            +coolingTime_%time                  (node,temperature*exp(+stepLogarithmic),density                      ,gasAbundances,chemicalDensities,radiation) &
+       &                            /coolingTime_%time                  (node,temperature*exp(-stepLogarithmic),density                      ,gasAbundances,chemicalDensities,radiation) &
+       &                           )                                                                                                                                                     &
+       &                       /2.0d0                                                                                                                                                    &
        &                       /stepLogarithmic
   ! The temperature gradient neglects any dependence of the total particle number density on temperature, so is checked to a
   ! looser tolerance (it agrees to better than 10⁻³ here). Evaluating the cooling function at the mass density, rather than the

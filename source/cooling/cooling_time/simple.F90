@@ -187,10 +187,10 @@ contains
     use :: Numerical_Constants_Astronomical, only : massSolar       , megaParsec
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Prefixes    , only : hecto
-   implicit none
+    implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
-    double precision                      , intent(in   ) :: density          , temperature
+    double precision                      , intent(in   ) :: density              , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
@@ -219,7 +219,7 @@ contains
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
-    double precision                      , intent(in   ) :: density          , temperature
+    double precision                      , intent(in   ) :: density              , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
