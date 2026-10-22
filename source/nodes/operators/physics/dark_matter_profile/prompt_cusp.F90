@@ -694,12 +694,14 @@ contains
             errorFractional=+abs(+radiusScale-radiusScalePrevious) &
                  &          /   (+radiusScale+radiusScalePrevious) &
                  &          /0.5d0
+            !$omp critical(promptCuspsErrorFractionalMaximum)
             if (errorFractional > errorFractionalMaximum) then
                write (label,'(e12.6)') errorFractional
                message='failed to converge when seeking solution for rₛ (relative error = '//label//')'
                call Warn(message)
                errorFractionalMaximum=errorFractional
             end if
+            !$omp end critical(promptCuspsErrorFractionalMaximum)
           end block
        end if
     end if    
