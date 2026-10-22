@@ -45,10 +45,7 @@
   </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.8111"/>
-    <!-- Planck 2018; arXiv:1807.06211 -->
-  </cosmologicalMassVariance>
+  <cosmologicalMassVariance value="filteredPower"/>
 
   <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
@@ -62,6 +59,10 @@
     <!-- Planck 2018; arXiv:1807.06211 -->
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8111"/>
+    <!-- Planck 2018; arXiv:1807.06211 -->
+  </powerSpectrumNormalizer>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>

@@ -499,6 +499,12 @@
     <translation function="interstellar_medium_kinematics"/>
   </migration>
 
+  <migration commit="f88a96423e21da1fe340565b2036399633246e13">
+    <!-- Power spectrum normalization moved from cosmologicalMassVarianceFilteredPower into a new, top-level powerSpectrumNormalizer -->
+    <!-- (issue #145): move sigma_8/amplitudeScalar/wavenumberReference/reference into the appropriate normalizer.                  -->
+    <translation function="power_spectrum_normalizer"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

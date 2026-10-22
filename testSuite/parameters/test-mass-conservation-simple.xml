@@ -18,7 +18,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+    <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
     <accretionHalo value="bertschinger">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
@@ -35,7 +35,6 @@
       <exponentVelocity value="1.6845255332717721"/>
     </coolingRate>
     <cosmologicalMassVariance value="filteredPower">
-      <sigma_8 value="0.819344297851851"/>
       <tolerance value="1.0e-7"/>
     </cosmologicalMassVariance>
     <cosmologyFunctions value="matterLambda"/>
@@ -153,6 +152,9 @@
       <wavenumberReference value="1.0"/>
     </powerSpectrumPrimordial>
     <powerSpectrumPrimordialTransferred value="simple"/>
+    <powerSpectrumNormalizer value="sigma8">
+      <sigma_8 value="0.819344297851851"/>
+    </powerSpectrumNormalizer>
     <mergerMassMovements value="verySimple"/>
     <mergerRemnantSize value="null"/>
     <satelliteMergingTimescales value="jiang2008">
