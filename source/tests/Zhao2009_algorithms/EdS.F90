@@ -142,23 +142,23 @@ program Test_Zhao2009_Flat
   </referenceConstruct>
   <referenceConstruct object="transferFunction_"                  >
    <constructor>
-    transferFunctionBBKS                                        (                                                                               &amp;
+    transferFunctionBBKS                                         (                                                                              &amp;
      &amp;                                                        darkMatterParticle_                     =darkMatterParticle_                , &amp;
      &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
      &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                  &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
-  <referenceConstruct object="powerSpectrumNormalizer_">
+  <referenceConstruct object="powerSpectrumNormalizer_"           >
    <constructor>
-    powerSpectrumNormalizerSigma8(                                                   &amp;
-     &amp;                        sigma8                   =0.8d0                         , &amp;
-     &amp;                        tolerance                =1.0d-4                        , &amp;
-     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
-     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
-     &amp;                        transferFunction_        =transferFunction_               &amp;
-     &amp;                       )
+    powerSpectrumNormalizerSigma8                                (                                                                              &amp;
+     &amp;                                                        sigma8                                  =0.8d0                              , &amp;
+     &amp;                                                        tolerance                               =1.0d-4                             , &amp;
+     &amp;                                                        integrationFailureIsFatal               =.true.                             , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
+     &amp;                                                        transferFunction_                       =transferFunction_                    &amp;
+     &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">

@@ -31,7 +31,7 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                                      , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities                        , only : Functions_Global_Set
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Numerical_Constants_Math            , only : Pi
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
@@ -67,7 +67,7 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
-  call Functions_Global_Set()
+  call Functions_Global_Set ()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (Einstein-de Sitter cosmology)")
   ! Test spherical collapse in a flat universe.
@@ -130,14 +130,14 @@ program Tests_Spherical_Collapse_Dark_Energy_EdS
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumNormalizer_">
    <constructor>
-    powerSpectrumNormalizerSigma8(                                                   &amp;
-     &amp;                        sigma8                   =0.8d0                         , &amp;
-     &amp;                        tolerance                =1.0d-4                        , &amp;
-     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
-     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
-     &amp;                        transferFunction_        =transferFunction_               &amp;
-     &amp;                       )
+    powerSpectrumNormalizerSigma8                            (                                                                                  &amp;
+     &amp;                                                    sigma8                                  =0.8d0                                  , &amp;
+     &amp;                                                    tolerance                               =1.0d-4                                 , &amp;
+     &amp;                                                    integrationFailureIsFatal               =.true.                                 , &amp;
+     &amp;                                                    cosmologyParameters_                    =cosmologyParameters_                   , &amp;
+     &amp;                                                    cosmologyFunctions_                     =cosmologyFunctions_                    , &amp;
+     &amp;                                                    transferFunction_                       =transferFunction_                        &amp;
+     &amp;                                                   )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">

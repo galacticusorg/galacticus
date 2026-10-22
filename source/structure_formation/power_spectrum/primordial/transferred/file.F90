@@ -137,22 +137,22 @@
      Implements a file transferred primordial power spectrum.
      !!}
      private
-     class           (cosmologyParametersClass), pointer                     :: cosmologyParameters_   => null()
-     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_    => null()
+     class           (cosmologyParametersClass), pointer                     :: cosmologyParameters_     => null()
+     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_      => null()
      ! The normalizer is held as an unlimited polymorphic object, and operated on through global functions, to avoid a circular
      ! module dependency (see Power_Spectrum_Normalizer_Utilities).
      class           (*                       ), pointer                     :: powerSpectrumNormalizer_ => null()
      double precision                                                        :: normalization_
      type            (varying_string          )                              :: fileName
-     double precision                          , allocatable, dimension(:  ) :: timeLogarithmic                 , wavenumberLogarithmic
+     double precision                          , allocatable, dimension(:  ) :: timeLogarithmic                   , wavenumberLogarithmic
      double precision                          , allocatable, dimension(:,:) :: powerLogarithmic
-     type            (interpolator            )                              :: interpolatorWavenumber          , interpolatorTime
+     type            (interpolator            )                              :: interpolatorWavenumber            , interpolatorTime
    contains
      !![
      <methods docformat="rst">
-       <method description="Read the named power spectrum file."                                                                        method="readFile"         />
+       <method description="Read the named power spectrum file."                                                                     method="readFile"         />
        <method description="Return the unnormalized transferred primordial power spectrum at the given ``wavenumber`` and ``time``." method="powerUnnormalized"/>
-       <method description="Return the normalization of the power spectrum, computing it if necessary."                               method="normalization"    />
+       <method description="Return the normalization of the power spectrum, computing it if necessary."                              method="normalization"    />
      </methods>
      !!]
      final     ::                                fileDestructor
@@ -415,10 +415,10 @@ contains
     power=0.0d0
     do jWavenumber=0,1
        do jTime   =0,1
-          power=+     power                                                 &
-               &+self%powerLogarithmic(iWavenumber+jWavenumber,iTime+jTime) &
-               &*     hWavenumber     (            jWavenumber            ) &
-               &*     hTime           (                              jTime)
+          power  =+     power                                                 &
+               &  +self%powerLogarithmic(iWavenumber+jWavenumber,iTime+jTime) &
+               &  *     hWavenumber     (            jWavenumber            ) &
+               &  *     hTime           (                              jTime)
        end do
     end do
     power=exp(power)

@@ -102,11 +102,11 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Tabulate cosmological mass variance."        method="retabulate"      />
-       <method description="Compute the interpolating factors in time."  method="interpolantsTime"/>
-       <method description="Write the tabulated mass variance to file."  method="fileWrite"       />
-       <method description="Read the tabulated mass variance from file." method="fileRead"        />
-       <method description="Return true if the table must be remade."    method="remakeTable"     />
+       <method description="Tabulate cosmological mass variance."                                                                                                                                     method="retabulate"          />
+       <method description="Compute the interpolating factors in time."                                                                                                                               method="interpolantsTime"    />
+       <method description="Write the tabulated mass variance to file."                                                                                                                               method="fileWrite"           />
+       <method description="Read the tabulated mass variance from file."                                                                                                                              method="fileRead"            />
+       <method description="Return true if the table must be remade."                                                                                                                                 method="remakeTable"         />
        <method description="Compute the root-variance of the density field in a region containing the given mass at the given time, using either the window function or the top-hat window function." method="rootVarianceIntegral"/>
      </methods>
      !!]
@@ -197,23 +197,23 @@ contains
     class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_            , powerSpectrumWindowFunctionTopHat_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     class           (transferFunctionClass                  ), pointer       :: transferFunction_
-    double precision                                                         :: tolerance                               , toleranceTopHat, &
+    double precision                                                         :: tolerance                               , toleranceTopHat                   , &
          &                                                                      rootVarianceLogarithmicGradientTolerance
-    logical                                                                  :: monotonicInterpolation                  , nonMonotonicIsFatal                        , &
-         &                                                                      truncateAtParticleHorizon               , storeTabulations                           , &
+    logical                                                                  :: monotonicInterpolation                  , nonMonotonicIsFatal               , &
+         &                                                                      truncateAtParticleHorizon               , storeTabulations                  , &
          &                                                                      integrationFailureIsFatal
     
     !![
-    <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                        source="parameters"                                                  />
-    <objectBuilder    class="cosmologyFunctions"                 name="cosmologyFunctions_"                         source="parameters"                                                  />
-    <objectBuilder    class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_"         source="parameters"                                                  />
-    <objectBuilder    class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"                source="parameters"                                                  />
-    <objectBuilder    class="linearGrowth"                       name="linearGrowth_"                               source="parameters"                                                  />
-    <objectBuilder    class="transferFunction"                   name="transferFunction_"                           source="parameters"                                                  />
+    <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"                                                  />
+    <objectBuilder    class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"                                                  />
+    <objectBuilder    class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"                                                  />
+    <objectBuilder    class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"                                                  />
+    <objectBuilder    class="linearGrowth"                       name="linearGrowth_"                       source="parameters"                                                  />
+    <objectBuilder    class="transferFunction"                   name="transferFunction_"                   source="parameters"                                                  />
     !!]
     if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
        !![
-       <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunctionTopHat_"          source="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
+       <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunctionTopHat_"  source="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
        !!]
     else
        nullify(powerSpectrumWindowFunctionTopHat_)
@@ -322,16 +322,16 @@ contains
     end if
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor    name="cosmologyParameters_"                       />
-    <objectDestructor    name="cosmologyFunctions_"                        />
-    <objectDestructor    name="linearGrowth_"                              />
-    <objectDestructor    name="powerSpectrumPrimordialTransferred_"        />
-    <objectDestructor    name="powerSpectrumWindowFunction_"               />
-    <objectDestructor    name="transferFunction_"                          />
+    <objectDestructor    name="cosmologyParameters_"               />
+    <objectDestructor    name="cosmologyFunctions_"                />
+    <objectDestructor    name="linearGrowth_"                      />
+    <objectDestructor    name="powerSpectrumPrimordialTransferred_"/>
+    <objectDestructor    name="powerSpectrumWindowFunction_"       />
+    <objectDestructor    name="transferFunction_"                  />
     !!]
     if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
        !![
-       <objectDestructor name="powerSpectrumWindowFunctionTopHat_"         />
+       <objectDestructor name="powerSpectrumWindowFunctionTopHat_" />
        !!]
     end if
     return
@@ -347,10 +347,10 @@ contains
     use :: Power_Spectrum_Window_Functions  , only : powerSpectrumWindowFunctionTopHat
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
-    double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat       , &
+    double precision                                         , intent(in   )                   :: tolerance                               , toleranceTopHat       , &
          &                                                                                        rootVarianceLogarithmicGradientTolerance
-    logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation, &
-         &                                                                                        truncateAtParticleHorizon                  , storeTabulations      , &
+    logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                     , monotonicInterpolation, &
+         &                                                                                        truncateAtParticleHorizon               , storeTabulations      , &
          &                                                                                        integrationFailureIsFatal
     class           (cosmologyParametersClass               ), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(in   ), target           :: cosmologyFunctions_
@@ -722,7 +722,7 @@ contains
     !!{RST
     Tabulate the cosmological mass variance.
     !!}
-    use :: Display                 , only : displayIndent            , displayMagenta                   , displayMessage, displayReset, &
+    use :: Display                 , only : displayIndent            , displayMagenta                   , displayMessage     , displayReset, &
           &                                 displayUnindent          , verbosityLevelWorking
     use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
     use :: Error                   , only : Error_Report             , Warn
@@ -1028,12 +1028,12 @@ contains
     use :: Power_Spectrum_Variance_Integrals, only : Power_Spectrum_Variance_Integrate
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
-    double precision                                       , intent(in   )               :: smoothingMass         , time
+    double precision                                       , intent(in   )               :: smoothingMass               , time
     logical                                                , intent(in   )               :: useTopHat
     double precision                                       , allocatable  , dimension(:) :: wavenumbersLocalMinima
     class           (powerSpectrumWindowFunctionClass     ), pointer                     :: powerSpectrumWindowFunction_
-    double precision                                                                     :: wavenumberMinimum     , wavenumberMaximum, &
-         &                                                                                  topHatRadius          , toleranceRelative
+    double precision                                                                     :: wavenumberMinimum           , wavenumberMaximum, &
+         &                                                                                  topHatRadius                , toleranceRelative
     character       (len=15                               )                              :: toleranceName
 
     topHatRadius=(                                             &
@@ -1067,19 +1067,19 @@ contains
     ! Split at any local minima of the transfer function. This is useful for oscillating transfer functions to allow integration
     ! to accurately capture each oscillation.
     call self%transferFunction_%wavenumbersLocalMinima(wavenumbersLocalMinima)
-    rootVariance=Power_Spectrum_Variance_Integrate(                                                       &
-         &                                         integrand                =integrand                  , &
-         &                                         integrandLogarithmic     =integrandLogarithmic       , &
-         &                                         wavenumberMinimum        =wavenumberMinimum          , &
-         &                                         wavenumberMaximum        =wavenumberMaximum          , &
-         &                                         radiusTopHat             =topHatRadius               , &
-         &                                         wavenumberHalfMode       =self%wavenumberHalfMode    , &
-         &                                         wavenumbersLocalMinima   =wavenumbersLocalMinima     , &
-         &                                         toleranceRelative        =toleranceRelative          , &
-         &                                         integrationFailureIsFatal=self%integrationFailureIsFatal, &
-         &                                         className                ='cosmologicalMassVariance' , &
+    rootVariance=Power_Spectrum_Variance_Integrate(                                                               &
+         &                                         integrand                =integrand                          , &
+         &                                         integrandLogarithmic     =integrandLogarithmic               , &
+         &                                         wavenumberMinimum        =wavenumberMinimum                  , &
+         &                                         wavenumberMaximum        =wavenumberMaximum                  , &
+         &                                         radiusTopHat             =topHatRadius                       , &
+         &                                         wavenumberHalfMode       =self%wavenumberHalfMode            , &
+         &                                         wavenumbersLocalMinima   =wavenumbersLocalMinima             , &
+         &                                         toleranceRelative        =toleranceRelative                  , &
+         &                                         integrationFailureIsFatal=self%integrationFailureIsFatal     , &
+         &                                         className                ='cosmologicalMassVariance'         , &
          &                                         classValue               =char(self%objectType(short=.true.)), &
-         &                                         toleranceName            =trim(toleranceName)          &
+         &                                         toleranceName            =trim(toleranceName)                  &
          &                                        )
     return
 

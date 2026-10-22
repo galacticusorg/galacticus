@@ -260,16 +260,16 @@ program Test_Concentrations
              &amp;                                                       )
 	  </constructor>
 	</referenceConstruct>
-	<referenceConstruct object="powerSpectrumNormalizerSigma8_">
+	<referenceConstruct object="powerSpectrumNormalizerSigma8_"                                >
 	 <constructor>
-	  powerSpectrumNormalizerSigma8(                                                   &amp;
-	   &amp;                        sigma8                   =sigma8                        , &amp;
-	   &amp;                        tolerance                =1.0d-4                        , &amp;
-	   &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-	   &amp;                        cosmologyParameters_     =cosmologyParametersSimple_    , &amp;
-	   &amp;                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &amp;
-	   &amp;                        transferFunction_        =transferFunctionEisensteinHu1998_  &amp;
-	   &amp;                       )
+	  powerSpectrumNormalizerSigma8                                  (                                                                                    &amp;
+	   &amp;                                                          sigma8                                  =sigma8                                   , &amp;
+	   &amp;                                                          tolerance                               =1.0d-4                                   , &amp;
+	   &amp;                                                          integrationFailureIsFatal               =.true.                                   , &amp;
+	   &amp;                                                          cosmologyParameters_                    =cosmologyParametersSimple_               , &amp;
+	   &amp;                                                          cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_          , &amp;
+	   &amp;                                                          transferFunction_                       =transferFunctionEisensteinHu1998_          &amp;
+	   &amp;                                                         )
 	 </constructor>
 	</referenceConstruct>
 	<referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"                     >
@@ -596,7 +596,7 @@ program Test_Concentrations
 	<objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
 	<objectDestructor name="transferFunctionEisensteinHu1998_"                            />
 	<objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
-	<objectDestructor name="powerSpectrumNormalizerSigma8_"/>
+	<objectDestructor name="powerSpectrumNormalizerSigma8_"                               />
 	<objectDestructor name="powerSpectrumStandard_"                                       />
 	<objectDestructor name="darkMatterParticleCDM_"                                       />
 	<objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>

@@ -35,7 +35,7 @@ program Tests_Merger_Tree_Branching_WDM
   use :: Display                             , only : displayVerbositySet                            , verbosityLevelWorking
   use :: Error                               , only : Error_Handler_Register
   use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities                        , only : Functions_Global_Set
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Nodes                    , only : treeNode
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityParkinsonColeHelly, mergerTreeBranchingBoundLower                              , mergerTreeBranchingBoundUpper
@@ -135,14 +135,14 @@ program Tests_Merger_Tree_Branching_WDM
        &                                                                                                                      darkMatterParticle_                     =darkMatterParticleWDMThermal_                  , &
        &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                  &
        &                                                                                                                     )
-  powerSpectrumNormalizerSigma8_=powerSpectrumNormalizerSigma8(                                                   &
-       &                        sigma8                   =0.8d+0                        , &
-       &                        tolerance                =1.0d-4                        , &
-       &                        integrationFailureIsFatal=.true.                        , &
-       &                        cosmologyParameters_     =cosmologyParametersSimple_    , &
-       &                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &
-       &                        transferFunction_        =transferFunctionBode2001_       &
-       &                       )
+  powerSpectrumNormalizerSigma8_                               =powerSpectrumNormalizerSigma8                                (                                                                                          &
+       &                                                                                                                      sigma8                                  =0.8d+0                                         , &
+       &                                                                                                                      tolerance                               =1.0d-4                                         , &
+       &                                                                                                                      integrationFailureIsFatal               =.true.                                         , &
+       &                                                                                                                      cosmologyParameters_                    =cosmologyParametersSimple_                     , &
+       &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                , &
+       &                                                                                                                      transferFunction_                       =transferFunctionBode2001_                        &
+       &                                                                                                                     )
   powerSpectrumPrimordialTransferredSimple_                    =powerSpectrumPrimordialTransferredSimple                     (                                                                                          &
        &                                                                                                                      powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_               , &
        &                                                                                                                      transferFunction_                       =transferFunctionBode2001_                      , &
@@ -167,14 +167,14 @@ program Tests_Merger_Tree_Branching_WDM
        &                                                                                                                      powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredSimple_      , &
        &                                                                                                                      powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionTopHat_               &
        &                                                                                                                     )
-  powerSpectrumNormalizerCDM_=powerSpectrumNormalizerSigma8(                                                   &
-       &                        sigma8                   =0.8d+0                        , &
-       &                        tolerance                =1.0d-4                        , &
-       &                        integrationFailureIsFatal=.true.                        , &
-       &                        cosmologyParameters_     =cosmologyParametersSimple_    , &
-       &                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &
-       &                        transferFunction_        =transferFunctionEisensteinHu1999_  &
-       &                       )
+  powerSpectrumNormalizerCDM_                                  =powerSpectrumNormalizerSigma8                                (                                                                                          &
+       &                                                                                                                      sigma8                                  =0.8d+0                                         , &
+       &                                                                                                                      tolerance                               =1.0d-4                                         , &
+       &                                                                                                                      integrationFailureIsFatal               =.true.                                         , &
+       &                                                                                                                      cosmologyParameters_                    =cosmologyParametersSimple_                     , &
+       &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                , &
+       &                                                                                                                      transferFunction_                       =transferFunctionEisensteinHu1999_                &
+       &                                                                                                                     )
   powerSpectrumPrimordialTransferredCDM_                       =powerSpectrumPrimordialTransferredSimple                     (                                                                                          &
        &                                                                                                                      powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_               , &
        &                                                                                                                      transferFunction_                       =transferFunctionEisensteinHu1999_              , &

@@ -176,14 +176,14 @@ program Tests_Power_Spectrum
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumNormalizerScaleFree_">
    <constructor>
-    powerSpectrumNormalizerSigma8(                                                   &amp;
-     &amp;                        sigma8                   =0.8d+0                        , &amp;
-     &amp;                        tolerance                =1.0d-6                        , &amp;
-     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
-     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
-     &amp;                        transferFunction_        =transferFunctionScaleFree_      &amp;
-     &amp;                       )
+    powerSpectrumNormalizerSigma8           (                                                                                                &amp;
+     &amp;                                   sigma8                                  =0.8d+0                                               , &amp;
+     &amp;                                   tolerance                               =1.0d-6                                               , &amp;
+     &amp;                                   integrationFailureIsFatal               =.true.                                               , &amp;
+     &amp;                                   cosmologyParameters_                    =cosmologyParameters_                                 , &amp;
+     &amp;                                   cosmologyFunctions_                     =cosmologyFunctions_                                  , &amp;
+     &amp;                                   transferFunction_                       =transferFunctionScaleFree_                             &amp;
+     &amp;                                  )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferredScaleFree_">
@@ -240,8 +240,8 @@ program Tests_Power_Spectrum
        &    +radiusNormalization                                      &
        &    /cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
        &   )**3
-  call Assert('σ₈   consistency',cosmologicalMassVariance_%rootVariance(mass,cosmologyFunctions_%cosmicTime(1.0d0)),cosmologicalMassVariance_%sigma8(),relTol=1.0d-3)
-  call Assert('σ₈   specified'  ,cosmologicalMassVariance_%sigma8      (                                           ),0.8d0                              ,relTol=1.0d-6)
+  call Assert('σ₈ consistency',cosmologicalMassVariance_%rootVariance(mass,cosmologyFunctions_%cosmicTime(1.0d0)),cosmologicalMassVariance_%sigma8(),relTol=1.0d-3)
+  call Assert('σ₈ specified'  ,cosmologicalMassVariance_%sigma8      (                                          ),0.8d0                             ,relTol=1.0d-6)
   ! Test that σ(M) scales as expected.
   ratio=cosmologicalMassVariance_%rootVariance(1.0d10,cosmologyFunctions_%cosmicTime(1.0d0))/cosmologicalMassVariance_%rootVariance(1.0d12,cosmologyFunctions_%cosmicTime(1.0d0))
   call Assert('σ(M) scaling',ratio,100.0d0**((-1.0d0+3.0d0)/6.0d0),relTol=1.0d-6)

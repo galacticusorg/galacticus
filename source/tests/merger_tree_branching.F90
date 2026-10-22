@@ -27,7 +27,7 @@ program Tests_Merger_Tree_Branching
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                            , verbosityLevelWorking
   use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities                        , only : Functions_Global_Set
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
   use :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingFarahiMidpoint        , excursionSetFirstCrossingFarahiMidpointBrownianBridge       , excursionSetFirstCrossingLinearBarrier, excursionSetFirstCrossingLinearBarrierBrownianBridge
   use :: Galacticus_Nodes                    , only : treeNode
@@ -190,14 +190,14 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                   , &
        &                                                                                                                       time                                    =13.8d0                                                         &
        &                                                                                                                      )
-  powerSpectrumNormalizerSigma8_=powerSpectrumNormalizerSigma8(                                                   &
-       &                        sigma8                   =1.0d+0                        , &
-       &                        tolerance                =1.0d-4                        , &
-       &                        integrationFailureIsFatal=.true.                        , &
-       &                        cosmologyParameters_     =cosmologyParametersSimple_    , &
-       &                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &
-       &                        transferFunction_        =transferFunctionIdentity_       &
-       &                       )
+  powerSpectrumNormalizerSigma8_                                =powerSpectrumNormalizerSigma8                                (                                                                                                       &
+       &                                                                                                                       sigma8                                  =1.0d+0                                                      , &
+       &                                                                                                                       tolerance                               =1.0d-4                                                      , &
+       &                                                                                                                       integrationFailureIsFatal               =.true.                                                      , &
+       &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                  , &
+       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                     &
+       &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &
        &                                                                                                                       powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_                             , &
        &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                    , &

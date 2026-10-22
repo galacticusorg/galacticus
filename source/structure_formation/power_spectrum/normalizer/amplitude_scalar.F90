@@ -67,7 +67,7 @@ contains
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class           (transferFunctionClass                 ), pointer       :: transferFunction_
     class           (powerSpectrumWindowFunctionClass      ), pointer       :: powerSpectrumWindowFunction_
-    double precision                                                        :: amplitudeScalar          , tolerance
+    double precision                                                        :: amplitudeScalar             , tolerance
     logical                                                                 :: integrationFailureIsFatal
 
     !![
@@ -126,7 +126,7 @@ contains
     use :: Interfaces_CLASS, only : Interface_CLASS_Normalization
     implicit none
     type            (powerSpectrumNormalizerAmplitudeScalar)                                  :: self
-    double precision                                        , intent(in   )                   :: amplitudeScalar          , tolerance
+    double precision                                        , intent(in   )                   :: amplitudeScalar            , tolerance
     logical                                                 , intent(in   )                   :: integrationFailureIsFatal
     class           (cosmologyParametersClass              ), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass               ), intent(in   ), target           :: cosmologyFunctions_

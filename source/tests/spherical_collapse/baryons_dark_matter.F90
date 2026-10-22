@@ -29,7 +29,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use :: Dark_Matter_Particles                , only : darkMatterParticleCDM
   use :: Display                              , only : displayVerbositySet                                       , verbosityLevelStandard
   use :: Events_Hooks                         , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities                         , only : Functions_Global_Set
+  use :: Functions_Global_Utilities           , only : Functions_Global_Set
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
   use :: Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
   use :: Linear_Growth                        , only : componentDarkMatter                                       , linearGrowthBaryonsDarkMatter                                 , linearGrowthCollisionlessMatter
@@ -84,7 +84,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   end if
   ! Initialize event hooks.
   call eventsHooksInitialize()
-  call Functions_Global_Set()
+  call Functions_Global_Set ()
   ! Open output file for z=0 results.
   if (trim(outputFractions) == "yes") then
      open(newUnit=outputFile,file='testSuite/outputs/sphericalCollapseBaryonsDarkMatter.txt',status='unknown',form='formatted')
@@ -150,14 +150,14 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
           &                                                                                                                      time                                    =13.8d0                                       &
           &                                                                                                                     )
-     powerSpectrumNormalizerSigma8_=powerSpectrumNormalizerSigma8(                                                   &
-          &                        sigma8                   =1.0d+0                        , &
-          &                        tolerance                =1.0d-4                        , &
-          &                        integrationFailureIsFatal=.true.                        , &
-          &                        cosmologyParameters_     =cosmologyParametersBaryons_   , &
-          &                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &
-          &                        transferFunction_        =transferFunctionIdentity_       &
-          &                       )
+     powerSpectrumNormalizerSigma8_                             =powerSpectrumNormalizerSigma8                                  (                                                                                      &
+          &                                                                                                                      sigma8                                  =1.0d+0                                     , &
+          &                                                                                                                      tolerance                               =1.0d-4                                     , &
+          &                                                                                                                      integrationFailureIsFatal               =.true.                                     , &
+          &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
+          &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                    &
+          &                                                                                                                     )
      powerSpectrumPrimordialTransferredSimple_                  =powerSpectrumPrimordialTransferredSimple                       (                                                                                      &
           &                                                                                                                      powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_           , &
           &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                  , &

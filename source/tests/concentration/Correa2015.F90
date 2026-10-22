@@ -135,14 +135,14 @@ program Test_Correa2015_Concentration
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumNormalizer_">
    <constructor>
-    powerSpectrumNormalizerSigma8(                                                   &amp;
-     &amp;                        sigma8                   =0.82d0                        , &amp;
-     &amp;                        tolerance                =1.0d-6                        , &amp;
-     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
-     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
-     &amp;                        transferFunction_        =transferFunction_               &amp;
-     &amp;                       )
+    powerSpectrumNormalizerSigma8                                (                                                                              &amp;
+     &amp;                                                        sigma8                                  =0.82d0                             , &amp;
+     &amp;                                                        tolerance                               =1.0d-6                             , &amp;
+     &amp;                                                        integrationFailureIsFatal               =.true.                             , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
+     &amp;                                                        transferFunction_                       =transferFunction_                    &amp;
+     &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">

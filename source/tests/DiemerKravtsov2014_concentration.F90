@@ -169,16 +169,16 @@ program Test_DiemerKravtsov2014_Concentration
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
-  <referenceConstruct object="powerSpectrumNormalizer_">
+  <referenceConstruct object="powerSpectrumNormalizer_"           >
    <constructor>
-    powerSpectrumNormalizerSigma8(                                                   &amp;
-     &amp;                        sigma8                   =0.820d+0                      , &amp;
-     &amp;                        tolerance                =1.000d-4                      , &amp;
-     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
-     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
-     &amp;                        transferFunction_        =transferFunction_               &amp;
-     &amp;                       )
+    powerSpectrumNormalizerSigma8                                (                                                                              &amp;
+     &amp;                                                        sigma8                                  =0.820d+0                           , &amp;
+     &amp;                                                        tolerance                               =1.000d-4                           , &amp;
+     &amp;                                                        integrationFailureIsFatal               =.true.                             , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
+     &amp;                                                        transferFunction_                       =transferFunction_                    &amp;
+     &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
@@ -298,7 +298,7 @@ program Test_DiemerKravtsov2014_Concentration
   <objectDestructor name="powerSpectrumPrimordial_"           />
   <objectDestructor name="transferFunction_"                  />
   <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
-  <objectDestructor name="powerSpectrumNormalizer_"/>
+  <objectDestructor name="powerSpectrumNormalizer_"           />
   <objectDestructor name="powerSpectrum_"                     />
   <objectDestructor name="darkMatterParticle_"                />
   <objectDestructor name="criticalOverdensity_"               />

@@ -76,7 +76,7 @@ program Tests_Power_Spectrum_Window_Function_ETHOS
        &                                                                      cWExpected                            , wavenumberScaled
   integer                                                                  :: i
 
-  call displayVerbositySet   (verbosityLevelStandard                                           )
+  call displayVerbositySet(verbosityLevelStandard)
   call Functions_Global_Set()
   call Unit_Tests_Begin_Group("Power spectrum window functions: ETHOS and extended ETHOS")
   !![

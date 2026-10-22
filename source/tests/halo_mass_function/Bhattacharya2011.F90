@@ -128,14 +128,14 @@ program Test_Halo_Mass_Function_Bhattacharya2011
   linearGrowth_                      =linearGrowthCollisionlessMatter         (cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)
   powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw         (index_=0.9649d0,running=0.0d0,runningRunning=0.0d0,wavenumberReference=1.0d0,runningSmallScalesOnly=.false.)
   transferFunction_                  =transferFunctionEisensteinHu1999        (neutrinoNumberEffective=3.046d0,neutrinoMassSummed=0.0d0,darkMatterParticle_=darkMatterParticle_,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)
-  powerSpectrumNormalizer_=powerSpectrumNormalizerSigma8(                                                   &
-       &                        sigma8                   =0.8111d0                      , &
-       &                        tolerance                =1.0d-9                        , &
-       &                        integrationFailureIsFatal=.true.                        , &
-       &                        cosmologyParameters_     =cosmologyParameters_          , &
-       &                        cosmologyFunctions_      =cosmologyFunctions_           , &
-       &                        transferFunction_        =transferFunction_               &
-       &                       )
+  powerSpectrumNormalizer_           =powerSpectrumNormalizerSigma8(                                                &
+       &                                                            sigma8                   =0.8111d0            , &
+       &                                                            tolerance                =1.0d-9              , &
+       &                                                            integrationFailureIsFatal=.true.              , &
+       &                                                            cosmologyParameters_     =cosmologyParameters_, &
+       &                                                            cosmologyFunctions_      =cosmologyFunctions_ , &
+       &                                                            transferFunction_        =transferFunction_     &
+       &                                                           )
   powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_=powerSpectrumPrimordial_,transferFunction_=transferFunction_,linearGrowth_=linearGrowth_,powerSpectrumNormalizer_=powerSpectrumNormalizer_)
   powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionTopHat       (cosmologyParameters_=cosmologyParameters_)
   cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower   (tolerance=1.0d-9,toleranceTopHat=1.0d-9,rootVarianceLogarithmicGradientTolerance=1.0d-9,integrationFailureIsFatal=.true.,storeTabulations=.true.,nonMonotonicIsFatal=.true.,monotonicInterpolation=.false.,truncateAtParticleHorizon=.false.,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,linearGrowth_=linearGrowth_,powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_=powerSpectrumWindowFunction_)

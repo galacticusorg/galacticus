@@ -34,7 +34,7 @@ program Tests_Merger_Tree_Branching_Modifiers
   use :: Display                             , only : displayVerbositySet                               , verbosityLevelWorking
   use :: Error                               , only : Error_Handler_Register
   use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities                        , only : Functions_Global_Set
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Nodes                    , only : treeNode
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity     , mergerTreeBranchingProbabilityModifierParkinson2008        , mergerTreeBranchingProbabilityModifierPCHPlus, mergerTreeBranchingProbabilityModifierMulti, &
@@ -119,14 +119,14 @@ program Tests_Merger_Tree_Branching_Modifiers
        &                                                                                                                      cosmologyParameters_                    =cosmologyParametersSimple_                     , &
        &                                                                                                                      time                                    =13.8d0                                           &
        &                                                                                                                     )
-  powerSpectrumNormalizerSigma8_=powerSpectrumNormalizerSigma8(                                                   &
-       &                        sigma8                   =0.8d+0                        , &
-       &                        tolerance                =1.0d-4                        , &
-       &                        integrationFailureIsFatal=.true.                        , &
-       &                        cosmologyParameters_     =cosmologyParametersSimple_    , &
-       &                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &
-       &                        transferFunction_        =transferFunctionIdentity_       &
-       &                       )
+  powerSpectrumNormalizerSigma8_                               =powerSpectrumNormalizerSigma8                                (                                                                                          &
+       &                                                                                                                      sigma8                                  =0.8d+0                                         , &
+       &                                                                                                                      tolerance                               =1.0d-4                                         , &
+       &                                                                                                                      integrationFailureIsFatal               =.true.                                         , &
+       &                                                                                                                      cosmologyParameters_                    =cosmologyParametersSimple_                     , &
+       &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                , &
+       &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                        &
+       &                                                                                                                     )
   powerSpectrumPrimordialTransferredSimple_                    =powerSpectrumPrimordialTransferredSimple                     (                                                                                          &
        &                                                                                                                      powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_               , &
        &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                      , &

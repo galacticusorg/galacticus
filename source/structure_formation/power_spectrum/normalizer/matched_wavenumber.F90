@@ -96,9 +96,9 @@ contains
     ! The reference power spectrum must have its own normalizer. Otherwise, the search for it would proceed up the parameter tree
     ! and find this normalizer, which is currently being built.
     referenceTransferredParameters=referenceParameters%subParameters('powerSpectrumPrimordialTransferred')
-    if     (                                                                     &
+    if     (                                                                         &
          &  .not.referenceParameters           %isPresent('powerSpectrumNormalizer') &
-         &  .and.                                                                &
+         &  .and.                                                                    &
          &  .not.referenceTransferredParameters%isPresent('powerSpectrumNormalizer') &
          & ) call Error_Report('"reference" section must explicitly define a "powerSpectrumNormalizer" for the reference power spectrum'//{introspection:location})
     !![
@@ -161,8 +161,8 @@ contains
     procedure       (powerSpectrumNormalizerPowerUnnormalized)                        :: powerUnnormalized
     double precision                                                                  :: timePresent
 
-    timePresent  =+self%cosmologyFunctions_                         %cosmicTime(1.0d0                               )
-    normalization=+self%powerSpectrumPrimordialTransferredReference_%power     (self%wavenumberReference,timePresent) &
+    timePresent  =+self%cosmologyFunctions_                         %cosmicTime       (1.0d0                               )
+    normalization=+self%powerSpectrumPrimordialTransferredReference_%power            (self%wavenumberReference,timePresent) &
          &        /                                                  powerUnnormalized(self%wavenumberReference,timePresent)
     return
   end function matchedWavenumberNormalization

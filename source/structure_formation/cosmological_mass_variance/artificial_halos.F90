@@ -291,4 +291,3 @@ contains
     artificialHalosGrowthIsMassDependent=self%cosmologicalMassVariance_%growthIsMassDependent()
     return
   end function artificialHalosGrowthIsMassDependent
-

@@ -94,7 +94,7 @@ contains
     class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     class           (transferFunctionClass           ), pointer       :: transferFunction_
     class           (powerSpectrumWindowFunctionClass), pointer       :: powerSpectrumWindowFunction_
-    double precision                                                  :: sigma8                   , tolerance
+    double precision                                                  :: sigma8                      , tolerance
     logical                                                           :: integrationFailureIsFatal
 
     !![
@@ -240,19 +240,19 @@ contains
     timePresent         =+self%cosmologyFunctions_%cosmicTime(1.0d0)
     wavenumberMaximum   =min(1.0d3/radiusNormalization_,self%powerSpectrumWindowFunction_%wavenumberMaximum(massNormalization))
     call self%transferFunction_%wavenumbersLocalMinima(wavenumbersLocalMinima)
-    sigma8Unnormalized  =Power_Spectrum_Variance_Integrate(                                                    &
-         &                                                 integrand                =integrand               , &
-         &                                                 integrandLogarithmic     =integrandLogarithmic    , &
-         &                                                 wavenumberMinimum        =0.0d0                   , &
-         &                                                 wavenumberMaximum        =wavenumberMaximum       , &
-         &                                                 radiusTopHat             =radiusNormalization_    , &
-         &                                                 wavenumberHalfMode       =self%wavenumberHalfMode , &
-         &                                                 wavenumbersLocalMinima   =wavenumbersLocalMinima  , &
-         &                                                 toleranceRelative        =self%tolerance          , &
+    sigma8Unnormalized  =Power_Spectrum_Variance_Integrate(                                                          &
+         &                                                 integrand                =integrand                     , &
+         &                                                 integrandLogarithmic     =integrandLogarithmic          , &
+         &                                                 wavenumberMinimum        =0.0d0                         , &
+         &                                                 wavenumberMaximum        =wavenumberMaximum             , &
+         &                                                 radiusTopHat             =radiusNormalization_          , &
+         &                                                 wavenumberHalfMode       =self%wavenumberHalfMode       , &
+         &                                                 wavenumbersLocalMinima   =wavenumbersLocalMinima        , &
+         &                                                 toleranceRelative        =self%tolerance                , &
          &                                                 integrationFailureIsFatal=self%integrationFailureIsFatal, &
-         &                                                 className                ='powerSpectrumNormalizer', &
-         &                                                 classValue               ='sigma8'                , &
-         &                                                 toleranceName            ='tolerance'               &
+         &                                                 className                ='powerSpectrumNormalizer'     , &
+         &                                                 classValue               ='sigma8'                      , &
+         &                                                 toleranceName            ='tolerance'                     &
          &                                                )
     normalization       =+(                    &
          &                 +self%sigma8        &
@@ -270,10 +270,10 @@ contains
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      integrand=+  powerUnnormalized                       (wavenumber                  ,timePresent) &
-           &    *(                                                                                    &
+      integrand=+  powerUnnormalized                      (wavenumber                  ,timePresent) &
+           &    *(                                                                                   &
            &      +self%powerSpectrumWindowFunction_%value(wavenumber,massNormalization,timePresent) &
-           &      *                                        wavenumber                                 &
+           &      *                                        wavenumber                                &
            &     )**2
       return
     end function integrand
@@ -288,11 +288,11 @@ contains
       double precision                :: wavenumber
 
       wavenumber          =+exp(wavenumberLogarithmic)
-      integrandLogarithmic=+  powerUnnormalized                       (wavenumber                  ,timePresent) &
-           &               *(                                                                                    &
+      integrandLogarithmic=+  powerUnnormalized                      (wavenumber                  ,timePresent) &
+           &               *(                                                                                   &
            &                 +self%powerSpectrumWindowFunction_%value(wavenumber,massNormalization,timePresent) &
-           &                 *                                        wavenumber                                 &
-           &                )**2                                                                                 &
+           &                 *                                        wavenumber                                &
+           &                )**2                                                                                &
            &               *                                          wavenumber
       return
     end function integrandLogarithmic
@@ -337,9 +337,9 @@ contains
     call parameters%addParameter('tolerance'                ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(l1)'    ) self%integrationFailureIsFatal
     call parameters%addParameter('integrationFailureIsFatal',trim(adjustl(parameterLabel)))
-    call self%cosmologyParameters_        %descriptor(parameters,includeClass,includeFileModificationTimes                                                )
-    call self%cosmologyFunctions_         %descriptor(parameters,includeClass,includeFileModificationTimes                                                )
-    call self%transferFunction_           %descriptor(parameters,includeClass,includeFileModificationTimes                                                )
+    call self%cosmologyParameters_        %descriptor(parameters,includeClass,includeFileModificationTimes                                                  )
+    call self%cosmologyFunctions_         %descriptor(parameters,includeClass,includeFileModificationTimes                                                  )
+    call self%transferFunction_           %descriptor(parameters,includeClass,includeFileModificationTimes                                                  )
     call self%powerSpectrumWindowFunction_%descriptor(parameters,includeClass,includeFileModificationTimes,parameterName='powerSpectrumWindowFunctionTopHat')
     return
   end subroutine sigma8DescriptorCommon

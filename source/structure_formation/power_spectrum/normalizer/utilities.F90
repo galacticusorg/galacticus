@@ -35,8 +35,8 @@ module Power_Spectrum_Normalizer_Utilities
   !!}
   use :: Power_Spectrum_Normalizers, only : powerSpectrumNormalizer, powerSpectrumNormalizerClass
   private
-  public :: Power_Spectrum_Normalizer_Construct      , Power_Spectrum_Normalizer_Release           , Power_Spectrum_Normalizer_Normalization, &
-       &    Power_Spectrum_Normalizer_Descriptor     , Power_Spectrum_Normalizer_Deep_Copy         , Power_Spectrum_Normalizer_Deep_Copy_Reset, &
+  public :: Power_Spectrum_Normalizer_Construct         , Power_Spectrum_Normalizer_Release  , Power_Spectrum_Normalizer_Normalization  , &
+       &    Power_Spectrum_Normalizer_Descriptor        , Power_Spectrum_Normalizer_Deep_Copy, Power_Spectrum_Normalizer_Deep_Copy_Reset, &
        &    Power_Spectrum_Normalizer_Deep_Copy_Finalize
 
 contains
@@ -135,8 +135,8 @@ contains
    <unitName>Power_Spectrum_Normalizer_Descriptor</unitName>
    <type>void</type>
    <module>Input_Parameters, only : inputParameters</module>
-   <arguments>class  (*              ), intent(inout)           :: self</arguments>
-   <arguments>type   (inputParameters), intent(inout)           :: descriptor</arguments>
+   <arguments>class  (*              ), intent(inout)           :: self                                      </arguments>
+   <arguments>type   (inputParameters), intent(inout)           :: descriptor                                </arguments>
    <arguments>logical                 , intent(in   ), optional :: includeClass, includeFileModificationTimes</arguments>
   </functionGlobal>
   !!]
@@ -164,7 +164,7 @@ contains
   <functionGlobal>
    <unitName>Power_Spectrum_Normalizer_Deep_Copy</unitName>
    <type>void</type>
-   <arguments>class(*), intent(inout), target  :: self</arguments>
+   <arguments>class(*), intent(inout), target  :: self       </arguments>
    <arguments>class(*), intent(  out), pointer :: destination</arguments>
   </functionGlobal>
   !!]

@@ -66,7 +66,7 @@
      !![
      <methods docformat="rst">
        <method description="Return the unnormalized transferred primordial power spectrum at the given ``wavenumber`` and ``time``." method="powerUnnormalized"/>
-       <method description="Return the normalization of the power spectrum, computing it if necessary."                               method="normalization"    />
+       <method description="Return the normalization of the power spectrum, computing it if necessary."                              method="normalization"    />
      </methods>
      !!]
      final     ::                                simpleDestructor
@@ -139,7 +139,7 @@ contains
 
     self       %timeTransferFunction            =self%transferFunction_%epochTime            (                              )
     self       %linearGrothIsWavenumberDependent=self%linearGrowth_    %isWaveNumberDependent(                              )
-    if (.not.self%linearGrothIsWavenumberDependent) &
+    if (.not.self%linearGrothIsWavenumberDependent)                                                                           &
          & self%linearGrowthTransferFunction    =self%linearGrowth_    %value                (time=self%timeTransferFunction)
     self       %timePrevious                    =-huge(0.0d0)
     self       %linearGrowthPrevious            =-huge(0.0d0)

@@ -165,14 +165,14 @@ program Tests_SIDM_Parametric_Model
        &                                                                                  cosmologyParameters_                    =cosmologyParameters_               , &
        &                                                                                  cosmologyFunctions_                     =cosmologyFunctions_                  &
        &                                                                                 )
-  powerSpectrumNormalizer_=powerSpectrumNormalizerSigma8(                                                   &
-       &                        sigma8                   =0.82d+00                      , &
-       &                        tolerance                =1.00d-06                      , &
-       &                        integrationFailureIsFatal=.true.                        , &
-       &                        cosmologyParameters_     =cosmologyParameters_          , &
-       &                        cosmologyFunctions_      =cosmologyFunctions_           , &
-       &                        transferFunction_        =transferFunction_               &
-       &                       )
+  powerSpectrumNormalizer_            =powerSpectrumNormalizerSigma8                     (                                                                              &
+       &                                                                                  sigma8                                  =0.82d+00                           , &
+       &                                                                                  tolerance                               =1.00d-06                           , &
+       &                                                                                  integrationFailureIsFatal               =.true.                             , &
+       &                                                                                  cosmologyParameters_                    =cosmologyParameters_               , &
+       &                                                                                  cosmologyFunctions_                     =cosmologyFunctions_                , &
+       &                                                                                  transferFunction_                       =transferFunction_                    &
+       &                                                                                 )
   powerSpectrumPrimordialTransferred_ =powerSpectrumPrimordialTransferredSimple          (                                                                              &
        &                                                                                  powerSpectrumPrimordial_                =powerSpectrumPrimordial_           , &
        &                                                                                  transferFunction_                       =transferFunction_                  , &

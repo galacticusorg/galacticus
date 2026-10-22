@@ -78,28 +78,28 @@ contains
     use            :: Error                   , only : Error_Report      , Warn
     use            :: Interface_GSL           , only : GSL_EBadTol       , GSL_ETol                     , GSL_ERound    , GSL_Success           , &
          &                                             GSL_EMaxIter      , gslErrorDecode
-    use            :: ISO_Varying_String      , only : varying_string    , var_str                      , operator(//), assignment(=)
+    use            :: ISO_Varying_String      , only : varying_string    , var_str                      , operator(//)  , assignment(=)
     use            :: Numerical_Constants_Math, only : Pi
     use            :: Numerical_Integration   , only : GSL_Integ_Gauss15 , integrator
     use            :: Sorting                 , only : sort
     use            :: String_Handling         , only : operator(//)      , stringXMLFormat
     implicit none
-    procedure       (powerSpectrumVarianceIntegrand)                            :: integrand                                , integrandLogarithmic
-    double precision                                , intent(in   )             :: wavenumberMinimum                        , wavenumberMaximum   , &
-         &                                                                         radiusTopHat                             , wavenumberHalfMode  , &
-         &                                                                         toleranceRelative
+    procedure       (powerSpectrumVarianceIntegrand)                              :: integrand                               , integrandLogarithmic
+    double precision                                , intent(in   )               :: wavenumberMinimum                       , wavenumberMaximum     , &
+         &                                                                           radiusTopHat                            , wavenumberHalfMode    , &
+         &                                                                           toleranceRelative
     double precision                                , intent(in   ), dimension(:) :: wavenumbersLocalMinima
-    logical                                         , intent(in   )             :: integrationFailureIsFatal
-    character       (len=*                         ), intent(in   )             :: className                                , classValue          , &
-         &                                                                         toleranceName
-    double precision                                , parameter                 :: wavenumberBAO                    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-    integer         (c_size_t                      ), parameter                 :: intervalsMaximum                 =10000_c_size_t
-    double precision                                , allocatable, dimension(:) :: wavenumbers                              , wavenumbersRestricted
-    double precision                                                            :: integral                                 , integralInterval    , &
-         &                                                                         wavenumberLower                          , wavenumberUpper
-    integer                                                                     :: i                                        , status
-    logical                                                                     :: computeLogarithmically
-    type            (integrator                    )                            :: integrator_                              , integratorLogarithmic_
+    logical                                         , intent(in   )               :: integrationFailureIsFatal
+    character       (len=*                         ), intent(in   )               :: className                               , classValue            , &
+         &                                                                           toleranceName
+    double precision                                , parameter                   :: wavenumberBAO            =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
+    integer         (c_size_t                      ), parameter                   :: intervalsMaximum         =10000_c_size_t
+    double precision                                , allocatable  , dimension(:) :: wavenumbers                             , wavenumbersRestricted
+    double precision                                                              :: integral                                , integralInterval      , &
+         &                                                                           wavenumberLower                         , wavenumberUpper
+    integer                                                                       :: i                                       , status
+    logical                                                                       :: computeLogarithmically
+    type            (integrator                    )                              :: integrator_                             , integratorLogarithmic_
 
     integrator_           =integrator(integrand           ,toleranceRelative=toleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)
     integratorLogarithmic_=integrator(integrandLogarithmic,toleranceRelative=toleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=intervalsMaximum)

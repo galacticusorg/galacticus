@@ -31,7 +31,7 @@ program Tests_Halo_Mass_Function_Reed2007
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities                        , only : Functions_Global_Set
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: File_Utilities                      , only : Count_Lines_In_File
   use :: Halo_Mass_Functions                 , only : haloMassFunctionReed2007
   use :: IO_HDF5                             , only : ioHDF5AccessInitialize
@@ -71,7 +71,7 @@ program Tests_Halo_Mass_Function_Reed2007
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
-  call Functions_Global_Set()
+  call Functions_Global_Set ()
   ! Initialize HDF5 lock.
   call ioHDF5AccessInitialize()
   ! Begin unit tests.
@@ -124,26 +124,26 @@ program Tests_Halo_Mass_Function_Reed2007
   <referenceConstruct object="transferFunction_"                  >
    <constructor>
     transferFunctionFile                                        (                                                                                                           &amp;
-     &amp;                                                        fileName                                ='testSuite/data/haloMassFunction/reed2007TransferFunction.hdf5', &amp;
-     &amp;                                                        transferFunctionType                    =transferFunctionTypeDarkMatter                                 , &amp;
-     &amp;                                                        redshift                                =0.000d0                                                        , &amp;
-     &amp;                                                        acceptNegativeValues                    =.false.                                                        , &amp;
-     &amp;                                                        factorWavenumberSmoothExtrapolation     =0.0d0                                                          , &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                                           , &amp;
-     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                                              &amp;
-     &amp;                                                       )
+     &amp;                                                       fileName                                ='testSuite/data/haloMassFunction/reed2007TransferFunction.hdf5' , &amp;
+     &amp;                                                       transferFunctionType                    =transferFunctionTypeDarkMatter                                  , &amp;
+     &amp;                                                       redshift                                =0.000d0                                                         , &amp;
+     &amp;                                                       acceptNegativeValues                    =.false.                                                         , &amp;
+     &amp;                                                       factorWavenumberSmoothExtrapolation     =0.0d0                                                           , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                                            , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                                               &amp;
+     &amp;                                                      )
    </constructor>
   </referenceConstruct>
-  <referenceConstruct object="powerSpectrumNormalizer_">
+  <referenceConstruct object="powerSpectrumNormalizer_"          >
    <constructor>
-    powerSpectrumNormalizerSigma8(                                                   &amp;
-     &amp;                        sigma8                   =0.74d+0                       , &amp;
-     &amp;                        tolerance                =1.00d-4                       , &amp;
-     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
-     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
-     &amp;                        transferFunction_        =transferFunction_               &amp;
-     &amp;                       )
+    powerSpectrumNormalizerSigma8                               (                                                                                                           &amp;
+     &amp;                                                       sigma8                                  =0.74d+0                                                         , &amp;
+     &amp;                                                       tolerance                               =1.00d-4                                                         , &amp;
+     &amp;                                                       integrationFailureIsFatal               =.true.                                                          , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                                            , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                                             , &amp;
+     &amp;                                                       transferFunction_                       =transferFunction_                                                 &amp;
+     &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">

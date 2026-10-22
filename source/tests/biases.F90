@@ -220,14 +220,14 @@ program Test_Biases
      </referenceConstruct>
      <referenceConstruct object="powerSpectrumNormalizerSigma8_">
       <constructor>
-       powerSpectrumNormalizerSigma8(                                                   &amp;
-        &amp;                        sigma8                   =sigma8                        , &amp;
-        &amp;                        tolerance                =1.0d-4                        , &amp;
-        &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-        &amp;                        cosmologyParameters_     =cosmologyParametersSimple_    , &amp;
-        &amp;                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &amp;
-        &amp;                        transferFunction_        =transferFunctionEisensteinHu1999_  &amp;
-        &amp;                       )
+       powerSpectrumNormalizerSigma8                                (                                                                                    &amp;
+        &amp;                                                        sigma8                                  =sigma8                                   , &amp;
+        &amp;                                                        tolerance                               =1.0d-4                                   , &amp;
+        &amp;                                                        integrationFailureIsFatal               =.true.                                   , &amp;
+        &amp;                                                        cosmologyParameters_                    =cosmologyParametersSimple_               , &amp;
+        &amp;                                                        cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_          , &amp;
+        &amp;                                                        transferFunction_                       =transferFunctionEisensteinHu1999_          &amp;
+        &amp;                                                       )
       </constructor>
      </referenceConstruct>
      <referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"                     >
@@ -370,7 +370,7 @@ program Test_Biases
      <objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
      <objectDestructor name="transferFunctionEisensteinHu1999_"                            />
      <objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
-     <objectDestructor name="powerSpectrumNormalizerSigma8_"/>
+     <objectDestructor name="powerSpectrumNormalizerSigma8_"                               />
      <objectDestructor name="darkMatterParticleCDM_"                                       />
      <objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>
      !!]

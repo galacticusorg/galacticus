@@ -187,14 +187,14 @@ program Test_Prompt_Cusps
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumNormalizer_">
    <constructor>
-    powerSpectrumNormalizerSigma8(                                                   &amp;
-     &amp;                        sigma8                   =0.8086539d+0                  , &amp;
-     &amp;                        tolerance                =1.0000000d-4                  , &amp;
-     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
-     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
-     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
-     &amp;                        transferFunction_        =transferFunctionWDM_            &amp;
-     &amp;                       )
+    powerSpectrumNormalizerSigma8                                 (                                                                                                              &amp;
+     &amp;                                                         sigma8                                    =0.8086539d+0                                                     , &amp;
+     &amp;                                                         tolerance                                 =1.0000000d-4                                                     , &amp;
+     &amp;                                                         integrationFailureIsFatal                 =.true.                                                           , &amp;
+     &amp;                                                         cosmologyParameters_                      =cosmologyParameters_                                             , &amp;
+     &amp;                                                         cosmologyFunctions_                       =cosmologyFunctions_                                              , &amp;
+     &amp;                                                         transferFunction_                         =transferFunctionWDM_                                               &amp;
+     &amp;                                                        )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">

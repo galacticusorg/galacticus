@@ -29,7 +29,7 @@ program Tests_Excursion_Sets
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                            , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities                        , only : Functions_Global_Set
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
   use :: File_Utilities                      , only : File_Exists                                    , File_Remove
   use :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingClass                 , excursionSetFirstCrossingFarahi                             , excursionSetFirstCrossingFarahiMidpoint, excursionSetFirstCrossingLinearBarrier, &
@@ -83,7 +83,7 @@ program Tests_Excursion_Sets
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
   call eventsHooksInitialize()
-  call Functions_Global_Set()
+  call Functions_Global_Set ()
   ! Build all objects needed for these tests.
   darkMatterParticleCDM_                                        =darkMatterParticleCDM                                        (                                                                                                         &
        &                                                                                                                      )
@@ -112,14 +112,14 @@ program Tests_Excursion_Sets
        &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                    , &
        &                                                                                                                       time                                    =13.8d0                                                          &
        &                                                                                                                      )
-  powerSpectrumNormalizerSigma8_=powerSpectrumNormalizerSigma8(                                                   &
-       &                        sigma8                   =1.0d+0                        , &
-       &                        tolerance                =1.0d-4                        , &
-       &                        integrationFailureIsFatal=.true.                        , &
-       &                        cosmologyParameters_     =cosmologyParametersSimple_    , &
-       &                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &
-       &                        transferFunction_        =transferFunctionIdentity_       &
-       &                       )
+  powerSpectrumNormalizerSigma8_                                =powerSpectrumNormalizerSigma8(                                                                                                                                         &
+       &                                                                                                                       sigma8                                  =1.0d+0                                                        , &
+       &                                                                                                                       tolerance                               =1.0d-4                                                        , &
+       &                                                                                                                       integrationFailureIsFatal               =.true.                                                        , &
+       &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                    , &
+       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                               , &
+       &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                       &
+       &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                         &
        &                                                                                                                       powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_                              , &
        &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                     , &
