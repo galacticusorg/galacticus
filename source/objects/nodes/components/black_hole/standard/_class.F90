@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements the standard black hole node component.
 !!}
@@ -313,7 +315,7 @@ contains
           call Event_Black_Hole_Merger(blackHolePrimary,blackHoleSecondary,blackHoleHostCentral)
           ! Now calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy.
           velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
-          if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
+          if (Node_Component_Black_Hole_Standard_Recoil_Escapes(hostNode,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
              massBlackHoleNew=0.0d0
              spinBlackHoleNew=0.0d0
           end if
