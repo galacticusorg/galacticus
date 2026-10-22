@@ -1548,6 +1548,7 @@ jobs:
                 test-morphologicalFractionGAMAMoffett2016.py,
                 test-dust-emission-energy-balance.py,
                 test-AGN-torus-misalignment.py,
+                test-AGN-torus-spectrum-check.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
                 test-mass-host-maximum.py,

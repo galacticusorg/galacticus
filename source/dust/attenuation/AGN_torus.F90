@@ -78,6 +78,12 @@
    from that of its galaxy. When averaging over orientation, at the ``inclination`` of the galaxy passed in, the
    average is taken also over the orientations of the torus relative to its galaxy that the ``[galacticInclination]``
    object gives through its ``inclinationsMisaligned`` method.
+
+   **Spectrum of the accretion disk.** The light attenuated must be that of the accretion disk alone. A spectrum which
+   already includes the emission of a dusty torus---that of :galacticus-class:`accretionDiskSpectraHopkins2007`, the
+   default, for example---can not be attenuated by this model, which would count the emission of the torus twice;
+   property extractors report that combination as an error at construction. Use, for example,
+   :galacticus-class:`accretionDiskSpectraThinDisk`.
    </description>
   </dustAttenuation>
   !!]
@@ -104,6 +110,7 @@
      final     ::                           agnTorusDestructor
      procedure :: transmission           => agnTorusTransmission
      procedure :: isOrientationDependent => agnTorusIsOrientationDependent
+     procedure :: includesTorus          => agnTorusIncludesTorus
      procedure :: coveringFractionWidth  => agnTorusCoveringFractionWidth
      procedure :: widthAngular           => agnTorusWidthAngular
   end type dustAttenuationAGNTorus
@@ -371,3 +378,15 @@ contains
     isOrientationDependent=.true.
     return
   end function agnTorusIsOrientationDependent
+
+  logical function agnTorusIncludesTorus(self) result(includesTorus)
+    !!{RST
+    Return true: this attenuator is a model of the dusty torus around an AGN.
+    !!}
+    implicit none
+    class(dustAttenuationAGNTorus), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    includesTorus=.true.
+    return
+  end function agnTorusIncludesTorus
