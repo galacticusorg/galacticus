@@ -583,7 +583,7 @@ contains
     class(history), intent(in   ), optional :: history2
 
     ! Clone the first history.
-    if (.not.(history1%exists().or.history2%exists())) then
+    if (.not.(history1%exists().or.(present(history2).and.history2%exists()))) then
        call History_Add%reset()
     else
        select type (history1)
