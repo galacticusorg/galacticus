@@ -58,7 +58,7 @@
 
   interface coolingTimeAvailableBensonBower2010
      !!{RST
-     Constructors for the :cite:t:`white_galaxy_1991` time available for cooling class.
+     Constructors for the :cite:t:`benson_galaxy_2010-1` time available for cooling class.
      !!}
      module procedure bensonBower2010ConstructorParameters
      module procedure bensonBower2010ConstructorInternal
@@ -95,7 +95,7 @@ contains
 
   function bensonBower2010ConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_) result(self)
     !!{RST
-    Internal constructor for the :cite:t:`benson_galaxy_2010-1` cooling rate class.
+    Internal constructor for the :cite:t:`benson_galaxy_2010-1` time available for cooling class.
     !!}
     implicit none
     type (coolingTimeAvailableBensonBower2010)                        :: self

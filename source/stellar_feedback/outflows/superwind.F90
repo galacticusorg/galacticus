@@ -111,9 +111,9 @@ contains
 
     .. math::
 
-       \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,
+       \dot{M}_\mathrm{outflow} = f_\mathrm{SW,0} {\dot{E} \over E_\mathrm{canonical}} \left\{ \begin{array}{ll} 1 & \hbox{ if } V_\mathrm{disk} < V_\mathrm{disk,SW} \\ (V_\mathrm{disk,SW}/V_\mathrm{disk})^2 &  \hbox{ if } V_\mathrm{disk} \ge V_\mathrm{disk,SW} \end{array} \right. ,
 
-    where :math:`V_\mathrm{disk,SW}=`\ ``[velocityCharacteristic]`` and :math:`f_\mathrm{SW,0}=`\ ``[massLoading]``. Note that the velocity :math:`V_\mathrm{ disk}` is whatever characteristic value returned by the disk method. This scaling is functionally similar to that adopted by :cite:t:`cole_hierarchical_2000` and :cite:t:`baugh_can_2005`, except that they specifically used the circular velocity at half-mass radius.
+    where :math:`V_\mathrm{disk,SW}=`\ ``[velocityCharacteristic]``, :math:`f_\mathrm{SW,0}=`\ ``[massLoading]``, :math:`\dot{E}` is the rate of energy input from stellar populations, and :math:`E_\mathrm{canonical}` is the total energy input by a canonical stellar population normalized to :math:`1 \mathrm{M}_\odot` after infinite time. Note that the velocity :math:`V_\mathrm{ disk}` is whatever characteristic value returned by the disk method. This scaling is functionally similar to that adopted by :cite:t:`cole_hierarchical_2000` and :cite:t:`baugh_can_2005`, except that they specifically used the circular velocity at half-mass radius.
     !!}
     use :: Error           , only : Error_Report
     use :: Galacticus_Nodes, only : nodeComponentDisk                     , nodeComponentSpheroid
