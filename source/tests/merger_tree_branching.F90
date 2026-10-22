@@ -98,6 +98,7 @@ program Tests_Merger_Tree_Branching
        &                                                                                                      branchingFresh_                   , branchingReference_, &
        &                                                                                                      branchingSamplerGeneric_
   type            (mergerTreeBranchingProbabilityPCHPlus                       ), dimension(            3) :: branchingPCHPlus_
+  type            (mergerTreeBranchingProbabilityPCHPlus                       )                           :: branchingPCHPlusTabulated_
   type            (randomNumberGeneratorGSL                                    )                           :: randomNumberGenerator_
   ! Parameters of the configurations swept over. The values of γ₁ are chosen so that the effective exponent γ₁-1/α (=γ₁+3 here)
   ! avoids the odd integers at which the hypergeometric functions used to bound the branching probability are singular; γ₁=0,
@@ -821,6 +822,34 @@ program Tests_Merger_Tree_Branching
   call Unit_Tests_Begin_Group("γ₃ ≠ 0 preserves the exactness of the bounds"   )
   call Assert('lower bound = probability'  ,boundLowerIdentity,probabilityIdentity,relTol=toleranceIdentityDirect)
   call Assert('upper bound = probability'  ,boundUpperIdentity,probabilityIdentity,relTol=toleranceIdentityDirect)
+  call Unit_Tests_End_Group  (                                                        )
+  ! With γ₃ non-zero the first parameter of the hypergeometric function in the subresolution accretion rate becomes 3/2-γ₃, so its
+  ! tabulation must be built from that parameter. Compare the tabulated rate against the direct evaluation over the full range of
+  ! the excess x of σ(M_resolution)/σ(M_parent) over unity, from deep inside the region evaluated through the connection formula
+  ! (x<1/10) to well beyond it. For σ ∝ M^{-1/3} a resolution mass of M_parent/(1+x)³ gives exactly that excess.
+  branchingPCHPlusTabulated_=mergerTreeBranchingProbabilityPCHPlus(                                                                                                       &
+       &                                                           G0                       =0.57d0                                                                     , &
+       &                                                           gamma1                   =0.38d0                                                                     , &
+       &                                                           gamma2                   =-0.01d0                                                                    , &
+       &                                                           gamma3                   =gamma3PCHPlus                                                          (3) , &
+       &                                                           gamma4                   =gamma4PCHPlus                                                          (3) , &
+       &                                                           gamma5                   =gamma5PCHPlus                                                          (3) , &
+       &                                                           accuracyFirstOrder       =1.0d-1                                                                     , &
+       &                                                           precisionHypergeometric  =1.0d-6                                                                     , &
+       &                                                           hypergeometricTabulate   =.true.                                                                     , &
+       &                                                           cdmAssumptions           =.true.                                                                     , &
+       &                                                           tolerateRoundOffErrors   =.false.                                                                    , &
+       &                                                           cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                      , &
+       &                                                           criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_               , &
+       &                                                           linearGrowth_            =linearGrowthCollisionlessMatter_                                             &
+       &                                                          )
+  do j=1,countX
+     massResolution_    =massParent/(1.0d0+xTarget(j))**3
+     fractionActual  (j)=branchingPCHPlusTabulated_%fractionSubresolution(massParent,deltaAnalytic,timeAnalytic,massResolution_,node)
+     fractionExpected(j)=branchingPCHPlus_(3)      %fractionSubresolution(massParent,deltaAnalytic,timeAnalytic,massResolution_,node)
+  end do
+  call Unit_Tests_Begin_Group("γ₃ ≠ 0 tabulated subresolution rate"           )
+  call Assert('tabulated = direct'         ,fractionActual    ,fractionExpected   ,relTol=toleranceIdentityTabulated)
   call Unit_Tests_End_Group  (                                                        )
   call Unit_Tests_End_Group  (                                                        )
 

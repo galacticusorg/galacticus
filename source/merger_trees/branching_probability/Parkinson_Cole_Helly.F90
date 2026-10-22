@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a merger tree branching probability class using the algorithm of :cite:t:`parkinson_generating_2008`.
 !!}
@@ -1109,16 +1111,18 @@ contains
 
   end function parkinsonColeHellyBoundIntegral
 
-  double precision function parkinsonColeHellyHypergeometricFactor(x,gamma,toleranceRelative) result(factor)
+  double precision function parkinsonColeHellyHypergeometricFactor(x,gamma,gamma3,toleranceRelative) result(factor)
     !!{RST
     Evaluate the factor
 
     .. math::
 
-       (1+x)^{\gamma-1} \, {}_2F_1\left(\frac{3}{2},\frac{1-\gamma}{2};\frac{3-\gamma}{2};\frac{1}{(1+x)^2}\right) \Big/ (1-\gamma)
+       (1+x)^{\gamma-1} \, {}_2F_1\left(\frac{3}{2}-\gamma_3,\frac{1-\gamma}{2};\frac{3-\gamma}{2};\frac{1}{(1+x)^2}\right) \Big/ (1-\gamma)
 
     which appears in the subresolution merger fraction, as a function of :math:`x`---the excess of the ratio of
-    :math:`\sigma(M_\mathrm{res})` to :math:`\sigma(M_\mathrm{parent})` over unity.
+    :math:`\sigma(M_\mathrm{res})` to :math:`\sigma(M_\mathrm{parent})` over unity. The exponent :math:`\gamma_3` is zero
+    except in subclasses (such as PCH+) which supply one; the discussion below is for :math:`\gamma_3=0`, and the general case
+    is described after it.
 
     Evaluating this directly is impossible for small :math:`x`. The argument of the hypergeometric function,
     :math:`z=1/(1+x)^2`, approaches its singular point :math:`z=1` as :math:`x \rightarrow 0`, and since
@@ -1144,13 +1148,25 @@ contains
     which is exact, not asymptotic. The series is used below :math:`x=1/10`, where it needs some twenty terms and
     agrees with the direct evaluation to a part in :math:`10^{15}`; above that the direct evaluation is used, as
     the series converges ever more slowly while the direct evaluation is at its most accurate.
+
+    For :math:`\gamma_3 \ne 0` the first parameter is :math:`a=3/2-\gamma_3`, so that :math:`s \equiv c-a-b=\gamma_3-1/2`, and
+    neither simplification applies. Below :math:`x=1/10` the general form of the same connection formula is used instead,
+
+    .. math::
+
+       {}_2F_1(a,b;c;z) = \frac{\Gamma(c)\Gamma(s)}{\Gamma(c-a)\Gamma(c-b)} \, {}_2F_1(a,b;1-s;w)
+                         + w^s \frac{\Gamma(c)\Gamma(-s)}{\Gamma(a)\Gamma(b)} \, {}_2F_1(c-a,c-b;1+s;w),
+
+    with both hypergeometric functions evaluated at the small argument :math:`w`. This requires :math:`s` to be non-integer,
+    i.e. :math:`\gamma_3 \ne 1/2, 3/2, \ldots`.
     !!}
+    use :: Error                   , only : Error_Report
     use :: Gamma_Functions         , only : Gamma_Function
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: x                         , gamma         , &
-         &                             toleranceRelative
+         &                             gamma3                    , toleranceRelative
     ! Value of x below which the series in w is used in place of a direct evaluation.
     double precision, parameter     :: xSeriesMaximum    =0.1d+00
     ! Maximum number of terms to accumulate in that series. Twenty are needed at the switch-over, so this is never
@@ -1159,7 +1175,10 @@ contains
     ! Tolerance within which -γ/2 is judged to sit on a pole of the Γ function.
     double precision, parameter     :: toleranceGammaPole=1.0d-12
     double precision                :: w                         , term          , &
-         &                             seriesSum                 , factorConstant
+         &                             seriesSum                 , factorConstant, &
+         &                             a                         , b             , &
+         &                             c                         , s             , &
+         &                             termA                     , termB
     integer                         :: i
 
     if (x > xSeriesMaximum) then
@@ -1167,11 +1186,49 @@ contains
        factor=+(1.0d0+x)**(+gamma-1.0d0)                                       &
             & /             (-gamma+1.0d0)                                     &
             & *Hypergeometric_2F1(                                             &
-            &                                       [1.5d0,0.5d0-0.5d0*gamma], &
-            &                                       [      1.5d0-0.5d0*gamma], &
-            &                                       1.0d0/(1.0d0+x)**2       , &
-            &                     toleranceRelative=toleranceRelative          &
+            &                                       [1.5d0-gamma3,0.5d0-0.5d0*gamma], &
+            &                                       [             1.5d0-0.5d0*gamma], &
+            &                                       1.0d0/(1.0d0+x)**2              , &
+            &                     toleranceRelative=toleranceRelative                 &
             &                    )
+    else if (gamma3 /= 0.0d0) then
+       ! Close to the singular point with γ₃≠0, evaluate through the general connection formula in terms of w=1-z.
+       w=+       x     &
+            & *(2.0d0+x)    &
+            & /(1.0d0+x)**2
+       a=1.5d0-gamma3
+       b=0.5d0-0.5d0*gamma
+       c=1.5d0-0.5d0*gamma
+       s=c-a-b
+       if (abs(s-dble(nint(s))) < toleranceGammaPole) call Error_Report('γ₃-1/2 must not be an integer'//{introspection:location})
+       ! The first term vanishes where c-a sits on a pole of the Γ function (c-b=1 never does).
+       if (c-a <= toleranceGammaPole .and. abs(c-a-dble(nint(c-a))) < toleranceGammaPole) then
+          termA=+0.0d0
+       else
+          termA=+Gamma_Function(c  )                                                                 &
+               & *Gamma_Function(s  )                                                                 &
+               & /Gamma_Function(c-a)                                                                 &
+               & /Gamma_Function(c-b)                                                                 &
+               & *Hypergeometric_2F1([a  ,b  ],[1.0d0-s],w,toleranceRelative=toleranceRelative)
+       end if
+       ! The second term vanishes where a or b sits on a pole of the Γ function.
+       if     (                                                                       &
+            &   (a <= toleranceGammaPole .and. abs(a-dble(nint(a))) < toleranceGammaPole) &
+            &  .or.                                                                   &
+            &   (b <= toleranceGammaPole .and. abs(b-dble(nint(b))) < toleranceGammaPole) &
+            & ) then
+          termB=+0.0d0
+       else
+          termB=+Gamma_Function(c  )                                                                 &
+               & *Gamma_Function(-s )                                                                 &
+               & /Gamma_Function(a  )                                                                 &
+               & /Gamma_Function(b  )                                                                 &
+               & *w**s                                                                                &
+               & *Hypergeometric_2F1([c-a,c-b],[1.0d0+s],w,toleranceRelative=toleranceRelative)
+       end if
+       factor=+(1.0d0+x)**(+gamma-1.0d0) &
+            & /             (-gamma+1.0d0) &
+            & *(termA+termB)
     else
        ! Close to the singular point evaluate through the connection formula, in terms of w=1-z, which is free of
        ! the cancellation that destroys z.
@@ -1279,6 +1336,7 @@ contains
                &                                         *parkinsonColeHellyHypergeometricFactor(                                       &
                &                                                                                 self%subresolutionHypergeometric%x(i), &
                &                                                                                 self%gamma1                          , &
+               &                                                                                 self%hypergeometricGamma3()          , &
                &                                                                                 self%precisionHypergeometric           &
                &                                                                                )                                     , &
                &                                         i                                                                              &
