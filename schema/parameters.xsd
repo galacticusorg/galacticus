@@ -3351,6 +3351,24 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="powerSpectrumNormalizer">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="amplitudeScalar"/>
+          <xs:enumeration value="identity"/>
+          <xs:enumeration value="matchedWavenumber"/>
+          <xs:enumeration value="sigma8"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="powerSpectrumPrimordial">
    <xs:complexType mixed="true">
     <xs:sequence>

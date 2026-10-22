@@ -1878,6 +1878,202 @@ _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS = 3.1 / 5.8e21 * 0.707 / 1.660538782e-
 COLUMN_UNIT_OPTICAL_DEPTH = 1.0 / _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS / 0.02 * 3.08567758135e18**2 / 1.98892e33
 
 
+def _whitespace_before(node):
+    """Return the whitespace preceding a node (the tail of its previous sibling, or the text of its parent)."""
+    previous = node.getprevious()
+    text = previous.tail if previous is not None else node.getparent().text
+    return text if text is not None and text.strip() == "" else "\n  "
+
+
+def _remove_preserving_whitespace(node):
+    """Remove a node from its parent, retaining the layout of the remaining siblings."""
+    parent = node.getparent()
+    previous = node.getprevious()
+    if previous is not None:
+        previous.tail = node.tail
+    else:
+        parent.text = node.tail
+    parent.remove(node)
+    if len(parent) == 0 and (parent.text is None or parent.text.strip() == ""):
+        parent.text = None
+
+
+def _reindent(node, indent_old, indent_new):
+    """Re-indent the subtree rooted at `node` (moved from indentation `indent_old` to `indent_new`)."""
+    for element in node.iter():
+        if element is not node and element.tail is not None and element.tail.strip() == "" and "\n" in element.tail:
+            element.tail = element.tail.replace("\n" + indent_old, "\n" + indent_new)
+        if element.text is not None and element.text.strip() == "" and "\n" in element.text:
+            element.text = element.text.replace("\n" + indent_old, "\n" + indent_new)
+
+
+def _append_child(parent, child, indent):
+    """Append `child` to `parent`, where `indent` is the indentation of `parent` itself."""
+    if len(parent) == 0:
+        parent.text = "\n" + indent + "  "
+    else:
+        parent[-1].tail = "\n" + indent + "  "
+    child.tail = "\n" + indent
+    parent.append(child)
+
+
+def _power_spectrum_normalizer_build(variance, indent, is_grid):
+    """Build a `powerSpectrumNormalizer` element from the normalization parameters of a `cosmologicalMassVariance` element,
+    removing those parameters which belong only to the normalizer. Returns the new element, or None if `variance` specifies
+    no normalization parameters."""
+    def child(name):
+        found = [c for c in variance if isinstance(c.tag, str) and c.tag == name]
+        return found[0] if found else None
+    sigma8               = child("sigma_8"                          )
+    amplitude            = child("amplitudeScalar"                  )
+    wavenumber           = child("wavenumberReference"              )
+    reference            = child("reference"                        )
+    tolerance            = child("toleranceTopHat"                  )
+    window               = child("powerSpectrumWindowFunctionTopHat")
+    integrationFailure   = child("integrationFailureIsFatal"        )
+    if sigma8 is None and amplitude is None and wavenumber is None and tolerance is None and window is None:
+        return None
+    # A variance whose σ₈ is simply that of the top-level variance (for example, one which exists only to use a different window
+    # function) is normalized consistently with the power spectrum which it shares, so needs no normalizer of its own.
+    if sigma8 is not None and re.match(r"^\s*=\s*\[cosmologicalMassVariance/sigma_8\]\s*$", sigma8.get("value", "")):
+        _remove_preserving_whitespace(sigma8)
+        return None
+    normalizer = etree.Element("powerSpectrumNormalizer")
+    # In a grid, a variance may be one of several alternatives (siblings), so the normalizer inherits its iterability.
+    if variance.get("iterable") is not None:
+        normalizer.set("iterable", variance.get("iterable"))
+    if wavenumber is not None:
+        normalizer.set("value", "matchedWavenumber")
+        indent_old = _whitespace_before(wavenumber).split("\n")[-1]
+        for element in (wavenumber, reference):
+            if element is None:
+                continue
+            _remove_preserving_whitespace(element)
+            _reindent(element, indent_old, indent + "  ")
+            _append_child(normalizer, element, indent)
+        if reference is not None:
+            _power_spectrum_normalizer_reference(reference, indent + "  ", is_grid)
+    else:
+        normalizer.set("value", "amplitudeScalar" if amplitude is not None else "sigma8")
+        # Move all instances (a grid may list several values).
+        for element in [c for c in variance if isinstance(c.tag, str) and c.tag in ("sigma_8", "amplitudeScalar")]:
+            _remove_preserving_whitespace(element)
+            element.tail = None
+            _append_child(normalizer, element, indent)
+        # Parameters which are retained by the variance (for its own computation of σ₈) are copied into the normalizer.
+        if tolerance is not None:
+            copy = etree.Element("tolerance")
+            for key, value in tolerance.attrib.items():
+                copy.set(key, value)
+            _append_child(normalizer, copy, indent)
+        if integrationFailure is not None:
+            copy = etree.Element("integrationFailureIsFatal")
+            for key, value in integrationFailure.attrib.items():
+                copy.set(key, value)
+            _append_child(normalizer, copy, indent)
+        if window is not None:
+            copy = etree.fromstring(etree.tostring(window, with_tail=False))
+            _reindent(copy, _whitespace_before(window).split("\n")[-1], indent + "  ")
+            _append_child(normalizer, copy, indent)
+    return normalizer
+
+
+def _power_spectrum_normalizer_reference(reference, indent, is_grid):
+    """Within a `reference` section, replace the `cosmologicalMassVariance` (which existed only to normalize the reference power
+    spectrum) and its window function with a normalizer for the reference power spectrum."""
+    variances = [c for c in reference if isinstance(c.tag, str) and c.tag == "cosmologicalMassVariance"]
+    normalizer = None
+    for variance in variances:
+        if variance.get("value") == "filteredPower":
+            normalizer = _power_spectrum_normalizer_build(variance, indent + "  ", is_grid)
+        _remove_preserving_whitespace(variance)
+    for window in [c for c in reference if isinstance(c.tag, str) and c.tag == "powerSpectrumWindowFunction"]:
+        _remove_preserving_whitespace(window)
+    if normalizer is None:
+        # The reference power spectrum must have its own normalizer (otherwise the search for one would find the matched
+        # wavenumber normalizer itself) - use the default.
+        normalizer = etree.Element("powerSpectrumNormalizer")
+        normalizer.set("value", "sigma8")
+    _append_child(reference, normalizer, indent)
+
+
+def power_spectrum_normalizer(input_doc, parameters, is_grid):
+    """Move the normalization of the power spectrum from `cosmologicalMassVariance` to `powerSpectrumNormalizer`.
+
+    The normalization (`[sigma_8]`, `[amplitudeScalar]`, or `[wavenumberReference]` with its `[reference]` section) was a
+    parameter of the `filteredPower` mass variance class. It is now determined by a `powerSpectrumNormalizer` object, which is
+    a member of the transferred primordial power spectrum. Each normalizer is placed alongside the
+    `powerSpectrumPrimordialTransferred` which the variance would use (found as an object builder would find it: among the
+    children of the variance, and then among those of each of its ancestors), or at the top level if there is no such
+    transferred power spectrum (in which case the default one is used). The `[toleranceTopHat]`,
+    `[integrationFailureIsFatal]`, and `[powerSpectrumWindowFunctionTopHat]` parameters of the variance are retained (they
+    control the computation of the derived value of σ₈) and are also copied into the normalizer.
+    """
+    def in_matched_reference(variance):
+        # Variances within the reference section of a matched wavenumber normalization are processed along with that
+        # normalization.
+        for ancestor in variance.iterancestors():
+            if isinstance(ancestor.tag, str) and ancestor.tag == "reference":
+                owner = ancestor.getparent()
+                if (
+                        owner is not None
+                        and owner.tag == "cosmologicalMassVariance"
+                        and any(isinstance(c.tag, str) and c.tag == "wavenumberReference" for c in owner)
+                ):
+                    return True
+        return False
+    variances = [
+        variance for variance in parameters.iter("cosmologicalMassVariance")
+        if variance.get("value") == "filteredPower" and not in_matched_reference(variance)
+    ]
+    created = {}
+    for variance in variances:
+        # Find the transferred power spectrum used by this variance.
+        transferred = None
+        level = variance
+        while level is not None:
+            found = [c for c in level if isinstance(c.tag, str) and c.tag == "powerSpectrumPrimordialTransferred"]
+            if found:
+                transferred = found[0]
+                break
+            if level is parameters:
+                break
+            level = level.getparent()
+        if transferred is not None:
+            anchor = transferred
+        else:
+            anchor = variance
+            while anchor.getparent() is not parameters:
+                anchor = anchor.getparent()
+        indent = _whitespace_before(anchor).split("\n")[-1]
+        normalizer = _power_spectrum_normalizer_build(variance, indent, is_grid)
+        if normalizer is None:
+            continue
+        print("   translate special './/cosmologicalMassVariance[@value=\'filteredPower\']' normalization --> powerSpectrumNormalizer")
+        # Skip a normalizer identical to one already placed at the same level (e.g. where several variances share a power
+        # spectrum).
+        key = (id(anchor.getparent()), etree.tostring(normalizer))
+        if key in created:
+            continue
+        created[key] = True
+        parent = anchor.getparent()
+        normalizer.tail = anchor.tail
+        anchor.tail = _whitespace_before(anchor)
+        parent.insert(parent.index(anchor) + 1, normalizer)
+    # In a grid, variances which have become identical are now redundant alternatives - remove all but the first.
+    if is_grid:
+        seen = {}
+        for variance in variances:
+            parent = variance.getparent()
+            if parent is None:
+                continue
+            key = (id(parent), etree.tostring(variance, with_tail=False))
+            if key in seen:
+                _remove_preserving_whitespace(variance)
+            else:
+                seen[key] = True
+
+
 SPECIAL_FUNCTIONS = {
     "extended_schmidt_normalization_per_gigayear": extended_schmidt_normalization_per_gigayear,
     "dust_properties": dust_properties,
@@ -1908,6 +2104,7 @@ SPECIAL_FUNCTIONS = {
     "dynamical_friction_gaseous": dynamical_friction_gaseous,
     "satellite_deferral_default": satellite_deferral_default,
     "interstellar_medium_kinematics": interstellar_medium_kinematics,
+    "power_spectrum_normalizer": power_spectrum_normalizer,
 }
 
 

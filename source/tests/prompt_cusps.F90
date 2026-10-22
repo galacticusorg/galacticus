@@ -48,6 +48,7 @@ program Test_Prompt_Cusps
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Virial_Density_Contrast             , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Transfer_Functions                  , only : transferFunctionCAMB                                          , transferFunctionBode2001         , scaleCutOffModelVogel23SpinHalf    , transferFunctionTypeTotal
@@ -67,6 +68,7 @@ program Test_Prompt_Cusps
   type            (transferFunctionCAMB                                          )              :: transferFunctionCDM_
   type            (transferFunctionBode2001                                      )              :: transferFunctionWDM_
   type            (powerSpectrumPrimordialTransferredSimple                      )              :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                                 )              :: powerSpectrumNormalizer_
   type            (powerSpectrumStandard                                         )              :: powerSpectrum_
   type            (darkMatterParticleCDM                                         )              :: darkMatterParticleCDM_
   type            (darkMatterParticleWDMThermal                                  )              :: darkMatterParticleWDM_
@@ -183,12 +185,25 @@ program Test_Prompt_Cusps
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_">
+   <constructor>
+    powerSpectrumNormalizerSigma8(                                                   &amp;
+     &amp;                        sigma8                   =0.8086539d+0                  , &amp;
+     &amp;                        tolerance                =1.0000000d-4                  , &amp;
+     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
+     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
+     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
+     &amp;                        transferFunction_        =transferFunctionWDM_            &amp;
+     &amp;                       )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple                      (                                                                                                              &amp;
      &amp;                                                         powerSpectrumPrimordial_                  =powerSpectrumPrimordial_                                         , &amp;
      &amp;                                                         transferFunction_                         =transferFunctionWDM_                                             , &amp;
-     &amp;                                                         linearGrowth_                             =linearGrowth_                                                      &amp;
+     &amp;                                                         linearGrowth_                             =linearGrowth_                                                    , &amp;
+     &amp;                                                         powerSpectrumNormalizer_                  =powerSpectrumNormalizer_                                           &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
@@ -202,7 +217,6 @@ program Test_Prompt_Cusps
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower                         (                                                                                                              &amp;
-     &amp;                                                         sigma8                                    =0.8086539d+0                                                     , &amp;
      &amp;                                                         tolerance                                 =1.0000000d-4                                                     , &amp;
      &amp;                                                         toleranceTopHat                           =1.0000000d-4                                                     , &amp;
      &amp;                                                         rootVarianceLogarithmicGradientTolerance  =1.0000000d-9                                                     , &amp;
@@ -222,7 +236,6 @@ program Test_Prompt_Cusps
   <referenceConstruct object="powerSpectrum_"                     >
    <constructor>
     powerSpectrumStandard                                         (                                                                                                              &amp;
-     &amp;                                                         cosmologicalMassVariance_                 =cosmologicalMassVariance_                                        , &amp;
      &amp;                                                         powerSpectrumPrimordialTransferred_       =powerSpectrumPrimordialTransferred_                                &amp;
      &amp;                                                        )
    </constructor>

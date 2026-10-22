@@ -44,6 +44,7 @@ program Test_Biases
   use :: Node_Components                     , only : Node_Components_Initialize              , Node_Components_Thread_Initialize                           , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: String_Handling                     , only : String_Split_Words
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
@@ -62,6 +63,7 @@ program Test_Biases
   type            (powerSpectrumPrimordialPowerLaw                             ), pointer                             :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionEisensteinHu1999                            ), pointer                             :: transferFunctionEisensteinHu1999_
   type            (powerSpectrumPrimordialTransferredSimple                    ), pointer                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                               ), pointer                             :: powerSpectrumNormalizerSigma8_
   type            (darkMatterParticleCDM                                       ), pointer                             :: darkMatterParticleCDM_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                             :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (varying_string                                              )                                      :: parameterFile
@@ -157,6 +159,7 @@ program Test_Biases
      allocate(powerSpectrumWindowFunctionTopHat_                           )
      allocate(powerSpectrumPrimordialPowerLaw_                             )
      allocate(transferFunctionEisensteinHu1999_                            )
+     allocate(powerSpectrumNormalizerSigma8_                               )
      allocate(powerSpectrumPrimordialTransferredSimple_                    )
      allocate(darkMatterParticleCDM_                                       )
      allocate(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_)
@@ -215,12 +218,25 @@ program Test_Biases
         &amp;                                                       )
       </constructor>
      </referenceConstruct>
+     <referenceConstruct object="powerSpectrumNormalizerSigma8_">
+      <constructor>
+       powerSpectrumNormalizerSigma8(                                                   &amp;
+        &amp;                        sigma8                   =sigma8                        , &amp;
+        &amp;                        tolerance                =1.0d-4                        , &amp;
+        &amp;                        integrationFailureIsFatal=.true.                        , &amp;
+        &amp;                        cosmologyParameters_     =cosmologyParametersSimple_    , &amp;
+        &amp;                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &amp;
+        &amp;                        transferFunction_        =transferFunctionEisensteinHu1999_  &amp;
+        &amp;                       )
+      </constructor>
+     </referenceConstruct>
      <referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"                     >
       <constructor>
        powerSpectrumPrimordialTransferredSimple                     (                                                                                    &amp;
         &amp;                                                        powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_         , &amp;
         &amp;                                                        transferFunction_                       =transferFunctionEisensteinHu1999_        , &amp;
-        &amp;                                                        linearGrowth_                           =linearGrowthCollisionlessMatter_           &amp;
+        &amp;                                                        linearGrowth_                           =linearGrowthCollisionlessMatter_         , &amp;
+        &amp;                                                        powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_             &amp;
         &amp;                                                       )
       </constructor>
      </referenceConstruct>
@@ -234,7 +250,6 @@ program Test_Biases
      <referenceConstruct object="cosmologicalMassVarianceFilteredPower_"                        >
       <constructor>
        cosmologicalMassVarianceFilteredPower                        (                                                                                    &amp;
-        &amp;                                                        sigma8                                  =sigma8                                   , &amp;
         &amp;                                                        tolerance                               =1.0d-4                                   , &amp;
         &amp;                                                        toleranceTopHat                         =1.0d-4                                   , &amp;
         &amp;                                                        rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &amp;
@@ -355,6 +370,7 @@ program Test_Biases
      <objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
      <objectDestructor name="transferFunctionEisensteinHu1999_"                            />
      <objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
+     <objectDestructor name="powerSpectrumNormalizerSigma8_"/>
      <objectDestructor name="darkMatterParticleCDM_"                                       />
      <objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>
      !!]

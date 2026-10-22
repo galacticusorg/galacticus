@@ -31,9 +31,11 @@ program Tests_Warm_Dark_Matter
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM                                  , darkMatterParticleWDMThermal
   use :: Display                             , only : displayVerbositySet                                    , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities                        , only : Functions_Global_Set
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999                       , transferFunctionBode2001                                                                , scaleCutOffModelBode2001
   use :: Unit_Tests                          , only : Assert                                                 , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                 , Unit_Tests_Finish
@@ -50,6 +52,7 @@ program Tests_Warm_Dark_Matter
   type            (transferFunctionEisensteinHu1999                         )               :: transferFunctionCDM_
   type            (transferFunctionBode2001                                 )               :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple                 )               :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                            )               :: powerSpectrumNormalizer_
   type            (darkMatterParticleCDM                                    )               :: darkMatterParticleCDM_
   type            (darkMatterParticleWDMThermal                             )               :: darkMatterParticle_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy  )               :: criticalOverdensityCDM_
@@ -64,6 +67,7 @@ program Tests_Warm_Dark_Matter
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Critical overdensity for collapse: warm dark matter")
   ! Test critical overdensity for collapse in warm dark matter model.
@@ -148,12 +152,25 @@ program Tests_Warm_Dark_Matter
      &amp;                                                   )
   </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_">
+   <constructor>
+    powerSpectrumNormalizerSigma8(                                                   &amp;
+     &amp;                        sigma8                   =0.8d0                         , &amp;
+     &amp;                        tolerance                =1.0d-4                        , &amp;
+     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
+     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
+     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
+     &amp;                        transferFunction_        =transferFunction_               &amp;
+     &amp;                       )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple                 (                                                                                  &amp;
      &amp;                                                    powerSpectrumPrimordial_                =powerSpectrumPrimordial_               , &amp;
      &amp;                                                    transferFunction_                       =transferFunction_                      , &amp;
-     &amp;                                                    linearGrowth_                           =linearGrowth_                            &amp;
+     &amp;                                                    linearGrowth_                           =linearGrowth_                          , &amp;
+     &amp;                                                    powerSpectrumNormalizer_                =powerSpectrumNormalizer_                 &amp;
      &amp;                                                   )
    </constructor>
   </referenceConstruct>
@@ -167,7 +184,6 @@ program Tests_Warm_Dark_Matter
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower                    (                                                                                  &amp;
-     &amp;                                                    sigma8                                  =0.8d0                                  , &amp;
      &amp;                                                    tolerance                               =1.0d-4                                 , &amp;
      &amp;                                                    toleranceTopHat                         =1.0d-4                                 , &amp;
      &amp;                                                    rootVarianceLogarithmicGradientTolerance=1.0d-9                                 , &amp;

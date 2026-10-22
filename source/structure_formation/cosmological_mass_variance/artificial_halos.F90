@@ -51,14 +51,12 @@
    contains
      final     ::                                        artificialHalosDestructor
      procedure :: sigma8                              => artificialHalosSigma8
-     procedure :: powerNormalization                  => artificialHalosPowerNormalization
      procedure :: rootVariance                        => artificialHalosRootVariance
      procedure :: rootVarianceLogarithmicGradient     => artificialHalosRootVarianceLogarithmicGradient
      procedure :: rootVarianceLogarithmicGradientTime => artificialHalosRootVarianceLogarithmicGradientTime
      procedure :: rootVarianceAndLogarithmicGradient  => artificialHalosRootVarianceAndLogarithmicGradient
      procedure :: mass                                => artificialHalosMass   
      procedure :: growthIsMassDependent               => artificialHalosGrowthIsMassDependent
-     procedure :: descriptorNormalizationOnly         => artificialHalosDescriptorNormalizationOnly
   end type cosmologicalMassVarianceArtificialHalos
 
   interface cosmologicalMassVarianceArtificialHalos
@@ -152,17 +150,6 @@ contains
     !!]
     return
   end subroutine artificialHalosDestructor
-
-  double precision function artificialHalosPowerNormalization(self)
-    !!{RST
-    Return the normalization of the power spectrum. This is left unchanged by the presence of artificial halo.
-    !!}
-    implicit none
-    class(cosmologicalMassVarianceArtificialHalos), intent(inout) :: self
-
-    artificialHalosPowerNormalization=self%cosmologicalMassVariance_%powerNormalization()
-    return
-  end function artificialHalosPowerNormalization
 
   double precision function artificialHalosSigma8(self)
     !!{RST
@@ -305,25 +292,3 @@ contains
     return
   end function artificialHalosGrowthIsMassDependent
 
-  subroutine artificialHalosDescriptorNormalizationOnly(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
-    !!{RST
-    Return an input parameter list descriptor which could be used to recreate this object, for power spectrum normalization usage only (i.e. we exclude the window function).
-    !!}
-    use :: Input_Parameters, only : inputParameters, descriptorParameterName
-    implicit none
-    class    (cosmologicalMassVarianceArtificialHalos), intent(inout)           :: self
-    type     (inputParameters                        ), intent(inout)           :: descriptor
-    logical                                           , intent(in   ), optional :: includeClass , includeFileModificationTimes
-    character(len=*                                  ), intent(in   ), optional :: parameterName
-    type     (inputParameters                        )                          :: parameters
-
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('cosmologicalMassVariance',parameterName),'filteredPower')
-    parameters=descriptor%subparameters(descriptorParameterName('cosmologicalMassVariance',parameterName))
-    if (associated(self%cosmologyFunctions_      )) &
-         & call self%cosmologyFunctions_      %descriptor                 (parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
-    if (associated(self%cosmologicalMassVariance_)) &
-         & call self%cosmologicalMassVariance_%descriptorNormalizationOnly(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
-    if (associated(self%linearGrowth_            )) &
-         & call self%linearGrowth_            %descriptor                 (parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
-    return
-  end subroutine artificialHalosDescriptorNormalizationOnly

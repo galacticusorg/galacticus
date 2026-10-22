@@ -49,6 +49,7 @@ program Test_DiemerKravtsov2014_Concentration
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
   use :: Unit_Tests                          , only : Assert                                          , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group               , Unit_Tests_Finish
@@ -63,6 +64,7 @@ program Test_DiemerKravtsov2014_Concentration
   type            (powerSpectrumPrimordialPowerLaw                             ), pointer :: powerSpectrumPrimordial_
   type            (transferFunctionEisensteinHu1999                            ), pointer :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple                    ), pointer :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                               ), pointer :: powerSpectrumNormalizer_
   type            (powerSpectrumStandard                                       ), pointer :: powerSpectrum_
   type            (darkMatterParticleCDM                                       ), pointer :: darkMatterParticle_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: criticalOverdensity_
@@ -106,6 +108,7 @@ program Test_DiemerKravtsov2014_Concentration
   allocate(powerSpectrumWindowFunction_       )
   allocate(powerSpectrumPrimordial_           )
   allocate(transferFunction_                  )
+  allocate(powerSpectrumNormalizer_           )
   allocate(powerSpectrumPrimordialTransferred_)
   allocate(powerSpectrum_                     )
   allocate(darkMatterParticle_                )
@@ -166,12 +169,25 @@ program Test_DiemerKravtsov2014_Concentration
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_">
+   <constructor>
+    powerSpectrumNormalizerSigma8(                                                   &amp;
+     &amp;                        sigma8                   =0.820d+0                      , &amp;
+     &amp;                        tolerance                =1.000d-4                      , &amp;
+     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
+     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
+     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
+     &amp;                        transferFunction_        =transferFunction_               &amp;
+     &amp;                       )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple                     (                                                                              &amp;
      &amp;                                                        powerSpectrumPrimordial_                =powerSpectrumPrimordial_           , &amp;
      &amp;                                                        transferFunction_                       =transferFunction_                  , &amp;
-     &amp;                                                        linearGrowth_                           =linearGrowth_                        &amp;
+     &amp;                                                        linearGrowth_                           =linearGrowth_                      , &amp;
+     &amp;                                                        powerSpectrumNormalizer_                =powerSpectrumNormalizer_             &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -185,7 +201,6 @@ program Test_DiemerKravtsov2014_Concentration
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower                        (                                                                              &amp;
-     &amp;                                                        sigma8                                  =0.820d+0                           , &amp;
      &amp;                                                        tolerance                               =1.000d-4                           , &amp;
      &amp;                                                        toleranceTopHat                         =1.000d-4                           , &amp;
      &amp;                                                        rootVarianceLogarithmicGradientTolerance=1.0d-9                             , &amp;
@@ -205,7 +220,6 @@ program Test_DiemerKravtsov2014_Concentration
   <referenceConstruct object="powerSpectrum_"                     >
    <constructor>
     powerSpectrumStandard                                        (                                                                              &amp;
-     &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVariance_          , &amp;
      &amp;                                                        powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferred_  &amp;
      &amp;                                                       )
    </constructor>
@@ -284,6 +298,7 @@ program Test_DiemerKravtsov2014_Concentration
   <objectDestructor name="powerSpectrumPrimordial_"           />
   <objectDestructor name="transferFunction_"                  />
   <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
+  <objectDestructor name="powerSpectrumNormalizer_"/>
   <objectDestructor name="powerSpectrum_"                     />
   <objectDestructor name="darkMatterParticle_"                />
   <objectDestructor name="criticalOverdensity_"               />

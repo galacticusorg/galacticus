@@ -40,6 +40,7 @@ program Test_Correa2015_MAH
   use :: Linear_Growth                            , only : linearGrowthCollisionlessMatter
   use :: Power_Spectra_Primordial                 , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred     , only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers               , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions          , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                       , only : transferFunctionEisensteinHu1999
   implicit none  
@@ -54,6 +55,7 @@ program Test_Correa2015_MAH
   type            (powerSpectrumPrimordialPowerLaw             )               :: powerSpectrumPrimordial_
   type            (transferFunctionEisensteinHu1999            )               :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple    )               :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8               )               :: powerSpectrumNormalizer_
   type            (darkMatterParticleCDM                       )               :: darkMatterParticle_
   double precision                                              , dimension(3) :: time                               , mass          , &
        &                                                                          redshift                           , redshiftTarget, &
@@ -132,12 +134,25 @@ program Test_Correa2015_MAH
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_">
+   <constructor>
+    powerSpectrumNormalizerSigma8(                                                   &amp;
+     &amp;                        sigma8                   =0.82d0                        , &amp;
+     &amp;                        tolerance                =1.0d-6                        , &amp;
+     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
+     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
+     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
+     &amp;                        transferFunction_        =transferFunction_               &amp;
+     &amp;                       )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple                     (                                                                              &amp;
      &amp;                                                        powerSpectrumPrimordial_                =powerSpectrumPrimordial_           , &amp;
      &amp;                                                        transferFunction_                       =transferFunction_                  , &amp;
-     &amp;                                                        linearGrowth_                           =linearGrowth_                        &amp;
+     &amp;                                                        linearGrowth_                           =linearGrowth_                      , &amp;
+     &amp;                                                        powerSpectrumNormalizer_                =powerSpectrumNormalizer_             &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -151,7 +166,6 @@ program Test_Correa2015_MAH
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower                        (                                                                              &amp;
-     &amp;                                                        sigma8                                  =0.82d0                             , &amp;
      &amp;                                                        tolerance                               =4.0d-6                             , &amp;
      &amp;                                                        toleranceTopHat                         =1.0d-6                             , &amp;
      &amp;                                                        rootVarianceLogarithmicGradientTolerance=1.0d-9                             , &amp;

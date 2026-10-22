@@ -42,6 +42,8 @@ program Tests_Power_Spectrum_Window_Function_ETHOS
   use :: Numerical_Constants_Math            , only : Pi
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerIdentity
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionETHOS        , powerSpectrumWindowFunctionETHOSExtended
   use :: Transfer_Functions                  , only : transferFunctionIdentity
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -52,6 +54,7 @@ program Tests_Power_Spectrum_Window_Function_ETHOS
   type            (transferFunctionIdentity                )               :: transferFunction_
   type            (powerSpectrumPrimordialPowerLaw         )               :: powerSpectrumPrimordialShallow_       , powerSpectrumPrimordialSteep_
   type            (powerSpectrumPrimordialTransferredSimple)               :: powerSpectrumTransferredShallow_      , powerSpectrumTransferredSteep_
+  type            (powerSpectrumNormalizerIdentity         )               :: powerSpectrumNormalizer_
   type            (powerSpectrumWindowFunctionETHOS        )               :: windowFunctionETHOS_
   type            (powerSpectrumWindowFunctionETHOSExtended)               :: windowFunctionUnity_                  , windowFunctionShallow_              , &
        &                                                                      windowFunctionSteep_
@@ -74,6 +77,7 @@ program Tests_Power_Spectrum_Window_Function_ETHOS
   integer                                                                  :: i
 
   call displayVerbositySet   (verbosityLevelStandard                                           )
+  call Functions_Global_Set()
   call Unit_Tests_Begin_Group("Power spectrum window functions: ETHOS and extended ETHOS")
   !![
   <referenceConstruct object="cosmologyParameters_"           >
@@ -132,12 +136,19 @@ program Tests_Power_Spectrum_Window_Function_ETHOS
      &amp;                                  )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_"        >
+   <constructor>
+    powerSpectrumNormalizerIdentity         (                                                                                 &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumTransferredShallow_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple(                                                                                 &amp;
      &amp;                                   powerSpectrumPrimordial_    =powerSpectrumPrimordialShallow_                   , &amp;
      &amp;                                   transferFunction_           =transferFunction_                                 , &amp;
-     &amp;                                   linearGrowth_               =linearGrowth_                                       &amp;
+     &amp;                                   linearGrowth_               =linearGrowth_                                     , &amp;
+     &amp;                                   powerSpectrumNormalizer_    =powerSpectrumNormalizer_                            &amp;
      &amp;                                  )
    </constructor>
   </referenceConstruct>
@@ -146,7 +157,8 @@ program Tests_Power_Spectrum_Window_Function_ETHOS
     powerSpectrumPrimordialTransferredSimple(                                                                                 &amp;
      &amp;                                   powerSpectrumPrimordial_    =powerSpectrumPrimordialSteep_                     , &amp;
      &amp;                                   transferFunction_           =transferFunction_                                 , &amp;
-     &amp;                                   linearGrowth_               =linearGrowth_                                       &amp;
+     &amp;                                   linearGrowth_               =linearGrowth_                                     , &amp;
+     &amp;                                   powerSpectrumNormalizer_    =powerSpectrumNormalizer_                            &amp;
      &amp;                                  )
    </constructor>
   </referenceConstruct>

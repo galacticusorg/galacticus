@@ -35,6 +35,8 @@ program Tests_Power_Spectrum
   use :: Power_Spectra                       , only : powerSpectrum                           , powerSpectrumClass
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8           , powerSpectrumNormalizerIdentity
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999        , transferFunctionIdentity
@@ -46,6 +48,8 @@ program Tests_Power_Spectrum
   type           (cosmologyFunctionsMatterLambda          )               :: cosmologyFunctions_
   type           (powerSpectrumPrimordialPowerLaw         )               :: powerSpectrumPrimordialPowerLaw_                                , powerSpectrumPrimordialScaleFree_
   type           (powerSpectrumPrimordialTransferredSimple)               :: powerSpectrumPrimordialTransferredSimple_                       , powerSpectrumPrimordialTransferredScaleFree_
+  type           (powerSpectrumNormalizerSigma8           )               :: powerSpectrumNormalizerScaleFree_
+  type           (powerSpectrumNormalizerIdentity         )               :: powerSpectrumNormalizerIdentity_
   type           (transferFunctionEisensteinHu1999        )               :: transferFunctionEisensteinHu1999_
   type           (transferFunctionIdentity                )               :: transferFunctionScaleFree_
   type           (cosmologicalMassVarianceFilteredPower   )               :: cosmologicalMassVariance_
@@ -76,6 +80,7 @@ program Tests_Power_Spectrum
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  call Functions_Global_Set()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectra")
   ! Build primordial power spectrum, transfer function, and transferred power spectrum.
@@ -134,12 +139,19 @@ program Tests_Power_Spectrum
       &amp;                                 )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizerIdentity_"            >
+   <constructor>
+    powerSpectrumNormalizerIdentity         (                                                                                                &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"   >
    <constructor>
     powerSpectrumPrimordialTransferredSimple(                                                                                                &amp;
      &amp;                                   powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_                     , &amp;
      &amp;                                   transferFunction_                       =transferFunctionEisensteinHu1999_                    , &amp;
-     &amp;                                   linearGrowth_                           =linearGrowth_                                          &amp;
+     &amp;                                   linearGrowth_                           =linearGrowth_                                        , &amp;
+     &amp;                                   powerSpectrumNormalizer_                =powerSpectrumNormalizerIdentity_                       &amp;
      &amp;                                  )
    </constructor>
   </referenceConstruct>
@@ -162,12 +174,25 @@ program Tests_Power_Spectrum
       &amp;                                 )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizerScaleFree_">
+   <constructor>
+    powerSpectrumNormalizerSigma8(                                                   &amp;
+     &amp;                        sigma8                   =0.8d+0                        , &amp;
+     &amp;                        tolerance                =1.0d-6                        , &amp;
+     &amp;                        integrationFailureIsFatal=.true.                        , &amp;
+     &amp;                        cosmologyParameters_     =cosmologyParameters_          , &amp;
+     &amp;                        cosmologyFunctions_      =cosmologyFunctions_           , &amp;
+     &amp;                        transferFunction_        =transferFunctionScaleFree_      &amp;
+     &amp;                       )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferredScaleFree_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple(                                                                                                &amp;
      &amp;                                   powerSpectrumPrimordial_                =powerSpectrumPrimordialScaleFree_                    , &amp;
      &amp;                                   transferFunction_                       =transferFunctionScaleFree_                           , &amp;
-     &amp;                                   linearGrowth_                           =linearGrowth_                                          &amp;
+     &amp;                                   linearGrowth_                           =linearGrowth_                                        , &amp;
+     &amp;                                   powerSpectrumNormalizer_                =powerSpectrumNormalizerScaleFree_                      &amp;
      &amp;                                  )
    </constructor>
   </referenceConstruct>
@@ -181,7 +206,6 @@ program Tests_Power_Spectrum
   <referenceConstruct object="cosmologicalMassVariance_"                   >
    <constructor>
     cosmologicalMassVarianceFilteredPower   (                                                                                                &amp;
-     &amp;                                   sigma8                                  =0.8d+0                                               , &amp;
      &amp;                                   tolerance                               =4.0d-6                                               , &amp;
      &amp;                                   toleranceTopHat                         =1.0d-6                                               , &amp;
      &amp;                                   rootVarianceLogarithmicGradientTolerance=1.0d-9                                               , &amp;
@@ -201,7 +225,6 @@ program Tests_Power_Spectrum
   <referenceConstruct object="powerSpectrum_"                              >
    <constructor>
     powerSpectrumStandard                   (                                                                                                &amp;
-     &amp;                                   cosmologicalMassVariance_               =cosmologicalMassVariance_                            , &amp;
      &amp;                                   powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredScaleFree_           &amp;
      &amp;                                  )
    </constructor>
@@ -218,6 +241,7 @@ program Tests_Power_Spectrum
        &    /cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
        &   )**3
   call Assert('σ₈   consistency',cosmologicalMassVariance_%rootVariance(mass,cosmologyFunctions_%cosmicTime(1.0d0)),cosmologicalMassVariance_%sigma8(),relTol=1.0d-3)
+  call Assert('σ₈   specified'  ,cosmologicalMassVariance_%sigma8      (                                           ),0.8d0                              ,relTol=1.0d-6)
   ! Test that σ(M) scales as expected.
   ratio=cosmologicalMassVariance_%rootVariance(1.0d10,cosmologyFunctions_%cosmicTime(1.0d0))/cosmologicalMassVariance_%rootVariance(1.0d12,cosmologyFunctions_%cosmicTime(1.0d0))
   call Assert('σ(M) scaling',ratio,100.0d0**((-1.0d0+3.0d0)/6.0d0),relTol=1.0d-6)

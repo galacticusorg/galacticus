@@ -50,6 +50,7 @@ program Test_Concentrations
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: String_Handling                     , only : String_Split_Words
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1998
@@ -69,6 +70,7 @@ program Test_Concentrations
   type            (powerSpectrumPrimordialPowerLaw                             ), pointer                             :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionEisensteinHu1998                            ), pointer                             :: transferFunctionEisensteinHu1998_
   type            (powerSpectrumPrimordialTransferredSimple                    ), pointer                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                               ), pointer                             :: powerSpectrumNormalizerSigma8_
   type            (powerSpectrumStandard                                       ), pointer                             :: powerSpectrumStandard_
   type            (darkMatterParticleCDM                                       ), pointer                             :: darkMatterParticleCDM_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                             :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
@@ -196,6 +198,7 @@ program Test_Concentrations
         allocate(powerSpectrumWindowFunctionTopHat_                           )
         allocate(powerSpectrumPrimordialPowerLaw_                             )
         allocate(transferFunctionEisensteinHu1998_                            )
+        allocate(powerSpectrumNormalizerSigma8_                               )
         allocate(powerSpectrumPrimordialTransferredSimple_                    )
         allocate(powerSpectrumStandard_                                       )
         allocate(darkMatterParticleCDM_                                       )
@@ -257,12 +260,25 @@ program Test_Concentrations
              &amp;                                                       )
 	  </constructor>
 	</referenceConstruct>
+	<referenceConstruct object="powerSpectrumNormalizerSigma8_">
+	 <constructor>
+	  powerSpectrumNormalizerSigma8(                                                   &amp;
+	   &amp;                        sigma8                   =sigma8                        , &amp;
+	   &amp;                        tolerance                =1.0d-4                        , &amp;
+	   &amp;                        integrationFailureIsFatal=.true.                        , &amp;
+	   &amp;                        cosmologyParameters_     =cosmologyParametersSimple_    , &amp;
+	   &amp;                        cosmologyFunctions_      =cosmologyFunctionsMatterLambda_, &amp;
+	   &amp;                        transferFunction_        =transferFunctionEisensteinHu1998_  &amp;
+	   &amp;                       )
+	 </constructor>
+	</referenceConstruct>
 	<referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"                     >
 	  <constructor>
 	    powerSpectrumPrimordialTransferredSimple                     (                                                                                    &amp;
              &amp;                                                        powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_         , &amp;
              &amp;                                                        transferFunction_                       =transferFunctionEisensteinHu1998_        , &amp;
-             &amp;                                                        linearGrowth_                           =linearGrowthCollisionlessMatter_           &amp;
+             &amp;                                                        linearGrowth_                           =linearGrowthCollisionlessMatter_         , &amp;
+             &amp;                                                        powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_             &amp;
              &amp;                                                       )
 	  </constructor>
 	</referenceConstruct>
@@ -276,7 +292,6 @@ program Test_Concentrations
 	<referenceConstruct object="cosmologicalMassVarianceFilteredPower_"                        >
 	  <constructor>
 	    cosmologicalMassVarianceFilteredPower                        (                                                                                    &amp;
-             &amp;                                                        sigma8                                  =sigma8                                   , &amp;
              &amp;                                                        tolerance                               =1.0d-4                                   , &amp;
              &amp;                                                        toleranceTopHat                         =1.0d-4                                   , &amp;
 	     &amp;                                                        rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &amp;
@@ -296,7 +311,6 @@ program Test_Concentrations
 	<referenceConstruct object="powerSpectrumStandard_"                                        >
 	  <constructor>
 	    powerSpectrumStandard                                        (                                                                                    &amp;
-             &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_   , &amp;
              &amp;                                                        powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredSimple_  &amp;
              &amp;                                                       )
 	  </constructor>
@@ -582,6 +596,7 @@ program Test_Concentrations
 	<objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
 	<objectDestructor name="transferFunctionEisensteinHu1998_"                            />
 	<objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
+	<objectDestructor name="powerSpectrumNormalizerSigma8_"/>
 	<objectDestructor name="powerSpectrumStandard_"                                       />
 	<objectDestructor name="darkMatterParticleCDM_"                                       />
 	<objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>
