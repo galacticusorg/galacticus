@@ -39,7 +39,7 @@ from Galacticus.Build.ScanCache import (
 
 # Version stamp for the Makefile_Use_Dependencies.blob cache. Bump when the
 # scan rules change so stale-rule entries are discarded.
-_BLOB_VERSION = 4
+_BLOB_VERSION = 5
 
 # Directives consulted per source file (module-level so the parallel worker can
 # see it). Order matters only in that it is fixed.
@@ -424,6 +424,32 @@ def _find_containing_module_memo(file_name, fc_map):
     return _CONTAINING_MODULE_MEMO[file_name]
 
 
+def _function_class_instance_files(locations, class_names):
+    """Return the source files implementing instances of the named
+    functionClasses, as listed in directiveLocations.xml (in order, so the scan
+    stack is built exactly as before)."""
+    files = []
+    if locations:
+        for name in class_names:
+            smart_push(files, (locations.get(name) or {}).get('file'))
+    return files
+
+
+def _instances_changed(cached_entry, locations):
+    """True if the set of instance files for the functionClasses that a cached
+    entry defines differs from the set recorded when it was scanned. Edits to
+    existing instances are caught by the mtime check on the entry's tracked
+    `files`, and adding or deleting a source file forces a full rescan anyway;
+    this catches an existing, unrelated file that gains or loses an instance
+    directive (e.g. an implementation moved from one functionClass to another),
+    which neither of those detects."""
+    class_names = cached_entry.get('functionClasses')
+    if not class_names:
+        return False
+    current = set(_function_class_instance_files(locations, class_names))
+    return current != set(cached_entry.get('functionClassInstances') or [])
+
+
 def _apply_directive_requirements(entry, source_file, directives,
                                   locations, state_storables,
                                   work_dir, file_identifier,
@@ -438,14 +464,21 @@ def _apply_directive_requirements(entry, source_file, directives,
     fc_map = _functionclass_state_storables_map(state_storables)
 
     # functionClass: pull instance source files onto the scan stack, and
-    # always require function_classes.mod.
+    # always require function_classes.mod. The instance files' `use`
+    # statements are attributed to this file, so they are also tracked in
+    # `files` (an edit to an instance then triggers a rescan of this file), and
+    # the set of instances scanned is recorded so that a change in which files
+    # implement the class also triggers a rescan (see `_instances_changed`).
     if directives['functionClass']:
-        for fc in directives['functionClass']:
-            smart_push(
-                file_names_to_process,
-                (locations.get(fc['name']) or {}).get('file')
-                if locations else None,
-            )
+        entry['functionClasses'] = [
+            fc['name'] for fc in directives['functionClass']
+        ]
+        instance_files = _function_class_instance_files(
+            locations, entry['functionClasses'],
+        )
+        file_names_to_process.extend(instance_files)
+        entry['files'].extend(instance_files)
+        entry['functionClassInstances'] = sorted(set(instance_files))
         entry['modulesUsed'].append(work_dir + 'function_classes.mod')
 
     # componentBuilder: the node-component class hierarchy is synthesized and
@@ -1137,11 +1170,12 @@ def main(argv):
         file_identifier = _file_identifier(sf['fullPathFileName'])
         rescan = True
         if have_per_file and file_identifier in uses_per_file:
-            tracked = uses_per_file[file_identifier].get('files') or []
+            cached  = uses_per_file[file_identifier]
+            tracked = cached.get('files') or []
             stale = any(
                 os.path.exists(t) and os.stat(t).st_mtime > cache_mtime
                 for t in tracked
-            )
+            ) or _instances_changed(cached, locations)
             rescan = bool(stale)
         if not (rescan or force_rescan):
             continue
