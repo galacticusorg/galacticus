@@ -1183,7 +1183,7 @@ contains
     ! Maximum number of terms to accumulate in that series. Twenty are needed at the switch-over, so this is never
     ! approached - it exists only to bound the loop.
     integer         , parameter     :: countTermsMaximum =1000
-    ! Tolerance within which an argument of the Γ function is judged to sit on one of its poles.
+     ! Tolerance within which an argument of the Γ function is judged to sit on one of its poles.
     double precision, parameter     :: toleranceGammaPole=1.0d-12
     double precision                :: w                         , term             , &
          &                             seriesSum                 , factorConstant   , &
@@ -1210,11 +1210,11 @@ contains
        b=0.5d0-0.5d0*gamma
        c=1.5d0-0.5d0*gamma
        s=c-a-b
-       if (s <= toleranceGammaPole .and. abs(s-dble(nint(s))) < toleranceGammaPole)                                                       &
-            & call Error_Report(                                                                                                          &
-            &                   'γ₃-½ must not be zero or a negative integer'                                                   //char(10)// &
-            &                   displayGreen()//'HELP:'//displayReset()//' displace γ₃ slightly, or set [hypergeometricTabulate]=false'// &
-            &                   {introspection:location}                                                                                  &
+       if (s <= toleranceGammaPole .and. abs(s-dble(nint(s))) < toleranceGammaPole)                                                                 &
+            & call Error_Report(                                                                                                                    &
+            &                   'γ₃-½ must not be zero or a negative integer'                                                          //char(10)// &
+            &                   displayGreen()//'HELP:'//displayReset()//' displace γ₃ slightly, or set [hypergeometricTabulate]=false'          // &
+            &                   {introspection:location}                                                                                            &
             &                  )
        ! Accumulate ₂F₁(c-a,1;1+s;w). As for γ₃=0 below, the factorial in the series cancels the Pochhammer symbol of the unit
        ! parameter, leaving this ratio of successive terms.

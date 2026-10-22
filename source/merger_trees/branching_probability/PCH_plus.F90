@@ -219,11 +219,11 @@ contains
     if (abs(gamma3-0.5d0) < gamma3ToleranceHalf) call Error_Report('γ₃=½ cannot be evaluated - displace it slightly'//{introspection:location})
     ! The tabulated subresolution accretion rate is evaluated close to its singular point through a connection formula which
     ! fails in the same way at γ₃=-½,-³/₂,… - see `parkinsonColeHellyHypergeometricFactor`.
-    if (hypergeometricTabulate .and. gamma3 < 0.0d0 .and. abs(gamma3-0.5d0-dble(nint(gamma3-0.5d0))) < gamma3ToleranceHalf)          &
-         & call Error_Report(                                                                                                         &
-         &                   'γ₃=-½,-³/₂,… cannot be evaluated when tabulating hypergeometric functions'                    //char(10)// &
-         &                   displayGreen()//'HELP:'//displayReset()//' displace γ₃ slightly, or set [hypergeometricTabulate]=false'// &
-         &                   {introspection:location}                                                                                 &
+    if (hypergeometricTabulate .and. gamma3 < 0.0d0 .and. abs(gamma3-0.5d0-dble(nint(gamma3-0.5d0))) < gamma3ToleranceHalf)                      &
+         & call Error_Report(                                                                                                                    &
+         &                   'γ₃=-½,-³/₂,… cannot be evaluated when tabulating hypergeometric functions'                            //char(10)// &
+         &                   displayGreen()//'HELP:'//displayReset()//' displace γ₃ slightly, or set [hypergeometricTabulate]=false'          // &
+         &                   {introspection:location}                                                                                            &
          &                  )
     ! Initialize.
     self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_)
