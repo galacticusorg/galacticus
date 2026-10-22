@@ -670,7 +670,7 @@ contains
        if (mass <= 0.0d0) then
           radius=+0.0d0
        else
-          radius=+self%massDistribution_%radiusCylindricalEnclosingMass(mass          =mass          *self%factorScalingMass)
+          radius=+self%massDistribution_%radiusCylindricalEnclosingMass(mass          =mass          /self%factorScalingMass)
        end if
     else
        radius=+0.0d0
