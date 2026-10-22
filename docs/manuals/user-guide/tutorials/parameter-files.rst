@@ -501,13 +501,13 @@ Sometimes it can be useful to "reuse" an entire section of parameters elsewhere 
 
    <mergerTreeBuildController value="constrained">
 
-     <mergerTreeBranchingProbabilityUnconstrained value="PCH">
+     <mergerTreeBranchingProbabilityUnconstrained value="parkinsonColeHelly">
        <cosmologicalMassVariance idRef="myCMV"/>
-     <mergerTreeBranchingProbabilityUnconstrained/>
+     </mergerTreeBranchingProbabilityUnconstrained>
 
      <mergerTreeBranchingProbabilityConstrained value="generalizedPressSchechter">
        <cosmologicalMassVariance idRef="myCMV"/>
-     <mergerTreeBranchingProbabilityConstrained/>
+     </mergerTreeBranchingProbabilityConstrained>
 
    </mergerTreeBuildController>
 

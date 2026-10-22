@@ -35,7 +35,7 @@ As described above, Galacticus requires a file of parameters to be given as a co
          .
          .
          .
-      </parameter3Name>
+      </parameter4Name>
       .
       .
       .
@@ -209,7 +209,7 @@ Generating Parameter Files
 Some scripts are provided which assist in the generation of parameter files. These are located in the ``scripts/parameters/`` folder and are detailed below:
 
 ``cosmologicalParametersMonteCarlo.py``
-   This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints :cite:p:`hinshaw_nine-year_2012`. It uses the covariance matrix (currently defined in ``data/Cosmological_Parameters_WMAP-9.xml``) to produce correlated random variables\ [#]_. The generated parameters are printed to standard output as Galacticus-compatible XML.
+   This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints :cite:p:`hinshaw_nine-year_2012`. It uses the covariance matrix (currently defined in ``static/cosmology/Cosmological_Parameters_WMAP-9.xml`` in the Galacticus datasets) to produce correlated random variables\ [#]_. The generated parameters are printed to standard output as Galacticus-compatible XML.
 
 Changing Parameter Files
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -224,7 +224,7 @@ Change files are simple XML files with a syntax described below. They can be inc
 
 which will cause Galacticus to first read the ``parameters.xml`` file, then apply changes from ``changes1.xml`` to it, and then to apply changes from ``changes2.xml``.
 
-An example change file can be found `here <https://raw.githubusercontent.com/galacticusorg/galacticus/master/testSuite/parameters/changes.xml>`_, and looks as follows:
+An example change file can be found `here <https://raw.githubusercontent.com/galacticusorg/galacticus/master/testSuite/parameters/changes.xml>`__, and looks as follows:
 
 .. code-block:: none
 
@@ -987,4 +987,4 @@ Setting ``[evolveForestsInParallel]``\ :math:`=`\ ``false`` in the :galacticus-c
 .. [#] This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by Galacticus, allowing very fine-grained control over the composition of Galacticus functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the :galacticus-class:`darkMatterProfileConcentrationSchneider2015` model for dark matter halo concentrations.
 .. [#] This functionality requires that ``libmatheval`` is installed.
 .. [#] Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.
-.. [#] As described `here <https://www-auth.cs.wisc.edu/lists/htcondor-users/2009-January/msg00086.shtml>`_ for example.
+.. [#] As described `here <https://www-auth.cs.wisc.edu/lists/htcondor-users/2009-January/msg00086.shtml>`__ for example.
