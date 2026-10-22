@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a simple cooling time class.
   !!}
@@ -182,6 +184,9 @@ contains
     !!{RST
     Return :math:`\d\ln t_\mathrm{cool}/\d\ln \rho` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
     !!}
+    use :: Numerical_Constants_Astronomical, only : massSolar       , megaParsec
+    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+    use :: Numerical_Constants_Prefixes    , only : hecto
    implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -189,10 +194,18 @@ contains
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
+    double precision                                      :: numberDensityHydrogen
     !$GLC attributes unused :: node
 
-    simpleGradientDensityLogarithmic=+1.0d0                                                                                                                    &
-         &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(node,density,temperature,gasAbundances,chemicalDensities,radiation)
+    ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
+    numberDensityHydrogen=+density                                 &
+         &                *gasAbundances%hydrogenMassFraction()    &
+         &                *massSolar                               &
+         &                /massHydrogenAtom                        &
+         &                /hecto                               **3 &
+         &                /megaParsec                          **3
+    simpleGradientDensityLogarithmic=+1.0d0                                                                                                                                  &
+         &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function simpleGradientDensityLogarithmic
 
@@ -200,6 +213,9 @@ contains
     !!{RST
     Return :math:`\d\ln t_\mathrm{cool}/\d\ln T` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
     !!}
+    use :: Numerical_Constants_Astronomical, only : massSolar       , megaParsec
+    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+    use :: Numerical_Constants_Prefixes    , only : hecto
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -207,8 +223,16 @@ contains
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
+    double precision                                      :: numberDensityHydrogen
     !$GLC attributes unused :: node
 
-    simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,density,temperature,gasAbundances,chemicalDensities,radiation)
+    ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
+    numberDensityHydrogen=+density                                 &
+         &                *gasAbundances%hydrogenMassFraction()    &
+         &                *massSolar                               &
+         &                /massHydrogenAtom                        &
+         &                /hecto                               **3 &
+         &                /megaParsec                          **3
+    simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function simpleGradientTemperatureLogarithmic
