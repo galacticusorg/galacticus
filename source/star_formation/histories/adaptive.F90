@@ -577,6 +577,8 @@ contains
     !$GLC attributes unused :: allowTruncation
     
     if (.not.present(indexOutput)                                 ) call Error_Report('`indexOutput` is required'//{introspection:location})
+    if (indexOutput < 1_c_size_t .or. indexOutput > size(self%intervals,kind=c_size_t))                                   &
+         & call Error_Report('`indexOutput` is out of range - times for this star formation history are available only at output times'//{introspection:location})
     ! Set the times. These are just our tabulated intervals, except for the final time which is pinned to the output time. This is
     ! because our final interval may extend past the output time due to the finite size of our minimum interval. Pinning to the
     ! output time gives a better estimate of the effective size of the bin (since, by definition, no star formation can have
