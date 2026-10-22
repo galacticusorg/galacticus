@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
   !!}
@@ -420,6 +422,7 @@ contains
              allocate(self%mass            (massCountReduced                                 ))
              allocate(self%massFunction    (massCountReduced                 ,size(redshifts)))
              allocate(self%covarianceMatrix(massCountReduced,massCountReduced,size(redshifts)))
+             allocate(self%covariance      (                                  size(redshifts)))
           end if
           ii=0
           do i=1,size(massOriginal)
