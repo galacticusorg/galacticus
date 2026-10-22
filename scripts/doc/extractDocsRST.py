@@ -1043,14 +1043,17 @@ def render_constants(constants: list[dict], glsmap: dict) -> str:
             if c.get('reference'):
                 # References are LaTeX — often a bare ``\cite{…}`` — so convert
                 # them, except when they label an explicit URL (then the text is
-                # the link text and must stay literal).
+                # the link text and must stay literal). Links are anonymous
+                # (``__``), since many constants share a link text (the same
+                # reference, or "more") but not a URL, which docutils otherwise
+                # reports as a duplicate target.
                 extras.append(
-                    f'`{c["reference"]} <{c["referenceURL"]}>`_'
+                    f'`{c["reference"]} <{c["referenceURL"]}>`__'
                     if c.get('referenceURL') else
                     re.sub(r'\s*\n\s*', ' ',
                            latex_to_rst(c['reference'], glsmap)).strip())
             if c.get('externalDescription'):
-                extras.append(f'`more <{c["externalDescription"]}>`_')
+                extras.append(f'`more <{c["externalDescription"]}>`__')
             body = (desc or '—') + ('\n\n' + '; '.join(extras) if extras else '')
             out.append(term)
             out.append(textwrap.indent(body, '   '))
