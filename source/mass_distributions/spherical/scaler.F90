@@ -576,8 +576,8 @@ contains
          &                                                                     )                             &
          &                                                               )                                   &
          &             *                                                   sqrt(                             &
-         &                                                                      +self%factorScalingLength**5 &
-         &                                                                      /self%factorScalingMass      &
+         &                                                                      +self%factorScalingMass      &
+         &                                                                      /self%factorScalingLength    &
          &                                                                     )
     return
   end function sphericalScalerRadiusFreefallIncreaseRate
