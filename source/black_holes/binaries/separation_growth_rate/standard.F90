@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
+  !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson, Claude.
 
   !!{RST
   Implements a black hole binary separation growth class which follows a modified version of :cite:t:`volonteri_assembly_2003`, including terms for dynamical friction, hardening due to scattering of stars and emission of gravitational waves.
@@ -44,7 +44,7 @@
       \dot{v}_\mathrm{DF}=- {2 \pi \mathrm{G}^2 M_\bullet \over V_\mathrm{C}^2} \sum_{i} \rho_i \log(1+\Lambda_i^2) \left[
       \hbox{erf}(X_i)-\left\{ {2 X_i \over \sqrt{\pi}} \exp\left(-X_i^2\right) \right\} \right],
 
-   where the sum is taken over the spheroid (gaseous plus stellar mass) and dark matter halo components\ [#]_. Here,
+   where the sum is taken over the spheroid (including any nuclear star cluster, gaseous plus stellar mass) and dark matter halo components. The disk is excluded, as the black hole is assumed to be on a circular orbit in the plane of, and co-rotating with, the disk. The spheroid and nuclear star cluster are treated as collisionless, and are assigned the velocity dispersion of the spheroid. Here,
 
    .. math::
 
@@ -66,8 +66,6 @@
       \log\left({\mathrm{G} M_{\bullet, 2} \over 4 \sigma_\mathrm{spheroid}^2 a }\right) \right]^2 , 1 \right\},
 
    if ``[stellarDensityChangeBinaryMotion]``\ :math:`=`\ ``true`` to account for the ejection of stars from the loss cone.
-
-   .. [#] The disk is ignored as the black hole is assumed to be orbiting in a circular orbit in the disk.
    </description>
   </blackHoleBinarySeparationGrowthRate>
   !!]
@@ -79,8 +77,9 @@
      logical                                    :: stellarDensityChangeBinaryMotion          , computeVelocityDispersion
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_             => null()
    contains
-     final     ::               standardDestructor
-     procedure :: growthRate => standardGrowthRate
+     final     ::                                  standardDestructor
+     procedure :: growthRate                    => standardGrowthRate
+     procedure :: accelerationDynamicalFriction => standardAccelerationDynamicalFriction
   end type blackHoleBinarySeparationGrowthRateStandard
 
   interface blackHoleBinarySeparationGrowthRateStandard
@@ -165,13 +164,11 @@ contains
     !!}
     use :: Coordinates                     , only : coordinateCylindrical , assignment(=)
     use :: Display                         , only : displayIndent         , displayMessage                , displayUnindent
-    use :: Galactic_Structure_Options      , only : componentTypeDarkHalo , componentTypeSpheroid         , massTypeDark   , massTypeGalactic,&
-          &                                         massTypeStellar
+    use :: Galactic_Structure_Options      , only : componentTypeDarkHalo , componentTypeSpheroid         , massTypeDark   , massTypeStellar
     use :: Error                           , only : Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole, nodeComponentSpheroid         , treeNode
     use :: Mass_Distributions              , only : massDistributionClass , kinematicsDistributionClass
     use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr     , gravitationalConstant_internal
-    use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
@@ -181,15 +178,12 @@ contains
     class           (nodeComponentBlackHole                     ), pointer       :: blackHoleCentral
     class           (nodeComponentSpheroid                      ), pointer       :: spheroid
     class           (massDistributionClass                      ), pointer       :: massDistributionSpheroidStellar_             , massDistributionDarkMatterHalo_      , &
-         &                                                                          massDistributionGalactic_                    , massDistribution_
+         &                                                                          massDistribution_
     class           (kinematicsDistributionClass                ), pointer       :: kinematicsDistributionSpheroidStellar_       , kinematicsDistributionDarkMatterHalo_
     double precision                                             , parameter     :: hardeningRateDimensionless            =15.0d0
     double precision                                             , parameter     :: outerRadiusMultiplier                 =10.0d0
     double precision                                             , parameter     :: dynamicalFrictionMinimumRadius        = 0.1d0
-    double precision                                                             :: coulombLogarithmDarkMatter                   , coulombLogarithmSpheroid             , &
-         &                                                                          densityDarkMatter                            , densitySpheroid                      , &
-         &                                                                          densityStellar                               , dynamicalFrictionAcceleration        , &
-         &                                                                          dynamicalFrictionXDarkMatter                 , dynamicalFrictionXSpheroid           , &
+    double precision                                                             :: densityStellar                               , dynamicalFrictionAcceleration        , &
          &                                                                          radiusHardBinary                             , rateGravitationalWaves               , &
          &                                                                          rateScattering                               , rateScatteringDynamicalFriction      , &
          &                                                                          rateScatteringStars                          , rotationCurveGradient                , &
@@ -218,7 +212,6 @@ contains
     massDistribution_                => node%massDistribution(                                                             )
     massDistributionSpheroidStellar_ => node%massDistribution(componentType=componentTypeSpheroid,massType=massTypeStellar )
     massDistributionDarkMatterHalo_  => node%massDistribution(componentType=componentTypeDarkHalo,massType=massTypeDark    )
-    massDistributionGalactic_        => node%massDistribution(                                    massType=massTypeGalactic)
     ! Get the spheroid component.
     spheroid                         => node%spheroid        (                                                             )
     ! Set coordinates of the black hole.
@@ -307,78 +300,11 @@ contains
     end if
     ! Check if the binary has sufficiently large separation that we should compute the rate of hardening due to dynamical friction.
     if (blackHole%radialPosition() > dynamicalFrictionMinimumRadius*radiusHardBinary) then
-       ! Compute the total density, including dark matter.
-       densitySpheroid  =massDistributionGalactic_      %density(coordinates)
-       densityDarkMatter=massDistributionDarkMatterHalo_%density(coordinates)
-       ! Compute the Coulomb logarithms for dynamical friction.
-       coulombLogarithmSpheroid  = (                                     &
-            &                          blackHole       %radialPosition() &
-            &                       *  velocityDispersionSpheroid**2     &
-            &                      )                                     &
-            &                     /(                                     &
-            &                        gravitationalConstant_internal      &
-            &                       *(                                   &
-            &                          blackHole       %mass          () &
-            &                         +blackHoleCentral%mass          () &
-            &                        )                                   &
-            &                      )
-       coulombLogarithmDarkMatter= (                                     &
-            &                          blackHole       %radialPosition() &
-            &                       *  velocityDispersionDarkMatter**2   &
-            &                      )                                     &
-            &                     /(                                     &
-            &                        gravitationalConstant_internal      &
-            &                       *(                                   &
-            &                          blackHole       %mass          () &
-            &                         +blackHoleCentral%mass          () &
-            &                        )                                   &
-            &                      )
-       ! Compute the rotation curve of the galaxy and the additional contribution from the active black hole. Add them in
-       ! quadrature to get an estimate of the actual orbital speed of the black hole binary.
-       ! Precompute the "X" term appearing in the dynamical friction formula.
-       velocityRotation=massDistribution_%rotationCurve(blackHole%radialPosition())
-       if (velocityDispersionSpheroid > 0.0d0) then
-          dynamicalFrictionXSpheroid=+velocityRotation                                                       &
-               &                     /sqrt(2.0d0)                                                            &
-               &                     /velocityDispersionSpheroid
-       else
-          dynamicalFrictionXSpheroid=+0.0d0
-       end if
-       dynamicalFrictionXDarkMatter =+velocityRotation                                                       &
-            &                        /sqrt(2.0d0)                                                            &
-            &                        /velocityDispersionDarkMatter
+       ! Compute the rotation curve of the galaxy at the position of the black hole, taken to be the orbital speed of the black
+       ! hole binary.
+       velocityRotation             =massDistribution_%rotationCurve                (blackHole%radialPosition())
        ! Compute the acceleration due to dynamical friction.
-       dynamicalFrictionAcceleration=-4.0d0                                                                  &
-            &                        *Pi                                                                     &
-            &                        *gravitationalConstant_internal**2                                      &
-            &                        *blackHole%mass()                                                       &
-            &                        *0.5d0                                                                  &
-            &                        /velocityRotation**2                                                    &
-            &                        /MpcPerKmPerSToGyr                                                      &
-            &                        *(                                                                      &
-            &                           densitySpheroid                                                      &
-            &                          *log(1.0d0+coulombLogarithmSpheroid**2)                               &
-            &                          *(                                                                    &
-            &                             erf(dynamicalFrictionXSpheroid)                                    &
-            &                            -(                                                                  &
-            &                               2.0d0                                                            &
-            &                              *dynamicalFrictionXSpheroid                                       &
-            &                              /sqrt(Pi)                                                         &
-            &                              *exp(-dynamicalFrictionXSpheroid**2)                              &
-            &                             )                                                                  &
-            &                           )                                                                    &
-            &                          +densityDarkMatter                                                    &
-            &                          *log(1.0d0+coulombLogarithmDarkMatter**2)                             &
-            &                          *(                                                                    &
-            &                             erf(dynamicalFrictionXDarkMatter)                                  &
-            &                            -(                                                                  &
-            &                               2.0d0                                                            &
-            &                              *dynamicalFrictionXDarkMatter                                     &
-            &                              /sqrt(Pi)                                                         &
-            &                              *exp(-dynamicalFrictionXDarkMatter**2)                            &
-            &                             )                                                                  &
-            &                           )                                                                    &
-            &                         )
+       dynamicalFrictionAcceleration=self             %accelerationDynamicalFriction(node,blackHole,blackHoleCentral,coordinates,velocityRotation,velocityDispersionSpheroid,velocityDispersionDarkMatter)
        ! Compute the radial inflow velocity due to dynamical friction.
        rotationCurveGradient          =(                                                                     &
             &                           +                  velocityRotation                                  &
@@ -418,7 +344,117 @@ contains
     <objectDestructor name="massDistribution_"               />
     <objectDestructor name="massDistributionSpheroidStellar_"/>
     <objectDestructor name="massDistributionDarkMatterHalo_" />
-    <objectDestructor name="massDistributionGalactic_"       />
     !!]
     return
   end function standardGrowthRate
+
+  double precision function standardAccelerationDynamicalFriction(self,node,blackHole,blackHoleCentral,coordinates,velocityRotation,velocityDispersionSpheroid,velocityDispersionDarkMatter) result(accelerationDynamicalFriction)
+    !!{RST
+    Return the acceleration (in units of km/s/Gyr, and negative for a decelerating black hole) due to dynamical friction of a black
+    hole in a binary, moving at speed ``velocityRotation``, using the :cite:t:`chandrasekhar_dynamical_1943` formula applied to the
+    spheroid and nuclear star cluster components (with the velocity dispersion, ``velocityDispersionSpheroid``, of the spheroid)
+    and the dark matter halo (with velocity dispersion ``velocityDispersionDarkMatter``).
+    !!}
+    use :: Coordinates                     , only : coordinate
+    use :: Galactic_Structure_Options      , only : componentTypeDarkHalo , componentTypeNuclearStarCluster, componentTypeSpheroid, &
+         &                                          massTypeDark          , massTypeGalactic
+    use :: Galacticus_Nodes                , only : treeNode
+    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr     , gravitationalConstant_internal
+    use :: Numerical_Constants_Math        , only : Pi
+    implicit none
+    class           (blackHoleBinarySeparationGrowthRateStandard), intent(inout) :: self
+    type            (treeNode                                   ), intent(inout) :: node
+    class           (nodeComponentBlackHole                     ), intent(inout) :: blackHole                          , blackHoleCentral
+    class           (coordinate                                 ), intent(in   ) :: coordinates
+    double precision                                             , intent(in   ) :: velocityRotation                   , velocityDispersionSpheroid, &
+         &                                                                          velocityDispersionDarkMatter
+    class           (massDistributionClass                      ), pointer       :: massDistributionDarkMatterHalo_    , massDistributionSpheroid_ , &
+         &                                                                          massDistributionNuclearStarCluster_
+    double precision                                                             :: coulombLogarithmDarkMatter         , coulombLogarithmSpheroid  , &
+         &                                                                          densityDarkMatter                  , densitySpheroid           , &
+         &                                                                          dynamicalFrictionXDarkMatter       , dynamicalFrictionXSpheroid
+    !$GLC attributes unused :: self
+
+    ! Get required mass distributions.
+    massDistributionDarkMatterHalo_     => node%massDistribution(componentType=componentTypeDarkHalo          ,massType=massTypeDark    )
+    massDistributionSpheroid_           => node%massDistribution(componentType=componentTypeSpheroid          ,massType=massTypeGalactic)
+    massDistributionNuclearStarCluster_ => node%massDistribution(componentType=componentTypeNuclearStarCluster,massType=massTypeGalactic)
+    ! Compute the densities of the spheroid (including any nuclear star cluster) and dark matter. The disk is excluded as the black
+    ! hole is assumed to be on a circular orbit in the plane of, and co-rotating with, the disk.
+    densitySpheroid  =+massDistributionSpheroid_          %density(coordinates) &
+         &            +massDistributionNuclearStarCluster_%density(coordinates)
+    densityDarkMatter=+massDistributionDarkMatterHalo_    %density(coordinates)
+    ! Compute the Coulomb logarithms for dynamical friction.
+    coulombLogarithmSpheroid  = (                                     &
+         &                          blackHole       %radialPosition() &
+         &                       *  velocityDispersionSpheroid**2     &
+         &                      )                                     &
+         &                     /(                                     &
+         &                        gravitationalConstant_internal      &
+         &                       *(                                   &
+         &                          blackHole       %mass          () &
+         &                         +blackHoleCentral%mass          () &
+         &                        )                                   &
+         &                      )
+    coulombLogarithmDarkMatter= (                                     &
+         &                          blackHole       %radialPosition() &
+         &                       *  velocityDispersionDarkMatter**2   &
+         &                      )                                     &
+         &                     /(                                     &
+         &                        gravitationalConstant_internal      &
+         &                       *(                                   &
+         &                          blackHole       %mass          () &
+         &                         +blackHoleCentral%mass          () &
+         &                        )                                   &
+         &                      )
+    ! Precompute the "X" term appearing in the dynamical friction formula.
+    if (velocityDispersionSpheroid > 0.0d0) then
+       dynamicalFrictionXSpheroid=+velocityRotation                            &
+            &                     /sqrt(2.0d0)                                 &
+            &                     /velocityDispersionSpheroid
+    else
+       dynamicalFrictionXSpheroid=+0.0d0
+    end if
+    dynamicalFrictionXDarkMatter =+velocityRotation                            &
+         &                        /sqrt(2.0d0)                                 &
+         &                        /velocityDispersionDarkMatter
+    ! Compute the acceleration due to dynamical friction.
+    accelerationDynamicalFriction=-4.0d0                                       &
+         &                        *Pi                                          &
+         &                        *gravitationalConstant_internal**2           &
+         &                        *blackHole%mass()                            &
+         &                        *0.5d0                                       &
+         &                        /velocityRotation**2                         &
+         &                        /MpcPerKmPerSToGyr                           &
+         &                        *(                                           &
+         &                           densitySpheroid                           &
+         &                          *log(1.0d0+coulombLogarithmSpheroid**2)    &
+         &                          *(                                         &
+         &                             erf(dynamicalFrictionXSpheroid)         &
+         &                            -(                                       &
+         &                               2.0d0                                 &
+         &                              *dynamicalFrictionXSpheroid            &
+         &                              /sqrt(Pi)                              &
+         &                              *exp(-dynamicalFrictionXSpheroid**2)   &
+         &                             )                                       &
+         &                           )                                         &
+         &                          +densityDarkMatter                         &
+         &                          *log(1.0d0+coulombLogarithmDarkMatter**2)  &
+         &                          *(                                         &
+         &                             erf(dynamicalFrictionXDarkMatter)       &
+         &                            -(                                       &
+         &                               2.0d0                                 &
+         &                              *dynamicalFrictionXDarkMatter          &
+         &                              /sqrt(Pi)                              &
+         &                              *exp(-dynamicalFrictionXDarkMatter**2) &
+         &                             )                                       &
+         &                           )                                         &
+         &                         )
+    !![
+    <objectDestructor name="massDistributionDarkMatterHalo_"    />
+    <objectDestructor name="massDistributionSpheroid_"          />
+    <objectDestructor name="massDistributionNuclearStarCluster_"/>
+    !!]
+    return
+  end function standardAccelerationDynamicalFriction

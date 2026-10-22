@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a log-normal halo environment.
 !!}
@@ -174,24 +176,28 @@ contains
     return
   end subroutine logNormalDestructor
 
-  double precision function logNormalOverdensityLinear(self,node,presentDay)
+  double precision function logNormalOverdensityLinear(self,node,presentDay,time,expansionFactor)
     !!{RST
-    Return the environment of the given ``node``.
+    Return the environment of the given ``node``, at the given ``time`` (or ``expansionFactor``) if provided, or at the cosmic
+    time of the ``node`` otherwise.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    use :: Kind_Numbers    , only : kind_int8
+    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Halo_Environment_Utilities, only : Halo_Environment_Time
+    use :: Kind_Numbers              , only : kind_int8
     implicit none
     class           (haloEnvironmentLogNormal       ), intent(inout)           :: self
-    type            (treeNode                       ), intent(inout)           :: node
+    type            (treeNode                       ), intent(inout), optional :: node
     logical                                          , intent(in   ), optional :: presentDay
-    class           (nodeComponentBasic             ), pointer                 :: basic
-    integer         (kind_int8                      ), save                    :: uniqueIDPrevious           =-1_kind_int8
+    double precision                                 , intent(in   ), optional :: time                            , expansionFactor
+    integer         (kind_int8                      ), save                    :: uniqueIDPrevious   =-1_kind_int8
     double precision                                 , save                    :: overdensityPrevious
     !$omp threadprivate(uniqueIDPrevious,overdensityPrevious)
     !![
     <optionalArgument name="presentDay" defaultsTo=".false." />
     !!]
 
+    if (.not.present(node)) call Error_Report('`node` is required as the environment is tree-dependent'//{introspection:location})
     if (node%hostTree%nodeBase%uniqueID() /= uniqueIDPrevious) then
        uniqueIDPrevious=node%hostTree%nodeBase%uniqueID()
        if (node%hostTree%properties%exists('haloEnvironmentOverdensity')) then
@@ -206,29 +212,30 @@ contains
        end if
     end if
     logNormalOverdensityLinear=overdensityPrevious
-    if (.not.presentDay_) then
-      basic                      =>  node                                    %basic(                 )
-      logNormalOverdensityLinear =  +logNormalOverdensityLinear                                        &
-           &                        *self                      %linearGrowth_%value(time=basic%time())
-    end if
+    if (.not.presentDay_)                                                                                                                       &
+         & logNormalOverdensityLinear=+logNormalOverdensityLinear                                                                               &
+         &                            *self%linearGrowth_%value(time=Halo_Environment_Time(self%cosmologyFunctions_,node,time,expansionFactor))
     return
   end function logNormalOverdensityLinear
 
-  double precision function logNormalOverdensityLinearGradientTime(self,node)
+  double precision function logNormalOverdensityLinearGradientTime(self,node,time,expansionFactor)
     !!{RST
-    Return the time gradient of the environment of the given ``node``.
+    Return the time gradient of the environment of the given ``node``, at the given ``time`` (or ``expansionFactor``) if
+    provided, or at the cosmic time of the ``node`` otherwise.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Halo_Environment_Utilities, only : Halo_Environment_Time
     implicit none
-    class(haloEnvironmentLogNormal), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
-    class(nodeComponentBasic      ), pointer       :: basic
+    class           (haloEnvironmentLogNormal), intent(inout)           :: self
+    type            (treeNode                ), intent(inout), optional :: node
+    double precision                          , intent(in   ), optional :: time , expansionFactor
+    double precision                                                    :: time_
 
-    basic                                  =>  node%basic()
-    logNormalOverdensityLinearGradientTime =  +self%overdensityLinear(node)                                                      &
-         &                                    *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
-         &                                    *self%cosmologyFunctions_%expansionRate                       (                    &
-         &                                     self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
+    time_                                  =  Halo_Environment_Time(self%cosmologyFunctions_,node,time,expansionFactor)
+    logNormalOverdensityLinearGradientTime =  +self%overdensityLinear(node,time=time_)                                     &
+         &                                    *self%linearGrowth_      %logarithmicDerivativeExpansionFactor ( time=time_) &
+         &                                    *self%cosmologyFunctions_%expansionRate                       (              &
+         &                                     self%cosmologyFunctions_%expansionFactor                      (      time_) &
          &                                                                                                  )
     return
   end function logNormalOverdensityLinearGradientTime

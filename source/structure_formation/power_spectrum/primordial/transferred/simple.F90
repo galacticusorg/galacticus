@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   A simple transferred primordial power spectrum class.
   !!}
@@ -29,6 +31,8 @@
   <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple" docformat="rst">
    <description>
    Implements a simple transferred primordial power spectrum.
+
+   In a universe with non-zero curvature, :math:`K`, the transfer function excludes the factor :math:`1-3K/k^2` which arises from the curvature term in the Poisson equation (see :galacticus-class:`transferFunctionClass`), and this factor is not reapplied here. The resulting power spectrum is therefore the curvature-free spectrum, valid for :math:`k \gg |K|^{1/2}`. On larger scales the power spectrum is gauge-dependent, and integrals over it (such as the variance, :math:`\sigma^2(M)`) are computed as flat-space Fourier integrals, which do not account for the curvature of space. Reapplying the factor would cause such integrals to diverge as :math:`k \rightarrow 0`, since the power spectrum would then scale as :math:`k^{n_\mathrm{s}-4}` for :math:`k \ll |K|^{1/2}`. On the scales relevant to galaxy formation the difference is negligible (about :math:`4\times10^{-6}` in :math:`\sigma_8` for :math:`\Omega_k=0.1`).
    </description>
   </powerSpectrumPrimordialTransferred>
   !!]

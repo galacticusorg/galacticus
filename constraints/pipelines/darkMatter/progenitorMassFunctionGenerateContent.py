@@ -105,7 +105,7 @@ def _base_files(entry_groups,options):
         sim     = entry['simulation']
         real    = entry['realization']
         redshifts            = sorted([e['redshift'] for e in group],key=lambda x: float(x))
-        redshift_progenitors = redshifts
+        redshift_progenitors = list(redshifts)
         redshift_parent      = redshift_progenitors.pop(0)
         redshift_high        = np.ceil(float(redshift_progenitors[-1]))+1
 
@@ -128,15 +128,17 @@ def _base_files(entry_groups,options):
             })
 
         if sim['name'] != 'CDM' and 'matchedPhaseICs' in limits:
+            # Find the mass above which the halo mass functions of this simulation and its matched-phase reference agree, using the
+            # halo mass functions at the parent redshift.
             redshift = sorted(redshifts, key=float)[0]
             matched  = suite['matchedICs']
             data_path_static = data_path + '/static/darkMatter/'
             file_self = (data_path_static
                          + f"{suite['name']}/{grp['name']}/{res['name']}"
-                         + f"/{sim['name']}/{real}/progenitorMassFunction_z{redshift}.hdf5")
+                         + f"/{sim['name']}/{real}/haloMassFunction_z{redshift}.hdf5")
             file_ref  = (data_path_static
                          + f"{matched['suite']}/{grp['name']}/{res['name']}"
-                         + f"/{matched['simulation']}/{real}/progenitorMassFunction_z{redshift}.hdf5")
+                         + f"/{matched['simulation']}/{real}/haloMassFunction_z{redshift}.hdf5")
             with h5py.File(file_self, 'r') as hf:
                 count_self = hf['simulation0001/count'][:]
             with h5py.File(file_ref, 'r') as hf:
@@ -183,7 +185,9 @@ def _base_files(entry_groups,options):
                 f'  <change type="update" path="mergerTreeBranchingProbability/cdmAssumptions" value="false"/>\n'
                 f'</changes>\n'
                 )
-        
+            with open(changes_file_name, 'w') as fh:
+                fh.write(changes)
+
         # --- Accumulate config_likelihood ---
         mass_minimum_comment = (f'{count_particles_min} times'
                                 f" {suite['name']} {grp['name']} particle mass")
@@ -245,8 +249,6 @@ def _base_files(entry_groups,options):
             f'  <formatVersion>2</formatVersion>\n'
             f'\n'
             f'  <!-- Include cosmology and mass function parameters -->\n'
-            f'  <xi:include href="progenitorMassFunctionParameters.xml"'
-            f'                                                                       {xp} {xi}/>\n'
             f'  <xi:include href="{pipeline_path}simulation_{suite_n}_{grp_n}.xml"'
             f'            {xp} {xi}/>\n'
             f'  <xi:include href="{pipeline_path}cosmology_{suite_n}.xml"'

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a fixed halo environment.
 !!}
@@ -187,44 +189,47 @@ contains
     return
   end subroutine fixedHEDestructor
 
-  double precision function fixedHEOverdensityLinear(self,node,presentDay)
+  double precision function fixedHEOverdensityLinear(self,node,presentDay,time,expansionFactor)
     !!{RST
-    Return the environment of the given ``node``.
+    Return the environment of the given ``node``, at the given ``time`` (or ``expansionFactor``) if provided, or at the cosmic
+    time of the ``node`` otherwise.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Halo_Environment_Utilities, only : Halo_Environment_Time
     implicit none
     class           (haloEnvironmentFixed              ), intent(inout)           :: self
-    type            (treeNode                          ), intent(inout)           :: node
+    type            (treeNode                          ), intent(inout), optional :: node
     logical                                             , intent(in   ), optional :: presentDay
-    class           (nodeComponentBasic                ), pointer                 :: basic
+    double precision                                    , intent(in   ), optional :: time      , expansionFactor
     !![
     <optionalArgument name="presentDay" defaultsTo=".false." />
     !!]
 
     fixedHEOverdensityLinear=self%overdensity
-    if (.not.presentDay_) then
-       basic                    =>  node                                 %basic(                 )
-       fixedHEOverdensityLinear = +fixedHEOverdensityLinear                                        &
-            &                     *self                    %linearGrowth_%value(time=basic%time())
-    end if
+    if (.not.presentDay_)                                                                                                                     &
+         & fixedHEOverdensityLinear=+fixedHEOverdensityLinear                                                                                 &
+         &                          *self%linearGrowth_%value(time=Halo_Environment_Time(self%cosmologyFunctions_,node,time,expansionFactor))
     return
   end function fixedHEOverdensityLinear
 
-  double precision function fixedHEOverdensityLinearGradientTime(self,node)
+  double precision function fixedHEOverdensityLinearGradientTime(self,node,time,expansionFactor)
     !!{RST
-    Return the time gradient of the environment of the given ``node``.
+    Return the time gradient of the environment of the given ``node``, at the given ``time`` (or ``expansionFactor``) if
+    provided, or at the cosmic time of the ``node`` otherwise.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes          , only : treeNode
+    use :: Halo_Environment_Utilities, only : Halo_Environment_Time
     implicit none
-    class(haloEnvironmentFixed), intent(inout) :: self
-    type (treeNode            ), intent(inout) :: node
-    class(nodeComponentBasic  ), pointer       :: basic
+    class           (haloEnvironmentFixed), intent(inout)           :: self
+    type            (treeNode            ), intent(inout), optional :: node
+    double precision                      , intent(in   ), optional :: time , expansionFactor
+    double precision                                                :: time_
 
-    basic                                =>  node%basic()
-    fixedHEOverdensityLinearGradientTime =  +self%overdensityLinear(node)                                                      &
-         &                                  *self%linearGrowth_      %logarithmicDerivativeExpansionFactor( time=basic%time()) &
-         &                                  *self%cosmologyFunctions_%expansionRate                       (                    &
-         &                                   self%cosmologyFunctions_%expansionFactor                      (     basic%time()) &
+    time_                                =  Halo_Environment_Time(self%cosmologyFunctions_,node,time,expansionFactor)
+    fixedHEOverdensityLinearGradientTime =  +self%overdensityLinear(time=time_)                                          &
+         &                                  *self%linearGrowth_      %logarithmicDerivativeExpansionFactor ( time=time_) &
+         &                                  *self%cosmologyFunctions_%expansionRate                       (              &
+         &                                   self%cosmologyFunctions_%expansionFactor                      (      time_) &
          &                                                                                                )
     return
   end function fixedHEOverdensityLinearGradientTime

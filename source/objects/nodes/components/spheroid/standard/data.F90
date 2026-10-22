@@ -27,6 +27,7 @@ module Node_Component_Spheroid_Standard_Data
   !!{RST
   Contains data for standard spheroid components.
   !!}
+  use :: Galactic_Component_Heatings   , only : galacticComponentHeatingClass
   use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass
   use :: Mass_Distributions            , only : massDistributionClass           , kinematicsDistributionLocal, kinematicsDistributionClass
   use :: Object_Pools                  , only : objectPool
@@ -50,5 +51,8 @@ module Node_Component_Spheroid_Standard_Data
   class  (galacticComponentTruncationClass), pointer :: galacticComponentTruncation_
   !$omp threadprivate(galacticComponentTruncation_)
   integer                                            :: tidalTruncationID
+  ! The model of heating of the mass distribution.
+  class  (galacticComponentHeatingClass   ), pointer :: galacticComponentHeating_
+  !$omp threadprivate(galacticComponentHeating_)
 
 end module Node_Component_Spheroid_Standard_Data

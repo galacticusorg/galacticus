@@ -16,6 +16,12 @@ if status.returncode != 0:
     print("FAILED: merger tree branch subsampling model failed to run")
     sys.exit(0)
 
+# Run the subsampled model with limited weights.
+status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchSubsampled.xml testSuite/parameters/mergerTreeBranchSubsampledLimitWeights.xml", shell=True)
+if status.returncode != 0:
+    print("FAILED: merger tree branch subsampling (limited weights) model failed to run")
+    sys.exit(0)
+
 # Run the not subsampled model.
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchNotSubsampled.xml", shell=True)
 if status.returncode != 0:
@@ -24,8 +30,9 @@ if status.returncode != 0:
 
 # Read data and construct counts of subhalos.
 models = [
-    {"label": "subsampled",    "fileName": "outputs/mergerTreeBranchSubsampled.hdf5"   },
-    {"label": "notSubsampled", "fileName": "outputs/mergerTreeBranchNotSubsampled.hdf5"}
+    {"label": "subsampled"            , "fileName": "outputs/mergerTreeBranchSubsampled.hdf5"            },
+    {"label": "subsampledLimitWeights", "fileName": "outputs/mergerTreeBranchSubsampledLimitWeights.hdf5"},
+    {"label": "notSubsampled"         , "fileName": "outputs/mergerTreeBranchNotSubsampled.hdf5"         }
 ]
 for model in models:
     with h5py.File(model["fileName"], "r") as f:
@@ -44,11 +51,13 @@ for model in models:
         model["countSubhalos"][i]      = model["nodeSubsamplingWeight"][selectionSubhalos].sum() / weightHalos
         model["countSubhalosError"][i] = np.sqrt((model["nodeSubsamplingWeight"][selectionSubhalos]**2).sum()) / weightHalos
 
-# Compare counts.
-offsetScaled = np.abs(models[0]["countSubhalos"] - models[1]["countSubhalos"]) / np.sqrt(
-    models[0]["countSubhalosError"]**2 + models[1]["countSubhalosError"]**2
-)
-if np.any(offsetScaled > 3.0):
-    print("FAILED: merger tree branch subsampling changes subhalo mass function at > 3σ")
-else:
-    print("SUCCESS: merger tree branch subsampling does not change subhalo mass function at > 3σ")
+# Compare counts of each subsampled model with those of the not subsampled model.
+reference = models[-1]
+for model, description in zip(models[:-1], ("", " (limited weights)")):
+    offsetScaled = np.abs(model["countSubhalos"] - reference["countSubhalos"]) / np.sqrt(
+        model["countSubhalosError"]**2 + reference["countSubhalosError"]**2
+    )
+    if np.any(offsetScaled > 3.0):
+        print(f"FAILED: merger tree branch subsampling{description} changes subhalo mass function at > 3σ")
+    else:
+        print(f"SUCCESS: merger tree branch subsampling{description} does not change subhalo mass function at > 3σ")

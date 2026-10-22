@@ -648,7 +648,9 @@ contains
     ! soliton+NFW and NFW-only descriptions as its properties evolve, which is unphysical, and the resulting discontinuous
     ! changes in its density profile cause numerical difficulties for the ODE solver.
     ! Extract basic properties of the node.
-    expansionFactor=+self             %cosmologyFunctions_% expansionFactor            (basic%time           ())
+    ! Use the expansion factor at the time when the halo was last isolated, so that the soliton core structure does not
+    ! evolve solely because cosmic time advances after infall.
+    expansionFactor=+self             %cosmologyFunctions_%expansionFactor             (basic%timeLastIsolated())
     redshift       =+self             %cosmologyFunctions_ %redshiftFromExpansionFactor(      expansionFactor  )
     massHalo       =+basic                                 %mass                       (                       )
     zeta_0         =+self%virialDensityContrast_%densityContrast(massHalo,expansionFactor=1.0d0                )
@@ -793,7 +795,9 @@ contains
     massCore          =+massCoreNormal       &
             &          *10.0d0**randomOffset
     ! Extract basic properties of the node.
-    expansionFactor   =+self%cosmologyFunctions_%expansionFactor(basic%time())
+    ! Use the expansion factor at the time when the halo was last isolated, so that the soliton core structure does not
+    ! evolve solely because cosmic time advances after infall.
+    expansionFactor   =+self%cosmologyFunctions_%expansionFactor(basic%timeLastIsolated())
     radiusCore        =+5.5d6                           & ! Equation (14) of Chan et al. (2022; MNRAS; 551; 943; https://ui.adsabs.harvard.edu/abs/2022MNRAS.511..943C).
             &          /(self%massParticle/1.0d-23)**2  &
             &          /expansionFactor                 &

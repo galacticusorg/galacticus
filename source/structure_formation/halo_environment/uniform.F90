@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a uniform halo environment.
 !!}
@@ -72,28 +74,30 @@ contains
     return
   end function uniformConstructorParameters
 
-  double precision function uniformOverdensityLinear(self,node,presentDay)
+  double precision function uniformOverdensityLinear(self,node,presentDay,time,expansionFactor)
     !!{RST
     Return the environment of the given ``node``.
     !!}
     implicit none
-    class  (haloEnvironmentUniform), intent(inout)           :: self
-    type   (treeNode              ), intent(inout)           :: node
-    logical                        , intent(in   ), optional :: presentDay
-    !$GLC attributes unused :: self, node, presentDay
+    class           (haloEnvironmentUniform), intent(inout)           :: self
+    type            (treeNode              ), intent(inout), optional :: node
+    logical                                 , intent(in   ), optional :: presentDay
+    double precision                        , intent(in   ), optional :: time      , expansionFactor
+    !$GLC attributes unused :: self, node, presentDay, time, expansionFactor
 
     uniformOverdensityLinear=0.0d0
     return
   end function uniformOverdensityLinear
 
-  double precision function uniformOverdensityLinearGradientTime(self,node)
+  double precision function uniformOverdensityLinearGradientTime(self,node,time,expansionFactor)
     !!{RST
     Return the time gradient of the environment of the given ``node``.
     !!}
     implicit none
-    class(haloEnvironmentUniform), intent(inout) :: self
-    type (treeNode              ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
+    class           (haloEnvironmentUniform), intent(inout)           :: self
+    type            (treeNode              ), intent(inout), optional :: node
+    double precision                        , intent(in   ), optional :: time, expansionFactor
+    !$GLC attributes unused :: self, node, time, expansionFactor
 
     uniformOverdensityLinearGradientTime=0.0d0
     return
