@@ -207,7 +207,7 @@ contains
 
   function ludlow2016FitDensityContrastDefinition(self)
     !!{RST
-    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`diemer_universal_2014` algorithm.
+    Return a virial density contrast object defining that used in the definition of concentration in the :cite:t:`ludlow_mass-concentration-redshift_2016` algorithm.
     !!}
     implicit none
     class(virialDensityContrastClass                 ), pointer       :: ludlow2016FitDensityContrastDefinition

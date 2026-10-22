@@ -37,10 +37,10 @@
 
    .. math::
 
-      \delta_\mathrm{crit}(t_\mathrm{form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^22-\sigma(M)^2\right\}
+      \delta_\mathrm{crit}(t_\mathrm{form}) = \left[ 2 \nu_{1/2}^2 \left\{\sigma(fM)^2-\sigma(M)^2\right\}
       \right]^{1/2}+\delta_\mathrm{crit}(t_0),
 
-   where :math:`\nu_{1/2} = [\hbox{erfc}^{-1}(1/2)]^{1/2}`. :cite:t:`navarro_structure_1996` then assume an overdensity at collapse of
+   where :math:`\nu_{1/2} = \hbox{erfc}^{-1}(1/2)`. :cite:t:`navarro_structure_1996` then assume an overdensity at collapse of
 
    .. math::
 
