@@ -600,6 +600,7 @@ contains
     !!{RST
     Return the peak velocity in the rotation curve for an spherical scaled mass distribution.
     !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(massDistributionSphericalScaler), intent(inout) :: self
 
@@ -608,6 +609,9 @@ contains
          &         +self%factorScalingMass                          &
          &         /self%factorScalingLength                        &
          &        )
+    if (self%massDistribution_%isDimensionless())                   &
+         & velocity=+velocity                                       &
+         &          *sqrt(gravitationalConstant_internal)
     return
   end function sphericalScalerVelocityRotationCurveMaximum
 
