@@ -1741,6 +1741,7 @@ jobs:
                 testSuite/parameters/tidalStrippingGalacticComponentsTruncated.xml,
                 testSuite/parameters/tidalStrippingGalacticComponentsHeated.xml,
                 parameters/examples/tidalStrippingBaryonicSubhalo.xml,
+                testSuite/parameters/blackHoleBinarySeparationGrowthRateChandrasekharIntegral.xml,
                 testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
                 testSuite/parameters/subhaloOrbitOnZAxis.xml ]
     uses: ./.github/workflows/testModel.yml
