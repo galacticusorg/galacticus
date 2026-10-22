@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a satellite merging timescale class which uses the :cite:t:`lacey_merger_1993` method.
   !!}
@@ -164,8 +166,13 @@ contains
     double precision                                                         :: massRatio
     !$GLC attributes unused :: self
 
-    ! Find the host node.
-    nodeHost => node%parent
+    ! Find the host node. For a node which is not yet a satellite, this is the primary progenitor of its descendant (into which
+    ! the node will merge), as in timeUntilMerging() - the descendant's mass already includes that of the node.
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Compute mass ratio.
     basic     => node    %basic()
     basicHost => nodeHost%basic()
