@@ -118,7 +118,7 @@ contains
     end select
     ! Compute the epoch - the transfer function is assumed to be for z=0.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
-    ! Compute the free-streaming length-like parameter (equation G6 of BBKS).
+    ! Compute the free-streaming length-like parameter (equation G6 of BBKS), which depends on the physical density, Ωₓh².
     self%lengthFreeStreaming=+0.2d0                                                                                     &
          &                                         /(                                                                   &
          &                                           +degreesOfFreedomEffectiveDecoupling                               &
@@ -129,7 +129,7 @@ contains
          &                                             +self%cosmologyParameters_%OmegaMatter   (                  )    &
          &                                             -self%cosmologyParameters_%OmegaBaryon   (                  )    &
          &                                            )                                                                 &
-         &                                           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                                           *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
          &                                          )
     return
   end function bbksWDMConstructorInternal
