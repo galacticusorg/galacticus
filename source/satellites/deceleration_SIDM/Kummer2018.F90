@@ -192,7 +192,9 @@ contains
     ! Evaluate satellite and host properties.
     nodeHost                     =>  node                               %mergesWith(                                           )
     satellite                    =>  node                               %satellite (                                           )
-    massDistributionHost_        =>  nodeHost                           %massDistribution(                                     )
+    ! Only the dark matter of the host scatters with that of the satellite - Kummer et al. (2018) use the density of the dark
+    ! matter background.
+    massDistributionHost_        =>  nodeHost                           %massDistribution(massType=massTypeDark                )
     position                     =   satellite                          %position  (                                           )
     velocity                     =   satellite                          %velocity  (                                           )
     radiusOrbital                =   Vector_Magnitude                              (         position                          )
@@ -278,9 +280,14 @@ contains
        coordinatesHost             =  [radiusOrbital ,0.0d0,0.0d0]
        velocityDispersionHost      =  +kinematicsHost_                            %velocityDispersion1D  (coordinatesHost,massDistributionHost_,massDistributionHost_)
        velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    ,massDistribution_    )
+       ! Kummer et al. (2018; Appendix A) define v_disp as the root-mean-square of the full (3D) velocity deviation, which is √3
+       ! times the 1D velocity dispersion for an isotropic distribution.
        velocityDispersion          =  +sqrt(                                &
-            &                               +velocityDispersionHost     **2 &
-            &                               +velocityDispersionSatellite**2 &
+            &                               +3.0d0                          &
+            &                               *(                              &
+            &                                 +velocityDispersionHost     **2 &
+            &                                 +velocityDispersionSatellite**2 &
+            &                                )                              &
             &                              )
        dispersionFactor            =  +1.0d0                  &
             &                         /(                      &

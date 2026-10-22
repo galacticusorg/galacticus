@@ -43,6 +43,7 @@ program Tests_SIDM_Kummer_Satellites
   use :: Display                         , only : displayVerbositySet                               , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
+  use :: Galactic_Structure_Options      , only : massTypeDark
   use :: Galacticus_Nodes                , only : mergerTree                                        , nodeClassHierarchyInitialize                       , nodeComponentBasic    , nodeComponentDarkMatterProfile, &
        &                                          nodeComponentSatellite                            , treeNode
   use :: Input_Parameters                , only : inputParameters
@@ -77,7 +78,7 @@ program Tests_SIDM_Kummer_Satellites
   double precision                                                     , parameter    :: crossSectionConstant=10.0d0                                   ! [cm² g⁻¹]
   double precision                                                     , parameter    :: massHost            = 1.0d12, radiusScaleHost      =2.0d-2, & ! [M☉], [Mpc]
        &                                                                                 massSatellite       = 1.0d09, radiusScaleSatellite =2.0d-3, & ! [M☉], [Mpc]
-       &                                                                                 massSatelliteDense  = 1.0d11, radiusScaleDense     =1.0d-3    ! [M☉], [Mpc]
+       &                                                                                 massSatelliteDense  = 1.0d11, radiusScaleDense     =2.5d-4    ! [M☉], [Mpc]
   double precision                                                     , parameter    :: radiusOrbital       = 5.0d-2                                  ! [Mpc]
   double precision                                                     , parameter    :: speedOrbitalDense   = 1.0d1                                   ! [km/s]
   double precision                                                     , dimension(7) :: xTabulated          =[0.10d0,0.30d0,0.50d0,0.70d0,0.90d0,1.05d0,2.00d0]
@@ -167,7 +168,7 @@ program Tests_SIDM_Kummer_Satellites
   massBoundary      =+massSatellite      &
        &             *fractionDarkMatter
   coordinates           =  [radiusOrbital,0.0d0,0.0d0]
-  massDistributionHost_ => nodeHost             %massDistribution(           )
+  massDistributionHost_ => nodeHost             %massDistribution(massType=massTypeDark)
   densityHost           =  massDistributionHost_%density         (coordinates)
   !![
   <objectDestructor name="massDistributionHost_"/>
@@ -213,6 +214,8 @@ program Tests_SIDM_Kummer_Satellites
   ! scattering ejects both particles, no momentum is transferred to the subhalo.
   call Assert("deceleration factor tends to zero at large orbital speed"          ,factorDeceleration(3), 0.0d0,absTol=5.0d-3)
   ! Finally, a satellite bound deeply enough that its escape velocity exceeds the speed at which it moves relative to its host
+  ! (including the 3D velocity dispersion of host and satellite, which enters the relative speed in Appendix A of Kummer et al.
+  ! 2018 - so the satellite must be compact)
   ! must suffer no evaporation at all: every scattering which ejects one of its own particles also captures a host particle. A
   ! second node is built for this, rather than the properties of the first being changed: mass distributions are memoized
   ! against the unique ID of the node, so a node modified in place can be seen with a stale mass distribution.
