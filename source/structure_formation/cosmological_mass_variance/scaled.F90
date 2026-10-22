@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of cosmological density field mass variance which scales that of another class.
   !!}
@@ -199,7 +201,7 @@ contains
     class           (cosmologicalMassVarianceScaled), intent(inout) :: self
     double precision                                , intent(in   ) :: rootVariance, time
 
-    scaledMass=self%cosmologicalMassVariance_%mass(rootVariance*self%rootScale,time)
+    scaledMass=self%cosmologicalMassVariance_%mass(rootVariance/self%rootScale,time)
     return
   end function scaledMass
 
