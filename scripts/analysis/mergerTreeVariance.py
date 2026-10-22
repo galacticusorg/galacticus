@@ -60,6 +60,7 @@ parser.add_argument('--deltaCritical0'  ,action='store',default=1.686           
 parser.add_argument('--segmentEndMass',action='store',default='progenitorSum'   ,choices=['progenitorSum','node'],help='mass of a branch at the end of a segment: the summed progenitor mass (default; accounts for accretion during the segment), or the node mass (for test trees without accretion that do not conserve mass)')
 parser.add_argument('--cumulativeCount' ,action='store',default=12                    ,type=int              ,help='number of ω values at which the cumulative variance identity is checked'          )
 parser.add_argument('--seed'            ,action='store',default=8783                  ,type=int              ,help='seed for the bootstrap random number generator'                                   )
+parser.add_argument('--splitTreeStride' ,action='store',default=1                     ,type=int              ,help='write per-split values only for trees whose index is a multiple of this (per-split output is large for high-resolution trees; all trees are still analyzed)')
 parser.add_argument('--processes'       ,action='store',default=1                     ,type=int              ,help='number of worker processes over which chunks are distributed; peak memory scales with this times the chunk size')
 parser.add_argument('--chunkNodes'      ,action='store',default=20000000              ,type=int              ,help='approximate number of nodes processed at once (whole forests are always kept together); peak memory scales with this'                                                       )
 args = parser.parse_args()
@@ -625,7 +626,8 @@ def passJumps(indexChunk):
                 expectation += chunk.treeSum(countAdded,before)
             result['expectation'][i] = expectation
             result['sumBefore'  ][i] = chunk.treeSum(deltaSquared,before)
-        # Per-split values.
+        # Per-split values, for the trees selected for output.
+        s = s[chunk.treeOfNode[s] % args.splitTreeStride == 0]
         result['splits'] = (('tree',chunk.treeOfNode[s]),('delta',delta[s]),('deltaSquared',deltaSquared[s]),('omega',chunk.omegaSplit[s]),
                             ('redshift',chunk.redshift[chunk.primaryChild[s]]),('mass',chunk.massChildren[s]),('massPrimary',chunk.mass[chunk.primaryChild[s]]),
                             ('massSecondary',chunk.massSecondary[s]),('massRoot',chunk.massRoot[chunk.treeLocal[s]]),('n1Parent',n1End[s]),
@@ -660,6 +662,9 @@ for indexChunk, returns in enumerate(mapChunks(passJumps,range(len(chunks)))):
         if result['splits'] is None:
             splitGroup = output.create_group('statistic'+statistic+'/threshold{:d}/splits'.format(indexThreshold))
             result['splits'] = {name: splitGroup.create_dataset(name,data=values,maxshape=(None,),chunks=True,compression='gzip',compression_opts=1) for name, values in chunkResult['splits']}
+            # Record how many trees contribute per-split values, so that sums over splits can be normalized per tree.
+            splitGroup.attrs['treeStride'] = args.splitTreeStride
+            splitGroup.attrs['treeCount' ] = len(range(0,countTrees,args.splitTreeStride))
         else:
             for name, values in chunkResult['splits']:
                 dataset = result['splits'][name]

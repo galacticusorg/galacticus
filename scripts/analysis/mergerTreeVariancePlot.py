@@ -38,7 +38,8 @@ with PdfPages(args.outputFileName) as pdf:
             group      = statistic[thresholdName]
             color      = colors[i % len(colors)]
             m          = group.attrs['massThreshold']
-            countTrees = len(group['trees/count'])
+            # Number of trees contributing per-split values (the analysis may write them for a subset of trees only).
+            countTrees = group['splits'].attrs['treeCount'] if 'treeCount' in group['splits'].attrs else len(group['trees/count'])
             variance   = group.attrs['countVariance']
             mean       = group.attrs['countMean']
             delta      = group['splits/delta'        ][:]
