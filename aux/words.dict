@@ -315,6 +315,7 @@ attenuator
 attenuators
 autocorrelation
 axion
+axisymmetric
 backtrace
 baldry
 baryonic
@@ -533,6 +534,7 @@ isocurvature
 isodensity
 isoelectronic
 isotropically
+isotropy
 iteratively
 kde
 kdewallet
@@ -580,6 +582,7 @@ minima
 minimization
 minimizer
 minimizers
+mises
 misordering
 moduletype
 monotonicity
@@ -878,6 +881,7 @@ vibrational
 virial
 virialized
 vitvitska
+von
 waitlist
 wavenumber
 wavenumbers

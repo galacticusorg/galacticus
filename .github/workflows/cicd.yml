@@ -1351,6 +1351,7 @@ jobs:
                       tests.star_formation.molecular_fractions.exe,
                       tests.satellites.virial_orbits.exe,
                       tests.satellites.virial_orbit_samplers.exe,
+                      tests.satellites.virial_orbit_filamentary.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.chemical.reaction_rates_hydrogen_network.exe,
