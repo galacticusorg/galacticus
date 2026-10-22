@@ -619,7 +619,8 @@ contains
 
       ! Get expansion factor.
       expansionFactor                    =+                                 cosmologyFunctions_      %expansionFactor (time)
-      ! Compute the instantaneous Jeans wavenumber. Note that we want the comoving wavenumber here, so we multiply by the expansion factor.
+      ! Compute the instantaneous Jeans wavenumber, k_J=a√(4πGρₘ)/cₛ=a√(3Ωₘ(t)/2)H/cₛ. Note that we want the comoving wavenumber here, so
+      ! we multiply by the expansion factor.
       massParticleMean                   =+(hydrogenByMassPrimordial*(1.0d0+intergalacticMediumState_%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
            &                              /(hydrogenByMassPrimordial*(1.0d0+intergalacticMediumState_%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
       speedSound                         =+sqrt(                                                    &
@@ -631,6 +632,9 @@ contains
       if (speedSound > 0.0d0) then
          wavenumberJeans                 =+sqrt(                                                    &
               &                                 +1.5d0                                              &
+              &                                 *cosmologyFunctions_%omegaMatterEpochal(            &
+              &                                                   expansionFactor=expansionFactor   &
+              &                                                  )                                  &
               &                                 *(                                                  &
               &                                   +cosmologyFunctions_%hubbleParameterEpochal(time) &
               &                                   /speedSound                                       &
