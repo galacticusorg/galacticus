@@ -1149,43 +1149,53 @@ contains
     agrees with the direct evaluation to a part in :math:`10^{15}`; above that the direct evaluation is used, as
     the series converges ever more slowly while the direct evaluation is at its most accurate.
 
-    For :math:`\gamma_3 \ne 0` the first parameter is :math:`a=3/2-\gamma_3`, so that :math:`s \equiv c-a-b=\gamma_3-1/2`, and
-    neither simplification applies. Below :math:`x=1/10` the general form of the same connection formula is used instead,
+    For :math:`\gamma_3 \ne 0` the first parameter is :math:`a=3/2-\gamma_3`, so that :math:`s \equiv c-a-b=\gamma_3-1/2`.
+    Below :math:`x=1/10` the general form of the same connection formula is used,
 
     .. math::
 
        {}_2F_1(a,b;c;z) = \frac{\Gamma(c)\Gamma(s)}{\Gamma(c-a)\Gamma(c-b)} \, {}_2F_1(a,b;1-s;w)
-                         + w^s \frac{\Gamma(c)\Gamma(-s)}{\Gamma(a)\Gamma(b)} \, {}_2F_1(c-a,c-b;1+s;w),
+                         + w^s \frac{\Gamma(c)\Gamma(-s)}{\Gamma(a)\Gamma(b)} \, {}_2F_1(c-a,c-b;1+s;w).
 
-    with both hypergeometric functions evaluated at the small argument :math:`w`. This requires :math:`s` to be non-integer,
-    i.e. :math:`\gamma_3 \ne 1/2, 3/2, \ldots`.
+    Since :math:`c=b+1` for every :math:`\gamma_3`, :math:`c-b=1` and :math:`1-s=a`, so both simplifications still apply: the
+    first hypergeometric function is again :math:`(1-w)^{-b}=(1+x)^{1-\gamma}`, and the coefficient of the second reduces,
+    through :math:`\Gamma(c)=b\Gamma(b)` and :math:`\Gamma(-s)=\Gamma(a-1)=\Gamma(a)/(a-1)`, to :math:`b/(a-1)=-b/s`. The result is
+
+    .. math::
+
+       \frac{\Gamma(c)\Gamma(s)}{(1-\gamma)\Gamma(c-a)}
+       - \frac{(1+x)^{\gamma-1} w^s}{2s} \, {}_2F_1\left(\gamma_3-\frac{\gamma}{2},1;\frac{1}{2}+\gamma_3;w\right),
+
+    which reduces to the expression above for :math:`\gamma_3=0`, and whose constant term vanishes where :math:`c-a` is zero or a
+    negative integer. It fails only where :math:`s` is zero or a negative integer (:math:`\gamma_3=1/2,-1/2,-3/2,\ldots`), at
+    which the function has logarithmic terms; near those values the two terms cancel, losing precision.
     !!}
+    use :: Display                 , only : displayGreen      , displayReset
     use :: Error                   , only : Error_Report
     use :: Gamma_Functions         , only : Gamma_Function
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision, intent(in   ) :: x                         , gamma         , &
+    double precision, intent(in   ) :: x                         , gamma            , &
          &                             gamma3                    , toleranceRelative
     ! Value of x below which the series in w is used in place of a direct evaluation.
     double precision, parameter     :: xSeriesMaximum    =0.1d+00
     ! Maximum number of terms to accumulate in that series. Twenty are needed at the switch-over, so this is never
     ! approached - it exists only to bound the loop.
     integer         , parameter     :: countTermsMaximum =1000
-    ! Tolerance within which -γ/2 is judged to sit on a pole of the Γ function.
+    ! Tolerance within which an argument of the Γ function is judged to sit on one of its poles.
     double precision, parameter     :: toleranceGammaPole=1.0d-12
-    double precision                :: w                         , term          , &
-         &                             seriesSum                 , factorConstant, &
-         &                             a                         , b             , &
-         &                             c                         , s             , &
-         &                             termA                     , termB
+    double precision                :: w                         , term             , &
+         &                             seriesSum                 , factorConstant   , &
+         &                             a                         , b                , &
+         &                             c                         , s
     integer                         :: i
 
     if (x > xSeriesMaximum) then
        ! Away from the singular point evaluate directly.
-       factor=+(1.0d0+x)**(+gamma-1.0d0)                                       &
-            & /             (-gamma+1.0d0)                                     &
-            & *Hypergeometric_2F1(                                             &
+       factor=+(1.0d0+x)**(+gamma-1.0d0)                                              &
+            & /             (-gamma+1.0d0)                                            &
+            & *Hypergeometric_2F1(                                                    &
             &                                       [1.5d0-gamma3,0.5d0-0.5d0*gamma], &
             &                                       [             1.5d0-0.5d0*gamma], &
             &                                       1.0d0/(1.0d0+x)**2              , &
@@ -1193,42 +1203,46 @@ contains
             &                    )
     else if (gamma3 /= 0.0d0) then
        ! Close to the singular point with γ₃≠0, evaluate through the general connection formula in terms of w=1-z.
-       w=+       x     &
+       w=+       x          &
             & *(2.0d0+x)    &
             & /(1.0d0+x)**2
        a=1.5d0-gamma3
        b=0.5d0-0.5d0*gamma
        c=1.5d0-0.5d0*gamma
        s=c-a-b
-       if (abs(s-dble(nint(s))) < toleranceGammaPole) call Error_Report('γ₃-1/2 must not be an integer'//{introspection:location})
-       ! The first term vanishes where c-a sits on a pole of the Γ function (c-b=1 never does).
+       if (s <= toleranceGammaPole .and. abs(s-dble(nint(s))) < toleranceGammaPole)                                                       &
+            & call Error_Report(                                                                                                          &
+            &                   'γ₃-½ must not be zero or a negative integer'                                                   //char(10)// &
+            &                   displayGreen()//'HELP:'//displayReset()//' displace γ₃ slightly, or set [hypergeometricTabulate]=false'// &
+            &                   {introspection:location}                                                                                  &
+            &                  )
+       ! Accumulate ₂F₁(c-a,1;1+s;w). As for γ₃=0 below, the factorial in the series cancels the Pochhammer symbol of the unit
+       ! parameter, leaving this ratio of successive terms.
+       term     =1.0d0
+       seriesSum=1.0d0
+       do i=0,countTermsMaximum-1
+          term     =+term                &
+               &    *(c-a      +dble(i)) &
+               &    /(1.0d0+s  +dble(i)) &
+               &    *w
+          seriesSum=seriesSum+term
+          if (abs(term) <= toleranceRelative*abs(seriesSum)) exit
+       end do
+       ! The constant term. Γ(c-a) has poles at c-a=0,-1,-2,…, at which this term vanishes.
        if (c-a <= toleranceGammaPole .and. abs(c-a-dble(nint(c-a))) < toleranceGammaPole) then
-          termA=+0.0d0
+          factorConstant=+0.0d0
        else
-          termA=+Gamma_Function(c  )                                                                 &
-               & *Gamma_Function(s  )                                                                 &
-               & /Gamma_Function(c-a)                                                                 &
-               & /Gamma_Function(c-b)                                                                 &
-               & *Hypergeometric_2F1([a  ,b  ],[1.0d0-s],w,toleranceRelative=toleranceRelative)
+          factorConstant=+Gamma_Function(c  ) &
+               &         *Gamma_Function(s  ) &
+               &         /Gamma_Function(c-a) &
+               &         /    (-gamma+1.0d0)
        end if
-       ! The second term vanishes where a or b sits on a pole of the Γ function.
-       if     (                                                                       &
-            &   (a <= toleranceGammaPole .and. abs(a-dble(nint(a))) < toleranceGammaPole) &
-            &  .or.                                                                   &
-            &   (b <= toleranceGammaPole .and. abs(b-dble(nint(b))) < toleranceGammaPole) &
-            & ) then
-          termB=+0.0d0
-       else
-          termB=+Gamma_Function(c  )                                                                 &
-               & *Gamma_Function(-s )                                                                 &
-               & /Gamma_Function(a  )                                                                 &
-               & /Gamma_Function(b  )                                                                 &
-               & *w**s                                                                                &
-               & *Hypergeometric_2F1([c-a,c-b],[1.0d0+s],w,toleranceRelative=toleranceRelative)
-       end if
-       factor=+(1.0d0+x)**(+gamma-1.0d0) &
-            & /             (-gamma+1.0d0) &
-            & *(termA+termB)
+       factor=+factorConstant            &
+            & -(1.0d0+x)**(+gamma-1.0d0) &
+            & *w        **  s            &
+            & *seriesSum                 &
+            & /2.0d0                     &
+            & /s
     else
        ! Close to the singular point evaluate through the connection formula, in terms of w=1-z, which is free of
        ! the cancellation that destroys z.
@@ -1327,7 +1341,7 @@ contains
     if (.not.tabulate) tabulate=.not.self%latticeSubresolution%covers(latticeX)
     if (tabulate) then
        ! Extend the tabulation onto the new lattice, preserving the values already computed - each depends only on its own
-       ! abscissa and on γ₁, which is fixed, so a value carried over is precisely the value which would be computed afresh.
+       ! abscissa and on γ₁ and γ₃, which are fixed, so a value carried over is precisely the value which would be computed afresh.
        call self%subresolutionHypergeometric%extend(latticeX,isComputed,tableCount=1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        do i=1,latticeX%count
           if (isComputed(i)) cycle
