@@ -409,9 +409,9 @@ contains
        massBranch_   =     +massBranch
     end if
     call self                          %computeCommonFactors              (node,mass,deltaCritical,time)
-    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massBranch,self%parentTime,childSigma,childAlpha)
+    call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massBranch_,self%parentTime,childSigma,childAlpha)
     self_                         => self
-    generalizedPressSchechterRate =  generalizedPressSchechterProgenitorMassFunction(massBranch,childSigma,childAlpha,node)
+    generalizedPressSchechterRate =  generalizedPressSchechterProgenitorMassFunction(massBranch_,childSigma,childAlpha,node)
     return
   end function generalizedPressSchechterRate
 
