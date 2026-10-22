@@ -1659,7 +1659,6 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="font2008"/>
           <xs:enumeration value="orbitalPosition"/>
-          <xs:enumeration value="relativePosition"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>
