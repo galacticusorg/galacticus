@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Claude.
 
   !!{RST
   Implementation of the :cite:t:`antonini_coevolution_2015` star formation rate law for galactic :term:`NSC`.
@@ -31,7 +31,7 @@
 
    .. math::
 
-      \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{gas}}{t_{SF}},
+      \dot{M}_\star^\mathrm{NSC} = f_c\frac{M_\mathrm{gas}^\mathrm{NSC}}{t_{SF}},
 
    where :math:`f_c` is the fraction of cold gas available for star formation given by
 
@@ -49,7 +49,7 @@
 
    .. math::
 
-      s = {\ln(1+0.6\chi+0.01\chi) \over 0.04 \Sigma_1 Z^\prime},
+      s = {\ln(1+0.6\chi) \over 0.04 \Sigma_1 Z^\prime},
 
    with
 
@@ -57,12 +57,12 @@
 
       \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
 
-   and :math:`\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/\mathrm{M}_\odot \hbox{pc}^{-2}` where :math:`\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^{NSC}}{4\pi r^\mathrm{NSC}}` is the surface density of the NSC gas reservoir. The timescale is given by
+   and :math:`\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/\mathrm{M}_\odot \hbox{pc}^{-2}` where :math:`\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^\mathrm{NSC}}{4\pi (r^\mathrm{NSC})^2}` is the surface density of the NSC gas reservoir. If :math:`Z^\prime=0` the star formation rate is zero. The timescale is given by
 
    .. math::
 
-      t_\mathrm{SF}^{-1} = (2.36~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
-      \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.33}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
+      t_\mathrm{SF}^{-1} = (2.6~\mathrm{Gyr})^{-1}\times \left\{ \begin{array}{cc} \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{-0.33}, &amp;
+      \Sigma_\mathrm{res} \le \Sigma_\mathrm{th} \\  \left(\frac{\Sigma_\mathrm{res}}{\Sigma_\mathrm{th}} \right) ^{0.34}, &amp; \Sigma_\mathrm{res} &gt; \Sigma_\mathrm{th} \end{array}  \right. ,
 
    with :math:`\Sigma_\mathrm{th}=85\mathrm{M}_\odot\,\hbox{pc}^{-2}`
    </description>
@@ -104,9 +104,9 @@ contains
       <defaultSource>
       :cite:p:`krumholz_star_2009`
       </defaultSource>
-      <defaultValue>2.36d0</defaultValue>
+      <defaultValue>2.6d0</defaultValue>
       <description>
-      The characteristic timescale for star formation in nuclear star clusters (in units of Gyr), corresponding to the normalization factor :math:`(2.36~\mathrm{Gyr})^{-1}` in the :cite:t:`krumholz_star_2009` star formation rate law.
+      The characteristic timescale for star formation in nuclear star clusters (in units of Gyr), corresponding to the normalization factor :math:`(2.6~\mathrm{Gyr})^{-1}` in the :cite:t:`krumholz_star_2009` star formation rate law.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -172,19 +172,21 @@ contains
        call abundancesFuel%massToMassFraction(massGasNuclearStarCluster)
        ! Get the metallicity in Solar units, and related quantities.
        metallicityRelativeToSolar=abundancesFuel%metallicity(metallicityTypeLinearByMassSolar)
-       if (metallicityRelativeToSolar /= 0.0d0) then
+       if (metallicityRelativeToSolar > 0.0d0) then
            chi              =+0.77d0*(1.0d0+3.1d0*metallicityRelativeToSolar**0.365d0)
            s                =+log(1.0d0+0.6d0*chi)/(0.04d0*metallicityRelativeToSolar*surfaceDensityGasNuclearStarClusterScaled)
        else
+            ! Zero metallicity gas - return zero rate.
             krumholz2009Rate=+0.0d0
+            return
        end if 
        ! Computation of the timescale (in units of Gyr⁻¹) given by Krumholz et al. (2009;
        ! https://ui.adsabs.harvard.edu/abs/2009ApJ...699..850K/abstract) and Sesana et al. (2014,
        ! https://ui.adsabs.harvard.edu/abs/2014ApJ...794..104S/abstract).
        if (surfaceDensityGasNuclearStarCluster > surfaceDensityThreshold ) then 
-           timescaleStarFormation=(1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNuclearStarCluster/surfaceDensityThreshold)**(-0.33d0)  
+           timescaleStarFormation=(1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNuclearStarCluster/surfaceDensityThreshold)**(+0.34d0)  
        else
-           timescaleStarFormation=(1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNuclearStarCluster/surfaceDensityThreshold)**(+0.34d0)
+           timescaleStarFormation=(1.0d0/self%frequencyStarFormation)*(surfaceDensityGasNuclearStarCluster/surfaceDensityThreshold)**(-0.33d0)
        end if 
        ! Compute the molecular fraction.
        molecularGasFraction=max(0.02d0,krumholz2009MolecularFractionSlow(s))
