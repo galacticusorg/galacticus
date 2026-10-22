@@ -264,7 +264,7 @@ contains
        ! see this, note that a particle leaving the scattering with speed √(speedOrbital²+velocityEscape²) cos(θ/2) escapes the
        ! subhalo only for θ < θ_c = cos⁻¹([x²-1]/[x²+1]), which is precisely the θ_c tabulated in `kummer2018Tabulate`.
        ! Expanding that tabulated integral at large x for a constant cross section reproduces the asymptotic form
-       ! 1-8/3x²+16/5x⁴ used in `kummer2018DecelerationFactor`, which fixes the sense of x: large x is a deeply bound subhalo
+       ! 1-4/3x²+8/5x⁴ used in `kummer2018DecelerationFactor`, which fixes the sense of x: large x is a deeply bound subhalo
        ! from which nothing escapes, so that momentum transfer is complete and χ_d → 1.
        x            =+velocityEscape &
             &        /speedOrbital
@@ -396,10 +396,13 @@ contains
                &              /(+x(i)**2+1.0d0) &
                &             )
           do j=1,countVelocity             
+             ! Equation (chid) of Kummer et al. (2018) - the integrand includes both dσ/dθ(θ) and dσ/dθ(π-θ), so the prefactor is
+             ! 1/√2σ (the prefactor √2/σ applies only to their simplified form for symmetric cross sections, which includes a
+             ! single term).
              decelerationFactor_(i,j)=+1.0d0                                                                &
                &                      -integrator_        %integrate                  (0.0d0,thetaCritical) &
                &                      /darkMatterParticle_%crossSectionSelfInteraction(velocity(j)               ) &
-               &                      *sqrt(2.0d0)
+               &                      /sqrt(2.0d0)
           end do
        end do
        if (allocated(self%decelerationFactor_)) deallocate(self%decelerationFactor_)
@@ -440,7 +443,8 @@ contains
     double precision                                     , intent(in   ) :: x
     double precision                                     , intent(in   ) :: velocityRelative
     double precision                                     , parameter     :: xCritical       =100.0d0
-    double precision                                                     :: q                       , velocityCharacteristic
+    double precision                                                     :: q                       , velocityCharacteristic, &
+         &                                                                  coefficientA            , coefficientB
 
     if (x < xCritical) then
        if     (                                                                    &
@@ -465,19 +469,21 @@ contains
           velocityCharacteristic      = darkMatterParticle_%velocityCharacteristic()
           q                           =+velocityRelative       &
                &                       /velocityCharacteristic
-          kummer2018DecelerationFactor=+1.0d0                                &
-               &                       -sqrt(2.0d0     )                     &
-               &                       *    (1.0d0+q**2)                     &
-               &                       *(                                    &
-               &                         +2.0d0*sqrt(2.0d0)     / 3.0d0/x**2 &
-               &                         -4.0d0*sqrt(2.0d0)     / 5.0d0/x**4 &
-               &                         -8.0d0*sqrt(2.0d0)*q**2/15.0d0/x**4 &
+          ! Series expansion of equation (chid) of Kummer et al. (2018) in s_c=1/(1+x²), including both the forward and backward
+          ! scattering terms of the (asymmetric) t-channel cross section.
+          coefficientA                =+1.0d0+1.0d0/(1.0d0+q**2)**2
+          coefficientB                =-0.5d0*coefficientA-2.0d0*q**2+2.0d0*q**2/(1.0d0+q**2)**3
+          kummer2018DecelerationFactor=+1.0d0                                                &
+               &                       -(1.0d0+q**2)                                         &
+               &                       *(                                                    &
+               &                         +2.0d0/ 3.0d0*coefficientA/(1.0d0+x**2)             &
+               &                         +4.0d0/15.0d0*coefficientB/(1.0d0+x**2)**2          &
                &                        )
        type is (darkMatterParticleSelfInteractingDarkMatterConstant)
           ! Constant cross section.
-          kummer2018DecelerationFactor=+ 1.0d0            &
-               &                       - 8.0d0/3.0d0/x**2 &
-               &                       +16.0d0/5.0d0/x**4
+          kummer2018DecelerationFactor=+1.0d0            &
+               &                       -4.0d0/3.0d0/x**2 &
+               &                       +8.0d0/5.0d0/x**4
        class default
           kummer2018DecelerationFactor=0.0d0
           call Error_Report('Kummer (2018) large-x deceleration factor is only implemented for the velocity-dependent and constant self-interacting dark matter particle classes'//{introspection:location})

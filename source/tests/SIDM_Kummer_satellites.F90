@@ -29,7 +29,7 @@ First, the tabulated evaporation factor, :math:`\chi_\mathrm{e}`, is compared ag
 acceleration computed for the satellite are then used to pin the construction of :math:`x` itself. Since
 :math:`x=v_\mathrm{esc}/v_\mathrm{rel}`, in the limit of arbitrarily large orbital speed :math:`x \rightarrow 0`, so that the
 evaporation factor implied by the mass loss rate must approach unity while that implied by the acceleration must approach
-:math:`\chi_\mathrm{d}(0)=-1`; and for a satellite bound deeply enough that :math:`v_\mathrm{esc} > v_\mathrm{rel}`
+:math:`\chi_\mathrm{d}(0)=0`; and for a satellite bound deeply enough that :math:`v_\mathrm{esc} > v_\mathrm{rel}`
 evaporation must switch off entirely while the drag must remain a genuine deceleration.
 !!}
 
@@ -209,9 +209,9 @@ program Tests_SIDM_Kummer_Satellites
   call Assert("evaporation factor tends to unity at large orbital speed"          ,factorEvaporation(3) , 1.0d0,absTol=5.0d-3)
   ! The same limit fixes the deceleration factor. As x→0 the velocity dispersion correction factor of Appendix A of Kummer et
   ! al. (2018) also tends to unity, since it depends on the dispersion only through its ratio to the orbital speed, so the
-  ! product recovered from the acceleration must tend to χ_d(0)=-1. For a weakly bound subhalo the scattered particles carry
-  ! away more momentum than they bring in, and the sign of the drag reverses.
-  call Assert("deceleration factor tends to -1 at large orbital speed"            ,factorDeceleration(3),-1.0d0,absTol=5.0d-3)
+  ! product recovered from the acceleration must tend to χ_d(0)=0 (Kummer et al. 2018; Markevitch et al. 2004): when every
+  ! scattering ejects both particles, no momentum is transferred to the subhalo.
+  call Assert("deceleration factor tends to zero at large orbital speed"          ,factorDeceleration(3), 0.0d0,absTol=5.0d-3)
   ! Finally, a satellite bound deeply enough that its escape velocity exceeds the speed at which it moves relative to its host
   ! must suffer no evaporation at all: every scattering which ejects one of its own particles also captures a host particle. A
   ! second node is built for this, rather than the properties of the first being changed: mass distributions are memoized
