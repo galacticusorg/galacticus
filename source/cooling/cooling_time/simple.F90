@@ -233,6 +233,8 @@ contains
          &                /massHydrogenAtom                        &
          &                /hecto                               **3 &
          &                /megaParsec                          **3
-    simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+    ! The thermal energy density is proportional to temperature, contributing +1 to the logarithmic gradient.
+    simpleGradientTemperatureLogarithmic=+1.0d0                                                                                                                                      &
+         &                               -self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function simpleGradientTemperatureLogarithmic
