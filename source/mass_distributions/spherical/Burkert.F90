@@ -330,8 +330,8 @@ contains
     if (present(radiusMaximum)) then
        radialMomentMaximum=radialMomentScaleFree(radiusMaximum/self%scaleLength)
     else
-       radialMomentMaximum=0.0d0
-       if (moment >= 3.0d0) then
+       ! The density falls as r⁻³ at large radii, so moments of order 2 or greater diverge.
+       if (moment >= 2.0d0) then
           if (present(isInfinite)) then
              isInfinite=.true.
              return
@@ -339,6 +339,7 @@ contains
              call Error_Report('moment is infinite'//{introspection:location})
           end if
        end if
+       radialMomentMaximum=radialMomentScaleFreeInfinite()
     end if    
     densityRadialMoment=+self%densityNormalization                 &
          &              *self%scaleLength         **(moment+1.0d0) &
@@ -377,18 +378,44 @@ contains
               &                -0.50d0*log (+1.0d0+radius   ) &
               &                -0.25d0*log (+1.0d0+radius**2)
       else
-         radialMomentScaleFree=+radius**(1.0d0+moment)                                                                              &
-              &                /   2.0d0                                                                                            &
-              &                /  (1.0d0+moment)                                                                                    &
-              &                /  (2.0d0+moment)                                                                                    &
+         ! Using the partial fraction decomposition 1/[(1+x)(1+x²)] = [1/(1+x) + (1-x)/(1+x²)]/2.
+         radialMomentScaleFree=+0.5d0                                                                                               &
               &                *(                                                                                                   &
-              &                  +(2.0d0+moment)*Hypergeometric_2F1([1.0d0,0.5d0*(1.0d0+moment)],[0.5d0*(3.0d0+moment)],-radius**2) &
-              &                  +(2.0d0+moment)*Hypergeometric_2F1([1.0d0,      (1.0d0+moment)],[      (2.0d0+moment)],-radius   ) &
-              &                  +(1.0d0+moment)*Hypergeometric_2F1([1.0d0,0.5d0*(2.0d0+moment)],[0.5d0*(4.0d0+moment)],-radius**2) &
+              &                  +radius**(1.0d0+moment)                                                                            &
+              &                  /       (1.0d0+moment)                                                                             &
+              &                  *(                                                                                                 &
+              &                    +Hypergeometric_2F1([1.0d0,0.5d0*(1.0d0+moment)],[0.5d0*(3.0d0+moment)],-radius**2)              &
+              &                    +Hypergeometric_2F1([1.0d0,      (1.0d0+moment)],[      (2.0d0+moment)],-radius   )              &
+              &                   )                                                                                                 &
+              &                  -radius**(2.0d0+moment)                                                                            &
+              &                  /       (2.0d0+moment)                                                                             &
+              &                  *  Hypergeometric_2F1([1.0d0,0.5d0*(2.0d0+moment)],[0.5d0*(4.0d0+moment)],-radius**2)              &
               &                 )
       end if
       return
     end function radialMomentScaleFree
+
+    double precision function radialMomentScaleFreeInfinite()
+      !!{RST
+      Provides the scale-free part of the radial moment of the Burkert density profile integrated to infinite radius, for
+      moments :math:`-1 < m < 2`. This follows from the Mellin transforms of :math:`1/(1+x)` and :math:`1/(1+x^2)`.
+      !!}
+      use :: Numerical_Constants_Math, only : Pi
+      use :: Numerical_Comparison    , only : Values_Agree
+      implicit none
+
+      if      (Values_Agree(moment,0.0d0,absTol=1.0d-6) .or. Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
+         radialMomentScaleFreeInfinite=+0.25d0*Pi
+      else
+         radialMomentScaleFreeInfinite=+0.50d0*Pi                       &
+              &                        *(                               &
+              &                          -1.0d0/sin(      Pi*moment)    &
+              &                          +0.5d0/cos(0.5d0*Pi*moment)    &
+              &                          +0.5d0/sin(0.5d0*Pi*moment)    &
+              &                         )
+      end if
+      return
+    end function radialMomentScaleFreeInfinite
 
   end function burkertDensityRadialMoment
 
