@@ -71,11 +71,12 @@ program Test_Mass_Distributions_Zhao1996_Limits
   double precision                           , dimension(countRadii)  :: densityZhao                       , densityReference              , &
        &                                                                 massZhao                          , massReference                 , &
        &                                                                 potentialZhao                     , potentialReference
+  double precision                                                    :: energyZhao                        , fourierZhao
   ! Tolerances. The NFW and Hernquist comparisons are between closed-form expressions, except that the general Zhao solution
   ! involves hypergeometric and Γ functions, evaluated by GSL to near machine precision. The comparison of the general solution
   ! with NFW is limited by the offset in γ, which gives differences no larger than δ ln(101) ≈ 7×10⁻⁶ at the radii tested.
   double precision                           , parameter              :: toleranceClosedForm     =1.0d-10  , toleranceHypergeometric=1.0d-8 , &
-       &                                                                 toleranceOffset         =1.0d-4
+       &                                                                 toleranceOffset         =1.0d-4   , toleranceNumerical     =1.0d-3
 
   call displayVerbositySet  (verbosityLevelStandard)
   call eventsHooksInitialize(                      )
@@ -111,6 +112,16 @@ program Test_Mass_Distributions_Zhao1996_Limits
   ! Total mass for a case with γ≠α.
   call Unit_Tests_Begin_Group("(α,β,γ)=(1,4,0) (general solution)")
   call Assert('total mass'   ,massDistributionZhaoCored_%massTotal(),4.0d0*Pi/3.0d0*densityNormalization*radiusScale**3,relTol=toleranceHypergeometric)
+  call Unit_Tests_End_Group()
+  ! Methods must act on their own object, not on whichever Zhao profile was last used. The profiles reach some properties
+  ! through a module-scope pointer, so first use a profile with a different special case, then evaluate the method.
+  call Unit_Tests_Begin_Group("methods act on their own object")
+  massZhao(1)=massDistributionZhaoNFW_      %massEnclosedBySphere(radiusScale)
+  energyZhao =massDistributionZhaoHernquist_%energyPotential     (1.0d1*radiusScale)
+  call Assert('potential energy (general solution, after NFW)',energyZhao ,massDistributionZhaoHernquist_%energyPotentialNumerical (1.0d1*radiusScale             ),relTol=toleranceNumerical )
+  massZhao(1)=massDistributionZhaoHernquist_%massEnclosedBySphere(radiusScale)
+  fourierZhao=massDistributionZhaoNFW_      %fourierTransform    (1.0d1*radiusScale,1.0d0/radiusScale)
+  call Assert('Fourier transform (NFW, after general solution)',fourierZhao,massDistributionNFW_          %fourierTransform         (1.0d1*radiusScale,1.0d0/radiusScale),relTol=toleranceClosedForm)
   call Unit_Tests_End_Group()
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

@@ -1214,8 +1214,12 @@ contains
        fourierTransform=+0.0d0
        call Error_Report('unknown special case'//{introspection:location})
     end select
+    ! Normalize by the enclosed mass. This is found through the type-bound function, which points `self_` at this object,
+    ! rather than by calling the scale-free function directly, which would act on whichever object `self_` points to.
     fourierTransform=+fourierTransform                            &
-         &           /massEnclosedScaleFree(radiusOuterScaleFree)
+         &           *self%densityNormalization                   &
+         &           *self%scaleLength                        **3 &
+         &           /self%massEnclosedBySphere(radiusOuter)
     return
   end function zhao1996FourierTransform
 
@@ -1238,7 +1242,7 @@ contains
     analytic=.false.
     radiusOuterScaleFree=+     radiusOuter &
          &               /self%scaleLength
-    select case (self_%specialCase%ID)
+    select case (self%specialCase%ID)
     case (specialCaseGeneral    %ID)
        analytic=.false.
     case (specialCaseNFW        %ID)
@@ -1357,7 +1361,7 @@ contains
        class is (kinematicsDistributionZhao1996)
           radiusOuterScaleFree=+     radiusOuter &
                &               /self%scaleLength
-          select case (self_%specialCase%ID)
+          select case (self%specialCase%ID)
           case (specialCaseGeneral    %ID)
              analytic=.false.
           case (specialCaseNFW        %ID)
