@@ -81,8 +81,8 @@
      procedure :: failedAccretedMass        => coldModeFailedAccretedMass
      procedure :: accretionRateMetals       => coldModeAccretionRateMetals
      procedure :: accretedMassMetals        => coldModeAccretedMassMetals
-     procedure :: failedAccretionRateMetals => coldModeAccretionRateMetals
-     procedure :: failedAccretedMassMetals  => coldModeAccretedMassMetals
+     procedure :: failedAccretionRateMetals => coldModeFailedAccretionRateMetals
+     procedure :: failedAccretedMassMetals  => coldModeFailedAccretedMassMetals
      procedure :: accretionRateChemicals    => coldModeAccretionRateChemicals
      procedure :: accretedMassChemicals     => coldModeAccretedMassChemicals
      procedure :: chemicalMasses            => coldModeChemicalMasses
@@ -287,7 +287,7 @@ contains
     type (treeNode                    ), intent(inout) :: node
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
-    coldModeAccretionRateMetals=+self%accretionHaloSimple%accretionRateMetals(node,accretionMode) &
+    coldModeAccretionRateMetals=+self%accretionHaloSimple%accretionRateMetals(node,accretionModeTotal) &
          &                      *self                    %coldModeFraction   (node,accretionMode)
     return
   end function coldModeAccretionRateMetals
@@ -302,7 +302,7 @@ contains
     type (treeNode                    ), intent(inout) :: node
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
-    coldModeAccretedMassMetals=+self%accretionHaloSimple%accretedMassMetals(node,accretionMode) &
+    coldModeAccretedMassMetals=+self%accretionHaloSimple%accretedMassMetals(node,accretionModeTotal) &
          &                     *self                    %coldModeFraction  (node,accretionMode)
     return
   end function coldModeAccretedMassMetals
@@ -317,7 +317,7 @@ contains
     type (treeNode                    ), intent(inout) :: node
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
-    coldModeFailedAccretionRateMetals=+self%accretionHaloSimple%failedAccretionRateMetals(node,accretionMode) &
+    coldModeFailedAccretionRateMetals=+self%accretionHaloSimple%failedAccretionRateMetals(node,accretionModeTotal) &
          &                            *self                    %coldModeFraction         (node,accretionMode)
     return
   end function coldModeFailedAccretionRateMetals
@@ -332,7 +332,7 @@ contains
     type (treeNode                    ), intent(inout) :: node
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
-    coldModeFailedAccretedMassMetals=+self%accretionHaloSimple%failedAccretedMassMetals(node,accretionMode) &
+    coldModeFailedAccretedMassMetals=+self%accretionHaloSimple%failedAccretedMassMetals(node,accretionModeTotal) &
          &                           *self                    %coldModeFraction        (node,accretionMode)
     return
   end function coldModeFailedAccretedMassMetals
