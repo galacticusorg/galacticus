@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a model of the tidal field acting on a satellite for arbitrary geometry in the host.
   !!}
@@ -35,7 +37,8 @@
      Implementation of a satellite tidal field class in arbitrary geometry.
      !!}
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_     => null()
+     logical                                    :: orbitalPositionSupported
    contains
      !![
      <methods docformat="rst">
@@ -91,6 +94,7 @@ contains
     class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
     !![
     <constructorAssign variables="*darkMatterHaloScale_"/>
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable" assignTo="self%orbitalPositionSupported"/>
     !!]
 
     return
@@ -150,6 +154,9 @@ contains
        if (present(coordinatesOrbitalVelocity)) coordinatesOrbitalVelocity=[0.0d0,velocityOrbital_,0.0d0]
     else
        ! Use the current orbital position/velocity.
+       !![
+       <componentPropertyAssert class="satellite" properties="position velocity" require="gettable" condition="self%orbitalPositionSupported"/>
+       !!]
        coordinatesOrbital=satellite%position()
        if (present(radiusOrbital             )) radiusOrbital             =Vector_Magnitude(satellite%position())
        if (present(velocityOrbital           )) velocityOrbital           =Vector_Magnitude(satellite%velocity())

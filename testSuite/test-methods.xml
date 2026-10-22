@@ -2814,7 +2814,7 @@
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
-    <componentSatellite value="standard"/>
+    <componentSatellite value="preset"/>
     <componentSpheroid value="null"/>
     <componentSpin value="null"/>
     <verbosityLevel value="standard"/>

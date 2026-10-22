@@ -124,6 +124,10 @@ contains
     !!]
     
     call self%recordingInitialize()
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position" require="gettable"/>
+    !!]
     return
   end function satelliteMergingRadiusTriggerConstructorInternal
   

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a filter which passes only nodes that lie within a survey geometry.
 !!}
@@ -110,7 +112,8 @@ contains
     <constructorAssign variables="positionType, *surveyGeometry_"/>
     !!]
 
-    self%positionOrbital_=nodePropertyExtractorPositionOrbital()
+    ! The orbital position extractor is needed (and requires satellite orbital positions) only for orbital positions.
+    if (positionType%ID == positionTypeOrbital%ID) self%positionOrbital_=nodePropertyExtractorPositionOrbital()
     return
   end function surveyGeometryConstructorInternal
 

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
+  !+    Contributions to this file made by: Andrew Benson, Xiaolong Du, Claude.
 
   !!{RST
   Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
@@ -128,6 +128,10 @@ contains
     <constructorAssign variables="efficiencyDecay, applyPreInfall, *satelliteTidalHeatingRate_, *darkMatterHaloScale_, *satelliteTidalField_"/>
     !!]
 
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function satelliteTidalHeatingRateConstructorInternal
 

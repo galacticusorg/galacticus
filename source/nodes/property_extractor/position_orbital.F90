@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an orbital position output analysis property extractor class.
 !!}
@@ -55,6 +57,7 @@ Implements an orbital position output analysis property extractor class.
      Constructors for the :galacticus-class:`nodePropertyExtractorPositionOrbital` property extractor class.
      !!}
      module procedure positionOrbitalConstructorParameters
+     module procedure positionOrbitalConstructorInternal
   end interface nodePropertyExtractorPositionOrbital
 
 contains
@@ -74,6 +77,20 @@ contains
     !!]
     return
   end function positionOrbitalConstructorParameters
+
+  function positionOrbitalConstructorInternal() result(self)
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorPositionOrbital` property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorPositionOrbital) :: self
+
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position" require="gettable"/>
+    !!]
+    return
+  end function positionOrbitalConstructorInternal
 
   integer function positionOrbitalElementCount(self,time)
     !!{RST
