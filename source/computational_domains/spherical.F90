@@ -531,9 +531,6 @@ contains
          &                                                                                                    )          , &
          &                                                                                        photonPacket             &
          &                                                                                  )
-    ! Reset the second index to indicate that no boundary was just crossed and so we should consider both boundaries on the next
-    ! "length-to-boundary" calculation.
-    indices(2)=-1_c_size_t
     return
   end function sphericalInteractWithPhotonPacket
   
