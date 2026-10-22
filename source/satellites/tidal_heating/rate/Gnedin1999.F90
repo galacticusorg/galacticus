@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+!+    Contributions to this file made by:  Anthony Pullen, Andrew Benson, Claude.
 
   !!{RST
   Contains a class which implements the tidal heating rate model of :cite:t:`gnedin_tidal_1999`.
@@ -143,6 +143,10 @@ contains
     <constructorAssign variables="epsilon, gamma, *cosmologyParameters_, *darkMatterHaloScale_, *satelliteTidalField_"/>
     !!]
 
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function gnedin1999ConstructorInternal
 

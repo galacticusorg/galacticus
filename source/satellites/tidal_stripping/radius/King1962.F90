@@ -133,6 +133,10 @@ contains
          &                    -self%cosmologyParameters_%OmegaBaryon() &
          &                   )                                         &
          &                  /  self%cosmologyParameters_%OmegaMatter()
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function king1962ConstructorInternal
 
