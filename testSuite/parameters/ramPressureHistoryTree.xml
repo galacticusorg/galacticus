@@ -55,6 +55,8 @@
     <sibling>-1</sibling>
     <basic>
       <time>1.0</time>
+      <!-- The satellite falls in at the start of the run: the virialOrbit ram pressure history class integrates from this time. -->
+      <timeLastIsolated>1.0</timeLastIsolated>
       <mass>1.0e10</mass>
     </basic>
     <darkMatterProfile>
