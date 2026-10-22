@@ -275,9 +275,15 @@ class Campaign:
                     handle.write('</changes>\n')
                 completed = subprocess.run(self.command(run, extra_change_files=(redirect,), dry_run=True),
                                            cwd=self.working_directory, capture_output=True, text=True)
-                if completed.returncode == 0:
-                    return ValidationResult(run.index, True)
-                return ValidationResult(run.index, False, _fatal_message(completed.stdout + completed.stderr))
+                output = completed.stdout + completed.stderr
+                if completed.returncode != 0:
+                    return ValidationResult(run.index, False, _fatal_message(output))
+                # Judge the output by the same markers as a completed run's log, as a problem reported here (an unrecognized
+                # parameter, say) without a failing exit status would otherwise mark every real run as failed.
+                markers = [marker for marker in FAILURE_MARKERS if marker in output]
+                if markers:
+                    return ValidationResult(run.index, False, 'output contains failure markers: ' + ', '.join(markers))
+                return ValidationResult(run.index, True)
 
             with ThreadPoolExecutor(max_workers=max(1, parallel)) as pool:
                 return list(pool.map(check, runs))
