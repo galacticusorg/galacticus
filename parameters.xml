@@ -4,7 +4,7 @@
  <parameters xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:noNamespaceSchemaLocation="schema/parameters.xsd">
   <formatVersion>2</formatVersion>
-  <lastModified revision="975fffd5aadf697707003f16bf9b4caee8ebe97d" time="2025-10-23T18:13:06"/>
+  <lastModified revision="6a9988503c3f06147de26c36133aec821166a735" time="2026-10-22T16:25:48"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -288,6 +288,7 @@
       <excessHeatDrivesOutflow value="true"/>
       <rateMaximumExpulsion value="1.0"/>
     </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
   </nodeOperator>
   
   <!-- Numerical tolerances -->
