@@ -471,13 +471,12 @@ contains
     if (self%truncateAtOuterRadius .and. radius > self%radiusOuter) then
        fractionalRadius=self%radiusOuter/self%radiusCore
     else
-       fractionalRadius=          radius/self%radiusCore
+       fractionalRadius=     radius     /self%radiusCore
     end if
     if (Values_Agree(self%beta,2.0d0/3.0d0,absTol=1.0d-6)) then
        if (fractionalRadius < fractionalRadiusMinimum) then
           betaProfilePotential=                     &
                &  Pi                                &
-               & *self%densityNormalization         &
                & *(                                 &
                &    4.0d0                           &
                &   +2.0d0                           &
@@ -490,7 +489,6 @@ contains
           betaProfilePotential=                     &
                &  2.0d0                             &
                & *Pi                                &
-               & *self%densityNormalization         &
                & *(                                 &
                &    log (                           &
                &          1.0d0                     &
@@ -505,7 +503,6 @@ contains
        if (fractionalRadius < fractionalRadiusMinimum) then
           betaProfilePotential=                     &
                &  Pi                                &
-               & *self%densityNormalization         &
                & *fractionalRadius**2               &
                & *(                                 &
                &    2.0d0/3.0d0                     &
@@ -519,7 +516,6 @@ contains
                &  2.0d0                                               &
                & /3.0d0                                               &
                & *Pi                                                  &
-               & *self%densityNormalization                           &
                & *     fractionalRadius**2                            &
                & *(                                                   &
                &    6.0d0                                             &
@@ -539,8 +535,9 @@ contains
                &  )
        end if
     end if
-    ! Scale by the core radius - the expressions above are for a unit core radius.
-    betaProfilePotential=+betaProfilePotential &
+    ! Scale by the density normalization and core radius - the expressions above are for a unit normalization and core radius.
+    betaProfilePotential=+betaProfilePotential      &
+         &               *self%densityNormalization &
          &               *self%radiusCore**2
     ! Beyond the outer radius of a truncated profile, add the potential of a point mass.
     if (self%truncateAtOuterRadius .and. radius > self%radiusOuter)          &
