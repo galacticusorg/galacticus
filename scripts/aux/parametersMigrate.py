@@ -1917,6 +1917,19 @@ def _append_child(parent, child, indent):
     parent.append(child)
 
 
+def _parameter_path(element):
+    """Return the absolute path (as used in derived parameter expressions) of a parameter element, or None if it can not be
+    determined (because the element, or one of its ancestors, is moved elsewhere in the parameter tree by a `parameterLevel`
+    attribute)."""
+    names = []
+    while element is not None and element.tag != "parameters":
+        if element.get("parameterLevel") is not None:
+            return None
+        names.insert(0, element.tag)
+        element = element.getparent()
+    return "/".join(names) if element is not None else None
+
+
 def _power_spectrum_normalizer_build(variance, indent, is_grid):
     """Build a `powerSpectrumNormalizer` element from the normalization parameters of a `cosmologicalMassVariance` element,
     removing those parameters which belong only to the normalizer. Returns the new element, or None if `variance` specifies
@@ -1930,8 +1943,17 @@ def _power_spectrum_normalizer_build(variance, indent, is_grid):
     reference            = child("reference"                        )
     tolerance            = child("toleranceTopHat"                  )
     window               = child("powerSpectrumWindowFunctionTopHat")
-    integrationFailure   = child("integrationFailureIsFatal"        )
-    if sigma8 is None and amplitude is None and wavenumber is None and tolerance is None and window is None:
+    # `[integrationFailureIsFatal]` also governed the σ₈ normalization integral, so a variance which relaxes it (with any value
+    # other than the default, "true") needs a normalizer to carry that setting, even if it specifies no other normalization
+    # parameters.
+    integration_failure_relaxed = any(
+        c.get("value", "").strip() != "true"
+        for c in variance if isinstance(c.tag, str) and c.tag == "integrationFailureIsFatal"
+    )
+    if (
+            sigma8 is None and amplitude is None and wavenumber is None and tolerance is None and window is None
+            and not integration_failure_relaxed
+    ):
         return None
     # A variance whose σ₈ is simply that of the top-level variance (for example, one which exists only to use a different window
     # function) is normalized consistently with the power spectrum which it shares, so needs no normalizer of its own.
@@ -1961,19 +1983,46 @@ def _power_spectrum_normalizer_build(variance, indent, is_grid):
             element.tail = None
             _append_child(normalizer, element, indent)
         # Parameters which are retained by the variance (for its own computation of σ₈) are copied into the normalizer.
-        if tolerance is not None:
-            copy = etree.Element("tolerance")
-            for key, value in tolerance.attrib.items():
-                copy.set(key, value)
-            _append_child(normalizer, copy, indent)
-        if integrationFailure is not None:
-            copy = etree.Element("integrationFailureIsFatal")
-            for key, value in integrationFailure.attrib.items():
-                copy.set(key, value)
-            _append_child(normalizer, copy, indent)
-        if window is not None:
-            copy = etree.fromstring(etree.tostring(window, with_tail=False))
-            _reindent(copy, _whitespace_before(window).split("\n")[-1], indent + "  ")
+        #
+        # In a grid, sibling instances of a parameter are alternatives, and the grid runs every combination of alternatives. So
+        # copying a list of alternatives into the normalizer would make an independent second list, and generate models
+        # pairing (for example) a fatal normalization integral with a non-fatal variance - models which did not exist before.
+        # Instead, the normalizer's parameter is derived from the variance's, so that it always takes the value of whichever
+        # alternative is in use.
+        for name_variance, name_normalizer, reference_format in (
+                ("toleranceTopHat"          , "tolerance"                , "{path}"   ),
+                ("integrationFailureIsFatal", "integrationFailureIsFatal", "%s|{path}")
+        ):
+            elements = [c for c in variance if isinstance(c.tag, str) and c.tag == name_variance]
+            path     = _parameter_path(elements[0]) if is_grid and len(elements) > 1 else None
+            if path is not None:
+                copy = etree.Element(name_normalizer)
+                copy.set("value", "=[" + reference_format.format(path=path) + "]")
+                _append_child(normalizer, copy, indent)
+                continue
+            if is_grid and len(elements) > 1:
+                print(
+                    f"   WARNING: alternatives of '{name_variance}' could not be linked to the powerSpectrumNormalizer - only the"
+                    f" first is copied; edit the normalizer by hand"
+                )
+                elements = elements[:1]
+            for element in elements:
+                copy = etree.Element(name_normalizer)
+                for key, value in element.attrib.items():
+                    copy.set(key, value)
+                _append_child(normalizer, copy, indent)
+        # A window function is an object, so can not be derived from the variance's. In a grid with alternatives of it, copy only
+        # the first, and warn.
+        windows = [c for c in variance if isinstance(c.tag, str) and c.tag == "powerSpectrumWindowFunctionTopHat"]
+        if is_grid and len(windows) > 1:
+            print(
+                "   WARNING: alternatives of 'powerSpectrumWindowFunctionTopHat' can not be linked to the powerSpectrumNormalizer -"
+                " only the first is copied; edit the normalizer by hand"
+            )
+            windows = windows[:1]
+        for element in windows:
+            copy = etree.fromstring(etree.tostring(element, with_tail=False))
+            _reindent(copy, _whitespace_before(element).split("\n")[-1], indent + "  ")
             _append_child(normalizer, copy, indent)
     return normalizer
 
@@ -1991,7 +2040,8 @@ def _power_spectrum_normalizer_reference(reference, indent, is_grid):
         _remove_preserving_whitespace(window)
     if normalizer is None:
         # The reference power spectrum must have its own normalizer (otherwise the search for one would find the matched
-        # wavenumber normalizer itself) - use the default.
+        # wavenumber normalizer itself) - use the default. This is equivalent to the old behavior: the default σ₈ of the
+        # `sigma8` normalizer (0.8111) is that of the default mass variance which the reference section would have used.
         normalizer = etree.Element("powerSpectrumNormalizer")
         normalizer.set("value", "sigma8")
     _append_child(reference, normalizer, indent)
@@ -2007,7 +2057,13 @@ def power_spectrum_normalizer(input_doc, parameters, is_grid):
     children of the variance, and then among those of each of its ancestors), or at the top level if there is no such
     transferred power spectrum (in which case the default one is used). The `[toleranceTopHat]`,
     `[integrationFailureIsFatal]`, and `[powerSpectrumWindowFunctionTopHat]` parameters of the variance are retained (they
-    control the computation of the derived value of σ₈) and are also copied into the normalizer.
+    control the computation of the derived value of σ₈) and are also copied into the normalizer. Since
+    `[integrationFailureIsFatal]` also governed the old normalization integral, a variance which sets it to anything other
+    than "true" gets a (default `sigma8`) normalizer carrying that setting, even if it has no other normalization parameters. In
+    a grid, where the variance lists alternatives of a copied parameter, the normalizer's parameter is instead derived from the
+    variance's (e.g. `value="=[cosmologicalMassVariance/toleranceTopHat]"`), since independent lists of alternatives would be
+    iterated over independently. Alternatives of the window function can not be linked in this way: only the first is copied,
+    with a warning.
     """
     def in_matched_reference(variance):
         # Variances within the reference section of a matched wavenumber normalization are processed along with that
