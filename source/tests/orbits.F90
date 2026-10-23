@@ -162,7 +162,7 @@ program Test_Orbits
   call orbit%reset                (keep=[keplerOrbitMasses,keplerOrbitRadius]                            )
   call orbit%velocityRadialSet    (darkMatterHaloScale_%velocityVirial(node)*velocityFractionalRadial    )
   call orbit%velocityTangentialSet(darkMatterHaloScale_%velocityVirial(node)*velocityFractionalTangential)
-  radiusCircular=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(node,orbit,darkMatterHaloScale_)
+  radiusCircular=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(node,orbit,darkMatterHaloScale_,darkMatterProfileDMO_)
   call Assert('non-circular orbit, equivalent circular orbit radius',radiusCircular,1.204723d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   call Unit_Tests_End_Group()
   ! Orbit defined in a host of lower mass at the same epoch (e.g. a host which has since grown, or a satellite which has moved to
@@ -181,7 +181,7 @@ program Test_Orbits
   call orbit%velocityTangentialSet(darkMatterHaloScale_%velocityVirial(node)*velocityFractionalTangential*fractionRadiusVirialOriginal )
   call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumPericenter,radiusPericenter,velocityPericenter,darkMatterHaloScale_)
   call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumApocenter ,radiusApocenter ,velocityApocenter ,darkMatterHaloScale_)
-  radiusCircular=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(node,orbit,darkMatterHaloScale_)
+  radiusCircular=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(node,orbit,darkMatterHaloScale_,darkMatterProfileDMO_)
   call Assert('non-circular orbit, pericenter radius'                 ,radiusPericenter,0.331139d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   call Assert('non-circular orbit,  apocenter radius'                 ,radiusApocenter ,1.347652d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   call Assert('non-circular orbit, equivalent circular orbit radius'  ,radiusCircular  ,0.894538d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)

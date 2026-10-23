@@ -124,12 +124,15 @@ contains
     return
   end function Satellite_Orbit_Period
 
-  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,errorCode)
+  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,errorCode)
     !!{RST
-    Solves for the equivalent circular orbit radius for ``orbit`` in ``nodeHost``.
+    Solves for the equivalent circular orbit radius for ``orbit`` in ``nodeHost``. The calculation (including the conversion of
+    the orbit to the potential of ``nodeHost``) uses the dark matter only profile of ``nodeHost``, as the merging time fitting
+    functions which use this radius were calibrated on dark matter only simulations.
     !!}
-    use :: Galacticus_Nodes       , only : nodeComponentBasic
-    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+    use :: Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+    use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     use :: Kepler_Orbits          , only : keplerOrbit
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
@@ -137,6 +140,7 @@ contains
     type            (keplerOrbit              ), intent(inout)           :: orbit
     integer                                    , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass), intent(inout)           :: darkMatterProfileDMO_
     class           (nodeComponentBasic       )               , pointer  :: basicHost
     double precision                           , parameter               :: toleranceAbsolute    =0.0d0  , toleranceRelative=1.0d-6, &
          &                                                                  factorRadiusLarge    =1.0d6
@@ -148,8 +152,8 @@ contains
 
     ! Assign the active node.
     activeNode         => nodeHost
-    ! Get the mass distribution.
-    massDistribution__ => nodeHost%massDistribution()
+    ! Get the dark matter only mass distribution.
+    massDistribution__ => darkMatterProfileDMO_%get(nodeHost)
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,darkMatterHaloScale_)
     ! Get virial properties.
