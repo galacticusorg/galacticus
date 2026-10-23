@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792582100441,
+  "lastUpdate": 1792796581360,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -7315,6 +7315,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 5.311779030567597,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "433f96f86088e084bc1c78253a0bbb24aa77223d",
+          "message": "Merge pull request #1665 from galacticusorg/fix/black-hole-jet-efficiency\n\nfix(nodeOperators): convert black hole jet power to an efficiency with (c/kilo)^2",
+          "timestamp": "2026-10-23T15:20:05Z",
+          "tree_id": "9772f8de347e0a29b8e05baa4cde0fb04fd70a21",
+          "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
+        },
+        "date": 1792796580822,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 23.458172323056118,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 19.000583235878945,
             "unit": "-logℒ"
           }
         ]
