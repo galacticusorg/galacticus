@@ -451,7 +451,7 @@ contains
 
   double precision function betaProfilePotential(self,coordinates,status)
     !!{RST
-    Return the potential at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution. Calculated using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4%2F3+%CF%80+r+%CF%81+2F1%283%2F2%2C+%283+%CE%B2%29%2F2%2C+5%2F2%2C+-r^2%29>`_.
+    Return the potential at the specified ``coordinates`` in a :math:`\beta`-profile mass distribution. Calculated using `Wolfram Alpha <http://www.wolframalpha.com/input/?i=integrate+4%2F3+%CF%80+r+%CF%81+2F1%283%2F2%2C+%283+%CE%B2%29%2F2%2C+5%2F2%2C+-r^2%29>`_. The potential has the form :math:`\Phi(r)=\mathrm{G}\rho_0 r_\mathrm{core}^2 f(r/r_\mathrm{core})`. If the profile is truncated at its outer radius, :math:`r_\mathrm{outer}`, then at larger radii it is that of a point mass, :math:`\Phi(r)=\Phi(r_\mathrm{outer})+\mathrm{G}M(r_\mathrm{outer})(1/r_\mathrm{outer}-1/r)`.
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
@@ -506,11 +506,11 @@ contains
           betaProfilePotential=                     &
                &  Pi                                &
                & *self%densityNormalization         &
-               & *fractionalRadius**3               &
+               & *fractionalRadius**2               &
                & *(                                 &
-               &    4.0d0/3.0d0                     &
-               &   -6.0d0                           &
-               &   /5.0d0                           &
+               &    2.0d0/3.0d0                     &
+               &   -3.0d0                           &
+               &   /10.0d0                          &
                &   *self%beta                       &
                &   *fractionalRadius**2             &
                &  )
@@ -539,6 +539,17 @@ contains
                &  )
        end if
     end if
+    ! Scale by the core radius - the expressions above are for a unit core radius.
+    betaProfilePotential=+betaProfilePotential &
+         &               *self%radiusCore**2
+    ! Beyond the outer radius of a truncated profile, add the potential of a point mass.
+    if (self%truncateAtOuterRadius .and. radius > self%radiusOuter)          &
+         & betaProfilePotential=+betaProfilePotential                        &
+         &                      +self%massEnclosedBySphere(self%radiusOuter) &
+         &                      *(                                           &
+         &                        +1.0d0/self%radiusOuter                    &
+         &                        -1.0d0/     radius                         &
+         &                       )
     if (.not.self%isDimensionless())         &
          & betaProfilePotential=             &
          &   betaProfilePotential            &
