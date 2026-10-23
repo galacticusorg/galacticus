@@ -882,7 +882,13 @@ ifneq ($(IS_LIB_BUILD),)
 -include $(BUILDPATH)/Makefile_Library_Dependencies
 $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
-$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py
+# directiveLocations.xml and stateStorables.xml are byproducts of the Makefile_Directives recipe (see below), so have no rule
+# of their own. The order-only prerequisite on Makefile_Directives ensures that they are brought up to date before
+# libraryInterfaces.py reads them. Without it, when libgalacticus.Inc is out of date for some other reason (e.g. an edit to
+# libraryClasses.xml) make can run libraryInterfaces.py in parallel with codeDirectivesParse.py. libraryInterfaces.py then reads
+# the old catalogs, and its output (being newer than the regenerated catalogs) is never remade, silently omitting any new
+# classes from the library.
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py | $(BUILDPATH)/Makefile_Directives
 	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
