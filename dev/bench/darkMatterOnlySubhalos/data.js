@@ -1,36 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792581977840,
+  "lastUpdate": 1792796435159,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "643d41c374ae115f121bd061af8299b5aca90de5",
-          "message": "fix: Correct extrapolation type used in tables",
-          "timestamp": "2025-08-26T19:40:21Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/643d41c374ae115f121bd061af8299b5aca90de5"
-        },
-        "date": 1756307469479,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.196,
-            "unit": "seconds",
-            "range": 0.15240209972284
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8804,6 +8776,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14479.324876433922,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "433f96f86088e084bc1c78253a0bbb24aa77223d",
+          "message": "Merge pull request #1665 from galacticusorg/fix/black-hole-jet-efficiency\n\nfix(nodeOperators): convert black hole jet power to an efficiency with (c/kilo)^2",
+          "timestamp": "2026-10-23T15:20:05Z",
+          "tree_id": "9772f8de347e0a29b8e05baa4cde0fb04fd70a21",
+          "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
+        },
+        "date": 1792796430483,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 36.609,
+            "range": "0.1189659615184104",
+            "unit": "seconds"
           }
         ]
       }
