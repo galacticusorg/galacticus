@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that implements accretion of gas into the :term:`CGM`.
   !!}
@@ -190,11 +192,11 @@ contains
        call        hotHalo%      unaccretedMassSet(                          massFailedHotHalo                           )
        if (hotHalo%     angularMomentumIsSettable()) &
             & call hotHalo%     angularMomentumSet(                          angularMomentum                             )
-       call        hotHalo%          abundancesSet(self%accretionHalo_%      accretedMassMetals   (node,accretionModeHot))
+       call        hotHalo%          abundancesSet(self%accretionHalo_%      accretedMassMetals   (node,accretionModeHot  ))
        if (hotHalo%unaccretedAbundancesIsSettable()) &
-            & call hotHalo%unaccretedAbundancesSet(self%accretionHalo_%failedAccretedMassMetals   (node,accretionModeHot))
+            & call hotHalo%unaccretedAbundancesSet(self%accretionHalo_%failedAccretedMassMetals   (node,accretionModeTotal))
        if (hotHalo%           chemicalsIsSettable()) &
-            & call hotHalo%           chemicalsSet(self%accretionHalo_%      accretedMassChemicals(node,accretionModeHot))
+            & call hotHalo%           chemicalsSet(self%accretionHalo_%      accretedMassChemicals(node,accretionModeHot  ))
     end if
     return
   end subroutine cgmAccretionNodeInitialize
@@ -286,7 +288,7 @@ contains
     double precision                                          :: massAccreted           , massUnaccreted           , &
          &                                                       fractionAccreted       , massReaccreted           , &
          &                                                       angularMomentumAccreted, massAccretedHot          , &
-         &                                                       massAccretedCold
+         &                                                       massAccretedCold       , massUnaccretedReservoir
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
@@ -324,11 +326,13 @@ contains
                &             +massAccreted    &
                &             +massUnaccreted  &
                &            )
-          !! Find the change in the unaccreted mass.
-          massReaccreted=+hotHaloParent   %unaccretedMass() &
-               &         *fractionAccreted                  &
-               &         *basic           %          mass() &
-               &         /basicParent     %          mass()
+          !! Find the change in the unaccreted mass. The reservoir mass is recorded prior to reaccretion so that the metals
+          !! reaccreted below are computed from the same reservoir mass as the gas.
+          massUnaccretedReservoir=+hotHaloParent%unaccretedMass()
+          massReaccreted         =+massUnaccretedReservoir &
+               &                  *fractionAccreted        &
+               &                  *basic      %mass()      &
+               &                  /basicParent%mass()
           !! Reaccrete the gas,
           call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
           call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
@@ -343,10 +347,10 @@ contains
                   &                   +massUnaccreted     &
                   &                  )
              !! Find the change in the unaccreted mass.
-             massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
-                  &               *fractionMetalsAccreted            &
-                  &               *basic           %          mass() &
-                  &               /basicParent     %          mass()
+             massMetalsReaccreted=+massUnaccretedReservoir &
+                  &               *fractionMetalsAccreted  &
+                  &               *basic      %mass()      &
+                  &               /basicParent%mass()
              !! Reaccrete the metals.
              call hotHaloParent%unaccretedAbundancesSet(hotHaloParent%unaccretedAbundances()-massMetalsReaccreted)
              call hotHaloParent%          abundancesSet(hotHaloParent%          abundances()+massMetalsReaccreted)
@@ -386,11 +390,13 @@ contains
                &             +massAccreted     &
                &             +massUnaccreted   &
                &            )
-          !! Find the change in the unaccreted mass.
-          massReaccreted=+hotHaloParent   %unaccretedMass() &
-               &         *fractionAccreted                  &
-               &         *basic           %          mass() &
-               &         /basicParent     %          mass()
+          !! Find the change in the unaccreted mass. The reservoir mass is recorded prior to reaccretion so that the metals
+          !! reaccreted below are computed from the same reservoir mass as the gas.
+          massUnaccretedReservoir=+hotHaloParent%unaccretedMass()
+          massReaccreted         =+massUnaccretedReservoir &
+               &                  *fractionAccreted        &
+               &                  *basic      %mass()      &
+               &                  /basicParent%mass()
           !! Reaccrete the gas,
           call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
           call hotHaloParent%      massColdSet(hotHaloParent%      massCold()+massReaccreted)
@@ -405,10 +411,10 @@ contains
                   &                   +massUnaccreted     &
                   &                  )
              !! Find the change in the unaccreted mass.
-             massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
-                  &               *fractionMetalsAccreted            &
-                  &               *basic           %          mass() &
-                  &               /basicParent     %          mass()
+             massMetalsReaccreted=+massUnaccretedReservoir &
+                  &               *fractionMetalsAccreted  &
+                  &               *basic      %mass()      &
+                  &               /basicParent%mass()
              !! Reaccrete the metals.
              call hotHaloParent%unaccretedAbundancesSet(hotHaloParent%unaccretedAbundances()-massMetalsReaccreted)
              call hotHaloParent%      abundancesColdSet(hotHaloParent%      abundancesCold()+massMetalsReaccreted)
@@ -554,7 +560,7 @@ contains
     ! Get the rates of abundances accretion onto the halo.
     rateMetalsAccretionHot          =   self%accretionHalo_%      accretionRateMetals   (node,accretionModeHot  )
     rateMetalsAccretionCold         =   self%accretionHalo_%      accretionRateMetals   (node,accretionModeCold )
-    rateMetalsAccretionFailed       =   self%accretionHalo_%failedAccretionRateMetals   (node,accretionModeHot  )
+    rateMetalsAccretionFailed       =   self%accretionHalo_%failedAccretionRateMetals   (node,accretionModeTotal)
     ! Get the rates of chemicals accretion onto the halo.
     if (self%countChemicals > 0) &
          & rateChemicalsAccretionHot=   self%accretionHalo_%      accretionRateChemicals(node,accretionModeHot  )
