@@ -183,6 +183,8 @@ contains
   double precision function simpleGradientDensityLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{RST
     Return :math:`\d\ln t_\mathrm{cool}/\d\ln \rho` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
+
+    The thermal energy density is assumed to scale as :math:`\rho T`, i.e. the total number density of particles (including electrons) is taken to be proportional to density and independent of temperature, as in fully ionized gas. Any dependence of the electron density on density or temperature (as computed by the ``chemicalState`` object) is ignored, so the result is approximate for partially ionized gas (e.g. near :math:`10^4` K).
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar       , megaParsec
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
@@ -212,6 +214,8 @@ contains
   double precision function simpleGradientTemperatureLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{RST
     Return :math:`\d\ln t_\mathrm{cool}/\d\ln T` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
+
+    The thermal energy density is assumed to scale as :math:`\rho T`, i.e. the total number density of particles (including electrons) is taken to be proportional to density and independent of temperature, as in fully ionized gas. Any dependence of the electron density on density or temperature (as computed by the ``chemicalState`` object) is ignored, so the result is approximate for partially ionized gas (e.g. near :math:`10^4` K).
     !!}
     use :: Numerical_Constants_Astronomical, only : massSolar       , megaParsec
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
