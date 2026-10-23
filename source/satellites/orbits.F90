@@ -156,8 +156,8 @@ contains
     basicHost      => nodeHost             %basic       (        )
     radiusVirial__ =  darkMatterHaloScale_ %radiusVirial(nodeHost)
     massVirial__   =  basicHost            %mass        (        )
-    ! Store the orbital energy.
-    orbitalEnergyInternal=orbit%energy()
+    ! Store the orbital energy (in the potential of the current host).
+    orbitalEnergyInternal=orbitCurrent%energy()
     ! Test for conditions that an equivalent circular orbit exists.
     potential=Satellite_Orbit_Potential(factorRadiusLarge*radiusVirial__,radiusVirial__,massVirial__)
     if (orbitalEnergyInternal >= potential) then
