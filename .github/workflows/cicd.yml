@@ -1640,6 +1640,7 @@ jobs:
                 test-decayingDM-shell-crossing-capture.py,
                 test-enforceNonNegativity.py,
                 test-pruneLightcone.py,
+                test-position-interpolated-orphan-decay.py,
                 test-soliton-coremass.py,
                 test-soliton-satellite-merging.py,
                 test-promptCuspNFW.py,
