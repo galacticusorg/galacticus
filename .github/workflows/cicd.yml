@@ -1576,6 +1576,7 @@ jobs:
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
                 test-star-formation-histories-fixedAge.py,
+                test-luminosities-from-SED-lightcone.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
                 test-molecular-cooling.py,
                 test-lightcone-crossing.py,
