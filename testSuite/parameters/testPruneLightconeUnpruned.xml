@@ -506,7 +506,6 @@
     <velocityDispersionDiskGas value="10.0"/>
   </starFormationRateSurfaceDensityDisks>
   <stellarFeedback value="standard">
-    <initialMassForSupernovaeTypeII value="8.0"/>
     <supernovaEnergy value="1e+51"/>
   </stellarFeedback>
   <stellarPopulation value="standard">

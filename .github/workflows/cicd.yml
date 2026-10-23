@@ -1587,6 +1587,7 @@ jobs:
                 test-supernovae-type-Ia-yields-metallicity.py,
                 test-supernovae-type-Ia-rate-metallicity.py,
                 test-stellar-properties-LimongiChieffi2018.py,
+                test-stellar-properties-Karakas2010Doherty2014.py,
                 test-stellar-properties-Sukhbold2016.py,
                 test-tidalTracks.py,
                 test-satellite-orbit-evolution.py,

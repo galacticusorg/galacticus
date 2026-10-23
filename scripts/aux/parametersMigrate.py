@@ -1878,6 +1878,89 @@ _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS = 3.1 / 5.8e21 * 0.707 / 1.660538782e-
 COLUMN_UNIT_OPTICAL_DEPTH = 1.0 / _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS / 0.02 * 3.08567758135e18**2 / 1.98892e33
 
 
+def supernovae_type_ii_mass_stellar_astrophysics(input_doc, parameters, is_grid):
+    """Move `initialMassForSupernovaeTypeII` from the standard stellar feedback class to the stellar astrophysics class.
+
+    The minimum initial mass for a Type II supernova is now a parameter of `stellarAstrophysicsFile`, so that the
+    stellar yields (which are not interpolated across it) and the supernova energy input of `stellarFeedbackStandard`
+    (which takes it from its `stellarAstrophysics` object) are consistent. A value given inside a `stellarFeedback`
+    element is moved to the `stellarAstrophysics` element that the feedback class uses - the nearest one found by
+    searching the feedback element and then its ancestors, as the object builder does - creating one at the root of
+    the parameters if none is present. A value given at the root level needs no change, as the default
+    `stellarAstrophysics` object reads its parameters from there, unless an explicit root-level `stellarAstrophysics`
+    element is present, in which case it is moved into that.
+    """
+    def remove_element(element):
+        parent   = element.getparent()
+        previous = element.getprevious()
+        if previous is not None:
+            previous.tail = element.tail
+        else:
+            # If this is the only child, leave the parent empty.
+            parent.text   = element.tail if len(parent) > 1 else None
+        parent.remove(element)
+
+    def resolve(element):
+        # Follow an `idRef` to the referenced element.
+        reference = element.get("idRef")
+        if reference is None:
+            return element
+        targets = parameters.xpath(f".//stellarAstrophysics[@id='{reference}']")
+        return targets[0] if len(targets) > 0 else None
+
+    def append_child(parent, child):
+        # Append a child, indented one level deeper than the parent.
+        if len(parent) > 0:
+            append_indented(parent, child)
+            return
+        previous = parent.getprevious()
+        whitespace = (previous.tail if previous is not None else (parent.getparent().text if parent.getparent() is not None else None)) or "\n"
+        indentation = whitespace.split("\n")[-1]
+        parent.text = "\n" + indentation + "  "
+        child.tail  = "\n" + indentation
+        parent.append(child)
+
+    def move_into(mass, target, source):
+        if target.get("value") not in (None, "file"):
+            print(f"   WARNING: initialMassForSupernovaeTypeII can not be moved into stellarAstrophysics of type '{target.get('value')}' - removed")
+            remove_element(mass)
+            return
+        existing = target.find("initialMassForSupernovaeTypeII")
+        if existing is not None:
+            if existing.get("value") != mass.get("value"):
+                print(f"   WARNING: conflicting values of initialMassForSupernovaeTypeII ({existing.get('value')} retained, {mass.get('value')} discarded)")
+            remove_element(mass)
+            return
+        print(f"   move parameter: initialMassForSupernovaeTypeII from {source} to stellarAstrophysics")
+        remove_element(mass)
+        append_child(target, mass)
+
+    for mass in parameters.xpath(".//stellarFeedback/initialMassForSupernovaeTypeII[@value]"):
+        feedback = mass.getparent()
+        if feedback.get("value") not in (None, "standard"):
+            continue
+        # Search for the stellarAstrophysics element used by this feedback object.
+        target  = None
+        current = feedback
+        while current is not None:
+            candidates = [child for child in current if child.tag == "stellarAstrophysics" and (child.get("value") is not None or child.get("idRef") is not None)]
+            if len(candidates) > 0:
+                target = resolve(candidates[0])
+                break
+            current = current.getparent()
+        if target is None:
+            target = etree.Element("stellarAstrophysics")
+            target.set("value", "file")
+            if is_grid:
+                target.set("iterable", "no")
+            append_indented(parameters, target)
+        move_into(mass, target, "stellarFeedback")
+    for mass in parameters.xpath("initialMassForSupernovaeTypeII[@value]"):
+        targets = parameters.xpath("stellarAstrophysics[@value]")
+        if len(targets) > 0:
+            move_into(mass, targets[0], "the root level")
+
+
 SPECIAL_FUNCTIONS = {
     "extended_schmidt_normalization_per_gigayear": extended_schmidt_normalization_per_gigayear,
     "dust_properties": dust_properties,
@@ -1908,6 +1991,7 @@ SPECIAL_FUNCTIONS = {
     "dynamical_friction_gaseous": dynamical_friction_gaseous,
     "satellite_deferral_default": satellite_deferral_default,
     "interstellar_medium_kinematics": interstellar_medium_kinematics,
+    "supernovae_type_ii_mass_stellar_astrophysics": supernovae_type_ii_mass_stellar_astrophysics,
 }
 
 
