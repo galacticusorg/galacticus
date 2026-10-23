@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "41e0071930a146ab1f64d2f306e86a47bf24e516",
-        "message": "Merge pull request #1623 from galacticusorg/feat/gaseous-dynamical-friction-ism\n\nfeat(dynamical_friction): gaseous dynamical friction from the interstellar medium\n",
-        "timestamp": "2026-10-20 19:49:34+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/41e0071930a146ab1f64d2f306e86a47bf24e516"
+        "id": "433f96f86088e084bc1c78253a0bbb24aa77223d",
+        "message": "Merge pull request #1665 from galacticusorg/fix/black-hole-jet-efficiency\n\nfix(nodeOperators): convert black hole jet power to an efficiency with (c/kilo)^2\n",
+        "timestamp": "2026-10-23 15:20:05+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
     },
     "surfaceDensity": {
-        "percentageBelow": 42.857142857142854,
-        "percentageAbove": 57.142857142857146,
+        "percentageBelow": 39.285714285714285,
+        "percentageAbove": 60.714285714285715,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 80.0,
-        "percentageAbove": 20.0,
+        "percentageBelow": 56.25,
+        "percentageAbove": 43.75,
         "target": 0.85
     }
 }
