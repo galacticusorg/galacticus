@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Black hole mass growth must equal the accreted rest mass less the energy radiated and carried off by jets. -->
+<!-- Andrew Benson (22-October-2026)                                                                            -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="a3ee29dc4b581c02c09599fe3e95e8e58f8a8ad5" time="2026-10-22T11:00:00"/>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="standard"/>
+  <componentDarkMatterProfile value="scaleFree"/>
+  <componentDisk value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
+  <componentHotHalo value="standard"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="standard">
+    <toleranceAbsoluteMass value="1.0e-6"/>
+    <massDistributionSpheroid value="hernquist">
+      <dimensionless value="true"/>
+    </massDistributionSpheroid>
+  </componentSpheroid>
+  <componentSpin value="scalar"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0455"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options: a single isolated halo, so that the black hole never merges -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/blackHoleJetEfficiencyTree.xml"/>
+  </mergerTreeConstructor>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="isothermal"/>
+
+  <!-- Halo accretion options -->
+  <accretionHalo value="zero"/>
+
+  <!-- Galactic structure options -->
+  <galacticStructureSolver value="fixed"/>
+
+  <!-- Black hole accretion: Bondi-Hoyle accretion from the spheroid gas onto an ADAF, which launches a strong jet from a rapidly spinning black hole -->
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="100.0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+  </blackHoleAccretionRate>
+  <accretionDisks value="ADAF">
+    <efficiencyRadiationType value="thinDisk"/>
+    <adiabaticIndex value="1.444"/>
+    <energyOption value="pureADAF"/>
+    <efficiencyRadiation value="0.01"/>
+    <viscosityOption value="fit"/>
+  </accretionDisks>
+
+  <!-- Node evolution and physics: no star formation or feedback, so that the spheroid gas changes only through black hole accretion -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Dark matter profile -->
+    <nodeOperator value="darkMatterProfileInitialize"/>
+    <!-- Black hole physics -->
+    <nodeOperator value="blackHolesAccretion"/>
+  </nodeOperator>
+
+  <!-- Numerical tolerances: tight, so that the integrated black hole growth can be compared precisely -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-6"/>
+    <odeToleranceRelative value="1.0e-6"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <times value="3.000 3.010 3.020 3.030 3.040 3.050 3.060 3.070 3.080 3.090 3.100 3.110 3.120 3.130 3.140 3.150 3.160 3.170 3.180 3.190 3.200 3.210 3.220 3.230 3.240 3.250 3.260 3.270 3.280 3.290 3.300 3.310 3.320 3.330 3.340 3.350 3.360 3.370 3.380 3.390 3.400 3.410 3.420 3.430 3.440 3.450 3.460 3.470 3.480 3.490 3.500 3.510 3.520 3.530 3.540 3.550 3.560 3.570 3.580 3.590 3.600 3.610 3.620 3.630 3.640 3.650 3.660 3.670 3.680 3.690 3.700 3.710 3.720 3.730 3.740 3.750 3.760 3.770 3.780 3.790 3.800 3.810 3.820 3.830 3.840 3.850 3.860 3.870 3.880 3.890 3.900 3.910 3.920 3.930 3.940 3.950 3.960 3.970 3.980 3.990 4.000"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="time"/>
+    <nodePropertyExtractor value="massBlackHole"/>
+    <nodePropertyExtractor value="massAccretionRateBlackHoles"/>
+    <nodePropertyExtractor value="jetPowerBlackHoles"/>
+    <nodePropertyExtractor value="radiativeEfficiencyBlackHoles"/>
+  </nodePropertyExtractor>
+
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/blackHoleJetEfficiency.hdf5"/>
+
+</parameters>

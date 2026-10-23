@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
   !!}
@@ -36,6 +38,7 @@
    contains
      procedure :: multiplier          => lycSuppressMultiplier
      procedure :: isRedshiftDependent => lycSuppressIsRedshiftDependent
+     procedure :: isAgeDependent      => lycSuppressIsAgeDependent
   end type stellarPopulationSpectraPostprocessorLycSuppress
 
   interface stellarPopulationSpectraPostprocessorLycSuppress
@@ -92,3 +95,15 @@ contains
     isRedshiftDependent=.false.
     return
   end function lycSuppressIsRedshiftDependent
+
+  logical function lycSuppressIsAgeDependent(self) result(isAgeDependent)
+    !!{RST
+    Return false indicating that the postprocessor is independent of the age of the stellar population.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isAgeDependent=.false.
+    return
+  end function lycSuppressIsAgeDependent

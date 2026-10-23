@@ -1659,7 +1659,6 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="font2008"/>
           <xs:enumeration value="orbitalPosition"/>
-          <xs:enumeration value="relativePosition"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>
@@ -2622,6 +2621,7 @@
           <xs:enumeration value="haloAngularMomentumVitvitska2002"/>
           <xs:enumeration value="haloAxisRatiosInterpolate"/>
           <xs:enumeration value="haloAxisRatiosMenkerBenson2022"/>
+          <xs:enumeration value="haloFilaments"/>
           <xs:enumeration value="hierarchy"/>
           <xs:enumeration value="impulsiveOutflowEnergy"/>
           <xs:enumeration value="inclinationRandom"/>
@@ -4352,6 +4352,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="benson2005"/>
+          <xs:enumeration value="filamentary"/>
           <xs:enumeration value="fixed"/>
           <xs:enumeration value="isotropic"/>
           <xs:enumeration value="jiang2014"/>

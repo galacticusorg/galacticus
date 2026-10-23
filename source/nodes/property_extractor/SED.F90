@@ -74,33 +74,41 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateTime"      />
-       <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateNode"      />
-       <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
-       <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="historyHashedDescriptor"/>
-       <method description="Return an array of the wavelengths at which the SED is computed."                                                            method="wavelengths"            />
-       <method description="Return true if the SED is computed in the rest frame."                                                                       method="isRestFrame"            />
-       <method description="Return the range of wavelengths requested for the SED."                                                                      method="wavelengthRange"        />
+       <method description="Return the index of the template SEDs to use."                                                                                 method="indexTemplateTime"         />
+       <method description="Return the index of the template SEDs to use."                                                                                 method="indexTemplateNode"         />
+       <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                         method="luminosityMean"            />
+       <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history."   method="historyHashedDescriptor"   />
+       <method description="Return an array of the wavelengths at which the SED is computed."                                                              method="wavelengths"               />
+       <method description="Return true if the SED is computed in the rest frame."                                                                         method="isRestFrame"               />
+       <method description="Return the range of wavelengths requested for the SED."                                                                        method="wavelengthRange"           />
+       <method description="Return true if a redshift-independent template SED can be used with the redshift-dependent postprocessing applied separately." method="isRedshiftSeparable"       />
+       <method description="Return the SED computed with only the redshift-independent factor of its postprocessing applied."                              method="extractRedshiftIndependent"/>
+       <method description="Return the redshift-dependent factor of the postprocessing of the SED."                                                        method="multiplierRedshift"        />
+       <method description="Return the SED, optionally computed with only the redshift-independent factor of its postprocessing applied."                  method="extractSED"                />
      </methods>
      !!]
-     final     ::                            sedDestructor
-     procedure :: historyHashedDescriptor => sedHistoryHashedDescriptor
-     procedure :: wavelengths             => sedWavelengths
-     procedure :: columnDescriptions      => sedColumnDescriptions
-     procedure :: size                    => sedSize
-     procedure :: elementCount            => sedElementCount
-     procedure :: extract                 => sedExtract
-     procedure :: names                   => sedNames
-     procedure :: descriptions            => sedDescriptions
-     procedure :: unitsInSI               => sedUnitsInSI
-     procedure :: luminosityMean          => sedLuminosityMean
-     procedure :: indexTemplateTime       => sedIndexTemplateTime
-     procedure :: indexTemplateNode       => sedIndexTemplateNode
-     procedure :: units                   => sedUnits
-     procedure :: supportsAttenuation     => sedSupportsAttenuation
-     procedure :: decompose               => sedDecompose
-     procedure :: isRestFrame             => sedIsRestFrame
-     procedure :: wavelengthRange         => sedWavelengthRange
+     final     ::                               sedDestructor
+     procedure :: historyHashedDescriptor    => sedHistoryHashedDescriptor
+     procedure :: wavelengths                => sedWavelengths
+     procedure :: columnDescriptions         => sedColumnDescriptions
+     procedure :: size                       => sedSize
+     procedure :: elementCount               => sedElementCount
+     procedure :: extract                    => sedExtract
+     procedure :: names                      => sedNames
+     procedure :: descriptions               => sedDescriptions
+     procedure :: unitsInSI                  => sedUnitsInSI
+     procedure :: luminosityMean             => sedLuminosityMean
+     procedure :: indexTemplateTime          => sedIndexTemplateTime
+     procedure :: indexTemplateNode          => sedIndexTemplateNode
+     procedure :: units                      => sedUnits
+     procedure :: supportsAttenuation        => sedSupportsAttenuation
+     procedure :: decompose                  => sedDecompose
+     procedure :: isRestFrame                => sedIsRestFrame
+     procedure :: wavelengthRange            => sedWavelengthRange
+     procedure :: isRedshiftSeparable        => sedIsRedshiftSeparable
+     procedure :: extractRedshiftIndependent => sedExtractRedshiftIndependent
+     procedure :: multiplierRedshift         => sedMultiplierRedshift
+     procedure :: extractSED                 => sedExtractSED
   end type nodePropertyExtractorSED
   
   interface nodePropertyExtractorSED
@@ -358,28 +366,62 @@ contains
     !!{RST
     Implement a ``sed`` property extractor.
     !!}
+    implicit none
+    double precision                          , dimension(:,:), allocatable :: sedExtract
+    class           (nodePropertyExtractorSED), intent(inout) , target      :: self
+    type            (treeNode                ), intent(inout) , target      :: node
+    double precision                          , intent(in   )               :: time
+    type            (multiCounter            ), intent(inout) , optional    :: instance
+    !$GLC attributes unused :: instance
+
+    sedExtract=self%extractSED(node,time,redshiftIndependent=.false.)
+    return
+  end function sedExtract
+
+  function sedExtractRedshiftIndependent(self,node,time) result(sed)
+    !!{RST
+    Return the SED computed with only the redshift-independent factor, :math:`M_\tau(\lambda,\tau)`, of its postprocessing
+    applied. Multiplying the result by ``multiplierRedshift`` gives the SED. Where ``isRedshiftSeparable`` is true, this SED
+    is computed from a single template which serves galaxies at all redshifts.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    double precision                          , dimension(:,:), allocatable :: sed
+    class           (nodePropertyExtractorSED), intent(inout) , target      :: self
+    type            (treeNode                ), intent(inout) , target      :: node
+    double precision                          , intent(in   )               :: time
+
+    if (.not.self%stellarPopulationSpectraPostprocessor_%isSeparable()) call Error_Report('postprocessing of the SED is not separable'//{introspection:location})
+    sed=self%extractSED(node,time,redshiftIndependent=.true.)
+    return
+  end function sedExtractRedshiftIndependent
+
+  function sedExtractSED(self,node,time,redshiftIndependent) result(sed)
+    !!{RST
+    Return the SED, optionally (if ``redshiftIndependent`` is true) computed with only the redshift-independent factor of
+    its postprocessing applied.
+    !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentNSC
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, componentTypeNuclearStarCluster
     use :: Histories                 , only : history
     implicit none
-    double precision                          , dimension(:,:  )          , allocatable :: sedExtract
-    class           (nodePropertyExtractorSED), intent(inout)   , target                :: self
-    type            (treeNode                ), intent(inout)   , target                :: node
-    double precision                          , intent(in   )                           :: time
-    type            (multiCounter            ), intent(inout)   , optional              :: instance
-    class           (nodeComponentDisk       )                  , pointer               :: disk
-    class           (nodeComponentSpheroid   )                  , pointer               :: spheroid
-    class           (nodeComponentNSC        )                  , pointer               :: nuclearStarCluster
-    double precision                          , dimension(:,:,:), pointer               :: sedTemplate_
-    double precision                          , dimension(:,:,:), target  , allocatable :: sedTemplate
-    double precision                          , dimension(  :,:)          , allocatable :: masses
-    type            (history                 )                                          :: starFormationHistory
-    integer         (c_size_t                )                                          :: countTemplates      , indexTemplate
-    integer                                                                             :: iWavelength
-    !$GLC attributes unused :: instance
+    double precision                          , dimension(:,:  )         , allocatable :: sed
+    class           (nodePropertyExtractorSED), intent(inout)   , target               :: self
+    type            (treeNode                ), intent(inout)   , target               :: node
+    double precision                          , intent(in   )                          :: time
+    logical                                   , intent(in   )                          :: redshiftIndependent
+    class           (nodeComponentDisk       )                  , pointer              :: disk
+    class           (nodeComponentSpheroid   )                  , pointer              :: spheroid
+    class           (nodeComponentNSC        )                  , pointer              :: nuclearStarCluster
+    double precision                          , dimension(:,:,:), pointer              :: sedTemplate_
+    double precision                          , dimension(:,:,:), target , allocatable :: sedTemplate
+    double precision                          , dimension(  :,:)         , allocatable :: masses
+    type            (history                 )                                         :: starFormationHistory
+    integer         (c_size_t                )                                         :: countTemplates      , indexTemplate
+    integer                                                                            :: iWavelength
 
-    allocate(sedExtract(self%size(time),1))
-    sedExtract=0.0d0
+    allocate(sed(self%size(time),1))
+    sed=0.0d0
     ! Get the relevant star formation history.
     select case (self%component%ID)
     case (componentTypeDisk               %ID)
@@ -394,21 +436,21 @@ contains
     end select
     if (.not.starFormationHistory%exists()) return
     ! Get the index of the template to use.
-    indexTemplate=self%indexTemplateNode(node,starFormationHistory,countTemplates)
+    indexTemplate=self%indexTemplateNode(node,starFormationHistory,countTemplates,redshiftIndependent)
     if (indexTemplate > 0) then
        ! Stored templates can be used, so point to the relevant set.
        sedTemplate_ => self%templates(indexTemplate)%sed
     else
        ! Stored templates can not be used, get the templates for this specific case, and point to them.
-       sedTemplate  =  self%luminosityMean(time,node,indexTemplate,starFormationHistory)
+       sedTemplate  =  self%luminosityMean(time,node,indexTemplate,starFormationHistory,redshiftIndependent=redshiftIndependent)
        sedTemplate_ => sedTemplate
     end if
     masses=self%starFormationHistory_%masses(node,starFormationHistory,allowTruncation=.false.)
-    do iWavelength=1,size(sedExtract,dim=1)
-       sedExtract(iWavelength,1)=sum(sedTemplate_(iWavelength,:,:)*masses(:,:))
+    do iWavelength=1,size(sed,dim=1)
+       sed(iWavelength,1)=sum(sedTemplate_(iWavelength,:,:)*masses(:,:))
     end do
     return
-  end function sedExtract
+  end function sedExtractSED
 
   subroutine sedNames(self,names,time)
     !!{RST
@@ -597,9 +639,15 @@ contains
     return
   end function sedIndexTemplateTime
 
-  function sedIndexTemplateNode(self,node,starFormationHistory,countTemplates) result(indexTemplate)
+  function sedIndexTemplateNode(self,node,starFormationHistory,countTemplates,redshiftIndependent) result(indexTemplate)
     !!{RST
-    Find the index of the template SEDs to use, and also compute the template.
+    Find the index of the template SEDs to use, and also compute the template. If ``redshiftIndependent`` is true the template
+    is computed with only the redshift-independent factor of the postprocessing applied.
+
+    Templates of both kinds share the same storage. This is safe because they never coexist with different contents: where
+    the postprocessing is independent of redshift the two kinds of template are identical, while where it is dependent on
+    redshift a template of the first kind can not be used with fixed ages. A template of the second kind is used only with
+    fixed ages---with ages fixed per output the postprocessing is already evaluated at the redshift of the output.
     !!}
     use :: Display                       , only : displayMessage               , verbosityLevelWorking
     use :: Galacticus_Nodes              , only : nodeComponentBasic
@@ -621,21 +669,42 @@ contains
     type            (treeNode                ), intent(inout)               :: node
     type            (history                 ), intent(in   )               :: starFormationHistory
     integer         (c_size_t                ), intent(  out)               :: countTemplates 
+    logical                                   , intent(in   ), optional     :: redshiftIndependent
     class           (nodeComponentBasic      ), pointer                     :: basic
-    double precision                          , allocatable  , dimension(:) :: times
+    double precision                          , allocatable  , dimension(:) :: times               , wavelengths
     type            (hdf5Group               ), allocatable  , dimension(:) :: parametersGroups
     integer         (c_size_t                )                              :: indexOutput
     character       (len=16                  )                              :: label
+    !![
+    <optionalArgument name="redshiftIndependent" defaultsTo=".false." />
+    !!]
 
     if      (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed         ) then
-       ! Ages are fixed. A single template can be used if we are computing rest-frame SEDs, and postprocessing is redshift independent.
-       if (self%frame == frameRest .and. .not.self%stellarPopulationSpectraPostprocessor_%isRedshiftDependent()) then
+       ! Ages are fixed. A single template can be used if we are computing rest-frame SEDs, and postprocessing is redshift
+       ! independent, or is separable and only its redshift-independent factor is to be applied.
+       if     (                                                                          &
+            &   self%frame == frameRest                                                  &
+            &  .and.                                                                     &
+            &   (                                                                        &
+            &     .not.self%stellarPopulationSpectraPostprocessor_%isRedshiftDependent() &
+            &    .or.                                                                    &
+            &     (                                                                      &
+            &           redshiftIndependent_                                             &
+            &      .and.                                                                 &
+            &           self%stellarPopulationSpectraPostprocessor_%isSeparable       () &
+            &     )                                                                      &
+            &   )                                                                        &
+            & ) then
           indexTemplate =+1
           countTemplates=+1
        else
           indexTemplate =-1
           countTemplates=-1
        end if
+    else if (redshiftIndependent_) then
+       ! Templates with only the redshift-independent factor of the postprocessing applied are supported only for fixed ages.
+       indexTemplate =-1
+       countTemplates=-1
     else if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixedPerOutput) then
        ! Check that the node exists at at output time.
        basic       => node             %basic(                               )
@@ -663,13 +732,13 @@ contains
          type            (hdf5File                )                              :: file
          type            (varying_string          )                              :: fileName
          ! Construct the file name.
-         fileName=inputPath(pathTypeDataDynamic)                                          // &
-              &        'stellarPopulations/'                                              // &
-              &        self%objectType             (                                     )// &
-              &        '_'                                                                // &
-              &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory)// &
-              &        '_'                                                                // &
-              &        indexTemplate                                                      // &
+         fileName=inputPath(pathTypeDataDynamic)                                                               // &
+              &        'stellarPopulations/'                                                                   // &
+              &        self%objectType             (                                                          )// &
+              &        '_'                                                                                     // &
+              &        self%historyHashedDescriptor(node,indexOutput,starFormationHistory,redshiftIndependent_)// &
+              &        '_'                                                                                     // &
+              &        indexTemplate                                                                           // &
               &        '.hdf5'
          ! Store the file name used to the output file parameters group for this object.
          !$ call hdf5Access%set()
@@ -699,8 +768,11 @@ contains
             !$ call hdf5Access%unset()
          end if
          if (.not.allocated(self%templates(indexTemplate)%sed)) then
-            basic                              => node%basic         (                                                                                    )
-            self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times)
+            basic                              => node%basic         (                                                                                                                             )
+            self %templates(indexTemplate)%sed =  self%luminosityMean(basic%time(),node,indexTemplate,starFormationHistory,parallelize=.true.,times_=times,redshiftIndependent=redshiftIndependent_)
+            ! Get the wavelengths of the template. (These are not stored with templates having only the redshift-independent
+            ! factor of the postprocessing applied, as `size()` and `wavelengths()` do not use such templates.)
+            wavelengths                        =  self%wavelengths   (basic%time()                                                                                                                 )
             if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
                call displayMessage("storing SED tabulation to file '"                                        //fileName//"'",verbosityLevelWorking)
             else
@@ -712,7 +784,7 @@ contains
             !$ call hdf5Access%set()
             file=hdf5File(fileName,overWrite=.false.,readOnly=.false.)
             call    file%writeDataset(self %templates            (indexTemplate)%sed       ,'sedTemplate','A matrix mapping star formation history to SED.'                        )
-            call    file%writeDataset(self %templates            (indexTemplate)%wavelength,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
+            call    file%writeDataset(      wavelengths                                    ,'wavelength' ,'The wavelengths at which the SED is tabulated [Å]'                      )
             call    file%writeDataset(self %metallicityBoundaries                          ,'metallicity','The metallicities at which the star formation history is tabulated [Z☉]')
             if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
                call file%writeDataset(basic%time                 (             )    -times ,'ages'       ,'The ages at which the star formation history is tabulated [Gyr]'        )
@@ -727,9 +799,10 @@ contains
     return
   end function sedIndexTemplateNode
 
-  double precision function sedLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize,times_)
+  double precision function sedLuminosityMean(self,time,node,indexOutput,starFormationHistory,parallelize,times_,redshiftIndependent)
     !!{RST
-    Compute the mean luminosity of the stellar population in each bin of the star formation history.
+    Compute the mean luminosity of the stellar population in each bin of the star formation history. If
+    ``redshiftIndependent`` is true only the redshift-independent factor of the postprocessing is applied.
     !!}
     use :: Abundances_Structure          , only : abundances                   , metallicityTypeLinearByMassSolar     , adjustElementsReset
     use :: Display                       , only : displayIndent                , displayUnindent                      , displayCounter     , displayCounterClear, &
@@ -750,7 +823,7 @@ contains
     type            (treeNode                                  ), intent(inout)                                             :: node
     integer         (c_size_t                                  ), intent(in   )                                             :: indexOutput
     type            (history                                   ), intent(in   )                                             :: starFormationHistory
-    logical                                                     , intent(in   )   , optional                                :: parallelize
+    logical                                                     , intent(in   )   , optional                                :: parallelize                           , redshiftIndependent
     double precision                                            , intent(  out)   , optional, dimension(:    ), allocatable :: times_
     class           (stellarPopulationSpectraClass             ), pointer         , save                                    :: stellarPopulationSpectra_
     class           (stellarPopulationSpectraPostprocessorClass), pointer         , save                                    :: stellarPopulationSpectraPostprocessor_
@@ -780,7 +853,8 @@ contains
     !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift,status)
     !$GLC attributes initialized :: masses
     !![
-    <optionalArgument name="parallelize" defaultsTo=".false." />
+    <optionalArgument name="parallelize"         defaultsTo=".false." />
+    <optionalArgument name="redshiftIndependent" defaultsTo=".false." />
     !!]
 
     ! Request the times using whichever of `indexOutput` and `node` applies to the star formation history class in use - the base
@@ -1014,7 +1088,10 @@ contains
            &               -     timeBirth           , &
            &               +self%agePopulationMaximum  &
            &              )
-      if (parallelize_) then
+      ! The redshift is not needed if only the redshift-independent factor of the postprocessing is to be applied.
+      if (redshiftIndependent_) then
+         redshift=-1.0d0
+      else if (parallelize_) then
          redshift=     cosmologyFunctions_%redshiftFromExpansionFactor(     cosmologyFunctions_%expansionFactor(time))
       else
          redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
@@ -1023,10 +1100,10 @@ contains
          ! Full resolution - evaluate at the given wavelength.
          if (parallelize_) then
             sedIntegrandTime=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &           *     stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
+                 &           *sedMultiplier(wavelength)
          else
             sedIntegrandTime=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &           *self%stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
+                 &           *sedMultiplier(wavelength)
          end if
       else
          ! Finite resolution - integrate over wavelength.
@@ -1055,10 +1132,10 @@ contains
 
       if (parallelize_) then
          sedIntegrandWavelength=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &              *     stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
+                 &              *sedMultiplier(wavelength)
       else
          sedIntegrandWavelength=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &              *self%stellarPopulationSpectraPostprocessor_%multiplier(wavelength       ,age,redshift  )
+                 &              *sedMultiplier(wavelength)
       end if
       sedIntegrandWavelength=+sedIntegrandWavelength        &
            &                 /wavelength                    &
@@ -1069,11 +1146,36 @@ contains
       return
     end function sedIntegrandWavelength
 
+    double precision function sedMultiplier(wavelength)
+      !!{RST
+      Return the postprocessing multiplier for the stellar population at the current age and redshift---or, if only the
+      redshift-independent factor is to be applied, that factor alone.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavelength
+
+      if (parallelize_) then
+         if (redshiftIndependent_) then
+            sedMultiplier=     stellarPopulationSpectraPostprocessor_%multiplierAge(wavelength,age         )
+         else
+            sedMultiplier=     stellarPopulationSpectraPostprocessor_%multiplier   (wavelength,age,redshift)
+         end if
+      else
+         if (redshiftIndependent_) then
+            sedMultiplier=self%stellarPopulationSpectraPostprocessor_%multiplierAge(wavelength,age         )
+         else
+            sedMultiplier=self%stellarPopulationSpectraPostprocessor_%multiplier   (wavelength,age,redshift)
+         end if
+      end if
+      return
+    end function sedMultiplier
+
   end function sedLuminosityMean
 
-  function sedHistoryHashedDescriptor(self,node,indexOutput,starFormationHistory)  
+  function sedHistoryHashedDescriptor(self,node,indexOutput,starFormationHistory,redshiftIndependent)
     !!{RST
-    Return an input parameter list descriptor which could be used to recreate this object.
+    Return an input parameter list descriptor which could be used to recreate this object. If ``redshiftIndependent`` is true
+    the descriptor is for a template with only the redshift-independent factor of the postprocessing applied.
     !!}
     use :: Galacticus_Nodes              , only : treeNode
     use :: Input_Parameters              , only : inputParameters
@@ -1089,6 +1191,7 @@ contains
     type            (treeNode                ), intent(inout)               :: node
     integer         (c_size_t                ), intent(in   )               :: indexOutput
     type            (history                 ), intent(in   )               :: starFormationHistory
+    logical                                   , intent(in   )               :: redshiftIndependent
     double precision                          , allocatable  , dimension(:) :: times
     character       (len=18                  )                              :: parameterLabel
     type            (inputParameters         )                              :: descriptor
@@ -1137,6 +1240,10 @@ contains
        if (i < size(self%metallicityBoundaries)) values=values//":"
     end do
     call descriptor%addParameter('metallicity',char(values))
+    ! Distinguish templates with only the redshift-independent factor of the postprocessing applied. This is needed only where
+    ! the postprocessing depends on redshift, as otherwise the two kinds of template are identical and can share a file.
+    if (redshiftIndependent .and. self%stellarPopulationSpectraPostprocessor_%isRedshiftDependent()) &
+         & call descriptor%addParameter('postprocessing','redshiftIndependent')
     ! Times are only added if ages are not fixed. For fixed ages, the history is the same (for our purposes) always.
     if (self%starFormationHistory_%ageDistribution() /= starFormationHistoryAgesFixed) then
        values=""
@@ -1385,3 +1492,39 @@ contains
     wavelengthMaximum=self%wavelengthMaximum
     return
   end subroutine sedWavelengthRange
+
+  logical function sedIsRedshiftSeparable(self) result(isRedshiftSeparable)
+    !!{RST
+    Return true if the SED can be computed from a single template, independent of redshift, provided that the
+    redshift-dependent factor of its postprocessing is applied separately---that is, if ``extractRedshiftIndependent`` uses a
+    template, and the SED is the product of its result and ``multiplierRedshift``.
+
+    This requires a star formation history with fixed ages (so that the history, measured back from the time of the galaxy,
+    is the same for all galaxies), a rest-frame SED (so that the wavelengths are the same for all galaxies), and postprocessing
+    which is separable (see the ``isSeparable`` method of :galacticus-class:`stellarPopulationSpectraPostprocessorClass`).
+    !!}
+    use :: Star_Formation_Histories      , only : starFormationHistoryAgesFixed
+    use :: Stellar_Luminosities_Structure, only : frameRest
+    implicit none
+    class(nodePropertyExtractorSED), intent(inout) :: self
+
+    isRedshiftSeparable= self%starFormationHistory_                 %ageDistribution() == starFormationHistoryAgesFixed &
+         &              .and.                                                                                           &
+         &               self%frame                                                    == frameRest                     &
+         &              .and.                                                                                           &
+         &               self%stellarPopulationSpectraPostprocessor_%isSeparable    ()
+    return
+  end function sedIsRedshiftSeparable
+
+  double precision function sedMultiplierRedshift(self,wavelength,redshift) result(multiplier)
+    !!{RST
+    Return the redshift-dependent factor, :math:`M_z(\lambda,z)`, of the postprocessing of the SED at the given rest-frame
+    wavelength (in Å) and redshift.
+    !!}
+    implicit none
+    class           (nodePropertyExtractorSED), intent(inout) :: self
+    double precision                          , intent(in   ) :: wavelength, redshift
+
+    multiplier=self%stellarPopulationSpectraPostprocessor_%multiplierRedshift(wavelength,redshift)
+    return
+  end function sedMultiplierRedshift

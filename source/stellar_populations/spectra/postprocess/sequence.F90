@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a stellar population spectra postprocessor class which applies a sequence of other postprocessors.
 !!}
@@ -46,6 +48,10 @@ Implements a stellar population spectra postprocessor class which applies a sequ
      procedure :: ageRange            => sequenceAgeRange
      procedure :: ageWindowIsSharp    => sequenceAgeWindowIsSharp
      procedure :: isRedshiftDependent => sequenceIsRedshiftDependent
+     procedure :: isAgeDependent      => sequenceIsAgeDependent
+     procedure :: isSeparable         => sequenceIsSeparable
+     procedure :: multiplierAge       => sequenceMultiplierAge
+     procedure :: multiplierRedshift  => sequenceMultiplierRedshift
   end type stellarPopulationSpectraPostprocessorSequence
 
   interface stellarPopulationSpectraPostprocessorSequence
@@ -170,6 +176,86 @@ contains
     end do
     return
   end function sequenceIsRedshiftDependent
+
+  logical function sequenceIsAgeDependent(self) result(isAgeDependent)
+    !!{RST
+    Return true if any member of the sequence depends on the age of the stellar population.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
+    type (postprocessorList                            ), pointer       :: postprocessor_
+
+    isAgeDependent =  .false.
+    postprocessor_ => self%postprocessors
+    do while (associated(postprocessor_))
+       if (postprocessor_%postprocessor_%isAgeDependent()) then
+          isAgeDependent=.true.
+          return
+       end if
+       postprocessor_ => postprocessor_%next
+    end do
+    return
+  end function sequenceIsAgeDependent
+
+  logical function sequenceIsSeparable(self) result(isSeparable)
+    !!{RST
+    Return true if every member of the sequence is separable. The multiplier of the sequence is then the product of those of
+    its members, each of which is the product of a redshift-independent and an age-independent factor, and so is itself such
+    a product---even though the sequence as a whole may depend on both age and redshift.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
+    type (postprocessorList                            ), pointer       :: postprocessor_
+
+    isSeparable    =  .true.
+    postprocessor_ => self%postprocessors
+    do while (associated(postprocessor_))
+       if (.not.postprocessor_%postprocessor_%isSeparable()) then
+          isSeparable=.false.
+          return
+       end if
+       postprocessor_ => postprocessor_%next
+    end do
+    return
+  end function sequenceIsSeparable
+
+  double precision function sequenceMultiplierAge(self,wavelength,age) result(multiplier)
+    !!{RST
+    Return the redshift-independent factor of the multiplier of the sequence, which is the product of those of its members.
+    !!}
+    implicit none
+    class           (stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
+    double precision                                               , intent(in   ) :: wavelength    , age
+    type            (postprocessorList                            ), pointer       :: postprocessor_
+
+    multiplier     =  1.0d0
+    postprocessor_ => self%postprocessors
+    do while (associated(postprocessor_))
+       multiplier     =  +multiplier                                                  &
+            &            *postprocessor_%postprocessor_%multiplierAge(wavelength,age)
+       postprocessor_ =>  postprocessor_%next
+    end do
+    return
+  end function sequenceMultiplierAge
+
+  double precision function sequenceMultiplierRedshift(self,wavelength,redshift) result(multiplier)
+    !!{RST
+    Return the age-independent factor of the multiplier of the sequence, which is the product of those of its members.
+    !!}
+    implicit none
+    class           (stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
+    double precision                                               , intent(in   ) :: wavelength    , redshift
+    type            (postprocessorList                            ), pointer       :: postprocessor_
+
+    multiplier     =  1.0d0
+    postprocessor_ => self%postprocessors
+    do while (associated(postprocessor_))
+       multiplier     =  +multiplier                                                            &
+            &            *postprocessor_%postprocessor_%multiplierRedshift(wavelength,redshift)
+       postprocessor_ =>  postprocessor_%next
+    end do
+    return
+  end function sequenceMultiplierRedshift
 
   subroutine sequenceAgeRange(self,ageMinimum,ageMaximum)
     !!{RST

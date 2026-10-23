@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that implements accretion onto black holes.
   !!}
@@ -155,7 +157,7 @@ contains
        efficiencyRadiative=+self%accretionDisks_%efficiencyRadiative(blackHole,rateAccretion)
        efficiencyJet      =+self%accretionDisks_%powerJet           (blackHole,rateAccretion) &
             &              /                                                   rateAccretion  &
-            &              /                     speedLight**2/kilo**2
+            &              /                    (speedLight/kilo)**2
        ! Find the rate of increase in mass of the black hole.
        rateAccretionReduced=rateAccretion*(1.0d0-efficiencyRadiative-efficiencyJet)
        ! Skip to the next black hole if this one has non-positive mass and a negative accretion rate.

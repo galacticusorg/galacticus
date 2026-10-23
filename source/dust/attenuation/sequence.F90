@@ -66,6 +66,7 @@
      procedure :: labelPhase             => sequenceLabelPhase
      procedure :: transmissionPhases     => sequenceTransmissionPhases
      procedure :: isOrientationDependent => sequenceIsOrientationDependent
+     procedure :: includesTorus          => sequenceIncludesTorus
   end type dustAttenuationSequence
 
   interface dustAttenuationSequence
@@ -347,3 +348,23 @@ contains
     end do
     return
   end function sequenceIsOrientationDependent
+
+  logical function sequenceIncludesTorus(self) result(includesTorus)
+    !!{RST
+    Return true if any member of the sequence includes a model of the dusty torus around an AGN.
+    !!}
+    implicit none
+    class(dustAttenuationSequence), intent(inout) :: self
+    type (dustAttenuationList    ), pointer       :: dustAttenuation_
+
+    includesTorus    =  .false.
+    dustAttenuation_ => self%dustAttenuations
+    do while (associated(dustAttenuation_))
+       if (dustAttenuation_%dustAttenuation_%includesTorus()) then
+          includesTorus=.true.
+          return
+       end if
+       dustAttenuation_ => dustAttenuation_%next
+    end do
+    return
+  end function sequenceIncludesTorus

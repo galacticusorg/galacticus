@@ -153,7 +153,12 @@
     <C value="625.0"/>
     <f value="0.061"/>
     <timeFormationSeekDelta value="0.0"/>
-    <darkMatterProfileScaleRadius value="concentration"/>
+    <!-- Use mean concentrations in the fall-back method: with scatter, the Ludlow et al. (2016) formation time solver fails to
+         converge for most tree realizations of this model (6 of 8 seeds tested), so whether this regression passed depended
+         on the realization. -->
+    <darkMatterProfileScaleRadius value="concentration">
+      <useMeanConcentration value="true"/>
+    </darkMatterProfileScaleRadius>
     <darkMatterProfileConcentration value="diemerKravtsov2014">
       <alpha value="1.12"/>
       <beta value="1.69"/>

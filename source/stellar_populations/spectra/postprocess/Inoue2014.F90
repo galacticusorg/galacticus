@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a spectrum postprocessor that applies the :cite:t:`inoue_updated_2014` calculation of the attenuation of spectra by the intergalactic medium.
   !!}
@@ -34,7 +36,8 @@
      !!}
      private
    contains
-     procedure :: multiplier => inoue2014Multiplier
+     procedure :: multiplier     => inoue2014Multiplier
+     procedure :: isAgeDependent => inoue2014IsAgeDependent
   end type stellarPopulationSpectraPostprocessorInoue2014
 
   interface stellarPopulationSpectraPostprocessorInoue2014
@@ -267,3 +270,14 @@ contains
     return
   end function inoue2014Multiplier
 
+  logical function inoue2014IsAgeDependent(self) result(isAgeDependent)
+    !!{RST
+    Return false indicating that the postprocessor is independent of the age of the stellar population.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorInoue2014), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isAgeDependent=.false.
+    return
+  end function inoue2014IsAgeDependent

@@ -238,7 +238,7 @@
     <delta2 value="-0.4325586894318513"/>
     <gamma value="4.3895975809570364"/>
   </hotHaloOutflowReincorporation>
-  <hotHaloRamPressureForce value="relativePosition"/>
+  <hotHaloRamPressureForce value="orbitalPosition"/>
   <hotHaloRamPressureStripping value="font2008">
     <formFactor value="2.0"/>
     <solverFailureIsFatal value="false"/>
