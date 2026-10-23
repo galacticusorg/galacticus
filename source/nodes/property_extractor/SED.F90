@@ -1031,7 +1031,7 @@ contains
                &                                            /                               (timeMaximum       -timeMinimum       )
        end if
        ! Apply the postprocessing multiplier where it has been hoisted out of the integrals above.
-       if (multiplierIsHoisted)                                                                                  &
+       if (multiplierIsHoisted)                                                                                    &
             & sedLuminosityMean(iWavelength,iTime,iMetallicity)=+sedLuminosityMean(iWavelength,iTime,iMetallicity) &
             &                                                   *multiplierHoisted
     end do
@@ -1155,10 +1155,10 @@ contains
       double precision, intent(in   ) :: wavelength
 
       if (parallelize_) then
-         sedIntegrandWavelength=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
+         sedIntegrandWavelength=+     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength) &
                  &              *sedMultiplier(wavelength,age)
       else
-         sedIntegrandWavelength=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
+         sedIntegrandWavelength=+self%stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength) &
                  &              *sedMultiplier(wavelength,age)
       end if
       sedIntegrandWavelength=+sedIntegrandWavelength        &
