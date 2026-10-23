@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792582122943,
+  "lastUpdate": 1792796607742,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (MDPL)": [
@@ -2828,6 +2828,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - MDPL VSMDPL CDM resolutionX1 z=0.000",
             "value": 399.1093968579319,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "433f96f86088e084bc1c78253a0bbb24aa77223d",
+          "message": "Merge pull request #1665 from galacticusorg/fix/black-hole-jet-efficiency\n\nfix(nodeOperators): convert black hole jet power to an efficiency with (c/kilo)^2",
+          "timestamp": "2026-10-23T15:20:05Z",
+          "tree_id": "9772f8de347e0a29b8e05baa4cde0fb04fd70a21",
+          "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
+        },
+        "date": 1792796607020,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - MDPL BigMDPL CDM resolutionX1 z=0.000",
+            "value": 265.8413043756852,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.000",
+            "value": 232.03590001686788,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.987",
+            "value": 155.14008627002084,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=3.037",
+            "value": 44.423425520838315,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.000",
+            "value": 340.2645882831392,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.987",
+            "value": 283.8723965585519,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=3.127",
+            "value": 172.59611832623526,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL SMDPL CDM resolutionX1 z=0.000",
+            "value": 383.1610688138753,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL VSMDPL CDM resolutionX1 z=0.000",
+            "value": 399.10939685812326,
             "unit": "-logℒ"
           }
         ]
