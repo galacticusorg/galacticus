@@ -395,6 +395,7 @@ contains
     where subscript :math:`0` refers to the original halo in which the orbit was defined and :math:`\Phi(r)` is the potential of the current halo.
     !!}
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+    use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Kepler_Orbits                   , only : keplerOrbit
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -402,6 +403,7 @@ contains
     type            (keplerOrbit             ), intent(inout) :: orbit
     type            (treeNode                ), intent(inout) :: currentHost
     class           (darkMatterHaloScaleClass), intent(inout) :: darkMatterHaloScale_
+    class           (nodeComponentBasic      ), pointer       :: basicHost
     double precision                                          :: potentialHost         , radiusVirialOriginal, &
          &                                                       velocityVirialOriginal, radiusVirial
 
@@ -409,7 +411,9 @@ contains
     radiusVirialOriginal   =gravitationalConstant_internal*orbit%massHost()/orbit%velocityScale()**2
     velocityVirialOriginal =                                                orbit%velocityScale()    
     radiusVirial           =darkMatterHaloScale_%radiusVirial    (currentHost)
-    potentialHost          =Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,orbit%massHost())
+    ! The potential is defined such that Φ(r_vir)=-V_vir² for the current host, so its current mass is used here.
+    basicHost              =>                     currentHost%basic(           )
+    potentialHost          =Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,basicHost%mass())
     ! Create a new orbit with an adjusted energy.
     orbitCurrent=orbit
     call orbitCurrent%energySet(orbit%energy()+velocityVirialOriginal**2+potentialHost)
