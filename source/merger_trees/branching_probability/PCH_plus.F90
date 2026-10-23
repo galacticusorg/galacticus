@@ -54,7 +54,9 @@ Implements a merger tree branching probability class using the algorithm of :cit
   end type mergerTreeBranchingProbabilityPCHPlus
 
   ! Closest approach permitted to γ₃=½, at which the evaluation of the bound integral is indeterminate. At this separation the
-  ! precision lost to the cancellation is of order a part in 10¹³, which is negligible.
+  ! precision lost to the cancellation is of order a part in 10¹³, which is negligible. The tabulated subresolution accretion rate
+  ! suffers a similar cancellation (see `parkinsonColeHellyHypergeometricFactor`): with [precisionHypergeometric]=10⁻⁶ its error at
+  ! this separation is about 2×10⁻⁵, still well inside the tolerance of the tabulation.
   double precision, parameter :: gamma3ToleranceHalf=1.0d-3
 
   interface mergerTreeBranchingProbabilityPCHPlus
@@ -192,7 +194,8 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`mergerTreeBranchingProbabilityPCHPlus` merger tree branching probability class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Display, only : displayGreen, displayReset
+    use :: Error  , only : Error_Report
     implicit none
     type            (mergerTreeBranchingProbabilityPCHPlus)                        :: self
     double precision                                       , intent(in   )         :: gamma1                       , gamma2            , &
@@ -214,6 +217,14 @@ contains
     ! which carries a factor 1/(γ₃-½) - see `parkinsonColeHellyBoundIntegral`. The two terms it multiplies cancel as that factor
     ! diverges, so the result is finite at γ₃=½ but is not computable there, and loses precision in a neighborhood of it.
     if (abs(gamma3-0.5d0) < gamma3ToleranceHalf) call Error_Report('γ₃=½ cannot be evaluated - displace it slightly'//{introspection:location})
+    ! The tabulated subresolution accretion rate is evaluated close to its singular point through a connection formula which
+    ! fails in the same way at γ₃=-½,-³/₂,… - see `parkinsonColeHellyHypergeometricFactor`.
+    if (hypergeometricTabulate .and. gamma3 < 0.0d0 .and. abs(gamma3-0.5d0-dble(nint(gamma3-0.5d0))) < gamma3ToleranceHalf)                      &
+         & call Error_Report(                                                                                                                    &
+         &                   'γ₃=-½,-³/₂,… cannot be evaluated when tabulating hypergeometric functions'                            //char(10)// &
+         &                   displayGreen()//'HELP:'//displayReset()//' displace γ₃ slightly, or set [hypergeometricTabulate]=false'          // &
+         &                   {introspection:location}                                                                                            &
+         &                  )
     ! Initialize.
     self%mergerTreeBranchingProbabilityParkinsonColeHelly=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,tolerateRoundOffErrors,cosmologicalMassVariance_,criticalOverdensity_)
     ! Precompute the exponents used by the fused merging-rate × modifier form (see pchPlusProgenitorMassFunctionFactor):
