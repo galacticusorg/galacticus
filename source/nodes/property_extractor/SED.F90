@@ -844,13 +844,15 @@ contains
          &                                                                                                                     wavelength                            , wavelengthMinimum    , &
          &                                                                                                                     wavelengthMaximum                     , age                  , &
          &                                                                                                                     redshift
+    double precision                                                              , save                                    :: multiplierHoisted
+    logical                                                                       , save                                    :: multiplierIsHoisted
     type            (abundances                                )                  , save                                    :: abundancesStellar
     integer                                                                       , save                                    :: status
     character       (len=12                                    )                                                            :: label
     type            (multiCounter                              )                                                            :: state
     type            (ompLock                                   )                                                            :: stateLock
     type            (timer                                     )                                                            :: timer_
-    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift,status)
+    !$omp threadprivate(stellarPopulationSpectra_,stellarPopulationSpectraPostprocessor_,cosmologyFunctions_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age,redshift,multiplierHoisted,multiplierIsHoisted,status)
     !$GLC attributes initialized :: masses
     !![
     <optionalArgument name="parallelize"         defaultsTo=".false." />
@@ -930,6 +932,26 @@ contains
        !$omp end critical(nodePropertyExtractSEDDeepCopy)
        !$omp barrier
     end if
+    ! The redshift depends only on the time at which the SED is being computed, which is fixed here, so evaluate it once per
+    ! thread rather than on every evaluation of the integrands below. It is not needed at all if only the redshift-independent
+    ! factor of the postprocessing is to be applied.
+    if      (redshiftIndependent_) then
+       redshift           =-1.0d0
+    else if (parallelize_        ) then
+       redshift           =     cosmologyFunctions_%redshiftFromExpansionFactor(     cosmologyFunctions_%expansionFactor(time))
+    else
+       redshift           =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
+    end if
+    ! Where the postprocessing multiplier is independent of the age of the stellar population it is constant across the integral
+    ! over birth time. For a full resolution SED the wavelength is fixed within each (wavelength,time,metallicity) cell also, so
+    ! the multiplier is then constant across the whole of each cell and can be hoisted out of the integrals and applied just
+    ! once per cell. This is worthwhile because the multiplier can dominate the cost of the integrand: the IGM attenuation of
+    ! `inoue2014`, for example, costs several times as much as the stellar spectrum lookup which it multiplies.
+    if (parallelize_) then
+       multiplierIsHoisted=self%resolution < 0.0d0 .and. .not.     stellarPopulationSpectraPostprocessor_%isAgeDependent()
+    else
+       multiplierIsHoisted=self%resolution < 0.0d0 .and. .not.self%stellarPopulationSpectraPostprocessor_%isAgeDependent()
+    end if
     !$omp masked
     if (parallelize_) then
        if (self%starFormationHistory_%ageDistribution() == starFormationHistoryAgesFixed) then
@@ -967,6 +989,9 @@ contains
        if (self%resolution < 0.0d0) then
           ! Full resolution SED.
           wavelength=self%wavelengths_(jWavelength(iWavelength))
+          ! Evaluate the hoisted postprocessing multiplier for this cell. Any age may be used here as the multiplier is known to
+          ! be independent of age in this case.
+          if (multiplierIsHoisted) multiplierHoisted=sedMultiplier(wavelength,self%agePopulationMaximum)
        else
           ! Finite resolution SED.
           wavelengthMinimum=wavelengthMinima(iWavelength)*expansionFactor
@@ -1005,6 +1030,10 @@ contains
           sedLuminosityMean(iWavelength,iTime,iMetallicity)=+integratorTime       %integrate(timeMinimum       ,timeMaximum       ) &
                &                                            /                               (timeMaximum       -timeMinimum       )
        end if
+       ! Apply the postprocessing multiplier where it has been hoisted out of the integrals above.
+       if (multiplierIsHoisted)                                                                                  &
+            & sedLuminosityMean(iWavelength,iTime,iMetallicity)=+sedLuminosityMean(iWavelength,iTime,iMetallicity) &
+            &                                                   *multiplierHoisted
     end do
     !$omp end do
     !$omp masked
@@ -1088,23 +1117,18 @@ contains
            &               -     timeBirth           , &
            &               +self%agePopulationMaximum  &
            &              )
-      ! The redshift is not needed if only the redshift-independent factor of the postprocessing is to be applied.
-      if (redshiftIndependent_) then
-         redshift=-1.0d0
-      else if (parallelize_) then
-         redshift=     cosmologyFunctions_%redshiftFromExpansionFactor(     cosmologyFunctions_%expansionFactor(time))
-      else
-         redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
-      end if
       if (self%resolution < 0.0d0) then
          ! Full resolution - evaluate at the given wavelength.
          if (parallelize_) then
-            sedIntegrandTime=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &           *sedMultiplier(wavelength)
+            sedIntegrandTime=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength)
          else
-            sedIntegrandTime=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &           *sedMultiplier(wavelength)
+            sedIntegrandTime=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength)
          end if
+         ! Apply the postprocessing multiplier unless it is independent of age, in which case it has been hoisted out of this
+         ! integral and is applied once per cell by our caller.
+         if (.not.multiplierIsHoisted)                          &
+              & sedIntegrandTime=+sedIntegrandTime              &
+              &                  *sedMultiplier(wavelength,age)
       else
          ! Finite resolution - integrate over wavelength.
          sedIntegrandTime=integratorWavelength%integrate(wavelengthMinimum,wavelengthMaximum,status)
@@ -1132,10 +1156,10 @@ contains
 
       if (parallelize_) then
          sedIntegrandWavelength=+     stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &              *sedMultiplier(wavelength)
+                 &              *sedMultiplier(wavelength,age)
       else
          sedIntegrandWavelength=+self%stellarPopulationSpectra_             %luminosity(abundancesStellar,age,wavelength) &
-                 &              *sedMultiplier(wavelength)
+                 &              *sedMultiplier(wavelength,age)
       end if
       sedIntegrandWavelength=+sedIntegrandWavelength        &
            &                 /wavelength                    &
@@ -1146,25 +1170,25 @@ contains
       return
     end function sedIntegrandWavelength
 
-    double precision function sedMultiplier(wavelength)
+    double precision function sedMultiplier(wavelength,age_)
       !!{RST
-      Return the postprocessing multiplier for the stellar population at the current age and redshift---or, if only the
-      redshift-independent factor is to be applied, that factor alone.
+      Return the postprocessing multiplier for the stellar population at the given age, and the redshift at which the SED is
+      being computed---or, if only the redshift-independent factor is to be applied, that factor alone.
       !!}
       implicit none
-      double precision, intent(in   ) :: wavelength
+      double precision, intent(in   ) :: wavelength, age_
 
       if (parallelize_) then
          if (redshiftIndependent_) then
-            sedMultiplier=     stellarPopulationSpectraPostprocessor_%multiplierAge(wavelength,age         )
+            sedMultiplier=     stellarPopulationSpectraPostprocessor_%multiplierAge(wavelength,age_         )
          else
-            sedMultiplier=     stellarPopulationSpectraPostprocessor_%multiplier   (wavelength,age,redshift)
+            sedMultiplier=     stellarPopulationSpectraPostprocessor_%multiplier   (wavelength,age_,redshift)
          end if
       else
          if (redshiftIndependent_) then
-            sedMultiplier=self%stellarPopulationSpectraPostprocessor_%multiplierAge(wavelength,age         )
+            sedMultiplier=self%stellarPopulationSpectraPostprocessor_%multiplierAge(wavelength,age_         )
          else
-            sedMultiplier=self%stellarPopulationSpectraPostprocessor_%multiplier   (wavelength,age,redshift)
+            sedMultiplier=self%stellarPopulationSpectraPostprocessor_%multiplier   (wavelength,age_,redshift)
          end if
       end if
       return
