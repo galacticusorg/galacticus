@@ -31,7 +31,7 @@ program Test_Orbits
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
-  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOIsothermal
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOIsothermal                                , darkMatterProfileDMONFW
   use :: Virial_Density_Contrast   , only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
@@ -50,8 +50,9 @@ program Test_Orbits
   class           (nodeComponentDarkMatterProfile                                ), pointer      :: darkMatterProfile
   double precision                                                                , parameter    :: massHost                =1.0d12      , massSatellite               =0.00d0, &
        &                                                                                            velocityFractionalRadial=0.9d00      , velocityFractionalTangential=0.75d0, &
-       &                                                                                            fractionMassHostOriginal=2.0d00/3.0d0
+       &                                                                                            fractionMassHostOriginal=2.0d00/3.0d0, concentration               =1.00d1
   type            (darkMatterProfileDMOIsothermal                                ), pointer      :: darkMatterProfileDMO_
+  type            (darkMatterProfileDMONFW                                       ), pointer      :: darkMatterProfileDMONFW_
   type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer      :: darkMatterHaloScale_
@@ -78,6 +79,7 @@ program Test_Orbits
   allocate(virialDensityContrast_)
   allocate(darkMatterHaloScale_  )
   allocate(darkMatterProfileDMO_ )
+  allocate(darkMatterProfileDMONFW_)
   !![
   <referenceConstruct object="cosmologyParameters_"  >
    <constructor>
@@ -118,6 +120,14 @@ program Test_Orbits
    <constructor>
     darkMatterProfileDMOIsothermal                                (                                               &amp;
      &amp;                                                         darkMatterHaloScale_  =darkMatterHaloScale_    &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileDMONFW_">
+   <constructor>
+    darkMatterProfileDMONFW                                       (                                                 &amp;
+     &amp;                                                         velocityDispersionUseSeriesExpansion=.false.   , &amp;
+     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_ &amp;
      &amp;                                                        )
    </constructor>
   </referenceConstruct>
@@ -185,6 +195,23 @@ program Test_Orbits
   call Assert('non-circular orbit, pericenter radius'                 ,radiusPericenter,0.331139d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   call Assert('non-circular orbit,  apocenter radius'                 ,radiusApocenter ,1.347652d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   call Assert('non-circular orbit, equivalent circular orbit radius'  ,radiusCircular  ,0.894538d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
+  call Unit_Tests_End_Group()
+  ! Equivalent circular orbit found in a dark matter only profile (here NFW, with concentration c) which differs from the
+  ! (isothermal) mass distribution of the host. The radius solves Φ(r)+V_c²(r)/2=e, with e=(v_r²+v_t²)/2-V² as above, and
+  ! Φ(r)=-V²{[ln(1+cr/r_vir)r_vir/r-ln(1+c)]/μ(c)+1}, where μ(c)=ln(1+c)-c/(1+c). Solution found by root finding (mpmath), in
+  ! units of the virial radius. It differs from that in the isothermal mass distribution of the host (1.204723), so detects use
+  ! of the wrong profile.
+  call Unit_Tests_Begin_Group('Equivalent circular orbit in the dark matter only profile')
+  call darkMatterProfile%scaleSet(darkMatterHaloScale_%radiusVirial(node)/concentration)
+  call orbit%reset                (                                                                      )
+  call orbit%massesSet            (                                          massSatellite             , &
+       &                                                                     massHost                    &
+       &                          )
+  call orbit%radiusSet            (darkMatterHaloScale_%radiusVirial  (node)                             )
+  call orbit%velocityRadialSet    (darkMatterHaloScale_%velocityVirial(node)*velocityFractionalRadial    )
+  call orbit%velocityTangentialSet(darkMatterHaloScale_%velocityVirial(node)*velocityFractionalTangential)
+  radiusCircular=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(node,orbit,darkMatterHaloScale_,darkMatterProfileDMONFW_)
+  call Assert('non-circular orbit, equivalent circular orbit radius',radiusCircular,1.294712d0*darkMatterHaloScale_%radiusVirial(node),relTol=1.0d-5)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
@@ -199,5 +226,6 @@ program Test_Orbits
   <objectDestructor name="virialDensityContrast_"/>
   <objectDestructor name="darkMatterHaloScale_"  />
   <objectDestructor name="darkMatterProfileDMO_" />
+  <objectDestructor name="darkMatterProfileDMONFW_"/>
   !!]
 end program Test_Orbits
