@@ -455,7 +455,6 @@ contains
     !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Hypergeometric_Functions        , only : Hypergeometric_2F1
-    use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Numerical_Constants_Math        , only : Pi
     implicit none
@@ -473,7 +472,7 @@ contains
     else
        fractionalRadius=     radius     /self%radiusCore
     end if
-    if (Values_Agree(self%beta,2.0d0/3.0d0,absTol=1.0d-6)) then
+    if (self%betaIsTwoThirds) then
        if (fractionalRadius < fractionalRadiusMinimum) then
           betaProfilePotential=                     &
                &  Pi                                &
