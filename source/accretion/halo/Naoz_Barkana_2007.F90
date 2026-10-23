@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+ Contributions to this file made by: Daniel McAndrew.
+!+ Contributions to this file made by: Daniel McAndrew, Claude.
 
   !!{RST
   An implementation of accretion from the :term:`IGM` onto halos using filtering mass of the :term:`IGM` calculated from an equation from :cite:t:`naoz_formation_2007`.
@@ -596,19 +596,12 @@ contains
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (abundances                  ), save          :: fractionMetals
     !$omp threadprivate(fractionMetals)
-    double precision                                              :: rateCorrection                    , metallicityIGM
+    double precision                                              :: metallicityIGM, rateMassCorrection
 
     ! Return immediately for cold-mode accretion or satellites.
     naozBarkana2007AccretionRateMetals=zeroAbundances
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
-    ! Calculate IGM metallicity from redshift
-    basic          => node%basic                                (            )
-    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
-    ! Get the rate of metal mass accretion.
-    call naozBarkana2007AccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
-    naozBarkana2007AccretionRateMetals=+     naozBarkana2007AccretionRateMetals                     &
-         &                             *self%accretionRate                     (node,accretionMode)
     ! Get required objects.
     basic   => node%basic  ()
     hotHalo => node%hotHalo()
@@ -617,10 +610,24 @@ contains
        ! Accretion rate is negative, and not allowed. Return zero accretion rate.
        naozBarkana2007AccretionRateMetals=zeroAbundances
     else
-       ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
-       ! differs from that expected given the filtering mass.
-       rateCorrection=self%rateCorrection(node)
-       if (rateCorrection > 0.0d0) then
+       ! The mass accretion rate includes a corrective flow of mass between the accreted and unaccreted reservoirs (if the current
+       ! mass fraction differs from that expected given the filtering mass). Find the rate of that flow (positive for flow from the
+       ! hot halo to the unaccreted reservoir).
+       rateMassCorrection=+(                                 &
+            &               +hotHalo%          mass        () &
+            &               +hotHalo%unaccretedMass        () &
+            &              )                                  &
+            &             *  self   %rateCorrection    (node)
+       ! Gas freshly accreted from the IGM (i.e. the accretion rate excluding the corrective flow) carries the IGM metallicity.
+       metallicityIGM=self%intergalacticMediumState_%metallicity(basic%time())
+       call naozBarkana2007AccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
+       naozBarkana2007AccretionRateMetals=+naozBarkana2007AccretionRateMetals                      &
+            &                             *(                                                       &
+            &                               +self%accretionRate     (node,accretionMode)           &
+            &                               +     rateMassCorrection                               &
+            &                              )
+       ! The corrective flow carries the metallicity of the reservoir from which it is drawn.
+       if (rateMassCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
           ! halo.
           if (hotHalo%mass() > massHotHaloMinimum) then
@@ -632,15 +639,11 @@ contains
        else
           ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of metals in the
           ! unaccreted gas.
-          fractionMetals=zeroAbundances
+          fractionMetals=self%fractionMetalsUnaccreted(node)
        end if
-       naozBarkana2007AccretionRateMetals=+naozBarkana2007AccretionRateMetals                     &
-            &                             -fractionMetals                                         &
-            &                             *(                                                      &
-            &                               +hotHalo                            %          mass() &
-            &                               +hotHalo                            %unaccretedMass() &
-            &                              )                                                      &
-            &                             *rateCorrection
+       naozBarkana2007AccretionRateMetals=+naozBarkana2007AccretionRateMetals &
+            &                             -fractionMetals                     &
+            &                             *rateMassCorrection
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007AccretionRateMetals=zeroAbundances
@@ -662,31 +665,41 @@ contains
     class           (nodeComponentHotHalo        ), pointer       :: hotHalo
     type            (abundances                  ), save          :: fractionMetals
     !$omp threadprivate(fractionMetals)
-    double precision                                              :: rateCorrection                          , metallicityIGM
+    double precision                                              :: metallicityIGM, rateMassCorrection
 
     ! Return immediately for cold-mode accretion or satellites.
     naozBarkana2007FailedAccretionRateMetals=zeroAbundances
     if (accretionMode      == accretionModeCold) return
     if (node%isSatellite()                     ) return
-    ! Calculate IGM metallicity from redshift
-    basic          => node%basic                                (            )
-    metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
-    ! Get the rate of failed metal mass accretion.
-    call naozBarkana2007FailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
-    naozBarkana2007FailedAccretionRateMetals=+     naozBarkana2007FailedAccretionRateMetals                     &
-         &                                   *self%failedAccretionRate                     (node,accretionMode)
     ! Get required objects.
     basic   => node%basic  ()
     hotHalo => node%hotHalo()
     ! Test for negative accretion.
     if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
-       ! Accretion rate is negative, and not allowed. Return zero accretion rate.
-       naozBarkana2007FailedAccretionRateMetals=zeroAbundances
+       ! The accretion rate is negative, and negative accretion is not allowed, so gas is instead removed from the unaccreted
+       ! reservoir. It carries the metallicity of that reservoir.
+       naozBarkana2007FailedAccretionRateMetals=+self%fractionMetalsUnaccreted(node                  ) &
+            &                                   *self%failedAccretionRate     (node,accretionMode)
     else
-       ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
-       ! differs from that expected given the filtering mass.
-       rateCorrection=self%rateCorrection(node)
-       if (rateCorrection > 0.0d0) then
+       ! The failed accretion rate includes a corrective flow of mass between the accreted and unaccreted reservoirs (if the
+       ! current mass fraction differs from that expected given the filtering mass). Find the rate of that flow (positive for flow
+       ! from the hot halo to the unaccreted reservoir).
+       rateMassCorrection=+(                                 &
+            &               +hotHalo%          mass        () &
+            &               +hotHalo%unaccretedMass        () &
+            &              )                                  &
+            &             *  self   %rateCorrection    (node)
+       ! Gas failing to accrete from the IGM (i.e. the failed accretion rate excluding the corrective flow) carries the IGM
+       ! metallicity.
+       metallicityIGM=self%intergalacticMediumState_%metallicity(basic%time())
+       call naozBarkana2007FailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
+       naozBarkana2007FailedAccretionRateMetals=+naozBarkana2007FailedAccretionRateMetals                      &
+            &                                   *(                                                             &
+            &                                     +self%failedAccretionRate(node,accretionMode)                &
+            &                                     -     rateMassCorrection                                     &
+            &                                    )
+       ! The corrective flow carries the metallicity of the reservoir from which it is drawn.
+       if (rateMassCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
           ! halo.
           if (hotHalo%mass() > massHotHaloMinimum) then
@@ -698,15 +711,11 @@ contains
        else
           ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of metals in the
           ! unaccreted gas.
-          fractionMetals=zeroAbundances
+          fractionMetals=self%fractionMetalsUnaccreted(node)
        end if
-       naozBarkana2007FailedAccretionRateMetals=+naozBarkana2007FailedAccretionRateMetals                     &
-            &                                   +fractionMetals                                               &
-            &                                   *(                                                            &
-            &                                     +hotHalo                                  %          mass() &
-            &                                     +hotHalo                                  %unaccretedMass() &
-            &                                    )                                                            &
-            &                                   *rateCorrection
+       naozBarkana2007FailedAccretionRateMetals=+naozBarkana2007FailedAccretionRateMetals &
+            &                                   +fractionMetals                           &
+            &                                   *rateMassCorrection
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007FailedAccretionRateMetals=zeroAbundances

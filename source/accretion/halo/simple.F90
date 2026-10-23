@@ -81,6 +81,7 @@
        <method description="Returns the velocity scale to use for ``node``."                     method="velocityScale" />
        <method description="Compute masses of chemical species given a total mass."                                  method="chemicalMasses"/>
        <method description="Returns the fractional rate (in Gyr\ :math:`^{-1}`) at which gas in the unaccreted reservoir is reaccreted onto the halo." method="rateReaccretionFractional"/>
+       <method description="Returns the mass fraction of metals in the unaccreted reservoir."                                                       method="fractionMetalsUnaccreted" />
      </methods>
      !!]
      final     ::                              simpleDestructor
@@ -99,6 +100,7 @@
      procedure :: failedFraction            => simpleFailedFraction
      procedure :: chemicalMasses            => simpleChemicalMasses
      procedure :: rateReaccretionFractional => simpleRateReaccretionFractional
+     procedure :: fractionMetalsUnaccreted  => simpleFractionMetalsUnaccreted
   end type accretionHaloSimple
 
   interface accretionHaloSimple
@@ -432,6 +434,31 @@ contains
     return
   end function simpleRateReaccretionFractional
 
+  function simpleFractionMetalsUnaccreted(self,node) result(fractionMetals)
+    !!{RST
+    Returns the mass fraction of metals in the unaccreted reservoir of ``node``. If the hot halo component does not track the
+    abundances of that reservoir, or the reservoir is empty, the metallicity of the :term:`IGM` is assumed.
+    !!}
+    use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
+    use :: Galacticus_Nodes    , only : nodeComponentBasic         , nodeComponentHotHalo
+    implicit none
+    type (abundances          )                :: fractionMetals
+    class(accretionHaloSimple ), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node
+    class(nodeComponentBasic  ), pointer       :: basic
+    class(nodeComponentHotHalo), pointer       :: hotHalo
+
+    hotHalo => node%hotHalo()
+    if (hotHalo%unaccretedAbundancesIsGettable() .and. hotHalo%unaccretedMass() > 0.0d0) then
+       fractionMetals=+hotHalo%unaccretedAbundances() &
+            &         /hotHalo%unaccretedMass      ()
+    else
+       basic => node%basic()
+       call fractionMetals%metallicitySet(self%intergalacticMediumState_%metallicity(basic%time()),metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
+    end if
+    return
+  end function simpleFractionMetalsUnaccreted
+
   function simpleAccretionRateMetals(self,node,accretionMode)
     !!{RST
     Computes the rate of mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
@@ -516,7 +543,12 @@ contains
     call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     ! Gas reaccreted from the unaccreted reservoir carries the metallicity of that reservoir, not that of the IGM.
     hotHalo => node%hotHalo()
-    if (hotHalo%unaccretedAbundancesIsGettable()) then
+    if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
+       ! The accretion rate is negative, and negative accretion is not allowed, so gas is instead removed from the unaccreted
+       ! reservoir. It carries the metallicity of that reservoir.
+       simpleFailedAccretionRateMetals=+self%fractionMetalsUnaccreted(node) &
+            &                          *rateMass
+    else if (hotHalo%unaccretedAbundancesIsGettable()) then
        rateReaccretionFractional      =+self%rateReaccretionFractional(node,accretionMode)
        simpleFailedAccretionRateMetals=+simpleFailedAccretionRateMetals          &
             &                          *(                                        &
