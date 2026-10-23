@@ -209,12 +209,26 @@ contains
     !!{RST
     Return the normalization of the power spectrum, computing it (using the normalizer) on the first call.
     !!}
+    implicit none
+    class(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
+
+    ! The computation is kept in a separate procedure, as the internal procedure which it passes to the normalizer requires
+    ! a trampoline, which would otherwise be set up on every call to this function (and so on every evaluation of the power
+    ! spectrum), not only when the normalization must be computed.
+    if (self%normalization_ < 0.0d0) call simpleNormalizationCompute(self)
+    simpleNormalization=self%normalization_
+    return
+  end function simpleNormalization
+
+  subroutine simpleNormalizationCompute(self)
+    !!{RST
+    Compute the normalization of the power spectrum using the normalizer.
+    !!}
     use :: Functions_Global, only : Power_Spectrum_Normalizer_Normalization_
     implicit none
     class(powerSpectrumPrimordialTransferredSimple), intent(inout), target :: self
 
-    if (self%normalization_ < 0.0d0) self%normalization_=Power_Spectrum_Normalizer_Normalization_(self%powerSpectrumNormalizer_,powerUnnormalized)
-    simpleNormalization=self%normalization_
+    self%normalization_=Power_Spectrum_Normalizer_Normalization_(self%powerSpectrumNormalizer_,powerUnnormalized)
     return
 
   contains
@@ -230,7 +244,7 @@ contains
       return
     end function powerUnnormalized
 
-  end function simpleNormalization
+  end subroutine simpleNormalizationCompute
 
   double precision function simpleLogarithmicDerivative(self,wavenumber,time)
     !!{RST

@@ -376,12 +376,26 @@ contains
     !!{RST
     Return the normalization of the power spectrum, computing it (using the normalizer) on the first call.
     !!}
+    implicit none
+    class(powerSpectrumPrimordialTransferredFile), intent(inout) :: self
+
+    ! The computation is kept in a separate procedure, as the internal procedure which it passes to the normalizer requires
+    ! a trampoline, which would otherwise be set up on every call to this function (and so on every evaluation of the power
+    ! spectrum), not only when the normalization must be computed.
+    if (self%normalization_ < 0.0d0) call fileNormalizationCompute(self)
+    fileNormalization=self%normalization_
+    return
+  end function fileNormalization
+
+  subroutine fileNormalizationCompute(self)
+    !!{RST
+    Compute the normalization of the power spectrum using the normalizer.
+    !!}
     use :: Functions_Global, only : Power_Spectrum_Normalizer_Normalization_
     implicit none
     class(powerSpectrumPrimordialTransferredFile), intent(inout), target :: self
 
-    if (self%normalization_ < 0.0d0) self%normalization_=Power_Spectrum_Normalizer_Normalization_(self%powerSpectrumNormalizer_,powerUnnormalized)
-    fileNormalization=self%normalization_
+    self%normalization_=Power_Spectrum_Normalizer_Normalization_(self%powerSpectrumNormalizer_,powerUnnormalized)
     return
 
   contains
@@ -397,7 +411,7 @@ contains
       return
     end function powerUnnormalized
 
-  end function fileNormalization
+  end subroutine fileNormalizationCompute
 
   double precision function filePowerUnnormalized(self,wavenumber,time) result(power)
     !!{RST
