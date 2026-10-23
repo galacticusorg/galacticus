@@ -127,8 +127,10 @@ contains
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,errorCode)
     !!{RST
     Solves for the equivalent circular orbit radius for ``orbit`` in ``nodeHost``. The calculation (including the conversion of
-    the orbit to the potential of ``nodeHost``) uses the dark matter only profile of ``nodeHost``, as the merging time fitting
-    functions which use this radius were calibrated on dark matter only simulations.
+    the orbit to the potential of ``nodeHost``) uses the dark matter only profile of ``nodeHost``, for consistency with the
+    orbital circularity which the merging time classes using this radius compute in that same profile. (The
+    :cite:t:`boylan-kolchin_dynamical_2008` fits were calibrated on dark matter only simulations, while those of
+    :cite:t:`jiang_fitting_2008` were calibrated on a hydrodynamical simulation with star formation.)
     !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic
     use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
