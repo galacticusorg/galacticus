@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792582068248,
+  "lastUpdate": 1792796546276,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "577e939fa7317dfbd3bff04028b2ace201c27310",
-          "message": "Merge pull request #712 from galacticusorg/featOutputMaximumMemory\n\nOutput the maximum memory usage",
-          "timestamp": "2024-10-02T13:07:34Z",
-          "tree_id": "3f9b44d66c354f198e48a29b61e01b2835eb53b4",
-          "url": "https://github.com/galacticusorg/galacticus/commit/577e939fa7317dfbd3bff04028b2ace201c27310"
-        },
-        "date": 1727898379183,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": "21.58128069887297",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "7.8967620087179835",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "9.849830842989993",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9926,6 +9887,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/41e0071930a146ab1f64d2f306e86a47bf24e516"
         },
         "date": 1792582067359,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": -23.380591021144156,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -8.011177098874096,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -10.110657914761397,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "433f96f86088e084bc1c78253a0bbb24aa77223d",
+          "message": "Merge pull request #1665 from galacticusorg/fix/black-hole-jet-efficiency\n\nfix(nodeOperators): convert black hole jet power to an efficiency with (c/kilo)^2",
+          "timestamp": "2026-10-23T15:20:05Z",
+          "tree_id": "9772f8de347e0a29b8e05baa4cde0fb04fd70a21",
+          "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
+        },
+        "date": 1792796545362,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
