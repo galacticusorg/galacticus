@@ -119,6 +119,11 @@ def test_directive_file_change_in_second_class_detected():
 
 _SCRIPT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.pardir, 'useDependencies.py')
+# The repository's python/ directory, which the Makefile puts on PYTHONPATH for
+# the build scripts (it is on sys.path here only via pytest, not in a child).
+_PYTHON_DIR = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, os.pardir,
+    'python'))
 
 _CLASS_SOURCE = """module Widgets
   !![
@@ -182,6 +187,8 @@ class _Tree:
         xml.append('</directives>')
         (self.build / 'directiveLocations.xml').write_text('\n'.join(xml))
         env = dict(os.environ, BUILDPATH=str(self.build))
+        env['PYTHONPATH'] = os.pathsep.join(
+            [_PYTHON_DIR] + ([env['PYTHONPATH']] if env.get('PYTHONPATH') else []))
         env.pop('GALACTICUS_FCFLAGS', None)
         result = subprocess.run(
             [sys.executable, _SCRIPT, str(self.root)], cwd=str(self.root),
