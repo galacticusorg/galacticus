@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson.
+  !+ Contributions to this file made by:  Anthony Pullen, Andrew Benson, Claude.
 
   !!{RST
   Implementation of a satellite dynamical friction class which applies the core-stalling model of :cite:t:`kaur_stalling_2018` to another dynamical friction class.
@@ -157,6 +157,10 @@ contains
          &                                                 extrapolationType=extrapolationTypeExtrapolate                                                                                              &
          &                                                )
     self%radiusDimensionlessMaximum            =1.371915d0
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position" require="gettable"/>
+    !!]
     return
   end function kaur2018ConstructorInternal
 

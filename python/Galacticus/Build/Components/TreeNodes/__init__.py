@@ -277,6 +277,14 @@ _BASE_BOUND_FUNCTIONS = [
     },
     {
         'type':        'procedure',
+        'name':        'hostContemporaneous',
+        'function':    'Tree_Node_Get_Host_Contemporaneous',
+        'description': "Return a pointer to the node, on the descendant branch of the host of this satellite node, which is closest in time to this node.",
+        'returnType':  r"``*type(treeNode)``",
+        'arguments':   "",
+    },
+    {
+        'type':        'procedure',
         'name':        'lastSatellite',
         'function':    'Tree_Node_Get_Last_Satellite',
         'description': "Return a pointer to the last satellite in the list of satellites beloning to this node.",

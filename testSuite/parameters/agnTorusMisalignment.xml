@@ -177,19 +177,11 @@
   </blackHoleCGMHeating>
 
   <!-- Accretion disk properties -->
-  <accretionDisks value="switched">
-    <accretionRateThinDiskMaximum value="0.30"/>
-    <accretionRateThinDiskMinimum value="0.01"/>
-    <scaleADAFRadiativeEfficiency value="true"/>
-    <accretionDisksShakuraSunyaev value="shakuraSunyaev"/>
-    <accretionDisksADAF value="ADAF">
-      <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex value="1.444"/>
-      <energyOption value="pureADAF"/>
-      <efficiencyRadiation value="0.01"/>
-      <viscosityOption value="fit"/>
-    </accretionDisksADAF>
-  </accretionDisks>
+  <!-- All accretion disks are thin, so that every AGN emits a spectrum (that of a thin disk, below) which tori can attenuate. -->
+  <accretionDisks value="shakuraSunyaev"/>
+  <!-- The spectrum of the accretion disk alone: the default spectrum includes the emission of the dusty torus, and so can
+       not be attenuated by a model of the torus. -->
+  <accretionDiskSpectra value="thinDisk"/>
 
   <!-- Black hole options -->
   <blackHoleAccretionRate value="standard">

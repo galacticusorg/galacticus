@@ -499,6 +499,17 @@
     <translation function="interstellar_medium_kinematics"/>
   </migration>
 
+  <migration commit="fef23b1e1709f07948033f5f052667c7a893b8f2">
+    <!-- The `relativePosition` ram pressure force class was removed in favor of `orbitalPosition`. The `hotHaloMassDistribution` -->
+    <!-- object which `relativePosition` accepted (but never used) is not accepted by `orbitalPosition`, so is removed first.     -->
+    <translation xpath="//hotHaloRamPressureForce[@value='relativePosition']/hotHaloMassDistribution">
+      <remove/>
+    </translation>
+    <translation xpath="//hotHaloRamPressureForce[@value]">
+      <value old="relativePosition" new="orbitalPosition"/>
+    </translation>
+  </migration>
+
   <migration commit="f88a96423e21da1fe340565b2036399633246e13">
     <!-- Power spectrum normalization moved from cosmologicalMassVarianceFilteredPower into a new, top-level powerSpectrumNormalizer -->
     <!-- (issue #145): move sigma_8/amplitudeScalar/wavenumberReference/reference into the appropriate normalizer.                  -->

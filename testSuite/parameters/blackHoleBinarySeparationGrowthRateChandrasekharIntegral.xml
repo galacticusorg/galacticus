@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Tests the chandrasekharIntegral black hole binary separation growth rate class, in which dynamical friction (including that
+     due to gas, through the dynamicalFrictionGaseous class) is computed from the Chandrasekhar integrals of the mass
+     distributions of the host node. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="41e0071930a146ab1f64d2f306e86a47bf24e516" time="2026-10-20T21:15:19"/>
+
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <treesPerDecade value="20"/>
+    <massTreeMaximum value="1e+13"/>
+    <massTreeMinimum value="10000000000"/>
+  </mergerTreeBuildMasses>
+
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- CGM cooling/heating -->
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloAngularMomentumRandom"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Satellite evolution -->
+    <nodeOperator value="satelliteMergingTime"/>
+    <nodeOperator value="satelliteMassLoss"   />
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!-- Stellar feedback outflows -->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+        <timescaleOutflowFractionalMinimum value="0.001"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- Black hole physics -->
+    <nodeOperator value="blackHolesSeed">
+      <blackHoleSeeds value="fixed">
+        <mass value="100.0"/>
+        <spin value="  0.0"/>
+      </blackHoleSeeds>
+    </nodeOperator>
+    <nodeOperator value="blackHolesAccretion" />
+    <nodeOperator value="blackHolesWinds"     />
+    <nodeOperator value="blackHolesRadialMigration"/>    
+    <!-- CGM physics -->
+    <nodeOperator value="CGMAccretion">
+      <allowNegativeCGMMass value="true"/>
+      <angularMomentumAlwaysGrows value="false"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOutflowReincorporation">
+      <includeSatellites value="true"/>
+    </nodeOperator>
+    <nodeOperator value="CGMCoolingHeating">
+      <component value="disk"/>
+      <coolingFrom value="currentNode"/>
+      <excessHeatDrivesOutflow value="true"/>
+      <rateMaximumExpulsion value="1.0"/>
+    </nodeOperator>
+    <nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
+  </nodeOperator>
+
+<componentHotHalo value="standard"/>
+  <componentBlackHole value="nonCentral"/>
+  <blackHoleAccretionRate value="standard">
+    <bondiHoyleAccretionEnhancementSpheroid value="5.0e0"/>
+    <bondiHoyleAccretionEnhancementHotHalo value="6.0e0"/>
+    <bondiHoyleAccretionHotModeOnly value="true"/>
+    <bondiHoyleAccretionTemperatureSpheroid value="1.0e2"/>
+  </blackHoleAccretionRate>
+  <blackHoleWind value="ciotti2009">
+    <efficiencyWind value="2.4e-3"/>
+    <efficiencyWindScalesWithEfficiencyRadiative value="false"/>
+  </blackHoleWind>
+  <blackHoleCGMHeating value="jetPower">
+    <efficiencyRadioMode value="1.0"/>
+  </blackHoleCGMHeating>
+  <blackHoleBinaryInitialSeparation value="tidalRadius"/>
+  <blackHoleBinaryRecoil value="zero"/>
+  <blackHoleBinarySeparationGrowthRate value="chandrasekharIntegral"/>
+  <outputFileName value="testSuite/outputs/blackHoleBinarySeparationGrowthRateChandrasekharIntegral.hdf5"/>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="radiusBlackHoles"/>
+    <nodePropertyExtractor value="massBlackHoles"/>
+  </nodePropertyExtractor>
+  <outputTimes value="list">
+    <redshifts value="0.0 0.5 1.0 2.0 3.0 4.0"/>
+  </outputTimes>
+</parameters>
+

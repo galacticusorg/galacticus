@@ -37,7 +37,13 @@
      class           (kinematicsDistributionClass), pointer :: kinematicsDistribution_ => null()
      double precision                                       :: factorScalingLength              , factorScalingMass
    contains
+     !![
+     <methods docformat="rst">
+       <method method="reinitialize" description="Re-point the scaled kinematics distribution (e.g. when re-used from a pool) and clear stale memoized state."/>
+     </methods>
+     !!]
      final     ::                                            kinematicsSphericalScalerDestructor
+     procedure :: reinitialize                            => kinematicsSphericalScalerReinitialize
      procedure :: isCollisional                           => kinematicsSphericalScalerIsCollisional
      procedure :: velocityDispersion1D                    => kinematicsSphericalScalerVelocityDispersion1D
      procedure :: velocityDispersion1DGradientLogarithmic => kinematicsSphericalScalerVelocityDispersionGradient
@@ -116,6 +122,25 @@ contains
     !!]
     return
   end subroutine kinematicsSphericalScalerDestructor
+
+  subroutine kinematicsSphericalScalerReinitialize(self,kinematicsDistribution_)
+    !!{RST
+    Re-point the scaled kinematics distribution of a :galacticus-class:`kinematicsDistributionSphericalScaler` to that for a new system, and clear all stale memoized state. This is used when the object is re-used from a pool: it releases the currently-held kinematics distribution, takes a counted reference to the new one, and resets any memoized velocity dispersion state. The scaling factors are unchanged.
+    !!}
+    implicit none
+    class(kinematicsDistributionSphericalScaler), intent(inout)         :: self
+    class(kinematicsDistributionClass          ), intent(in   ), target :: kinematicsDistribution_
+
+    !![
+    <objectDestructor name="self%kinematicsDistribution_"/>
+    !!]
+    self%kinematicsDistribution_ => kinematicsDistribution_
+    !![
+    <referenceCountIncrement object="self%kinematicsDistribution_"/>
+    !!]
+    call self%reset()
+    return
+  end subroutine kinematicsSphericalScalerReinitialize
 
   logical function kinematicsSphericalScalerIsCollisional(self)
     !!{RST

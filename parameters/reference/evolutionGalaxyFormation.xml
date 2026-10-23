@@ -315,7 +315,5 @@
       <fractionTimestepMinimum value="0.1"/>
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
-  <dynamicalFrictionGaseous value="chandrasekhar1943"/>
-  <kinematicsDistributionInterstellarMedium value="local"/>
 
 </parameters>

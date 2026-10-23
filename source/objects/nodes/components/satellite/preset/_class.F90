@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Andrew Benson, Jianling Gan.
+!+    Contributions to this file made by:  Andrew Benson, Jianling Gan, Claude.
 
 !!{RST
 Contains a module which implements a preset satellite orbit component.
@@ -36,7 +36,7 @@ module Node_Component_Satellite_Preset
    <class>satellite</class>
    <name>preset</name>
    <description>
-   A satellite whose properties are read from the merger tree rather than computed. Bound mass and host node index are stored as time-series histories, from which the instantaneous values are interpolated, and the time of merging is likewise preset. ``isOrphan`` records whether the satellite has outlived its tracked history. Intended for use with merger trees read from N-body simulations, where the subhalo trajectory is already known.
+   A satellite whose properties are read from the merger tree rather than computed. Bound mass and host node index are stored as time-series histories, from which the instantaneous values are interpolated, and the time of merging is likewise preset. ``isOrphan`` records whether the satellite has outlived its tracked history. The orbital ``position`` and ``velocity`` of the satellite relative to its host are not stored, but are computed from the ``position`` and ``velocity`` of the ``position`` component of the node and of its host (specifically, the descendant of the host which is closest in time to the satellite, as satellites can evolve ahead of their hosts). These therefore require a position component that provides position and velocity (e.g. ``[componentPosition]=cartesian``), and are only as accurate as the positions provided by that component---typically these will be interpolated between snapshots using :galacticus-class:`nodeOperatorPositionInterpolated`. Intended for use with merger trees read from N-body simulations, where the subhalo trajectory is already known.
    </description>
    <isDefault>false</isDefault>
    <properties>
@@ -61,6 +61,22 @@ module Node_Component_Satellite_Preset
       <getFunction>SatellitePresetMergeBoundMass</getFunction>
       <classDefault>selfBasic%mass()</classDefault>
       <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Bound mass of the node."/>
+    </property>
+    <property>
+      <name>position</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <getFunction>SatellitePresetPosition</getFunction>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <getFunction>SatellitePresetVelocity</getFunction>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
       <name>boundMassHistory</name>

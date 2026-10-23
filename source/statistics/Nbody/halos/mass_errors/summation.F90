@@ -26,7 +26,7 @@ Implements an N-body dark matter halo mass error class which sums over other err
   !![
   <nbodyHaloMassError name="nbodyHaloMassErrorSummation" docformat="rst">
    <description>
-   An N-body dark matter halo mass error class which combines any number of other error models, assumed to be independent. The fractional mass errors of the individual models are summed in quadrature, :math:`\sigma^2 = \sum_i \sigma_i^2`, and the correlation between the mass errors of a pair of halos is :math:`C_{12} = \sum_i C_{i,12} \sigma_{i,1} \sigma_{i,2} / \sigma_1 \sigma_2`. When evaluating the correlation for a pair of halos at different times, the later halo is used as the reference halo for the earlier halo (see :galacticus-class:`nbodyHaloMassErrorTreeConstruction`).
+   An N-body dark matter halo mass error class which combines any number of other error models, assumed to be independent. The fractional mass errors of the individual models are summed in quadrature, :math:`\sigma^2 = \sum_i \sigma_i^2`, their fractional biases combine multiplicatively, :math:`1+\delta = \prod_i (1+\delta_i)`, and the correlation between the mass errors of a pair of halos is :math:`C_{12} = \sum_i C_{i,12} \sigma_{i,1} \sigma_{i,2} / \sigma_1 \sigma_2`. When evaluating the correlation for a pair of halos at different times, the later halo is used as the reference halo for the earlier halo (see :galacticus-class:`nbodyHaloMassErrorTreeConstruction`).
    </description>
    <linkedList type="nbodyHaloMassErrorList" variable="nbodyHaloMassErrors" next="next" object="nbodyHaloMassError_" objectType="nbodyHaloMassErrorClass"/>
   </nbodyHaloMassError>
@@ -46,6 +46,7 @@ Implements an N-body dark matter halo mass error class which sums over other err
    contains
      final     ::                    summationDestructor
      procedure :: errorFractional => summationErrorFractional
+     procedure :: biasFractional  => summationBiasFractional
      procedure :: correlation     => summationCorrelation
      procedure :: errorZeroAlways => summationErrorZeroAlways
   end type nbodyHaloMassErrorSummation
@@ -150,6 +151,30 @@ contains
     summationErrorFractional=sqrt(summationErrorFractional)
     return
   end function summationErrorFractional
+
+  double precision function summationBiasFractional(self,node,nodeReference)
+    !!{RST
+    Return the fractional bias in the mass of an N-body halo, combining the biases of all member models multiplicatively.
+    !!}
+    implicit none
+    class(nbodyHaloMassErrorSummation), intent(inout)           :: self
+    type (treeNode                   ), intent(inout)           :: node
+    type (treeNode                   ), intent(inout), optional :: nodeReference
+    type (nbodyHaloMassErrorList     ), pointer                 :: member
+
+    summationBiasFractional =  1.0d0
+    member                  => self%nbodyHaloMassErrors
+    do while (associated(member))
+       summationBiasFractional=+summationBiasFractional                                         &
+            &                  *(                                                               &
+            &                    +1.0d0                                                         &
+            &                    +member%nbodyHaloMassError_%biasFractional(node,nodeReference) &
+            &                   )
+       member => member%next
+    end do
+    summationBiasFractional=summationBiasFractional-1.0d0
+    return
+  end function summationBiasFractional
 
   double precision function summationCorrelation(self,node1,node2)
     !!{RST

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to test-luminosities-from-SED-lightcone.xml for a model whose rest-frame SED does not cover the blueshifted
+     filter, which must be reported as an error rather than giving a silently truncated luminosity. The SED begins at 1500 Angstroms,
+     which lies above the blueshifted lower edge (at most 1340 Angstroms) of the GALEX FUV filter at every redshift. -->
+<changes>
+
+  <change type="replace" path="nodePropertyExtractor">
+    <nodePropertyExtractor value="luminosityStellarFromSED">
+      <filterNames value="Galex_FUV"/>
+      <frame       value="observed" />
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"  />
+        <frame             value="rest"  />
+        <wavelengthMinimum value="1500.0"/>
+        <wavelengthMaximum value="3100.0"/>
+        <stellarPopulationSpectraPostprocessor value="identity"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+  </change>
+
+  <change type="update" path="outputFileName" value="testSuite/outputs/test-luminosities-from-SED-lightcone/galacticusCoverage.hdf5"/>
+
+</changes>

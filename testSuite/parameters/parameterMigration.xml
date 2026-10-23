@@ -30,4 +30,9 @@
     </dustAttenuation>
   </dustAttenuation>
 
+  <!-- The removed `relativePosition` ram pressure force: becomes `orbitalPosition`, losing the unused hot halo mass distribution. -->
+  <hotHaloRamPressureForce value="relativePosition">
+    <hotHaloMassDistribution value="betaProfile"/>
+  </hotHaloRamPressureForce>
+
 <componentHotHalo value="standard"/></parameters>

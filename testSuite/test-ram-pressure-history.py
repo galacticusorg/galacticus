@@ -26,6 +26,11 @@ from scipy.interpolate import CubicSpline
 #    is integrated here with SciPy's ODE solver, using cubic splines through the recorded p and 1/T_orb. P changes discontinuously
 #    only at recorded steps, so it is stepped from one record to the next, decaying by the integral of 1/T_orb between them.
 #
+# The model is then run twice more, with the same two values of efficiencyDecay, but with the property extractor taking the history
+# from the `virialOrbit` hot halo ram pressure history class, which reconstructs it by integrating the satellite's virial orbit
+# from infall. Since the host is static, and there is no dynamical friction or mass loss, this must agree with the history
+# accumulated along the satellite's orbit by the node operator, at every recorded step.
+#
 # Andrew Benson, Claude
 
 # Event identifier for records made after each accepted ODE step, as enumerated in
@@ -42,22 +47,38 @@ MpcPerKmPerSToGyr = 3.08567758135e22 / 1.0e3 / 3.15581497635456e16
 toleranceIntegral      = 1.0e-5
 toleranceIntegralDecay = 1.0e-4
 toleranceMaximum       = 1.0e-4
+# Tolerances for the agreement between the history reconstructed from the virial orbit and that accumulated by the node operator.
+# The two integrate the same orbit with independent ODE solvers: the time integrals agree to 1.6e-6. Each running maximum is the
+# largest ram pressure found at the end of any ODE step, and so falls short of the true pericentric peak by an amount which depends
+# on how closely a step happens to end at pericenter. The two solvers step differently, and their maxima differ by up to 1.5e-3.
+toleranceVirialOrbit        = 1.0e-5
+toleranceVirialOrbitMaximum = 5.0e-3
 
-def run(efficiencyDecay):
-    """Run the model with the given decay efficiency, and return the recorded trajectory."""
+def run(efficiencyDecay, virialOrbit=False):
+    """Run the model with the given decay efficiency, and return the recorded trajectory. If virialOrbit is true, the property
+    extractor takes the history from the `virialOrbit` hot halo ram pressure history class."""
     with open("parameters/ramPressureHistory.xml") as file:
         parameters = file.read()
+    label      = f"{efficiencyDecay}" + ("VirialOrbit" if virialOrbit else "")
     parameters = parameters.replace('<efficiencyDecay value="0.0"/>', f'<efficiencyDecay value="{efficiencyDecay}"/>')
-    parameters = parameters.replace("testSuite/outputs/ramPressureHistory.hdf5", f"testSuite/outputs/ramPressureHistory{efficiencyDecay}.hdf5")
-    with open(f"outputs/ramPressureHistory{efficiencyDecay}.xml", "w") as file:
+    parameters = parameters.replace("testSuite/outputs/ramPressureHistory.hdf5", f"testSuite/outputs/ramPressureHistory{label}.hdf5")
+    if virialOrbit:
+        parameters = parameters.replace(
+            '<nodePropertyExtractor value="ramPressureHistory"/>',
+            '<nodePropertyExtractor value="ramPressureHistory">'
+            f'<hotHaloRamPressureHistory value="virialOrbit"><efficiencyDecay value="{efficiencyDecay}"/><toleranceRelative value="1.0e-8"/></hotHaloRamPressureHistory>'
+            '</nodePropertyExtractor>'
+        )
+    with open(f"outputs/ramPressureHistory{label}.xml", "w") as file:
         file.write(parameters)
-    status = subprocess.run(f"cd ..; ./Galacticus.exe testSuite/outputs/ramPressureHistory{efficiencyDecay}.xml", shell=True)
+    status = subprocess.run(f"cd ..; ./Galacticus.exe testSuite/outputs/ramPressureHistory{label}.xml", shell=True)
+    description = f"efficiencyDecay={efficiencyDecay}" + (" using the virialOrbit history class" if virialOrbit else "")
     if status.returncode != 0:
-        print(f"FAILED: model run with efficiencyDecay={efficiencyDecay}")
+        print(f"FAILED: model run with {description}")
         return None
-    print(f"SUCCESS: model run with efficiencyDecay={efficiencyDecay}")
+    print(f"SUCCESS: model run with {description}")
     try:
-        model = h5py.File(f"outputs/ramPressureHistory{efficiencyDecay}.hdf5", "r")
+        model = h5py.File(f"outputs/ramPressureHistory{label}.hdf5", "r")
     except OSError as error:
         print(f"FAILED: unable to open the model output: {error}")
         return None
@@ -99,6 +120,7 @@ def check(name, model, reference, tolerance):
 
 # No decay: the plain time integral and running maximum.
 data = run(0.0)
+accumulated = {0.0: data}
 if data is not None:
     time      = data["time"    ]
     pressure  = data["pressure"]
@@ -116,6 +138,7 @@ if data is not None:
 
 # Decay with efficiency 1: integrate the decaying equations independently.
 data = run(1.0)
+accumulated[1.0] = data
 if data is not None:
     time      = data["time"    ]
     pressure  = data["pressure"]
@@ -151,3 +174,15 @@ if data is not None:
         print("SUCCESS: decay reduces the running maximum of ram pressure below the peak ram pressure")
     else:
         print("FAILED: test precondition not met -- the running maximum of ram pressure has not decayed below the peak")
+
+# The history reconstructed from the virial orbit must match that accumulated by the node operator.
+for efficiencyDecay in (0.0, 1.0):
+    reference = accumulated[efficiencyDecay]
+    data      = run(efficiencyDecay, virialOrbit=True)
+    if data is None or reference is None:
+        continue
+    if len(data["time"]) != len(reference["time"]) or np.any(data["time"] != reference["time"]):
+        print(f"FAILED: trajectory records differ between the runs with efficiencyDecay={efficiencyDecay}")
+        continue
+    check(f"time integral of ram pressure from the virial orbit, efficiencyDecay={efficiencyDecay}", data["integral"], reference["integral"], toleranceVirialOrbit)
+    check(f"running maximum of ram pressure from the virial orbit, efficiencyDecay={efficiencyDecay}", data["maximum"], reference["maximum"], toleranceVirialOrbitMaximum)

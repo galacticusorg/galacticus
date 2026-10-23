@@ -53,5 +53,10 @@ for i in range(nHalos):
 # slightly less well: the median metric moved from 0.011909 to 0.013424, measured by zeroing only that term. In RMS terms
 # the residual grew from 0.109 to 0.116 dex. The threshold measures how well the fitting form describes the profile, not
 # whether the profile is right, so it is the threshold which moves.
-status_str = "SUCCESS" if np.median(data["metricTruncated"]) < 0.015 else "FAILED"
+#
+# The threshold was then raised from 0.015 to 0.0165 because the median depends on the tree realization: over eight seeds it
+# averages 0.0126 (range 0.0111-0.0139) with the Cole2000 builder as it was, and 0.0130 (range 0.0114-0.0150) after the builder
+# stopped removing sub-resolution accretion twice from the secondary progenitor - no significant shift, but this test's seed
+# gave 0.01504, the highest of all sixteen runs. 0.0165 is about three times the seed-to-seed scatter above the mean.
+status_str = "SUCCESS" if np.median(data["metricTruncated"]) < 0.0165 else "FAILED"
 print(f"{status_str}: tidally truncated NFW fit")

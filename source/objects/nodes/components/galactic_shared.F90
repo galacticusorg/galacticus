@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Claude.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Contains a module which provides procedures shared by the galactic (disk, spheroid, and nuclear star cluster) node components.
@@ -31,10 +31,25 @@ module Node_Components_Galactic_Shared
   !!}
   implicit none
   private
-  public :: Node_Component_Disk_Standard_Post_Evolve       , Node_Component_Spheroid_Standard_Post_Evolve, &
-       &    Node_Component_NSC_Standard_Post_Evolve        , Node_Component_Disk_Very_Simple_Post_Evolve , &
-       &    Node_Component_Spheroid_Very_Simple_Post_Evolve, Node_Component_Disk_Very_Simple_Post_Step   , &
-       &    Node_Component_Spheroid_Very_Simple_Post_Step
+  public :: Node_Component_Disk_Standard_Post_Evolve                      , Node_Component_Spheroid_Standard_Post_Evolve              , &
+       &    Node_Component_NSC_Standard_Post_Evolve                       , Node_Component_Disk_Very_Simple_Post_Evolve               , &
+       &    Node_Component_Spheroid_Very_Simple_Post_Evolve               , Node_Component_Disk_Very_Simple_Post_Step                 , &
+       &    Node_Component_Spheroid_Very_Simple_Post_Step                 , Node_Component_Disk_Standard_Plausibility_Angular_Momentum, &
+       &    Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum
+
+  !![
+  <enumeration docformat="rst">
+   <name>plausibilityAngularMomentum</name>
+   <description>
+   Classifications of the angular momentum of a galactic component used in judging whether the component is physically plausible
+   for radius solving.
+   </description>
+   <visibility>public</visibility>
+   <entry label="plausible"             description="The angular momentum is physically plausible."                                                           />
+   <entry label="implausibleNegligible" description="The angular momentum is implausible, but the mass of the component is negligible relative to the galaxy."/>
+   <entry label="implausible"           description="The angular momentum is implausible."                                                                    />
+  </enumeration>
+  !!]
 
   !![
   <generic identifier="historytrim">
@@ -43,6 +58,10 @@ module Node_Components_Galactic_Shared
    <instance label="NSC_Standard"         intrinsic="nodeComponentNSC"      implementation="nodeComponentNSCStandard"         accessor="NSC"      description="nuclear star cluster"/>
    <instance label="Disk_Very_Simple"     intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskVerySimple"      accessor="disk"     description="disk"                />
    <instance label="Spheroid_Very_Simple" intrinsic="nodeComponentSpheroid" implementation="nodeComponentSpheroidVerySimple"  accessor="spheroid" description="spheroid"            />
+  </generic>
+  <generic identifier="plausibility">
+   <instance label="Disk_Standard"     intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskStandard"     accessor="disk"     description="disk"    />
+   <instance label="Spheroid_Standard" intrinsic="nodeComponentSpheroid" implementation="nodeComponentSpheroidStandard" accessor="spheroid" description="spheroid"/>
   </generic>
   <generic identifier="negativegas">
    <instance label="Disk"     intrinsic="nodeComponentDisk"     implementation="nodeComponentDiskVerySimple"     accessor="disk"     default="defaultDiskComponent"     name="disk"     nameCapitalized="Disk"    />
@@ -158,5 +177,64 @@ contains
     end select
     return
   end subroutine Node_Component_{negativegas¦label}_Very_Simple_Post_Step
+
+  function Node_Component_{plausibility¦label}_Plausibility_Angular_Momentum(node,darkMatterHaloScale_,angularMomentumMinimum,angularMomentumMaximum,fractionMassNegligible) result(plausibility)
+    !!{RST
+    Classify the angular momentum of a {plausibility¦description} for the purposes of radius solving. The angular momentum is
+    implausible if it lies outside the range ``angularMomentumMinimum`` to ``angularMomentumMaximum``, in units of the angular
+    momentum that the {plausibility¦description} would have on a circular orbit at the virial radius of its halo. An implausible
+    {plausibility¦description} is further classified as negligible if its mass is less than a fraction ``fractionMassNegligible``
+    of the mass of the galaxy (the summed gas and stellar masses of the disk, spheroid, and nuclear star cluster).
+    !!}
+    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+    use :: Galacticus_Nodes       , only : nodeComponentDisk            , nodeComponentSpheroid, nodeComponentNSC, treeNode, &
+         &                                 {plausibility¦implementation}
+    implicit none
+    type            (enumerationPlausibilityAngularMomentumType)                :: plausibility
+    type            (treeNode                                  ), intent(inout) :: node
+    class           (darkMatterHaloScaleClass                  ), intent(inout) :: darkMatterHaloScale_
+    double precision                                            , intent(in   ) :: angularMomentumMinimum, angularMomentumMaximum, &
+         &                                                                         fractionMassNegligible
+    class           ({plausibility¦intrinsic}                  ), pointer       :: component
+    class           (nodeComponentDisk                         ), pointer       :: disk
+    class           (nodeComponentSpheroid                     ), pointer       :: spheroid
+    class           (nodeComponentNSC                          ), pointer       :: nuclearStarCluster
+    double precision                                                            :: mass                  , massGalaxy            , &
+         &                                                                         angularMomentumScale
+
+    plausibility =  plausibilityAngularMomentumPlausible
+    component    => node%{plausibility¦accessor}()
+    select type (component)
+    class is ({plausibility¦implementation})
+       mass=+component%massStellar() &
+            &+component%massGas    ()
+       if (mass >= 0.0d0 .and. component%angularMomentum() > 0.0d0) then
+          angularMomentumScale=+mass                                      &
+               &               *darkMatterHaloScale_%radiusVirial  (node) &
+               &               *darkMatterHaloScale_%velocityVirial(node)
+          if     (                                                                           &
+               &   component%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
+               &  .or.                                                                       &
+               &   component%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
+               & ) then
+             disk               => node%disk    ()
+             spheroid           => node%spheroid()
+             nuclearStarCluster => node%NSC     ()
+             massGalaxy         =  +disk              %massStellar() &
+                  &                +disk              %massGas    () &
+                  &                +spheroid          %massStellar() &
+                  &                +spheroid          %massGas    () &
+                  &                +nuclearStarCluster%massStellar() &
+                  &                +nuclearStarCluster%massGas    ()
+             if (mass < fractionMassNegligible*massGalaxy) then
+                plausibility=plausibilityAngularMomentumImplausibleNegligible
+             else
+                plausibility=plausibilityAngularMomentumImplausible
+             end if
+          end if
+       end if
+    end select
+    return
+  end function Node_Component_{plausibility¦label}_Plausibility_Angular_Momentum
 
 end module Node_Components_Galactic_Shared

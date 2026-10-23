@@ -11,7 +11,7 @@
   <componentDarkMatterProfile value="scale"   />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
-  <componentSatellite         value="null"    />
+  <componentSatellite         value="orbiting"/>
   <componentSpheroid          value="null"    />
   <componentSpin              value="null"    />
 

@@ -204,7 +204,7 @@
   <hotHaloRamPressureStripping value="font2008">
     <solverFailureIsFatal value="false"/>
   </hotHaloRamPressureStripping>
-  <hotHaloRamPressureForce value="relativePosition"/>
+  <hotHaloRamPressureForce value="orbitalPosition"/>
   <hotHaloRamPressureTimescale value="ramPressureAcceleration"/>
   
   <!-- Galactic structure solver options -->
