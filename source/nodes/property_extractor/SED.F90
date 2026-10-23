@@ -989,9 +989,6 @@ contains
        if (self%resolution < 0.0d0) then
           ! Full resolution SED.
           wavelength=self%wavelengths_(jWavelength(iWavelength))
-          ! Evaluate the hoisted postprocessing multiplier for this cell. Any age may be used here as the multiplier is known to
-          ! be independent of age in this case.
-          if (multiplierIsHoisted) multiplierHoisted=sedMultiplier(wavelength,self%agePopulationMaximum)
        else
           ! Finite resolution SED.
           wavelengthMinimum=wavelengthMinima(iWavelength)*expansionFactor
@@ -1007,6 +1004,17 @@ contains
        if (timeMaximum <= timeMinimum) then
           sedLuminosityMean(iWavelength,iTime,iMetallicity)=0.0d0
           cycle
+       end if
+       ! Evaluate the postprocessing multiplier for this cell where it has been hoisted out of the integrals below. Any age may
+       ! be used, as the multiplier is known to be independent of age in this case. Where the multiplier is zero so is the cell:
+       ! the integrals are skipped, as the integrand was identically zero before the multiplier was hoisted out of it, and would
+       ! otherwise now be integrated in full only to be multiplied by zero.
+       if (multiplierIsHoisted) then
+          multiplierHoisted=sedMultiplier(wavelength,self%agePopulationMaximum)
+          if (multiplierHoisted == 0.0d0) then
+             sedLuminosityMean(iWavelength,iTime,iMetallicity)=0.0d0
+             cycle
+          end if
        end if
        ! Determine metallicities.
        if (iMetallicity == 1) then
