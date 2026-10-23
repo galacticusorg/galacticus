@@ -673,15 +673,15 @@ program Test_Mass_Distributions
        positionZero=[0.0d0,0.0d0,0.0d0]
        do j=1,4
           position=[radii(j),0.0d0,0.0d0]
-          call Assert(                                                                                                                     &
-               &      "Truncated, dimensionful profile, β="//trim(labelsBeta(i))//", potential at r="//trim(labelsRadius(j))        , &
-               &      +(                                                                                                                   &
-               &        +massDistribution_%potential(position    )                                                                         &
-               &        -massDistribution_%potential(positionZero)                                                                         &
-               &       )                                                                                                                   &
-               &      /gravitationalConstant_internal                                                                                    , &
-               &      potentialsTarget(j,i)                                                                                              , &
-               &      relTol=1.0d-6                                                                                                        &
+          call Assert(                                                                                                        &
+               &      "Truncated, dimensionful profile, β="//trim(labelsBeta(i))//", potential at r="//trim(labelsRadius(j)), &
+               &      +(                                                                                                      &
+               &        +massDistribution_%potential(position    )                                                            &
+               &        -massDistribution_%potential(positionZero)                                                            &
+               &       )                                                                                                      &
+               &      /gravitationalConstant_internal                                                                       , &
+               &      potentialsTarget(j,i)                                                                                 , &
+               &      relTol=1.0d-6                                                                                           &
                &     )
        end do
        deallocate(massDistribution_)

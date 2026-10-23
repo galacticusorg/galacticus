@@ -36,22 +36,21 @@ program Test_Orbits
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , treeNode                    , &
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                 , treeNode                                       , &
        &                                    nodeComponentDarkMatterProfile
   use :: Input_Parameters          , only : inputParameters
   use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Kepler_Orbits             , only : keplerOrbit                                                   , keplerOrbitMasses                , keplerOrbitRadius
   use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
-  use :: Satellite_Orbits          , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates              , extremumPericenter               , extremumApocenter                  , &
-       &                                    Satellite_Orbit_Equivalent_Circular_Orbit_Radius
+  use :: Satellite_Orbits          , only : Satellite_Orbit_Extremum_Phase_Space_Coordinates              , extremumPericenter               , extremumApocenter                  , Satellite_Orbit_Equivalent_Circular_Orbit_Radius
   use :: ISO_Varying_String        , only : var_str
   implicit none
   type            (treeNode                                                      ), pointer      :: node
   class           (nodeComponentBasic                                            ), pointer      :: basic
   class           (nodeComponentDarkMatterProfile                                ), pointer      :: darkMatterProfile
-  double precision                                                                , parameter    :: massHost                =1.0d12, massSatellite               =0.00d0, &
-       &                                                                                            velocityFractionalRadial=0.9d00, velocityFractionalTangential=0.75d0, &
-       &                                                                                            fractionMassHostOriginal=2.0d0/3.0d0
+  double precision                                                                , parameter    :: massHost                =1.0d12      , massSatellite               =0.00d0, &
+       &                                                                                            velocityFractionalRadial=0.9d00      , velocityFractionalTangential=0.75d0, &
+       &                                                                                            fractionMassHostOriginal=2.0d00/3.0d0
   type            (darkMatterProfileDMOIsothermal                                ), pointer      :: darkMatterProfileDMO_
   type            (cosmologyParametersSimple                                     ), pointer      :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer      :: cosmologyFunctions_
@@ -59,9 +58,9 @@ program Test_Orbits
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer      :: virialDensityContrast_
   type            (keplerOrbit                                                   )               :: orbit
   type            (inputParameters                                               )               :: parameters
-  double precision                                                                               :: radiusPericenter               , velocityPericenter                 , &
-       &                                                                                            radiusApocenter                , velocityApocenter                  , &
-       &                                                                                            radiusCircular                 , fractionRadiusVirialOriginal
+  double precision                                                                               :: radiusPericenter                     , velocityPericenter                 , &
+       &                                                                                            radiusApocenter                      , velocityApocenter                  , &
+       &                                                                                            radiusCircular                       , fractionRadiusVirialOriginal
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -173,13 +172,13 @@ program Test_Orbits
   ! Φ(r_vir)=-V_vir² for the current host. Solutions found by root finding (scipy), in units of the current virial radius.
   call Unit_Tests_Begin_Group('Orbits in a more massive host')
   fractionRadiusVirialOriginal=fractionMassHostOriginal**(1.0d0/3.0d0)
-  call orbit%reset                (                                                                                                            )
-  call orbit%massesSet            (                                                     massSatellite                                        , &
-       &                                                                                massHost                    *fractionMassHostOriginal  &
+  call orbit%reset                (                                                                                                    )
+  call orbit%massesSet            (                                          massSatellite                                            ,  &
+       &                                                                     massHost                    *fractionMassHostOriginal       &
        &                          )
-  call orbit%radiusSet            (darkMatterHaloScale_%radiusVirial  (node)                             *fractionRadiusVirialOriginal         )
-  call orbit%velocityRadialSet    (darkMatterHaloScale_%velocityVirial(node)*velocityFractionalRadial    *fractionRadiusVirialOriginal         )
-  call orbit%velocityTangentialSet(darkMatterHaloScale_%velocityVirial(node)*velocityFractionalTangential*fractionRadiusVirialOriginal         )
+  call orbit%radiusSet            (darkMatterHaloScale_%radiusVirial  (node)                             *fractionRadiusVirialOriginal )
+  call orbit%velocityRadialSet    (darkMatterHaloScale_%velocityVirial(node)*velocityFractionalRadial    *fractionRadiusVirialOriginal )
+  call orbit%velocityTangentialSet(darkMatterHaloScale_%velocityVirial(node)*velocityFractionalTangential*fractionRadiusVirialOriginal )
   call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumPericenter,radiusPericenter,velocityPericenter,darkMatterHaloScale_)
   call Satellite_Orbit_Extremum_Phase_Space_Coordinates(node,orbit,extremumApocenter ,radiusApocenter ,velocityApocenter ,darkMatterHaloScale_)
   radiusCircular=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(node,orbit,darkMatterHaloScale_)

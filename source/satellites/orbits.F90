@@ -408,12 +408,12 @@ contains
          &                                                       velocityVirialOriginal, radiusVirial
 
     ! Compute the properties of the initial orbit, and the current potential.
-    radiusVirialOriginal   =gravitationalConstant_internal*orbit%massHost()/orbit%velocityScale()**2
-    velocityVirialOriginal =                                                orbit%velocityScale()    
-    radiusVirial           =darkMatterHaloScale_%radiusVirial    (currentHost)
+    radiusVirialOriginal   =  gravitationalConstant_internal*orbit%massHost()/orbit%velocityScale()**2
+    velocityVirialOriginal =                                                  orbit%velocityScale()
+    radiusVirial           =  darkMatterHaloScale_%radiusVirial(currentHost)
     ! The potential is defined such that Φ(r_vir)=-V_vir² for the current host, so its current mass is used here.
-    basicHost              =>                     currentHost%basic(           )
-    potentialHost          =Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,basicHost%mass())
+    basicHost              => currentHost%basic()
+    potentialHost          =  Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,basicHost%mass())
     ! Create a new orbit with an adjusted energy.
     orbitCurrent=orbit
     call orbitCurrent%energySet(orbit%energy()+velocityVirialOriginal**2+potentialHost)
