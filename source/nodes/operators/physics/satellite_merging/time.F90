@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that triggers merging of satellites based on a merging time.
   !!}
@@ -150,16 +152,24 @@ contains
     implicit none
     class(nodeOperatorSatelliteMergingTime), intent(inout), target  :: self
     type (treeNode                        ), intent(inout), target  :: node
+    type (treeNode                        )               , pointer :: nodeSatellite
 
+    ! Set the merging time of a non-primary progenitor. Its host, the primary progenitor, precedes it in the tree walk, so has
+    ! already been initialized.
     if     (                                               &
-         &                     node%isSatellite        ()  &
-         &  .or.                                           &
-         &   (                                             &
+         &     .not.           node%isSatellite        ()  &
+         &    .and.                                        &
          &     .not.           node%isPrimaryProgenitor()  &
          &    .and.                                        &
          &          associated(node%parent               ) &
-         &   )                                             &
          & ) call self%timeMergingSet(node)
+    ! Set the merging times of any satellites of this node. Satellites are visited before their host in the tree walk, so their
+    ! merging times are set here, once the host has been initialized (e.g. once its dark matter profile scale radius is set).
+    nodeSatellite => node%firstSatellite
+    do while (associated(nodeSatellite))
+       call self%timeMergingSet(nodeSatellite)
+       nodeSatellite => nodeSatellite%sibling
+    end do
     return
   end subroutine satelliteMergingTimeNodeTreeInitialize
   
