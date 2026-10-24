@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`ludlow_mass-concentration-redshift_2014` algorithm.
   !!}
@@ -126,46 +128,8 @@ contains
           do while (associated(nodeChild))
              basicChild => nodeChild%basic()
              if (basicChild%time() < timeFormation) then
-                ! Interpolate in mass for primary progenitors.
-                massSiblings =  0.0d0
-                nodeSibling  => nodeChild
-                do while (associated(nodeSibling))
-                   basicSibling =>  nodeSibling %basic  ()
-                   massSiblings =  +massSiblings                                                                                                                                                         &
-                        &          +Dark_Matter_Profile_Mass_Definition(                                                                                                                                 &
-                        &                                                                         nodeSibling                                                                                          , &
-                        &                                                                      +  states(stateCount)%self                    %densityContrast                                            &
-                        &                                                                      *(                                                                                                        &
-                        &                                                                        +states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicSibling%time())     &
-                        &                                                                        /states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=             1.0d0 )     &
-                        &                                                                       )                                                                                                   **2  &
-                        &                                                                      *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicSibling%time())**3, &
-                        &                                               cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                            , &
-                        &                                               cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                             , &
-                        &                                               virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                            &
-                        &                                              )
-                   nodeSibling  =>  nodeSibling %sibling
-                end do
-                massAccretionRate=+(                                                                                                                                                                     &
-                     &              +Dark_Matter_Profile_Mass_Definition(                                                                                                                                &
-                     &                                                                             nodeBranch                                                                                          , &
-                     &                                                                          +  states(stateCount)%self                    %densityContrast                                           &
-                     &                                                                          *(                                                                                                       &
-                     &                                                                            +states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicBranch%time())     &
-                     &                                                                            /states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=            1.0d0 )     &
-                     &                                                                           )                                                                                                  **2  &
-                     &                                                                          *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicBranch%time())**3, &
-                     &                                                   cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                           , &
-                     &                                                   cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                            , &
-                     &                                                   virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                           &
-                     &                                                  )                                                                                                                             &
-                     &              -massSiblings                                                                                                                                                     &
-                     &             )                                                                                                                                                                  &
-                     &            /(                                                                                                                                                                  &
-                     &              +basicBranch%time()                                                                                                                                               &
-                     &              -basicChild %time()                                                                                                                                               &
-                     &             )
-                massProgenitor   =+Dark_Matter_Profile_Mass_Definition(                                                                                                                               &
+                ! Find the mass of the progenitor.
+                massProgenitor   = Dark_Matter_Profile_Mass_Definition(                                                                                                                               &
                      &                                                                           nodeChild                                                                                          , &
                      &                                                                        +  states(stateCount)%self                    %densityContrast                                          &
                      &                                                                        *(                                                                                                      &
@@ -176,15 +140,63 @@ contains
                      &                                                 cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                          , &
                      &                                                 cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                           , &
                      &                                                 virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                          &
-                     &                                                )                                                                                                                               &
-                     &            +massAccretionRate                                                                                                                                                  &
-                     &            *(                                                                                                                                                                  &
-                     &              +timeFormation                                                                                                                                                    &
-                     &              -basicChild   %time()                                                                                                                                             &
-                     &             )
-                if (massProgenitor >= states(stateCount)%massLimit) &
-                     & massBranch=+massBranch                       &
-                     &            +massProgenitor
+                     &                                                )
+                if (nodeChild%isPrimaryProgenitor()) then
+                   ! Interpolate in mass for primary progenitors. The accretion rate is that of the primary progenitor alone, so
+                   ! the masses of all of its siblings are subtracted from that of the branch.
+                   massSiblings =  massProgenitor
+                   nodeSibling  => nodeChild%sibling
+                   do while (associated(nodeSibling))
+                      basicSibling =>  nodeSibling %basic  ()
+                      massSiblings =  +massSiblings                                                                                                                                                         &
+                           &          +Dark_Matter_Profile_Mass_Definition(                                                                                                                                 &
+                           &                                                                         nodeSibling                                                                                          , &
+                           &                                                                      +  states(stateCount)%self                    %densityContrast                                            &
+                           &                                                                      *(                                                                                                        &
+                           &                                                                        +states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicSibling%time())     &
+                           &                                                                        /states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=             1.0d0 )     &
+                           &                                                                       )                                                                                                   **2  &
+                           &                                                                      *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicSibling%time())**3, &
+                           &                                               cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                            , &
+                           &                                               cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                             , &
+                           &                                               virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                            &
+                           &                                              )
+                      nodeSibling  =>  nodeSibling %sibling
+                   end do
+                   massAccretionRate=+(                                                                                                                                                                     &
+                        &              +Dark_Matter_Profile_Mass_Definition(                                                                                                                                &
+                        &                                                                             nodeBranch                                                                                          , &
+                        &                                                                          +  states(stateCount)%self                    %densityContrast                                           &
+                        &                                                                          *(                                                                                                       &
+                        &                                                                            +states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basicBranch%time())     &
+                        &                                                                            /states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=            1.0d0 )     &
+                        &                                                                           )                                                                                                  **2  &
+                        &                                                                          *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basicBranch%time())**3, &
+                        &                                                   cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                           , &
+                        &                                                   cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                            , &
+                        &                                                   virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                           &
+                        &                                                  )                                                                                                                             &
+                        &              -massSiblings                                                                                                                                                     &
+                        &             )                                                                                                                                                                  &
+                        &            /(                                                                                                                                                                  &
+                        &              +basicBranch%time()                                                                                                                                               &
+                        &              -basicChild %time()                                                                                                                                               &
+                        &             )
+                   massProgenitor   =+massProgenitor               &
+                        &            +massAccretionRate            &
+                        &            *(                            &
+                        &              +           timeFormation   &
+                        &              -basicChild%time         () &
+                        &             )
+                   if (massProgenitor >= states(stateCount)%massLimit) &
+                        & massBranch=+massBranch                       &
+                        &            +massProgenitor
+                else
+                   ! No interpolation in mass for non-primary progenitors.
+                   if (massProgenitor >= states(stateCount)%massLimit) &
+                        & massBranch=+massBranch                       &
+                        &            +massProgenitor
+                end if
              end if
              nodeChild => nodeChild%sibling
           end do
