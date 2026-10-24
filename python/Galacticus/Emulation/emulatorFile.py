@@ -27,6 +27,7 @@ from dataclasses import dataclass, field, fields
 
 import h5py
 import numpy as np
+from scipy.linalg import solve_triangular
 
 __all__ = [
     'FORMAT_NAME',
@@ -350,7 +351,7 @@ def predict(emulator, quantiles):
     for k, component in enumerate(emulator.components):
         cross = kernel_matern52(quantiles, emulator.inputs, component.log_amplitude, component.log_length_scales)
         factor = _cholesky_factor(emulator, component)
-        solved = np.linalg.solve(factor, cross.T)
+        solved = solve_triangular(factor, cross.T, lower=True)
         means[:, k] = cross @ component.alpha
         variances[:, k] = np.maximum(np.exp(component.log_amplitude) - np.sum(solved**2, axis=0), 0.0)
     coefficients = emulator.coefficient_mean + emulator.coefficient_scale * means
