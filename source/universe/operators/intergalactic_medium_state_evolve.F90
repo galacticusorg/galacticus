@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !+ Contributions to this file made by: Daniel McAndrew.
 
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhoto      , atomicCrossSectionIonizationPhotoClass
@@ -670,7 +672,7 @@ contains
                    &                      *densityThisIon                                                                               &
                    &                      *densityElectron
               heatingRate                =+heatingRate                                                                                  &
-                   &                      -self_%atomicIonizationPotential_      %potential(atomicNumber,electronNumber +1            ) &
+                   &                      +self_%atomicIonizationPotential_      %potential(atomicNumber,electronNumber               ) &
                    &                      *electronVolt                                                                                 &
                    &                      *collisionIonizationRateFrom                                                                  &
                    &                      *gigaYear                                                                                     &
@@ -702,7 +704,7 @@ contains
                    &                      *densityElectron
               heatingRate                =+heatingRate                                                                                                      &
                    &                      -self_%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
-                   &                      *densityThisIon                                                                                                   &
+                   &                      *densityUpperIon                                                                                                  &
                    &                      *densityElectron                                                                                                  &
                    &                      *gigaYear                                                                                                         &
                    &                      *centi**3                                                                                                         &
@@ -727,7 +729,7 @@ contains
                    &                            *densityUpperIon                                                                            &
                    &                            *densityElectron
               heatingRate                      =+heatingRate                                                                                &
-                   &                            -dielectronicRecombinationRateHeIEnergyLoss                                                 &
+                   &                            +dielectronicRecombinationRateHeIEnergyLoss                                                 &
                    &                            *electronVolt                                                                               &
                    &                            *recombinationDielectronicRateFrom                                                          &
                    &                            *gigaYear                                                                                   &
@@ -814,6 +816,9 @@ contains
                 &                                                          electronNumber, &
                 &                                                          temperature     &
                 &                                                         )                &
+                &      *densityThisIon                                                     &
+                &      *densityElectron                                                    &
+                &      *gigaYear                                                           &
                 &      *clumpingFactor
            ! Compute net rate of change of density.
            propertiesRateOfChange(iProperty)=                                                   &
