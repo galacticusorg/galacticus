@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An accretion flow mass distribution using the framework of :cite:t:`shi_outer_2016`.
   !!}
@@ -357,10 +359,11 @@ contains
     ! Compute the scaled cosmological constant parameter ("w" in the notation of Shi 2016, Table A1).
     self%cosmologicalConstantScaled=+1.0d0/self%cosmologyFunctions_ %OmegaMatterEpochal(self%time)                &
          &                          -1.0d0
-    ! Compute expansion factor, and scaled expansion factor ("y" in the notation of Shi 2016, Table A1).
+    ! Compute expansion factor, and scaled expansion factor ("u" in the notation of Shi 2016, Table A1). Shi (2016) defines u=w^⅓ a
+    ! with a=1 at the epoch of observation, so u=w^⅓ with w evaluated at that epoch. (Multiplying by our expansion factor, which
+    ! is unity at z=0, would be correct only for observation at z=0.)
     expansionFactorOriginal        =+self%cosmologyFunctions_       %expansionFactor   (self%time)
-    self%expansionFactorScaled     =+self%cosmologicalConstantScaled                              **(1.0d0/3.0d0) &
-         &                          *expansionFactorOriginal
+    self%expansionFactorScaled     =+self%cosmologicalConstantScaled                              **(1.0d0/3.0d0)
     ! Find the scaled time at the current epoch.
     self%timeNowScaled             =+sqrt(1.0d0-self %cosmologyFunctions_%OmegaMatterEpochal(self%time              )) & ! Equation A5 from Shi (2016).
          &                          *           self %cosmologyFunctions_%expansionRate     (expansionFactorOriginal)  &
