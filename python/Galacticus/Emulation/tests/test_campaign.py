@@ -290,3 +290,29 @@ def test_run_local_executable_missing(workspace):
     assert 'Failed to start the run' in (path / run.log_file).read_text()
     assert summary.get('submitted', 0) == 0
 
+
+def _task_list(job):
+    """Extract the task list file name from an array job's command."""
+    for line in job['command'].splitlines():
+        if line.startswith('read -r changeFile logFile'):
+            return line.split(')p" ')[1].rstrip(')"').strip("'")
+    raise AssertionError('no task list in the job command')
+
+
+def test_task_lists_are_per_submission(workspace):
+    """A later submission writes a new task list, leaving that of an earlier (possibly still queued) array job intact."""
+    path, campaign, _ = workspace
+    manager = FakeManager()
+    campaign.submit(manager, indices=[0, 1])
+    first = _task_list(manager.jobs[0])
+    content = open(first).read()
+    campaign.submit(manager, indices=[2])
+    second = _task_list(manager.jobs[1])
+    assert first != second
+    assert open(first).read() == content
+    # The earlier job's tasks still run correctly.
+    environment = dict(os.environ, SLURM_ARRAY_TASK_ID='1')
+    completed = subprocess.run(['bash', '-c', manager.jobs[0]['command']], env=environment, capture_output=True, text=True)
+    assert completed.returncode == 0, completed.stderr
+    campaign.refresh()
+    assert campaign.runs[1].status == 'complete'

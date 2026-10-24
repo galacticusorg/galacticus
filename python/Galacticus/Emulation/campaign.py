@@ -328,9 +328,12 @@ class Campaign:
 
         The array index is the run index. Each array task reads its change and log file from a task list written
         alongside the manifest (one line per run, in run order), runs Galacticus, and appends the exit status to its log.
+        Each submission writes its own task list, so that a later submission can not change the list from which the tasks
+        of an earlier array job, which may still be queued, read.
         """
-        task_list = os.path.splitext(os.path.abspath(self.manifest_file))[0] + '.tasks'
-        with open(task_list, 'w') as handle:
+        root = os.path.splitext(os.path.abspath(self.manifest_file))[0]
+        descriptor, task_list = tempfile.mkstemp(prefix=os.path.basename(root) + '.', suffix='.tasks', dir=os.path.dirname(root))
+        with os.fdopen(descriptor, 'w') as handle:
             for run in self.runs:
                 handle.write(f'{run.change_file} {run.log_file}\n')
         base = shlex.quote(self.base_parameters)
