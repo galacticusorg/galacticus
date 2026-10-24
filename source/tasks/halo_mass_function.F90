@@ -592,6 +592,11 @@ contains
     integer         (c_size_t                               )                                        :: iOutput                                                , outputCount                  , &
          &                                                                                              iMass                                                  , massCount                    , &
          &                                                                                              iAlternate
+    ! Copies of the output and mass indices for use in the integrand function. That function accesses variables of this
+    ! procedure by host association, which gives it the original variables, not the private copies held by each OpenMP thread,
+    ! so these threadprivate copies are used instead.
+    integer         (c_size_t                               )                                 , save :: iOutputIntegrand                                       , iMassIntegrand
+    !$omp threadprivate(iOutputIntegrand,iMassIntegrand)
     double precision                                                                                 :: massHaloBinMinimum                                     , massHaloBinMaximum           , &
          &                                                                                              massHaloLogarithmicInterval                            , massHalfMode                 , &
          &                                                                                              massCritical                                           , massQuarterMode              , &
@@ -905,11 +910,14 @@ contains
              massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%nodeBase,virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput),cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,virialDensityContrast_=virialDensityContrast_)
           end do
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
-          if (self%includeUnevolvedSubhaloMassFunction)                                                                                   &
-               & massFunctionCumulativeSubhalo          (iMass,iOutput)=integrator_%integrate(                                            &
-               &                                                                              log(massHalo(1)/subhaloMassMaximum       ), &
-               &                                                                              log(            haloMassEffectiveInfinity)  &
-               &                                                                             )
+          if (self%includeUnevolvedSubhaloMassFunction) then
+             iOutputIntegrand                                     =iOutput
+             iMassIntegrand                                       =iMass
+             massFunctionCumulativeSubhalo          (iMass,iOutput)=integrator_%integrate(                                            &
+                  &                                                                   log(massHalo(1)/subhaloMassMaximum       ), &
+                  &                                                                   log(            haloMassEffectiveInfinity)  &
+                  &                                                                  )
+          end if
           !![
 	  <objectDestructor name="massDistribution_"/>
           !!]
@@ -1096,9 +1104,9 @@ contains
       ! Extract integrand parameters.
       mass=exp(logMass)
       ! Return the differential halo mass function multiplied by the integrated unevolved subhalo mass function in such hosts.
-      subhaloMassFunctionIntegrand=+                                                                                                          mass                     &
-           &                       *haloMassFunction_            %differential(outputTimes(iOutput)                                          ,mass,node=tree%nodeBase) &
-           &                       *unevolvedSubhaloMassFunction_%integrated  (outputTimes(iOutput),massHalo(iMass),haloMassEffectiveInfinity,mass                   )
+      subhaloMassFunctionIntegrand=+                                                                                                                             mass                     &
+           &                       *haloMassFunction_            %differential(outputTimes(iOutputIntegrand)                                                   ,mass,node=tree%nodeBase) &
+           &                       *unevolvedSubhaloMassFunction_%integrated  (outputTimes(iOutputIntegrand),massHalo(iMassIntegrand),haloMassEffectiveInfinity,mass                   )
       return
     end function subhaloMassFunctionIntegrand
 
