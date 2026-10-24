@@ -190,8 +190,12 @@ module Linear_Algebra
   type, public, extends(matrix) :: matrixCholesky
      !!{RST
      Matrix class for the Cholesky decomposition, :math:`A = L L^\mathrm{T}`, of a symmetric, positive-definite matrix
-     :math:`A`. The lower triangle of the stored matrix holds :math:`L`. The ``inverse`` and ``logarithmicDeterminant``
-     methods return those of :math:`A`; other methods inherited from ``matrix`` act on the stored decomposition.
+     :math:`A`. The diagonal and lower triangle of the stored matrix hold :math:`L`, while its strict upper triangle still holds
+     that of :math:`A` (as left by GSL). The ``squareSystemSolve``, ``lowerTriangularSolve``, ``inverse`` and
+     ``logarithmicDeterminant`` methods use only :math:`L` (the last two return the inverse and log-determinant of :math:`A`),
+     and assignment to an array gives :math:`L` (with the upper triangle zeroed). All other methods inherited from
+     ``matrix`` (e.g. ``determinant``, ``covarianceProduct``, ``linearSystemSolve``, ``eigenSystem``, and the arithmetic
+     operators) act on the stored matrix as it is, which is neither :math:`A` nor :math:`L`, and so must not be used.
      !!}
      private
    contains
