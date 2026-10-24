@@ -66,7 +66,7 @@ contains
     implicit none
     type            (kinematicsDistributionHeated)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
-    logical                                                       :: velocityDispersionApproximate
+    logical                                                       :: velocityDispersionApproximate      , tolerateVelocityDispersionFailure
     type            (varying_string              )                :: nonAnalyticSolver
     double precision                                              :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
 
@@ -96,6 +96,16 @@ contains
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>tolerateVelocityDispersionFailure</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>
+      If ``true``, tolerate failures in the numerical solution of the Jeans equation for the velocity dispersion: an interval of
+      the integral which fails is taken to contribute nothing, and an undefined velocity dispersion (non-zero Jeans integral where
+      the density is zero) is set to zero, instead of aborting.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>nonAnalyticSolver</name>
       <defaultValue>var_str('fallThrough')</defaultValue>
       <source>parameters</source>
@@ -104,24 +114,25 @@ contains
       </description>
     </inputParameter>
     !!]
-    self=kinematicsDistributionHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum)
+    self=kinematicsDistributionHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityDispersionFailure)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function heatedConstructorParameters
   
-  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum) result(self)
+  function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,toleranceRelativeVelocityDispersionMaximum,tolerateVelocityDispersionFailure) result(self)
     !!{RST
     Constructor for the :galacticus-class:`kinematicsDistributionHeated` kinematic distribution class.
     !!}
     implicit none
     type            (kinematicsDistributionHeated     )                :: self
     logical                                            , intent(in   ) :: velocityDispersionApproximate
-    double precision                                   , intent(in   ) :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
-    type            (enumerationNonAnalyticSolversType), intent(in   ) :: nonAnalyticSolver
+    double precision                                   , intent(in   )           :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
+    logical                                            , intent(in   ), optional :: tolerateVelocityDispersionFailure
+    type            (enumerationNonAnalyticSolversType), intent(in   )           :: nonAnalyticSolver
     !![
-    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum"/>
+    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum, tolerateVelocityDispersionFailure"/>
     !!]
 
     return
