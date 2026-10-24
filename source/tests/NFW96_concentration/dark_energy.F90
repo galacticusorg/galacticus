@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests the :cite:t:`navarro_structure_1996` halo concentration algorithm in a dark energy Universe. Comparisons are made to the ``charden`` code written by Julio Navarro.
 !!}
@@ -46,7 +48,7 @@ program Test_NFW96_Concentration_Dark_Energy
   use :: String_Handling                     , only : operator(//)                                                , String_Superscript
   use :: Transfer_Functions                  , only : transferFunctionBBKS
   use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group               , Unit_Tests_End_Group               , Unit_Tests_Finish
-  use :: Virial_Density_Contrast             , only : virialDensityContrastFixed                                  , fixedDensityTypeCritical
+  use :: Virial_Density_Contrast             , only : virialDensityContrastFixed                                  , fixedDensityTypeCritical             , virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   implicit none
   type            (treeNode                                                    ), pointer                 :: node
   class           (nodeComponentBasic                                          ), pointer                 :: basic
@@ -64,12 +66,15 @@ program Test_NFW96_Concentration_Dark_Energy
   type            (darkMatterParticleCDM                                       )                          :: darkMatterParticle_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: criticalOverdensity_
   type            (virialDensityContrastFixed                                  )                          :: virialDensityContrast_
-  type            (darkMatterProfileConcentrationNFW1996                       )                          :: darkMatterProfileConcentration_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                        :: virialDensityContrastSphericalCollapse_
+  type            (darkMatterProfileConcentrationNFW1996                       )                          :: darkMatterProfileConcentration_                                                                                     , &
+       &                                                                                                     darkMatterProfileConcentrationVirial_
   type            (varying_string                                              )                          :: message                                                                                                             , &
        &                                                                                                     parameterFile
   type            (inputParameters                                             )                          :: parameters
   integer                                                                                                 :: iMass
-  double precision                                                                                        :: ourConcentration
+  double precision                                                                                        :: ourConcentration                                                                                                    , &
+       &                                                                                                     ourConcentrationVirial
   character       (len=2                                                       )                          :: label
 
   ! Set verbosity level.
@@ -214,6 +219,27 @@ program Test_NFW96_Concentration_Dark_Energy
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="virialDensityContrastSphericalCollapse_">
+   <constructor>
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                             &amp;
+     &amp;                                                        tableStore                              =.true.                             , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                  &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileConcentrationVirial_"  >
+   <constructor>
+    darkMatterProfileConcentrationNFW1996                        (                                                                              &amp;
+     &amp;                                                        f                                       =0.01d0                             , &amp;
+     &amp;                                                        C                                       =3.00d3                             , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
+     &amp;                                                        criticalOverdensity_                    =criticalOverdensity_               , &amp;
+     &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVariance_          , &amp;
+     &amp;                                                        virialDensityContrast_                  =virialDensityContrastSphericalCollapse_&amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
   !!]
   ! Loop over halo masses.
   do iMass=1,size(chardenLogHaloMass)
@@ -225,6 +251,12 @@ program Test_NFW96_Concentration_Dark_Energy
      write (label,'(i2)') chardenLogHaloMass(iMass)
      message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙/h halo concentration at z=0"
      call Assert(char(message),ourConcentration,chardenConcentrationZ0(iMass),relTol=0.02d0)
+     ! The concentration is defined relative to 200 times the critical density whatever virial density contrast is used for
+     ! the halo itself (the node's mass is taken to be already in the 200c definition), so must be unchanged when the
+     ! spherical collapse virial density contrast is supplied instead.
+     ourConcentrationVirial=darkMatterProfileConcentrationVirial_%concentration(node)
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙/h halo concentration at z=0 [independent of the virial density contrast]"
+     call Assert(char(message),ourConcentrationVirial,ourConcentration,relTol=1.0d-6)
      ! Compute and compare concentration at z=3.
      call basic%timeSet(cosmologyFunctions_%cosmicTime(0.25d0))
      ourConcentration=darkMatterProfileConcentration_%concentration(node)
