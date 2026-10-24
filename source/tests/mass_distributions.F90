@@ -198,6 +198,9 @@ program Test_Mass_Distributions
      call Assert("Radius enclosing density",sidmParametricTableRadiusDensity,sidmParametricTableRadius             ,relTol=1.0d-2)
      ! Also test the central density is respected when seeking the radius enclosing a density that exceeds the central density.
      call Assert("Radius enclosing density (central)",massDistribution_%radiusEnclosingDensity(1.0d2),0.0d0,absTol=1.0d-6)
+     ! Test the near-central series solution for the radius enclosing a mean density just below the central density
+     ! (ρ̅=0.9995ρc, with ρc=2 here). The target radius was found by numerical quadrature and root finding.
+     call Assert("Radius enclosing density (near-central)",massDistribution_%radiusEnclosingDensity(1.999d0),3.334667239620318d-4,relTol=1.0d-3)
   end select
   nullify   (kinematicsDistribution_)
   deallocate(massDistribution_      )

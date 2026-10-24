@@ -306,13 +306,7 @@ contains
        radius=0.0d0
     else if (density > self%densityCentral*(1.0d0-epsilonDeltaDensityFractional)) then
        ! For densities close to, but below the central density, use a series solution.
-       radius=+0.5d0                       &
-            & *(                           &
-            &   +self%radiusScale          &
-            &   -self%radiusCore           &
-            &   *     density              &
-            &   /self%densityNormalization &
-            &  )
+       radius=SIDMParametricProfileRadiusEnclosingDensitySeries(self,density)
     else
        radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
     end if
@@ -334,18 +328,55 @@ contains
        radius=+0.0d0
     else if (density >  self%densityCentral*(1.0d0-epsilonDeltaDensityFractional)) then
        ! For densities close to, but below the central density, use a series solution.
-       radius=+0.5d0                       &
-            & *(                           &
-            &   +self%radiusScale          &
-            &   -self%radiusCore           &
-            &   *     density              &
-            &   /self%densityNormalization &
-            &  )
+       radius=SIDMParametricProfileRadiusEnclosingDensitySeries(self,density)
     else
        radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
     end if
     return
   end function SIDMParametricProfileRadiusEnclosingDensityNumerical
+
+  double precision function SIDMParametricProfileRadiusEnclosingDensitySeries(self,density) result(radius)
+    !!{RST
+    Computes the radius enclosing a mean density just below the central density for SIDM parametric mass distributions, using
+    the leading order of a series expansion. Writing :math:`\delta=1-\bar{\rho}/\rho_\mathrm{c}`, the mean enclosed density is
+    :math:`\bar{\rho} = \rho_\mathrm{c} [1 - (3/2) r/r_\mathrm{s}]` for :math:`\beta>1`, :math:`\bar{\rho} = \rho_\mathrm{c} [1 -
+    (3/4) (2+r_\mathrm{s}/r_\mathrm{c}) r/r_\mathrm{s}]` for :math:`\beta=1`, and :math:`\bar{\rho} = \rho_\mathrm{c} [1 - 3
+    (r/r_\mathrm{c})^\beta/\beta/(3+\beta)]` for :math:`\beta<1`.
+    !!}
+    implicit none
+    class           (massDistributionSIDMParametricProfile), intent(inout) :: self
+    double precision                                       , intent(in   ) :: density
+    double precision                                                       :: densityDeficitFractional
+
+    densityDeficitFractional=+1.0d0               &
+         &                   -density             &
+         &                   /self%densityCentral
+    if      (self%beta > 1.0d0) then
+       radius=+2.0d0                    &
+            & /3.0d0                    &
+            & *self%radiusScale         &
+            & *densityDeficitFractional
+    else if (self%beta < 1.0d0) then
+       radius=+self%radiusCore                    &
+            & *(                                  &
+            &   +densityDeficitFractional         &
+            &   *self%beta                        &
+            &   *(3.0d0+self%beta)                &
+            &   /3.0d0                            &
+            &  )**(1.0d0/self%beta)
+    else
+       radius=+4.0d0                    &
+            & /3.0d0                    &
+            & *self%radiusScale         &
+            & *densityDeficitFractional &
+            & /(                        &
+            &   +2.0d0                  &
+            &   +self%radiusScale       &
+            &   /self%radiusCore        &
+            &  )
+    end if
+    return
+  end function SIDMParametricProfileRadiusEnclosingDensitySeries
 
   subroutine SIDMParametricProfileParameters(self,densityNormalization,radiusNormalization,parameters,container)
     !!{RST
