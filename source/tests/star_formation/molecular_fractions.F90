@@ -65,6 +65,7 @@ program Test_Star_Formation_Molecular_Fractions
   use :: Numerical_Constants_Math                 , only : Pi
   use :: Numerical_Constants_Prefixes             , only : giga                                         , mega
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksBlitz2006, starFormationRateSurfaceDensityDisksKrumholz2009
+  use :: Star_Formation_Rate_Krumholz2009_Utilities, only : krumholz2009MolecularFractionSlow
   use :: Unit_Tests                               , only : Assert                                       , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group              , Unit_Tests_Finish
   implicit none
   type            (inputParameters                                 )                 :: parameters                            , parametersDefault
@@ -296,6 +297,15 @@ program Test_Star_Formation_Molecular_Fractions
   call Assert('fully molecular at high surface density',krumholz2009_%rate(nodeCompressedTwenty,radiiKrumholz(1)*radiusScale/20.0d0),frequencyStarFormation*surfaceDensityGas_*(surfaceDensityGas_/surfaceDensityTransition)**0.33d0,relTol=toleranceLimit)
   ! In the low surface density limit the molecular fraction, and so the rate, vanishes.
   call Assert('vanishing molecular fraction at low surface density',krumholz2009_%rate(node,20.0d0*radiusScale),0.0d0,absTol=1.0d-3)
+  call Unit_Tests_End_Group()
+  ! At large s (s≥10) the molecular fraction is computed from the leading term of the series expansion of the full expression.
+  ! It must be continuous with the full expression at s=10, and agree with the full expression beyond (reference values from
+  ! the full expression evaluated with mpmath at 30 digits; the neglected terms are of relative order 10⁻⁴ at s=10).
+  call Unit_Tests_Begin_Group("Krumholz et al. (2009) molecular fraction at large s")
+  call Assert('continuous at s=10'           ,krumholz2009MolecularFractionSlow(10.0d0*(1.0d0+1.0d-12)),krumholz2009MolecularFractionSlow(10.0d0*(1.0d0-1.0d-12)),relTol=1.0d-3)
+  call Assert('full expression at s=10 (below)',krumholz2009MolecularFractionSlow(10.0d0*(1.0d0-1.0d-12)),2.144399168887882d-5                                   ,relTol=1.0d-6)
+  call Assert('large-s form at s=20'         ,krumholz2009MolecularFractionSlow(20.0d0                 ),6.820825633365173d-7                                   ,relTol=1.0d-5)
+  call Assert('large-s form at s=50'         ,krumholz2009MolecularFractionSlow(50.0d0                 ),7.060258861563530d-9                                   ,relTol=1.0d-5)
   call Unit_Tests_End_Group()
   ! Clean up.
   call node                %destroy()
