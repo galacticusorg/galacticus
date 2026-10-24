@@ -77,9 +77,9 @@
 
    .. math::
 
-      \log_{10} c = A + B \log_{10} M_\mathrm{halo}.
+      \log_{10} c = A + B \log_{10} \left( M_\mathrm{halo} / [10^{12} h^{-1} \mathrm{M}_\odot] \right),
 
-   The parameters are a function of redshift, :math:`z`. We use the following fit suggested by :cite:t:`dutton_cold_2014` results:
+   with :math:`h=0.671`, fixed to the value of the Planck cosmology used by :cite:t:`dutton_cold_2014` (not that of the model). The parameters are a function of redshift, :math:`z`. We use the following fit suggested by :cite:t:`dutton_cold_2014` results:
 
    .. math::
 
@@ -508,7 +508,7 @@ contains
 
   function duttonMaccio2014DarkMatterProfileDefinition(self)
     !!{RST
-    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`diemer_universal_2014` algorithm.
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`dutton_cold_2014` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                     ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition
