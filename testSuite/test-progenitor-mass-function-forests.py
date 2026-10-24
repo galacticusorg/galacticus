@@ -5,10 +5,13 @@ The `progenitorMassFunction` analysis normalizes its function by the summed weig
 by walking the whole forest each time it is told that a new tree is being output. That happens once for each tree of a
 forest, so in a forest of N trees each parent used to be counted N times (fixed October 2026).
 
-This script takes the single-tree forests of `testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5` and writes two tree
-files: one with the forests as they are, and one in which each forest also contains a second tree, a single isolated halo at
-z=0 whose mass is below the range of parent masses (so it contributes neither parents nor progenitors). The progenitor mass
-functions measured from the two files must be identical.
+This script takes the single-tree forests of `testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5` and writes three tree
+files: one with the forests as they are, and two in which each forest also contains a second tree, a single isolated halo
+whose mass is below the range of parent masses (so it contributes neither parents nor progenitors). In the first the added
+tree follows the original one and exists at z=0. In the second it is the first tree of the forest and exists only at z~2,
+so that it is removed from the forest (as a finished remnant) before the progenitor output, which tests that the trees of
+the forest are left pointing to the new first tree. The progenitor mass functions measured from the three files must be
+identical.
 
 Andrew Benson, Claude
 """
@@ -24,6 +27,8 @@ import numpy as np
 TOLERANCE              = 1.0e-9
 # Mass (in the file's units, 10¹⁰ M☉/h) of the halo added to each forest, below the minimum parent mass used below.
 MASS_ADDED             = 0.1
+# Redshift of the halo added as the first tree of each forest.
+REDSHIFT_ADDED_FIRST   = 2.0
 # Redshifts of parents and progenitors. The progenitor redshift is replaced by that of the nearest snapshot.
 REDSHIFT_PARENT        = 0.0
 REDSHIFT_PROGENITOR    = 1.0
@@ -43,7 +48,9 @@ with h5py.File("data/mergerTrees/millenniumTestTreesGLC.hdf5", "r") as source:
         print(f"FAILED: expected at least 10 single-tree forests in the test file, found {len(forests)}")
         sys.exit(0)
     indexNodeNext = halos["nodeIndex"][:].max()+1
-    for addTree, fileName in ((False, "outputs/progenitorMassFunctionForestsSingle.hdf5"), (True, "outputs/progenitorMassFunctionForestsMultiple.hdf5")):
+    variants = (("Single", False, False), ("Multiple", True, False), ("MultipleFirst", True, True))
+    for label, addTree, addFirst in variants:
+        fileName = f"outputs/progenitorMassFunctionForests{label}.hdf5"
         with h5py.File(fileName, "w") as target:
             for name in source.keys():
                 if name not in ("haloTrees", "treeIndex"):
@@ -59,24 +66,28 @@ with h5py.File("data/mergerTrees/millenniumTestTreesGLC.hdf5", "r") as source:
             for i, (start, count) in enumerate(forests):
                 firstNode.append(countTotal)
                 indexTree.append(trees["treeIndex"][start == trees["firstNode"][:]][0])
-                for name in datasets:
-                    datasets[name].append(halos[name][start:start+count])
                 countAdded = 0
                 if addTree:
-                    # Add a single, isolated, low-mass halo at z=0, offset from the forest's root.
+                    # Make a single, isolated, low-mass halo, offset from the forest's root.
                     root = start+np.nonzero(descendant[start:start+count] < 0)[0][0]
                     added = {name: halos[name][root:root+1].copy() for name in datasets}
-                    added["nodeIndex"      ][0] = indexNodeNext+i
-                    added["descendentIndex"][0] = -1
-                    added["hostIndex"      ][0] = indexNodeNext+i
-                    added["nodeMass"       ][0] = MASS_ADDED
-                    added["redshift"       ][0] = 0.0
-                    added["position"       ][0] = (halos["position"][root]+1.0) % source["simulation"].attrs["boxSize"] if "boxSize" in source["simulation"].attrs else halos["position"][root]+1.0
-                    added["halfMassRadius" ][0] = 0.01
+                    added["nodeIndex"         ][0] = indexNodeNext+i
+                    added["descendentIndex"   ][0] = -1
+                    added["hostIndex"         ][0] = indexNodeNext+i
+                    added["nodeMass"          ][0] = MASS_ADDED
+                    added["redshift"          ][0] = redshifts[np.argmin(np.abs(redshifts-REDSHIFT_ADDED_FIRST))] if addFirst else 0.0
+                    added["position"          ][0] = halos["position"][root]+1.0
+                    added["halfMassRadius"    ][0] = 0.01
                     added["particleIndexCount"][0] = 0
+                    countAdded = 1
+                if addTree and addFirst:
                     for name in datasets:
                         datasets[name].append(added[name])
-                    countAdded = 1
+                for name in datasets:
+                    datasets[name].append(halos[name][start:start+count])
+                if addTree and not addFirst:
+                    for name in datasets:
+                        datasets[name].append(added[name])
                 countNodes.append(count+countAdded)
                 countTotal += count+countAdded
             for name, values in datasets.items():
@@ -127,7 +138,7 @@ def parameterFile(treeFile, outputFile):
     return path
 
 functions = {}
-for label in ("Single", "Multiple"):
+for label, addTree, addFirst in variants:
     treeFile   = f"testSuite/outputs/progenitorMassFunctionForests{label}.hdf5"
     outputFile = f"testSuite/outputs/progenitorMassFunctionForests{label}Model.hdf5"
     path       = parameterFile(treeFile, outputFile)
@@ -149,9 +160,13 @@ print("SUCCESS: models run")
 
 if not np.any(functions["Single"] > 0.0):
     print("FAILED: the progenitor mass function is empty")
-elif np.allclose(functions["Multiple"], functions["Single"], rtol=TOLERANCE, atol=0.0):
-    print(f"SUCCESS: progenitor mass function is unchanged by adding a second tree to each of {len(forests)} forests")
-else:
-    ratio = functions["Multiple"][functions["Single"] > 0.0]/functions["Single"][functions["Single"] > 0.0]
-    print(f"FAILED: progenitor mass function changes when a second tree is added to each forest (ratio {ratio.min():.4f} to {ratio.max():.4f})")
+    sys.exit(0)
+descriptions = {"Multiple": "a second tree (at z=0) is added to", "MultipleFirst": f"a first tree (at z={REDSHIFT_ADDED_FIRST:.0f}, later removed as a remnant) is added to"}
+for label, description in descriptions.items():
+    if np.allclose(functions[label], functions["Single"], rtol=TOLERANCE, atol=0.0):
+        print(f"SUCCESS: progenitor mass function is unchanged when {description} each of {len(forests)} forests")
+    else:
+        nonZero = functions["Single"] > 0.0
+        ratio   = functions[label][nonZero]/functions["Single"][nonZero]
+        print(f"FAILED: progenitor mass function changes when {description} each forest (ratio {ratio.min():.4g} to {ratio.max():.4g})")
 sys.exit(0)
