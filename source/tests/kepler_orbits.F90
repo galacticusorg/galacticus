@@ -17,19 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Kepler_Orbits
   !!{RST
   Tests for orbital parameter conversions.
   !!}
+  use :: Coordinates                     , only : assignment(=)                 , coordinateCartesian
   use :: Display                         , only : displayVerbositySet           , verbosityLevelStandard
   use :: Kepler_Orbits                   , only : keplerOrbit
   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
   use :: Numerical_Constants_Math        , only : Pi
+  use :: Vectors                         , only : Vector_Magnitude              , Vector_Product
   use :: Unit_Tests                      , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
           &                                       compareEquals
   implicit none
-  type            (keplerOrbit) :: orbit
-  double precision              :: valueActual, valueExpected, velocityScale
+  type            (keplerOrbit        )               :: orbit
+  type            (coordinateCartesian)               :: velocityCartesian
+  double precision                                    :: valueActual      , valueExpected     , velocityScale
+  double precision                     , dimension(3) :: vectorRadial     , vectorTangential1 , vectorTangential2, &
+       &                                                 velocity
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -144,6 +151,26 @@ program Tests_Kepler_Orbits
   call Assert('Propagation: ε',orbit%epsilon           (),0.0d0                  ,absTol=1.0d-2              )
   call Assert('Propagation: vᵣ',orbit%velocityRadial    (),0.0d0                  ,absTol=1.0d-2*velocityScale)
   call Assert('Propagation: vᵩ',orbit%velocityTangential(),3.279170147274157d-5   ,absTol=1.0d-2*velocityScale)
+  ! Check that the Cartesian velocity of an orbit uses the tangential basis defined for the class: the direction r×ẑ, rotated by
+  ! ε around r toward (r×ẑ)×r. Decomposing the velocity in that basis must recover the radial and tangential velocities and ε.
+  call orbit%reset                (                            )
+  call orbit%massesSet            (0.0d0                 ,1.0d0)
+  call orbit%radiusSet            (0.3d0                       )
+  call orbit%velocityRadialSet    (-0.4d0*velocityScale        )
+  call orbit%velocityTangentialSet(+0.7d0*velocityScale        )
+  call orbit%thetaSet             (0.3d0*Pi                    )
+  call orbit%phiSet               (0.7d0*Pi                    )
+  call orbit%epsilonSet           (0.4d0*Pi                    )
+  velocityCartesian=orbit%velocity()
+  velocity         =velocityCartesian
+  vectorRadial     =[sin(0.3d0*Pi)*cos(0.7d0*Pi),sin(0.3d0*Pi)*sin(0.7d0*Pi),cos(0.3d0*Pi)]
+  vectorTangential1=Vector_Product(vectorRadial     ,[0.0d0,0.0d0,1.0d0])
+  vectorTangential1=vectorTangential1/Vector_Magnitude(vectorTangential1)
+  vectorTangential2=Vector_Product(vectorTangential1,vectorRadial       )
+  vectorTangential2=vectorTangential2/Vector_Magnitude(vectorTangential2)
+  call Assert('Velocity: vᵣ',dot_product(velocity,vectorRadial)                                                   ,-0.4d0*velocityScale,relTol=1.0d-9)
+  call Assert('Velocity: vₜ',sqrt(dot_product(velocity,vectorTangential1)**2+dot_product(velocity,vectorTangential2)**2),+0.7d0*velocityScale,relTol=1.0d-9)
+  call Assert('Velocity: ε' ,atan2(dot_product(velocity,vectorTangential2),dot_product(velocity,vectorTangential1))  , 0.4d0*Pi            ,relTol=1.0d-9)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
