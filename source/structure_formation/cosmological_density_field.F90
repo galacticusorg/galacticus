@@ -504,6 +504,11 @@ contains
        else
           self%lastUniqueID=-1_kind_int8
        end if
+       if (self%treePresent) then
+          self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
+       else
+          self%lastTreeID  =-1_kind_int8
+       end if
        self%criticalOverdensityPrevious=criticalOverdensity
        if (self%timeNow < 0.0d0) self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
        timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
@@ -553,13 +558,8 @@ contains
        if (self%timeOfCollapsePrevious < 0.0d0) self%timeOfCollapsePrevious=self%cosmologyFunctions_%cosmicTime(1.0d0)
        if (.not.self%massPresent.and..not.self%nodePresent) then
           ! There is no dependency on mass, or the node. If there is dependency on the tree, then, if the tree differs from the
-          ! previously seen case we must destroy the previously made table, as our tree has changed.
-          if (self%treePresent) then
-             self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
-          else
-             self%lastTreeID  =-1_kind_int8
-          end if
-          ! The table is valid only for the tree (or for the tree-independent case, with ID -1) for which it was built.
+          ! tree for which the table was built we must destroy the previously made table, as our tree has changed. The table is
+          ! valid only for the tree (or for the tree-independent case, with ID -1) for which it was built.
           if (self%collapseThresholdInitialized .and. self%lastTreeID /= self%collapseThresholdTreeID) then
              self%collapseThresholdInitialized=.false.
              call self%collapseThreshold%destroy()
