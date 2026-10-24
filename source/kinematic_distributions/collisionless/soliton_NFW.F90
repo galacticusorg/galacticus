@@ -366,7 +366,7 @@ contains
                  &                      *(                                                  &
                  &                        +1.0d0/ 4.0d0/radiusScaleFree                     &
                  &                        +1.0d0/10.0d0/radiusScaleFree**2                  &
-                 &                        +1.0d0/20.0d0/radiusScaleFree**3                  &
+                 &                        -1.0d0/20.0d0/radiusScaleFree**3                  &
                  &                        +1.0d0/35.0d0/radiusScaleFree**4                  &
                  &                      )
          else
