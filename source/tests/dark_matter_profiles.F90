@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests dark matter profiles.
 !!}
@@ -47,6 +49,7 @@ program Test_Dark_Matter_Profiles
   use :: Input_Parameters                , only : inputParameters
   use :: ISO_Varying_String              , only : varying_string                                                , assignment(=)                       , var_str
   use :: Node_Components                 , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize   , Node_Components_Thread_Uninitialize  , Node_Components_Uninitialize
+  use :: Numerical_Integration           , only : integrator
   use :: Unit_Tests                      , only : Assert                                                        , Unit_Tests_Begin_Group              , Unit_Tests_End_Group                 , Unit_Tests_Finish
   implicit none
   type            (treeNode                                                      ), pointer      :: node                                                                                                , &
@@ -72,6 +75,9 @@ program Test_Dark_Matter_Profiles
        &                                                                                            radiusHalfMassDimensionlessHernquist=1.0d0/(sqrt(2.0d0)-1.0d0)
   double precision                                                                , dimension(7) :: radius                              =[0.125000d0,0.25000d0,0.50000d0,1.00000d0,2.00000d0,4.00000d0,8.00000d0]
   double precision                                                                , dimension(7) :: timeFreefall
+  double precision                                                                , dimension(3) :: fractionRadiusInteraction           =[0.1d0,0.3d0,0.6d0]                                            , &
+       &                                                                                            potentialDifference                                                                                 , &
+       &                                                                                            potentialDifferenceNumerical
   double precision                                                                , dimension(7) :: mass                                                                                                , &
        &                                                                                            density                                                                                             , &
        &                                                                                            radiusRecoveredFromMass                                                                             , &
@@ -103,7 +109,9 @@ program Test_Dark_Matter_Profiles
        &                                                                                            darkMatterHaloScalePippin_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer      :: virialDensityContrast_
   type            (virialDensityContrastFixed                                    ), pointer      :: virialDensityContrastPippin_
-  type            (coordinateSpherical                                           )               :: coordinates
+  type            (coordinateSpherical                                           )               :: coordinates                                                                                         , &
+       &                                                                                            coordinatesInteraction
+  type            (integrator                                                    )               :: integrator_
   type            (inputParameters                                               )               :: parameters
   integer                                                                                        :: i
   double precision                                                                               :: radiusScale                                                                                         , &
@@ -117,7 +125,8 @@ program Test_Dark_Matter_Profiles
        &                                                                                            energyPotentialNumerical                                                                            , &
        &                                                                                            energyKineticNumerical                                                                              , &
        &                                                                                            densityNormalization                                                                                , &
-       &                                                                                            radiusSmall
+       &                                                                                            radiusSmall                                                                                         , &
+       &                                                                                            radiusInteraction
 
 
   ! Set verbosity level.
@@ -1720,6 +1729,23 @@ program Test_Dark_Matter_Profiles
           &      59.139d0                                                                                     , &
           &      relTol=5.0d-2                                                                                  &
           &     )
+     ! Inside the interaction radius the potential of the dark matter alone must be consistent with its enclosed mass, i.e.
+     ! Φ(r₁)-Φ(r) = ∫ᵣ^ʳ¹ G M(r′)/r′² dr′, with no contribution from the baryons.
+     radiusInteraction     =massDistribution_%radiusInteraction()
+     coordinatesInteraction=[radiusInteraction,0.0d0,0.0d0]
+     integrator_           =integrator(integrandPotentialDifference,toleranceRelative=1.0d-6)
+     do i=1,size(fractionRadiusInteraction)
+        coordinates                    =[fractionRadiusInteraction(i)*radiusInteraction,0.0d0,0.0d0]
+        potentialDifference         (i)=+massDistribution_%potential(coordinatesInteraction) &
+             &                          -massDistribution_%potential(coordinates           )
+        potentialDifferenceNumerical(i)=integrator_%integrate(fractionRadiusInteraction(i)*radiusInteraction,radiusInteraction)
+     end do
+     call Assert(                                                    &
+          &      'potential inside interaction radius'             , &
+          &      potentialDifference                               , &
+          &      potentialDifferenceNumerical                      , &
+          &      relTol=1.0d-3                                       &
+          &     )
   end select
   call Unit_Tests_End_Group()
   !![
@@ -1761,4 +1787,20 @@ program Test_Dark_Matter_Profiles
   <objectDestructor name="darkMatterHaloScalePippin_"                       />
   <objectDestructor name="darkMatterProfileAdiabaticPippin_"                />
   !!]
+
+contains
+
+  double precision function integrandPotentialDifference(radius)
+    !!{RST
+    Integrand, :math:`G M(r)/r^2`, for the potential difference of a mass distribution.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    integrandPotentialDifference=+gravitationalConstant_internal                  &
+         &                       *massDistribution_%massEnclosedBySphere(radius) &
+         &                       /radius**2
+    return
+  end function integrandPotentialDifference
+
 end program Test_Dark_Matter_Profiles

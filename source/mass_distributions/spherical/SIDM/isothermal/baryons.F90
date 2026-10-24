@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Provides a mass distribution implementing the "isothermal" approximation to the effects of SIDM, including the baryonic potential, based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
@@ -485,14 +487,20 @@ contains
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        potential             =+self%massDistribution_%potential(coordinates,status=status)
     else
+       ! Inside the interaction radius the dark matter density is ρ(r) = ρ₀ exp(-Φ(r)/σ₀²), where Φ(r) is the total (dark
+       ! matter plus baryonic) potential. The logarithmic density ratio therefore gives the difference in the total potential
+       ! relative to the interaction radius, from which the difference in the baryonic potential must be removed to find that of
+       ! the dark matter alone.
        radiusInteraction     =+self%radiusInteraction()
        coordinatesInteraction=[radiusInteraction,0.0d0,0.0d0]
-       potential             =+self%massDistribution_%potential(coordinatesInteraction)              &
+       potential             =+self%massDistribution_       %potential(coordinatesInteraction)       &
             &                 -self%velocityDispersionCentral**2                                     &
             &                 *log(                                                                  &
             &                      +self%densityProfile%interpolate(coordinates%rSpherical       ()) &
             &                      /self%densityProfile%interpolate(            radiusInteraction  ) &
-            &                 )
+            &                 )                                                                      &
+            &                 -self%massDistributionBaryonic%potential(coordinates           )       &
+            &                 +self%massDistributionBaryonic%potential(coordinatesInteraction)
     end if  
     return
   end function sphericalSIDMIsothermalBaryonsPotential
