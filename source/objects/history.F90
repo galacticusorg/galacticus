@@ -578,12 +578,16 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type (history)                          :: History_Add
-    class(history), intent(in   )           :: history1
-    class(history), intent(in   ), optional :: history2
+    type   (history)                          :: History_Add
+    class  (history), intent(in   )           :: history1
+    class  (history), intent(in   ), optional :: history2
+    logical                                   :: historyExists
 
-    ! Clone the first history.
-    if (.not.(history1%exists().or.(present(history2).and.history2%exists()))) then
+    ! Clone the first history. (The test of the optional second history is nested, as Fortran does not guarantee short-circuit
+    ! evaluation of logical operators.)
+    historyExists=history1%exists()
+    if (present(history2)) historyExists=historyExists.or.history2%exists()
+    if (.not.historyExists) then
        call History_Add%reset()
     else
        select type (history1)
@@ -604,12 +608,16 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type (history)                          :: History_Subtract
-    class(history), intent(in   )           :: history1
-    class(history), intent(in   ), optional :: history2
+    type   (history)                          :: History_Subtract
+    class  (history), intent(in   )           :: history1
+    class  (history), intent(in   ), optional :: history2
+    logical                                   :: historyExists
 
-    ! Clone the first history.
-    if (.not.(history1%exists().or.(present(history2).and.history2%exists()))) then
+    ! Clone the first history. (The test of the optional second history is nested, as Fortran does not guarantee short-circuit
+    ! evaluation of logical operators.)
+    historyExists=history1%exists()
+    if (present(history2)) historyExists=historyExists.or.history2%exists()
+    if (.not.historyExists) then
        call History_Subtract%reset()
     else
        select type (history1)
