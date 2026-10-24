@@ -21,7 +21,7 @@
 Contains a module that provides a class for distributions of orphan satellites.
 !!}
 
-module Satellite_Oprhan_Distributions
+module Satellite_Orphan_Distributions
   !!{RST
   Provides a class for distributions of orphan satellites.
   !!}
@@ -63,4 +63,4 @@ module Satellite_Oprhan_Distributions
   </functionClass>
   !!]
 
-end module Satellite_Oprhan_Distributions
+end module Satellite_Orphan_Distributions
