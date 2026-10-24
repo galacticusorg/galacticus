@@ -2453,6 +2453,7 @@ contains
     type            (varying_string                          )                          :: attributeName      , nodeName        , &
          &                                                                                 siblingName
     double precision                                                                    :: workValueDouble
+    double precision                                                         , parameter:: toleranceRoundingInteger=1.0d-9
     integer         (c_size_t                                )                          :: workValueInteger
     type            (enumerationInputParameterTypeType       )                          :: parameterType
     {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
@@ -2592,7 +2593,13 @@ contains
                    if (isDouble) then
                       call parameterNode%set(workValueDouble)
                    else if (isInteger) then
-                      write (workValueText,'(i24)') int(workValueDouble,kind=c_size_t)
+                      ! Round to the nearest integer if the result is an integer to within rounding error (e.g. 0.29*100, which
+                      ! evaluates to 28.999999999999996 in double precision). Otherwise, truncate toward zero.
+                      if (abs(workValueDouble-anint(workValueDouble)) <= toleranceRoundingInteger*max(1.0d0,abs(workValueDouble))) then
+                         write (workValueText,'(i24)') nint(workValueDouble,kind=c_size_t)
+                      else
+                         write (workValueText,'(i24)')  int(workValueDouble,kind=c_size_t)
+                      end if
                       call parameterNode%set(var_str(trim(workValueText)))
                    end if
                    !$omp critical (FoX_DOM_Access)

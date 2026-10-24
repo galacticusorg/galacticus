@@ -94,6 +94,8 @@
   <derivedInteger1 value="=2*[integerValue1]+1"/>
   <derivedInteger2 value="=3*[nonExistantParameter|7]"/>
   <derivedLong1 value="=[integerValue1]*1000000000000"/>
+  <derivedInteger3 value="=0.29*100"/>
+  <derivedInteger4 value="=[integerValue1]/4"/>
   <derivedText1 value="=mouse_[%s|cosmologicalMassVariance]_[%4.2f|derivedValue6]_[%12.6e|derivedValue7]_[%4.4d|integerValue1]"/>
   <active1 value="0.1" active="[cosmologicalMassVariance/sigma_8] != 0.912"/>
   <active1 value="0.2" active="[cosmologicalMassVariance/sigma_8] == 0.912"/>
