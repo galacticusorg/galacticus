@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !+ Contributions to this file made by: Sachi Weerasooriya
 
   !!{RST
@@ -353,8 +355,9 @@ contains
     call coldModeAccretionRateChemicals%reset()
     ! Return immediately if no chemicals are being tracked.
     if (self%countChemicals == 0) return
-    ! Get the total mass accretion rate onto the halo.
-    massAccretionRate=self%accretionRate(node,accretionMode)
+    ! Get the total mass accretion rate onto the halo. This is the rate summed over all modes, as chemicalMasses() applies the
+    ! fraction of that rate accreted in the requested mode.
+    massAccretionRate=self%accretionRate(node,accretionModeTotal)
     ! Get the mass accretion rates.
     coldModeAccretionRateChemicals=self%chemicalMasses(node,massAccretionRate,accretionMode)
     return
@@ -376,8 +379,9 @@ contains
     call coldModeAccretedMassChemicals%reset()
     ! Return if no chemicals are being tracked.
     if (self%countChemicals == 0) return
-    ! Total mass of material accreted.
-    massAccreted=self%accretedMass(node,accretionMode)
+    ! Total mass of material accreted, summed over all modes, as chemicalMasses() applies the fraction accreted in the requested
+    ! mode.
+    massAccreted=self%accretedMass(node,accretionModeTotal)
     ! Get the masses of chemicals accreted.
     coldModeAccretedMassChemicals=self%chemicalMasses(node,massAccreted,accretionMode)
     return
