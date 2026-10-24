@@ -276,8 +276,8 @@ contains
     class           (nodeOperatorCGMAccretion), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     type            (treeNode                ), pointer       :: nodeParent
-    class           (nodeComponentHotHalo    ), pointer       :: hotHaloParent          , hotHalo
-    class           (nodeComponentBasic      ), pointer       :: basicParent            , basic
+    class           (nodeComponentHotHalo    ), pointer       :: hotHaloParent                , hotHalo
+    class           (nodeComponentBasic      ), pointer       :: basicParent                  , basic
     class           (nodeComponentSpin       ), pointer       :: spinParent
     type            (abundances              ), save          :: massMetalsUnaccretedReservoir, massMetalsReaccreted
     type            (chemicalAbundances      ), save          :: massChemicalsAccreted        , fractionChemicalsAccreted, &

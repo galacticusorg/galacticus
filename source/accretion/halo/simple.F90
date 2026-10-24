@@ -428,9 +428,9 @@ contains
        basic => node%basic()
        if (self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) return
     end if
-    simpleRateReaccretionFractional=+self%accretionHaloTotal_%accretionRate (node) &
-         &                          /self%accretionHaloTotal_%accretedMass  (node) &
-         &                          *(1.0d0-self             %failedFraction(node))
+    simpleRateReaccretionFractional=+       self%accretionHaloTotal_%accretionRate (node)  &
+         &                          /       self%accretionHaloTotal_%accretedMass  (node)  &
+         &                          *(1.0d0-self                    %failedFraction(node))
     return
   end function simpleRateReaccretionFractional
 

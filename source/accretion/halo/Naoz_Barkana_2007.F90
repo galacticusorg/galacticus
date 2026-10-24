@@ -678,17 +678,17 @@ contains
     if (.not.self%accretionNegativeAllowed.and.self%accretionHaloTotal_%accretionRate(node) < 0.0d0) then
        ! The accretion rate is negative, and negative accretion is not allowed, so gas is instead removed from the unaccreted
        ! reservoir. It carries the metallicity of that reservoir.
-       naozBarkana2007FailedAccretionRateMetals=+self%fractionMetalsUnaccreted(node                  ) &
+       naozBarkana2007FailedAccretionRateMetals=+self%fractionMetalsUnaccreted(node              ) &
             &                                   *self%failedAccretionRate     (node,accretionMode)
     else
        ! The failed accretion rate includes a corrective flow of mass between the accreted and unaccreted reservoirs (if the
        ! current mass fraction differs from that expected given the filtering mass). Find the rate of that flow (positive for flow
        ! from the hot halo to the unaccreted reservoir).
-       rateMassCorrection=+(                                 &
-            &               +hotHalo%          mass        () &
-            &               +hotHalo%unaccretedMass        () &
-            &              )                                  &
-            &             *  self   %rateCorrection    (node)
+       rateMassCorrection=+(                              &
+            &               +hotHalo%          mass(    ) &
+            &               +hotHalo%unaccretedMass(    ) &
+            &              )                              &
+            &             *  self   %rateCorrection(node)
        ! Gas failing to accrete from the IGM (i.e. the failed accretion rate excluding the corrective flow) carries the IGM
        ! metallicity.
        metallicityIGM=self%intergalacticMediumState_%metallicity(basic%time())
