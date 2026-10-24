@@ -524,7 +524,9 @@ contains
                &   *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow      ,mass=mass          ) &
                &   /self%cosmologicalMassVariance_%rootVariance(time=     timeBigCrunch,mass=mass          ) &
                & ) then
-             ! Return a collapse time close to the Big Crunch in this case.
+             ! Return a collapse time close to the Big Crunch in this case (and memoize it, as the memo keys have already been
+             ! updated).
+             self%timeOfCollapsePrevious      =timeBigCrunch
              criticalOverdensityTimeOfCollapse=timeBigCrunch
              return
           end if
