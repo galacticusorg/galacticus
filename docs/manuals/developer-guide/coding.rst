@@ -1192,6 +1192,28 @@ Omit ``forwards`` for an object which is always given the argument by the implem
 
 ``requires`` and ``forwards`` elements follow all other elements of the directive, with every ``requires`` before any ``forwards``. From them a ``requires(method,argument)`` method is generated for every class. It returns true if the object requires that argument, and it is an error to ask about a pair which is not an optional argument of one of the class' methods. Consumers declare the arguments they never supply through the ``withholds`` attribute of the ``objectBuilder`` directive, which calls this method when the object is built. A consumer which receives an object in any other way can call ``requires`` itself in its constructor. The parameter catalog records all three markers, and ``scripts/build/parameterValidate.py`` reports a ``capability`` error for any parameter file which combines an implementation with a consumer that withholds an argument it requires. The validator follows objects inherited from enclosing parameters, ``idRef`` references, forwarding implementations and class defaults, as ``objectBuilder`` does.
 
+.. _manual-sec-allowedParametersHeld:
+
+Allowed Parameters of Unlimited Polymorphic Members
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A generated ``allowedParameters`` method lists the parameter names which an object accepts. Its constructor's input parameters and ``objectBuilder`` directives are added automatically, and each member object adds the names of the objects which it builds. Parameter validation uses this list, so an object built by a member may be placed alongside the object which owns that member, as well as inside it.
+
+An implementation which holds an object as an unlimited polymorphic (``class(*)``) pointer, to avoid a circular module dependency, builds it through a global function rather than an ``objectBuilder`` directive, so the preprocessor cannot see it. Declare such an object with an ``allowedParameters`` element in the directive declaring the implementation:
+
+.. code-block:: none
+
+    !![
+    <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
+     ...
+     <allowedParameters>
+      <object variable="powerSpectrumNormalizer_" name="powerSpectrumNormalizer" source="parameters" function="Power_Spectrum_Normalizer_Allowed_Parameters_" module="Functions_Global"/>
+     </allowedParameters>
+    </powerSpectrumPrimordialTransferred>
+    !!]
+
+The parameter ``name``, read from the ``source`` parameters, is then allowed, and ``function`` (a global function, from ``module``) is called with the member ``variable`` to add the parameters which the held object allows. The global function takes the arguments of the ``allowedParameters`` method, preceded by the ``class(*)`` object, and calls that method on it. The ``allowedParameters`` element follows any ``assignment`` element.
+
 .. _manual-sec-deepCopy:
 
 Deep Copy Infrastructure

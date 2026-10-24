@@ -129,6 +129,9 @@
     <assignment>
       <functionClass variables="powerSpectrumNormalizer_"/>
     </assignment>
+    <allowedParameters>
+      <object variable="powerSpectrumNormalizer_" name="powerSpectrumNormalizer" source="parameters" function="Power_Spectrum_Normalizer_Allowed_Parameters_" module="Functions_Global"/>
+    </allowedParameters>
     <runTimeFileDependencies paths="fileName"/>
   </powerSpectrumPrimordialTransferred>
   !!]
@@ -209,7 +212,7 @@ contains
     powerSpectrumNormalizer_ => Power_Spectrum_Normalizer_Construct_(parameters)
     self=powerSpectrumPrimordialTransferredFile(fileName,cosmologyParameters_,cosmologyFunctions_,powerSpectrumNormalizer_)
     !![
-    <inputParametersValidate source="parameters" extraAllowedNames="powerSpectrumNormalizer"/>
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="cosmologyFunctions_" />
     !!]

@@ -45,6 +45,9 @@
    <assignment>
      <functionClass variables="powerSpectrumNormalizer_"/>
    </assignment>
+   <allowedParameters>
+     <object variable="powerSpectrumNormalizer_" name="powerSpectrumNormalizer" source="parameters" function="Power_Spectrum_Normalizer_Allowed_Parameters_" module="Functions_Global"/>
+   </allowedParameters>
   </powerSpectrumPrimordialTransferred>
   !!]
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredSimple
@@ -113,7 +116,7 @@ contains
     powerSpectrumNormalizer_ => Power_Spectrum_Normalizer_Construct_(parameters)
     self=powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_,transferFunction_,linearGrowth_,powerSpectrumNormalizer_)
     !![
-    <inputParametersValidate source="parameters" extraAllowedNames="powerSpectrumNormalizer"/>
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="powerSpectrumPrimordial_"/>
     <objectDestructor name="transferFunction_"       />
     <objectDestructor name="linearGrowth_"           />

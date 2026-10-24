@@ -37,7 +37,7 @@ module Power_Spectrum_Normalizer_Utilities
   private
   public :: Power_Spectrum_Normalizer_Construct         , Power_Spectrum_Normalizer_Release  , Power_Spectrum_Normalizer_Normalization  , &
        &    Power_Spectrum_Normalizer_Descriptor        , Power_Spectrum_Normalizer_Deep_Copy, Power_Spectrum_Normalizer_Deep_Copy_Reset, &
-       &    Power_Spectrum_Normalizer_Deep_Copy_Finalize
+       &    Power_Spectrum_Normalizer_Deep_Copy_Finalize, Power_Spectrum_Normalizer_Allowed_Parameters
 
 contains
 
@@ -252,5 +252,38 @@ contains
     end select
     return
   end subroutine Power_Spectrum_Normalizer_Deep_Copy_Finalize
+
+  !![
+  <functionGlobal>
+   <unitName>Power_Spectrum_Normalizer_Allowed_Parameters</unitName>
+   <type>void</type>
+   <module>ISO_Varying_String, only : varying_string</module>
+   <arguments>class    (*             ), intent(inout)                            :: self             </arguments>
+   <arguments>type     (varying_string), intent(inout), dimension(:), allocatable :: allowedParameters</arguments>
+   <arguments>character(len=*         ), intent(in   )                            :: sourceName       </arguments>
+   <arguments>logical                  , intent(in   )                            :: objectsOnly      </arguments>
+  </functionGlobal>
+  !!]
+  subroutine Power_Spectrum_Normalizer_Allowed_Parameters(self,allowedParameters,sourceName,objectsOnly)
+    !!{RST
+    Add the names of parameters allowed for the given :galacticus-class:`powerSpectrumNormalizer` object to
+    ``allowedParameters``.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : varying_string
+    implicit none
+    class    (*             ), intent(inout)                            :: self
+    type     (varying_string), intent(inout), dimension(:), allocatable :: allowedParameters
+    character(len=*         ), intent(in   )                            :: sourceName
+    logical                  , intent(in   )                            :: objectsOnly
+
+    select type (self)
+    class is (powerSpectrumNormalizerClass)
+       call self%allowedParameters(allowedParameters,sourceName,objectsOnly)
+    class default
+       call Error_Report('object must be of `powerSpectrumNormalizerClass` class'//{introspection:location})
+    end select
+    return
+  end subroutine Power_Spectrum_Normalizer_Allowed_Parameters
 
 end module Power_Spectrum_Normalizer_Utilities
