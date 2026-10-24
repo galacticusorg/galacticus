@@ -122,7 +122,7 @@ contains
       <name>efficiency</name>
       <defaultValue>2.5d0</defaultValue>
       <description>
-      The dimensionless rate coefficient appearing in the :cite:t:`zentner_physics_2005` expression for the tidal mass loss rate from galactic components.
+      The dimensionless rate coefficient appearing in the :cite:t:`zentner_physics_2005` expression for the tidal mass loss rate from galactic components. Note that :cite:t:`zentner_physics_2005` adopted :math:`\alpha=3.5`, calibrated within their own model (which also rescales subhalo structure as mass is lost), so the default here differs from theirs; the value should be calibrated for the model in use.
       </description>
       <source>parameters</source>
     </inputParameter>

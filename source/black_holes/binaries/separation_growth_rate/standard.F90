@@ -62,8 +62,8 @@
 
    .. math::
 
-      f_\rho = \hbox{min}\left\{ \left[ { 4 a \sigma_\mathrm{spheroid}^2 \over 3 \mathrm{G} (M_{\bullet, 1}+M_{\bullet, 2})}
-      \log\left({\mathrm{G} M_{\bullet, 2} \over 4 \sigma_\mathrm{spheroid}^2 a }\right) \right]^2 , 1 \right\},
+      f_\rho = \hbox{min}\left\{ \left[ { 4 a \sigma_\mathrm{spheroid}^2 \over 3 \mathrm{G} (M_{\bullet, 1}+M_{\bullet, 2})
+      \log\left({\mathrm{G} M_{\bullet, 2} / 4 \sigma_\mathrm{spheroid}^2 a }\right)} \right]^2 , 1 \right\},
 
    if ``[stellarDensityChangeBinaryMotion]``\ :math:`=`\ ``true`` to account for the ejection of stars from the loss cone.
    </description>

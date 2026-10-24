@@ -37,7 +37,7 @@
       \mathbf{a}_{DF} = -\frac{4\pi \mathrm{G}^2M_\mathrm{sat}\rho_\mathrm{host}(r)}{v_\mathrm{sat}^3}\ln
       \Lambda\left[\mathrm{erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_\mathrm{sat},
 
-   where :math:`M_\mathrm{sat}` and :math:`\mathbf{v}_\mathrm{sat}` are the satellite's mass and velocity, respectively, :math:`v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|`, :math:`\rho_\mathrm{host}(r)` is the host's density profile, :math:`\ln\Lambda=`\ ``[logarithmCoulomb]`` is the Coulomb logarithm, and :math:`x\equiv v_\mathrm{sat}/\sqrt{2}\sigma(r)`, where :math:`\sigma(r)` is the velocity dispersion of the host halo at radius :math:`r`, approximated to be equal to the host virial velocity, :math:`v_\mathrm{vir}`.
+   where :math:`M_\mathrm{sat}` and :math:`\mathbf{v}_\mathrm{sat}` are the satellite's mass and velocity, respectively, :math:`v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|`, :math:`\rho_\mathrm{host}(r)` is the host's density profile, :math:`\ln\Lambda=`\ ``[logarithmCoulomb]`` is the Coulomb logarithm, and :math:`x\equiv v_\mathrm{sat}/\sqrt{2}\sigma(r)`, where :math:`\sigma(r)` is the local one-dimensional velocity dispersion of the host component at radius :math:`r`, given by the kinematics distribution of that component.
 
    The acceleration is summed over the components of the host. For collisional (gaseous) components, such as the hot halo,
    the factor :math:`\ln\Lambda[\mathrm{erf}(x)-2x\exp(-x^2)/\sqrt{\pi}]` is replaced by the dimensionless drag force,
