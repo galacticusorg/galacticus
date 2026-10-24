@@ -260,10 +260,10 @@ def test_references_are_not_dereferenced():
 def test_conditional_equal_kept_not_equal_pruned():
     root = _root(
         '<parameters>'
-        '<cosmologicalMassVariance value="filteredPower"><sigma_8 value="0.912"/>'
-        '</cosmologicalMassVariance>'
-        '<active1 value="0.1" active="[cosmologicalMassVariance/sigma_8] != 0.912"/>'
-        '<active1 value="0.2" active="[cosmologicalMassVariance/sigma_8] == 0.912"/>'
+        '<powerSpectrumNormalizer value="sigma8"><sigma_8 value="0.912"/>'
+        '</powerSpectrumNormalizer>'
+        '<active1 value="0.1" active="[powerSpectrumNormalizer/sigma_8] != 0.912"/>'
+        '<active1 value="0.2" active="[powerSpectrumNormalizer/sigma_8] == 0.912"/>'
         '</parameters>')
     resolve.evaluate_conditionals(root)
     kept = [c for c in root if c.tag == 'active1']
@@ -283,10 +283,10 @@ def test_conditional_dereferences_idref_in_path():
     # it to the real definition to read the value.
     root = _resolve(
         '<parameters>'
-        '<cosmologyParameters><cosmologicalMassVariance value="x" id="m">'
-        '<sigma_8 value="0.9"/></cosmologicalMassVariance></cosmologyParameters>'
-        '<cosmologicalMassVariance idRef="m"/>'
-        '<active1 value="a" active="[cosmologicalMassVariance/sigma_8] == 0.9"/>'
+        '<cosmologyParameters><powerSpectrumNormalizer value="x" id="m">'
+        '<sigma_8 value="0.9"/></powerSpectrumNormalizer></cosmologyParameters>'
+        '<powerSpectrumNormalizer idRef="m"/>'
+        '<active1 value="a" active="[powerSpectrumNormalizer/sigma_8] == 0.9"/>'
         '</parameters>')
     assert any(c.tag == 'active1' for c in root)            # kept (0.9 == 0.9)
     assert any(c.get('idRef') == 'm' for c in root)         # idRef preserved

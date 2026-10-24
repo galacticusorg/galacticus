@@ -68,7 +68,7 @@ for massFunctionType in massFunctionTypes:
     parameters.find('./cosmologyParameters/OmegaDarkEnergy'       ).set('value',str(    parametersHMFCalc['omegav' ]                                   ))
     parameters.find('./cosmologyParameters/OmegaBaryon'           ).set('value',str(    parametersHMFCalc['omegab' ]                                   ))
     parameters.find('./cosmologyParameters/HubbleConstant'        ).set('value',str(    parametersHMFCalc['H0'     ]                                   ))
-    parameters.find('./cosmologicalMassVariance/sigma_8'          ).set('value',str(    parametersHMFCalc['sigma_8']                                   ))
+    parameters.find('./powerSpectrumNormalizer/sigma_8'           ).set('value',str(    parametersHMFCalc['sigma_8']                                   ))
     parameters.find('./powerSpectrumPrimordial/index'             ).set('value',str(    parametersHMFCalc['n'      ]                                   ))
     parameters.find('./criticalOverdensity/criticalOverdensity'   ).set('value',str(    parametersHMFCalc['delta_c']                                   ))
     parameters.find('./virialDensityContrast/densityContrastValue').set('value',str(    parametersHMFCalc['delta_h']                                   ))

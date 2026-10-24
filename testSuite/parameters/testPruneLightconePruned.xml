@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <accretionDisks value="switched">
     <accretionDisksADAF value="ADAF">
@@ -127,7 +127,6 @@
     <powerSpectrumWindowFunction value="topHat"/>
     <monotonicInterpolation value="true"/>
     <nonMonotonicIsFatal value="false"/>
-    <sigma_8 value="0.8147"/>
     <tolerance value="0.0003"/>
     <toleranceTopHat value="0.0003"/>
     <truncateAtParticleHorizon value="false"/>
@@ -475,6 +474,10 @@
     <wavenumberReference value="1.0"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8147"/>
+    <tolerance value="0.0003"/>
+  </powerSpectrumNormalizer>
   <radiationFieldIntergalacticBackground value="summation">
     <radiationField value="cosmicMicrowaveBackground"/>
     <radiationField value="intergalacticBackgroundFile">
