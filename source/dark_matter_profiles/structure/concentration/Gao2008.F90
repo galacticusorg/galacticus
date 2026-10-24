@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`gao_redshift_2008` algorithm.
   !!}
@@ -41,6 +43,10 @@
 
       A &amp; = -0.140 \exp\left[-\left(\left\{\log_{10}a+0.05\right\}/0.35\right)^2\right], \\
       B &amp; = 2.646 \exp\left[-\left(\log_{10}a/0.50\right)^2\right].
+
+   For halo masses of :math:`10^{11}` to :math:`10^{15}h^{-1}\mathrm{M}_\odot`, these fits reproduce the concentrations given in
+   Table 1 of :cite:t:`gao_redshift_2008` to about 3% at :math:`z \le 0.5`, but are about 10--19% too high at :math:`z=1`--2,
+   and about 10--15% too low at :math:`z=3`.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
