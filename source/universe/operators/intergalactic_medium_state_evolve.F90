@@ -709,7 +709,6 @@ contains
                    &                      *gigaYear                                                                                                         &
                    &                      *centi**3                                                                                                         &
                    &                      *clumpingFactor                                                                                                   &
-                   &                      *0.75d0                                                                                                           &
                    &                      *boltzmannsConstant                                                                                               &
                    &                      *temperature
            else
