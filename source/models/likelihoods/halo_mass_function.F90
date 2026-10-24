@@ -374,6 +374,8 @@ contains
              allocate(self%mass        (massCountReduced                ))
              allocate(self%massFunction(massCountReduced,size(redshifts)))
              allocate(self%countHalos  (massCountReduced,size(redshifts)))
+          else if (massCountReduced /= size(self%mass)) then
+             call Error_Report("mass function from file '"//trim(fileNames(iRedshift))//"' has a different number of usable bins from that of the first redshift - all redshifts must use the same bins"//{introspection:location})
           end if
           ii=0
           do i=1,size(massOriginal)
@@ -383,7 +385,7 @@ contains
                   &   massOriginal(i) > massRangeMaximum &
                   & ) cycle
              ii=ii+1
-             self%mass        (ii          )=massOriginal             (i)
+             call haloMassFunctionMassSet(ii,massOriginal(i))
              self%massFunction(ii,iRedshift)=massFunctionOriginal     (i)
              self%countHalos  (ii,iRedshift)=massFunctionCountOriginal(i)
           end do
@@ -423,6 +425,8 @@ contains
              allocate(self%massFunction    (massCountReduced                 ,size(redshifts)))
              allocate(self%covarianceMatrix(massCountReduced,massCountReduced,size(redshifts)))
              allocate(self%covariance      (                                  size(redshifts)))
+          else if (massCountReduced /= size(self%mass)) then
+             call Error_Report("mass function from file '"//trim(fileNames(iRedshift))//"' has a different number of usable bins from that of the first redshift - all redshifts must use the same bins"//{introspection:location})
           end if
           ii=0
           do i=1,size(massOriginal)
@@ -431,7 +435,7 @@ contains
              if (massOriginal             (i) >  massRangeMaximum) cycle
              if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
              ii=ii+1
-             self%mass        (ii          )=massOriginal        (i)
+             call haloMassFunctionMassSet(ii,massOriginal(i))
              self%massFunction(ii,iRedshift)=massFunctionOriginal(i)
              jj=0
              do j=1,size(massOriginal)
@@ -494,6 +498,26 @@ contains
        end do
     end if
     return
+
+  contains
+
+    subroutine haloMassFunctionMassSet(index,mass)
+      !!{RST
+      Set the mass of a bin of the reduced mass function. All redshifts share the masses of the bins, so for later redshifts check
+      that the mass is that of the first.
+      !!}
+      implicit none
+      integer         , intent(in   ) :: index
+      double precision, intent(in   ) :: mass
+
+      if (iRedshift == 1) then
+         self%mass(index)=mass
+      else if (mass /= self%mass(index)) then
+         call Error_Report("mass function from file '"//trim(fileNames(iRedshift))//"' uses different bins from that of the first redshift - all redshifts must use the same bins"//{introspection:location})
+      end if
+      return
+    end subroutine haloMassFunctionMassSet
+
   end function haloMassFunctionConstructorInternal
 
   subroutine haloMassFunctionDestructor(self)
