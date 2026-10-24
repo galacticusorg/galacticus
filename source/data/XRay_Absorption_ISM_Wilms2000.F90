@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which wraps the ``dotbvabs`` function (which implements the model of :cite:author:`wilms_absorption_2000` :cite:year:`wilms_absorption_2000`) from `XSpec <https://heasarc.gsfc.nasa.gov/xanadu/xspec/>`_ to produce a table of X-ray absorption cross-sections in the :term:`ISM`. This program assumes that various files from `XSpec <https://heasarc.gsfc.nasa.gov/xanadu/xspec/>`_ have been downloaded into the ``aux/XSpec`` folder---usually this program will be run automatically as needed by the ``Galacticus::ISMCrossSections`` module.
 !!}
@@ -88,7 +90,9 @@ program XRay_Absorption_ISM_Wilms2000
      crossSection(:,iMetallicity)=dble(siggas+siggrains+sigmol)*1.0d-18
      ! Compute Compton scattering contribution.
      electronNumber=1.0d0+electronsHelium+electronsMetals*metallicity(iMetallicity)/metallicityIsm
-     crossSection(:,iMetallicity)=crossSection(:,iMetallicity)+electronNumber*Atomic_Cross_Section_Compton(energy)
+     ! The cross sections from dotbvabs are for the energyCount bins whose edges are energy(0:energyCount); they are written out
+     ! labelled by the upper edge of each bin, so the Compton cross section is evaluated at those same energies.
+     crossSection(:,iMetallicity)=crossSection(:,iMetallicity)+electronNumber*Atomic_Cross_Section_Compton(energy(1:energyCount))
   end do
 
   ! Open the output file.
