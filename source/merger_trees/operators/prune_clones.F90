@@ -86,9 +86,9 @@ contains
     implicit none
     class(mergerTreeOperatorPruneClones), intent(inout), target :: self
     type (mergerTree                   ), intent(inout), target :: tree
-    type (treeNode                     ), pointer               :: node       , nodeParent   , &
-         &                                                         nodeWork   , nodeLast
-    class(nodeComponentBasic           ), pointer               :: basic      , basicParent
+    type (treeNode                     ), pointer               :: node      , nodeParent , &
+         &                                                         nodeWork  , nodeLast
+    class(nodeComponentBasic           ), pointer               :: basic     , basicParent
     type (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
     !$GLC attributes unused :: self
 
