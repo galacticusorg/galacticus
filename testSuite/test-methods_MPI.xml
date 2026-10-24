@@ -40,6 +40,7 @@
     </mergerTreeConstructor>
     <mergerTreeConstructor value="read">
       <fileNames value="testSuite/test-MergerTrees.hdf5"/>
+      <nodeOperatorTreeInitializor value="darkMatterProfileScaleSet"/>
       <presetOrbits value="true"/>
       <presetOrbitsBoundOnly value="true"/>
       <presetMergerTimes value="true"/>

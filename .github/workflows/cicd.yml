@@ -386,6 +386,24 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) LTO=disabled LIBRARY=yes preprocess
+          # Even at -j2, two of the largest compiles running together can exhaust memory: the largest peaks at
+          # ~14 GiB, and the next eight at 6-10 GiB each. So build each of those first as a make target of its own:
+          # make builds its dependencies two at a time, then compiles it with nothing running beside it.
+          # `hydrogen` comes first because several of the others depend on it. Every other compile peaks at
+          # under ~5.5 GiB, so any two of the rest fit together. (Peak memories were measured with
+          # gfortran 16.0.1 and LTO disabled.)
+          for object in                                                     \
+              chemical/reaction_rates/hydrogen                              \
+              merger_trees/construct/read/_class                            \
+              libgalacticus/mergerTreeImporter                              \
+              objects/nodes/components/spheroid/standard/_class             \
+              libgalacticus/nodeOperator                                    \
+              libgalacticus/starFormationHistory                            \
+              objects/nodes/components/hot_halo/standard/_class             \
+              objects/nodes/components/disk/standard/_class                 \
+              objects/nodes/components/nuclear_star_cluster/standard/_class; do
+            make -j2 LTO=disabled LIBRARY=yes ./work/buildLib/${object}.o
+          done
           make -j2 LTO=disabled LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
