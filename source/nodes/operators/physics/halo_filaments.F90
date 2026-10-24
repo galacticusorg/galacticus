@@ -20,40 +20,32 @@
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
-  Implements a node operator which assigns each halo the axes of the cosmic web filaments which feed it.
+  Implements a node operator which assigns each halo the cosmic web filaments which feed it.
   !!}
+
+  use :: Dark_Matter_Halo_Filaments, only : darkMatterHaloFilamentsClass
 
   !![
   <nodeOperator name="nodeOperatorHaloFilaments" docformat="rst">
    <description>
-   A node operator which assigns each halo the axes of the cosmic web filaments along which it accretes, for use by
-   :galacticus-class:`virialOrbitFilamentary`. The axes are stored in a meta-property, ``filamentAxes``, of the ``basic``
-   component.
+   A node operator which assigns each halo the cosmic web filaments along which it accretes, as given by the
+   :galacticus-class:`darkMatterHaloFilamentsClass` object. Filaments are assigned to all nodes when the tree is initialized.
 
-   Each branch of the merger tree is assigned a single filament passing through the halo---that is, a pair of opposite
-   axes---oriented isotropically at random. Filaments persist: every node on a branch shares the axes of the branch, so that a
-   halo accretes along the same filament throughout its history. A single filament is the limit of the number of filaments
-   crossing a sphere of small radius about a density peak in the peak theory calculations of :cite:t:`codis_connectivity_2018`, while
-   the number crossing a sphere of :math:`1.5 R_\mathrm{200}` in simulations is typically two for groups, rising to three to
-   four for clusters :cite:p:`gouin_shape_2021`. A single filament is used for now because the mass dependence of the anisotropy
-   of accretion assumed by :galacticus-class:`virialOrbitFilamentary` is calibrated for it: with the number of filaments
-   increasing with mass as measured by :cite:t:`gouin_shape_2021`, the fraction of satellites accreted along filaments required
-   to match the measured anisotropy is no longer a simple function of mass.
-
-   Axes are assigned to all nodes when the tree is initialized. They are also assigned on demand, by
-   :galacticus-class:`virialOrbitFilamentary`, to any branch which does not yet have them when an orbit is required---for
-   example, for orbits assigned while a tree is being constructed---so that the axes do not depend on the order in which these
-   events occur.
+   This operator is optional: filaments are also assigned on demand, by :galacticus-class:`virialOrbitFilamentary`, to any
+   branch which does not yet have them when an orbit is required---for example, for orbits assigned while a tree is being
+   constructed. The filaments of a branch do not depend on which of these occurs first. Including this operator ensures that
+   every halo is assigned filaments, whether or not it acquires any satellites.
    </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloFilaments
      !!{RST
-     A node operator which assigns each halo the axes of the cosmic web filaments which feed it.
+     A node operator which assigns each halo the cosmic web filaments which feed it.
      !!}
      private
-     integer :: filamentAxesID
+     class(darkMatterHaloFilamentsClass), pointer :: darkMatterHaloFilaments_ => null()
    contains
+     final     ::                       haloFilamentsDestructor
      procedure :: nodeTreeInitialize => haloFilamentsNodeTreeInitialize
   end type nodeOperatorHaloFilaments
 
@@ -73,39 +65,57 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodeOperatorHaloFilaments)                :: self
-    type(inputParameters          ), intent(inout) :: parameters
+    type (nodeOperatorHaloFilaments   )                :: self
+    type (inputParameters             ), intent(inout) :: parameters
+    class(darkMatterHaloFilamentsClass), pointer       :: darkMatterHaloFilaments_
 
-    self=nodeOperatorHaloFilaments()
+    !![
+    <objectBuilder class="darkMatterHaloFilaments" name="darkMatterHaloFilaments_" source="parameters"/>
+    !!]
+    self=nodeOperatorHaloFilaments(darkMatterHaloFilaments_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloFilaments_"/>
     !!]
     return
   end function haloFilamentsConstructorParameters
 
-  function haloFilamentsConstructorInternal() result(self)
+  function haloFilamentsConstructorInternal(darkMatterHaloFilaments_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorHaloFilaments` node operator class.
     !!}
     implicit none
-    type(nodeOperatorHaloFilaments) :: self
-
+    type (nodeOperatorHaloFilaments   )                        :: self
+    class(darkMatterHaloFilamentsClass), intent(in   ), target :: darkMatterHaloFilaments_
     !![
-    <addMetaProperty component="basic" name="filamentAxes" id="self%filamentAxesID" rank="1" isEvolvable="no" isCreator="yes"/>
+    <constructorAssign variables="*darkMatterHaloFilaments_"/>
     !!]
+
     return
   end function haloFilamentsConstructorInternal
 
+  subroutine haloFilamentsDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`nodeOperatorHaloFilaments` node operator class.
+    !!}
+    implicit none
+    type(nodeOperatorHaloFilaments), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterHaloFilaments_"/>
+    !!]
+    return
+  end subroutine haloFilamentsDestructor
+
   subroutine haloFilamentsNodeTreeInitialize(self,node)
     !!{RST
-    Assign filament axes to the branch of a node, if it does not already have them.
+    Assign filaments to the branch of a node, if it does not already have them.
     !!}
-    use :: Dark_Matter_Halo_Filaments, only : Dark_Matter_Halo_Filament_Axes
     implicit none
     class           (nodeOperatorHaloFilaments), intent(inout), target         :: self
     type            (treeNode                 ), intent(inout), target         :: node
     double precision                           , allocatable  , dimension(:,:) :: axes
 
-    axes=Dark_Matter_Halo_Filament_Axes(node,self%filamentAxesID)
+    axes=self%darkMatterHaloFilaments_%axes(node)
     return
   end subroutine haloFilamentsNodeTreeInitialize
