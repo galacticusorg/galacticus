@@ -443,10 +443,11 @@ contains
                 self%covarianceMatrix(ii,jj,iRedshift)=massFunctionCovarianceOriginal(i,j)
              end do
           end do
+          deallocate(massFunctionCovarianceOriginal)
           ! Find the covariance matrices.
           self%covariance(iRedshift)=self%covarianceMatrix(:,:,iRedshift)
           ! Get eigenvalues and vectors of the covariance matrix.
-          if (iRedshift == 1) allocate(eigenValueArray(size(self%mass)))
+          allocate(eigenValueArray(size(self%mass)))
           call self%covariance(iRedshift)%eigenSystem(eigenVectors,eigenValues)
           eigenValueArray=eigenValues
           if (any(eigenValueArray < 0.0d0)) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' inverse covariance matrix is not semi-positive definite')
