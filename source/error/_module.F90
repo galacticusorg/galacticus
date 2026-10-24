@@ -488,7 +488,6 @@ contains
     integer           , intent(in   ) :: signalNumber
     character(len=*  ), intent(in   ) :: description
     logical           , intent(in   ) :: isCrash
-    character(len=:  ), allocatable   :: message
 #ifdef USEMPI
     integer                           :: mpiRank     , error
     character(len=128)                :: hostName
@@ -496,11 +495,12 @@ contains
 #endif
 
     call signalHandlersCall(signalNumber)
-    message='Galacticus experienced '//description//' - will try to flush data before exiting.'
+    ! The message is written in pieces, rather than first assembled into a single string, so that (when not writing to a
+    ! terminal) nothing need be allocated on the heap, which may be corrupt.
     if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//message//displayReset()
+       write (error_unit,'(5a)') ' ',displayRed()//displayBold(),'Galacticus experienced '//description,' - will try to flush data before exiting.',displayReset()
     else
-       write (error_unit,*)                              message
+       write (error_unit,'(4a)') ' ',                            'Galacticus experienced ',description ,' - will try to flush data before exiting.'
     end if
     !$ if (omp_in_parallel()) then
     !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
