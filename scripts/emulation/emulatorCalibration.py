@@ -118,6 +118,8 @@ def main(argv=None):
             options['countOpenMPThreads'] = args.cpus
         if args.memory is not None:
             options['memory'] = args.memory
+        # Bring run statuses up to date first, so that runs which have since finished or failed are selected correctly.
+        campaign.refresh()
         indices = _indices(args.runs) if args.command == 'submit' else [run.index for run in campaign.select(statuses=('failed',))]
         if args.command == 'resubmit' and not indices:
             print('no failed runs to resubmit')

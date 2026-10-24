@@ -316,3 +316,26 @@ def test_task_lists_are_per_submission(workspace):
     assert completed.returncode == 0, completed.stderr
     campaign.refresh()
     assert campaign.runs[1].status == 'complete'
+
+
+def test_resubmit_refreshes_statuses(workspace, monkeypatch):
+    """`emulatorCalibration.py resubmit` must find runs which failed since the last refresh."""
+    import importlib.util
+    import types
+    path, campaign, _ = workspace
+    _mark(path, 1, 'FAILEXIT')
+    manager = FakeManager()
+    campaign.submit(manager)
+    # Run 1's array task fails; the campaign is not refreshed.
+    environment = dict(os.environ, SLURM_ARRAY_TASK_ID='1')
+    subprocess.run(['bash', '-c', manager.jobs[0]['command']], env=environment, capture_output=True)
+    resubmitter = FakeManager()
+    queue_manager = types.ModuleType('queueManager')
+    queue_manager.factory = lambda args: resubmitter
+    monkeypatch.setitem(sys.modules, 'queueManager', queue_manager)
+    script = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'scripts', 'emulation', 'emulatorCalibration.py')
+    specification = importlib.util.spec_from_file_location('emulatorCalibration', script)
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    assert module.main(['resubmit', 'campaign.json']) == 0
+    assert len(resubmitter.jobs) == 1 and resubmitter.jobs[0]['array'] == '1'
