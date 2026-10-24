@@ -176,8 +176,9 @@ contains
     end select
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="massDistribution_"  />
-    <objectDestructor name="darkMatterParticle_"/>
+    <objectDestructor name="massDistribution_"       />
+    <objectDestructor name="massDistributionBaryonic"/>
+    <objectDestructor name="darkMatterParticle_"     />
     !!]
     return
   end function sphericalSIDMIsothermalBaryonsConstructorParameters
@@ -212,6 +213,8 @@ contains
     ! Initialize state.
     self%dimensionless=.false.
     self%initialized  =.not.associated(initializationFunction)
+    ! If the baryonic component was supplied directly (rather than through the initialization function), compute the solution now.
+    if (self%initialized) call self%computeSolution()
     return
   end function sphericalSIDMIsothermalBaryonsConstructorInternal
 
