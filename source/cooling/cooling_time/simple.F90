@@ -129,11 +129,10 @@ contains
     !!{RST
     Compute the cooling time (in Gyr) for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear          , massSolar, megaParsec
-    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+    use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes    , only : hecto
     use :: Numerical_Constants_Units       , only : ergs
+    use :: Hot_Halo_Composition            , only : Hydrogen_Number_Density
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -148,12 +147,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³).
-    numberDensityHydrogen  =  +density                                    &
-         &                    *gasAbundances   %hydrogenMassFraction()    &
-         &                    *massSolar                                  &
-         &                    /massHydrogenAtom                           &
-         &                    /hecto                                  **3 &
-         &                    /megaParsec                             **3
+    numberDensityHydrogen  =  Hydrogen_Number_Density(density,gasAbundances)
     ! Get the number density of all species, including electrons.
     numberDensityAllSpecies=+                                                numberDensityHydrogen                                                        &
          &                  /     gasAbundances %hydrogenNumberFraction(                                                                                ) &
