@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Provides a mass distribution implementing the "isothermal" approximation to the effects of SIDM, including the baryonic potential, based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
@@ -42,7 +44,7 @@
 
       \nabla^2 \phi(r) = 4 \pi \mathrm{G} \left[ \rho_0 \exp \left( - \frac{\phi(r)}{\sigma_0^2} \right) + \rho_\mathrm{b}(r) \right],
 
-   where :math:`\rho_\mathrm{b}(r)` is the density of the baryonic component. This second-order differential equation is solved using the boundary conditions :math:`\phi(r=0)=0` and :math:`\mathrm{d}\phi/\mathrm{d}r(r=0)=0`. The values of :math:`\rho_0` and :math:`\sigma_0` are then found by minimizing a function
+   where :math:`\rho_\mathrm{b}(r)` is the density of the baryonic component. This second-order differential equation is solved using the boundary conditions :math:`\phi(r=0)=0` and :math:`r^2\mathrm{d}\phi/\mathrm{d}r \rightarrow 0` as :math:`r \rightarrow 0` (i.e. no central point mass). The central gradient, :math:`\mathrm{d}\phi/\mathrm{d}r(r=0)=\lim_{r\rightarrow 0} \mathrm{G} M_\mathrm{b}(&lt;r)/r^2`, is zero only if the baryons have a constant density core: for a cuspy baryon profile, such as the Hernquist profile used by :cite:t:`jiang_semi-analytic_2023`, it is finite. The values of :math:`\rho_0` and :math:`\sigma_0` are then found by minimizing a function
 
    .. math::
 

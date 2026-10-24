@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a dark matter profile scale radius class that uses simple power-law scalings.
   !!}
@@ -39,13 +41,13 @@
 
        y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
 
-    where :math:`r_0=`\ ``[radiusLow]``, :math:`r_1=`\ ``[radiusHigh]``, :math:`r_\nu=`\ ``[radiusTransition]``, :math:`\Delta r=`\ ``[radiusWidth]``, :math:`\alpha_0=`\ ``[massLow]``, :math:`\alpha_1=`\ ``[massHigh]``, :math:`\alpha_\nu=`\ ``[massTransition]``, :math:`\Delta \alpha=`\ ``[massWidth]``, :math:`\beta_0=`\ ``[expansionFactorLow]``, :math:`\beta_1=`\ ``[expansionFactorHigh]``, :math:`\beta_\nu=`\ ``[expansionFactorTransition]``, and :math:`\Delta \beta=`\ ``[expansionFactorWidth]`` , plus a random log-normal scatter of ``[scatter]`` dex.
+    where :math:`r_0=`\ ``[radiusLow]``, :math:`r_1=`\ ``[radiusHigh]``, :math:`r_\nu=`\ ``[radiusTransition]``, :math:`\Delta r=`\ ``[radiusWidth]``, :math:`\alpha_0=`\ ``[massLow]``, :math:`\alpha_1=`\ ``[massHigh]``, :math:`\alpha_\nu=`\ ``[massTransition]``, :math:`\Delta \alpha=`\ ``[massWidth]``, :math:`\beta_0=`\ ``[expansionFactorLow]``, :math:`\beta_1=`\ ``[expansionFactorHigh]``, :math:`\beta_\nu=`\ ``[expansionFactorTransition]``, and :math:`\Delta \beta=`\ ``[expansionFactorWidth]``, and :math:`M_0=10^{12}\,\mathrm{M}_\odot`. No scatter is applied (the ``[scatter]`` parameter is read, but not used, by this class).
     </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusPowerLaw
      !!{RST
-     A dark matter profile scale radius class that assigns dark matter profile scale radii using the energy-based model of :cite:t:`johnson_random_2021`.
+     A dark matter profile scale radius class that assigns dark matter profile scale radii using simple power-law scalings with mass and expansion factor.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_           => null()
@@ -194,7 +196,7 @@ contains
       <defaultValue>+0.1513d0</defaultValue>
       <source>parameters</source>
       <description>
-      The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration.
+      The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration. Currently not applied by this class.
       </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>

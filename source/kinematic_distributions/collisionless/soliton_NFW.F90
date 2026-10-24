@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a kinematic distribution class for the soliton-NFW mass distribution.
   !!}
@@ -28,13 +30,13 @@
 
     .. math::
 
-       \frac{\mathrm{d}(\rho\sigma^2}{\mathrm{d}r} = - \frac{\mathrm{G} \Delta M}{r^2} \rho,
+       \frac{\mathrm{d}(\rho\sigma^2)}{\mathrm{d}r} = - \frac{\mathrm{G} \Delta M}{r^2} \rho,
 
     where :math:`\Delta M = M_\mathrm{soliton}(r_\mathrm{soliton}) - M_\mathrm{NFW}(r_\mathrm{soliton})`, and which has the solution:
 
     .. math::
 
-       \rho \sigma^2 = - \frac{\mathrm{G} \Delta M \rho_\mathrm{s}}{r_\mathrm{s}} \left( \frac{4}{r/r_\mathrm{s}} - \frac{1}{(r/r_\mathrm{s})^2} + \frac{2}{1+r/r_\mathrm{s}} + 6 \log \left[\frac{r}{r+r_\mathrm{s}}\right] \right).
+       \rho \sigma^2 = - \frac{\mathrm{G} \Delta M \rho_\mathrm{s}}{2 r_\mathrm{s}} \left( \frac{4}{r/r_\mathrm{s}} - \frac{1}{(r/r_\mathrm{s})^2} + \frac{2}{1+r/r_\mathrm{s}} + 6 \log \left[\frac{r}{r+r_\mathrm{s}}\right] \right).
 
     Inside the soliton, the NFW solution is used as a boundary condition at :math:`r_\mathrm{soliton}`, and the Jeans equation is then solved using the soliton density profile, which results in a solution
 

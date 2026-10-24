@@ -77,13 +77,13 @@
 
        c_p = \frac{2+\delta}{1+\delta+p} (1+x_\mathrm{unres})^\alpha\, _2\mathrm{F}_1({1+\delta+p,\alpha},{2+\delta+p},-x_\mathrm{unres}).
 
-    We further compute correction factors to account for the fact that this unresolved mass is accreted over some interval of time, during which mean halo properties (e.g. virial density) will evolve. For internal energies we have :math:`E_\mathrm{int} \propto M^2/r \propto M^{5/3}/\rho \propto M^{5/3}/a(t)` where :math:`a(t)` is the expansion factor. If the current halo exists at time :math:`t`, and the primary progenitor at time :math:`t_0`, we therefore compute a correction factor to the midpoint of this interval,
+    We further compute correction factors to account for the fact that this unresolved mass is accreted over some interval of time, during which mean halo properties (e.g. virial density) will evolve. For internal energies we have :math:`E_\mathrm{int} \propto M^2/r \propto M^{5/3}\rho^{1/3} \propto M^{5/3}/a(t)` (as the virial radius :math:`r \propto (M/\rho)^{1/3}`, and the virial density :math:`\rho \propto a^{-3}`), where :math:`a(t)` is the expansion factor. If the current halo exists at time :math:`t`, and the primary progenitor at time :math:`t_0`, we therefore compute a correction factor to the midpoint of this interval,
 
     .. math::
 
        f_\mathrm{int} = \frac{1}{2} \left( 1 + \frac{a(t_0)}{a(t)} \right),
 
-    where the second term in the parentheses is the ratio of the internal energy of a halo of fixed mass at :math:`t` and :math:`t_0`. For orbital energy we expect a scaling :math:`E_\mathrm{orb} \propto M M_\mathrm{host}/r_\mathrm{host} \propto M M_\mathrm{host}^{2/3}/\rho \propto M M_\mathrm{host}^{2/3}/a(t)` where :math:`M_\mathrm{host}` and :math:`r_\mathrm{host}` are the virial mass and radius of the host (current) halo, respectively. Computing a correction factor to the midpoint of the time interval we find,
+    where the second term in the parentheses is the ratio of the internal energy of a halo of fixed mass at :math:`t` and :math:`t_0`. For orbital energy we expect a scaling :math:`E_\mathrm{orb} \propto M M_\mathrm{host}/r_\mathrm{host} \propto M M_\mathrm{host}^{2/3}\rho^{1/3} \propto M M_\mathrm{host}^{2/3}/a(t)` where :math:`M_\mathrm{host}` and :math:`r_\mathrm{host}` are the virial mass and radius of the host (current) halo, respectively. Computing a correction factor to the midpoint of the time interval we find,
 
     .. math::
 
@@ -97,29 +97,29 @@
 
     where :math:`u =`\ ``[unresolvedEnergy]``.
 
-    To estimate the deviation from the mean unresolved energy we again consider the contributions from a spectrum of unresolved halo masses. For simplicity we here ignore the internal energies (which are typically small relative to the orbital energy assuming that the unresolved halo masses are small compared to that of the primary progenitor. The mean energy of unresolved halos is then
+    To estimate the deviation from the mean unresolved energy we again consider the contributions from a spectrum of unresolved halo masses. For simplicity we here ignore the internal energies (which are typically small relative to the orbital energy assuming that the unresolved halo masses are small compared to that of the primary progenitor. With the mass function of unresolved halos normalized such that it contains the unresolved mass, :math:`n(x) = (2+\delta) x^\delta` with :math:`x=M/M_\mathrm{unres}`, the mean energy of unresolved halos is then
 
     .. math::
 
-       \epsilon = \bar{E}_\mathrm{unres} \int_0^1 x^{1+a} \mathrm{d}x = \frac{\bar{E}_\mathrm{unres}}{2+a},
+       \epsilon = \bar{E}_\mathrm{unres} (2+\delta) \int_0^1 x^{1+\delta} \mathrm{d}x = \bar{E}_\mathrm{unres},
 
     while the variance in this energy is
 
     .. math::
 
-       \sigma^2_\epsilon = \sigma^2_\mathrm{unres} \int_0^1 x^{2+a} \mathrm{d}x = \frac{\sigma^2_\mathrm{unres}}{3+a}.
+       \sigma^2_\epsilon = \sigma^2_\mathrm{unres} (2+\delta) \int_0^1 x^{2+\delta} \mathrm{d}x = \frac{2+\delta}{3+\delta} \sigma^2_\mathrm{unres}.
 
     The fractional variance is then
 
     .. math::
 
-       \frac{\sigma^2_\epsilon}{\epsilon^2} =\frac{2+a}{3+a} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2.
+       \frac{\sigma^2_\epsilon}{\epsilon^2} =\frac{2+\delta}{3+\delta} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2.
 
     We therefore add to the energy of the halo an unresolved contribution of
 
     .. math::
 
-       \bar{E}_\mathrm{unres} \exp\left( \left[ \frac{2+a}{3+a} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2 + (\sigma_e \log_\mathrm{e}10)^2 \right]^{1/2} \mathcal{N}(0,1) \right).
+       \bar{E}_\mathrm{unres} \exp\left( \left[ \frac{2+\delta}{3+\delta} \left(\frac{\sigma_\mathrm{unres}}{\bar{E}_\mathrm{unres}}\right)^2 + (\sigma_e \log_\mathrm{e}10)^2 \right]^{1/2} \mathcal{N}(0,1) \right).
 
     where :math:`\sigma_\mathrm{e}=`\ ``[scatterExcess]`` accounts for scatter missed by this model.
 
@@ -218,7 +218,7 @@ contains
       <name>energyBoost</name>
       <defaultValue>0.797d0</defaultValue>
       <defaultSource>
-      :cite:p:`johnson_random_2021`
+      Best-fit value from the Galacticus halo spin and concentration constraint (https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations). This is a recalibration for the modified form of the model implemented here: for their original form :cite:t:`johnson_random_2021` found b=0.673.
       </defaultSource>
       <source>parameters</source>
       <description>
@@ -229,7 +229,7 @@ contains
       <name>massExponent</name>
       <defaultValue>2.168d0</defaultValue>
       <defaultSource>
-      :cite:p:`johnson_random_2021`
+      Best-fit value from the Galacticus halo spin and concentration constraint (https://github.com/galacticusorg/galacticus/wiki/Constraints:-Halo-spins-and-concentrations). This is a recalibration for the modified form of the model implemented here: for their original form :cite:t:`johnson_random_2021` found :math:`\gamma=1.518`.
       </defaultSource>
       <source>parameters</source>
       <description>

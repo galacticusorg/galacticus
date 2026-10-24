@@ -36,7 +36,7 @@
 
    where :math:`\nu_\alpha=\delta_\mathrm{c}(t)/\sigma_\alpha(M)` is the peak height of the halo. The truncation at :math:`\alpha = 0.3` is included since :cite:t:`brown_towards_2022`'s fits do not probe this region and extremely large values of :math:`\alpha` are numerically troublesome.
 
-   This implementation accepts any :galacticus-class:`cosmologicalMassVarianceClass` object for use in computing for computing :math:`\sigma_\mathrm{c}(M)`. *However*, :cite:t:`brown_towards_2022` recommend using :math:`\sigma_\mathrm{c}(M)` computed using a generalized top-hat window function (:galacticus-class:`powerSpectrumWindowFunctionTopHatGeneralized`) with :math:`\mu_\mathrm{g}=0.01`.
+   This implementation accepts any :galacticus-class:`cosmologicalMassVarianceClass` object for use in computing :math:`\sigma_\alpha(M)`. *However*, :cite:t:`brown_towards_2022` recommend using :math:`\sigma_\alpha(M)` computed using a generalized top-hat window function (:galacticus-class:`powerSpectrumWindowFunctionTopHatGeneralized`) with :math:`\log_{10}\mu_\mathrm{g}=-0.01`, i.e. :math:`\mu_\mathrm{g}=0.9772`.
    </description>
   </darkMatterProfileShape>
   !!]
