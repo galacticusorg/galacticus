@@ -882,15 +882,20 @@ contains
           &                   /1.5d0                                                      &
           &                   /densityTotal                                               &
           &                   *gigaYear                                                   &
-          ! Particle number rate of change.
-          &    +electronDensityRateOfChange                                               &
-          &    /densityTotal                                                              &
-          &    +3.0d0                                                                     &
-          &    *self_%cosmologyFunctions_%expansionRate  (                                &
-          &     self_%cosmologyFunctions_%expansionFactor (                               &
-          &                                                time                           &
-          &                                               )                               &
-          &                                              )
+          ! Particle number rate of change. Only the number of electrons per comoving volume changes, by (dn_e/dt+3Hn_e)a³,
+          ! and the first law then gives a contribution -T (dN/dt)/N to dT/dt.
+          &    -temperature                                                               &
+          &    *(                                                                         &
+          &      +electronDensityRateOfChange                                             &
+          &      +3.0d0                                                                   &
+          &      *self_%cosmologyFunctions_%expansionRate  (                              &
+          &       self_%cosmologyFunctions_%expansionFactor (                             &
+          &                                                  time                         &
+          &                                                 )                             &
+          &                                                )                              &
+          &      *densityElectron                                                         &
+          &     )                                                                         &
+          &    /densityTotal
      ! Transfer rates of change to contiguous array.
      propertiesRateOfChange( 7: 8)=massFilteringCompositeRateOfChange
      propertiesRateOfChange( 9   )=opticalDepthRateOfChange
