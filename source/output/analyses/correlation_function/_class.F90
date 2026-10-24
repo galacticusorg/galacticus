@@ -575,7 +575,12 @@ contains
 
     ! If weights for this output are all zero, we can skip analysis.
     if (all(self%outputWeight(:,iOutput) == 0.0d0)) return
-    ! Filter this node.
+    ! Filter this node. A central which fails the filter contributes no galaxy itself, but its halo must still be accumulated, as
+    ! its satellites (all of which have already been visited) may have passed.
+    if (.not.self%galacticFilter_%passes(node)) then
+       if (.not.node%isSatellite()) call self%accumulateHalo(iOutput,node)
+       return
+    end if
     ! Extract mass property.
     massType=self%massPropertyExtractor_%type()
     select type (extractor_ => self%massPropertyExtractor_)
