@@ -634,8 +634,9 @@ contains
 
     call self%transfer%destroy()
     !![
-    <objectDestructor name="self%cosmologyParameters_"/>
-    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%transferFunctionReference"/>
     !!]
     return
   end subroutine fileDestructor
