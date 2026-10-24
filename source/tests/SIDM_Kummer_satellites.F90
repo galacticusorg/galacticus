@@ -34,6 +34,7 @@ evaporation must switch off entirely while the drag must remain a genuine decele
 !!}
 
 program Tests_SIDM_Kummer_Satellites
+  use :: Calculations_Resets             , only : Calculations_Reset
   use :: Coordinates                     , only : coordinateCartesian                               , assignment(=)
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
@@ -45,7 +46,7 @@ program Tests_SIDM_Kummer_Satellites
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
   use :: Galactic_Structure_Options      , only : massTypeDark
   use :: Galacticus_Nodes                , only : mergerTree                                        , nodeClassHierarchyInitialize                       , nodeComponentBasic    , nodeComponentDarkMatterProfile, &
-       &                                          nodeComponentSatellite                            , treeNode
+       &                                          nodeComponentSatellite                            , treeNode                                           , nodeComponentSpheroid
   use :: Input_Parameters                , only : inputParameters
   use :: Mass_Distributions              , only : massDistributionClass
   use :: Node_Components                 , only : Node_Components_Initialize                        , Node_Components_Thread_Initialize                  , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
@@ -74,6 +75,7 @@ program Tests_SIDM_Kummer_Satellites
   class           (nodeComponentDarkMatterProfile                     ), pointer      :: darkMatterProfile           , darkMatterProfileHost       , &
        &                                                                                 darkMatterProfileDense
   class           (nodeComponentSatellite                             ), pointer      :: satellite                   , satelliteDense
+  class           (nodeComponentSpheroid                              ), pointer      :: spheroidHost
   class           (massDistributionClass                              ), pointer      :: massDistributionHost_
   double precision                                                     , parameter    :: crossSectionConstant=10.0d0                                   ! [cm² g⁻¹]
   double precision                                                     , parameter    :: massHost            = 1.0d12, radiusScaleHost      =2.0d-2, & ! [M☉], [Mpc]
@@ -86,6 +88,8 @@ program Tests_SIDM_Kummer_Satellites
   double precision                                                     , dimension(3) :: speedOrbital        =[5.0d1,2.0d2,5.0d3]                      ! [km/s]
   double precision                                                     , dimension(3) :: factorEvaporation           , factorDeceleration
   double precision                                                     , dimension(3) :: acceleration
+  double precision                                                     , dimension(3) :: massLossRateDarkOnly        , accelerationDarkOnly        , &
+       &                                                                                 massLossRateBaryons         , accelerationBaryons
   type            (coordinateCartesian                                )               :: coordinates
   double precision                                                                    :: densityHost                 , rateNormalization         , &
        &                                                                                 massLossRate                , massBoundary              , &
@@ -183,6 +187,8 @@ program Tests_SIDM_Kummer_Satellites
      call satellite%velocitySet([0.0d0,speedOrbital(i),0.0d0])
      massLossRate         =evaporation %massLossRate(node)
      acceleration         =deceleration%acceleration(node)
+     massLossRateDarkOnly(i)=massLossRate
+     accelerationDarkOnly(i)=acceleration(2)
      factorEvaporation (i)=-massLossRate         &
           &                /massBoundary         &
           &                /speedOrbital     (i) &
@@ -213,6 +219,22 @@ program Tests_SIDM_Kummer_Satellites
   ! product recovered from the acceleration must tend to χ_d(0)=0 (Kummer et al. 2018; Markevitch et al. 2004): when every
   ! scattering ejects both particles, no momentum is transferred to the subhalo.
   call Assert("deceleration factor tends to zero at large orbital speed"          ,factorDeceleration(3), 0.0d0,absTol=5.0d-3)
+  ! Only the dark matter of the host scatters with that of the satellite, and the host velocity dispersion is that of its dark
+  ! matter, so adding stars to the host must leave both rates unchanged. The spheroid is placed so that its density at the
+  ! satellite's position is comparable to that of the dark matter.
+  spheroidHost => nodeHost%spheroid(autoCreate=.true.)
+  call spheroidHost%massStellarSet(1.0d11)
+  call spheroidHost%     radiusSet(2.0d-2)
+  call Calculations_Reset(nodeHost)
+  call Calculations_Reset(node    )
+  do i=1,size(speedOrbital)
+     call satellite%velocitySet([0.0d0,speedOrbital(i),0.0d0])
+     massLossRateBaryons(i)=evaporation %massLossRate(node)
+     acceleration          =deceleration%acceleration(node)
+     accelerationBaryons(i)=acceleration(2)
+  end do
+  call Assert("mass loss rate is independent of the baryons of the host"         ,massLossRateBaryons,massLossRateDarkOnly,relTol=1.0d-9)
+  call Assert("deceleration is independent of the baryons of the host"           ,accelerationBaryons,accelerationDarkOnly,relTol=1.0d-9)
   ! Finally, a satellite bound deeply enough that its escape velocity exceeds the speed at which it moves relative to its host
   ! (including the 3D velocity dispersion of host and satellite, which enters the relative speed in Appendix A of Kummer et al.
   ! 2018 - so the satellite must be compact)
