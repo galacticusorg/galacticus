@@ -2557,12 +2557,10 @@ contains
                          call parentParameters%value(trim(parameterLeafName),workValueText   )
                       end if
                       deallocate(parentParameters)
-                   else if (isInteger .and. haveDefault) then
-                      ! The parameter does not exist, but a default value is available - use that default.
-                      read (defaultValue,*) workValueInteger
-                      deallocate(parentParameters)
-                   else if (isDouble .and. haveDefault) then
-                      ! The parameter does not exist, but a default value is available - use that default.
+                   else if ((isDouble .or. isInteger) .and. haveDefault) then
+                      ! The parameter does not exist, but a default value is available - use that default. The expression is
+                      ! evaluated in double precision, so values substituted into integer expressions are handled in double
+                      ! precision also.
                       read (defaultValue,*) workValueDouble
                       deallocate(parentParameters)
                    else
@@ -2571,10 +2569,8 @@ contains
                       !$omp end critical (FoX_DOM_Access)
                       call Error_Report('parameter `'//trim(parameterName)//'` referenced in expression `'//trim(expression)//'` does not exist'//{introspection:location})
                    end if
-                   if (isDouble) then
+                   if (isDouble .or. isInteger) then
                       write (workText,'(e24.16)') workValueDouble
-                   else if (isInteger) then
-                      write (workText,'(i24)'   ) workValueInteger
                    else if (isText) then
                       if      (parameterType == inputParameterTypeDouble ) then
                          write (worktext,formatSpecifier) workValueDouble
