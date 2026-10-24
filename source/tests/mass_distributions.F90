@@ -41,6 +41,7 @@ program Test_Mass_Distributions
        &                                        massDistributionList                 , massDistributionSymmetryCylindrical   , enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
        &                                        massDistributionCylindricalScaler    , massDistributionCylindrical           , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
        &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
+       &                                        massDistributionDiemerKravtsov2014   , &
        &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
        &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
        &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical
@@ -201,6 +202,21 @@ program Test_Mass_Distributions
   end select
   nullify   (kinematicsDistribution_)
   deallocate(massDistribution_      )
+  call Unit_Tests_End_Group()
+
+  ! Diemer & Kravtsov (2014) accretion flow profile, with and without the mean density. The logarithmic density gradient is
+  ! compared with a numerical estimate.
+  call Unit_Tests_Begin_Group("Diemer & Kravtsov (2014) accretion flow profile")
+  position=[2.0d0,0.0d0,0.0d0]
+  allocate(massDistributionDiemerKravtsov2014 :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionDiemerKravtsov2014)
+     massDistribution_=massDistributionDiemerKravtsov2014(densityMean=1.0d0,radius200Mean=1.0d0,includeMean=.true. ,b=1.0d0,s=1.5d0)
+     call Assert("Logarithmic density gradient (mean included)",massDistribution_%densityGradientRadial(position,logarithmic=.true.),massDistribution_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-6)
+     massDistribution_=massDistributionDiemerKravtsov2014(densityMean=1.0d0,radius200Mean=1.0d0,includeMean=.false.,b=1.0d0,s=1.5d0)
+     call Assert("Logarithmic density gradient (mean excluded)",massDistribution_%densityGradientRadial(position,logarithmic=.true.),massDistribution_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-6)
+  end select
+  deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
   ! Hernquist profile.
