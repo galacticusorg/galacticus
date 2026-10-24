@@ -49,20 +49,22 @@ program Test_Satellite_Orbit_Rates
   profile is a state the code never produces, and it would drive the mass outside the tidal radius to zero, making the
   comparison one of zero against zero.
   !!}
-  use :: Display                        , only : displayMessage                    , displayVerbositySet              , verbosityLevelStandard
-  use :: Error                          , only : Error_Handler_Register
-  use :: Events_Hooks                   , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities     , only : Functions_Global_Set
-  use :: Dark_Matter_Halo_Scales        , only : darkMatterHaloScaleClass
-  use :: Galacticus_Nodes               , only : nodeClassHierarchyFinalize        , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
-       &                                         nodeComponentSatellite            , treeNode
-  use :: Input_Parameters               , only : inputParameters
-  use :: ISO_Varying_String             , only : varying_string                    , assignment(=)                    , var_str
-  use :: Node_Components                , only : Node_Components_Initialize        , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Satellite_Dynamical_Friction   , only : satelliteDynamicalFrictionClass
-  use :: Satellite_Tidal_Stripping      , only : satelliteTidalStrippingClass
-  use :: Satellite_Tidal_Stripping_Radii, only : satelliteTidalStrippingRadiusClass
-  use :: Unit_Tests                     , only : Assert                            , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Display                             , only : displayMessage                    , displayVerbositySet              , verbosityLevelStandard
+  use :: Error                               , only : Error_Handler_Register
+  use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
+  use :: Galacticus_Nodes                    , only : nodeClassHierarchyFinalize        , nodeClassHierarchyInitialize     , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
+       &                                              nodeComponentSatellite            , treeNode
+  use :: Input_Parameters                    , only : inputParameters
+  use :: ISO_Varying_String                  , only : varying_string                    , assignment(=)                    , var_str
+  use :: Node_Components                     , only : Node_Components_Initialize        , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
+  use :: Satellite_Dynamical_Friction        , only : satelliteDynamicalFrictionClass   , satelliteDynamicalFrictionLancaster2020
+  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousChandrasekhar1943
+  use :: Satellite_Tidal_Stripping           , only : satelliteTidalStrippingClass
+  use :: Satellite_Tidal_Stripping_Radii     , only : satelliteTidalStrippingRadiusClass
+  use :: Unit_Tests                          , only : Assert                            , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   ! The host halo, shared by every configuration.
   double precision, parameter :: massHost           =1.0d12, concentrationHost=10.0d0
@@ -97,25 +99,28 @@ program Test_Satellite_Orbit_Rates
   ! The dynamical friction acceleration does not go through that root finder. Its floor is the quadrature of the isotropic
   ! Jeans integral giving the host velocity dispersion, and it is held to a tighter tolerance so that the assertion keeps its
   ! teeth. Measured here: 6.7 x 10^-5.
-  double precision                                    , parameter    :: toleranceAcceleration         =5.0d-4, toleranceTidal         =2.0d-3, &
-       &                                                                toleranceRateMassLoss         =5.0d-3
-  class           (darkMatterHaloScaleClass          ), pointer      :: darkMatterHaloScale_
-  class           (satelliteDynamicalFrictionClass   ), pointer      :: satelliteDynamicalFriction_
-  class           (satelliteTidalStrippingClass      ), pointer      :: satelliteTidalStripping_
-  class           (satelliteTidalStrippingRadiusClass), pointer      :: satelliteTidalStrippingRadius_
-  type            (treeNode                          ), pointer      :: nodeHost                             , nodeSatellite
-  class           (nodeComponentBasic                ), pointer      :: basicHost                            , basicSatellite
-  class           (nodeComponentDarkMatterProfile    ), pointer      :: profileHost                          , profileSatellite
-  class           (nodeComponentSatellite            ), pointer      :: satellite
-  type            (inputParameters                   )               :: parameters
-  character       (len=128                           )               :: message
-  integer                                                            :: iConfiguration
-  double precision                                                   :: radiusVirialHost                     , radiusVirialSatellite         , &
-       &                                                                differenceMaximum                    , differenceAccelerationX       , &
-       &                                                                differenceAccelerationY              , differenceRadiusTidal         , &
-       &                                                                differenceRateMassLoss               , radiusTidal                   , &
-       &                                                                rateMassLoss
-  double precision                                    , dimension(3) :: acceleration
+  double precision                                           , parameter    :: toleranceAcceleration         =5.0d-4, toleranceTidal         =2.0d-3, &
+       &                                                                       toleranceRateMassLoss         =5.0d-3
+  class           (darkMatterHaloScaleClass                 ), pointer      :: darkMatterHaloScale_
+  class           (satelliteDynamicalFrictionClass          ), pointer      :: satelliteDynamicalFriction_
+  type            (satelliteDynamicalFrictionLancaster2020  )               :: satelliteDynamicalFrictionLancaster_
+  type            (dynamicalFrictionGaseousChandrasekhar1943), pointer      :: dynamicalFrictionGaseous_
+  class           (satelliteTidalStrippingClass             ), pointer      :: satelliteTidalStripping_
+  class           (satelliteTidalStrippingRadiusClass       ), pointer      :: satelliteTidalStrippingRadius_
+  type            (treeNode                                 ), pointer      :: nodeHost                             , nodeSatellite
+  class           (nodeComponentBasic                       ), pointer      :: basicHost                            , basicSatellite
+  class           (nodeComponentDarkMatterProfile           ), pointer      :: profileHost                          , profileSatellite
+  class           (nodeComponentSatellite                   ), pointer      :: satellite
+  type            (inputParameters                          )               :: parameters
+  character       (len=128                                  )               :: message
+  integer                                                                   :: iConfiguration
+  double precision                                                          :: radiusVirialHost                     , radiusVirialSatellite         , &
+       &                                                                       differenceMaximum                    , differenceAccelerationX       , &
+       &                                                                       differenceAccelerationY              , differenceRadiusTidal         , &
+       &                                                                       differenceRateMassLoss               , radiusTidal                   , &
+       &                                                                       rateMassLoss                         , logarithmCoulombLancaster     , &
+       &                                                                       logarithmCoulombLancasterReference
+  double precision                                           , dimension(3) :: acceleration
 
   call displayVerbositySet              (verbosityLevelStandard)
   call Error_Handler_Register           (                      )
@@ -131,6 +136,11 @@ program Test_Satellite_Orbit_Rates
   <objectBuilder class="satelliteTidalStripping"       name="satelliteTidalStripping_"       source="parameters"/>
   <objectBuilder class="satelliteTidalStrippingRadius" name="satelliteTidalStrippingRadius_" source="parameters"/>
   !!]
+  ! The Lancaster et al. (2020) Coulomb logarithm depends only on the satellite's bound mass, position and velocity, so it can be
+  ! tested on an object constructed here.
+  allocate(dynamicalFrictionGaseous_)
+  dynamicalFrictionGaseous_           =dynamicalFrictionGaseousChandrasekhar1943(                         )
+  satelliteDynamicalFrictionLancaster_=satelliteDynamicalFrictionLancaster2020  (dynamicalFrictionGaseous_)
   call Unit_Tests_Begin_Group("Satellite orbital evolution rates")
   differenceMaximum=0.0d0
   do iConfiguration=1,countConfigurations
@@ -183,6 +193,19 @@ program Test_Satellite_Orbit_Rates
      call Assert(trim(message),radiusTidal    ,radiusTidalReference  (iConfiguration),relTol=toleranceTidal)
      write (message,'(a,i0)') 'tidal mass loss rate, configuration ',iConfiguration
      call Assert(trim(message),rateMassLoss   ,rateMassLossReference (iConfiguration),relTol=toleranceRateMassLoss)
+     ! The Lancaster et al. (2020) Coulomb logarithm, ln(r v²/G M), must be zero rather than negative where r < G M/v² (as in
+     ! the last configuration), since only impact parameters beyond the 90° deflection impact parameter contribute.
+     logarithmCoulombLancaster         =satelliteDynamicalFrictionLancaster_%coulombLogarithm(nodeSatellite)
+     logarithmCoulombLancasterReference=max(                                                                                            &
+          &                                 0.0d0                                                                                     , &
+          &                                 log(                                                                                        &
+          &                                     +radius(iConfiguration)*(velocityRadial(iConfiguration)**2+velocityTangential(iConfiguration)**2) &
+          &                                     /gravitationalConstant_internal                                                         &
+          &                                     /massSatellite(iConfiguration)                                                          &
+          &                                    )                                                                                        &
+          &                                )
+     write (message,'(a,i0)') 'Lancaster (2020) Coulomb logarithm, configuration ',iConfiguration
+     call Assert(trim(message),logarithmCoulombLancaster,logarithmCoulombLancasterReference,absTol=1.0d-12,relTol=1.0d-12)
      ! Detach before destroying, so that the host does not attempt to destroy the satellite a second time.
      nodeHost     %firstSatellite => null()
      nodeSatellite%parent         => null()
