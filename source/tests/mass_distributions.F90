@@ -43,7 +43,8 @@ program Test_Mass_Distributions
        &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
        &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
        &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
-       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical
+       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSolitonNFWHeated            , &
+       &                                        kinematicsDistributionSolitonNFWHeated
   use :: Numerical_Constants_Math      , only : Pi                                   , e
   use :: Tensors                       , only : assignment(=)
   use :: Unit_Tests                    , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
@@ -75,6 +76,11 @@ program Test_Mass_Distributions
   double precision                                         , dimension(truncationTableCount  )              :: truncationTableFraction              =[0.90d0           ,0.50d0           ,0.10d0           ,0.01d0           ], &
        &                                                                                                        truncationTableRadiusHalfMassTarget  =[2.0378552605d+00,1.0000000000d+00,2.8800715553d-01,7.6092056823d-02]
   type            (massDistributionList                   )                                    , pointer     :: massDistributions
+  class           (massDistributionSpherical              )                                    , pointer     :: massDistributionSolitonEnvelope_
+  integer                                                  , parameter                                       :: solitonHeatedTableCount              =8
+  double precision                                         , dimension(solitonHeatedTableCount)              :: solitonHeatedTableRadiusFactor       =[0.1d0,0.5d0,0.9d0,0.99d0,1.01d0,1.5d0,3.0d0,10.0d0], &
+       &                                                                                                        solitonHeatedTableRadius                                                               , &
+       &                                                                                                        solitonHeatedTableRadiusDensity
   integer                                                  , parameter                                       :: sidmParametricTableCount              =7
   double precision                                         , dimension(sidmParametricTableCount)             :: sidmParametricTableRadius             =[+0.125000000000000d+0,+0.250000000000000d+0,+0.500000000000000d+0,+1.000000000000000d+0,+2.000000000000000d+0,+4.000000000000000d+0,+8.000000000000000d+0], &
        &                                                                                                        sidmParametricTableDensityTarget      =[+1.578707460302960d+0,+1.260746394893958d+0,+7.474634802255240d-1,+2.462395302527262d-1,+5.550143415127595d-2,+9.999389741552710d-3,+1.543203989720854d-3], &
@@ -204,6 +210,37 @@ program Test_Mass_Distributions
   end select
   nullify   (kinematicsDistribution_)
   deallocate(massDistribution_      )
+  call Unit_Tests_End_Group()
+
+  ! Soliton-NFW (heated) profile. Parameters are those of the Chowdhury et al. (2021) halo used in the fuzzy dark matter tests,
+  ! with a plain NFW envelope.
+  call Unit_Tests_Begin_Group("Soliton-NFW (heated) profile")
+  allocate(massDistributionNFW :: massDistributionSolitonEnvelope_)
+  select type (massDistributionSolitonEnvelope_)
+  type is (massDistributionNFW)
+     massDistributionSolitonEnvelope_=massDistributionNFW(scaleLength=1.0d-2,densityNormalization=5.5d14,dimensionless=.false.)
+  end select
+  allocate(massDistributionSolitonNFWHeated :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionSolitonNFWHeated)
+     massDistribution_=massDistributionSolitonNFWHeated(radiusCore=0.720d-3,radiusSoliton=1.944d-3,densitySolitonCentral=1.040d17,dimensionless=.false.,massDistributionHeated_=massDistributionSolitonEnvelope_)
+     allocate(kinematicsDistributionSolitonNFWHeated :: kinematicsDistribution_)
+     select type (kinematicsDistribution_)
+     type is (kinematicsDistributionSolitonNFWHeated)
+        kinematicsDistribution_=kinematicsDistributionSolitonNFWHeated(toleranceRelativeVelocityDispersion=1.0d-6,toleranceRelativeVelocityDispersionMaximum=1.0d-3)
+     end select
+     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+     ! Test that the radius enclosing a mean density recovers the radius at which that mean density was computed, both inside
+     ! and outside of the soliton radius.
+     do i=1,solitonHeatedTableCount
+        solitonHeatedTableRadius       (i)=solitonHeatedTableRadiusFactor(i)*1.944d-3
+        solitonHeatedTableRadiusDensity(i)=massDistribution_%radiusEnclosingDensity(density=3.0d0*massDistribution_%massEnclosedBySphere(solitonHeatedTableRadius(i))/4.0d0/Pi/solitonHeatedTableRadius(i)**3)
+     end do
+     call Assert("Radius enclosing density",solitonHeatedTableRadiusDensity,solitonHeatedTableRadius,relTol=3.0d-3)
+  end select
+  nullify   (kinematicsDistribution_         )
+  nullify   (massDistributionSolitonEnvelope_)
+  deallocate(massDistribution_               )
   call Unit_Tests_End_Group()
 
   ! Hernquist profile.

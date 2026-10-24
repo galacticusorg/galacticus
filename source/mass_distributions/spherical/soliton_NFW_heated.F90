@@ -48,7 +48,6 @@
      procedure :: densityGradientRadial  => solitonNFWHeatedDensityGradientRadial
      procedure :: massEnclosedBySphere   => solitonNFWHeatedMassEnclosedBySphere
      procedure :: radiusEnclosingMass    => solitonNFWHeatedRadiusEnclosingMass
-     procedure :: radiusEnclosingDensity => solitonNFWHeatedRadiusEnclosingDensity
      procedure :: densityRadialMoment    => solitonNFWHeatedDensityRadialMoment
   end type massDistributionSolitonNFWHeated
   
@@ -314,23 +313,6 @@ contains
     return
   end function solitonNFWHeatedRadiusEnclosingMass
   
-  double precision function solitonNFWHeatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{RST
-    Computes the radius enclosing a given mean density for soliton+heated NFW mass distributions.
-    !!}
-    implicit none
-    class           (massDistributionSolitonNFWHeated), intent(inout), target   :: self
-    double precision                                  , intent(in   )           :: density
-    double precision                                  , intent(in   ), optional :: radiusGuess
-
-    if (density > +self%densityTransition) then
-        radius = +self%massDistributionSoliton_%radiusEnclosingDensity(density,radiusGuess)
-    else
-        radius = +self%massDistributionHeated_%radiusEnclosingDensity(density,radiusGuess)
-    end if
-    return    
-  end function solitonNFWHeatedRadiusEnclosingDensity
-
   double precision function solitonNFWHeatedDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{RST
     Returns a radial density moment for the solitonNFWHeated mass distribution.
