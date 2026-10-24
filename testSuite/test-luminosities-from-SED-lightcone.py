@@ -12,6 +12,9 @@ folded into the filter rather than the SED. Checked here are that:
    Inoue et al. (2014) evaluated independently and applied at the observed wavelength;
  * the IGM attenuation matters for the galaxies in the model, so that the above agreement is a test of how it is applied;
  * the template path, rather than the per-galaxy fallback, was the one used;
+ * on the per-galaxy path, where the SED itself is computed in the observed frame and the postprocessing multiplier is
+   therefore applied inside the integrals over the star formation history, the ratio of an attenuated to an unattenuated SED
+   over the same band is the attenuation of Inoue et al. (2014) evaluated independently;
  * an SED which does not cover the blueshifted filter is reported as an error.
 
 Andrew Benson, with assistance from Claude.
@@ -32,14 +35,19 @@ TOLERANCE_INDEPENDENT = 5.0e-3
 # Minimum largest effect of IGM attenuation which the model must show for the comparison with the independent integration to
 # test its application.
 EFFECT_IGM_MINIMUM    = 4.0*TOLERANCE_INDEPENDENT
+# Tolerance on the attenuation recovered from the ratio of a per-galaxy attenuated to unattenuated SED. The multiplier
+# factors out of the integrals over the star formation history exactly, so this is limited only by floating-point
+# reassociation of those sums, and not by the accuracy of the integration. Measured at 3e-13.
+TOLERANCE_MULTIPLIER  = 1.0e-9
 
 # This script runs with the working directory set to testSuite/, while the model is run from the repository root, so the two
 # need different paths to the same file.
 outputDirectory = "outputs/test-luminosities-from-SED-lightcone"
-outputPath      = os.path.join(outputDirectory,"galacticus.hdf5"        )
-coveragePath    = os.path.join(outputDirectory,"galacticusCoverage.hdf5")
+outputPath      = os.path.join(outputDirectory,"galacticus.hdf5"         )
+coveragePath    = os.path.join(outputDirectory,"galacticusCoverage.hdf5" )
+perGalaxyPath   = os.path.join(outputDirectory,"galacticusPerGalaxy.hdf5")
 os.makedirs(outputDirectory,exist_ok=True)
-for path in ( outputPath, coveragePath ):
+for path in ( outputPath, coveragePath, perGalaxyPath ):
     if os.path.exists(path):
         os.remove(path)
 
@@ -216,6 +224,73 @@ for filter in routes["diskStellarSED:inoue2014:{filter}:observed"][2]:
             print(f"FAILED: IGM attenuation reduces the top-hat luminosity by at most {effectIGM:.3e}, too little for the comparison with the independent integration to test its application (minimum {EFFECT_IGM_MINIMUM:.1e})")
         else:
             print(f"SUCCESS: IGM attenuation reduces the top-hat luminosity by up to {effectIGM:.3f}")
+
+# On the per-galaxy path the SED itself is computed in the observed frame, so no single template can serve every galaxy and
+# the postprocessing multiplier is applied inside the integrals over the star formation history. This is the only path on
+# which that multiplier is neither zero nor unity, and so the only one which tests how it is applied. Because the multiplier
+# is independent of both the age and the metallicity of the stellar population it factors out of those integrals exactly, so
+# the ratio of an attenuated to an unattenuated SED over the same band must be the attenuation itself.
+print("Running model with per-galaxy observed-frame SEDs...")
+status, log = runModel("testSuite/parameters/test-luminosities-from-SED-lightcone.xml testSuite/parameters/test-luminosities-from-SED-lightcone-perGalaxy.xml","galacticusPerGalaxy.log")
+if status != 0 or re.search(r"fatal|aborted|Galacticus experienced an error in the GSL library",log,re.IGNORECASE) or not os.path.exists(perGalaxyPath):
+    print("FAILED: per-galaxy observed-frame model run:")
+    print(log[-4000:])
+    sys.exit(0)
+print("SUCCESS: per-galaxy observed-frame model run")
+
+with h5py.File(perGalaxyPath,"r") as model:
+    try:
+        nodesPerGalaxy      = model["Lightcone/Output1/nodeData"]
+        redshiftPerGalaxy   = nodesPerGalaxy["redshift"                            ][:]
+        sedAttenuated       = nodesPerGalaxy["diskStellarSED:inoue2014"            ][:]
+        sedUnattenuated     = nodesPerGalaxy["diskStellarSED:identity"             ][:]
+        wavelengthsObserved = nodesPerGalaxy["diskStellarSED:inoue2014ColumnValues"][:]
+        # The SED is tabulated in the observed frame of the output epoch.
+        expansionFactorOutput = model["Lightcone/Output1"].attrs["outputExpansionFactor"]
+    except KeyError as e:
+        print(f"FAILED: expected dataset missing from the per-galaxy output: {e}")
+        sys.exit(0)
+    # No template may have been built here: if one was, this model did not exercise the per-galaxy path.
+    templatesPerGalaxy = []
+    def findAnyTemplate(name,object):
+        if isinstance(object,h5py.Group):
+            templatesPerGalaxy.extend([attribute for attribute in object.attrs if attribute.startswith("meta:sedMatrixFileName")])
+    model["Parameters"].visititems(findAnyTemplate)
+
+if len(templatesPerGalaxy) > 0:
+    print("FAILED: an SED template was built for the observed-frame SED, so the per-galaxy path was not the one tested")
+    sys.exit(0)
+print("SUCCESS: no SED template was built, so each galaxy's observed-frame SED was computed individually")
+
+# The multiplier is applied at the rest-frame wavelengths of the stellar population spectra templates, while the SED is
+# tabulated in the observed frame of the output. Those template wavelengths are therefore the tabulated ones scaled by the
+# expansion factor of the output, and - being a property of the templates rather than of any galaxy - are common to every
+# galaxy. The redshift at which the multiplier is evaluated is each galaxy's own.
+wavelengthsRest      = wavelengthsObserved*expansionFactorOutput
+attenuationReference = np.vstack(
+    [
+        inoue2014Attenuation(wavelengthsRest,redshiftGalaxy)
+        for redshiftGalaxy in redshiftPerGalaxy
+    ]
+)
+usable = sedUnattenuated > 0.0
+if not np.any(usable):
+    print("FAILED: every per-galaxy unattenuated SED is zero, so the attenuation cannot be recovered from their ratio")
+    sys.exit(0)
+attenuationModel = np.where(usable,sedAttenuated/np.where(usable,sedUnattenuated,1.0),np.nan)
+difference       = np.abs(attenuationModel[usable]-attenuationReference[usable])
+if np.any(~np.isfinite(difference)) or np.any(difference > TOLERANCE_MULTIPLIER):
+    indexWorst = np.nanargmax(np.where(np.isfinite(difference),difference,np.inf))
+    print(f"FAILED: per-galaxy IGM attenuation recovered from the SED ratio differs from an independent evaluation by {difference[indexWorst]:.3e} (tolerance {TOLERANCE_MULTIPLIER:.1e})")
+else:
+    print(f"SUCCESS: per-galaxy IGM attenuation recovered from the SED ratio agrees with an independent evaluation to {difference.max():.3e} (tolerance {TOLERANCE_MULTIPLIER:.1e}), over {int(usable.sum())} SED points of {len(redshiftPerGalaxy)} galaxies")
+
+# The attenuation must differ from unity, or the agreement above would hold however the multiplier were applied.
+effectIGMPerGalaxy = np.max(1.0-attenuationModel[usable])
+if effectIGMPerGalaxy < EFFECT_IGM_MINIMUM:
+    print(f"FAILED: the per-galaxy IGM attenuation reaches only {effectIGMPerGalaxy:.3e}, too little to test how the multiplier is applied (minimum {EFFECT_IGM_MINIMUM:.1e})")
+else:
+    print(f"SUCCESS: the per-galaxy IGM attenuation reaches {effectIGMPerGalaxy:.3f}, enough to test how the multiplier is applied")
 
 # An SED which does not cover the blueshifted filter must be reported as an error.
 print("Running model with insufficient SED wavelength coverage...")
