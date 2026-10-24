@@ -1041,7 +1041,7 @@ contains
     implicit none
     class  (mpiObject), intent(in   )                         :: self
     logical           , intent(in   )                         :: boolean
-    logical           , intent(in   ), dimension(:), optional :: mask
+    logical           , intent(in   ), dimension(0:), optional :: mask
 #ifdef USEMPI
     integer                                                   :: iError
     logical                          , dimension(1)           :: array
