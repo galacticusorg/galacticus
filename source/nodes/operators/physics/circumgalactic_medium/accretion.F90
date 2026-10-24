@@ -559,16 +559,21 @@ contains
        rateAngularMomentumAccretionHot =  +0.0d0
        rateAngularMomentumAccretionCold=  +0.0d0
     end if
-    ! Apply accretion rates for the hot mode.
-    if (rateMassAccretionHot    > 0.0d0 .or. hotHalo%mass    () > 0.0d0 .or. self%allowNegativeCGMMass) &
-         & call hotHalo%                massRate(rateMassAccretionHot            ,interrupt,functionInterrupt)
-    if (rateMassAccretionCold   > 0.0d0 .or. hotHalo%massCold() > 0.0d0 .or. self%allowNegativeCGMMass) &
-         & call hotHalo%            massColdRate(rateMassAccretionCold           ,interrupt,functionInterrupt)
-    if (rateMassAccretionFailed > 0.0d0 .or. hotHalo%mass    () > 0.0d0 .or. self%allowNegativeCGMMass) &
-         & call hotHalo%      unaccretedMassRate(rateMassAccretionFailed         ,interrupt,functionInterrupt)
-    call        hotHalo%          abundancesRate(rateMetalsAccretionHot          ,interrupt,functionInterrupt)
-    call        hotHalo%      abundancesColdRate(rateMetalsAccretionCold         ,interrupt,functionInterrupt)
-    call        hotHalo%unaccretedAbundancesRate(rateMetalsAccretionFailed       ,interrupt,functionInterrupt)
+    ! Apply accretion rates for the hot mode. If negative CGM masses are not allowed, rates that would drive a CGM mass negative are
+    ! not applied - the corresponding metal rates are skipped also, so that metals can not be added to, or removed from, gas which
+    ! is not present.
+    if (rateMassAccretionHot    > 0.0d0 .or. hotHalo%          mass() > 0.0d0 .or. self%allowNegativeCGMMass) then
+       call hotHalo%                massRate(rateMassAccretionHot            ,interrupt,functionInterrupt)
+       call hotHalo%          abundancesRate(rateMetalsAccretionHot          ,interrupt,functionInterrupt)
+    end if
+    if (rateMassAccretionCold   > 0.0d0 .or. hotHalo%      massCold() > 0.0d0 .or. self%allowNegativeCGMMass) then
+       call hotHalo%            massColdRate(rateMassAccretionCold           ,interrupt,functionInterrupt)
+       call hotHalo%      abundancesColdRate(rateMetalsAccretionCold         ,interrupt,functionInterrupt)
+    end if
+    if (rateMassAccretionFailed > 0.0d0 .or. hotHalo%unaccretedMass() > 0.0d0 .or. self%allowNegativeCGMMass) then
+       call hotHalo%      unaccretedMassRate(rateMassAccretionFailed         ,interrupt,functionInterrupt)
+       call hotHalo%unaccretedAbundancesRate(rateMetalsAccretionFailed       ,interrupt,functionInterrupt)
+    end if
     if (self%countChemicals > 0) &
          & call hotHalo%           chemicalsRate(rateChemicalsAccretionHot       ,interrupt,functionInterrupt)
     call        hotHalo%     angularMomentumRate(rateAngularMomentumAccretionHot ,interrupt,functionInterrupt)
