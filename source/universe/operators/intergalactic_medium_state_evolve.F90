@@ -846,9 +846,10 @@ contains
         end do
      end do
      ! Compute the rate of change of electron density.
-     electronDensityRateOfChange=+propertiesRateOfChange(3) &
-          &                      +propertiesRateOfChange(5) &
-          &                      +propertiesRateOfChange(6)
+     ! Each HeIII ion contributes two electrons.
+     electronDensityRateOfChange=+      propertiesRateOfChange(3) &
+          &                      +      propertiesRateOfChange(5) &
+          &                      +2.0d0*propertiesRateOfChange(6)
      ! Compute rate of change of temperature due to cosmological expansion.
      propertiesRateOfChange(1)=-2.0d0                                           &
           &                    *self_%cosmologyFunctions_%expansionRate  (      &
