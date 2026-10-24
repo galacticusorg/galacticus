@@ -41,12 +41,12 @@
    separation of :math:`60^\circ`, is the configuration for which :galacticus-class:`virialOrbitFilamentary` is calibrated:
    with it, that class reproduces the distributions of the angles between the points at which subhalos enter their hosts and
    both the axes of slowest and fastest collapse of the velocity shear tensor measured by :cite:t:`libeskind_universal_2014`,
-   if those axes are identified with the major and minor axes of the tensor :math:`\sum_i \hat{\mathbf{f}}_i
-   \hat{\mathbf{f}}_i^\mathrm{T}` of the filament directions, :math:`\hat{\mathbf{f}}_i`. :math:`\langle N \rangle=3` agrees
-   with the typical number of filaments connected to a halo, at all masses, in the peak theory calculations of
-   :cite:t:`codis_connectivity_2018`, but exceeds the number crossing a sphere of :math:`1.5 R_\mathrm{200}` about groups in
-   simulations, which is typically two :cite:p:`gouin_shape_2021`. It should therefore be regarded as a parameter of the
-   model, rather than as a measured connectivity.
+   if those axes are identified with the major and minor axes of the tensor
+   :math:`\sum_i \hat{\mathbf{f}}_i \hat{\mathbf{f}}_i^\mathrm{T}` of the filament directions, :math:`\hat{\mathbf{f}}_i`.
+   :math:`\langle N \rangle=3` agrees with the typical number of filaments connected to a halo, at all masses, in the peak
+   theory calculations of :cite:t:`codis_connectivity_2018`, but exceeds the number crossing a sphere of
+   :math:`1.5 R_\mathrm{200}` about groups in simulations, which is typically two :cite:p:`gouin_shape_2021`. It should
+   therefore be regarded as a parameter of the model, rather than as a measured connectivity.
 
    The filaments of a branch are drawn the first time that any node on the branch requires them, and stored on every node of
    the branch, from its earliest progenitor up to the node of which it is a secondary progenitor. They are therefore the same

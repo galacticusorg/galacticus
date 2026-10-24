@@ -75,8 +75,8 @@
    :cite:t:`libeskind_universal_2014`, in four bins of :math:`M/M_*`. The model was evaluated with the default
    :galacticus-class:`darkMatterHaloFilamentsRandomSequential` filaments (three filaments per halo: one passing through the
    halo, plus one further filament at least :math:`60^\circ` from it), identifying :math:`\mathbf{e}_3` and
-   :math:`\mathbf{e}_1` with the major and minor axes of the tensor :math:`\sum_i \hat{\mathbf{f}}_i
-   \hat{\mathbf{f}}_i^\mathrm{T}` of the filament directions. With a single :math:`\kappa` the fit gives :math:`f_*=0.291`,
+   :math:`\mathbf{e}_1` with the major and minor axes of the tensor
+   :math:`\sum_i \hat{\mathbf{f}}_i \hat{\mathbf{f}}_i^\mathrm{T}` of the filament directions. With a single :math:`\kappa` the fit gives :math:`f_*=0.291`,
    :math:`\alpha=0.102`, and :math:`\kappa=5.0`. It matches both distributions in each mass bin with root mean square residuals
    of 0.009--0.033. The number of filaments is constrained by :math:`\mathbf{e}_1`: infall avoids the axis of fastest collapse
    in all bins above :math:`M/M_*=0.1`, which a single filament (being axisymmetric) cannot reproduce, but which follows from
