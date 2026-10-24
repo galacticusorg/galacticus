@@ -22,6 +22,7 @@ Andrew Benson, Claude (2026)
 from __future__ import annotations
 
 import datetime
+import os
 from dataclasses import dataclass, field, fields
 
 import h5py
@@ -221,6 +222,8 @@ class Emulator:
     pca_variance_retained: float = float('nan')
 
     def validate(self, count_bins):
+        if self.jitter is None:
+            raise ValueError('emulator: jitter must be given')
         if self.kernel not in KERNELS:
             raise ValueError(f"emulator: unknown kernel '{self.kernel}'")
         count_inputs = len(self.input_names)
@@ -359,6 +362,10 @@ def predict(emulator, quantiles):
     return mean, variance
 
 
+def _nan_if_none(value):
+    return float('nan') if value is None else value
+
+
 def _write_attributes(obj, attributes):
     for name, value in attributes.items():
         if value is None:
@@ -392,12 +399,33 @@ def _read_datasets(group, cls, exclude=()):
 
 
 def write(path, content, overwrite=False):
-    """Write an :class:`EmulatorFile` to ``path``, after validating it."""
+    """Write an :class:`EmulatorFile` to ``path``, after validating it.
+
+    The file is written to a temporary file beside ``path``, which replaces ``path`` only once it is complete, so that a
+    failure part way through (a string which can not be encoded, say) leaves no partial file behind.
+    """
     content.validate()
-    with h5py.File(path, 'w' if overwrite else 'w-') as file:
-        attributes = {'created': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')}
-        attributes.update(content.attributes)
-        attributes.update({'format': FORMAT_NAME, 'formatVersion': FORMAT_VERSION})
+    if os.path.exists(path) and not overwrite:
+        raise FileExistsError(f"'{path}' exists (pass overwrite=True to replace it)")
+    path_temporary = os.path.join(os.path.dirname(os.path.abspath(path)), f'.{os.path.basename(path)}.{os.getpid()}.tmp')
+    try:
+        _write(path_temporary, content)
+        os.replace(path_temporary, path)
+    finally:
+        if os.path.exists(path_temporary):
+            os.remove(path_temporary)
+
+
+def _write(path, content):
+    with h5py.File(path, 'w') as file:
+        # The creation time is set last, so that it is not overwritten by any "created" attribute carried over from a file
+        # which was read.
+        attributes = dict(content.attributes)
+        attributes.update({
+            'format': FORMAT_NAME,
+            'formatVersion': FORMAT_VERSION,
+            'created': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
+        })
         _write_attributes(file, attributes)
         # Design.
         design = content.design
@@ -424,7 +452,8 @@ def write(path, content, overwrite=False):
             _write_attributes(subgroup, {
                 'kernel': emulator.kernel,
                 'jitter': emulator.jitter,
-                'pcaVarianceRetained': emulator.pca_variance_retained,
+                # Optional quantities are written as NaN when unknown, so that every file carries every attribute.
+                'pcaVarianceRetained': _nan_if_none(emulator.pca_variance_retained),
                 'countComponents': len(emulator.components),
             })
             subgroup.create_dataset('inputNames', data=_encode(list(emulator.input_names)))
@@ -433,7 +462,7 @@ def write(path, content, overwrite=False):
                 component_group = subgroup.create_group(f'component{k + 1}')
                 _write_attributes(component_group, {
                     'logAmplitude': component.log_amplitude,
-                    'logMarginalLikelihood': component.log_marginal_likelihood,
+                    'logMarginalLikelihood': _nan_if_none(component.log_marginal_likelihood),
                 })
                 _write_datasets(component_group, component, exclude=('log_amplitude', 'log_marginal_likelihood'))
         # Validation.
@@ -481,13 +510,13 @@ def read(path):
                 component_attributes = _read_attributes(component_group)
                 components.append(Component(
                     log_amplitude=component_attributes['logAmplitude'],
-                    log_marginal_likelihood=component_attributes['logMarginalLikelihood'],
+                    log_marginal_likelihood=component_attributes.get('logMarginalLikelihood', float('nan')),
                     **_read_datasets(component_group, Component, exclude=('log_amplitude', 'log_marginal_likelihood')),
                 ))
             emulators[label] = Emulator(
                 kernel=emulator_attributes['kernel'],
                 jitter=emulator_attributes['jitter'],
-                pca_variance_retained=emulator_attributes['pcaVarianceRetained'],
+                pca_variance_retained=emulator_attributes.get('pcaVarianceRetained', float('nan')),
                 input_names=_decode(subgroup['inputNames'][()]),
                 components=components,
                 **_read_datasets(subgroup, Emulator, exclude=('kernel', 'jitter', 'input_names', 'components', 'pca_variance_retained')),
