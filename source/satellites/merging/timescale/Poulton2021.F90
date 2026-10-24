@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements calculations of satellite merging times using the :cite:t:`poulton_extracting_2021` method.
   !!}
@@ -159,7 +161,11 @@ contains
 
   double precision function poulton2021TimeUntilMerging(self,node,orbit) result(timeUntilMerging)
     !!{RST
-    Return the timescale for merging satellites using the :cite:t:`poulton_extracting_2021` method.
+    Return the timescale for merging satellites using the :cite:t:`poulton_extracting_2021` method. All orbital quantities
+    (energy, angular momentum, eccentricity, pericentric distance, and dynamical time) are computed, as in
+    :cite:t:`poulton_extracting_2021` (their eqns. 2--7), from the host mass enclosed within the current orbital radius,
+    :math:`M_\mathrm{encl}(r)`, which is taken to be the virial mass for :math:`r \ge R_\mathrm{vir}`, and the reduced mass
+    :math:`\mu=M_\mathrm{sat}M_\mathrm{encl}/(M_\mathrm{sat}+M_\mathrm{encl})`.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Kepler_Orbits                   , only : keplerOrbit
@@ -173,9 +179,11 @@ contains
     class           (nodeComponentBasic                   ), pointer       :: basic
     class           (massDistributionClass                ), pointer       :: massDistribution_
     double precision                                                       :: radiusOrbital        , radiusVirial    , &
-         &                                                                    velocityCircular     , timeDynamical   , &
-         &                                                                    radiusVelocitySquared, radiusPericenter, &
-         &                                                                    massSatellite        , bExponent
+         &                                                                    massEnclosed         , timeDynamical   , &
+         &                                                                    massReduced          , radiusPericenter, &
+         &                                                                    massSatellite        , bExponent       , &
+         &                                                                    energyOrbital        , angularMomentum , &
+         &                                                                    eccentricity
 
     ! Find the host node.
     if (node%isSatellite()) then
@@ -183,44 +191,67 @@ contains
     else
        nodeHost => node%parent%firstChild
     end if
-    ! Return infinite timescale for unbound orbits.
-    if (orbit%eccentricity() >= 1.0d0) then
-       timeUntilMerging=satelliteMergeTimeInfinite
-       return
-    end if
     ! Get the orbital radius and host virial radius.
     radiusOrbital=orbit                     %radius      (        )
     radiusVirial =self %darkMatterHaloScale_%radiusVirial(nodeHost)
-    ! Get the local circular velocity at the orbital radius.
-    massDistribution_ => self             %darkMatterProfileDMO_%get          (nodeHost     )
-    velocityCircular  =  massDistribution_                      %rotationCurve(radiusOrbital)
+    ! Get the host mass enclosed within the orbital radius (Poulton et al. 2021, eqn. 2), which is the virial mass outside the
+    ! virial radius.
+    massDistribution_ => self             %darkMatterProfileDMO_%get                 (nodeHost                        )
+    massEnclosed      =  massDistribution_                      %massEnclosedBySphere(min(radiusOrbital,radiusVirial))
     !![
     <objectDestructor name="massDistribution_"/>
     !!]
-    ! Return instantaneous merging if circular velocity vanishes (e.g. r → 0).
-    if (velocityCircular <= 0.0d0) then
+    ! Return instantaneous merging if the enclosed mass vanishes (e.g. r → 0).
+    if (massEnclosed <= 0.0d0) then
        timeUntilMerging=0.0d0
        return
     end if
-    ! Local dynamical time T_dyn(r) = r/v_circ(r), converted from Mpc/(km/s) to Gyr.
-    timeDynamical=+radiusOrbital     &
-         &        /velocityCircular  &
-         &        *MpcPerKmPerSToGyr
-    ! r×v_circ²(r) [Mpc×(km/s)²] = G×M_encl(r).
-    radiusVelocitySquared=+radiusOrbital       &
-         &                *velocityCircular**2
-    ! Pericentric radius via the locally-Keplerian approximation including the two-body
-    ! reduced mass correction (Poulton et al. 2021, eq. 13 for R_peri):
-    !   R_peri = j²×(1+M_sat/M_encl) / [(1+e)×G×M_encl]
-    ! where j = orbit%angularMomentum() is specific angular momentum per unit satellite
-    ! mass [Mpc×km/s], and G×M_encl = r×v_circ² avoids explicit use of G except in the
-    ! dimensionless mass ratio M_sat/M_encl = M_sat×G_internal/radiusVelocitySquared.
+    ! Compute the orbital energy, angular momentum, and eccentricity (Poulton et al. 2021, eqns. 3-5), using the reduced mass of
+    ! the satellite and the enclosed host mass.
     basic            =>  node%basic()
     massSatellite    =   basic%mass()
-    radiusPericenter =  +orbit%angularMomentum()**2                                                 &
-         &              *(1.0d0+massSatellite*gravitationalConstant_internal/radiusVelocitySquared) &
-         &              /(1.0d0+orbit%eccentricity())                                               &
-         &              /radiusVelocitySquared
+    massReduced      =  +massSatellite                &
+         &              *massEnclosed                 &
+         &              /(                            &
+         &                +massSatellite              &
+         &                +massEnclosed               &
+         &               )
+    energyOrbital    =  +0.5d0                                                          &
+         &              *massReduced                                                    &
+         &              *(                                                              &
+         &                +orbit%velocityRadial    ()**2                                &
+         &                +orbit%velocityTangential()**2                                &
+         &               )                                                              &
+         &              -gravitationalConstant_internal*massEnclosed*massSatellite/radiusOrbital
+    angularMomentum  =  +massReduced                  &
+         &              *radiusOrbital                &
+         &              *orbit%velocityTangential()
+    eccentricity     =  +sqrt(                                                                                                 &
+         &                    max(                                                                                             &
+         &                        +0.0d0                                                                                     , &
+         &                        +1.0d0                                                                                       &
+         &                        +2.0d0*energyOrbital*angularMomentum**2/(gravitationalConstant_internal*massEnclosed*massSatellite)**2/massReduced &
+         &                       )                                                                                             &
+         &                   )
+    ! Return infinite timescale for unbound orbits.
+    if (eccentricity >= 1.0d0) then
+       timeUntilMerging=satelliteMergeTimeInfinite
+       return
+    end if
+    ! Pericentric radius via the locally-Keplerian approximation (Poulton et al. 2021, eqn. 6).
+    radiusPericenter =  +angularMomentum**2                         &
+         &              /(1.0d0+eccentricity)                       &
+         &              /gravitationalConstant_internal             &
+         &              /massEnclosed                               &
+         &              /massSatellite                              &
+         &              /massReduced
+    ! Local dynamical time (Poulton et al. 2021, eqn. 7), converted from Mpc/(km/s) to Gyr.
+    timeDynamical    =  +sqrt(                                &
+         &                    +radiusOrbital**3               &
+         &                    /gravitationalConstant_internal &
+         &                    /massEnclosed                   &
+         &                   )                                &
+         &              *MpcPerKmPerSToGyr
     ! Select radial exponent b depending on whether satellite is inside or outside R_vir.
     if (radiusOrbital < radiusVirial) then
        bExponent=self%bInterior
