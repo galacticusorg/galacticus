@@ -1472,7 +1472,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py", "test-metal-conservation-coldMode.py" ]
+        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py", "test-metal-conservation.py" ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}

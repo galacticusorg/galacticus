@@ -13,9 +13,12 @@ from lxml import etree
 #     so every tree, and every gas and stellar component of every node, should end up with exactly the IGM metallicity (to
 #     rounding error).
 #  2. With an IGM metallicity that increases with time (the polynomial used by the reference model) exact metallicities are not
-#     predictable, but no component can have a negative metal mass, or a metallicity exceeding that of the IGM at the output
-#     time. This catches metals being moved out of the unaccreted gas reservoir at the current IGM metallicity, rather than at the
-#     reservoir's own metallicity.
+#     predictable, but no component can have a negative metallicity, or one exceeding that of the IGM at the output time. This
+#     catches metals being moved out of the unaccreted gas reservoir at the current IGM metallicity, rather than at the reservoir's
+#     own metallicity.
+#  3. As 2, but with halo masses perturbed (so that halos sometimes lose mass) and negative accretion allowed. This catches gas
+#     lost from the halo carrying the wrong metallicity. Negative CGM masses are disallowed in this case, as no metallicity is
+#     meaningful for gas with negative mass.
 # Andrew Benson, Claude
 
 # Pairs of (mass, metal mass) properties for all gas and stellar components. Black holes carry no metals, so are excluded.
@@ -75,7 +78,7 @@ def isSignificant(data, mass):
     # Return a mask of nodes in which the given component holds a significant mass compared to the node's halo mass.
     return data[mass] > fractionMassMinimum*data["basicMass"]
 
-def makeVariant(name, accretionHalo, metallicityVariable):
+def makeVariant(name, accretionHalo, metallicityVariable, perturbed=False):
     # Build the parameter file for a variant of the base model, and return its path (relative to the Galacticus root).
     parameters = etree.parse("parameters/test-metal-conservation-coldMode.xml")
     parameters.find(".//modelRootDirectory").text = f"testSuite/outputs/{name}"
@@ -100,7 +103,24 @@ def makeVariant(name, accretionHalo, metallicityVariable):
         state.set("value", "metallicityPolynomial")
         state.remove(state.find("metallicity"))
         state.insert(0, etree.Element("coefficients", value=" ".join(str(coefficient) for coefficient in metallicityCoefficients)))
+    if perturbed:
+        # Perturb halo masses (independently, by 10%) so that halos sometimes lose mass, allow negative accretion, and prevent
+        # negative CGM masses.
+        constructor = parameters.find(".//mergerTreeConstructor")
+        parent      = constructor.getparent()
+        operator    = etree.Element("mergerTreeOperator", value="perturbMasses")
+        massError   = etree.SubElement(operator, "nbodyHaloMassError", value="powerLaw")
+        for parameter, value in (("normalization", "0.1"), ("exponent", "0.0"), ("fractionalErrorHighMass", "0.1")):
+            etree.SubElement(massError, parameter, value=value)
+        parent.insert(parent.index(constructor)+1, operator)
+        accretion        = parameters.find(f".//accretionHalo[@value='{accretionHalo}']")
+        negativeAllowed  = accretion.find("accretionNegativeAllowed")
+        if negativeAllowed is None:
+            negativeAllowed = etree.SubElement(accretion, "accretionNegativeAllowed")
+        negativeAllowed.set("value", "true")
+        parameters.find(".//allowNegativeCGMMass").set("value", "false")
     parameterFile = f"outputs/{name}.xml"
+    os.makedirs("outputs", exist_ok=True)
     parameters.write(parameterFile)
     return f"testSuite/{parameterFile}"
 
@@ -147,18 +167,17 @@ def checkFixed(data, label):
 
 def checkVariable(data, label, metallicityIGMPresent):
     # The output is at z=0, and the IGM metallicity increases monotonically with time, so no gas or stars can be more metal-rich
-    # than the IGM at z=0.
+    # than the IGM at z=0, nor have negative metallicity. (CGM masses may be negative, as allowed by the model, in which case their
+    # metal masses are negative also, so only components with a significant, positive mass are checked.)
     status = "SUCCESS"
     for mass, metals in components:
-        if not np.all(data[metals] >= 0.0):
-            print(f"FAILED: metal conservation [{label}] - component '{mass}' has negative metal mass in {np.count_nonzero(~(data[metals] >= 0.0))} of {len(data[metals])} nodes (minimum {data[metals].min()})")
-            status = "FAILED"
         hasMass = isSignificant(data, mass)
         if not np.any(hasMass):
             continue
         metallicityNode = data[metals][hasMass]/data[mass][hasMass]
-        if not np.all(metallicityNode <= metallicityIGMPresent*(1.0+toleranceRelative)):
-            print(f"FAILED: metal conservation [{label}] - component '{mass}' metallicity exceeds that of the IGM at z=0 ({metallicityIGMPresent}) in {np.count_nonzero(~(metallicityNode <= metallicityIGMPresent*(1.0+toleranceRelative)))} of {len(metallicityNode)} nodes (maximum {metallicityNode.max()})")
+        inRange         = (metallicityNode >= -toleranceRelative*metallicityIGMPresent) & (metallicityNode <= metallicityIGMPresent*(1.0+toleranceRelative))
+        if not np.all(inRange):
+            print(f"FAILED: metal conservation [{label}] - component '{mass}' metallicity is outside the range 0 to {metallicityIGMPresent} (that of the IGM at z=0) in {np.count_nonzero(~inRange)} of {len(metallicityNode)} nodes (range {metallicityNode.min()} to {metallicityNode.max()})")
             status = "FAILED"
     # Every unaccreted reservoir received gas from the IGM at a non-zero metallicity, so must be enriched.
     hasMass = isSignificant(data, "hotHaloUnaccretedMass")
@@ -188,6 +207,10 @@ for accretionHalo in ( "coldMode", "naozBarkana2007" ):
     metallicityIGMPresent = metallicitySolar*10.0**metallicityCoefficients[0]
     name                  = f"{nameBase}-variable"
     data                  = runModel(makeVariant(name, accretionHalo, metallicityVariable=True), name)
-    if data is None:
-        continue
-    checkVariable(data, f"{accretionHalo}, variable", metallicityIGMPresent)
+    if data is not None:
+        checkVariable(data, f"{accretionHalo}, variable", metallicityIGMPresent)
+    ## Time-varying IGM metallicity, with halos that lose mass.
+    name                  = f"{nameBase}-perturbed"
+    data                  = runModel(makeVariant(name, accretionHalo, metallicityVariable=True, perturbed=True), name)
+    if data is not None:
+        checkVariable(data, f"{accretionHalo}, perturbed", metallicityIGMPresent)
