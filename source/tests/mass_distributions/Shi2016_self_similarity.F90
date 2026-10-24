@@ -28,7 +28,7 @@ program Test_Mass_Distributions_Shi2016_Self_Similarity
   Tests that the :galacticus-class:`massDistributionShi2016` accretion flow is self-similar. In a flat cosmology with a
   cosmological constant the scale-free solution of :cite:t:`shi_outer_2016` depends only on :math:`\Omega_\mathrm{m}(t)` at
   the epoch of observation and on the growth index :math:`s = \mathrm{d}\ln M/\mathrm{d}\ln a`, so that :math:`\rho(r) r_\mathrm{v}^3/M_\mathrm{v}`
-  as a function of :math:`r/r_\mathrm{v}` must be the same for two halos with the same :math:`\Omega_\mathrm{m}(t)` and
+  and :math:`v_\mathrm{r}(r)/[H(t) r_\mathrm{v}]` as functions of :math:`r/r_\mathrm{v}` must be the same for two halos with the same :math:`\Omega_\mathrm{m}(t)` and
   :math:`s`, whatever their redshift. A halo at :math:`z=0` in a cosmology with :math:`\Omega_\mathrm{m,0}=0.3` is compared
   with one at :math:`z=1` in a cosmology with :math:`\Omega_\mathrm{m,0}=0.3/5.9`, for which :math:`\Omega_\mathrm{m}(z=1)=0.3`.
   !!}
@@ -37,7 +37,7 @@ program Test_Mass_Distributions_Shi2016_Self_Similarity
   use :: Cosmology_Parameters    , only : cosmologyParametersSimple
   use :: Display                 , only : displayVerbositySet           , verbosityLevelStandard
   use :: Events_Hooks            , only : eventsHooksInitialize
-  use :: Mass_Distributions      , only : massDistributionShi2016
+  use :: Mass_Distributions      , only : massDistributionShi2016       , kinematicsDistributionShi2016
   use :: Numerical_Constants_Math, only : Pi
   use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -45,7 +45,8 @@ program Test_Mass_Distributions_Shi2016_Self_Similarity
   type            (cosmologyFunctionsMatterLambda), pointer               :: cosmologyFunctionsLate       , cosmologyFunctionsEarly
   integer                                         , parameter             :: countRadii             =4
   double precision                                , dimension(countRadii) :: radiusScaleFree        =[1.5d0,2.0d0,3.0d0,5.0d0]
-  double precision                                , dimension(countRadii) :: densityLate                  , densityEarly
+  double precision                                , dimension(countRadii) :: densityLate                  , densityEarly        , &
+       &                                                                     velocityLate                 , velocityEarly
   ! Halo mass [M☉], growth index, ratio of turnaround to virial radii, and density contrast (relative to the mean) defining the
   ! virial radius. The growth index avoids s=3/2, at which the initial estimate of the splashback radius changes form, so that
   ! rounding cannot place the two halos on different sides of that boundary.
@@ -70,9 +71,10 @@ program Test_Mass_Distributions_Shi2016_Self_Similarity
   <referenceConstruct object="cosmologyFunctionsEarly"  constructor="cosmologyFunctionsMatterLambda(cosmologyParametersEarly)"/>
   !!]
   call Assert('Ωₘ(t) matches',cosmologyFunctionsEarly%OmegaMatterEpochal(expansionFactor=expansionFactorEarly),cosmologyFunctionsLate%OmegaMatterEpochal(expansionFactor=expansionFactorLate),relTol=1.0d-6)
-  call evaluate(cosmologyFunctionsLate ,expansionFactorLate ,densityLate )
-  call evaluate(cosmologyFunctionsEarly,expansionFactorEarly,densityEarly)
-  call Assert('ρ(r) r_v³/M_v at z=1 equals that at z=0',densityEarly,densityLate,relTol=1.0d-4)
+  call evaluate(cosmologyFunctionsLate ,expansionFactorLate ,densityLate ,velocityLate )
+  call evaluate(cosmologyFunctionsEarly,expansionFactorEarly,densityEarly,velocityEarly)
+  call Assert('ρ(r) r_v³/M_v at z=1 equals that at z=0'  ,densityEarly ,densityLate ,relTol=1.0d-4)
+  call Assert('v_r(r)/[H(t) r_v] at z=1 equals that at z=0',velocityEarly,velocityLate,relTol=1.0d-4)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   !![
@@ -84,16 +86,18 @@ program Test_Mass_Distributions_Shi2016_Self_Similarity
 
 contains
 
-  subroutine evaluate(cosmologyFunctions_,expansionFactor,density)
+  subroutine evaluate(cosmologyFunctions_,expansionFactor,density,velocity)
     !!{RST
     Construct the accretion flow for a halo observed at the given ``expansionFactor``, and evaluate its scaled density,
-    :math:`\rho(r) r_\mathrm{v}^3/M_\mathrm{v}`, at the radii being tested.
+    :math:`\rho(r) r_\mathrm{v}^3/M_\mathrm{v}`, and scaled radial velocity, :math:`v_\mathrm{r}(r)/[H(t) r_\mathrm{v}]`, at the
+    radii being tested.
     !!}
     implicit none
     type            (cosmologyFunctionsMatterLambda), intent(inout)                :: cosmologyFunctions_
     double precision                                , intent(in   )                :: expansionFactor
-    double precision                                , intent(  out), dimension(:)  :: density
+    double precision                                , intent(  out), dimension(:)  :: density          , velocity
     type            (massDistributionShi2016       ), pointer                      :: massDistribution_
+    type            (kinematicsDistributionShi2016 ), pointer                      :: kinematicsDistribution_
     type            (coordinateSpherical           )                               :: coordinates
     double precision                                                               :: time             , radiusVirial, &
          &                                                                            massAccretionRate
@@ -112,17 +116,23 @@ contains
          &              /cosmologyFunctions_%matterDensityEpochal(time           ) &
          &             )**(1.0d0/3.0d0)
     allocate(massDistribution_)
+    allocate(kinematicsDistribution_)
     !![
-    <referenceConstruct object="massDistribution_" constructor="massDistributionShi2016(mass,massAccretionRate,radiusVirial,ratioRadiusTurnaround,time,1.0d0,cosmologyFunctions_)"/>
+    <referenceConstruct object="massDistribution_"       constructor="massDistributionShi2016(mass,massAccretionRate,radiusVirial,ratioRadiusTurnaround,time,1.0d0,cosmologyFunctions_)"/>
+    <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionShi2016()"                                                                          />
     !!]
     do i=1,size(radiusScaleFree)
        coordinates=[radiusScaleFree(i)*radiusVirial,0.0d0,0.0d0]
-       density(i) =+massDistribution_%density(coordinates) &
-            &      *radiusVirial**3                       &
+       density (i)=+massDistribution_      %density               (coordinates                  ) &
+            &      *radiusVirial**3                                                                      &
             &      /mass
+       velocity(i)=+kinematicsDistribution_%velocityRadial        (coordinates,massDistribution_) &
+            &      /cosmologyFunctions_    %hubbleParameterEpochal(time                         ) &
+            &      /radiusVirial
     end do
     !![
-    <objectDestructor name="massDistribution_"/>
+    <objectDestructor name="massDistribution_"      />
+    <objectDestructor name="kinematicsDistribution_"/>
     !!]
     return
   end subroutine evaluate
