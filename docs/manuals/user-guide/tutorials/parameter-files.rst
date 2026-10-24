@@ -105,9 +105,9 @@ The actual parameters in the file all follow the same structure, for example:
 .. code-block:: xml
 
    <cosmologyFunctions value="matterLambda"/>
-   <countTrees         value="100"         />
+   <outputFileName     value="myModel.hdf5"/>
 
-defines a parameter named "``cosmologyFunctions``" to have a value of "``matterLambda``", and a parameter named "``countTrees``" to have a value of "``100``".
+defines a parameter named "``cosmologyFunctions``" to have a value of "``matterLambda``", and a parameter named "``outputFileName``" to have a value of "``myModel.hdf5``".
 
 Checking your parameter file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -178,21 +178,21 @@ Warnings of the type:
 
 .. code-block:: text
 
-   ambiguous value for parameter [countTrees]
+   ambiguous value for parameter [outputFileName]
 
 indicate that you have mixed the new and old-styles of parameters, for example:
 
 .. code-block:: xml
 
-   <countTrees value="10"> <!-- New-style is to define the value via the value attribute here. -->
-     <value>20</value>    <!-- Old-style is to define the value in a separate value element.  -->
-   </countTrees>
+   <outputFileName value="myModel.hdf5">    <!-- New-style is to define the value via the value attribute here. -->
+     <value>otherModel.hdf5</value>         <!-- Old-style is to define the value in a separate value element.  -->
+   </outputFileName>
 
-which leads to an ambiguous choice of value for this parameter. The old-style, while still supported, is deprecated and should not be used, so replace the above with:
+which leads to an ambiguous choice of value for this parameter. If Galacticus goes on to read this parameter it stops with a fatal error (``ambiguous value attribute and element``). The old-style, while still supported, is deprecated and should not be used, so replace the above with:
 
 .. code-block:: xml
 
-   <countTrees value="10"/>
+   <outputFileName value="myModel.hdf5"/>
 
 Unrecognized parameter
 ^^^^^^^^^^^^^^^^^^^^^^^
