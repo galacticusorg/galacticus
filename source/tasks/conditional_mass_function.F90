@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   use :: Conditional_Mass_Functions    , only : conditionalMassFunction   , conditionalMassFunctionClass
   use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
   use :: Geometry_Surveys              , only : surveyGeometry            , surveyGeometryClass
@@ -135,18 +137,21 @@ contains
             &  .or.                                             &
             &        parameters%isPresent('countMass'         ) &
             & ) call Error_Report('ambiguous mass specification'                                                           //{introspection:location})
+       allocate(massBinCenters    (parameters%count('massBinCenters'    )))
+       allocate(massLogarithmDelta(parameters%count('massLogarithmDelta')))
        !![
        <inputParameter docformat="rst">
          <name>massBinCenters</name>
          <description>
-         Logarithmic mass bins centers for conditional mass function calculations.
+         Masses (in units of M☉) at the centers of the bins for conditional mass function calculations.
          </description>
          <source>parameters</source>
        </inputParameter>
        <inputParameter docformat="rst">
          <name>massLogarithmDelta</name>
          <description>
-         Logarithmic widths of mass bins for conditional mass function calculations.
+         Widths of the mass bins for conditional mass function calculations, each given as the ratio of the upper to the lower
+         mass of the bin.
          </description>
          <source>parameters</source>
        </inputParameter>
@@ -289,6 +294,10 @@ contains
        self%massHalo_=label
     end if
     if (present(massBinCenters)) then
+       if (.not.present(massLogarithmDelta)                                         ) call Error_Report('[massLogarithmDelta] must be given with [massBinCenters]'                     //{introspection:location})
+       if (     present(massMinimum).or.present(massMaximum).or.present(countMass)) call Error_Report('ambiguous mass specification'                                                 //{introspection:location})
+       if (size(massLogarithmDelta) /= size(massBinCenters)                         ) call Error_Report('[massBinCenters] and [massLogarithmDelta] must have the same number of elements'//{introspection:location})
+       self%countMass         =size(massBinCenters)
        self%massLogarithmDelta=log(self%massLogarithmDelta)
     else
        allocate(self%massBinCenters    (countMass))
