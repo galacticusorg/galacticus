@@ -237,6 +237,8 @@ program Test_Mass_Distributions
         solitonHeatedTableRadiusDensity(i)=massDistribution_%radiusEnclosingDensity(density=3.0d0*massDistribution_%massEnclosedBySphere(solitonHeatedTableRadius(i))/4.0d0/Pi/solitonHeatedTableRadius(i)**3)
      end do
      call Assert("Radius enclosing density",solitonHeatedTableRadiusDensity,solitonHeatedTableRadius,relTol=3.0d-3)
+     ! Also test the central density is respected when seeking the radius enclosing a density that exceeds the central density.
+     call Assert("Radius enclosing density (central)",massDistribution_%radiusEnclosingDensity(2.0d0*1.040d17),0.0d0,absTol=1.0d-12)
      ! Test that the velocity dispersion well inside the core (where the soliton density is constant) agrees with a direct
      ! numerical solution of the Jeans equation.
      position=[1.0d-3*0.720d-3,0.0d0,0.0d0]
