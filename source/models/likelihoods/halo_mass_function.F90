@@ -501,18 +501,19 @@ contains
 
   contains
 
-    subroutine haloMassFunctionMassSet(index,mass)
+    subroutine haloMassFunctionMassSet(indexBin,mass)
       !!{RST
       Set the mass of a bin of the reduced mass function. All redshifts share the masses of the bins, so for later redshifts check
-      that the mass is that of the first.
+      that the mass is that of the first (to within a tolerance, as files may differ in the last digits).
       !!}
+      use :: Numerical_Comparison, only : Values_Differ
       implicit none
-      integer         , intent(in   ) :: index
+      integer         , intent(in   ) :: indexBin
       double precision, intent(in   ) :: mass
 
       if (iRedshift == 1) then
-         self%mass(index)=mass
-      else if (mass /= self%mass(index)) then
+         self%mass(indexBin)=mass
+      else if (Values_Differ(mass,self%mass(indexBin),relTol=1.0d-6)) then
          call Error_Report("mass function from file '"//trim(fileNames(iRedshift))//"' uses different bins from that of the first redshift - all redshifts must use the same bins"//{introspection:location})
       end if
       return
