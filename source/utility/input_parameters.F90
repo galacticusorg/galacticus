@@ -1274,23 +1274,25 @@ contains
              end do
              if (parameterTest%activeEvaluated) then
                 valueParameter=parameterTest%get()
-                ! Perform the test and set parameter active state.
+                ! Perform the test and set parameter active state. Conditionals are re-evaluated on every pass, as the parameter
+                ! found by a path may change as the active states of parameters along that path are established. Only a first
+                ! evaluation counts as progress - otherwise circular conditionals (which can never be evaluated) would loop forever.
+                if (.not.currentParameter%activeEvaluated) didEvaluate=.true.
                 currentParameter%active         =(trim(valueParameter) == trim(valueTest)) .eqv. operatorEquals
                 currentParameter%activeEvaluated=.true.
-                didEvaluate                     =.true.
              else
                 allEvaluated                    =.false.
              end if
              deallocate(parameterNames)
           else
+             if (.not.currentParameter%activeEvaluated) didEvaluate=.true.
              currentParameter%activeEvaluated=.true.
-             didEvaluate                     =.true.
           end if
           ! Walk to next node.
           currentParameter => inputParametersWalkTree(currentParameter)
        end do
-       if (.not.didEvaluate) call Error_Report('failed to evaluate parameter active statuses'//{introspection:location})
        if (allEvaluated) exit
+       if (.not.didEvaluate) call Error_Report('failed to evaluate parameter active statuses'//{introspection:location})
     end do
     return
   end subroutine inputParametersEvaluateConditionals
