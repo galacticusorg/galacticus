@@ -17,9 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
-
-  !+ Contributions to this file made by: Daniel McAndrew.
+  !+ Contributions to this file made by: Daniel McAndrew, Claude.
 
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhoto      , atomicCrossSectionIonizationPhotoClass
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotential              , atomicIonizationPotentialClass
