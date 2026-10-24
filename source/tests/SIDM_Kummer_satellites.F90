@@ -48,7 +48,7 @@ program Tests_SIDM_Kummer_Satellites
   use :: Galacticus_Nodes                , only : mergerTree                                        , nodeClassHierarchyInitialize                       , nodeComponentBasic    , nodeComponentDarkMatterProfile, &
        &                                          nodeComponentSatellite                            , treeNode                                           , nodeComponentSpheroid
   use :: Input_Parameters                , only : inputParameters
-  use :: Mass_Distributions              , only : massDistributionClass
+  use :: Mass_Distributions              , only : massDistributionClass                             , kinematicsDistributionClass
   use :: Node_Components                 , only : Node_Components_Initialize                        , Node_Components_Thread_Initialize                  , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Numerical_Constants_Astronomical, only : gigaYear                                          , massSolar                                          , megaParsec
   use :: Numerical_Constants_Prefixes    , only : centi                                             , kilo                                               , milli
@@ -76,7 +76,9 @@ program Tests_SIDM_Kummer_Satellites
        &                                                                                 darkMatterProfileDense
   class           (nodeComponentSatellite                             ), pointer      :: satellite                   , satelliteDense
   class           (nodeComponentSpheroid                              ), pointer      :: spheroidHost
-  class           (massDistributionClass                              ), pointer      :: massDistributionHost_
+  class           (massDistributionClass                              ), pointer      :: massDistributionHost_       , massDistributionDense_      , &
+       &                                                                                 massDistributionDMODense_   , massDistributionDMOHost_
+  class           (kinematicsDistributionClass                        ), pointer      :: kinematicsDense_            , kinematicsHost_
   double precision                                                     , parameter    :: crossSectionConstant=10.0d0                                   ! [cm² g⁻¹]
   double precision                                                     , parameter    :: massHost            = 1.0d12, radiusScaleHost      =2.0d-2, & ! [M☉], [Mpc]
        &                                                                                 massSatellite       = 1.0d09, radiusScaleSatellite =2.0d-3, & ! [M☉], [Mpc]
@@ -94,7 +96,8 @@ program Tests_SIDM_Kummer_Satellites
   double precision                                                                    :: densityHost                 , rateNormalization         , &
        &                                                                                 massLossRate                , massBoundary              , &
        &                                                                                 fractionDarkMatter          , massLossRateDense         , &
-       &                                                                                 factorDecelerationDense
+       &                                                                                 factorDecelerationDense     , radiusHalfMassDense       , &
+       &                                                                                 velocityDispersionDense     , factorDispersionDense
   integer                                                                             :: i
 
   ! Set verbosity level and initialize the minimal global state needed to construct the objects.
@@ -194,15 +197,18 @@ program Tests_SIDM_Kummer_Satellites
           &                /speedOrbital     (i) &
           &                /densityHost          &
           &                /rateNormalization
-     ! Recover the product of the deceleration factor and the velocity dispersion correction factor. The acceleration returned
-     ! is -v χ_d f_σ (ρ σ v), so the orbital speed appears in it twice, and must be divided out twice: once as the velocity
-     ! vector which sets the direction of the drag, and once as the flux factor within the scattering rate. The velocity is
-     ! directed along the y-axis, so only that component of the acceleration is non-zero.
+     ! Recover the product of the deceleration factor and the velocity dispersion correction factor. The acceleration returned is
+     ! -v χ_d f_σ (ρ σ v) f_DM, so the orbital speed appears in it twice, and must be divided out twice: once as the velocity
+     ! vector which sets the direction of the drag, and once as the flux factor within the scattering rate. The dark matter
+     ! fraction, f_DM=M_DM/(M_DM+M★), appears because only the dark matter loses momentum, while the whole satellite is
+     ! decelerated (the deceleration equation of Kummer et al. 2018). The velocity is directed along the y-axis, so only that
+     ! component of the acceleration is non-zero.
      factorDeceleration(i)=-acceleration     (2) &
           &                /speedOrbital     (i) & ! The velocity which the drag acts along.
           &                /speedOrbital     (i) & ! The flux factor within the scattering rate.
           &                /densityHost          &
-          &                /rateNormalization
+          &                /rateNormalization    &
+          &                /fractionDarkMatter
   end do
   ! Evaporation must occur at every one of these speeds: the satellite here is far more weakly bound than the speed at which it
   ! moves through its host. Prior to the fix of the inverted definition of x, the constructed x was bounded below by unity and so
@@ -263,8 +269,40 @@ program Tests_SIDM_Kummer_Satellites
        &                  /speedOrbitalDense    & ! The velocity which the drag acts along.
        &                  /speedOrbitalDense    & ! The flux factor within the scattering rate.
        &                  /densityHost          &
-       &                  /rateNormalization
+       &                  /rateNormalization    &
+       &                  /fractionDarkMatter
   call Assert("deceleration is a drag for a deeply bound, slowly moving satellite",factorDecelerationDense > 0.0d0,.true.)
+  ! This satellite is bound so deeply that χ_d=1-4/(3x²)+… is unity to within 1%, which fixes the normalization of the drag,
+  ! including the factor M_DM/(M_DM+M★) of the deceleration equation of Kummer et al. (2018), divided out above, which accounts
+  ! for the momentum being lost only by the dark matter of the satellite while its whole mass is decelerated. To recover χ_d the
+  ! velocity dispersion correction factor of Appendix A of Kummer et al. (2018), f_σ=1/[1+(σ/v)³], must also be divided out.
+  ! Here σ is the root-mean-square 3D velocity dispersion, combining that of the host (at the satellite's position) with that of
+  ! the satellite at the radius enclosing half of its dark matter mass, each evaluated in the dark matter only profile.
+  massDistributionDense_    => nodeDense            %massDistribution    (massType=massTypeDark                         )
+  radiusHalfMassDense       =  massDistributionDense_%radiusEnclosingMass(mass=0.5d0*massSatelliteDense*fractionDarkMatter)
+  massDistributionDMODense_ => darkMatterProfileDMO_%get                 (nodeDense                                     )
+  massDistributionDMOHost_  => darkMatterProfileDMO_%get                 (nodeHost                                      )
+  kinematicsDense_          => massDistributionDMODense_%kinematicsDistribution()
+  kinematicsHost_           => massDistributionDMOHost_ %kinematicsDistribution()
+  coordinates               =  [radiusHalfMassDense,0.0d0,0.0d0]
+  velocityDispersionDense   =  +kinematicsDense_%velocityDispersion1D(coordinates,massDistributionDMODense_,massDistributionDMODense_)**2
+  coordinates               =  [radiusOrbital      ,0.0d0,0.0d0]
+  velocityDispersionDense   =  +sqrt(                                                                                                   &
+       &                             +3.0d0                                                                                             &
+       &                             *(                                                                                                 &
+       &                               +velocityDispersionDense                                                                         &
+       &                               +kinematicsHost_ %velocityDispersion1D(coordinates,massDistributionDMOHost_ ,massDistributionDMOHost_ )**2 &
+       &                              )                                                                                                 &
+       &                            )
+  factorDispersionDense     =  +1.0d0/(1.0d0+(velocityDispersionDense/speedOrbitalDense)**3)
+  call Assert("deceleration factor tends to unity for a deeply bound satellite"  ,factorDecelerationDense/factorDispersionDense,1.0d0,absTol=2.0d-2)
+  !![
+  <objectDestructor name="massDistributionDense_"   />
+  <objectDestructor name="massDistributionDMODense_"/>
+  <objectDestructor name="massDistributionDMOHost_" />
+  <objectDestructor name="kinematicsDense_"         />
+  <objectDestructor name="kinematicsHost_"          />
+  !!]
   ! Clean up.
   call node     %destroy()
   call nodeDense%destroy()
