@@ -300,11 +300,19 @@ class Campaign:
         def execute(run):
             log_file = self.path(run.log_file)
             os.makedirs(os.path.dirname(log_file) or '.', exist_ok=True)
-            with open(log_file, 'w') as log:
-                completed = subprocess.run(self.command(run), cwd=self.working_directory, env=environment,
-                                           stdout=log, stderr=subprocess.STDOUT)
+            try:
+                with open(log_file, 'w') as log:
+                    completed = subprocess.run(self.command(run), cwd=self.working_directory, env=environment,
+                                               stdout=log, stderr=subprocess.STDOUT)
+                status = completed.returncode
+            except Exception as error:
+                # The run could not be started (e.g. the executable is missing). Record this in its log, with a non-zero
+                # exit status, so that the run is judged failed rather than left submitted.
+                with open(log_file, 'a') as log:
+                    log.write(f'\nFailed to start the run: {error!r}\n')
+                status = 127
             with open(log_file, 'a') as log:
-                log.write(f'\n{EXIT_SENTINEL}{completed.returncode}\n')
+                log.write(f'\n{EXIT_SENTINEL}{status}\n')
 
         for run in runs:
             run.attempts += 1
