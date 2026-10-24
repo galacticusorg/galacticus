@@ -1614,6 +1614,7 @@ jobs:
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
                 test-black-hole-jet-efficiency.py,
+                test-critical-overdensity-tree-dependent.py,
                 test-SIDM-parametric.py,
                 test-decaying-dark-matter-halo-mass-function.py,
                 test-objectBuilder-recursion.py,
