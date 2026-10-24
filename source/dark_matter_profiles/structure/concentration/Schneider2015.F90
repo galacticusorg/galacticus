@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Claude.
+
   !!{RST
   An implementation of halo profile concentrations using the algorithm of :cite:t:`schneider_structure_2015`.
   !!}
@@ -78,8 +80,8 @@
   type            (treeNode                                   ), pointer  :: node_
   double precision                                                        :: massReferencePrevious        , timeCollapseReference                  , &
        &                                                                     time_                        , referenceCollapseMassRootPrevious      , &
-       &                                                                     timeNowReference
-  !$omp threadprivate(self_,node_,massReferencePrevious,timeCollapseReference,time_,timeNowReference,referenceCollapseMassRootPrevious)
+       &                                                                     timeNowReference             , timeReference_
+  !$omp threadprivate(self_,node_,massReferencePrevious,timeCollapseReference,time_,timeNowReference,timeReference_,referenceCollapseMassRootPrevious)
 
   ! Upper limit to the reference mass used during root finding.
   double precision                                             , parameter :: massReferenceMinimum=1.0d-30, massReferenceMaximum             =1.0d30
@@ -259,8 +261,11 @@ contains
     timeCollapse         =self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass,node)
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
     timeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
+    ! Find the time in the reference model corresponding to the same redshift as that at which the halo is observed. The
+    ! reference model must be evaluated at this time, not at the time in the target cosmology.
+    timeReference_       =self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(time_       ))
     ! Check for a collapse time very close to the present time.
-    if (timeCollapseReference > time_*(1.0d0-toleranceTimeRelative)) then
+    if (timeCollapseReference > timeReference_*(1.0d0-toleranceTimeRelative)) then
        ! Collapse is happening at the current time - which will correspond to arbitrarily massive halos in the reference model.
        massReference=massReferenceMaximum
     else
@@ -268,7 +273,7 @@ contains
        self_                 => self
        node_                 => node
        massReferencePrevious =  -1.0d0
-       if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > -time_*toleranceTimeRelative) then
+       if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > -timeReference_*toleranceTimeRelative) then
           ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
           ! the choice should not matter too much as the abundances of such halos should be hugely suppressed.
           massReference        =massReferenceMaximum
@@ -299,10 +304,10 @@ contains
     
     if (massReference /= massReferencePrevious) then
        massReferencePrevious            =+massReference
-       variance                         =max(                                                                                                           &
-            &                                +0.0d0                                                                                                   , &
-            &                                +self_%referenceCosmologicalMassVariance%rootVariance(massReference*self_%massFractionFormation,time_)**2  &
-            &                                -self_%referenceCosmologicalMassVariance%rootVariance(massReference                            ,time_)**2  &
+       variance                         =max(                                                                                                                    &
+            &                                +0.0d0                                                                                                            , &
+            &                                +self_%referenceCosmologicalMassVariance%rootVariance(massReference*self_%massFractionFormation,timeReference_)**2  &
+            &                                -self_%referenceCosmologicalMassVariance%rootVariance(massReference                            ,timeReference_)**2  &
             &                               )
        ! Find critical overdensity at collapse for this node. The critical overdensity at collapse is scaled by a factor
        ! σ(M,t₀)/σ(M,t), as the "timeOfCollapse" function expects a critical overdensity divided by the linear growth factor. (This
@@ -314,10 +319,10 @@ contains
             &                              /2.0d0                                                                                               &
             &                              *variance                                                                                            &
             &                             )                                                                                                     &
-            &                        +self_%referenceCriticalOverdensity     %value       (time=time_           ,mass=massReference,node=node_) &
+            &                        +self_%referenceCriticalOverdensity     %value       (time=timeReference_  ,mass=massReference,node=node_) &
             &                       )                                                                                                           &
             &                      *  self_%referenceCosmologicalMassVariance%rootVariance(time=timeNowReference,mass=massReference           ) &
-            &                      /  self_%referenceCosmologicalMassVariance%rootVariance(time=time_           ,mass=massReference           )
+            &                      /  self_%referenceCosmologicalMassVariance%rootVariance(time=timeReference_  ,mass=massReference           )
        ! Construct the root to get collapse at the required collapse time in the reference model.
        referenceCollapseMassRootPrevious=-self_%referenceCriticalOverdensity%timeOfCollapse       (collapseCriticalOverdensity,massReference,node_) &
             &                            +                                   timeCollapseReference
