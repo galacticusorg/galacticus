@@ -471,7 +471,7 @@ contains
 
   double precision function sphericalSIDMIsothermalBaryonsPotential(self,coordinates,status) result(potential)
     !!{RST
-    Return the potential at the specified ``coordinates`` in an burkert mass distribution.
+    Return the potential at the specified ``coordinates`` for the ``sphericalSIDMIsothermalBaryons`` mass distribution.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
