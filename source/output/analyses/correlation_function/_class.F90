@@ -153,7 +153,7 @@ contains
     double precision                                         , allocatable  , dimension(:  ) :: separations                       , massMinima                                  , &
          &                                                                                      massMaxima                        , integralConstraint                          , &
          &                                                                                      binnedProjectedCorrelationTarget1D, binnedProjectedCorrelationCovarianceTarget1D
-    double precision                                         , allocatable  , dimension(:,:) :: binnedProjectedCorrelationTarge  t, binnedProjectedCorrelationCovarianceTarget
+    double precision                                         , allocatable  , dimension(:,:) :: binnedProjectedCorrelationTarget  , binnedProjectedCorrelationCovarianceTarget
     double precision                                                                         :: massHaloMinimum                   , massHaloMaximum                             , &
          &                                                                                      wavenumberMinimum                 , wavenumberMaximum                           , &
          &                                                                                      depthLineOfSight
@@ -164,6 +164,9 @@ contains
          &                                                                                      targetLabel
 
     allocate(separations(parameters%count('separations')))
+    allocate(massMinima (parameters%count('massMinima' )))
+    allocate(massMaxima (parameters%count('massMaxima' )))
+    allocate(integralConstraint(parameters%count('integralConstraint')))
     !![
     <inputParameter docformat="rst">
       <name>label</name>
@@ -272,6 +275,8 @@ contains
     !!]
     if (parameters%isPresent('binnedProjectedCorrelationTarget')) then
        if (parameters%isPresent('binnedProjectedCorrelationCovarianceTarget')) then
+          allocate(binnedProjectedCorrelationTarget1D          (parameters%count('binnedProjectedCorrelationTarget'          )))
+          allocate(binnedProjectedCorrelationCovarianceTarget1D(parameters%count('binnedProjectedCorrelationCovarianceTarget')))
           !![
           <inputParameter docformat="rst">
             <name>binnedProjectedCorrelationTarget</name>
@@ -483,8 +488,8 @@ contains
     !!]
 
     ! Assign 1D versions of target for use in descriptor.
-    self%binnedProjectedCorrelationTarget1D          =reshape(binnedProjectedCorrelationTarget,[size(binnedProjectedCorrelationTarget          )])
-    self%binnedProjectedCorrelationCovarianceTarget1D=reshape(binnedProjectedCorrelationTarget,[size(binnedProjectedCorrelationCovarianceTarget)])
+    if (present(binnedProjectedCorrelationTarget          )) self%binnedProjectedCorrelationTarget1D          =reshape(binnedProjectedCorrelationTarget          ,[size(binnedProjectedCorrelationTarget          )])
+    if (present(binnedProjectedCorrelationCovarianceTarget)) self%binnedProjectedCorrelationCovarianceTarget1D=reshape(binnedProjectedCorrelationCovarianceTarget,[size(binnedProjectedCorrelationCovarianceTarget)])
     ! Compute weight that applies to each output redshift.
     self%massCount=size(self%massMinima               )
     self%binCount =size(self%separations,kind=c_size_t)
