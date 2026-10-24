@@ -53,17 +53,18 @@ is simply the ``make`` command telling you that, because an error occurred (in t
 Errors from the pre-processor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You may also see errors that originate from Galacticus' pre-processor itself.  These appear as Python tracebacks ending with a raised exception; an illustrative example is:
+You may also see errors that originate from Galacticus' pre-processor itself.  These appear as Python tracebacks ending with a raised exception; an example is:
 
 .. code-block:: text
 
    Traceback (most recent call last):
      ...
-     File "./python/Galacticus/Build/Baz.py", line 354, in foo
-       raise ValueError("no matching unit closer was found for opener 'function bar(a,b,c) result(self)'")
-   ValueError: no matching unit closer was found for opener 'function bar(a,b,c) result(self)'
+     File "./python/Galacticus/Build/SourceTree/Parse/Directives.py", line 292, in _validate_directive
+       raise RuntimeError(
+   RuntimeError: Parse_Directives: validation of directive 'inputParameter' failed in file foo/bar.F90 at line 90:
+   <string>:3:0:ERROR:SCHEMASV:SCHEMAV_ELEMENT_CONTENT: Element 'defaultValu': This element is not expected. Expected is one of ( source, variable, type, description, cardinality, defaultValue, defaultSource, minimum, maximum, allowedValues ).
 
-These can be identified by the ``python/Galacticus/Build`` path in the traceback, which corresponds to the pre-processor.  In the above, ``foo`` indicates the name of the preprocessor function which identified the error, and ``./python/Galacticus/Build/Baz.py`` indicates the file in which that function can be found.  The error message itself is, in this case, ``no matching unit closer was found for opener 'function bar(a,b,c) result(self)'`` (which means that a ``function`` statement in a source file had no matching ``end function`` line).
+These can be identified by the ``python/Galacticus/Build`` path in the traceback, which corresponds to the pre-processor.  In the above, ``_validate_directive`` is the name of the preprocessor function which identified the error, and ``./python/Galacticus/Build/SourceTree/Parse/Directives.py`` is the file in which that function can be found.  The error message itself tells us that an ``inputParameter`` directive (beginning at line 90 of ``source/foo/bar.F90``) contains an element, ``defaultValu``, that is not permitted (here, a misspelling of ``defaultValue``), and lists the elements that are permitted.
 
 Common error messages
 ----------------------
@@ -73,17 +74,29 @@ Missing (or misnamed) function closer
 
 .. code-block:: text
 
-   ValueError: Build_Children: no matching unit closer was found for opener 'function foo(a,b,c) result(self)'
+   Error: Expecting END FUNCTION statement at (1)
 
-(raised from ``python/Galacticus/Build/SourceTree.py``)
+often accompanied by:
 
-This error means that the preprocessor could not find a matching closer line in a source file. An *opener* is a line which begins a function (or subroutine, or module, or other code unit), such as ``function foo`` in the above. Every such opener must have a matching *closer*, in this case ``end function foo``.
+.. code-block:: text
 
-If this error occurs then either:
+   Error: Unclassifiable statement at (1)
+   f951: Error: Unexpected end of file in ‘foo.p.F90’
 
-#. The closer line is entirely missing;
-#. The name of the function is incorrect, e.g. ``end function foob`` would not match ``function foo``; or
-#. The name of of the function is missing from the closer, e.g. ``end function`` does not match ``function foo``.
+or
+
+.. code-block:: text
+
+   Error: Expected label ‘foo’ for END FUNCTION statement at (1)
+
+These errors mean that a function (or subroutine, or module, or other code unit) has no matching closer line. An *opener* is a line which begins a code unit, such as ``function foo(a,b,c) result(self)``. Every such opener must have a matching *closer*, in this case ``end function foo``. The pre-processor does not check this, so the error is reported by the compiler.
+
+If these errors occur then either:
+
+#. The closer line is entirely missing. The compiler then treats whatever follows as part of the unclosed unit, so it typically reports ``Unclassifiable statement`` at the opener of the *next* function or subroutine, ``Expecting END FUNCTION statement`` at the closers that follow (for example ``end module``), and finally ``Unexpected end of file``; or
+#. The name of the function in the closer is incorrect, e.g. ``end function foob`` does not match ``function foo``, giving the ``Expected label ‘foo’`` error.
+
+(A closer without a name, e.g. ``end function``, is valid Fortran, but Galacticus' style is to always include the name.) Note that the first error reported is often far from the actual problem: the line where the closer is missing is usually just *before* the first ``Unclassifiable statement`` reported.
 
 To fix this error, check that you have a matching ``end`` line in the source file, and that the name of the function/subroutine/module in that ``end`` line matches that in the opener.
 
