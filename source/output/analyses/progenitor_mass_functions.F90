@@ -923,7 +923,7 @@ contains
     type            (mergerTree                                   ), intent(inout) :: tree
     integer         (c_size_t                                     ), intent(in   ) :: iOutput
     double precision                                               , parameter     :: timeTolerance=1.0d-4
-    type            (treeNode                                     ), pointer       :: node
+    type            (treeNode                                     ), pointer       :: node                  , nodeBaseFirst
     class           (nodeComponentBasic                           ), pointer       :: basic
     type            (mergerTreeWalkerIsolatedNodes                )                :: treeWalker
     double precision                                                               :: weight                , mass
@@ -936,8 +936,14 @@ contains
     ! the progenitor time is first output at a later output, and never at this one. Its parents must still be counted (they simply
     ! have no progenitors in range), so accumulate their weight at the first output of such a tree. Outputs are indexed in order
     ! of increasing time, and each tree is passed through all of its outputs before the next tree is begun.
-    treeIsNew                =tree%nodeBase%uniqueID() /= self%uniqueIDTreePrevious
-    self%uniqueIDTreePrevious=tree%nodeBase%uniqueID()
+    !
+    ! The walk below spans the whole forest, while this function is called once for each tree in the forest. So, process each
+    ! forest only once, when its first tree is passed, and identify it by that first tree.
+    nodeBaseFirst => tree%nodeBase
+    if (associated(tree%firstTree)) nodeBaseFirst => tree%firstTree%nodeBase
+    if (.not.associated(nodeBaseFirst,tree%nodeBase)) return
+    treeIsNew                =nodeBaseFirst%uniqueID() /= self%uniqueIDTreePrevious
+    self%uniqueIDTreePrevious=nodeBaseFirst%uniqueID()
     if (.not.(iOutput == self%indexOutput .or. (treeIsNew .and. iOutput > self%indexOutput))) return
     ! Walk the tree, applying a filter to find parent nodes, and accumulate their weights.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
