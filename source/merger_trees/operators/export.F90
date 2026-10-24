@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree operator which exports merger trees to file.
   !!}
@@ -302,32 +304,38 @@ contains
        satellite => node%satellite()
        position  => node%position ()
        if (self%includeSubhalos) then
+          ! Count the entries of the first of the bound mass, node index, and position histories which is gettable and non-empty -
+          ! the same history from which subhalo entries are created below.
+          haveMassHistory     =.false.
+          haveNodeIndexHistory=.false.
+          havePositionHistory =.false.
           if (satellite%boundMassHistoryIsGettable()) then
              historyMassBound=satellite%boundMassHistory()
-             if (allocated(historyMassBound%time)) then
-                if (historyMassBound%time(1) == basic%time()) then
-                   nodeCount=nodeCount+size(historyMassBound%time)-1_c_size_t
-                else
-                   nodeCount=nodeCount+size(historyMassBound%time)
-                end if
-             end if
-          else if (satellite%nodeIndexHistoryIsGettable()) then
+             haveMassHistory     =allocated(historyMassBound%time)
+          end if
+          if (.not.haveMassHistory                          .and. satellite%nodeIndexHistoryIsGettable()) then
              historyNodeIndex=satellite%nodeIndexHistory()
-             if (allocated(historyNodeIndex%time)) then
-                if (historyNodeIndex%time(1) == basic%time()) then
-                   nodeCount=nodeCount+size(historyNodeIndex%time)-1_c_size_t
-                else
-                   nodeCount=nodeCount+size(historyNodeIndex%time)
-                end if
-             end if
-          else if (position%positionHistoryIsGettable()) then
-             historyPosition=position%positionHistory()
-             if (allocated(historyPosition%time)) then
-                if (historyPosition%time(1) == basic%time()) then
-                   nodeCount=nodeCount+size(historyPosition%time)-1_c_size_t
-                else
-                   nodeCount=nodeCount+size(historyPosition%time)
-                end if
+             haveNodeIndexHistory=allocated(historyNodeIndex%time)
+          end if
+          if (.not.haveMassHistory .and. .not.haveNodeIndexHistory .and. position%positionHistoryIsGettable()) then
+             historyPosition =position%positionHistory()
+             havePositionHistory =allocated(historyPosition %time)
+          end if
+          if      (haveMassHistory     ) then
+             timeHistory =     historyMassBound%time(1)
+             countHistory=size(historyMassBound%time   )
+          else if (haveNodeIndexHistory) then
+             timeHistory =     historyNodeIndex%time(1)
+             countHistory=size(historyNodeIndex%time   )
+          else if (havePositionHistory ) then
+             timeHistory =     historyPosition %time(1)
+             countHistory=size(historyPosition %time   )
+          end if
+          if (haveMassHistory .or. haveNodeIndexHistory .or. havePositionHistory) then
+             if (timeHistory == basic%time()) then
+                nodeCount=nodeCount+countHistory-1_c_size_t
+             else
+                nodeCount=nodeCount+countHistory
              end if
           end if
        end if
