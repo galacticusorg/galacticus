@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements a variety of numerical integrators.
 !!}
@@ -425,7 +427,7 @@ contains
          &                                                               step
 
     cumulant =0.5d0*(self%integrand(b)+self%integrand(a))
-    iteration=1
+    iteration=0
     converged=.false.
     do while (.not.converged)
        iteration=iteration+1
@@ -1319,8 +1321,11 @@ contains
     self%iterationsMaximum=iterationsMaximum
     workspaceSize=2**iterationsMaximum
     allocate(self%d(workspaceSize))
-    self%d(1:2)=[0.0d0,1.0d0]
-    do i=2,iterationsMaximum
+    ! Points are stored in order of the level of refinement at which they are first used: those of level n=2ⁱ (the odd
+    ! multiples of 1/n) are in elements n/2+1 to n. The end points, used before any refinement, are not stored, so element 1 is
+    ! unused.
+    self%d(1)=0.0d0
+    do i=1,iterationsMaximum
        n=2**i
        step=1.0d0/dble(n)
        forall(j=1:n-1:2)
@@ -1345,7 +1350,7 @@ contains
          &                                                                                                integrandPrevious, step
 
     cumulant =0.5d0*sum(self%integrand([b,a]))
-    iteration=1
+    iteration=0
     converged=.false.
     do while (.not.converged)
        iteration=iteration+1
