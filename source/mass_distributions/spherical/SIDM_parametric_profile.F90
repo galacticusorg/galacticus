@@ -338,43 +338,47 @@ contains
   double precision function SIDMParametricProfileRadiusEnclosingDensitySeries(self,density) result(radius)
     !!{RST
     Computes the radius enclosing a mean density just below the central density for SIDM parametric mass distributions, using
-    the leading order of a series expansion. Writing :math:`\delta=1-\bar{\rho}/\rho_\mathrm{c}`, the mean enclosed density is
-    :math:`\bar{\rho} = \rho_\mathrm{c} [1 - (3/2) r/r_\mathrm{s}]` for :math:`\beta>1`, :math:`\bar{\rho} = \rho_\mathrm{c} [1 -
-    (3/4) (2+r_\mathrm{s}/r_\mathrm{c}) r/r_\mathrm{s}]` for :math:`\beta=1`, and :math:`\bar{\rho} = \rho_\mathrm{c} [1 - 3
-    (r/r_\mathrm{c})^\beta/\beta/(3+\beta)]` for :math:`\beta<1`.
+    a series expansion. Writing :math:`\delta=1-\bar{\rho}/\rho_\mathrm{c}`, the leading terms of the mean enclosed density give
+    :math:`\delta = A r^\beta + B r`, with :math:`A=3/[\beta(3+\beta)r_\mathrm{c}^\beta]` and :math:`B=3/(2r_\mathrm{s})`. Both
+    terms are kept, as neither is negligible for :math:`\beta` close to 1, and the equation (which is monotonic in :math:`r`) is
+    solved by Newton's method in :math:`\ln r`.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     class           (massDistributionSIDMParametricProfile), intent(inout) :: self
     double precision                                       , intent(in   ) :: density
-    double precision                                                       :: densityDeficitFractional
+    integer                                                , parameter     :: countIterationsMaximum=20
+    double precision                                       , parameter     :: toleranceLogarithmic  =1.0d-12
+    integer                                                                :: i
+    double precision                                                       :: densityDeficitFractional, coefficientCore , &
+         &                                                                    coefficientScale        , termCore        , &
+         &                                                                    termScale               , stepLogarithmic
 
-    densityDeficitFractional=+1.0d0               &
-         &                   -density             &
+    densityDeficitFractional=+1.0d0                         &
+         &                   -density                       &
          &                   /self%densityCentral
-    if      (self%beta > 1.0d0) then
-       radius=+2.0d0                    &
-            & /3.0d0                    &
-            & *self%radiusScale         &
-            & *densityDeficitFractional
-    else if (self%beta < 1.0d0) then
-       radius=+self%radiusCore                    &
-            & *(                                  &
-            &   +densityDeficitFractional         &
-            &   *self%beta                        &
-            &   *(3.0d0+self%beta)                &
-            &   /3.0d0                            &
-            &  )**(1.0d0/self%beta)
-    else
-       radius=+4.0d0                    &
-            & /3.0d0                    &
-            & *self%radiusScale         &
-            & *densityDeficitFractional &
-            & /(                        &
-            &   +2.0d0                  &
-            &   +self%radiusScale       &
-            &   /self%radiusCore        &
-            &  )
-    end if
+    coefficientCore         =+3.0d0                         &
+         &                   /self%beta                     &
+         &                   /(3.0d0+self%beta)             &
+         &                   /self%radiusCore**self%beta
+    coefficientScale        =+3.0d0                         &
+         &                   /2.0d0                         &
+         &                   /self%radiusScale
+    ! Begin from the smaller of the radii at which each term alone accounts for the deficit.
+    radius=min(                                                                  &
+         &     +densityDeficitFractional/coefficientScale                      , &
+         &     (+densityDeficitFractional/coefficientCore )**(1.0d0/self%beta)   &
+         &    )
+    do i=1,countIterationsMaximum
+       termCore       =+coefficientCore *radius**self%beta
+       termScale      =+coefficientScale*radius
+       stepLogarithmic=-log((termCore+termScale)/densityDeficitFractional) &
+            &          *    (termCore+termScale)                           &
+            &          /    (termCore*self%beta+termScale)
+       radius         =+radius*exp(stepLogarithmic)
+       if (abs(stepLogarithmic) < toleranceLogarithmic) return
+    end do
+    call Error_Report('series solution for radius failed to converge'//{introspection:location})
     return
   end function SIDMParametricProfileRadiusEnclosingDensitySeries
 

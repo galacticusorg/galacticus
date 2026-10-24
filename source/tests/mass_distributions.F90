@@ -77,6 +77,7 @@ program Test_Mass_Distributions
        &                                                                                                        truncationTableRadiusHalfMassTarget  =[2.0378552605d+00,1.0000000000d+00,2.8800715553d-01,7.6092056823d-02]
   type            (massDistributionList                   )                                    , pointer     :: massDistributions
   class           (massDistributionSpherical              )                                    , pointer     :: massDistributionSolitonEnvelope_
+  type            (massDistributionSIDMParametricProfile  )                                                  :: sidmParametricBetaNearUnity
   integer                                                  , parameter                                       :: solitonHeatedTableCount              =8
   double precision                                         , dimension(solitonHeatedTableCount)              :: solitonHeatedTableRadiusFactor       =[0.1d0,0.5d0,0.9d0,0.99d0,1.01d0,1.5d0,3.0d0,10.0d0], &
        &                                                                                                        solitonHeatedTableRadius                                                               , &
@@ -207,6 +208,9 @@ program Test_Mass_Distributions
      ! Test the near-central series solution for the radius enclosing a mean density just below the central density
      ! (ρ̅=0.9995ρc, with ρc=2 here). The target radius was found by numerical quadrature and root finding.
      call Assert("Radius enclosing density (near-central)",massDistribution_%radiusEnclosingDensity(1.999d0),3.334667239620318d-4,relTol=1.0d-3)
+     ! Repeat for β=1.1, for which neither of the two leading terms of the series can be neglected.
+     sidmParametricBetaNearUnity=massDistributionSIDMParametricProfile(beta=1.1d0,densityNormalization=1.0d0,radiusScale=1.0d0,radiusCore=0.5d0)
+     call Assert("Radius enclosing density (near-central; β=1.1)",sidmParametricBetaNearUnity%radiusEnclosingDensity(1.999d0),2.360935730598397d-4,relTol=1.0d-3)
   end select
   nullify   (kinematicsDistribution_)
   deallocate(massDistribution_      )
