@@ -30,7 +30,7 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingTime" docformat="rst">
    <description>
-   A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a :galacticus-class:`satelliteMergingTimescalesClass`, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal.
+   A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a :galacticus-class:`satelliteMergingTimescalesClass`, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal. Merging times of satellites already present when a tree is initialized are set during their host's tree initialization, so after any node operators listed before this one have initialized the host. Any filter applied to this operator is therefore tested on the host, not the satellite.
    </description>
   </nodeOperator>
   !!]
