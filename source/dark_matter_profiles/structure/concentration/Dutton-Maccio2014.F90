@@ -110,7 +110,7 @@
         - :math:`+1.080`
         - :math:`-0.097`
         - :math:`+0.024`
-      * - ``nfw200``
+      * - ``nfwCritical200``
         - :term:`NFW`
         - 200
         - :math:`+0.520`
@@ -119,7 +119,7 @@
         - :math:`+1.210`
         - :math:`-0.101`
         - :math:`+0.026`
-      * - ``einasto200``
+      * - ``einastoCritical200``
         - Einasto
         - 200
         - :math:`+0.459`
