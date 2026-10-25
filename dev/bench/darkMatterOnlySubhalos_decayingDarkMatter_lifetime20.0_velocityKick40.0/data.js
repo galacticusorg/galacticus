@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792796586414,
+  "lastUpdate": 1792896921133,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)": [
@@ -7339,6 +7339,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
         },
         "date": 1792796585453,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 32.51292990839696,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 93.54429581179635,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
+          "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals",
+          "timestamp": "2026-10-24T16:58:27Z",
+          "tree_id": "2723d95831346feaae04f73cd626a6bde02bb657",
+          "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
+        },
+        "date": 1792896920241,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
