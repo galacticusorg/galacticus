@@ -92,9 +92,9 @@ program Tests_Accretion_Halo_Cold_Mode_Chemicals
   call chemicalsTotal%serialize(arrayTotal)
   call chemicalsHot  %serialize(arrayHot  )
   call chemicalsCold %serialize(arrayCold )
-  call Assert('both modes contribute to the accreted mass'          ,min(massHot,massCold) > 0.05d0*massTotal,.true.                          )
-  call Assert('accreted masses in the two modes sum to the total'    ,massHot+massCold                        ,massTotal          ,relTol=1.0d-9)
-  call Assert('accreted chemicals in the two modes sum to the total' ,arrayHot+arrayCold                      ,arrayTotal         ,relTol=1.0d-9)
+  call Assert('both modes contribute to the accreted mass'           ,min(massHot,massCold) > 0.05d0*massTotal,.true.                  )
+  call Assert('accreted masses in the two modes sum to the total'    ,massHot+massCold                        ,massTotal ,relTol=1.0d-9)
+  call Assert('accreted chemicals in the two modes sum to the total' ,arrayHot+arrayCold                      ,arrayTotal,relTol=1.0d-9)
   ! The ionization state of each mode depends on its temperature, but the mass of hydrogen (neutral plus ionized) scales with
   ! the mass accreted in that mode. (Only to the extent that the mass of an electron is negligible, as the mass of ionized
   ! hydrogen excludes it: the two modes differ in ionization, so these agree to about 10⁻⁶.)
