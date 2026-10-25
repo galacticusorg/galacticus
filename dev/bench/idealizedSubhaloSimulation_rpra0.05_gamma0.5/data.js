@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792796546276,
+  "lastUpdate": 1792896878991,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "b5b68023ef964b251e13a79791ce095afb0dd7a5",
-          "message": "feat: Add a `galacticFilter` that filters on maximum depth in the subhalo hierarchy",
-          "timestamp": "2024-10-07T07:52:35-07:00",
-          "tree_id": "96e119c4357ca70d68b68f7896c8cfb1326c48e6",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b5b68023ef964b251e13a79791ce095afb0dd7a5"
-        },
-        "date": 1728337935995,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": "21.58128069887297",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "7.8967620087179835",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "9.849830842989993",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9926,6 +9887,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
         },
         "date": 1792796545362,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": -23.380591021144156,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -8.011177098874096,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -10.110657914761397,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
+          "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals",
+          "timestamp": "2026-10-24T16:58:27Z",
+          "tree_id": "2723d95831346feaae04f73cd626a6bde02bb657",
+          "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
+        },
+        "date": 1792896878182,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
