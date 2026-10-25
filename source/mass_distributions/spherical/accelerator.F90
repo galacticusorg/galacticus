@@ -230,8 +230,8 @@ contains
                 massEnclosed2=(radiusLogarithmic-left2%key)*(right2%value-left2%value)/(right2%key-left2%key)+left2%value
                 ! The estimates are of the logarithm of the mass, so an absolute tolerance on them is a relative tolerance on the mass.
                 if (Values_Agree(massEnclosed1,massEnclosed2,absTol=self%toleranceRelative)) then
-                   mass=exp(massEnclosed1)
-                   found                  =.true.
+                   mass =exp(massEnclosed1)
+                   found=.true.
                 end if
              end if
           end if
