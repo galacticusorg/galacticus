@@ -674,9 +674,17 @@ contains
           ! variance axis is excluded: it was forced to zero as a boundary condition rather than solved, and must now be solved
           ! for like any other point.
           if (reuseSolutions) then
-             if (countVariancePrevious >= 1)                                                                                    &
-                  & self%firstCrossingProbability        (0:countVariancePrevious-1,offsetTime+1:offsetTime+countTimePrevious)= &
-                  &      firstCrossingProbabilityPrevious(0:countVariancePrevious-1,           1:           countTimePrevious)
+             if (countVariancePrevious >= 1) then
+                do iTime=int(offsetTime+1,kind=c_size_t),int(offsetTime+countTimePrevious,kind=c_size_t)
+#ifdef USEMPI
+                   ! Under coordinated MPI each process holds only the epochs which it solves for, as the table is summed over
+                   ! all processes once solved, so only those epochs are carried over.
+                   if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
+                   self%firstCrossingProbability        (0:countVariancePrevious-1,iTime                                )= &
+                        & firstCrossingProbabilityPrevious(0:countVariancePrevious-1,iTime-int(offsetTime,kind=c_size_t))
+                end do
+             end if
              deallocate(firstCrossingProbabilityPrevious)
           end if
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
