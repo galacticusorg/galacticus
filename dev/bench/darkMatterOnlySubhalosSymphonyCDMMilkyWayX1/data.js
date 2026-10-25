@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792796450264,
+  "lastUpdate": 1792896782129,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
@@ -6063,6 +6063,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 44.49993646483141,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
+          "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals",
+          "timestamp": "2026-10-24T16:58:27Z",
+          "tree_id": "2723d95831346feaae04f73cd626a6bde02bb657",
+          "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
+        },
+        "date": 1792896781278,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -2.338976822019354,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -1.279931943340015,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 44.75008207026853,
             "unit": "-logℒ"
           }
         ]
