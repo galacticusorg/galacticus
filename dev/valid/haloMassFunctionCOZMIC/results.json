@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "433f96f86088e084bc1c78253a0bbb24aa77223d",
-        "message": "Merge pull request #1665 from galacticusorg/fix/black-hole-jet-efficiency\n\nfix(nodeOperators): convert black hole jet power to an efficiency with (c/kilo)^2\n",
-        "timestamp": "2026-10-23 15:20:05+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
+        "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
+        "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals\n",
+        "timestamp": "2026-10-24 16:58:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
     },
     "results": [
         {
@@ -291,7 +291,7 @@ window.ANALYSES_DATA = {
         {
             "attributes": {
                 "name": "COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
-                "logLikelihood": "-74.48279824775504",
+                "logLikelihood": "-74.48277078992169",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -312,33 +312,33 @@ window.ANALYSES_DATA = {
                     562341325.1903499
                 ],
                 "yDataset": [
-                    12.420536625719418,
-                    9.337804900200556,
-                    7.075810084080565,
-                    5.966356718984058,
-                    4.7080383452396495,
-                    3.4940293183409556,
-                    2.640285458686107,
-                    2.0064682841442645,
-                    1.5178286330827908,
-                    1.1339963143410183
+                    12.420539793857522,
+                    9.337807273820939,
+                    7.075811875694355,
+                    5.966358225544737,
+                    4.708039528809532,
+                    3.4940301905428015,
+                    2.640286112069649,
+                    2.006468775271338,
+                    1.5178289994453356,
+                    1.1339965831861158
                 ],
                 "yError": [
-                    1.7069735957835188,
-                    0.9379651782668782,
-                    1.0383938582341252,
-                    0.8985462557279273,
-                    0.5234638916835537,
-                    0.4128674827474995,
-                    0.333711961046139,
-                    0.2735033548085272,
-                    0.2255270812790432,
-                    0.18612132354853372
+                    1.70697399076481,
+                    0.9379653891568049,
+                    1.0383940835822125,
+                    0.898546446103988,
+                    0.5234639986680577,
+                    0.4128675628139166,
+                    0.33371202231508407,
+                    0.27350340220660146,
+                    0.2255271180311734,
+                    0.18612135194938711
                 ],
                 "yDatasetTarget": [
-                    16.59521841410656,
+                    16.595218414106558,
                     10.802136920468312,
-                    8.275830705197496,
+                    8.275830705197498,
                     7.491804638389313,
                     5.989088010340294,
                     4.312143367445011,

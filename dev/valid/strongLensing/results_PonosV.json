@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "433f96f86088e084bc1c78253a0bbb24aa77223d",
-        "message": "Merge pull request #1665 from galacticusorg/fix/black-hole-jet-efficiency\n\nfix(nodeOperators): convert black hole jet power to an efficiency with (c/kilo)^2\n",
-        "timestamp": "2026-10-23 15:20:05+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/433f96f86088e084bc1c78253a0bbb24aa77223d"
+        "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
+        "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals\n",
+        "timestamp": "2026-10-24 16:58:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
     },
     "surfaceDensity": {
         "percentageBelow": 39.285714285714285,
