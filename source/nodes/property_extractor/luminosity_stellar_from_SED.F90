@@ -52,6 +52,8 @@ Implements a property extractor class for broadband stellar luminosities compute
    Here :math:`M_z(\lambda,z)` is the redshift-dependent factor of the postprocessing of the SED (e.g. attenuation by the :term:`IGM`). Where that postprocessing is separable (see the ``isSeparable`` method of :galacticus-class:`stellarPopulationSpectraPostprocessorClass`), and the star formation history has fixed ages (see :galacticus-class:`starFormationHistoryFixedAges`), the SED is computed with only the redshift-independent factor of the postprocessing applied, and :math:`M_z(\lambda,z)` is applied to the filter instead. The SED is then independent of redshift, so a single template serves galaxies at all redshifts---which makes this the efficient route to observed-frame luminosities for lightcone output. Otherwise, the SED is computed with its full postprocessing at the redshift of the galaxy, and :math:`M_z(\lambda,z)=1`.
 
    The SED must span the range of wavelengths covered by each filter (blueshifted into the rest frame if appropriate), as otherwise the luminosity would be silently truncated. This is reported as an error.
+
+   The integral over the filter is performed adaptively, to the relative tolerance ``toleranceRelative``. Note that the error in the result can exceed this tolerance: adaptive quadrature estimates its own error, and for a sharply-structured integrand---such as one carrying :term:`IGM` attenuation across the Lyman series---that estimate is occasionally optimistic. A few galaxies in a large sample may therefore be in error by somewhat more than ``toleranceRelative``, even though the typical error is far smaller. The integral of the AB zero point over the filter, which normalizes the result, depends only on the filter, so it is computed once per filter when the object is constructed and is not affected by ``toleranceRelative``.
    </description>
    <stateStorable>
     <functionClass variables="nodePropertyExtractor_"/>
@@ -66,10 +68,12 @@ Implements a property extractor class for broadband stellar luminosities compute
      type            (varying_string          ), allocatable, dimension(:  ) :: filterNames
      integer                                   , allocatable, dimension(:  ) :: luminosityIndex
      type            (filterResponse          ), allocatable, dimension(:  ) :: filterResponses
+     double precision                          , allocatable, dimension(:  ) :: normalizationAB
      double precision                          , allocatable, dimension(:,:) :: wavelengthRanges
      class           (nodePropertyExtractorSED), pointer                     :: nodePropertyExtractor_ => null()
      class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_    => null()
      type            (enumerationFrameType    )                              :: frame
+     double precision                                                        :: toleranceRelative
    contains
      final     ::                luminosityStellarFromSEDDestructor
      procedure :: elementCount => luminosityStellarFromSEDElementCount
@@ -105,6 +109,7 @@ contains
     class(cosmologyFunctionsClass                      ), pointer                    :: cosmologyFunctions_
     type (varying_string                               ), dimension(:) , allocatable :: filterNames
     type (varying_string                               )                             :: frame
+    double precision                                                                 :: toleranceRelative
 
     allocate(filterNames(parameters%count('filterNames')))
     !![
@@ -123,12 +128,20 @@ contains
       The frame (``rest`` or ``observed``) for which to compute luminosities.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>toleranceRelative</name>
+      <source>parameters</source>
+      <defaultValue>4.0d-3</defaultValue>
+      <description>
+      The relative tolerance used in the integration of the SED over the filter response.
+      </description>
+    </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorSED)
-       self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,enumerationFrameEncode(char(frame),includesPrefix=.false.),nodePropertyExtractor_,cosmologyFunctions_)
+       self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,enumerationFrameEncode(char(frame),includesPrefix=.false.),toleranceRelative,nodePropertyExtractor_,cosmologyFunctions_)
     class default
        call Error_Report('an "SED" nodePropertyExtractor is required'//{introspection:location})
     end select
@@ -140,23 +153,26 @@ contains
     return
   end function luminosityStellarFromSEDConstructorParameters
 
-  function luminosityStellarFromSEDConstructorInternal(filterNames,frame,nodePropertyExtractor_,cosmologyFunctions_) result(self)
+  function luminosityStellarFromSEDConstructorInternal(filterNames,frame,toleranceRelative,nodePropertyExtractor_,cosmologyFunctions_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Error                         , only : Error_Report
     use            :: Instruments_Filters           , only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
+    use            :: Numerical_Integration         , only : integrator
     use            :: Stellar_Luminosities_Structure, only : frameRest
     implicit none
-    type   (nodePropertyExtractorLuminosityStellarFromSED)                              :: self
-    type   (varying_string                               ), intent(in   ), dimension(:) :: filterNames
-    type   (enumerationFrameType                         ), intent(in   )               :: frame
-    class  (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
-    class  (cosmologyFunctionsClass                      ), intent(in   ), target       :: cosmologyFunctions_
-    integer                                                                             :: i                     , indexFilter
+    type            (nodePropertyExtractorLuminosityStellarFromSED)                              :: self
+    type            (varying_string                               ), intent(in   ), dimension(:) :: filterNames
+    type            (enumerationFrameType                         ), intent(in   )               :: frame
+    double precision                                               , intent(in   )               :: toleranceRelative
+    class           (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
+    class           (cosmologyFunctionsClass                      ), intent(in   ), target       :: cosmologyFunctions_
+    type            (integrator                                   ), allocatable                 :: integratorAB_
+    integer                                                                                      :: i                     , indexFilter
     !![
-    <constructorAssign variables="filterNames, frame, *nodePropertyExtractor_, *cosmologyFunctions_"/>
+    <constructorAssign variables="filterNames, frame, toleranceRelative, *nodePropertyExtractor_, *cosmologyFunctions_"/>
     !!]
 
     ! A rest-frame luminosity can not be computed from an observed-frame SED.
@@ -165,13 +181,42 @@ contains
 
     ! Get filter functions for all requested filters.
     allocate(self%filterResponses (size(filterNames)  ))
+    allocate(self%normalizationAB (size(filterNames)  ))
     allocate(self%wavelengthRanges(size(filterNames),2))
+    allocate(integratorAB_                             )
+    ! The normalization of each filter---the luminosity of a zeroth magnitude (AB) source seen through it---depends only on the
+    ! filter, so it is computed here, once, instead of for every galaxy. Its integrand has a kink at each point of the tabulated
+    ! response, which makes a tight tolerance unattainable, so `toleranceRelative` is not applied to it. That costs nothing in
+    ! galaxy-to-galaxy accuracy: being a property of the filter alone, any error here shifts every luminosity through that
+    ! filter by the same factor rather than scattering them.
+    integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=4.0d-3)
     do i=1,size(filterNames)
        indexFilter                              =  Filter_Get_Index        (filterNames(i          ))
        self%filterResponses (i  )%interpolator_ => Filter_Response_Function(            indexFilter )
        self%wavelengthRanges(i,:)               =  Filter_Extent           (            indexFilter )
+       self%normalizationAB (i  )               =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2))
     end do
+    deallocate(integratorAB_)
     return
+
+  contains
+
+    double precision function integrandFilteredLuminosityAB(wavelength)
+      !!{RST
+      Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      !!}
+      use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
+      implicit none
+      double precision, intent(in   ) :: wavelength
+      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
+      double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
+
+      integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolator_%interpolate(wavelength) &
+           &                        *luminosityZeroPointABSolar                                    &
+           &                        /                                                  wavelength
+      return
+    end function integrandFilteredLuminosityAB
+
   end function luminosityStellarFromSEDConstructorInternal
   
   subroutine luminosityStellarFromSEDDestructor(self)
@@ -216,7 +261,7 @@ contains
     type            (multiCounter                                 ), intent(inout) , optional     :: instance
     double precision                                               , dimension(:  ), allocatable  :: wavelengths
     double precision                                               , dimension(:,:), allocatable  :: sed
-    type            (integrator                                   ), allocatable                  :: integrator_      , integratorAB_
+    type            (integrator                                   ), allocatable                  :: integrator_
     type            (interpolator                                 ), allocatable                  :: interpolatorSED   
     integer                                                                                       :: i                , errorStatus
     double precision                                                                              :: expansionFactor  , redshift
@@ -260,17 +305,14 @@ contains
     end if
     allocate(interpolatorSED)
     allocate(integrator_    )
-    allocate(integratorAB_  )
-    interpolatorSED=interpolator(wavelengths                  ,                  sed(:,1),extrapolationType=extrapolationTypeZero                                )
-    integrator_    =integrator  (integrandFilteredLuminosity  ,toleranceRelative=4.0d-3  ,integrationRule  =GSL_Integ_Gauss15    ,intervalsMaximum=10000_c_size_t)
-    integratorAB_  =integrator  (integrandFilteredLuminosityAB,toleranceRelative=4.0d-3                                                                          )
+    interpolatorSED=interpolator(wavelengths                  ,                  sed(:,1),extrapolationType=extrapolationTypeZero                                        )
+    integrator_    =integrator  (integrandFilteredLuminosity  ,toleranceRelative=self%toleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
     do i=1,size(self%filterNames)
-       luminosities(i)=+integrator_  %integrate(self%wavelengthRanges(i,1)*expansionFactor,self%wavelengthRanges(i,2)*expansionFactor,status=errorStatus) &
-            &          /integratorAB_%integrate(self%wavelengthRanges(i,1)                ,self%wavelengthRanges(i,2)                                   )
+       luminosities(i)=+integrator_%integrate(self%wavelengthRanges(i,1)*expansionFactor,self%wavelengthRanges(i,2)*expansionFactor,status=errorStatus) &
+            &          /self%normalizationAB(i)
     end do
     deallocate(interpolatorSED)
     deallocate(integrator_    )
-    deallocate(integratorAB_  )
     return
 
   contains
@@ -337,22 +379,6 @@ contains
       return
     end subroutine reportCoverageError
 
-    double precision function integrandFilteredLuminosityAB(wavelength)
-      !!{RST
-      Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
-      !!}
-      use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
-      implicit none
-      double precision, intent(in   ) :: wavelength
-      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
-      double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
-
-      integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolator_%interpolate(wavelength) &
-           &                        *luminosityZeroPointABSolar                                    &
-           &                        /                                                  wavelength
-      return
-    end function integrandFilteredLuminosityAB
-    
   end function luminosityStellarFromSEDExtract
 
   function luminosityStellarFromSEDQuantity(self)
