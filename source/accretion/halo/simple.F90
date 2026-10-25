@@ -439,9 +439,9 @@ contains
   function simpleFractionMetalsUnaccreted(self,node) result(fractionMetals)
     !!{RST
     Returns the mass fraction of metals in the unaccreted reservoir of ``node``. If the hot halo component does not track the
-    abundances of that reservoir, the metallicity of the :term:`IGM` is assumed. Otherwise the metal fraction is as given by
-    ``simpleFractionMetalsLimited()``: it is limited to unity, so that a numerically negligible reservoir mass can not drive
-    arbitrarily large metal rates.
+    abundances of that reservoir, or the reservoir mass is non-positive, the metallicity of the :term:`IGM` is assumed. Otherwise
+    the metal fraction is as given by ``simpleFractionMetalsLimited()``: it is limited to unity, so that a numerically negligible
+    reservoir mass can not drive arbitrarily large metal rates.
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset
     use :: Galacticus_Nodes    , only : nodeComponentBasic         , nodeComponentHotHalo
@@ -453,7 +453,7 @@ contains
     class(nodeComponentHotHalo), pointer       :: hotHalo
 
     hotHalo => node%hotHalo()
-    if (hotHalo%unaccretedAbundancesIsGettable()) then
+    if (hotHalo%unaccretedAbundancesIsGettable() .and. hotHalo%unaccretedMass() > 0.0d0) then
        fractionMetals=simpleFractionMetalsLimited(hotHalo%unaccretedAbundances(),hotHalo%unaccretedMass())
     else
        basic => node%basic()
@@ -469,6 +469,11 @@ contains
     ``accretionModeTotal``. If the hot halo component does not track the abundances of that gas, the metallicity of the :term:`IGM`
     is assumed. Otherwise the metal fraction is as given by ``simpleFractionMetalsLimited()``: it is limited to unity, so that a
     numerically negligible gas mass can not drive arbitrarily large metal rates.
+
+    Gas of non-positive mass is treated differently for the two modes. A negative hot-mode mass is reset to zero after each ODE
+    step (by the hot halo component), so gas notionally removed from an empty hot-mode CGM is not in fact removed, and carries no
+    metals. A negative cold-mode mass persists, so gas removed from it is assumed to carry the metallicity of the :term:`IGM` (see
+    ``simpleFractionMetalsLimited()``).
     !!}
     use :: Abundances_Structure, only : metallicityTypeLinearByMass, adjustElementsReset, zeroAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic         , nodeComponentHotHalo
@@ -482,24 +487,33 @@ contains
     type            (abundances                  ), save          :: massMetals
     !$omp threadprivate(massMetals)
     double precision                                              :: mass
-    logical                                                       :: isTracked
+    logical                                                       :: isTracked, useMetallicityIGM
 
-    hotHalo    => node%hotHalo()
-    mass       =  0.0d0
-    massMetals =  zeroAbundances
-    isTracked  =  .false.
+    hotHalo           => node%hotHalo()
+    mass              =  0.0d0
+    massMetals        =  zeroAbundances
+    isTracked         =  .false.
+    useMetallicityIGM =  .false.
     if (accretionMode /= accretionModeCold .and. hotHalo%abundancesIsGettable()                                        ) then
-       isTracked =.true.
-       mass      =+mass      +hotHalo%mass          ()
-       massMetals=+massMetals+hotHalo%abundances    ()
+       isTracked=.true.
+       if (hotHalo%mass    () > 0.0d0) then
+          mass      =+mass      +hotHalo%mass          ()
+          massMetals=+massMetals+hotHalo%abundances    ()
+       end if
     end if
     if (accretionMode /= accretionModeHot  .and. hotHalo%massColdIsGettable() .and. hotHalo%abundancesColdIsGettable()) then
-       isTracked =.true.
-       mass      =+mass      +hotHalo%massCold      ()
-       massMetals=+massMetals+hotHalo%abundancesCold()
+       isTracked=.true.
+       if (hotHalo%massCold() > 0.0d0) then
+          mass      =+mass      +hotHalo%massCold      ()
+          massMetals=+massMetals+hotHalo%abundancesCold()
+       else
+          useMetallicityIGM=.true.
+       end if
     end if
-    if (isTracked) then
+    if (isTracked .and. mass > 0.0d0) then
        fractionMetals=simpleFractionMetalsLimited(massMetals,mass)
+    else if (isTracked .and. .not.useMetallicityIGM) then
+       fractionMetals=zeroAbundances
     else
        basic => node%basic()
        call fractionMetals%metallicitySet(self%intergalacticMediumState_%metallicity(basic%time()),metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
@@ -509,9 +523,15 @@ contains
 
   function simpleFractionMetalsLimited(massMetals,mass) result(fractionMetals)
     !!{RST
-    Returns the mass fraction of metals in gas of the given ``mass`` containing the given ``massMetals``. This is zero if the gas
-    mass or its metal mass is non-positive (if negative :term:`CGM` masses are allowed there is no meaningful metallicity in that
-    case, and no metals are removed), and is limited to a total metallicity of unity.
+    Returns the mass fraction of metals in gas of the given (positive) ``mass`` containing the given ``massMetals``. This is zero
+    if the metal mass is non-positive, and is limited to a total metallicity of unity.
+
+    Gas of non-positive mass (possible if negative :term:`CGM` masses are allowed) has no meaningful metallicity, and callers
+    decide what to assume for it. Where a negative mass persists (the cold-mode :term:`CGM` and the unaccreted reservoir) they
+    assume the metallicity of the :term:`IGM`: gas removed from such a component then carries metals at the same metallicity as
+    the gas that drove it negative (in a model with a fixed :term:`IGM` metallicity and no metal production this keeps every
+    component at exactly the :term:`IGM` metallicity), and the error is otherwise bounded by the range of the :term:`IGM`
+    metallicity.
     !!}
     use :: Abundances_Structure, only : zeroAbundances
     implicit none
@@ -521,7 +541,7 @@ contains
     double precision                            :: massMetalsTotal
 
     massMetalsTotal=massMetals%metallicity()
-    if (mass <= 0.0d0 .or. massMetalsTotal <= 0.0d0) then
+    if (massMetalsTotal <= 0.0d0) then
        fractionMetals=zeroAbundances
     else
        fractionMetals=+massMetals                    &

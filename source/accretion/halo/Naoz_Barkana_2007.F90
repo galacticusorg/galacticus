@@ -637,12 +637,7 @@ contains
        if (rateMassCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
           ! halo.
-          if (hotHalo%mass() > massHotHaloMinimum) then
-             fractionMetals=+hotHalo%abundances() &
-                  &         /hotHalo%mass      ()
-          else
-             fractionMetals=zeroAbundances
-          end if
+          fractionMetals=self%fractionMetalsHalo(node,accretionModeHot)
        else
           ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of metals in the
           ! unaccreted gas.
@@ -715,12 +710,7 @@ contains
        if (rateMassCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
           ! halo.
-          if (hotHalo%mass() > massHotHaloMinimum) then
-             fractionMetals=+hotHalo%abundances() &
-                  &         /hotHalo%mass      ()
-          else
-             fractionMetals=zeroAbundances
-          end if
+          fractionMetals=self%fractionMetalsHalo(node,accretionModeHot)
        else
           ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of metals in the
           ! unaccreted gas.
