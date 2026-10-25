@@ -39,11 +39,9 @@
   <componentSpheroid          value="null"    />
 
   <!-- Use a fixed set of halo masses - Mau et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...932..128M) simulated halos of mass ~10^{12}Msun. -->
-  <!-- The tree count is kept to a multiple of the CI runner's four threads. With 12 trees the six models took between 3.5 and  -->
-  <!-- 6 hours (the GitHub job limit) depending on the runner; 8 trees cut that by a third.                                       -->
   <mergerTreeBuildMasses value="fixedMass">
     <massTree  value="1.0e12"/>
-    <treeCount value="8"     />
+    <treeCount value="12"    />
   </mergerTreeBuildMasses>
   <!-- Resolution is chosen to be close to the 100 particle limit of Mau et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...932..128M) -->
   <mergerTreeMassResolution value="fixed">
