@@ -1905,6 +1905,15 @@ jobs:
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
     secrets: inherit
+  MPI-Excursion-Sets-Farahi:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-excursionSetsFarahi_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
   MPI-Emulator-Likelihood:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
@@ -2646,6 +2655,7 @@ jobs:
              Methods-MPI,
              MPI-State-Restore,
              MPI-Radiative-Transfer-Stromgren-Sphere,
+             MPI-Excursion-Sets-Farahi,
              MPI-MCMC,
              Python-Interface,
              Codes-MacOS,
