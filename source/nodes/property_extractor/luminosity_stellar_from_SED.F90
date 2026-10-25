@@ -53,7 +53,7 @@ Implements a property extractor class for broadband stellar luminosities compute
 
    The SED must span the range of wavelengths covered by each filter (blueshifted into the rest frame if appropriate), as otherwise the luminosity would be silently truncated. This is reported as an error.
 
-   The integral over the filter is performed adaptively, to the relative tolerance ``toleranceRelative``. Note that the error in the result can exceed this tolerance: adaptive quadrature estimates its own error, and for a sharply-structured integrand---such as one carrying :term:`IGM` attenuation across the Lyman series---that estimate is occasionally optimistic. A few galaxies in a large sample may therefore be in error by somewhat more than ``toleranceRelative``, even though the typical error is far smaller. The integral of the AB zero point over the filter, which normalizes the result, depends only on the filter, so it is computed once per filter when the object is constructed and is not affected by ``toleranceRelative``.
+   The integral over the filter is performed adaptively, to the relative tolerance ``toleranceRelative``. Note that the error in the result can exceed this tolerance: adaptive quadrature estimates its own error, and for a sharply-structured integrand---such as one carrying :term:`IGM` attenuation across the Lyman series---that estimate is occasionally optimistic. A few galaxies in a large sample may therefore be in error by somewhat more than ``toleranceRelative``, even though the typical error is far smaller. Where the integrator can not meet the requested tolerance at all it reports an error, rather than returning a result which has not met it. Because the integrand has a kink at every point of the filter and SED tabulations, a tolerance much tighter than the default can not usually be reached, and how tight a tolerance is attainable depends on the filter and on the SED. The integral of the AB zero point over the filter, which normalizes the result, depends only on the filter, so it is computed once per filter when the object is constructed and is not affected by ``toleranceRelative``.
    </description>
    <stateStorable>
     <functionClass variables="nodePropertyExtractor_"/>
@@ -158,8 +158,9 @@ contains
     Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
-    use            :: Error                         , only : Error_Report
+    use            :: Error                         , only : Error_Report    , errorStatusSuccess
     use            :: Instruments_Filters           , only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
+    use            :: ISO_Varying_String            , only : operator(//)
     use            :: Numerical_Integration         , only : integrator
     use            :: Stellar_Luminosities_Structure, only : frameRest
     implicit none
@@ -170,7 +171,7 @@ contains
     class           (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
     class           (cosmologyFunctionsClass                      ), intent(in   ), target       :: cosmologyFunctions_
     type            (integrator                                   ), allocatable                 :: integratorAB_
-    integer                                                                                      :: i                     , indexFilter
+    integer                                                                                      :: i                     , indexFilter, errorStatus
     !![
     <constructorAssign variables="filterNames, frame, toleranceRelative, *nodePropertyExtractor_, *cosmologyFunctions_"/>
     !!]
@@ -185,16 +186,21 @@ contains
     allocate(self%wavelengthRanges(size(filterNames),2))
     allocate(integratorAB_                             )
     ! The normalization of each filter---the luminosity of a zeroth magnitude (AB) source seen through it---depends only on the
-    ! filter, so it is computed here, once, instead of for every galaxy. Its integrand has a kink at each point of the tabulated
-    ! response, which makes a tight tolerance unattainable, so `toleranceRelative` is not applied to it. That costs nothing in
-    ! galaxy-to-galaxy accuracy: being a property of the filter alone, any error here shifts every luminosity through that
-    ! filter by the same factor rather than scattering them.
+    ! filter, so it is computed here, once, instead of for every galaxy. `toleranceRelative` is deliberately not applied to it,
+    ! for two reasons. It is a property of the filter alone, so any error in it rescales every luminosity through that filter
+    ! by the same factor instead of scattering them, which is what that tolerance exists to control. And its integrand has a
+    ! kink at each point of the tabulated response, so for a tight tolerance the integrator can not certify its own result even
+    ! though that result is accurate: at 4.0d-3 the value is good to better than 1.0d-4, while at 1.0d-6 the integrator reports
+    ! failure for some filters. The fixed tolerance below is therefore reliable, and more accurate than it appears.
     integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=4.0d-3)
     do i=1,size(filterNames)
        indexFilter                              =  Filter_Get_Index        (filterNames(i          ))
        self%filterResponses (i  )%interpolator_ => Filter_Response_Function(            indexFilter )
        self%wavelengthRanges(i,:)               =  Filter_Extent           (            indexFilter )
-       self%normalizationAB (i  )               =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2))
+       self%normalizationAB (i  )               =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2),status=errorStatus)
+       ! Passing `status` suppresses the GSL error handler, so the status is tested rather than discarded.
+       if (errorStatus /= errorStatusSuccess)                                                                                        &
+            & call Error_Report('integration of the AB zero point over filter "'//filterNames(i)//'" failed'//{introspection:location})
     end do
     deallocate(integratorAB_)
     return
@@ -250,6 +256,7 @@ contains
     !!{RST
     Implement a stellar luminosity output analysis property extractor.
     !!}
+    use :: Error                         , only : errorStatusSuccess
     use :: Stellar_Luminosities_Structure, only : frameObserved
     use :: Table_Labels                  , only : extrapolationTypeZero
     use :: Numerical_Integration         , only : GSL_Integ_Gauss15    , integrator
@@ -310,6 +317,9 @@ contains
     do i=1,size(self%filterNames)
        luminosities(i)=+integrator_%integrate(self%wavelengthRanges(i,1)*expansionFactor,self%wavelengthRanges(i,2)*expansionFactor,status=errorStatus) &
             &          /self%normalizationAB(i)
+       ! Passing `status` above suppresses the GSL error handler, so the status must be tested here: otherwise a tolerance
+       ! which the integrator can not meet would be reported to the user as though it had been achieved.
+       if (errorStatus /= errorStatusSuccess) call reportIntegrationError(i)
     end do
     deallocate(interpolatorSED)
     deallocate(integrator_    )
@@ -378,6 +388,36 @@ contains
       call Error_Report(message//{introspection:location})
       return
     end subroutine reportCoverageError
+
+    subroutine reportIntegrationError(i)
+      !!{RST
+      Report that the integration of the SED over a filter did not reach the requested tolerance.
+      !!}
+      use :: Display           , only : displayGreen, displayReset
+      use :: Error             , only : Error_Report
+      use :: ISO_Varying_String, only : operator(//), var_str
+      use :: String_Handling   , only : stringXMLFormat
+      implicit none
+      integer                  , intent(in   ) :: i
+      character(len=12        )                :: label
+      type     (varying_string)                :: message
+
+      message=var_str('integration of the SED over filter "')//self%filterNames(i)//'" did not reach the requested tolerance'
+      !$omp critical(gfortranInternalIO)
+      write (label,'(e12.6)') self%toleranceRelative
+      message=message//char(10)//'  requested relative tolerance: '//trim(adjustl(label))
+      !$omp end critical(gfortranInternalIO)
+      message=message//char(10)//displayGreen()//'HELP:'//displayReset()//' the filter response and the SED are both tabulated, so the integrand has a kink at every'
+      message=message//char(10)//'      point of either tabulation, and the integrator can not always certify a tight tolerance.'
+      message=message//char(10)//'      How tight a tolerance can be reached depends on the filter and on the SED. Loosen it in'
+      message=message//char(10)//'      your parameter file, for example to:'//char(10)//char(10)
+      !$omp critical(gfortranInternalIO)
+      write (label,'(e12.6)') 2.0d0*self%toleranceRelative
+      !$omp end critical(gfortranInternalIO)
+      message=message//stringXMLFormat('<nodePropertyExtractor value="luminosityStellarFromSED">**B<toleranceRelative value="'//trim(adjustl(label))//'"/>**C</nodePropertyExtractor>',indentInitial=6)//char(10)
+      call Error_Report(message//{introspection:location})
+      return
+    end subroutine reportIntegrationError
 
   end function luminosityStellarFromSEDExtract
 
