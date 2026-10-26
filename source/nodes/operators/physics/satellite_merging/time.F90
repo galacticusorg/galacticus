@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that triggers merging of satellites based on a merging time.
   !!}
@@ -28,7 +30,7 @@
   !![
   <nodeOperator name="nodeOperatorSatelliteMergingTime" docformat="rst">
    <description>
-   A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a :galacticus-class:`satelliteMergingTimescalesClass`, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal.
+   A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a :galacticus-class:`satelliteMergingTimescalesClass`, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal. Merging times of satellites already present when a tree is initialized are set during their host's tree initialization, so after any node operators listed before this one have initialized the host. Any filter applied to this operator is therefore tested on the host, not the satellite.
    </description>
   </nodeOperator>
   !!]
@@ -150,16 +152,24 @@ contains
     implicit none
     class(nodeOperatorSatelliteMergingTime), intent(inout), target  :: self
     type (treeNode                        ), intent(inout), target  :: node
+    type (treeNode                        )               , pointer :: nodeSatellite
 
+    ! Set the merging time of a non-primary progenitor. Its host, the primary progenitor, precedes it in the tree walk, so has
+    ! already been initialized.
     if     (                                               &
-         &                     node%isSatellite        ()  &
-         &  .or.                                           &
-         &   (                                             &
+         &     .not.           node%isSatellite        ()  &
+         &    .and.                                        &
          &     .not.           node%isPrimaryProgenitor()  &
          &    .and.                                        &
          &          associated(node%parent               ) &
-         &   )                                             &
          & ) call self%timeMergingSet(node)
+    ! Set the merging times of any satellites of this node. Satellites are visited before their host in the tree walk, so their
+    ! merging times are set here, once the host has been initialized (e.g. once its dark matter profile scale radius is set).
+    nodeSatellite => node%firstSatellite
+    do while (associated(nodeSatellite))
+       call self%timeMergingSet(nodeSatellite)
+       nodeSatellite => nodeSatellite%sibling
+    end do
     return
   end subroutine satelliteMergingTimeNodeTreeInitialize
   
