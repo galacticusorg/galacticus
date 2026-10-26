@@ -514,7 +514,7 @@ contains
     case   (radiusTypeSatelliteBoundMassFraction      %ID)
        mass              =  +self             %satellite%boundMass       (                                             &
             &                                                            )                                             &
-            &               *self             %fractionDarkMatter                                                       &
+            &               *self             %fractionDarkMatter                                                      &
             &               *specifier_       %fraction
        massDistribution_ =>  self             %node_    %massDistribution(                                             &
             &                                                             massType      =           massTypeDark    ,  &
