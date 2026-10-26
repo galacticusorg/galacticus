@@ -269,6 +269,104 @@ def test_harvest_file_end_to_end(tmp_path):
     assert objects['cosmologyFunctions']['repeatable'] is False
 
 
+_SNIPPET_CARDINALITY = textwrap.dedent("""\
+    module My_Module
+      private
+      !![
+      <myClass name="myClassSimple">
+       <description>A synthetic implementation for testing.</description>
+      </myClass>
+      !!]
+      type, extends(myClassClass) :: myClassSimple
+      end type myClassSimple
+    contains
+
+      function simpleConstructorParameters(parameters) result(self)
+        type            (myClassSimple   )                            :: self
+        type            (inputParameters )                            :: parameters
+        double precision                                              :: required    , optional, &
+             &                                                           alternative , checked , &
+             &                                                           annotated
+        double precision                  , dimension(3)              :: vector
+        double precision                  , dimension(:), allocatable :: list
+        !![
+        <inputParameter>
+          <name>required</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        <inputParameter>
+          <name>vector</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        <inputParameter>
+          <name>list</name>
+          <defaultValue>[0.0d0]</defaultValue>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        <inputParameter>
+          <name>annotated</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+          <cardinality>0..1</cardinality>
+        </inputParameter>
+        !!]
+        if (parameters%isPresent('optional')) then
+           !![
+           <inputParameter>
+             <name>optional</name>
+             <source>parameters</source>
+             <description>A parameter.</description>
+           </inputParameter>
+           !!]
+        else if (parameters%isPresent('alternative')) then
+           !![
+           <inputParameter>
+             <name>alternative</name>
+             <source>parameters</source>
+             <description>A parameter.</description>
+           </inputParameter>
+           !!]
+        end if
+        if (.not.parameters%isPresent('checked')) call Error_Report('[checked] is required')
+        !![
+        <inputParameter>
+          <name>checked</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        !!]
+        return
+      end function simpleConstructorParameters
+    end module My_Module
+    """)
+
+
+def test_harvest_file_cardinality(tmp_path):
+    """Cardinality is derived from the variable's shape, a default, and an
+    `isPresent` guard; a check that only reports an absent parameter is not a
+    guard; an explicit `<cardinality>` is kept."""
+    source_root = tmp_path / "source"
+    (source_root / "my").mkdir(parents=True)
+    impl = source_root / "my" / "impl.F90"
+    impl.write_text(_SNIPPET_CARDINALITY)
+
+    (entry,) = harvest_file(str(impl), {"myClass"}, str(source_root))
+    cardinality = {p['name']: (p['cardinality'], p['cardinalityProvenance'])
+                   for p in entry['parameters']}
+    assert cardinality == {
+        'required':    ('1',    'derived'),
+        'vector':      ('3',    'derived'),
+        'list':        ('0..*', 'derived'),
+        'annotated':   ('0..1', 'explicit'),
+        'optional':    ('0..1', 'derived'),
+        'alternative': ('0..1', 'derived'),
+        'checked':     ('1',    'derived'),
+    }
+
+
 # ---------------------------------------------------------------------------
 # `_scan_directives` / `build_catalog`: the single-read early phases
 # ---------------------------------------------------------------------------

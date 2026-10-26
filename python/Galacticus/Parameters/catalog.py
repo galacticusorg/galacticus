@@ -11,7 +11,7 @@ three phases:
      registration directives) and the files they live in.
   3. For each implementation, locate its ``*ConstructorParameters`` constructor,
      harvest the ``<inputParameter>`` / ``<objectBuilder>`` directives in that
-     constructor's scope, and infer a type for each parameter.
+     constructor's scope, and infer a type and a cardinality for each parameter.
 
 The harvesting reuses the existing SourceTree parser so that parameter→variable
 declaration lookups (for type inference) are available, and so the directive
@@ -40,7 +40,7 @@ from Galacticus.Build.ParallelScan import scan as parallel_scan
 from Galacticus.Build.ScanCache import file_identifier, load_cache
 from Galacticus.Build.SourceTree import parse_file, walk_tree
 from Galacticus.Build.SourceTree.Parse.Declarations import get_declaration
-from Galacticus.Parameters.inference import infer_parameter_type, _scalar
+from Galacticus.Parameters.inference import infer_parameter_cardinality, infer_parameter_type, _scalar
 
 _DIRECTIVE_TYPES = ('inputParameter', 'objectBuilder')
 
@@ -249,6 +249,34 @@ def _direct_parameter_names(scope_node):
     return sorted(names)
 
 
+# A parameter read only if it is present in the parameter file,
+#   if (<source>%isPresent('name')) then ...
+# may be omitted even if it has no default.  Any `isPresent` test of the name in
+# the constructor is taken as such a guard -- a heuristic, which an explicit
+# `<cardinality>` corrects where it is wrong -- except a test which only reports
+# an error if the parameter is absent,
+#   if (.not.<source>%isPresent('name')) call Error_Report(...)
+# which instead shows that the parameter is required.
+_IS_PRESENT_RE = re.compile(
+    r"(\.not\.\s*)?(\w+)\s*%\s*isPresent\s*\(\s*['\"]([^'\"]+)['\"]", re.IGNORECASE)
+_ERROR_REPORT_RE = re.compile(r"\bcall\s+Error_Report\b", re.IGNORECASE)
+
+
+def _present_guards(scope_node):
+    """Return the set of ``(source, name)`` pairs tested by `isPresent` calls
+    in the code under `scope_node` (source lower-cased)."""
+    guards = set()
+    for node in walk_tree(scope_node):
+        if node.get('type') != 'code':
+            continue
+        for line in (node.get('content', '') or '').splitlines():
+            for match in _IS_PRESENT_RE.finditer(line):
+                if match.group(1) and _ERROR_REPORT_RE.search(line):
+                    continue
+                guards.add((match.group(2).lower(), match.group(3)))
+    return guards
+
+
 # A string parameter that is really an enumeration is passed through
 # `enumeration<Name>Encode(char(var))` in the constructor (the generated encoder,
 # Enumeration.py).  This links the local variable to its enumeration's name.
@@ -387,6 +415,7 @@ def _harvest_parameters(scope_node, declaration_lookup, source_elements,
     """
     parameters = []
     objects    = []
+    guards     = _present_guards(scope_node)
     for node in walk_tree(scope_node):
         directive = node.get('directive')
         if not isinstance(directive, dict):
@@ -395,8 +424,14 @@ def _harvest_parameters(scope_node, declaration_lookup, source_elements,
             inferred = infer_parameter_type(directive, declaration_lookup)
             source = _scalar(directive.get('source'))
             variable = _scalar(directive.get('variable')) or _scalar(directive.get('name'))
+            name = _scalar(directive.get('name'))
+            cardinality = infer_parameter_cardinality(
+                directive, declaration_lookup,
+                guarded=any(guard_name == name
+                            and (source is None or guard_source == source.lower())
+                            for guard_source, guard_name in guards))
             parameters.append({
-                'name':          _scalar(directive.get('name')),
+                'name':          name,
                 'variable':      _scalar(directive.get('variable')),
                 'source':        source,
                 'sourceElement': source_elements.get(source),
@@ -406,7 +441,8 @@ def _harvest_parameters(scope_node, declaration_lookup, source_elements,
                 'enumeration':   enumeration_links.get(variable),
                 'constraints':   _capture_constraints(directive),
                 'default':       _normalize_default(_scalar(directive.get('defaultValue'))),
-                'cardinality':   _scalar(directive.get('cardinality')),
+                'cardinality':   cardinality['cardinality'],
+                'cardinalityProvenance': cardinality['cardinalityProvenance'],
                 'description':   _scalar(directive.get('description')),
             })
         elif node.get('type') == 'objectBuilder':
