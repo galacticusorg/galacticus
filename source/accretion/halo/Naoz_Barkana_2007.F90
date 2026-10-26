@@ -619,9 +619,9 @@ contains
             &               +hotHalo%unaccretedMass(    ) &
             &              )                              &
             &             *  self   %rateCorrection(node)
-       ! Gas freshly accreted from the IGM (i.e. the accretion rate excluding the corrective flow) carries the IGM metallicity. If
-       ! the halo is losing mass (possible if negative accretion is allowed) this gas is instead lost from the hot halo, and carries
-       ! its metallicity.
+       ! Gas freshly accreted from the IGM (i.e. the accretion rate excluding the corrective flow - the `accretionRate` method
+       ! already has the corrective flow subtracted from it) carries the IGM metallicity. If the halo is losing mass (possible if
+       ! negative accretion is allowed) this gas is instead lost from the hot halo, and carries its metallicity.
        rateMassFresh=+self%accretionRate     (node,accretionMode) &
             &        +     rateMassCorrection
        if (rateMassFresh >= 0.0d0) then
@@ -692,9 +692,10 @@ contains
             &               +hotHalo%unaccretedMass(    ) &
             &              )                              &
             &             *  self   %rateCorrection(node)
-       ! Gas failing to accrete from the IGM (i.e. the failed accretion rate excluding the corrective flow) carries the IGM
-       ! metallicity. If the halo is losing mass (possible if negative accretion is allowed) this gas is instead lost from the
-       ! unaccreted reservoir, and carries its metallicity.
+       ! Gas failing to accrete from the IGM (i.e. the failed accretion rate excluding the corrective flow - the
+       ! `failedAccretionRate` method already has the corrective flow added to it) carries the IGM metallicity. If the halo is
+       ! losing mass (possible if negative accretion is allowed) this gas is instead lost from the unaccreted reservoir, and
+       ! carries its metallicity.
        rateMassFresh=+self%failedAccretionRate(node,accretionMode) &
             &        -     rateMassCorrection
        if (rateMassFresh >= 0.0d0) then
