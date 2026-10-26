@@ -135,6 +135,25 @@ _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
          <xs:attribute name="forceArrayAssign" use="optional"/>
         </xs:complexType>
        </xs:element>
+       <!-- allowedParameters/object declares an object which is held as an unlimited polymorphic (class(*)) pointer, and so
+            is built by a global function rather than by an objectBuilder directive. Its parameter name ("name", found in
+            "source") is then allowed, and the global function "function" (from module "module") adds the parameters which
+            the object itself allows. -->
+       <xs:element name="allowedParameters"            minOccurs="0" maxOccurs="1" >
+        <xs:complexType>
+         <xs:sequence>
+          <xs:element name="object" minOccurs="1" maxOccurs="unbounded" >
+           <xs:complexType>
+            <xs:attribute name="variable" use="required"/>
+            <xs:attribute name="name"     use="required"/>
+            <xs:attribute name="source"   use="required"/>
+            <xs:attribute name="function" use="required"/>
+            <xs:attribute name="module"   use="optional"/>
+           </xs:complexType>
+          </xs:element>
+         </xs:sequence>
+        </xs:complexType>
+       </xs:element>
        <xs:element name="stateStorable"                minOccurs="0" maxOccurs="1" >
         <xs:complexType>
          <xs:sequence>

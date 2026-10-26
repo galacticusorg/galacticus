@@ -496,6 +496,20 @@ def assign_c_types(argument_list, lib_function_classes, class_hierarchy=None,
             new_list.insert(0, arg)
             continue
 
+        # Unlimited polymorphic arg whose libraryClasses.xml override names a
+        # registered functionClass (`type="<base>Class"`): adopt that type, so
+        # that the arg is handled exactly as a functionClass arg below (an `_ID`
+        # companion, and `<base>GetPtr` in the Fortran wrapper). A plain
+        # `c_f_pointer` to `type(<base>Class)` would discard the dynamic type of
+        # the object, so that its methods would dispatch to the base class.
+        if arg.intrinsic == 'class' and arg.type_spec == '*':
+            for o in constructor_overrides:
+                if isinstance(o, dict) and o.get('name') == arg.name:
+                    override_type = o.get('type') or ''
+                    if override_type.endswith('Class') \
+                            and override_type[:-5] in lib_function_classes:
+                        arg.type_spec = override_type
+
         # Output-array arg: 1D `allocatable, dimension(:)` numeric, either
         # `intent(out)` or `intent(inout)` (the latter is Galacticus's
         # allocation-reuse idiom — see Classification.is_output_array_arg).

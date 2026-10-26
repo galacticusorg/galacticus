@@ -27,7 +27,8 @@ module Accretion_Disk_Spectra_Utilities
   !!}
   private
   public :: accretionDiskSpectraConstruct       , accretionDiskSpectraDestruct    , accretionDiskSpectraDeepCopy  , accretionDiskSpectraDeepCopyReset, &
-       &    accretionDiskSpectraDeepCopyFinalize, accretionDiskSpectraStateRestore, accretionDiskSpectraStateStore, accretionDiskSpectraSpectrumNode
+       &    accretionDiskSpectraDeepCopyFinalize, accretionDiskSpectraStateRestore, accretionDiskSpectraStateStore, accretionDiskSpectraSpectrumNode, &
+       &    accretionDiskSpectraAllowedParameters
 
   ! Module-scope pointer to our task object. This is used for reference counting so that debugging information is consistent
   ! between the increments and decrements.
@@ -281,5 +282,38 @@ contains
     end select
     return
   end subroutine accretionDiskSpectraDeepCopy
+
+  !![
+  <functionGlobal>
+   <unitName>accretionDiskSpectraAllowedParameters</unitName>
+   <type>void</type>
+   <module>ISO_Varying_String, only : varying_string</module>
+   <arguments>class    (*             ), intent(inout)                            :: self             </arguments>
+   <arguments>type     (varying_string), intent(inout), dimension(:), allocatable :: allowedParameters</arguments>
+   <arguments>character(len=*         ), intent(in   )                            :: sourceName       </arguments>
+   <arguments>logical                  , intent(in   )                            :: objectsOnly      </arguments>
+  </functionGlobal>
+  !!]
+  subroutine accretionDiskSpectraAllowedParameters(self,allowedParameters,sourceName,objectsOnly)
+    !!{RST
+    Add the names of parameters allowed for a ``accretionDiskSpectra`` object to ``allowedParameters``.
+    !!}
+    use :: Error                 , only : Error_Report
+    use :: ISO_Varying_String    , only : varying_string
+    use :: Accretion_Disk_Spectra, only : accretionDiskSpectraClass
+    implicit none
+    class    (*             ), intent(inout)                            :: self
+    type     (varying_string), intent(inout), dimension(:), allocatable :: allowedParameters
+    character(len=*         ), intent(in   )                            :: sourceName
+    logical                  , intent(in   )                            :: objectsOnly
+
+    select type (self)
+    class is (accretionDiskSpectraClass)
+       call self%allowedParameters(allowedParameters,sourceName,objectsOnly)
+    class default
+       call Error_Report("unexpected class"//{introspection:location})
+    end select
+    return
+  end subroutine accretionDiskSpectraAllowedParameters
 
 end module Accretion_Disk_Spectra_Utilities

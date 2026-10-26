@@ -40,8 +40,10 @@ An extremely simple parameter file (taken from the `power spectrum tutorial <htt
        <running value="0.000"/>
      </powerSpectrumPrimordial>
      <powerSpectrumPrimordialTransferred value="simple"/>
-     <cosmologicalMassVariance value="filteredPower">
+     <powerSpectrumNormalizer value="sigma8">
        <sigma_8 value="0.807"/>
+     </powerSpectrumNormalizer>
+     <cosmologicalMassVariance value="filteredPower">
        <tolerance value="1.0e-3"/>
      </cosmologicalMassVariance>
 
@@ -495,7 +497,7 @@ Sometimes it can be useful to "reuse" an entire section of parameters elsewhere 
 
    <cosmologicalMassVariance value="peakBackgroundSplit">
      <cosmologicalMassVariance value="filteredPower" id="myCMV">
-       <sigma_8 value="0.812"/>
+       <tolerance value="1.0e-4"/>
      </cosmologicalMassVariance>
    </cosmologicalMassVariance>
 
@@ -511,13 +513,13 @@ Sometimes it can be useful to "reuse" an entire section of parameters elsewhere 
 
    </mergerTreeBuildController>
 
-In this example, we want to use a peak-background split model for :math:`\sigma(M)` in the main part of our parameter file, but need the regular :math:`\sigma(M)` for calculations related to merger tree construction. To avoid having to copy the definition of ``cosmologicalMassVariance`` and its parameter ``sigma_8`` three times, we add an attribute ``id="myCMV"`` to the first instance of the ``cosmologicalMassVariance`` parameter. Then, in subsequent cases we can reference it using this ID:
+In this example, we want to use a peak-background split model for :math:`\sigma(M)` in the main part of our parameter file, but need the regular :math:`\sigma(M)` for calculations related to merger tree construction. To avoid having to copy the definition of ``cosmologicalMassVariance`` and its parameter ``tolerance`` three times, we add an attribute ``id="myCMV"`` to the first instance of the ``cosmologicalMassVariance`` parameter. Then, in subsequent cases we can reference it using this ID:
 
 .. code-block:: xml
 
    <cosmologicalMassVariance idRef="myCMV"/>
 
-This means that, should we decide to change the value of :math:`\sigma_8` we need change it in only one location.
+This means that, should we decide to change the value of the tolerance we need change it in only one location.
 
 Note that, internally in Galacticus, these three instances of the ``cosmologicalMassVariance`` object are *not* copies of each other - instead they are *the exact same object*, reused in these three separate instances.
 

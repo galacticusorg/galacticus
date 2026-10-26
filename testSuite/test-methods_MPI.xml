@@ -28,7 +28,7 @@
   <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+    <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
     <errorWaitTime value="0"/>
     <evolveForestsWorkShare value="cyclic"/>
     <mergerTreeConstructor value="build">
@@ -135,9 +135,10 @@
       <wavenumberReference value="1.000"/>
       <running value="0.000"/>
     </powerSpectrumPrimordial>
-    <cosmologicalMassVariance value="filteredPower">
+    <cosmologicalMassVariance value="filteredPower"/>
+    <powerSpectrumNormalizer value="sigma8">
       <sigma_8 value="0.9"/>
-    </cosmologicalMassVariance>
+    </powerSpectrumNormalizer>
   </parameters>
   
 </parameterGrid>
