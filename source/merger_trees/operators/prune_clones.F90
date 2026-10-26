@@ -116,8 +116,8 @@ contains
              nodeWork        => nodeWork%sibling
           end do
           if (associated(nodeParent%firstSatellite)) then
-             nodeLast               => nodeParent%lastSatellite()
-             nodeLast%sibling       => node      %firstSatellite
+             nodeLast                  => nodeParent%lastSatellite()
+             nodeLast  %sibling        => node      %firstSatellite
           else
              nodeParent%firstSatellite => node      %firstSatellite
           end if
@@ -129,7 +129,7 @@ contains
           do while (associated(nodeWork))
              nodeWork%mergeTarget => nodeParent
              nodeLast             => nodeWork
-             nodeWork             => nodeWork%siblingMergee
+             nodeWork             => nodeWork  %siblingMergee
           end do
           nodeLast  %siblingMergee => nodeParent%firstMergee
           nodeParent%firstMergee   => node      %firstMergee
