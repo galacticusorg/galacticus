@@ -75,7 +75,7 @@ Implements a property extractor class for broadband stellar luminosities compute
      type            (enumerationFrameType    )                              :: frame
      double precision                                                        :: toleranceRelative
    contains
-     final     ::                luminosityStellarFromSEDDestructor
+     final     ::                 luminosityStellarFromSEDDestructor
      procedure :: elementCount => luminosityStellarFromSEDElementCount
      procedure :: extract      => luminosityStellarFromSEDExtract
      procedure :: quantity     => luminosityStellarFromSEDQuantity
@@ -199,7 +199,7 @@ contains
        self%wavelengthRanges(i,:)               =  Filter_Extent           (            indexFilter )
        self%normalizationAB (i  )               =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2),status=errorStatus)
        ! Passing `status` suppresses the GSL error handler, so the status is tested rather than discarded.
-       if (errorStatus /= errorStatusSuccess)                                                                                        &
+       if (errorStatus /= errorStatusSuccess)                                                                                           &
             & call Error_Report('integration of the AB zero point over filter "'//filterNames(i)//'" failed'//{introspection:location})
     end do
     deallocate(integratorAB_)
@@ -270,8 +270,8 @@ contains
     double precision                                               , dimension(:,:), allocatable  :: sed
     type            (integrator                                   ), allocatable                  :: integrator_
     type            (interpolator                                 ), allocatable                  :: interpolatorSED   
-    integer                                                                                       :: i                , errorStatus
-    double precision                                                                              :: expansionFactor  , redshift
+    integer                                                                                       :: i               , errorStatus
+    double precision                                                                              :: expansionFactor , redshift
     logical                                                                                       :: separateRedshift
 
     allocate(luminosities(size(self%filterNames)))
@@ -497,11 +497,11 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType                                     ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)             :: self
-    double precision                                               , intent(in   )             :: time
-    double precision                                               , dimension(:), allocatable :: siValues
-    integer                                                                                    :: i
+    type            (unitType                                     ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)              :: self
+    double precision                                               , intent(in   )              :: time
+    double precision                                               , dimension(:) , allocatable :: siValues
+    integer                                                                                     :: i
 
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))
