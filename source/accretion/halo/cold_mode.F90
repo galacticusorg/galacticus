@@ -290,7 +290,7 @@ contains
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeAccretedMassMetals=+self%accretionHaloSimple%accretedMassMetals(node,accretionModeTotal) &
-         &                     *self                    %coldModeFraction  (node,accretionMode)
+         &                     *self                    %coldModeFraction  (node,accretionMode     )
     return
   end function coldModeAccretedMassMetals
 
@@ -305,7 +305,7 @@ contains
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
     coldModeFailedAccretedMassMetals=+self%accretionHaloSimple%failedAccretedMassMetals(node,accretionModeTotal) &
-         &                           *self                    %coldModeFraction        (node,accretionMode)
+         &                           *self                    %coldModeFraction        (node,accretionMode     )
     return
   end function coldModeFailedAccretedMassMetals
   

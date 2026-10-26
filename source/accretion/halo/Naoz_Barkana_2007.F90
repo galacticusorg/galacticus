@@ -637,11 +637,11 @@ contains
        if (rateMassCorrection > 0.0d0) then
           ! Mass is being moved from the hot reservoir to the unaccreted reservoir. Find the mass fraction of metals in the hot
           ! halo.
-          fractionMetals=self%fractionMetalsHalo(node,accretionModeHot)
+          fractionMetals=self%fractionMetalsHalo      (node,accretionModeHot)
        else
           ! Mass is being moved from the unaccreted reservoir to the hot reservoir. Find the mass fraction of metals in the
           ! unaccreted gas.
-          fractionMetals=self%fractionMetalsUnaccreted(node)
+          fractionMetals=self%fractionMetalsUnaccreted(node                 )
        end if
        naozBarkana2007AccretionRateMetals=+naozBarkana2007AccretionRateMetals &
             &                             -fractionMetals                     &

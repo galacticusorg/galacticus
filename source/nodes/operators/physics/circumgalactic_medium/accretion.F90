@@ -188,10 +188,10 @@ contains
             &          *      massHotHalo       &
             &          /basic%mass           ()
        ! Set the other initial properties.
-       call        hotHalo%                massSet(                          massHotHalo                                 )
-       call        hotHalo%      unaccretedMassSet(                          massFailedHotHalo                           )
+       call        hotHalo%                massSet(                          massHotHalo                                   )
+       call        hotHalo%      unaccretedMassSet(                          massFailedHotHalo                             )
        if (hotHalo%     angularMomentumIsSettable()) &
-            & call hotHalo%     angularMomentumSet(                          angularMomentum                             )
+            & call hotHalo%     angularMomentumSet(                          angularMomentum                               )
        call        hotHalo%          abundancesSet(self%accretionHalo_%      accretedMassMetals   (node,accretionModeHot  ))
        if (hotHalo%unaccretedAbundancesIsSettable()) &
             & call hotHalo%unaccretedAbundancesSet(self%accretionHalo_%failedAccretedMassMetals   (node,accretionModeTotal))

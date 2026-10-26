@@ -586,7 +586,7 @@ contains
     if (rateMassFresh >= 0.0d0) then
        metallicityIGM=self%intergalacticMediumState_%metallicity(basic%time())
        call simpleAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
-       simpleAccretionRateMetals=+simpleAccretionRateMetals                     &
+       simpleAccretionRateMetals=+simpleAccretionRateMetals                   &
             &                    *rateMassFresh
     else
        simpleAccretionRateMetals=+self%fractionMetalsHalo(node,accretionMode) &
@@ -596,16 +596,16 @@ contains
     ! reverses, moving gas from the CGM into the unaccreted reservoir, and it then carries the CGM metallicity.
     if (rateReaccretionFractional >= 0.0d0) then
        if (hotHalo%unaccretedAbundancesIsGettable()) then
-          simpleAccretionRateMetals=+simpleAccretionRateMetals                &
-               &                    +hotHalo%unaccretedAbundances      ()     &
+          simpleAccretionRateMetals=+simpleAccretionRateMetals                              &
+               &                    +hotHalo%unaccretedAbundances      (              )     &
                &                    *rateReaccretionFractional
        else
-          simpleAccretionRateMetals=+simpleAccretionRateMetals                &
-               &                    +self   %fractionMetalsUnaccreted  (node) &
+          simpleAccretionRateMetals=+simpleAccretionRateMetals                              &
+               &                    +self   %fractionMetalsUnaccreted  (node              ) &
                &                    *rateMassReaccreted
        end if
     else
-       simpleAccretionRateMetals   =+simpleAccretionRateMetals                         &
+       simpleAccretionRateMetals   =+simpleAccretionRateMetals                              &
             &                       +self   %fractionMetalsHalo        (node,accretionMode) &
             &                       *rateMassReaccreted
     end if
@@ -665,7 +665,7 @@ contains
     if (rateMassFresh >= 0.0d0) then
        metallicityIGM=self%intergalacticMediumState_%metallicity(basic%time())
        call simpleFailedAccretionRateMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
-       simpleFailedAccretionRateMetals=+simpleFailedAccretionRateMetals                     &
+       simpleFailedAccretionRateMetals=+simpleFailedAccretionRateMetals     &
             &                          *rateMassFresh
     else
        simpleFailedAccretionRateMetals=+self%fractionMetalsUnaccreted(node) &
@@ -685,16 +685,16 @@ contains
        end if
     else if (accretionMode == accretionModeTotal) then
        ! Gas enters the unaccreted reservoir from the CGM of each mode, carrying the metallicity of that mode's CGM.
-       simpleFailedAccretionRateMetals   =+simpleFailedAccretionRateMetals                                               &
-            &                             -self   %fractionMetalsHalo       (node,accretionModeHot )                    &
-            &                             *hotHalo%unaccretedMass           (                      )                    &
-            &                             *self   %rateReaccretionFractional(node,accretionModeHot )                    &
-            &                             -self   %fractionMetalsHalo       (node,accretionModeCold)                    &
-            &                             *hotHalo%unaccretedMass           (                      )                    &
+       simpleFailedAccretionRateMetals   =+simpleFailedAccretionRateMetals                           &
+            &                             -self   %fractionMetalsHalo       (node,accretionModeHot ) &
+            &                             *hotHalo%unaccretedMass           (                      ) &
+            &                             *self   %rateReaccretionFractional(node,accretionModeHot ) &
+            &                             -self   %fractionMetalsHalo       (node,accretionModeCold) &
+            &                             *hotHalo%unaccretedMass           (                      ) &
             &                             *self   %rateReaccretionFractional(node,accretionModeCold)
     else
-       simpleFailedAccretionRateMetals   =+simpleFailedAccretionRateMetals                         &
-            &                             -self   %fractionMetalsHalo        (node,accretionMode) &
+       simpleFailedAccretionRateMetals   =+simpleFailedAccretionRateMetals                           &
+            &                             -self   %fractionMetalsHalo       (node,accretionMode    ) &
             &                             *rateMassReaccreted
     end if
     return
