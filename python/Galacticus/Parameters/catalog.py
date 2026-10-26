@@ -26,10 +26,7 @@ jobserver. Results are collected in source-file order, so the catalog is
 identical whatever the parallelism.
 """
 
-import hashlib
-import importlib
 import os
-import pickle
 import re
 from collections import Counter
 
@@ -37,31 +34,11 @@ from Galacticus.Build import FileChanges
 from Galacticus.Build.Capabilities import parse_requires, parse_withholds
 from Galacticus.Build.Directives import extract_directives
 from Galacticus.Build.ParallelScan import scan as parallel_scan
-from Galacticus.Build.ScanCache import file_identifier, load_cache
 from Galacticus.Build.SourceTree import parse_file, walk_tree
 from Galacticus.Build.SourceTree.Parse.Declarations import get_declaration
 from Galacticus.Parameters.inference import infer_parameter_type, _scalar
 
 _DIRECTIVE_TYPES = ('inputParameter', 'objectBuilder')
-
-# Bump when the layout of a cache entry changes, so old blobs are discarded
-# rather than misread. Stored under keys no `file_identifier` can produce.
-_CACHE_FORMAT     = 1
-_CACHE_FORMAT_KEY = '__format__'
-_CACHE_CODE_KEY   = '__code__'
-
-# Modules whose code determines what a cache entry *contains*, as opposed to the
-# source files it describes. A cached entry is only meaningful for the logic that
-# produced it, so editing any of these invalidates the blob -- without this,
-# working on the catalog itself silently yields results computed by the previous
-# version of the code, and `--check` would answer with them.
-_CACHE_CODE_MODULES = (
-    'Galacticus.Build.Capabilities',
-    'Galacticus.Build.Directives',
-    'Galacticus.Build.SourceTree',
-    'Galacticus.Parameters',
-    'XML.Utils',
-)
 
 # ---------------------------------------------------------------------------
 # Read-only data shared with forked workers via copy-on-write. Populated in
@@ -84,9 +61,8 @@ def _base_entry(directive, path):
     """Build a phase-1 base-class record from a `functionClass` directive.
 
     Describes only what the directive itself says. The `implementations` list is
-    deliberately NOT included: it is accumulated later, and this record is cached
-    across runs, so owning a mutable accumulator here would let one run's labels
-    be pickled and then be appended to again by the next.
+    deliberately NOT included: it is accumulated later, and owning a mutable
+    accumulator here would let one base class's labels leak into another's.
     """
     return {
         'default':         _scalar(directive.get('default')),
@@ -98,7 +74,7 @@ def _base_entry(directive, path):
 def _base_record(entry):
     """A fresh, private base-class record ready to accumulate implementations.
 
-    Copies `entry`, which may be owned by the scan cache and must not be mutated.
+    Copies `entry`, which the caller must be able to reuse unmutated.
     """
     return {**entry, 'implementations': []}
 
@@ -521,126 +497,7 @@ def _harvest_worker(path):
     return entries, None
 
 
-def default_cache_path(source_root):
-    """Where to keep the scan cache for the tree at `source_root`.
-
-    Under ``$BUILDPATH`` alongside the other build blobs when make exports it
-    (used as-is, relative to the cwd, as every other build script does);
-    otherwise the same default the Makefile itself uses, so a hand-run or
-    git-hook invocation shares one cache with the build.
-    """
-    build_path = os.environ.get('BUILDPATH')
-    if not build_path:
-        build_path = os.path.join(os.path.dirname(source_root.rstrip(os.sep))
-                                  or '.', 'work', 'build')
-    return os.path.join(build_path, 'parameters.catalog.blob')
-
-
-def _module_sources(name):
-    """Every ``.py`` file belonging to `name`, whether module or package."""
-    module = importlib.import_module(name)
-    roots = getattr(module, '__path__', None)
-    if roots is None:
-        return [module.__file__] if getattr(module, '__file__', None) else []
-    sources = []
-    for root in roots:
-        for dirpath, dirnames, filenames in os.walk(root):
-            dirnames[:] = sorted(d for d in dirnames if d != '__pycache__')
-            sources += [os.path.join(dirpath, filename)
-                        for filename in sorted(filenames)
-                        if filename.endswith('.py')]
-    return sources
-
-
-def _code_fingerprint():
-    """Digest the code that decides what a cache entry contains.
-
-    Cheap next to the scan it guards (a few dozen small local files against
-    ~1900 over NFS), and it means a blob is silently reused only while the logic
-    that built it is byte-for-byte the same.
-    """
-    digest = hashlib.sha256()
-    for name in sorted(_CACHE_CODE_MODULES):
-        try:
-            sources = _module_sources(name)
-        except ImportError:
-            digest.update(f'{name}:missing'.encode())
-            continue
-        for path in sorted(sources):
-            digest.update(path.encode())
-            try:
-                with open(path, 'rb') as fh:
-                    digest.update(fh.read())
-            except OSError:
-                digest.update(b'unreadable')
-    return digest.hexdigest()
-
-
-def _load_scan_cache(cache_path):
-    """Load the scan cache, returning ``(entries, mtime)``.
-
-    Degrades to a full rescan (``({}, None)``) on anything unexpected -- a
-    missing, corrupt, foreign-format blob, or one written by different catalog
-    code, must never fail a build (nor be believed).
-    """
-    if not cache_path:
-        return {}, None
-    cache, mtime = load_cache(cache_path)
-    if cache.get(_CACHE_FORMAT_KEY) != _CACHE_FORMAT:
-        return {}, None
-    if cache.get(_CACHE_CODE_KEY) != _code_fingerprint():
-        return {}, None
-    return cache, mtime
-
-
-def _save_scan_cache(cache_path, cache, log):
-    """Write the scan cache, only-if-changed (preserving mtime when identical).
-
-    Failures are reported and swallowed: the cache is an optimization, and an
-    unwritable `$BUILDPATH` must not break a catalog that is already built.
-    """
-    if not cache_path:
-        return
-    try:
-        os.makedirs(os.path.dirname(cache_path) or '.', exist_ok=True)
-        temporary = cache_path + '.new'
-        with open(temporary, 'wb') as fh:
-            pickle.dump(cache, fh)
-        # Only-if-changed: an unchanged blob keeps its mtime, so the freshness
-        # window against which source files are compared does not creep forward.
-        FileChanges.update(cache_path, temporary)
-    except OSError as exc:
-        log(f"  [cache] could not write {cache_path}: {exc}")
-
-
-def _fresh_entry(cache, cache_mtime, path, identifier):
-    """Return this file's cache entry if it is still valid, else None.
-
-    Freshness is the blob's own mtime, per the shared blob-cache protocol: an
-    entry is good only while the file it describes has not been touched since
-    the blob was written.
-
-    That protocol carries a known race, shared with every other blob cache here:
-    a file edited *during* a scan is recorded with the pre-edit content but keeps
-    an mtime below the blob's, so the stale entry is reused until the file is
-    touched again. `--no-cache` forces the issue, and CI always scans cold (a
-    fresh checkout has no blob), so a schema staleness the cache masked locally
-    is still caught before merge.
-    """
-    if cache_mtime is None:
-        return None
-    entry = cache.get(identifier)
-    if entry is None:
-        return None
-    try:
-        if os.stat(path).st_mtime >= cache_mtime:
-            return None
-    except OSError:
-        return None
-    return entry
-
-
-def build_catalog(source_root, log=None, jobs=None, cache_path=None):
+def build_catalog(source_root, log=None, jobs=None):
     """Build the full catalog dict for the source tree rooted at `source_root`.
 
     Parameters
@@ -652,10 +509,6 @@ def build_catalog(source_root, log=None, jobs=None, cache_path=None):
     jobs : int, optional
         Worker count for the parallel passes. Defaults to `ParallelScan`'s own
         resolution (``GALACTICUS_BUILD_JOBS``, then make's ``-j``/jobserver).
-    cache_path : str, optional
-        Per-file scan cache (see `default_cache_path`). When given, files whose
-        mtime has not advanced past the cache are not re-read at all. Omit to
-        scan the tree from scratch.
 
     Returns
     -------
@@ -667,28 +520,17 @@ def build_catalog(source_root, log=None, jobs=None, cache_path=None):
             log(message)
 
     source_files = list(_iter_source_files(source_root))
-    identifiers  = {path: file_identifier(path) for path in source_files}
-    cache, cache_mtime = _load_scan_cache(cache_path)
-    reusable = {path: _fresh_entry(cache, cache_mtime, path, identifiers[path])
-                for path in source_files}
 
     # --- Phases 1 and 2, plus the phase-3 pre-filter, from one read per file.
-    scans     = {path: entry['scan']
-                 for path, entry in reusable.items() if entry is not None}
-    to_scan   = [path for path in source_files if path not in scans]
-    _log(f"scanning {len(to_scan)} of {len(source_files)} source files "
-         f"for functionClass bases ({len(scans)} cached)")
-    for path, result in zip(to_scan, parallel_scan(
-            to_scan, _scan_directives, 'Galacticus.Parameters.catalog', jobs=jobs)):
-        scans[path] = result
+    _log(f"scanning {len(source_files)} source files for functionClass bases")
+    scans = dict(zip(source_files, parallel_scan(
+        source_files, _scan_directives, 'Galacticus.Parameters.catalog', jobs=jobs)))
 
     bases        = {}
     enumerations = {}
     for path in source_files:                      # file order: later files win,
         file_bases, file_enumerations, _ = scans[path]   # exactly as the serial
         for name, entry in file_bases:                   # loop this replaced.
-            # A fresh record per run: `scans` may be cache-owned, and the
-            # implementation labels appended below must not leak into the blob.
             bases[name] = _base_record(entry)
         for name, labels in file_enumerations:
             enumerations[name] = labels
@@ -700,20 +542,9 @@ def build_catalog(source_root, log=None, jobs=None, cache_path=None):
     # --- Phase 3. A file needs a full parse only if it registers an
     # implementation, i.e. carries a named directive whose root is a base class.
     registering  = [path for path in source_files if scans[path][2] & base_names]
-    # `harvest_file` reads `base_names` only to recognize those registrations, so
-    # a cached harvest stays valid exactly while this file's own registrations
-    # do -- letting an unrelated new base class avoid invalidating the tree.
-    registered   = {path: sorted(scans[path][2] & base_names)
-                    for path in registering}
     harvests     = {}
-    for path in registering:
-        entry = reusable[path]
-        if (entry is not None and entry.get('harvest') is not None
-                and entry.get('registered') == registered[path]):
-            harvests[path] = entry['harvest']
-    to_harvest = [path for path in registering if path not in harvests]
-    _log(f"parsing {len(to_harvest)} of {len(registering)} files that register "
-         f"implementations ({len(harvests)} cached)")
+    to_harvest   = registering
+    _log(f"parsing {len(to_harvest)} files that register implementations")
 
     _WORKER['base_names']  = base_names
     _WORKER['source_root'] = source_root
@@ -736,17 +567,6 @@ def build_catalog(source_root, log=None, jobs=None, cache_path=None):
                 for selector in (entry['label'], entry.get('alias')):
                     if selector and selector not in bases[base]['implementations']:
                         bases[base]['implementations'].append(selector)
-
-    # Rebuilt from the files that exist now, so entries for deleted files are
-    # dropped rather than accumulating.
-    _save_scan_cache(cache_path, {
-        _CACHE_FORMAT_KEY: _CACHE_FORMAT,
-        _CACHE_CODE_KEY:   _code_fingerprint(),
-        **{identifiers[path]: {'scan':       scans[path],
-                               'harvest':    harvests.get(path),
-                               'registered': registered.get(path)}
-           for path in source_files},
-    }, _log)
 
     for base in bases.values():
         base['implementations'].sort()
