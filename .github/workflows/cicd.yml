@@ -1615,6 +1615,7 @@ jobs:
                 test-massProfileSatelliteBoundMass.py,
                 test-UniverseMachine.py,
                 test-spheroid-power-law.py,
+                test-power-spectrum-normalizer-amplitude-scalar.py,
                 test-stateRestore.py,
                 test-checkpointing.py,
                 test-stellar-mass-weighted-ages.py,

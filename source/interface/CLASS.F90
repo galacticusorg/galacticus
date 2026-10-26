@@ -29,7 +29,8 @@ module Interfaces_CLASS
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
-  public :: Interface_CLASS_Initialize, Interface_CLASS_Perturbations, Interface_CLASS_Transfer_Function, Interface_CLASS_Normalization
+  public :: Interface_CLASS_Initialize, Interface_CLASS_Perturbations, Interface_CLASS_Transfer_Function, Interface_CLASS_Normalization, &
+       &    Interface_CLASS_Transfer_Function_Amplitude
 
   ! Current file format version for transfer function files. Note that this file format matches that used by the "file" transfer
   ! function class.
@@ -659,6 +660,93 @@ contains
     call File_Unlock(fileLock)
     return
   end subroutine Interface_CLASS_Transfer_Function
+
+  double precision function Interface_CLASS_Transfer_Function_Amplitude(cosmologyParameters_) result(amplitude)
+    !!{RST
+    Return the large-scale amplitude of the CLASS matter transfer function at the present day,
+
+    .. math::
+
+       \mathcal{T}_0 = \lim_{k \rightarrow 0} \left[ -\frac{\delta_\mathrm{m}(k)}{k^2} \right],
+
+    in units of Mpc\ :math:`^2`, where :math:`\delta_\mathrm{m}(k)` is the matter density perturbation at :math:`z=0` for unit
+    primordial comoving curvature perturbation (the normalization of the transfer functions output by CLASS) and :math:`k` is in
+    units of Mpc\ :math:`^{-1}`. This is the normalization which is divided out of tabulated transfer functions (see
+    :galacticus-class:`transferFunctionFile`), so the linear matter power spectrum at the present day is
+
+    .. math::
+
+       P(k) = 2 \pi^2 \mathcal{T}_0^2 k \mathcal{P}_\mathcal{R}(k) T^2(k),
+
+    where :math:`\mathcal{P}_\mathcal{R}(k)` is the dimensionless primordial curvature power spectrum and :math:`T(k)` is the
+    transfer function normalized to unity as :math:`k \rightarrow 0`. :math:`\mathcal{T}_0=2D_0/(5\Omega_\mathrm{m}H_0^2)`
+    (with :math:`H_0` in units of Mpc\ :math:`^{-1}`), so it carries the linear growth factor at the present day, :math:`D_0`,
+    normalized such that :math:`D \rightarrow a` in the matter-dominated era, as computed by CLASS (including the effects of
+    radiation and neutrinos).
+
+    It is taken from the matter (dark matter and baryon) transfer function at the smallest wavenumber tabulated by CLASS, after
+    removing the factor :math:`1-3K/k^2` which, in a curved universe, arises from the curvature term in the Poisson equation (as
+    for :galacticus-class:`transferFunctionFile`).
+    !!}
+    use :: Cosmology_Parameters        , only : cosmologyParametersClass
+    use :: File_Utilities              , only : File_Lock               , File_Unlock, lockDescriptor
+    use :: HDF5_Access                 , only : hdf5Access
+    use :: IO_HDF5                     , only : hdf5File                , hdf5Group
+    use :: ISO_Varying_String          , only : varying_string          , char
+    use :: Numerical_Constants_Physical, only : speedLight
+    use :: Numerical_Constants_Prefixes, only : kilo
+    implicit none
+    class           (cosmologyParametersClass), intent(inout)               :: cosmologyParameters_
+    double precision                          , allocatable  , dimension(:) :: wavenumbers         , transferDarkMatter, &
+         &                                                                     transferBaryons
+    type            (varying_string          )                              :: fileName
+    type            (lockDescriptor          )                              :: fileLock
+    type            (hdf5File                )                              :: classOutput
+    type            (hdf5Group               )                              :: speciesGroup
+    double precision                                                        :: curvature
+
+    ! Ensure that the present day transfer functions exist. Only the large-scale limit is needed, so the smallest range of
+    ! wavenumbers that CLASS computes by default is requested. The maximum wavenumber is not limited, so that the file (which is
+    ! shared with the CLASS transfer function class) is the same as that class would create.
+    call Interface_CLASS_Transfer_Function(cosmologyParameters_,[0.0d0],1.0d0,huge(0.0d0),fileName=fileName)
+    ! Read the transfer functions directly. (They are not read into tables, as those store logarithms, and the baryon transfer
+    ! function can be negative at large wavenumbers.)
+    ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
+    call File_Lock(char(fileName),fileLock,lockIsShared=.true.)
+    !$ call hdf5Access%set()
+    hdf5ReadScope: block
+      classOutput =hdf5File(fileName,readOnly=.true.)
+      call classOutput %readDataset('wavenumber'            ,wavenumbers       )
+      speciesGroup=classOutput%openGroup('darkMatter')
+      call speciesGroup%readDataset('transferFunctionZ0.0000',transferDarkMatter)
+      speciesGroup=classOutput%openGroup('baryons'   )
+      call speciesGroup%readDataset('transferFunctionZ0.0000',transferBaryons   )
+    end block hdf5ReadScope
+    !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
+    ! Construct the matter transfer function at the smallest tabulated wavenumber.
+    amplitude=+(                                                                                                     &
+         &      +transferDarkMatter(1)*(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon()) &
+         &      +transferBaryons   (1)*                                    cosmologyParameters_%OmegaBaryon()   &
+         &     )                                                                                                     &
+         &    /                                       cosmologyParameters_%OmegaMatter()
+    ! Remove the curvature factor. K is in units of Mpc⁻².
+    curvature=-(                                       &
+         &      +1.0d0                                 &
+         &      -cosmologyParameters_%OmegaMatter    () &
+         &      -cosmologyParameters_%OmegaDarkEnergy() &
+         &     )                                       &
+         &    *(                                       &
+         &      +cosmologyParameters_%HubbleConstant () &
+         &      /(speedLight/kilo)                     &
+         &     )**2
+    amplitude=+amplitude                        &
+         &    /(                                &
+         &      +1.0d0                          &
+         &      -3.0d0*curvature/wavenumbers(1)**2 &
+         &     )
+    return
+  end function Interface_CLASS_Transfer_Function_Amplitude
 
   double precision function Interface_CLASS_Normalization(cosmologyParameters_) result(normalization)
     !!{RST

@@ -23,26 +23,48 @@
   A power spectrum normalizer which normalizes to a specified amplitude of the primordial scalar power spectrum.
   !!}
 
+  use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: Transfer_Functions  , only : transferFunctionClass
+
   !![
   <powerSpectrumNormalizer name="powerSpectrumNormalizerAmplitudeScalar" docformat="rst">
    <description>
    A power spectrum normalizer which normalizes the power spectrum to a specified amplitude, :math:`A_\mathrm{s}=`\
-   ``[amplitudeScalar]``, of the primordial scalar power spectrum. The amplitude is converted to the corresponding value of
-   :math:`\sigma_8` by running the CLASS Boltzmann code for the cosmological parameters of the model, and the power
-   spectrum is then normalized to that :math:`\sigma_8` exactly as by the :galacticus-class:`powerSpectrumNormalizerSigma8`
-   class (whose ``[tolerance]``, ``[integrationFailureIsFatal]``, and ``[powerSpectrumWindowFunctionTopHat]`` parameters apply
-   here also).
+   ``[amplitudeScalar]``, of the dimensionless power spectrum of primordial comoving curvature perturbations at the pivot
+   wavenumber :math:`k_*=`\ ``[wavenumberPivot]``, :math:`\mathcal{P}_\mathcal{R}(k_*)=A_\mathrm{s}`. The linear matter power
+   spectrum at the present day is
+
+   .. math::
+
+      P(k) = 2 \pi^2 \mathcal{T}_0^2 k \mathcal{P}_\mathcal{R}(k) T^2(k),
+
+   where :math:`T(k)` is the transfer function (normalized to unity as :math:`k \rightarrow 0`), and
+   :math:`\mathcal{T}_0=\lim_{k\rightarrow 0}[-\delta_\mathrm{m}(k)/k^2]` is the large-scale amplitude of the matter density
+   perturbation at the present day per unit primordial curvature perturbation. :math:`\mathcal{T}_0` is computed by the CLASS
+   Boltzmann code for the cosmological parameters of the model, so includes the growth of perturbations through the radiation
+   era as computed by CLASS. It does not depend on the primordial power spectrum, nor on the transfer function used by the
+   model - the shape of the primordial power spectrum (including its spectral index and any running) is that of the model, and
+   :math:`T(k)` is that of the model's transfer function.
+
+   Since the unnormalized power spectrum is :math:`\propto k \mathcal{P}_\mathcal{R}(k) T^2(k)`, the normalization factor is
+   found by matching the above expression to it at :math:`k_*`. Only the relative growth of perturbations,
+   :math:`D(t)/D(t_0)`, is taken from the model's linear growth factor.
    </description>
   </powerSpectrumNormalizer>
   !!]
-  type, extends(powerSpectrumNormalizerSigma8) :: powerSpectrumNormalizerAmplitudeScalar
+  type, extends(powerSpectrumNormalizerClass) :: powerSpectrumNormalizerAmplitudeScalar
      !!{RST
      A power spectrum normalizer which normalizes to a specified amplitude of the primordial scalar power spectrum.
      !!}
      private
-     double precision :: amplitudeScalar
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     class           (transferFunctionClass   ), pointer :: transferFunction_    => null()
+     double precision                                    :: amplitudeScalar               , wavenumberPivot
    contains
-     procedure :: descriptor => amplitudeScalarDescriptor
+     final     ::                  amplitudeScalarDestructor
+     procedure :: normalization => amplitudeScalarNormalization
   end type powerSpectrumNormalizerAmplitudeScalar
 
   interface powerSpectrumNormalizerAmplitudeScalar
@@ -66,49 +88,29 @@ contains
     class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class           (transferFunctionClass                 ), pointer       :: transferFunction_
-    class           (powerSpectrumWindowFunctionClass      ), pointer       :: powerSpectrumWindowFunction_
-    double precision                                                        :: amplitudeScalar             , tolerance
-    logical                                                                 :: integrationFailureIsFatal
+    double precision                                                        :: amplitudeScalar     , wavenumberPivot
 
     !![
     <inputParameter docformat="rst">
       <name>amplitudeScalar</name>
       <source>parameters</source>
       <description>
-      The amplitude of the primordial scalar power spectrum, :math:`A_\mathrm{s}`, such that :math:`P_\chi(k) = A_\mathrm{s} (k/k_\mathrm{s0})^{n_\mathrm{s}-1}` with :math:`k_\mathrm{s0}=0.05` Mpc\ :math:`^{-1}`.
+      The amplitude of the dimensionless primordial curvature power spectrum at the pivot wavenumber, :math:`A_\mathrm{s}=\mathcal{P}_\mathcal{R}(k_*)`.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
-      <name>tolerance</name>
+      <name>wavenumberPivot</name>
       <source>parameters</source>
-      <defaultValue>1.0d-6</defaultValue>
+      <defaultValue>0.05d0</defaultValue>
       <description>
-      The relative tolerance to use in integrating over the linear power spectrum to compute :math:`\sigma_8`.
-      </description>
-    </inputParameter>
-    <inputParameter docformat="rst">
-      <name>integrationFailureIsFatal</name>
-      <source>parameters</source>
-      <defaultValue>.true.</defaultValue>
-      <description>
-      If true any failure in the integral to compute :math:`\sigma_8` is treated as a fatal error. Otherwise only a warning is issued.
+      The pivot wavenumber, :math:`k_*` (in units of Mpc\ :math:`^{-1}`), at which the amplitude of the primordial curvature power spectrum is specified.
       </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="transferFunction"    name="transferFunction_"    source="parameters"/>
     !!]
-    if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
-       !![
-       <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
-       !!]
-       self=powerSpectrumNormalizerAmplitudeScalar(amplitudeScalar,tolerance,integrationFailureIsFatal,cosmologyParameters_,cosmologyFunctions_,transferFunction_,powerSpectrumWindowFunction_)
-       !![
-       <objectDestructor name="powerSpectrumWindowFunction_"/>
-       !!]
-    else
-       self=powerSpectrumNormalizerAmplitudeScalar(amplitudeScalar,tolerance,integrationFailureIsFatal,cosmologyParameters_,cosmologyFunctions_,transferFunction_                             )
-    end if
+    self=powerSpectrumNormalizerAmplitudeScalar(amplitudeScalar,wavenumberPivot,cosmologyParameters_,cosmologyFunctions_,transferFunction_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -118,45 +120,58 @@ contains
     return
   end function amplitudeScalarConstructorParameters
 
-  function amplitudeScalarConstructorInternal(amplitudeScalar,tolerance,integrationFailureIsFatal,cosmologyParameters_,cosmologyFunctions_,transferFunction_,powerSpectrumWindowFunction_) result(self)
+  function amplitudeScalarConstructorInternal(amplitudeScalar,wavenumberPivot,cosmologyParameters_,cosmologyFunctions_,transferFunction_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`powerSpectrumNormalizerAmplitudeScalar` power spectrum normalizer class. If
-    no ``powerSpectrumWindowFunction_`` is given a real-space top-hat window function is used.
+    Internal constructor for the :galacticus-class:`powerSpectrumNormalizerAmplitudeScalar` power spectrum normalizer class.
     !!}
-    use :: Interfaces_CLASS, only : Interface_CLASS_Normalization
     implicit none
-    type            (powerSpectrumNormalizerAmplitudeScalar)                                  :: self
-    double precision                                        , intent(in   )                   :: amplitudeScalar            , tolerance
-    logical                                                 , intent(in   )                   :: integrationFailureIsFatal
-    class           (cosmologyParametersClass              ), intent(in   ), target           :: cosmologyParameters_
-    class           (cosmologyFunctionsClass               ), intent(in   ), target           :: cosmologyFunctions_
-    class           (transferFunctionClass                 ), intent(in   ), target           :: transferFunction_
-    class           (powerSpectrumWindowFunctionClass      ), intent(in   ), target, optional :: powerSpectrumWindowFunction_
+    type            (powerSpectrumNormalizerAmplitudeScalar)                        :: self
+    double precision                                        , intent(in   )         :: amplitudeScalar     , wavenumberPivot
+    class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    class           (transferFunctionClass                 ), intent(in   ), target :: transferFunction_
+    !![
+    <constructorAssign variables="amplitudeScalar, wavenumberPivot, *cosmologyParameters_, *cosmologyFunctions_, *transferFunction_"/>
+    !!]
 
-    self%powerSpectrumNormalizerSigma8=powerSpectrumNormalizerSigma8(-1.0d0,tolerance,integrationFailureIsFatal,cosmologyParameters_,cosmologyFunctions_,transferFunction_,powerSpectrumWindowFunction_)
-    self%amplitudeScalar              =amplitudeScalar
-    ! Convert the scalar amplitude to σ₈. Interface_CLASS_Normalization() returns σ₈²/Aₛ.
-    self%sigma8                       =sqrt(amplitudeScalar*Interface_CLASS_Normalization(self%cosmologyParameters_))
     return
   end function amplitudeScalarConstructorInternal
 
-  subroutine amplitudeScalarDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
+  subroutine amplitudeScalarDestructor(self)
     !!{RST
-    Return an input parameter list descriptor which could be used to recreate this object.
+    Destructor for the :galacticus-class:`powerSpectrumNormalizerAmplitudeScalar` power spectrum normalizer class.
     !!}
-    use :: Input_Parameters, only : inputParameters, descriptorParameterName
     implicit none
-    class    (powerSpectrumNormalizerAmplitudeScalar), intent(inout)           :: self
-    type     (inputParameters                       ), intent(inout)           :: descriptor
-    logical                                          , intent(in   ), optional :: includeClass  , includeFileModificationTimes
-    character(len=*                                 ), intent(in   ), optional :: parameterName
-    character(len=18                                )                          :: parameterLabel
-    type     (inputParameters                       )                          :: parameters
+    type(powerSpectrumNormalizerAmplitudeScalar), intent(inout) :: self
 
-    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('powerSpectrumNormalizer',parameterName),'amplitudeScalar')
-    parameters=descriptor%subparameters(descriptorParameterName('powerSpectrumNormalizer',parameterName))
-    write (parameterLabel,'(e17.10)') self%amplitudeScalar
-    call parameters%addParameter('amplitudeScalar',trim(adjustl(parameterLabel)))
-    call self%descriptorCommon(parameters,includeClass,includeFileModificationTimes)
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%transferFunction_"   />
+    !!]
     return
-  end subroutine amplitudeScalarDescriptor
+  end subroutine amplitudeScalarDestructor
+
+  double precision function amplitudeScalarNormalization(self,powerUnnormalized) result(normalization)
+    !!{RST
+    Return the factor by which the given power spectrum must be multiplied to normalize it to the specified amplitude of the
+    primordial scalar power spectrum.
+    !!}
+    use :: Interfaces_CLASS        , only : Interface_CLASS_Transfer_Function_Amplitude
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target :: self
+    procedure       (powerSpectrumNormalizerPowerUnnormalized)                        :: powerUnnormalized
+    double precision                                                                  :: amplitudeTransfer, timePresent
+
+    amplitudeTransfer=Interface_CLASS_Transfer_Function_Amplitude(self%cosmologyParameters_)
+    timePresent      =self%cosmologyFunctions_%cosmicTime(1.0d0)
+    normalization    =+2.0d0                                           &
+         &            *Pi                                         **2  &
+         &            *amplitudeTransfer                          **2  &
+         &            *self%wavenumberPivot                            &
+         &            *self%amplitudeScalar                            &
+         &            *self%transferFunction_%value(self%wavenumberPivot)**2 &
+         &            /powerUnnormalized(self%wavenumberPivot,timePresent)
+    return
+  end function amplitudeScalarNormalization
