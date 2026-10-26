@@ -93,7 +93,7 @@ These errors mean that a function (or subroutine, or module, or other code unit)
 
 If these errors occur then either:
 
-#. The closer line is entirely missing. The compiler then treats whatever follows as part of the unclosed unit, so it typically reports ``Unclassifiable statement`` at the opener of the *next* function or subroutine, ``Expecting END FUNCTION statement`` at the closers that follow (for example ``end module``), and finally ``Unexpected end of file``; or
+#. The closer line is entirely missing. The compiler then treats whatever follows as part of the unit that was never closed, so it typically reports ``Unclassifiable statement`` at the opener of the *next* function or subroutine, ``Expecting END FUNCTION statement`` at each closer line that follows (for example ``end module``), and finally ``Unexpected end of file``; or
 #. The name of the function in the closer is incorrect, e.g. ``end function foob`` does not match ``function foo``, giving the ``Expected label ‘foo’`` error.
 
 (A closer without a name, e.g. ``end function``, is valid Fortran, but Galacticus' style is to always include the name.) Note that the first error reported is often far from the actual problem: the line where the closer is missing is usually just *before* the first ``Unclassifiable statement`` reported.
