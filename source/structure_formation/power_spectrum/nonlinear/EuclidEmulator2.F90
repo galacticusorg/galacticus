@@ -342,14 +342,14 @@ contains
     if (self%amplitudeScalarIsSet) then
        parameterValue(8)=self%amplitudeScalar
     else
-       parameterValue(8)=+self%cosmologicalMassVariance_%sigma8(                                                  )**2 &
-            &            /Interface_CLASS_Normalization        (                                                     &
-            &                                                   self%cosmologyParameters_                          , &
-            &                                                   indexSpectral       =parameterValue (4)            , &
-            &                                                   indexSpectralRunning=0.0d0                         , &
-            &                                                   wavenumberPivot     =wavenumberPivot               , &
-            &                                                   equationOfState0    =parameterValue (6)            , &
-            &                                                   equationOfStateA    =parameterValue (7)              &
+       parameterValue(8)=+self%cosmologicalMassVariance_%sigma8(                                       )**2  &
+            &            /Interface_CLASS_Normalization        (                                             &
+            &                                                   self%cosmologyParameters_                  , &
+            &                                                   indexSpectral       =parameterValue (4)    , &
+            &                                                   indexSpectralRunning=0.0d0                 , &
+            &                                                   wavenumberPivot     =wavenumberPivot       , &
+            &                                                   equationOfState0    =parameterValue (6)    , &
+            &                                                   equationOfStateA    =parameterValue (7)      &
             &                                                  )
     end if
     ! Validate that the cosmological parameters fall within the range over which EuclidEmulator2 is applicable. EuclidEmulator2

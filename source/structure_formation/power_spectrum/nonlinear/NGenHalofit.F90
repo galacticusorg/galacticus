@@ -400,15 +400,15 @@ contains
        parameterValue(7)=+self%amplitudeScalar         &
             &            /     amplitudeScalarFiducial
     else
-       parameterValue(7)=+self%cosmologicalMassVariance_%sigma8(                                                  )**2 &
-            &            /Interface_CLASS_Normalization        (                                                     &
-            &                                                   self%cosmologyParameters_                          , &
-            &                                                   indexSpectral       =parameterValue (6)            , &
-            &                                                   indexSpectralRunning=parameterValue (8)            , &
-            &                                                   wavenumberPivot     =wavenumberPivot               , &
-            &                                                   equationOfState0    =parameterValue (1)            , &
-            &                                                   equationOfStateA    =parameterValue (2)              &
-            &                                                  )                                                     &
+       parameterValue(7)=+self%cosmologicalMassVariance_%sigma8(                                       )**2  &
+            &            /Interface_CLASS_Normalization        (                                             &
+            &                                                   self%cosmologyParameters_                  , &
+            &                                                   indexSpectral       =parameterValue (6)    , &
+            &                                                   indexSpectralRunning=parameterValue (8)    , &
+            &                                                   wavenumberPivot     =wavenumberPivot       , &
+            &                                                   equationOfState0    =parameterValue (1)    , &
+            &                                                   equationOfStateA    =parameterValue (2)      &
+            &                                                  )                                             &
             &            /amplitudeScalarFiducial
     end if
     ! Validate that the cosmological parameters fall within the range over which the Taylor expansion used by NGenHalofit to

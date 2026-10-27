@@ -29,7 +29,7 @@ module Interfaces_CLASS
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
-  public :: Interface_CLASS_Initialize, Interface_CLASS_Perturbations, Interface_CLASS_Transfer_Function, Interface_CLASS_Normalization, &
+  public :: Interface_CLASS_Initialize                 , Interface_CLASS_Perturbations, Interface_CLASS_Transfer_Function, Interface_CLASS_Normalization, &
        &    Interface_CLASS_Transfer_Function_Amplitude
 
   ! Current file format version for transfer function files. Note that this file format matches that used by the "file" transfer
@@ -716,7 +716,7 @@ contains
     !$ call hdf5Access%set()
     hdf5ReadScope: block
       classOutput =hdf5File(fileName,readOnly=.true.)
-      call classOutput %readDataset('wavenumber'            ,wavenumbers       )
+      call classOutput %readDataset('wavenumber'             ,wavenumbers       )
       speciesGroup=classOutput%openGroup('darkMatter')
       call speciesGroup%readDataset('transferFunctionZ0.0000',transferDarkMatter)
       speciesGroup=classOutput%openGroup('baryons'   )
@@ -725,24 +725,24 @@ contains
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
     ! Construct the matter transfer function at the smallest tabulated wavenumber.
-    amplitude=+(                                                                                                     &
+    amplitude=+(                                                                                               &
          &      +transferDarkMatter(1)*(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon()) &
-         &      +transferBaryons   (1)*                                    cosmologyParameters_%OmegaBaryon()   &
-         &     )                                                                                                     &
+         &      +transferBaryons   (1)*                                    cosmologyParameters_%OmegaBaryon()  &
+         &     )                                                                                               &
          &    /                                       cosmologyParameters_%OmegaMatter()
     ! Remove the curvature factor. K is in units of Mpc⁻².
-    curvature=-(                                       &
-         &      +1.0d0                                 &
+    curvature=-(                                        &
+         &      +1.0d0                                  &
          &      -cosmologyParameters_%OmegaMatter    () &
          &      -cosmologyParameters_%OmegaDarkEnergy() &
-         &     )                                       &
-         &    *(                                       &
+         &     )                                        &
+         &    *(                                        &
          &      +cosmologyParameters_%HubbleConstant () &
-         &      /(speedLight/kilo)                     &
+         &      /(speedLight/kilo)                      &
          &     )**2
-    amplitude=+amplitude                        &
-         &    /(                                &
-         &      +1.0d0                          &
+    amplitude=+amplitude                           &
+         &    /(                                   &
+         &      +1.0d0                             &
          &      -3.0d0*curvature/wavenumbers(1)**2 &
          &     )
     return
@@ -758,7 +758,7 @@ contains
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass
     use               :: Dependencies                    , only : dependencyVersion       , dependencyVersionLabel
-    use               :: File_Utilities                  , only : Directory_Make          , File_Exists           , File_Lock     , File_Unlock, &
+    use               :: File_Utilities                  , only : Directory_Make          , File_Exists           , File_Lock   , File_Unlock, &
          &                                                        File_Path               , lockDescriptor
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use               :: Hashes_Cryptographic            , only : Hash_MD5
@@ -772,14 +772,14 @@ contains
     use               :: System_Command                  , only : System_Command_Do
     implicit none
     class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
-    double precision                          , intent(in   )                   :: indexSpectral              , indexSpectralRunning, &
-         &                                                                         wavenumberPivot            , equationOfState0    , &
+    double precision                          , intent(in   )                   :: indexSpectral       , indexSpectralRunning, &
+         &                                                                         wavenumberPivot     , equationOfState0    , &
          &                                                                         equationOfStateA
     type            (lockDescriptor          )                                  :: fileLock
     type            (hdf5File                )                                  :: classOutput
     character       (len=32                  )                                  :: parameterLabel
-    type            (varying_string          )                                  :: uniqueLabel                , fileName            , &
-         &                                                                         versionClass               , labelVersionClass
+    type            (varying_string          )                                  :: uniqueLabel         , fileName            , &
+         &                                                                         versionClass        , labelVersionClass
     type            (inputParameters         )                                  :: descriptor
   
     ! Get a constructor descriptor for this object.
@@ -821,23 +821,23 @@ contains
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
     call File_Lock(char(fileName),fileLock)
     if (File_Exists(fileName)) then
-       !$ call hdf5Access %set          (                             )
+       !$ call hdf5Access%set  ()
        hdf5ReadScope: block
          classOutput=hdf5File(fileName)
-         call    classOutput%readAttribute('normalization',normalization)      
+         call classOutput%readAttribute('normalization',normalization)      
        end block hdf5ReadScope
-       !$ call hdf5Access %unset        (                             )
+       !$ call hdf5Access%unset()
     else
        ! Run CLASS to compute the normalization.
        call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization,indexSpectral=indexSpectral,indexSpectralRunning=indexSpectralRunning,wavenumberPivot=wavenumberPivot,equationOfState0=equationOfState0,equationOfStateA=equationOfStateA)
        ! Construct the output HDF5 file.
-       !$ call hdf5Access %set           (                              )
+       !$ call hdf5Access%set  ()
        hdf5WriteScope: block
          classOutput=hdf5File(fileName,objectsOverwritable=.true.)
-         call    classOutput%writeAttribute(normalization             ,'normalization')
-         call    classOutput%writeAttribute(versionClass             ,'versionCLASS' )
+         call classOutput%writeAttribute(normalization,'normalization')
+         call classOutput%writeAttribute(versionClass ,'versionCLASS' )
        end block hdf5WriteScope
-       !$ call hdf5Access %unset         (                              )
+       !$ call hdf5Access%unset()
     end if
     ! Unlock the file.
     call File_Unlock(fileLock)
@@ -854,10 +854,10 @@ contains
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass, hubbleUnitsLittleH
     use               :: Error                           , only : Error_Report
-    use               :: File_Utilities                  , only : Directory_Make          , File_Remove        , Directory_Remove, Count_Lines_In_File
+    use               :: File_Utilities                  , only : Directory_Make          , File_Remove        , Directory_Remove             , Count_Lines_In_File
     use               :: Input_Paths                     , only : inputPath               , pathTypeDataDynamic
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)    , var_str
+    use               :: ISO_Varying_String              , only : varying_string          , char               , operator(//)                 , var_str
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Sorting                         , only : sortIndex
     use               :: String_Handling                 , only : operator(//)
@@ -871,8 +871,8 @@ contains
     double precision                          , intent(inout), optional, dimension(:    ), allocatable :: wavenumbers
     double precision                          , intent(inout), optional, dimension(:,:,:), allocatable :: transferFunctions                , perturbations
     double precision                          , intent(  out), optional                                :: ratioSigma8SquaredAs
-    double precision                          , intent(in   ), optional                                :: indexSpectral                    , indexSpectralRunning   , &
-         &                                                                                                wavenumberPivot                  , equationOfState0       , &
+    double precision                          , intent(in   ), optional                                :: indexSpectral                    , indexSpectralRunning , &
+         &                                                                                                wavenumberPivot                  , equationOfState0     , &
          &                                                                                                equationOfStateA
     double precision                          , parameter                                              :: normalizationAs           =1.0d-9
     double precision                          , parameter                                              :: toleranceEquationOfState  =1.0d-6
@@ -881,16 +881,16 @@ contains
     character       (len=255                 )                                                         :: hostName                         , classTransferLine
     character       (len= 32                 )                                                         :: line                             , outputs
     integer         (c_size_t                )                                                         :: countWavenumber
-    integer                                                                                            :: classParameterFile               , classLog               , &
-         &                                                                                                offset                           , status                 , &
-         &                                                                                                classTransferFile                , i                      , &
+    integer                                                                                            :: classParameterFile               , classLog             , &
+         &                                                                                                offset                           , status               , &
+         &                                                                                                classTransferFile                , i                    , &
          &                                                                                                j
-    type            (varying_string          )                                                         :: classVersion                     , parameterFile          , &
-         &                                                                                                classPath                        , workPath               , &
-         &                                                                                                transferFileName                 , escapedExecutable      , &
-         &                                                                                                escapedParameterFile             , escapedLogFile         , &
+    type            (varying_string          )                                                         :: classVersion                     , parameterFile        , &
+         &                                                                                                classPath                        , workPath             , &
+         &                                                                                                transferFileName                 , escapedExecutable    , &
+         &                                                                                                escapedParameterFile             , escapedLogFile       , &
          &                                                                                                logFileName                      , helpMessage
-    logical                                                                                            :: found                            , haveTransferFunctions  , &
+    logical                                                                                            :: found                            , haveTransferFunctions, &
          &                                                                                                haveNormalization                , havePerturbations
     double precision                                                                                   :: sigma8                           , wavenumberCLASS
     !![
@@ -976,7 +976,7 @@ contains
     ! may be found by finite difference), CLASS' default (a cosmological constant) is used. Otherwise, the dark energy is a fluid, with density fixed by the closure relation.
     if (present(equationOfState0) .and. present(equationOfStateA)) then
        if (abs(equationOfState0+1.0d0) > toleranceEquationOfState .or. abs(equationOfStateA) > toleranceEquationOfState) then
-          write (classParameterFile,'(a,1x,"=",1x,a     )') 'Omega_Lambda    ','0'
+          write (classParameterFile,'(a,1x,"=",1x,a      )') 'Omega_Lambda    ','0'
           write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'w0_fld          ',equationOfState0
           write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'wa_fld          ',equationOfStateA
        end if

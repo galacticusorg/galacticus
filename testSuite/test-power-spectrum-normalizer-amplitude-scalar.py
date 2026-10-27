@@ -13,9 +13,9 @@ import numpy as np
 # of CLASS (0.9649), so that a normalization which ignored the spectral index of the model would fail (by about 2.6% in
 # sigma_8).
 # Andrew Benson (26-October-2026)
-pathParameters = os.path.abspath("parameters/powerSpectrumNormalizerAmplitudeScalar.xml"          )
-pathLog        = os.path.abspath("outputs/powerSpectrumNormalizerAmplitudeScalar.log"             )
-pathOutput     = os.path.abspath("outputs/powerSpectrumNormalizerAmplitudeScalar.hdf5"            )
+pathParameters = os.path.abspath("parameters/powerSpectrumNormalizerAmplitudeScalar.xml")
+pathLog        = os.path.abspath("outputs/powerSpectrumNormalizerAmplitudeScalar.log"   )
+pathOutput     = os.path.abspath("outputs/powerSpectrumNormalizerAmplitudeScalar.hdf5"  )
 
 # Reference values computed by CLASS.
 sigma8CLASS            = 0.832232     # σ₈.
@@ -57,7 +57,7 @@ sigma8             = np.exp(np.interp(np.log(mass8          ),np.log(mass      [
 powerSpectrumModel = np.exp(np.interp(np.log(wavenumberCLASS),np.log(wavenumber       ),np.log(powerSpectrum       )))
 
 for name, value, reference in (
-        ("σ₈"                               , sigma8            , sigma8CLASS       ),
+        ("σ₈"                                , sigma8            , sigma8CLASS       ),
         (f"P(k={wavenumberCLASS} Mpc⁻¹, z=0)", powerSpectrumModel, powerSpectrumCLASS)
 ):
     difference = value/reference-1.0

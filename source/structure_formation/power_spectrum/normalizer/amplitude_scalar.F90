@@ -171,26 +171,26 @@ contains
     implicit none
     class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target       :: self
     procedure       (powerSpectrumNormalizerPowerUnnormalized)                              :: powerUnnormalized
-    double precision                                          , parameter   , dimension(3) :: expansionFactorTest=[1.0d0,0.5d0,0.1d0]
-    double precision                                                                        :: amplitudeTransfer                     , timePresent
+    double precision                                          , parameter    , dimension(3) :: expansionFactorTest=[1.0d0,0.5d0,0.1d0]
+    double precision                                                                        :: amplitudeTransfer                      , timePresent
     integer                                                                                 :: i
 
     ! CLASS is run for a cosmological constant, so its large-scale transfer amplitude (which includes the growth of perturbations to
     ! the present day) is valid only if the dark energy in the model is also a cosmological constant.
     do i=1,size(expansionFactorTest)
-       if (Values_Differ(self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest(i)),-1.0d0,absTol=1.0d-6)) &
-            & call Error_Report(                                                                                                         &
+       if (Values_Differ(self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest(i)),-1.0d0,absTol=1.0d-6))  &
+            & call Error_Report(                                                                                                            &
             &                   'normalization to A_s is supported only for a cosmological constant (w=-1) as CLASS is run for that case'// &
-            &                   {introspection:location}                                                                                  &
+            &                   {introspection:location}                                                                                    &
             &                  )
     end do
     amplitudeTransfer=Interface_CLASS_Transfer_Function_Amplitude(self%cosmologyParameters_)
     timePresent      =self%cosmologyFunctions_%cosmicTime(1.0d0)
-    normalization    =+2.0d0                                           &
-         &            *Pi                                         **2  &
-         &            *amplitudeTransfer                          **2  &
-         &            *self%wavenumberPivot                            &
-         &            *self%amplitudeScalar                            &
+    normalization    =+2.0d0                                                 &
+         &            *Pi                                                **2 &
+         &            *amplitudeTransfer                                 **2 &
+         &            *self%wavenumberPivot                                  &
+         &            *self%amplitudeScalar                                  &
          &            *self%transferFunction_%value(self%wavenumberPivot)**2 &
          &            /powerUnnormalized(self%wavenumberPivot,timePresent)
     return
