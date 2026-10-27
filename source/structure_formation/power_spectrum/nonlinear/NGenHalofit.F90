@@ -393,14 +393,20 @@ contains
          &            /2.0d0                                                                                                    &
          &            /wavenumberOffsetLogarithmic
     ! Determine the amplitude of the primordial scalar power spectrum. Unless it was specified explicitly, invert the ratio
-    ! σ₈²/A_s computed by CLASS - this is exact, as the linear power spectrum is directly proportional to A_s. NGenHalofit expects
-    ! the amplitude in units of that of the fiducial Daemmerung cosmology.
+    ! σ₈²/A_s computed by CLASS - this is exact, as the linear power spectrum is directly proportional to A_s. CLASS is given the
+    ! spectral index and its running at the pivot wavenumber, at which A_s is also defined. NGenHalofit expects the amplitude in
+    ! units of that of the fiducial Daemmerung cosmology.
     if (self%amplitudeScalarIsSet) then
        parameterValue(7)=+self%amplitudeScalar         &
             &            /     amplitudeScalarFiducial
     else
-       parameterValue(7)=+self%cosmologicalMassVariance_%sigma8(                         )**2 &
-            &            /Interface_CLASS_Normalization        (self%cosmologyParameters_)    &
+       parameterValue(7)=+self%cosmologicalMassVariance_%sigma8(                                                  )**2 &
+            &            /Interface_CLASS_Normalization        (                                                     &
+            &                                                   self%cosmologyParameters_                          , &
+            &                                                   indexSpectral       =parameterValue (6)            , &
+            &                                                   indexSpectralRunning=parameterValue (8)            , &
+            &                                                   wavenumberPivot     =wavenumberPivot                 &
+            &                                                  )                                                     &
             &            /amplitudeScalarFiducial
     end if
     ! Validate that the cosmological parameters fall within the range over which the Taylor expansion used by NGenHalofit to

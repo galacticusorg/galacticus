@@ -748,9 +748,11 @@ contains
     return
   end function Interface_CLASS_Transfer_Function_Amplitude
 
-  double precision function Interface_CLASS_Normalization(cosmologyParameters_) result(normalization)
+  double precision function Interface_CLASS_Normalization(cosmologyParameters_,indexSpectral,indexSpectralRunning,wavenumberPivot) result(normalization)
     !!{RST
-    Run CLASS to compute the ratio :math:`\sigma_8^2/A_s`.
+    Run CLASS to compute the ratio :math:`\sigma_8^2/A_s` for a primordial power spectrum with the given spectral index,
+    ``indexSpectral``, and running of that index, ``indexSpectralRunning``, both defined at the given pivot wavenumber,
+    ``wavenumberPivot`` (in units of Mpc\ :math:`^{-1}`), at which :math:`A_s` is also defined.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass
     use               :: Dependencies                    , only : dependencyVersion       , dependencyVersionLabel
@@ -767,13 +769,15 @@ contains
     use               :: String_Handling                 , only : String_C_To_Fortran     , operator(//)
     use               :: System_Command                  , only : System_Command_Do
     implicit none
-    class    (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
-    type     (lockDescriptor          )                                  :: fileLock
-    type     (hdf5File                )                                  :: classOutput
-    character(len=32                  )                                  :: parameterLabel
-    type     (varying_string          )                                  :: uniqueLabel                , fileName, &
-         &                                                              versionClass               , labelVersionClass
-    type     (inputParameters         )                                  :: descriptor
+    class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
+    double precision                          , intent(in   )                   :: indexSpectral              , indexSpectralRunning, &
+         &                                                                         wavenumberPivot
+    type            (lockDescriptor          )                                  :: fileLock
+    type            (hdf5File                )                                  :: classOutput
+    character       (len=32                  )                                  :: parameterLabel
+    type            (varying_string          )                                  :: uniqueLabel                , fileName            , &
+         &                                                                         versionClass               , labelVersionClass
+    type            (inputParameters         )                                  :: descriptor
   
     ! Get a constructor descriptor for this object.
     descriptor=inputParameters()
@@ -781,6 +785,13 @@ contains
     ! Add primordial helium abundance to the descriptor.
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
     call descriptor%addParameter("Y_He",parameterLabel)
+    ! Add the primordial power spectrum parameters to the descriptor.
+    write (parameterLabel,'(e24.16)') indexSpectral
+    call descriptor%addParameter("n_s"    ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e24.16)') indexSpectralRunning
+    call descriptor%addParameter("alpha_s",trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e24.16)') wavenumberPivot
+    call descriptor%addParameter("k_pivot",trim(adjustl(parameterLabel)))
     ! Add the unique label string to the descriptor.
     ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
     ! function when it is consumed directly by another function.
@@ -810,7 +821,7 @@ contains
        !$ call hdf5Access %unset        (                             )
     else
        ! Run CLASS to compute the normalization.
-       call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization)
+       call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization,indexSpectral=indexSpectral,indexSpectralRunning=indexSpectralRunning,wavenumberPivot=wavenumberPivot)
        ! Construct the output HDF5 file.
        !$ call hdf5Access %set           (                              )
        hdf5WriteScope: block
@@ -825,7 +836,7 @@ contains
     return
   end function Interface_CLASS_Normalization
 
-  subroutine Interface_CLASS_Run(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions,perturbations,ratioSigma8SquaredAs)
+  subroutine Interface_CLASS_Run(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions,perturbations,ratioSigma8SquaredAs,indexSpectral,indexSpectralRunning,wavenumberPivot)
     !!{RST
     Run CLASS and extract required information.
     !!}
@@ -852,6 +863,8 @@ contains
     double precision                          , intent(inout), optional, dimension(:    ), allocatable :: wavenumbers
     double precision                          , intent(inout), optional, dimension(:,:,:), allocatable :: transferFunctions                , perturbations
     double precision                          , intent(  out), optional                                :: ratioSigma8SquaredAs
+    double precision                          , intent(in   ), optional                                :: indexSpectral                    , indexSpectralRunning   , &
+         &                                                                                                wavenumberPivot
     double precision                          , parameter                                              :: normalizationAs           =1.0d-9
     integer         (c_size_t                ), allocatable            , dimension(:    )              :: redshiftRanks
     character       (len= 9                  ), allocatable            , dimension(:    )              :: redshiftLabels
@@ -944,6 +957,11 @@ contains
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'N_ur            ',3.044d+0
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'YHe             ',heliumByMassPrimordial
     write (classParameterFile,'(a,1x,"=",1x,e12.6)') 'A_s             ',normalizationAs
+    ! The primordial power spectrum parameters (which affect only the normalization, not the transfer functions). If not given,
+    ! CLASS' defaults are used.
+    if (present(indexSpectral       )) write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'n_s             ',indexSpectral
+    if (present(indexSpectralRunning)) write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'alpha_s         ',indexSpectralRunning
+    if (present(wavenumberPivot     )) write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'k_pivot         ',wavenumberPivot
     write (classParameterFile,'(a,1x,"=",1x,i1   )') 'fourier_verbose ',1
     if (haveTransferFunctions .or. havePerturbations) then
        write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'P_k_max_1/Mpc      ',wavenumberCLASS
