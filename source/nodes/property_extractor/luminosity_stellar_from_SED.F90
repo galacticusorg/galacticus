@@ -46,7 +46,7 @@ Implements a property extractor class for broadband stellar luminosities compute
 
    The SED must span the range of wavelengths covered by each filter (blueshifted into the rest frame if appropriate), as otherwise the luminosity would be silently truncated. This is reported as an error.
 
-   The integral over the filter is performed adaptively, to the relative tolerance ``toleranceRelative``. Note that the error in the result can exceed this tolerance: adaptive quadrature estimates its own error, and for a sharply-structured integrand---such as one carrying :term:`IGM` attenuation across the Lyman series---that estimate is occasionally optimistic. A few galaxies in a large sample may therefore be in error by somewhat more than ``toleranceRelative``, even though the typical error is far smaller. Where the integrator can not meet the requested tolerance at all it reports an error, rather than returning a result which has not met it. Because the integrand has a kink at every point of the filter and SED tabulations, a tolerance much tighter than the default can not usually be reached, and how tight a tolerance is attainable depends on the filter and on the SED. The integral of the AB zero point over the filter, which normalizes the result, depends only on the filter, so it is computed once per filter when the object is constructed and is not affected by ``toleranceRelative``.
+   The integral over the filter is performed adaptively, to the relative tolerance ``toleranceRelative``. Note that the error in the result can exceed this tolerance: adaptive quadrature estimates its own error, and for a sharply-structured integrand---such as one carrying :term:`IGM` attenuation across the Lyman series---that estimate is occasionally optimistic. A few galaxies in a large sample may therefore be in error by somewhat more than ``toleranceRelative``, even though the typical error is far smaller. Where the integrator can not meet the requested tolerance at all it warns, once, rather than reporting the result as though the tolerance had been achieved; set ``tolerateIntegrationFailures`` to ``false`` to make such a failure fatal instead, and note that a failure which leaves no usable estimate of the integral is fatal regardless of that parameter. Because the integrand has a kink at every point of the filter and SED tabulations, a tolerance much tighter than the default can not usually be reached, and how tight a tolerance is attainable depends on the filter and on the SED. The integral of the AB zero point over the filter, which normalizes the result, depends only on the filter, so it is computed once per filter when the object is constructed, is not affected by ``toleranceRelative``, and---since an error in it would rescale every luminosity measured through that filter---is fatal if it fails, whatever ``tolerateIntegrationFailures`` is set to.
    </description>
    <stateStorable>
     <functionClass variables="nodePropertyExtractor_"/>
@@ -63,10 +63,11 @@ Implements a property extractor class for broadband stellar luminosities compute
      type            (interpolator            ), allocatable, dimension(:  ) :: filterResponses
      double precision                          , allocatable, dimension(:  ) :: normalizationAB
      double precision                          , allocatable, dimension(:,:) :: wavelengthRanges
-     class           (nodePropertyExtractorSED), pointer                     :: nodePropertyExtractor_ => null()
-     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_    => null()
+     class           (nodePropertyExtractorSED), pointer                     :: nodePropertyExtractor_      => null()
+     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_         => null()
      type            (enumerationFrameType    )                              :: frame
      double precision                                                        :: toleranceRelative
+     logical                                                                 :: tolerateIntegrationFailures          , warningIssued
    contains
      final     ::                 luminosityStellarFromSEDDestructor
      procedure :: elementCount => luminosityStellarFromSEDElementCount
@@ -103,6 +104,7 @@ contains
     type (varying_string                               ), dimension(:) , allocatable :: filterNames
     type (varying_string                               )                             :: frame
     double precision                                                                 :: toleranceRelative
+    logical                                                                          :: tolerateIntegrationFailures
 
     allocate(filterNames(parameters%count('filterNames')))
     !![
@@ -129,12 +131,24 @@ contains
       The relative tolerance used in the integration of the SED over the filter response.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>tolerateIntegrationFailures</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      Specifies whether or not a failure to reach ``toleranceRelative`` in the integration of the SED over the filter response
+      should be tolerated. If ``true``, the luminosity which the integrator returned is used as it stands and a warning is
+      issued once; if ``false``, such a failure is fatal. Only a failure for which the integrator still returns its best
+      estimate of the integral can be tolerated: a failure which leaves no usable estimate---an invalid tolerance, for which
+      the integrator returns zero, for example---is fatal whatever this parameter is set to.
+      </description>
+    </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorSED)
-       self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,enumerationFrameEncode(char(frame),includesPrefix=.false.),toleranceRelative,nodePropertyExtractor_,cosmologyFunctions_)
+       self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,enumerationFrameEncode(char(frame),includesPrefix=.false.),toleranceRelative,tolerateIntegrationFailures,nodePropertyExtractor_,cosmologyFunctions_)
     class default
        call Error_Report('an "SED" nodePropertyExtractor is required'//{introspection:location})
     end select
@@ -146,29 +160,35 @@ contains
     return
   end function luminosityStellarFromSEDConstructorParameters
 
-  function luminosityStellarFromSEDConstructorInternal(filterNames,frame,toleranceRelative,nodePropertyExtractor_,cosmologyFunctions_) result(self)
+  function luminosityStellarFromSEDConstructorInternal(filterNames,frame,toleranceRelative,tolerateIntegrationFailures,nodePropertyExtractor_,cosmologyFunctions_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class.
     !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Error                         , only : Error_Report    , errorStatusSuccess
     use            :: Instruments_Filters           , only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
+    use            :: Interface_GSL                 , only : gslErrorDecode
     use            :: ISO_Varying_String            , only : operator(//)
     use            :: Numerical_Integration         , only : integrator
+    use            :: String_Handling               , only : operator(//)
     use            :: Stellar_Luminosities_Structure, only : frameRest
     implicit none
     type            (nodePropertyExtractorLuminosityStellarFromSED)                              :: self
     type            (varying_string                               ), intent(in   ), dimension(:) :: filterNames
     type            (enumerationFrameType                         ), intent(in   )               :: frame
     double precision                                               , intent(in   )               :: toleranceRelative
+    logical                                                        , intent(in   )               :: tolerateIntegrationFailures
     class           (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
     class           (cosmologyFunctionsClass                      ), intent(in   ), target       :: cosmologyFunctions_
     type            (integrator                                   ), allocatable                 :: integratorAB_
     type            (interpolator                                 ), pointer                     :: filterResponse_
     integer                                                                                      :: i                     , indexFilter, errorStatus
     !![
-    <constructorAssign variables="filterNames, frame, toleranceRelative, *nodePropertyExtractor_, *cosmologyFunctions_"/>
+    <constructorAssign variables="filterNames, frame, toleranceRelative, tolerateIntegrationFailures, *nodePropertyExtractor_, *cosmologyFunctions_"/>
     !!]
+
+    ! No warning about an unmet integration tolerance has been issued yet.
+    self%warningIssued=.false.
 
     ! A rest-frame luminosity can not be computed from an observed-frame SED.
     if (self%frame == frameRest .and. .not.self%nodePropertyExtractor_%isRestFrame()) &
@@ -191,8 +211,10 @@ contains
     ! interpolator is taken below and the original released. Holding the interpolator itself, rather than a pointer to it,
     ! means that it is destroyed along with this object, and that a deep copy of this object is given an interpolator of its
     ! own instead of sharing ours---the latter matters because an interpolator carries mutable state (a GSL accelerator, and a
-    ! cached bracket index) which must not be shared between threads. Both are handled automatically by the code generator for
-    ! a component of this type.
+    ! cached bracket index) which must not be shared between threads. Neither needs any action here: an allocatable component
+    ! is finalized along with its parent, which releases the GSL objects through the interpolator's resource managers, while the
+    ! deep copy of the interpolator is handled by the code generator, which emits its `deepCopyActions` for a component of this
+    ! type.
     do i=1,size(filterNames)
        indexFilter                =  Filter_Get_Index        (filterNames(i          ))
        filterResponse_            => Filter_Response_Function(            indexFilter )
@@ -201,8 +223,14 @@ contains
        self%wavelengthRanges(i,:) =  Filter_Extent           (            indexFilter )
        self%normalizationAB (i  ) =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2),status=errorStatus)
        ! Passing `status` suppresses the GSL error handler, so the status is tested rather than discarded.
-       if (errorStatus /= errorStatusSuccess)                                                                                           &
-            & call Error_Report('integration of the AB zero point over filter "'//filterNames(i)//'" failed'//{introspection:location})
+       ! A failure here is always fatal: an error in this integral would rescale every luminosity measured through the filter, and
+       ! the tolerance is ours, not the user's, so `tolerateIntegrationFailures` does not apply to it.
+       if (errorStatus /= errorStatusSuccess)                                                                              &
+            & call Error_Report(                                                                                           &
+            &                   'integration of the AB zero point over filter "'//filterNames(i)//'" failed'//             &
+            &                   char(10)//'  integrator status: '//errorStatus//' ("'//gslErrorDecode(errorStatus)//'")'// &
+            &                   {introspection:location}                                                                   &
+            &                  )
     end do
     deallocate(integratorAB_)
     return
@@ -321,7 +349,7 @@ contains
             &          /self%normalizationAB(i)
        ! Passing `status` above suppresses the GSL error handler, so the status must be tested here: otherwise a tolerance
        ! which the integrator can not meet would be reported to the user as though it had been achieved.
-       if (errorStatus /= errorStatusSuccess) call reportIntegrationError(i)
+       if (errorStatus /= errorStatusSuccess) call reportIntegrationError(i,errorStatus)
     end do
     deallocate(interpolatorSED)
     deallocate(integrator_    )
@@ -391,33 +419,82 @@ contains
       return
     end subroutine reportCoverageError
 
-    subroutine reportIntegrationError(i)
+    subroutine reportIntegrationError(i,status)
       !!{RST
       Report that the integration of the SED over a filter did not reach the requested tolerance.
       !!}
-      use :: Display           , only : displayGreen, displayReset
+      use :: Display           , only : displayGreen  , displayMagenta, displayMessage, displayReset, &
+           &                            displayYellow
       use :: Error             , only : Error_Report
-      use :: ISO_Varying_String, only : operator(//), var_str
-      use :: String_Handling   , only : stringXMLFormat
+      use :: Interface_GSL     , only : GSL_EMaxIter  , GSL_ERound    , GSL_ESing     , GSL_ETol    , &
+           &                            gslErrorDecode
+      use :: ISO_Varying_String, only : operator(//)  , var_str
+      use :: String_Handling   , only : operator(//)  , stringXMLFormat
       implicit none
-      integer                  , intent(in   ) :: i
+      integer                  , intent(in   ) :: i            , status
       character(len=12        )                :: label
       type     (varying_string)                :: message
+      logical                                  :: resultUsable
 
-      message=var_str('integration of the SED over filter "')//self%filterNames(i)//'" did not reach the requested tolerance'
+      ! For these failures the integrator still returns its best estimate of the integral, so that estimate can be used if the
+      ! user chooses to tolerate a tolerance which was not met. Any other failure leaves no usable estimate---`GSL_EBadTol`, for
+      ! example, sets the result to zero before returning---and so is fatal whatever `tolerateIntegrationFailures` says.
+      resultUsable=     status == GSL_ERound    &
+           &       .or. status == GSL_EMaxIter  &
+           &       .or. status == GSL_ESing     &
+           &       .or. status == GSL_ETol
+      ! A tolerated failure is reported once only, since there could be one for every filter of every galaxy.
+      if (self%tolerateIntegrationFailures .and. resultUsable .and. self%warningIssued) return
+      if (self%tolerateIntegrationFailures .and. resultUsable) then
+         message=var_str(displayMagenta()//'WARNING:'//displayReset()//' ')
+      else
+         message=var_str(''                                               )
+      end if
+      message=message//'integration of the SED over filter "'//self%filterNames(i)//'" did not reach the requested tolerance'
       !$omp critical(gfortranInternalIO)
       write (label,'(e12.6)') self%toleranceRelative
       message=message//char(10)//'  requested relative tolerance: '//trim(adjustl(label))
       !$omp end critical(gfortranInternalIO)
-      message=message//char(10)//displayGreen()//'HELP:'//displayReset()//' the filter response and the SED are both tabulated, so the integrand has a kink at every'
-      message=message//char(10)//'      point of either tabulation, and the integrator can not always certify a tight tolerance.'
-      message=message//char(10)//'      How tight a tolerance can be reached depends on the filter and on the SED. Loosen it in'
-      message=message//char(10)//'      your parameter file, for example to:'//char(10)//char(10)
-      !$omp critical(gfortranInternalIO)
-      write (label,'(e12.6)') 2.0d0*self%toleranceRelative
-      !$omp end critical(gfortranInternalIO)
-      message=message//stringXMLFormat('<nodePropertyExtractor value="luminosityStellarFromSED">**B<toleranceRelative value="'//trim(adjustl(label))//'"/>**C</nodePropertyExtractor>',indentInitial=6)//char(10)
-      call Error_Report(message//{introspection:location})
+      message=message//char(10)//'  integrator status           : '//status//' ("'//gslErrorDecode(status)//'")'
+      if (resultUsable) then
+         ! The tolerance was accepted but not reached, so a looser one may well be attainable.
+         message=message//char(10)//displayGreen()//'HELP:'//displayReset()//' the filter response and the SED are both tabulated, so the integrand has a kink at every'
+         message=message//char(10)//'      point of either tabulation, and the integrator can not always certify a tight tolerance.'
+         message=message//char(10)//'      How tight a tolerance can be reached depends on the filter and on the SED. Loosen it in'
+         message=message//char(10)//'      your parameter file, for example to:'//char(10)//char(10)
+         !$omp critical(gfortranInternalIO)
+         write (label,'(e12.6)') 2.0d0*self%toleranceRelative
+         !$omp end critical(gfortranInternalIO)
+         message=message//stringXMLFormat('<nodePropertyExtractor value="luminosityStellarFromSED">**B<toleranceRelative value="'//trim(adjustl(label))//'"/>**C</nodePropertyExtractor>',indentInitial=6)//char(10)
+      else
+         ! The tolerance was rejected outright, so doubling it would not help: the integrand is irrelevant, and the limit is
+         ! GSL's own, namely fifty times the machine epsilon.
+         !$omp critical(gfortranInternalIO)
+         write (label,'(e12.6)') 50.0d0*epsilon(0.0d0)
+         !$omp end critical(gfortranInternalIO)
+         message=message//char(10)//displayGreen()//'HELP:'//displayReset()//' the integrator rejected this tolerance outright, rather than failing to reach it: a relative'
+         message=message//char(10)//'      tolerance must exceed fifty times the machine epsilon, which is '//trim(adjustl(label))//'. Doubling the'
+         message=message//char(10)//'      tolerance will therefore not help. A tolerance much tighter than the default can not be reached'
+         message=message//char(10)//'      for this integrand in any case, since the filter response and the SED are both tabulated and so'
+         message=message//char(10)//'      the integrand has a kink at every point of either tabulation.'//char(10)
+      end if
+      if (self%tolerateIntegrationFailures .and. resultUsable) then
+         message=message//'      The luminosity reported is the one the integrator returned, which may be in error by more than'//char(10)
+         message=message//'      the requested tolerance. Set'//char(10)//char(10)
+         message=message//stringXMLFormat('<nodePropertyExtractor value="luminosityStellarFromSED">**B<tolerateIntegrationFailures value="false"/>**C</nodePropertyExtractor>',indentInitial=6)//char(10)
+         message=message//'      to make such a failure fatal instead. This warning is issued once for each extractor on each'//char(10)
+         message=message//'      thread.'
+         ! `Warn` is not used here: it displays nothing below `verbosityLevelWarn`, and reviews its record of warnings only when the
+         ! run hits an error condition, so a tolerated failure would go unseen in a run which succeeds.
+         call displayMessage(message)
+         self%warningIssued=.true.
+      else
+         if (self%tolerateIntegrationFailures)                                                                                        &
+              & message=message//'      This failure is fatal although `tolerateIntegrationFailures` is '//displayYellow()//'true'//  &
+              &                  displayReset()//', because the integrator'//char(10)//                                               &
+              &                  '      returns no usable estimate of the integral for it.'//char(10)
+         call Error_Report  (message//{introspection:location})
+      end if
       return
     end subroutine reportIntegrationError
 
