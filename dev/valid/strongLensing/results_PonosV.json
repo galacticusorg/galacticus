@@ -4,21 +4,21 @@ window.PONOSV_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
-        "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals\n",
-        "timestamp": "2026-10-24 16:58:27+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
+        "id": "255964b1351336044b381634e10bb9cbdc9cdbfd",
+        "message": "docs(excursion-sets): fix LaTeX typos in Brownian bridge first crossing formula\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n",
+        "timestamp": "2026-10-26 15:25:04-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/255964b1351336044b381634e10bb9cbdc9cdbfd"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 28.57142857142857,
+        "percentageAbove": 71.42857142857143,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 56.25,
-        "percentageAbove": 43.75,
+        "percentageBelow": 53.333333333333336,
+        "percentageAbove": 46.666666666666664,
         "target": 0.85
     }
 }

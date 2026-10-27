@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
-        "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals\n",
-        "timestamp": "2026-10-24 16:58:27+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
+        "id": "255964b1351336044b381634e10bb9cbdc9cdbfd",
+        "message": "docs(excursion-sets): fix LaTeX typos in Brownian bridge first crossing formula\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n",
+        "timestamp": "2026-10-26 15:25:04-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/255964b1351336044b381634e10bb9cbdc9cdbfd"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2739.904548461382",
+                "logLikelihood": "-2739.904548415725",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,34 +39,34 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.1635539236178944,
-                    3.3548724991032173,
-                    2.1674407121337,
-                    1.392693936545831,
-                    0.9885789693082172,
-                    0.7882034864436371,
-                    0.5649710029429789,
-                    0.35267352809225244,
-                    0.21850378021421915,
-                    0.13297855820061155,
-                    0.08192696232916039,
-                    0.0472336782477301,
-                    0.03991925662675942
+                    5.163553816890629,
+                    3.354872421810734,
+                    2.1674407053790357,
+                    1.3926939488339782,
+                    0.9885789953465189,
+                    0.788203493242323,
+                    0.5649710274959012,
+                    0.352673552401306,
+                    0.21850378797720318,
+                    0.13297855858528548,
+                    0.08192696232916079,
+                    0.04723367824772981,
+                    0.03991925662675977
                 ],
                 "yError": [
-                    0.08045875358421453,
-                    0.05444064161042936,
-                    0.03722881203602305,
-                    0.026236271688896688,
-                    0.028791273221603096,
-                    0.02456339016438316,
-                    0.013984911321329872,
-                    0.011021927694595052,
-                    0.008948561108083933,
-                    0.007217152990317535,
-                    0.007047344168913997,
-                    0.006853581413060615,
-                    0.021192095099377414
+                    0.08045875246730666,
+                    0.05444064075054492,
+                    0.03722881176658075,
+                    0.026236271698935366,
+                    0.028791273613828723,
+                    0.02456339009647007,
+                    0.013984911701047022,
+                    0.011021928195214635,
+                    0.008948561268476958,
+                    0.00721715300434557,
+                    0.007047344168914017,
+                    0.006853581413060591,
+                    0.02119209509937751
                 ],
                 "yDatasetTarget": [
                     4.936256110146047,
@@ -80,7 +80,7 @@ window.ANALYSES_DATA = {
                     0.2093751160073041,
                     0.11935773195256001,
                     0.06308183960031058,
-                    0.036389482859783676,
+                    0.03638948285978367,
                     0.021272701804686305
                 ]
             }

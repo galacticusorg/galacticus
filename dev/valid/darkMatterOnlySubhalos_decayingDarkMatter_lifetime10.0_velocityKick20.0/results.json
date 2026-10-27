@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abensonca@gmail.com"
+            "email": "abenson@obs.carnegiescience.edu"
         },
-        "id": "152fa7f688997b5b1115c1bc6cd8cff6ba109fd7",
-        "message": "Merge pull request #1670 from galacticusorg/perf/sed-multiplier-hoist\n\nperf(nodePropertyExtractorSED): hoist the age-independent postprocessing multiplier out of the SED integrals\n",
-        "timestamp": "2026-10-24 16:58:27+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/152fa7f688997b5b1115c1bc6cd8cff6ba109fd7"
+        "id": "255964b1351336044b381634e10bb9cbdc9cdbfd",
+        "message": "docs(excursion-sets): fix LaTeX typos in Brownian bridge first crossing formula\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n",
+        "timestamp": "2026-10-26 15:25:04-07:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/255964b1351336044b381634e10bb9cbdc9cdbfd"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=10.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "-3.722142741217671",
+                "logLikelihood": "-8.495228767184484",
                 "type": "function1D"
             },
             "data": {
@@ -38,13 +38,13 @@ window.ANALYSES_DATA = {
                     7742636826.811277
                 ],
                 "yDataset": [
-                    21.934438036722256,
-                    16.25329853167123,
-                    14.227370545685014,
-                    11.07375108680362,
-                    9.697832551861316,
-                    7.365707535631856,
-                    4.008051213379147,
+                    28.749562814901058,
+                    16.82386344573094,
+                    14.459892779646259,
+                    11.105747041651748,
+                    9.61449921852802,
+                    7.365707535631884,
+                    4.008051213379152,
                     2.4970857722471274,
                     0.9047535788565805
                 ],
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=10.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "-7.163016702272266",
+                "logLikelihood": "-24.3337251630402",
                 "type": "function1D"
             },
             "data": {
@@ -98,15 +98,15 @@ window.ANALYSES_DATA = {
                     774.263682681127
                 ],
                 "yDataset": [
-                    0.0,
-                    0.1888565517840272,
-                    0.27218988511736053,
-                    1.073789071487915,
-                    9.25684809039553,
-                    17.471384926776683,
-                    22.609439702642593,
-                    22.609439702642593,
-                    22.609439702642593
+                    0.10552321845069391,
+                    0.18885655178402727,
+                    0.7446423441196686,
+                    1.461690993427366,
+                    9.972562795304079,
+                    23.622681934511366,
+                    29.424564480821363,
+                    29.424564480821363,
+                    29.424564480821363
                 ],
                 "yDatasetTarget": [
                     0.0,
