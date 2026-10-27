@@ -1869,6 +1869,7 @@
           <xs:enumeration value="einasto"/>
           <xs:enumeration value="enzoHydrostatic"/>
           <xs:enumeration value="exponentialDisk"/>
+          <xs:enumeration value="exponentialDiskTidal"/>
           <xs:enumeration value="gaussianEllipsoid"/>
           <xs:enumeration value="gaussianSlab"/>
           <xs:enumeration value="hernquist"/>
