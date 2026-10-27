@@ -69,6 +69,7 @@
        <method description="Tabulate the mid-plane rotation curve of a thick disk."                                                   method="rotationCurveMidplaneTabulate"    />
        <method description="Interpolate in the tabulated gravitational acceleration, tidal tensor, and/or potential due to the disk." method="accelerationInterpolate"          />
        <method description="Interpolate in the tabulated mid-plane rotation curve (and its gradient) of a thick disk."                method="rotationCurveSquaredMidplane"     />
+       <method description="Return the coefficient of the quadrupole term in the mid-plane rotation curve at large radii."            method="quadrupoleCoefficient"            />
      </methods>
      !!]
      final     ::                                            exponentialDiskDestructor
@@ -98,6 +99,7 @@
      procedure :: rotationCurveMidplaneTabulate           => exponentialDiskRotationCurveMidplaneTabulate
      procedure :: accelerationInterpolate                 => exponentialDiskAccelerationInterpolate
      procedure :: rotationCurveSquaredMidplane            => exponentialDiskRotationCurveSquaredMidplane
+     procedure :: quadrupoleCoefficient                   => exponentialDiskQuadrupoleCoefficient
      procedure :: positionSample                          => exponentialDiskPositionSample
   end type massDistributionExponentialDisk
 
@@ -109,8 +111,8 @@
      module procedure exponentialDiskConstructorInternal
   end interface massDistributionExponentialDisk
 
-  ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
-  ! rotation curves.
+  ! The radius (in units of the disk scale length) beyond which the rotation curve is computed from the multipole expansion of the
+  ! potential (to quadrupole order).
   double precision, parameter :: radiusMaximum           =3.0d+1
 
   ! Potential tabulation.
@@ -123,7 +125,7 @@
   double precision, parameter :: rotationCurveHalfRadiusMinimumDefault=1.0d-6, rotationCurveHalfRadiusMaximumDefault=1.0d+1
 
   ! Tabulation of the mid-plane rotation curve of a thick disk (radii in units of the disk scale length). The table extends to
-  ! `radiusMaximum`, beyond which the disk is treated as a point mass.
+  ! `radiusMaximum`, beyond which the multipole expansion of the potential is used.
   double precision, parameter :: radiusRotationCurveMidplaneMinimum   =1.0d-4
   integer         , parameter :: countRotationCurveMidplanePerDecade  =100
 
@@ -545,9 +547,9 @@ contains
     r=radius/self%radiusScale
     ! Compute rotation curve.
     if (r > radiusMaximum) then
-       ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
-       ! very large arguments.
-       exponentialDiskRotationCurve=sqrt( self%mass/     radius                                           )
+       ! Beyond some maximum radius, use the multipole expansion of the potential to quadrupole order to avoid evaluating Bessel
+       ! functions for very large arguments.
+       exponentialDiskRotationCurve=sqrt( self%mass/     radius      *(1.0d0+self%quadrupoleCoefficient()/radius**2))
     else if (self%scaleHeight > 0.0d0) then
        ! For a thick disk, interpolate in the tabulated mid-plane rotation curve.
        exponentialDiskRotationCurve=sqrt((self%mass/self%radiusScale)*self%rotationCurveSquaredMidplane(r))
@@ -574,6 +576,22 @@ contains
     return
   end function exponentialDiskRotationCurve
 
+  double precision function exponentialDiskQuadrupoleCoefficient(self) result(coefficient)
+    !!{RST
+    Return the coefficient, :math:`c`, of the quadrupole term in the mid-plane rotation curve at large radii,
+    :math:`V_\mathrm{c}^2 = (GM/R)(1+c/R^2)`. For an axisymmetric distribution the multipole expansion of the potential gives
+    :math:`c = (3/4)\langle R^2 \rangle - (3/2)\langle z^2 \rangle`. For the exponential disk :math:`\langle R^2 \rangle = 6
+    r_\mathrm{s}^2`, and for the :math:`\mathrm{sech}^2` vertical profile :math:`\langle z^2 \rangle = \pi^2 z_\mathrm{s}^2/12`.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout) :: self
+
+    coefficient=+      4.5d0*self%radiusScale**2 &
+         &      -Pi**2/8.0d0*self%scaleHeight**2
+    return
+  end function exponentialDiskQuadrupoleCoefficient
+
   double precision function exponentialDiskRotationCurveGradient(self,radius)
     !!{RST
     Return the mid-plane rotation curve gradient for an exponential disk.
@@ -590,10 +608,11 @@ contains
          &         /2.0d0            &
          &         /self%radiusScale
     if (2.0d0*besselArgument > fractionalRadiusMaximum) then
-       ! Beyond some maximum radius, approximate the disk as a point mass to avoid evaluating Bessel functions for
-       ! very large arguments.
+       ! Beyond some maximum radius, use the multipole expansion of the potential to quadrupole order to avoid evaluating Bessel
+       ! functions for very large arguments.
        exponentialDiskRotationCurveGradient=-self%mass                                                               &
-            &                               /     radius     **2
+            &                               /                                          radius**2                     &
+            &                               *(1.0d0+3.0d0*self%quadrupoleCoefficient()/radius**2)
     else if (self%scaleHeight > 0.0d0) then
        ! For a thick disk, use the gradient of the interpolant in the tabulated mid-plane rotation curve, so that the gradient
        ! is exactly consistent with the rotation curve.
@@ -697,9 +716,10 @@ contains
             &                   /self%radiusScale &
             &                   *     potential
     else if (radius > potentialRadiusMaximum*self%radiusScale) then
-       ! If the radius is sufficiently large, treat the disk as a point mass.
-       exponentialDiskPotential=-self%mass        &
-            &                   /     radius
+       ! If the radius is sufficiently large, use the multipole expansion of the potential to quadrupole order.
+       exponentialDiskPotential=-self%mass                                            &
+            &                   /     radius                                          &
+            &                   *(1.0d0+self%quadrupoleCoefficient()/3.0d0/radius**2)
     else
        ! Radius is sufficiently small to use the full calculation for a razor-thin disk. Note that this potential is evaluated
        ! in the plane of the disk - it is independent of height.
@@ -1019,13 +1039,15 @@ contains
   subroutine exponentialDiskAccelerationInterpolate(self,coordinatesCylindrical,accelerationRadial,accelerationVertical,tidalTensorRadialRadial,tidalTensorVerticalVertical,tidalTensorCross,potential)
     !!{RST
     Interpolate gravitational accelerations, tidal tensors, and the potential in the tabulated solutions for an exponential disk.
-    Results are for a disk of unit mass and unit scale length (with :math:`G=1`), at positive height. Beyond the tabulated range the
-    disk is treated as a point mass. Below the smallest tabulated radius the radial acceleration is taken to decrease linearly to
-    zero, and the tidal tensor to be constant. The potential there is found by integrating that acceleration from the edge of the
-    table, so that it remains consistent with the acceleration. The table includes the mid-plane. Between the mid-plane and the
-    smallest non-zero height tabulated, quantities which are odd functions of :math:`z` (the vertical acceleration, and the
-    cross term of the tidal tensor) are interpolated linearly in :math:`z`, while those which are even functions of :math:`z` are
-    interpolated linearly in :math:`z^2`, such that their gradients vanish in the mid-plane.
+    Results are for a disk of unit mass and unit scale length (with :math:`G=1`), at positive height. Beyond the tabulated range
+    the multipole expansion of the potential to quadrupole order, :math:`\Phi=-1/r-Q(3z^2-r^2)/2r^5`, is used, with quadrupole
+    moment :math:`Q=\langle z^2 \rangle - \langle R^2 \rangle/2` (see ``quadrupoleCoefficient``). Below the smallest tabulated
+    radius the radial acceleration is taken to decrease linearly to zero, and the tidal tensor to be constant. The potential there
+    is found by integrating that acceleration from the edge of the table, so that it remains consistent with the acceleration. The
+    table includes the mid-plane. Between the mid-plane and the smallest non-zero height tabulated, quantities which are odd
+    functions of :math:`z` (the vertical acceleration, and the cross term of the tidal tensor) are interpolated linearly in
+    :math:`z`, while those which are even functions of :math:`z` are interpolated linearly in :math:`z^2`, such that their
+    gradients vanish in the mid-plane.
     !!}
     use :: Coordinates, only : coordinateCylindrical
     implicit none
@@ -1037,7 +1059,7 @@ contains
     double precision                                 , dimension(0:1)           :: hRadius                , hHeightEven                , &
          &                                                                         hHeightOdd
     double precision                                                            :: radiusCylindrical      , heightCylindrical          , &
-         &                                                                         radiusSpherical
+         &                                                                         radiusSpherical        , quadrupole
     integer                                                                     :: iRadius                , iHeight
 
     ! Find the scale-free position.
@@ -1048,16 +1070,39 @@ contains
          &  .or.                                                                          &
          &   heightCylindrical > self%accelerationHeights(size(self%accelerationHeights)) &
          & ) then
-       ! Use point mass approximation.
+       ! Use the multipole expansion of the potential to quadrupole order. The quadrupole moment (for unit mass and scale length) is
+       ! Q=-(2/3)c, where c is the coefficient of the quadrupole term in the mid-plane rotation curve.
        radiusSpherical=sqrt(radiusCylindrical**2+heightCylindrical**2)
-       if (present(accelerationVertical       )) accelerationVertical       =-                           heightCylindrical   /radiusSpherical**3
-       if (present(accelerationRadial         )) accelerationRadial         =-       radiusCylindrical                       /radiusSpherical**3
-       if (present(tidalTensorVerticalVertical)) tidalTensorVerticalVertical=-1.0d0                                          /radiusSpherical**3 &
-            &                                                                +3.0d0*                     heightCylindrical**2/radiusSpherical**5
-       if (present(tidalTensorRadialRadial    )) tidalTensorRadialRadial    =-1.0d0                                          /radiusSpherical**3 &
-            &                                                                +3.0d0*radiusCylindrical**2                     /radiusSpherical**5
-       if (present(tidalTensorCross           )) tidalTensorCross           =+3.0d0*radiusCylindrical   *heightCylindrical   /radiusSpherical**5
-       if (present(potential                  )) potential                  =-1.0d0                                          /radiusSpherical
+       quadrupole     =-2.0d0/3.0d0*self%quadrupoleCoefficient()/self%radiusScale**2
+       if (present(accelerationVertical       )) accelerationVertical       =-                                 heightCylindrical   /radiusSpherical**3    &
+            &                                                                +quadrupole*heightCylindrical                                                &
+            &                                                                *(+4.5d0/radiusSpherical**5-7.5d0*heightCylindrical**2/radiusSpherical**7)
+       if (present(accelerationRadial         )) accelerationRadial         =-       radiusCylindrical                             /radiusSpherical**3    &
+            &                                                                +quadrupole*radiusCylindrical                                                &
+            &                                                                *(+1.5d0/radiusSpherical**5-7.5d0*heightCylindrical**2/radiusSpherical**7)
+       if (present(tidalTensorVerticalVertical)) tidalTensorVerticalVertical=-1.0d0                                                /radiusSpherical**3    &
+            &                                                                +3.0d0*                           heightCylindrical**2/radiusSpherical**5    &
+            &                                                                +quadrupole                                                                  &
+            &                                                                *(                                                                           &
+            &                                                                  +52.5d0*heightCylindrical**4                     /radiusSpherical**9       &
+            &                                                                  -45.0d0*heightCylindrical**2                     /radiusSpherical**7       &
+            &                                                                  + 4.5d0                                          /radiusSpherical**5       &
+            &                                                                 )
+       if (present(tidalTensorRadialRadial    )) tidalTensorRadialRadial    =-1.0d0                                             /radiusSpherical**3       &
+            &                                                                +3.0d0*radiusCylindrical**2                        /radiusSpherical**5       &
+            &                                                                +quadrupole                                                                  &
+            &                                                                *(                                                                           &
+            &                                                                  +52.5d0*radiusCylindrical**2*heightCylindrical**2/radiusSpherical**9       &
+            &                                                                  - 7.5d0*radiusCylindrical**2                     /radiusSpherical**7       &
+            &                                                                  - 7.5d0*                     heightCylindrical**2/radiusSpherical**7       &
+            &                                                                  + 1.5d0                                          /radiusSpherical**5       &
+            &                                                                 )
+       if (present(tidalTensorCross           )) tidalTensorCross           =+3.0d0*radiusCylindrical      *heightCylindrical   /radiusSpherical**5       &
+            &                                                                +quadrupole*radiusCylindrical*heightCylindrical                              &
+            &                                                                *(+52.5d0*heightCylindrical**2/radiusSpherical**9-22.5d0/radiusSpherical**7)
+       if (present(potential                  )) potential                  =-1.0d0                                                  /radiusSpherical     &
+            &                                                                -quadrupole                                                                  &
+            &                                                                *(  3.0d0*heightCylindrical**2-radiusSpherical**2)/2.0d0/radiusSpherical**5
     else
        ! Find interpolating factors.
        if (radiusCylindrical < self%accelerationRadii  (1)) then
