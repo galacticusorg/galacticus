@@ -196,6 +196,7 @@ contains
     Initialize the ``abundanceStructure`` object module. Determines which abundances are to be tracked.
     !!}
     use :: Atomic_Data      , only : Atom_Lookup
+    use :: Error            , only : Error_Report
     use :: Input_Parameters , only : inputParameters
     implicit none
     type   (inputParameters), intent(inout) :: parameters_
@@ -215,7 +216,13 @@ contains
        <inputParameter docformat="rst">
          <name>elementsToTrack</name>
          <description>
-         The names of the elements to be tracked.
+         The names of the elements to be tracked. Only metals may be tracked: hydrogen (``H``) and helium (``He``) are
+         refused. Tracked elements are treated as components of the total metal mass---wherever elemental masses are
+         reconstructed from the metallicity (e.g. for gas accreted from the intergalactic medium, or under the instantaneous
+         recycling approximation) each element is assigned its Solar fraction of the *metal* mass. A tracked ``H`` or
+         ``He`` would therefore scale with the metal mass, not with the true hydrogen or helium content of the gas. To
+         compute abundance ratios relative to hydrogen, estimate the hydrogen mass from the gas mass and a hydrogen mass
+         fraction (e.g. that given by ``Abundances_Hydrogen_Mass_Fraction()``).
          </description>
          <source>parameters_</source>
        </inputParameter>
@@ -223,6 +230,16 @@ contains
        ! Validate the input names by looking them up in the list of atomic names.
        do iElement=1,elementsCount
           elementsIndices(iElement)=Atom_Lookup(shortLabel=elementsToTrack(iElement))
+          ! Refuse hydrogen and helium - tracked elements are treated as metals, so these would not represent the true hydrogen
+          ! and helium content.
+          if (trim(elementsToTrack(iElement)) == "H" .or. trim(elementsToTrack(iElement)) == "He")                                     &
+               & call Error_Report(                                                                                                    &
+               &                   'element "'//trim(elementsToTrack(iElement))//'" can not be tracked - only metals may be tracked'// &
+               &                   char(10)//'   tracked elements are treated as fractions of the total metal mass, so hydrogen and'// &
+               &                   char(10)//'   helium would not represent the true content of the gas; estimate the hydrogen mass'// &
+               &                   char(10)//'   from the gas mass and a hydrogen mass fraction instead'                            // &
+               &                   {introspection:location}                                                                            &
+               &                  )
        end do
     end if
     ! Create zero and unit abundances objects.

@@ -28,7 +28,7 @@ program Test_Mass_Distributions
   Tests mass distributions.
   !!}
   use :: Coordinates                   , only : assignment(=)                        , coordinateSpherical                   , coordinateCartesian
-  use :: Display                       , only : displayVerbositySet                  , verbosityLevelStandard
+  use :: Display                       , only : displayVerbositySet                  , verbosityLevelStandard                , displayMessage
   use :: Error_Functions               , only : Error_Function
   use :: Error                         , only : Error_Report
   use :: Events_Hooks                  , only : eventsHooksInitialize
@@ -43,11 +43,11 @@ program Test_Mass_Distributions
        &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
        &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
        &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
-       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical
+       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator
   use :: Numerical_Constants_Math      , only : Pi                                   , e
   use :: Tensors                       , only : assignment(=)
   use :: Unit_Tests                    , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
-       &                                        compareEquals                        , compareNotEqual
+       &                                        compareEquals                        , compareNotEqual                       , compareLessThan
   implicit none
   class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated         , &
        &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid        , &
@@ -646,6 +646,48 @@ program Test_Mass_Distributions
      call Assert("Mass within outer radius",massDistribution_%massEnclosedBySphere(0.12829569846196026d0),182582297.19568533d0,relTol=1.0d-6)
   end select
   deallocate(massDistribution_)
+  ! Ensure that the potential of a dimensionful profile truncated at its outer radius matches (Φ(r)-Φ(0))/G=∫₀ʳ M(r′)/r′² dr′,
+  ! found by direct numerical integration of the density (using mpmath), at radii well inside the core, inside the outer radius,
+  ! and beyond the outer radius (where the potential must be that of a point mass).
+  block
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    double precision          , parameter                  :: radiusCore     =3.8492316686261747d-002, radiusOuter=0.12829569846196026d0, &
+         &                                                    mass           =182582297.19568533d0
+    double precision          , dimension(2  ), parameter  :: betas          =[2.0d0/3.0d0,0.9d0]
+    character       (len=4   ), dimension(2  ), parameter  :: labelsBeta     =['2/3 ','0.9 ']
+    double precision          , dimension(4  ), parameter  :: radii          =[5.0d-4*radiusCore,0.5d0*radiusCore,radiusOuter,2.0d0*radiusOuter]
+    character       (len=11  ), dimension(4  ), parameter  :: labelsRadius   =['5e-4 r_core','0.5 r_core ','r_outer    ','2 r_outer  ']
+    double precision          , dimension(4,2), parameter  :: potentialsTarget=reshape(                                                                                  &
+         &                                                                             [                                                                                &
+         &                                                                              96.235390151914037d0,89769133.903370879d0,1456940246.0073782d0,2168508519.0848309d0, &
+         &                                                                             165.60492933421483d0,150858194.57747654d0,1882837097.8388988d0,2594405370.9163515d0  &
+         &                                                                             ]                                                                              , &
+         &                                                                             [4,2]                                                                            &
+         &                                                                            )
+    integer                                                :: j
+    do i=1,2
+       allocate(massDistributionBetaProfile :: massDistribution_)
+       select type (massDistribution_)
+       type is (massDistributionBetaProfile)
+          massDistribution_=massDistributionBetaProfile(beta=betas(i),radiusCore=radiusCore,mass=mass,radiusOuter=radiusOuter,truncateAtOuterRadius=.true.)
+       end select
+       positionZero=[0.0d0,0.0d0,0.0d0]
+       do j=1,4
+          position=[radii(j),0.0d0,0.0d0]
+          call Assert(                                                                                                        &
+               &      "Truncated, dimensionful profile, β="//trim(labelsBeta(i))//", potential at r="//trim(labelsRadius(j)), &
+               &      +(                                                                                                      &
+               &        +massDistribution_%potential(position    )                                                            &
+               &        -massDistribution_%potential(positionZero)                                                            &
+               &       )                                                                                                      &
+               &      /gravitationalConstant_internal                                                                       , &
+               &      potentialsTarget(j,i)                                                                                 , &
+               &      relTol=1.0d-6                                                                                           &
+               &     )
+       end do
+       deallocate(massDistribution_)
+    end do
+  end block
   call Unit_Tests_End_Group()
 
   ! Exponential disk profile. Tests are carried out for a thin disk, and for a thicker disk with a scale height typical of those
@@ -1780,6 +1822,48 @@ program Test_Mass_Distributions
   end block
   call Unit_Tests_End_Group()
 
+  ! Test that enclosed masses interpolated by the spherical accelerator agree with the exact masses to within (about) its
+  ! tolerance, a relative tolerance on the mass. The cache is populated on a coarse grid of radii, and then queried between those
+  ! radii. The accelerator accepts an interpolated mass if two interpolations agree to within the tolerance, which estimates, but
+  ! does not bound, the error of each, so the actual errors are required to be within twice the tolerance.
+  call Unit_Tests_Begin_Group("Spherical accelerator")
+  block
+    class           (massDistributionSpherical), pointer :: nfwAccelerated_, accelerator_
+    double precision                                     :: radius_        , errorMaximum
+    integer                                              :: i_
+    character       (len=12                   )          :: labelError
+    allocate(massDistributionNFW                  :: nfwAccelerated_)
+    allocate(massDistributionSphericalAccelerator :: accelerator_   )
+    select type (nfwAccelerated_)
+    type is (massDistributionNFW)
+       !![
+       <referenceConstruct object="nfwAccelerated_" constructor="massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=1.0d12,dimensionless=.false.)"/>
+       !!]
+    end select
+    select type (accelerator_)
+    type is (massDistributionSphericalAccelerator)
+       !![
+       <referenceConstruct object="accelerator_" constructor="massDistributionSphericalAccelerator(toleranceRelative=1.0d-2,factorRadiusMaximum=20.0d0,nonAnalyticSolver=nonAnalyticSolversNumerical,massDistribution_=nfwAccelerated_)"/>
+       !!]
+    end select
+    do i_=0,8
+       radius_     =1.0d-3*3.0d0**i_
+       errorMaximum=accelerator_%massEnclosedBySphere(radius_)
+    end do
+    errorMaximum=0.0d0
+    do i_=0,399
+       radius_     =1.0d-3*10.0d0**((dble(i_)+0.37d0)/200.0d0)
+       errorMaximum=max(errorMaximum,abs(accelerator_%massEnclosedBySphere(radius_)/nfwAccelerated_%massEnclosedBySphere(radius_)-1.0d0))
+    end do
+    write (labelError,'(e12.6)') errorMaximum
+    call displayMessage('maximum fractional error in accelerated NFW enclosed mass: '//trim(labelError))
+    call Assert("NFW enclosed mass within tolerance",errorMaximum,2.0d-2,compare=compareLessThan)
+    !![
+    <objectDestructor name="accelerator_"   />
+    <objectDestructor name="nfwAccelerated_"/>
+    !!]
+  end block
+  call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

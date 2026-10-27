@@ -27,11 +27,12 @@ program Test_Parameters
   !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
-  use :: Cosmology_Functions      , only : cosmologyFunctions     , cosmologyFunctionsClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
   use :: IO_HDF5                   , only : hdf5File
   use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
   use :: Input_Parameters          , only : inputParameters         , inputParameter
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5File                     )              :: outputFile
@@ -46,6 +47,7 @@ program Test_Parameters
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  call Functions_Global_Set()
   ! Open an output file.
   outputFile=hdf5File("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- An isolated halo with a gas-rich spheroid and a rapidly spinning black hole, for testing black hole mass growth. -->
+<!-- Andrew Benson (22-October-2026)                                                                                 -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>3.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+    <spheroid>
+      <massStellar>0.0</massStellar>
+      <massGas>1.0e10</massGas>
+      <angularMomentum>6.0e9</angularMomentum>
+    </spheroid>
+    <blackHole>
+      <mass>1.0e7</mass>
+      <spin>0.9</spin>
+    </blackHole>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>4.0</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <angularMomentum>1.635e12</angularMomentum>
+    </spin>
+  </node>
+</tree>

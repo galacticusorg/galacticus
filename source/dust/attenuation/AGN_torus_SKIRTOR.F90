@@ -87,6 +87,12 @@
    by its authors, by ``dataPreparation/convertSKIRTOR.py`` of the ``galacticusDevTools`` repository
    (https://github.com/galacticusorg/galacticusDevTools). By default it is downloaded from the copy archived on Zenodo
    (https://doi.org/10.5281/zenodo.23424967), which is redistributed with the permission of the authors of SKIRTOR.
+
+   **Spectrum of the accretion disk.** The light attenuated must be that of the accretion disk alone. A spectrum which
+   already includes the emission of a dusty torus---that of :galacticus-class:`accretionDiskSpectraHopkins2007`, the
+   default, for example---can not be attenuated by this model, which would count the emission of the torus twice;
+   property extractors report that combination as an error at construction. Use, for example,
+   :galacticus-class:`accretionDiskSpectraThinDisk`.
    </description>
   </dustAttenuation>
   !!]
@@ -110,6 +116,7 @@
      final     ::                           agnTorusSKIRTORDestructor
      procedure :: transmission           => agnTorusSKIRTORTransmission
      procedure :: isOrientationDependent => agnTorusSKIRTORIsOrientationDependent
+     procedure :: includesTorus          => agnTorusSKIRTORIncludesTorus
   end type dustAttenuationAGNTorusSKIRTOR
 
   interface dustAttenuationAGNTorusSKIRTOR
@@ -388,3 +395,15 @@ contains
     isOrientationDependent=.true.
     return
   end function agnTorusSKIRTORIsOrientationDependent
+
+  logical function agnTorusSKIRTORIncludesTorus(self) result(includesTorus)
+    !!{RST
+    Return true: this attenuator is a model of the dusty torus around an AGN.
+    !!}
+    implicit none
+    class(dustAttenuationAGNTorusSKIRTOR), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    includesTorus=.true.
+    return
+  end function agnTorusSKIRTORIncludesTorus

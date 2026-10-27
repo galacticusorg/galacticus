@@ -8,12 +8,14 @@ import numpy as np
 # Test profiles of decaying dark matter models.
 # Andrew Benson (28-October-2024)
 
-# Set target densities for these models.
+# Set target densities for these models. Each model is a single built tree, so these values depend on its realization: they
+# were updated when the Cole2000 builder stopped removing sub-resolution accretion twice from the secondary progenitor, which
+# changes the tree and so the halo's concentration (by 1.7-4.9%).
 densitiesTarget = {
-    "CDM":           3.88359677e+16,
-    "massLossFalse": 2.85231951e+15,
-    "gamma0.0":      2.69196444e+15,
-    "gamma0.5":      1.75812743e+15
+    "CDM":           3.81736478e+16,
+    "massLossFalse": 2.74626651e+15,
+    "gamma0.0":      2.58908136e+15,
+    "gamma0.5":      1.67163002e+15
     }
 
 # Run the model and check for completion

@@ -29,11 +29,13 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use :: Dark_Matter_Particles                , only : darkMatterParticleCDM
   use :: Display                              , only : displayVerbositySet                                       , verbosityLevelStandard
   use :: Events_Hooks                         , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities           , only : Functions_Global_Set
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
   use :: Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
   use :: Linear_Growth                        , only : componentDarkMatter                                       , linearGrowthBaryonsDarkMatter                                 , linearGrowthCollisionlessMatter
   use :: Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers           , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionSharpKSpace
   use :: Spherical_Collapse_Solvers           , only : collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                   , only : transferFunctionIdentity
@@ -54,6 +56,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   type            (powerSpectrumPrimordialPowerLaw                               )                          :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionIdentity                                      )                          :: transferFunctionIdentity_
   type            (powerSpectrumPrimordialTransferredSimple                      )                          :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                                 )                          :: powerSpectrumNormalizerSigma8_
   type            (intergalacticMediumFilteringMassGnedin2000                    )                          :: intergalacticMediumFilteringMassGnedin2000_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_
@@ -81,6 +84,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   end if
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Open output file for z=0 results.
   if (trim(outputFractions) == "yes") then
      open(newUnit=outputFile,file='testSuite/outputs/sphericalCollapseBaryonsDarkMatter.txt',status='unknown',form='formatted')
@@ -146,10 +150,19 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
           &                                                                                                                      time                                    =13.8d0                                       &
           &                                                                                                                     )
+     powerSpectrumNormalizerSigma8_                             =powerSpectrumNormalizerSigma8                                  (                                                                                      &
+          &                                                                                                                      sigma8                                  =1.0d+0                                     , &
+          &                                                                                                                      tolerance                               =1.0d-4                                     , &
+          &                                                                                                                      integrationFailureIsFatal               =.true.                                     , &
+          &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
+          &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                    &
+          &                                                                                                                     )
      powerSpectrumPrimordialTransferredSimple_                  =powerSpectrumPrimordialTransferredSimple                       (                                                                                      &
           &                                                                                                                      powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_           , &
           &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                  , &
-          &                                                                                                                      linearGrowth_                           =linearGrowthBaryonsDarkMatter_               &
+          &                                                                                                                      linearGrowth_                           =linearGrowthBaryonsDarkMatter_             , &
+          &                                                                                                                      powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_               &
           &                                                                                                                     )
      powerSpectrumWindowFunctionSharpKSpace_                    =powerSpectrumWindowFunctionSharpKSpace                         (                                                                                      &
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
@@ -157,7 +170,6 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                     )
 
      cosmologicalMassVarianceFilteredPower_                     =cosmologicalMassVarianceFilteredPower                          (                                                                                      &
-          &                                                                                                                      sigma8                                  =1.0d+0                                     , &
           &                                                                                                                      tolerance                               =1.0d-4                                     , &
           &                                                                                                                      toleranceTopHat                         =1.0d-4                                     , &
           &                                                                                                                      rootVarianceLogarithmicGradientTolerance=1.0d-9                                     , &

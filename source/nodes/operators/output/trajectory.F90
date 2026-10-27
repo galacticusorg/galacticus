@@ -73,6 +73,9 @@
    <assignment>
     <functionClass variables="mergerTreeOutputter_"/>
    </assignment>
+   <allowedParameters>
+    <object variable="mergerTreeOutputter_" name="mergerTreeOutputter" source="parameters" function="mergerTreeOutputterAllowedParameters_" module="Functions_Global"/>
+   </allowedParameters>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorOutputTrajectory
@@ -294,7 +297,7 @@ contains
          &                            mergerTreeOutputter_                 &
          &                           )
     !![
-    <inputParametersValidate source="parameters" extraAllowedNames="mergerTreeOutputter"/>
+    <inputParametersValidate source="parameters"/>
     !!]
     call mergerTreeOutputterDestruct_(mergerTreeOutputter_)
     return

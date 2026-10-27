@@ -17,24 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021, 2022, 2023, 2024, 2025
-!!    Andrew Benson <abenson@carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
   An implementation of the accretion disk spectra class using the model of :cite:t:`hopkins_observational_2007`.
@@ -46,6 +29,11 @@
   <accretionDiskSpectra name="accretionDiskSpectraHopkins2007" docformat="rst">
    <description>
    Accretion disk spectra using the model of :cite:t:`hopkins_observational_2007`.
+
+   This spectrum is that of AGN as observed, and so includes the infrared emission of the dusty torus around the AGN.
+   It can not therefore be attenuated by a model of the torus, such as :galacticus-class:`dustAttenuationAGNTorus`,
+   which would count the emission of the torus twice---an attempt to do so is reported as an error. Use a spectrum
+   of the accretion disk alone, such as :galacticus-class:`accretionDiskSpectraThinDisk`, with such models.
    </description>
   </accretionDiskSpectra>
   !!]
@@ -61,7 +49,8 @@
        <method description="Build the tabulation file containing AGN spectra." method="buildFile" />
      </methods>
      !!]
-     procedure :: buildFile => hopkins2007BuildFile
+     procedure :: buildFile             => hopkins2007BuildFile
+     procedure :: includesTorusEmission => hopkins2007IncludesTorusEmission
   end type accretionDiskSpectraHopkins2007
 
   interface accretionDiskSpectraHopkins2007
@@ -290,3 +279,15 @@ contains
     end if
     return
   end subroutine hopkins2007BuildFile
+
+  logical function hopkins2007IncludesTorusEmission(self) result(includesTorusEmission)
+    !!{RST
+    Return true, as the spectrum of :cite:t:`hopkins_observational_2007` includes the emission of the dusty torus.
+    !!}
+    implicit none
+    class(accretionDiskSpectraHopkins2007), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    includesTorusEmission=.true.
+    return
+  end function hopkins2007IncludesTorusEmission
