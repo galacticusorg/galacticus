@@ -761,39 +761,39 @@ contains
                &                                                           +elementsPhotoRate        (i)%photoHeatingRate(j)
           !! Accumulate rate of collisional excitation cooling. The cooling rate is indexed by electron number, which for the ion of
           !! charge j is Z-j.
-          if  (j < self_%elementAtomicNumbers(i))                                                                                                                  &
-               & atomicStateThermalBalance=+atomicStateThermalBalance                                                                                              &
-               &                           -densityNumberElectrons                                                                                                 &
-               &                           *properties_%elements                        (i)%densityNumber                                                          &
-               &                           *properties_%elements                        (i)%ionizationStateFraction(                              j              ) &
+          if  (j < self_%elementAtomicNumbers(i))                                                                                                                                              &
+               & atomicStateThermalBalance=+atomicStateThermalBalance                                                                                                                          &
+               &                           -densityNumberElectrons                                                                                                                             &
+               &                           *properties_%elements                        (i)%densityNumber                                                                                      &
+               &                           *properties_%elements                        (i)%ionizationStateFraction(                                                            j            ) &
                &                           *self_      %atomicExcitationRateCollisional_   %coolingRate            (self_%elementAtomicNumbers(i),self_%elementAtomicNumbers(i)-j,temperature) &
                &                           /centi**3
           !! Accumulate rate of Bremsstrahlung cooling. The Gaunt factor for an ion of charge j takes the electron number of the ion
           !! of charge j-1 (i.e. Z-j+1), as for the intergalactic medium evolver.
           if (j > 0) then
              chargeIonic              =dble(j)
-             atomicStateThermalBalance=+atomicStateThermalBalance                                                                          &
-                  &                    -16.0d0                                                                                             &
-                  &                    / 3.0d0                                                                                             &
-                  &                    *sqrt(                                                                                              &
-                  &                          +2.0d0                                                                                        &
-                  &                          *Pi                                                                                           &
-                  &                          /3.0d0                                                                                        &
-                  &                         )                                                                                              &
-                  &                    *chargeIonic**2                                                                                     &
-                  &                    *properties_%elements(i)%densityNumber                                                              &
-                  &                    *properties_%elements(i)%ionizationStateFraction      (                              j            ) &
-                  &                    *densityNumberElectrons                                                                             &
-                  &                    *electronRadius          **3                                                                        &
-                  &                    *speedLight                                                                                         &
-                  &                    /electronRadius                                                                                     &
-                  &                    *sqrt(                                                                                              &
-                  &                          +electronMass                                                                                 &
-                  &                          *speedLight        **2                                                                        &
-                  &                          *boltzmannsConstant                                                                           &
-                  &                          *temperature                                                                                  &
-                  &                         )                                                                                              &
-                  &                    *fineStructure                                                                                      &
+             atomicStateThermalBalance=+atomicStateThermalBalance                                                                                                          &
+                  &                    -16.0d0                                                                                                                             &
+                  &                    / 3.0d0                                                                                                                             &
+                  &                    *sqrt(                                                                                                                              &
+                  &                          +2.0d0                                                                                                                        &
+                  &                          *Pi                                                                                                                           &
+                  &                          /3.0d0                                                                                                                        &
+                  &                         )                                                                                                                              &
+                  &                    *chargeIonic**2                                                                                                                     &
+                  &                    *properties_%elements(i)%densityNumber                                                                                              &
+                  &                    *properties_%elements(i)%ionizationStateFraction      (                                                            j              ) &
+                  &                    *densityNumberElectrons                                                                                                             &
+                  &                    *electronRadius          **3                                                                                                        &
+                  &                    *speedLight                                                                                                                         &
+                  &                    /electronRadius                                                                                                                     &
+                  &                    *sqrt(                                                                                                                              &
+                  &                          +electronMass                                                                                                                 &
+                  &                          *speedLight        **2                                                                                                        &
+                  &                          *boltzmannsConstant                                                                                                           &
+                  &                          *temperature                                                                                                                  &
+                  &                         )                                                                                                                              &
+                  &                    *fineStructure                                                                                                                      &
                   &                    *self_                  %gauntFactor_           %total(self_%elementAtomicNumbers(i),self_%elementAtomicNumbers(i)-j+1,temperature) &
                   &                    /centi**3
              !! Accumulate the rates of cooling due to recombinations.
@@ -987,7 +987,7 @@ contains
                       rateUpward=+                                      rateUpward                                                                    &
                            &     +                                      densityNumberElectrons                                                        &
                            &     *self%atomicIonizationRateCollisional_%rate                  (self%elementAtomicNumbers(i),j,properties%temperature)
-                      !! Rates of downward transitions from radiative and dielectronic recombintions. The dielectronic rate is indexed by
+                      !! Rates of downward transitions from radiative and dielectronic recombinations. The dielectronic rate is indexed by
                       !! the electron number of the recombined ion, Z-j+1.
                       select case (self%elementAtomicNumbers(i))
                       case (1,2)
@@ -998,12 +998,12 @@ contains
                          ! Metals.
                          recombinationCase=recombinationCaseA
                       end select
-                      rateRecombinationRadiative   =+                                          densityNumberElectrons                                                                                &
-                           &                        *self%atomicRecombinationRateRadiative_   %rate                  (self%elementAtomicNumbers(i),j,properties%temperature,level=recombinationCase)
-                      rateRecombinationDielectronic=+                                          densityNumberElectrons                                                                                &
-                           &                        *self%atomicRecombinationRateDielectronic_%rate                  (self%elementAtomicNumbers(i),self%elementAtomicNumbers(i)-j+1,properties%temperature)
+                      rateRecombinationRadiative   =+                                          densityNumberElectrons                                                                                                               &
+                           &                        *self%atomicRecombinationRateRadiative_   %rate                  (self%elementAtomicNumbers(i),                             j  ,properties%temperature,level=recombinationCase)
+                      rateRecombinationDielectronic=+                                          densityNumberElectrons                                                                                                               &
+                           &                        *self%atomicRecombinationRateDielectronic_%rate                  (self%elementAtomicNumbers(i),self%elementAtomicNumbers(i)-j+1,properties%temperature                        )
                       !! Find the net rate of downward transitions.
-                      rateDownward                 =+rateRecombinationRadiative                                                                                                                      &
+                      rateDownward                 =+rateRecombinationRadiative                                                                                                                                                     &
                            &                        +rateRecombinationDielectronic
                       !! Compute the relative abundance required to balance upward and downward transitions.
                       if (rateDownward == 0.0d0) then
