@@ -43,9 +43,9 @@
       p(\hat{\mathbf{n}}) = \frac{1-f}{4\pi} + \frac{f}{N} \sum_{i=1}^N \frac{\kappa}{4\pi \sinh\kappa}
       \exp\left(\kappa\, \hat{\mathbf{n}}\cdot\hat{\mathbf{f}}_i\right),
 
-   where :math:`N` is the number of filaments feeding the host, :math:`f` is the fraction of satellites accreted along filaments, and :math:`\kappa`
-   sets the angular width of each filament. The tangential velocity is oriented isotropically, so that the mean vector
-   tangential velocity and the mean vector angular momentum both remain zero.
+   where :math:`N` is the number of filaments feeding the host, :math:`f` is the fraction of satellites accreted along filaments,
+   and :math:`\kappa` sets the angular width of each filament. The tangential velocity is oriented isotropically, so that the mean
+   vector tangential velocity and the mean vector angular momentum both remain zero.
 
    The fraction accreted along filaments depends on the mass of the host, :math:`M`, relative to the mass, :math:`M_*`, of
    halos just collapsing at the time of accretion, :math:`\sigma(M_*,t) = \delta_\mathrm{c}(t)`:
@@ -70,21 +70,20 @@
    ``fractionFilamentaryLogarithmicSlope`` both set to zero.
 
    The default parameters are from a joint fit of this model to the distributions of the angles between the points at which
-   subhalos enter their hosts and both the axes of slowest (:math:`\mathbf{e}_3`) and fastest (:math:`\mathbf{e}_1`)
-   collapse of the velocity shear tensor (smoothed on a scale of four virial radii) measured by
-   :cite:t:`libeskind_universal_2014`, in four bins of :math:`M/M_*`. The model was evaluated with the default
-   :galacticus-class:`darkMatterHaloFilamentsRandomSequential` filaments (three filaments per halo: one passing through the
-   halo, plus one further filament at least :math:`60^\circ` from it), identifying :math:`\mathbf{e}_3` and
-   :math:`\mathbf{e}_1` with the major and minor axes of the tensor
-   :math:`\sum_i \hat{\mathbf{f}}_i \hat{\mathbf{f}}_i^\mathrm{T}` of the filament directions. With a single :math:`\kappa` the fit gives :math:`f_*=0.291`,
-   :math:`\alpha=0.102`, and :math:`\kappa=5.0`. It matches both distributions in each mass bin with root mean square residuals
-   of 0.009--0.033. The number of filaments is constrained by :math:`\mathbf{e}_1`: infall avoids the axis of fastest collapse
-   in all bins above :math:`M/M_*=0.1`, which a single filament (being axisymmetric) cannot reproduce, but which follows from
-   filaments lying preferentially in a plane. Fewer than about 2.8 filaments per halo on average are strongly disfavored. The
-   concentration shows no trend with mass, consistent with the profiles of filaments being universal when scaled to the virial
-   radius of the halo they feed :cite:p:`xu_universal_2026`, which is why the width is specified in units of the virial radius.
-   Since the measurement averages over all accretion since :math:`z \approx 5`, the fit describes accretion averaged over
-   redshift.
+   subhalos enter their hosts and both the axes of slowest (:math:`\mathbf{e}_3`) and fastest (:math:`\mathbf{e}_1`) collapse of
+   the velocity shear tensor (smoothed on a scale of four virial radii) measured by :cite:t:`libeskind_universal_2014`, in four
+   bins of :math:`M/M_*`. The model was evaluated with the default :galacticus-class:`darkMatterHaloFilamentsRandomSequential`
+   filaments (three filaments per halo: one passing through the halo, plus one further filament at least :math:`60^\circ` from
+   it), identifying :math:`\mathbf{e}_3` and :math:`\mathbf{e}_1` with the major and minor axes of the tensor
+   :math:`\sum_i \hat{\mathbf{f}}_i \hat{\mathbf{f}}_i^\mathrm{T}` of the filament directions. With a single :math:`\kappa` the fit gives
+   :math:`f_*=0.291`, :math:`\alpha=0.102`, and :math:`\kappa=5.0`. It matches both distributions in each mass bin with root mean
+   square residuals of 0.009--0.033. The number of filaments is constrained by :math:`\mathbf{e}_1`: infall avoids the axis of
+   fastest collapse in all bins above :math:`M/M_*=0.1`, which a single filament (being axisymmetric) cannot reproduce, but which
+   follows from filaments lying preferentially in a plane. Fewer than about 2.8 filaments per halo on average are strongly
+   disfavored. The concentration shows no trend with mass, consistent with the profiles of filaments being universal when scaled
+   to the virial radius of the halo they feed :cite:p:`xu_universal_2026`, which is why the width is specified in units of the
+   virial radius.  Since the measurement averages over all accretion since :math:`z \approx 5`, the fit describes accretion
+   averaged over redshift.
 
    The calibration depends on the filaments: with more filaments per halo, a larger :math:`f` is needed to give the same
    anisotropy relative to any one axis. For example, for a single filament passing through each halo (a mean number of two

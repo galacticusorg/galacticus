@@ -139,10 +139,10 @@ program Test_Satellite_Virial_Orbit_Filamentary
   allocate(darkMatterHaloFilamentsMixed_)
   allocate(virialOrbitFixed_            )
   allocate(virialOrbitNone_             )
-  nodeOperator_                =nodeOperatorHaloFilaments              (darkMatterHaloFilaments_                                                                                 )
-  darkMatterHaloFilamentsMixed_=darkMatterHaloFilamentsRandomSequential(countFilamentsMixed,angleSeparationMinimum                                                            )
-  virialOrbitFixed_            =virialOrbitFilamentary                 (fractionFixed      ,0.0d0                 ,radiusFilamentFractional,virialOrbitWrapped_,criticalOverdensity_,darkMatterHaloFilaments_)
-  virialOrbitNone_             =virialOrbitFilamentary                 (0.0d0              ,0.0d0                 ,radiusFilamentFractional,virialOrbitWrapped_,criticalOverdensity_,darkMatterHaloFilaments_)
+  nodeOperator_                =nodeOperatorHaloFilaments              (darkMatterHaloFilaments_                                                                                                                  )
+  darkMatterHaloFilamentsMixed_=darkMatterHaloFilamentsRandomSequential(countFilamentsMixed     ,angleSeparationMinimum                                                                                           )
+  virialOrbitFixed_            =virialOrbitFilamentary                 (fractionFixed           ,0.0d0                 ,radiusFilamentFractional,virialOrbitWrapped_,criticalOverdensity_,darkMatterHaloFilaments_)
+  virialOrbitNone_             =virialOrbitFilamentary                 (0.0d0                   ,0.0d0                 ,radiusFilamentFractional,virialOrbitWrapped_,criticalOverdensity_,darkMatterHaloFilaments_)
   concentration                =1.0d0/asin(radiusFilamentFractional)**2
   ! Build a random number generator for the tree.
   allocate(randomNumberGeneratorGSL :: tree%randomNumberGenerator_)
@@ -170,19 +170,19 @@ program Test_Satellite_Virial_Orbit_Filamentary
   basic         => nodeRoot                %basic                    (              )
   axesRootStored=  basic                   %floatRank1MetaPropertyGet(filamentAxesID)
   axesSecondary =  darkMatterHaloFilaments_%axes                     (nodeSecondary )
-  call Assert('default number of filaments'                         ,shape(axesMiddle)                                                    ,[3,countFilamentsDefault]                       )
-  call Assert('filaments are unit vectors'                          ,sqrt(sum(axesMiddle**2,dim=1))                                       ,spread(1.0d0,1,countFilamentsDefault),relTol=1.0d-12)
-  call Assert('first two filaments are opposite'                    ,axesMiddle(:,2)                                                      ,-axesMiddle(:,1)                                )
-  call Assert('filaments are separated by the minimum angle'        ,largestCosine(axesMiddle) <= cos(angleSeparationMinimum*Pi/180.0d0)  ,.true.                                          )
-  call Assert('filaments are stored on the earliest progenitor'     ,axesLeafStored                                                       ,reshape(axesMiddle,[3*countFilamentsDefault])   )
-  call Assert('filaments are stored on the node the branch joins'   ,axesRootStored                                                       ,reshape(axesMiddle,[3*countFilamentsDefault])   )
-  call Assert('filaments are unchanged when requested again'        ,reshape(darkMatterHaloFilaments_%axes(nodeRoot),[3*countFilamentsDefault]),reshape(axesMiddle,[3*countFilamentsDefault]))
-  call Assert('filaments of a secondary progenitor are drawn separately',abs(dot_product(axesSecondary(:,1),axesMiddle(:,1))) < 0.999999d0,.true.                                          )
+  call Assert('default number of filaments'                             ,shape(axesMiddle)                                                         ,[3,countFilamentsDefault]                                   )
+  call Assert('filaments are unit vectors'                              ,sqrt(sum(axesMiddle**2,dim=1))                                            ,spread(1.0d0,1,countFilamentsDefault)        ,relTol=1.0d-12)
+  call Assert('first two filaments are opposite'                        ,axesMiddle(:,2)                                                           ,-axesMiddle(:,1)                                            )
+  call Assert('filaments are separated by the minimum angle'            ,largestCosine(axesMiddle) <= cos(angleSeparationMinimum*Pi/180.0d0)       ,.true.                                                      )
+  call Assert('filaments are stored on the earliest progenitor'         ,axesLeafStored                                                            ,reshape(axesMiddle,[3*countFilamentsDefault])               )
+  call Assert('filaments are stored on the node the branch joins'       ,axesRootStored                                                            ,reshape(axesMiddle,[3*countFilamentsDefault])               )
+  call Assert('filaments are unchanged when requested again'            ,reshape(darkMatterHaloFilaments_%axes(nodeRoot),[3*countFilamentsDefault]),reshape(axesMiddle,[3*countFilamentsDefault])               )
+  call Assert('filaments of a secondary progenitor are drawn separately',abs(dot_product(axesSecondary(:,1),axesMiddle(:,1))) < 0.999999d0         ,.true.                                                      )
   call buildNode(nodeIsolated,1.0d12)
   call nodeOperator_%nodeTreeInitialize(nodeIsolated)
   basic             => nodeIsolated%basic                    (              )
   axesIsolatedStored=  basic       %floatRank1MetaPropertyGet(filamentAxesID)
-  call Assert('node operator assigns filaments'                     ,size(axesIsolatedStored)                                             ,3*countFilamentsDefault                         )
+  call Assert('node operator assigns filaments',size(axesIsolatedStored),3*countFilamentsDefault)
   call nodeIsolated%destroy()
   ! Test the distribution of the number of filaments, and their separations, over many halos.
   countHalosLarger          =0
@@ -206,19 +206,19 @@ program Test_Satellite_Virial_Orbit_Filamentary
   fractionMixedExpected=countFilamentsMixed-dble(int(countFilamentsMixed))
   write (message,'(a,f6.4,a,f6.4,a,f6.2,a)') '  fraction with more filaments = ',fractionMixed,' (expected ',fractionMixedExpected,'); smallest separation = ',acos(cosineSeparationLargestAll)*180.0d0/Pi,'°'
   call displayMessage(trim(message))
-  call Assert('number of filaments brackets the mean'               ,countsValid                                                          ,.true.                                          )
-  call Assert('fraction of halos with more filaments'               ,abs(fractionMixed-fractionMixedExpected) < 5.0d0*sqrt(fractionMixedExpected*(1.0d0-fractionMixedExpected)/dble(countHalos)),.true.)
-  call Assert('filaments of all halos are separated by the minimum angle',separationsValid                                                ,.true.                                          )
-  call Assert('minimum separation is approached'                    ,acos(cosineSeparationLargestAll)*180.0d0/Pi < angleSeparationMinimum+1.0d0,.true.                                )
+  call Assert('number of filaments brackets the mean'                    ,countsValid                                                                                                                   ,.true.)
+  call Assert('fraction of halos with more filaments'                    ,abs(fractionMixed-fractionMixedExpected)    < 5.0d0*sqrt(fractionMixedExpected*(1.0d0-fractionMixedExpected)/dble(countHalos)),.true.)
+  call Assert('filaments of all halos are separated by the minimum angle',separationsValid                                                                                                              ,.true.)
+  call Assert('minimum separation is approached'                         ,acos(cosineSeparationLargestAll)*180.0d0/Pi < angleSeparationMinimum+1.0d0                                                    ,.true.)
   call Unit_Tests_End_Group()
   ! Test the distribution of infall directions.
   call Unit_Tests_Begin_Group("Infall directions")
-  call testDirections('fixed filamentary fraction'                   ,virialOrbitFixed_,1.0d13,fractionFixed,checkSensitivity=.true. )
-  call testDirections('zero filamentary fraction (isotropic)'        ,virialOrbitNone_ ,1.0d13,0.0d0        ,checkSensitivity=.false.)
+  call testDirections('fixed filamentary fraction'                   ,virialOrbitFixed_,1.0d13               ,fractionFixed   ,checkSensitivity=.true. )
+  call testDirections('zero filamentary fraction (isotropic)'        ,virialOrbitNone_ ,1.0d13               ,0.0d0           ,checkSensitivity=.false.)
   massCollapsing  =criticalOverdensity_%collapsingMass(time=time)
   fractionExpected=fractionCharacteristic+fractionLogarithmicSlope*log10(10.0d0)
-  call testDirections('default fraction, M = 10 M*'                  ,virialOrbit_     ,1.0d1*massCollapsing,fractionExpected,checkSensitivity=.false.)
-  call testDirections('default fraction limited to zero, M = 10⁻⁴ M*',virialOrbit_     ,1.0d-4*massCollapsing,0.0d0          ,checkSensitivity=.false.)
+  call testDirections('default fraction, M = 10 M*'                  ,virialOrbit_     ,1.0d+1*massCollapsing,fractionExpected,checkSensitivity=.false.)
+  call testDirections('default fraction limited to zero, M = 10⁻⁴ M*',virialOrbit_     ,1.0d-4*massCollapsing,0.0d0           ,checkSensitivity=.false.)
   call Unit_Tests_End_Group()
   ! Clean up.
   call Node_Components_Thread_Uninitialize()
@@ -237,15 +237,15 @@ contains
     implicit none
     character       (len=*           ), intent(in   )                                               :: label
     class           (virialOrbitClass), intent(inout)                                               :: virialOrbitTest_
-    double precision                  , intent(in   )                                               :: massHost           , fraction
+    double precision                  , intent(in   )                                               :: massHost        , fraction
     logical                           , intent(in   )                                               :: checkSensitivity
-    type            (treeNode        ), pointer                                                     :: host               , satellite
+    type            (treeNode        ), pointer                                                     :: host            , satellite
     double precision                  , allocatable  , dimension(:,:)                               :: axes
     integer                                          , dimension(countBinsCosine,countBinsAzimuth) :: counts
     type            (keplerOrbit     )                                                              :: orbit
-    double precision                                                                                :: chiSquaredTrue     , chiSquaredIsotropic, &
-         &                                                                                             chiSquaredBiased   , chiSquaredPair
-    integer                                                                                         :: i                  , iCosine            , &
+    double precision                                                                                :: chiSquaredTrue  , chiSquaredIsotropic, &
+         &                                                                                             chiSquaredBiased, chiSquaredPair
+    integer                                                                                         :: i               , iCosine            , &
          &                                                                                             iAzimuth
     character       (len=256         )                                                              :: message
 
@@ -270,12 +270,12 @@ contains
     if (checkSensitivity) then
        chiSquaredIsotropic=chiSquared(counts,expectedCounts(axes      ,0.0d0         ))
        chiSquaredBiased   =chiSquared(counts,expectedCounts(axes      ,0.9d0*fraction))
-       chiSquaredPair     =chiSquared(counts,expectedCounts(axes(:,1:2),      fraction))
+       chiSquaredPair     =chiSquared(counts,expectedCounts(axes(:,1:2),     fraction))
        write (message,'(a,f12.2,a,f12.2,a,f12.2)') '  χ² against isotropy = ',chiSquaredIsotropic,', against 0.9 f = ',chiSquaredBiased,', against the first two filaments only = ',chiSquaredPair
        call displayMessage(trim(message))
-       call Assert('test distinguishes isotropic infall'              ,chiSquaredIsotropic > chiSquaredLimit(),.true.)
-       call Assert('test distinguishes a 10% smaller fraction'        ,chiSquaredBiased    > chiSquaredLimit(),.true.)
-       call Assert('test distinguishes infall along fewer filaments'  ,chiSquaredPair      > chiSquaredLimit(),.true.)
+       call Assert('test distinguishes isotropic infall'            ,chiSquaredIsotropic > chiSquaredLimit(),.true.)
+       call Assert('test distinguishes a 10% smaller fraction'      ,chiSquaredBiased    > chiSquaredLimit(),.true.)
+       call Assert('test distinguishes infall along fewer filaments',chiSquaredPair      > chiSquaredLimit(),.true.)
     end if
     call host     %destroy()
     call satellite%destroy()
@@ -293,7 +293,7 @@ contains
     double precision, dimension(:,:), intent(in   )               :: axes
     double precision                , intent(in   )               :: fraction
     double precision, dimension(3  )                              :: direction
-    double precision                                              :: cosineTheta   , phi, &
+    double precision                                              :: cosineTheta   , phi     , &
          &                                                           density
     integer                                                       :: iCosine       , iAzimuth, &
          &                                                           jCosine       , jAzimuth
@@ -302,27 +302,27 @@ contains
     do iCosine=1,countBinsCosine
        do iAzimuth=1,countBinsAzimuth
           do jCosine=1,countSubIntervals
-             cosineTheta=-1.0d0+2.0d0*(dble((iCosine-1)*countSubIntervals+jCosine)-0.5d0)/dble(countBinsCosine*countSubIntervals)
+             cosineTheta=-1.0d0+2.0d0   *(dble((iCosine -1)*countSubIntervals+jCosine )-0.5d0)/dble(countBinsCosine *countSubIntervals)
              do jAzimuth=1,countSubIntervals
-                phi      =2.0d0*Pi*(dble((iAzimuth-1)*countSubIntervals+jAzimuth)-0.5d0)/dble(countBinsAzimuth*countSubIntervals)
+                phi      =      2.0d0*Pi*(dble((iAzimuth-1)*countSubIntervals+jAzimuth)-0.5d0)/dble(countBinsAzimuth*countSubIntervals)
                 direction=[                                     &
                      &     sqrt(1.0d0-cosineTheta**2)*cos(phi), &
                      &     sqrt(1.0d0-cosineTheta**2)*sin(phi), &
                      &                cosineTheta               &
                      &    ]
                 ! Evaluate the density, writing each von Mises-Fisher kernel in a form which can not overflow.
-                density  =+(1.0d0-fraction)/4.0d0/Pi                                                                   &
-                     &    +       fraction /dble(size(axes,dim=2))                                                    &
-                     &    *concentration/2.0d0/Pi/(1.0d0-exp(-2.0d0*concentration))                                   &
+                density  =+(1.0d0-fraction)/4.0d0/Pi                                &
+                     &    +       fraction /dble(size(axes,dim=2))                  &
+                     &    *concentration/2.0d0/Pi/(1.0d0-exp(-2.0d0*concentration)) &
                      &    *sum(exp(concentration*(matmul(direction,axes)-1.0d0)))
-                expectedCounts(iCosine,iAzimuth)=+expectedCounts(iCosine,iAzimuth) &
+                expectedCounts(iCosine,iAzimuth)=+expectedCounts(iCosine,iAzimuth)  &
                      &                           +density
              end do
           end do
        end do
     end do
     ! Multiply by the solid angle of each sub-interval, and by the number of orbits.
-    expectedCounts=+expectedCounts                                    &
+    expectedCounts=+expectedCounts                                      &
          &         *2.0d0     /dble(countBinsCosine *countSubIntervals) &
          &         *2.0d0*Pi  /dble(countBinsAzimuth*countSubIntervals) &
          &         *dble(countOrbits)

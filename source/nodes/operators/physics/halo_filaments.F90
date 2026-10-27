@@ -33,8 +33,14 @@
 
    This operator is optional: filaments are also assigned on demand, by :galacticus-class:`virialOrbitFilamentary`, to any
    branch which does not yet have them when an orbit is required---for example, for orbits assigned while a tree is being
-   constructed. The filaments of a branch do not depend on which of these occurs first. Including this operator ensures that
-   every halo is assigned filaments, whether or not it acquires any satellites.
+   constructed. Including this operator ensures that every halo is assigned filaments, whether or not it acquires any
+   satellites.
+
+   The filaments of a branch do not depend on which of these occurs first, provided that this operator and
+   :galacticus-class:`virialOrbitFilamentary` share the same :galacticus-class:`darkMatterHaloFilamentsClass` object. When this
+   operator is used, any ``darkMatterHaloFilaments`` parameter should therefore be given at the top level of the parameter
+   file, not inside the ``virialOrbit`` parameter. Otherwise this operator builds its own default object, and each branch is
+   assigned filaments by whichever of the two objects reaches it first.
    </description>
   </nodeOperator>
   !!]

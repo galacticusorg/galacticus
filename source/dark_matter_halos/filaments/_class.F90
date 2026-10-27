@@ -43,7 +43,9 @@ module Dark_Matter_Halo_Filaments
    Filaments persist: every node on a branch of the merger tree shares the filaments of the branch, so that a halo accretes along
    the same filaments throughout its history. Implementations store the directions of the filaments of a branch in a rank-1
    ``float`` meta-property, ``filamentAxes``, of the ``basic`` component of every node of the branch, as the three direction
-   cosines of each filament in turn.
+   cosines of each filament in turn. Whichever object first requires the filaments of a branch draws them, and all others use
+   those. So, when :galacticus-class:`nodeOperatorHaloFilaments` is used, a ``darkMatterHaloFilaments`` parameter should be
+   given at the top level of the parameter file, where that operator and :galacticus-class:`virialOrbitFilamentary` share it.
    </description>
    <default>randomSequential</default>
    <method name="axes" >

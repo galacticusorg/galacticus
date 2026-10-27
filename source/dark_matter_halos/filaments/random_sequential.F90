@@ -35,7 +35,9 @@
    first two filaments are a single filament passing through the halo, i.e. two opposite directions, oriented isotropically at
    random. Each further filament is placed at a direction drawn isotropically at random, accepted only if it is separated by
    at least ``angleSeparationMinimum`` from every filament already placed (random sequential placement). Since every further
-   filament must clear both directions of the first filament, the separation can be no larger than :math:`90^\circ`.
+   filament must clear both directions of the first filament, the separation must be less than :math:`90^\circ` if
+   :math:`\langle N \rangle > 2`. (At exactly :math:`90^\circ` a further filament would have to be exactly perpendicular to
+   the first, which a random direction never is.)
 
    The default, :math:`\langle N \rangle=3` (a filament passing through the halo plus one further filament) with a minimum
    separation of :math:`60^\circ`, is the configuration for which :galacticus-class:`virialOrbitFilamentary` is calibrated:
@@ -61,7 +63,7 @@
      A dark matter halo filaments class in which filaments are placed at random, subject to a minimum separation.
      !!}
      private
-     double precision :: countFilamentsMean       , angleSeparationMinimum, &
+     double precision :: countFilamentsMean     , angleSeparationMinimum, &
           &              cosineSeparationMaximum
      integer          :: filamentAxesID
    contains
@@ -115,7 +117,8 @@ contains
       <defaultSource>Calibration of :galacticus-class:`virialOrbitFilamentary` to :cite:t:`libeskind_universal_2014`.</defaultSource>
       <source>parameters</source>
       <description>
-      The minimum angle, in degrees, between any two filaments feeding a halo.
+      The minimum angle, in degrees, between any two filaments feeding a halo. Must be less than 90 degrees if
+      [countFilamentsMean] exceeds 2.
       </description>
     </inputParameter>
     !!]
@@ -139,10 +142,12 @@ contains
     <constructorAssign variables="countFilamentsMean, angleSeparationMinimum"/>
     !!]
 
-    if (countFilamentsMean     < 1.0d0                    ) call Error_Report('[countFilamentsMean] must be at least 1'                            //{introspection:location})
-    if (countFilamentsMean     > countFilamentsMeanMaximum) call Error_Report('[countFilamentsMean] must be no larger than 6'                      //{introspection:location})
-    if (angleSeparationMinimum < 0.0d0                    ) call Error_Report('[angleSeparationMinimum] must be non-negative'                      //{introspection:location})
-    if (angleSeparationMinimum > 90.0d0                   ) call Error_Report('[angleSeparationMinimum] must be no larger than 90 degrees so that further filaments can clear the first'//{introspection:location})
+    if (countFilamentsMean     <  1.0d0                                                     ) call Error_Report('[countFilamentsMean] must be at least 1'                   //{introspection:location})
+    if (countFilamentsMean     >  countFilamentsMeanMaximum                                 ) call Error_Report('[countFilamentsMean] must be no larger than 6'             //{introspection:location})
+    if (angleSeparationMinimum <  0.0d0                                                     ) call Error_Report('[angleSeparationMinimum] must be non-negative'             //{introspection:location})
+    if (angleSeparationMinimum >  90.0d0                                                    ) call Error_Report('[angleSeparationMinimum] must be no larger than 90 degrees'//{introspection:location})
+    if (angleSeparationMinimum >= 90.0d0                    .and. countFilamentsMean > 2.0d0) &
+         & call Error_Report('[angleSeparationMinimum] must be less than 90 degrees if [countFilamentsMean] exceeds 2, so that further filaments can clear the first'//{introspection:location})
     self%cosineSeparationMaximum=cos(angleSeparationMinimum*Pi/180.0d0)
     !![
     <addMetaProperty component="basic" name="filamentAxes" id="self%filamentAxesID" rank="1" isEvolvable="no" isCreator="yes"/>
