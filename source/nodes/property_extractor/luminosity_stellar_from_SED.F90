@@ -29,13 +29,6 @@ Implements a property extractor class for broadband stellar luminosities compute
   use :: Numerical_Interpolation       , only : interpolator
   use :: Stellar_Luminosities_Structure, only : enumerationFrameType
   
-  type :: filterResponse
-     !!{RST
-     Type used to hold pointers to filter response functions.
-     !!}
-     type(interpolator), pointer :: interpolator_ => null()
-  end type filterResponse
-  
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED" docformat="rst">
    <description>
@@ -67,7 +60,7 @@ Implements a property extractor class for broadband stellar luminosities compute
      private
      type            (varying_string          ), allocatable, dimension(:  ) :: filterNames
      integer                                   , allocatable, dimension(:  ) :: luminosityIndex
-     type            (filterResponse          ), allocatable, dimension(:  ) :: filterResponses
+     type            (interpolator            ), allocatable, dimension(:  ) :: filterResponses
      double precision                          , allocatable, dimension(:  ) :: normalizationAB
      double precision                          , allocatable, dimension(:,:) :: wavelengthRanges
      class           (nodePropertyExtractorSED), pointer                     :: nodePropertyExtractor_ => null()
@@ -171,6 +164,7 @@ contains
     class           (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
     class           (cosmologyFunctionsClass                      ), intent(in   ), target       :: cosmologyFunctions_
     type            (integrator                                   ), allocatable                 :: integratorAB_
+    type            (interpolator                                 ), pointer                     :: filterResponse_
     integer                                                                                      :: i                     , indexFilter, errorStatus
     !![
     <constructorAssign variables="filterNames, frame, toleranceRelative, *nodePropertyExtractor_, *cosmologyFunctions_"/>
@@ -193,11 +187,19 @@ contains
     ! though that result is accurate: at 4.0d-3 the value is good to better than 1.0d-4, while at 1.0d-6 the integrator reports
     ! failure for some filters. The fixed tolerance below is therefore reliable, and more accurate than it appears.
     integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=4.0d-3)
+    ! Note that `Filter_Response_Function` allocates a new interpolator and returns a pointer to it, so a copy of that
+    ! interpolator is taken below and the original released. Holding the interpolator itself, rather than a pointer to it,
+    ! means that it is destroyed along with this object, and that a deep copy of this object is given an interpolator of its
+    ! own instead of sharing ours---the latter matters because an interpolator carries mutable state (a GSL accelerator, and a
+    ! cached bracket index) which must not be shared between threads. Both are handled automatically by the code generator for
+    ! a component of this type.
     do i=1,size(filterNames)
-       indexFilter                              =  Filter_Get_Index        (filterNames(i          ))
-       self%filterResponses (i  )%interpolator_ => Filter_Response_Function(            indexFilter )
-       self%wavelengthRanges(i,:)               =  Filter_Extent           (            indexFilter )
-       self%normalizationAB (i  )               =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2),status=errorStatus)
+       indexFilter                =  Filter_Get_Index        (filterNames(i          ))
+       filterResponse_            => Filter_Response_Function(            indexFilter )
+       self%filterResponses (i  ) =  filterResponse_
+       deallocate(filterResponse_)
+       self%wavelengthRanges(i,:) =  Filter_Extent           (            indexFilter )
+       self%normalizationAB (i  ) =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2),status=errorStatus)
        ! Passing `status` suppresses the GSL error handler, so the status is tested rather than discarded.
        if (errorStatus /= errorStatusSuccess)                                                                                           &
             & call Error_Report('integration of the AB zero point over filter "'//filterNames(i)//'" failed'//{introspection:location})
@@ -217,9 +219,9 @@ contains
       ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
       double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
 
-      integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolator_%interpolate(wavelength) &
-           &                        *luminosityZeroPointABSolar                                    &
-           &                        /                                                  wavelength
+      integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolate(wavelength) &
+           &                        *luminosityZeroPointABSolar                      &
+           &                        /                                    wavelength
       return
     end function integrandFilteredLuminosityAB
 
@@ -342,9 +344,9 @@ contains
       ! When computing an observed-frame luminosity from a rest-frame SED, the wavelength here is in the rest frame, and the
       ! filter response is evaluated at the corresponding observed wavelength, λ/a. The measure dλ/λ is unchanged by this
       ! transformation.
-      integrandFilteredLuminosity=+self%filterResponses(i)%interpolator_  %interpolate(wavelength/expansionFactor) &
-           &                      *                        interpolatorSED%interpolate(wavelength                ) &
-           &                      /                                                    wavelength
+      integrandFilteredLuminosity=+self%filterResponses(i)%interpolate(wavelength/expansionFactor) &
+           &                      *     interpolatorSED   %interpolate(wavelength                ) &
+           &                      /                                    wavelength
       if (separateRedshift)                                                                                            &
            & integrandFilteredLuminosity=+                            integrandFilteredLuminosity                      &
            &                             *self%nodePropertyExtractor_%multiplierRedshift         (wavelength,redshift)
