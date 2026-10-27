@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792896776801,
+  "lastUpdate": 1793133732132,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "b6e75bae3fddb09f16d78002d52dba2ef6fcfe94",
-          "message": "Merge pull request #908 from galacticusorg/fixPromptCuspRadii\n\nEnforce a limit on r₋₂ in prompt cusp calculations to ensure that a solution can be found",
-          "timestamp": "2025-08-28T14:37:45Z",
-          "tree_id": "a2c532610f3c2ec442c10ea4c5077bf9ddf93e0c",
-          "url": "https://github.com/galacticusorg/galacticus/commit/b6e75bae3fddb09f16d78002d52dba2ef6fcfe94"
-        },
-        "date": 1756417237833,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 50.906,
-            "unit": "seconds",
-            "range": 0.0654094794361797
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8808,6 +8778,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 14222.489600945582,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "abenson@obs.carnegiescience.edu",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "distinct": true,
+          "id": "255964b1351336044b381634e10bb9cbdc9cdbfd",
+          "message": "docs(excursion-sets): fix LaTeX typos in Brownian bridge first crossing formula\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-10-26T15:25:04-07:00",
+          "tree_id": "96d804e3282c1f1e38c3e58ddc81e2c1a2ee687e",
+          "url": "https://github.com/galacticusorg/galacticus/commit/255964b1351336044b381634e10bb9cbdc9cdbfd"
+        },
+        "date": 1793133725788,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 20.15,
+            "range": "0.047644516998286375",
+            "unit": "seconds"
           }
         ]
       }
