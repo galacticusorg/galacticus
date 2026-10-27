@@ -4,7 +4,7 @@
 <!-- with a subresolution merging timescale (so that orphans survive for several snapshots before merging), output at -->
 <!-- every snapshot, and the orbital position, velocity, and satellite status of each node output.                    -->
 <parameters>
-  <lastModified revision="7200e13f7816072f471f772fabade5fa4a5e78c9" time="2026-10-22T16:41:19"/>
+  <lastModified revision="255964b1351336044b381634e10bb9cbdc9cdbfd" time="2026-10-26T15:25:04"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -25,7 +25,6 @@
   </simulation>
   <!-- Power spectrum options -->
   <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.8147"/>
     <tolerance value="3.0e-4"/>
     <toleranceTopHat value="3.0e-4"/>
     <nonMonotonicIsFatal value="false"/>
@@ -44,6 +43,10 @@
     <running value="0.0000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8147"/>
+    <tolerance value="3.0e-4"/>
+  </powerSpectrumNormalizer>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>
