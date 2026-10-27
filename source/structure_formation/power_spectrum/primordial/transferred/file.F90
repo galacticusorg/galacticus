@@ -121,7 +121,10 @@
     The `power` dataset should tabulate the transferred power spectrum as a function of :math:`(z,k)` where :math:`z` is redshift and :math:`k` is wavenumber.
 
     The tabulated power spectrum is multiplied by a normalization determined by a :galacticus-class:`powerSpectrumNormalizerClass`
-    object. If the tabulated power spectrum is already normalized use a :galacticus-class:`powerSpectrumNormalizerIdentity`.
+    object. If the tabulated power spectrum is already normalized use a :galacticus-class:`powerSpectrumNormalizerIdentity`. If a
+    :galacticus-class:`powerSpectrumNormalizerAmplitudeScalar` is used, its ``[transferFunction]`` must be the transfer function
+    underlying the tabulated power spectrum, as that normalizer matches the tabulated power spectrum to the product of the
+    primordial power spectrum and the square of that transfer function at its pivot wavenumber.
     </description>
     <deepCopy>
       <ignore variables="powerSpectrumNormalizer_"/>

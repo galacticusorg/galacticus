@@ -50,6 +50,13 @@
    Since the unnormalized power spectrum is :math:`\propto k \mathcal{P}_\mathcal{R}(k) T^2(k)`, the normalization factor is
    found by matching the above expression to it at :math:`k_*`. Only the relative growth of perturbations,
    :math:`D(t)/D(t_0)`, is taken from the model's linear growth factor.
+
+   CLASS is run for a cosmological constant, so this normalizer can be used only with cosmologies in which the dark energy
+   equation of state is :math:`w=-1` (an error is reported otherwise).
+
+   If the unnormalized power spectrum is not the product of the primordial power spectrum and :math:`T^2(k)` (for example, a
+   tabulated power spectrum from :galacticus-class:`powerSpectrumPrimordialTransferredFile`), ``[transferFunction]`` must be
+   the transfer function underlying that power spectrum, as the matching at :math:`k_*` then depends on it.
    </description>
   </powerSpectrumNormalizer>
   !!]
@@ -157,13 +164,26 @@ contains
     Return the factor by which the given power spectrum must be multiplied to normalize it to the specified amplitude of the
     primordial scalar power spectrum.
     !!}
+    use :: Error                   , only : Error_Report
     use :: Interfaces_CLASS        , only : Interface_CLASS_Transfer_Function_Amplitude
     use :: Numerical_Constants_Math, only : Pi
+    use :: Numerical_Comparison    , only : Values_Differ
     implicit none
-    class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target :: self
-    procedure       (powerSpectrumNormalizerPowerUnnormalized)                        :: powerUnnormalized
-    double precision                                                                  :: amplitudeTransfer, timePresent
+    class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target       :: self
+    procedure       (powerSpectrumNormalizerPowerUnnormalized)                              :: powerUnnormalized
+    double precision                                          , parameter   , dimension(3) :: expansionFactorTest=[1.0d0,0.5d0,0.1d0]
+    double precision                                                                        :: amplitudeTransfer                     , timePresent
+    integer                                                                                 :: i
 
+    ! CLASS is run for a cosmological constant, so its large-scale transfer amplitude (which includes the growth of perturbations to
+    ! the present day) is valid only if the dark energy in the model is also a cosmological constant.
+    do i=1,size(expansionFactorTest)
+       if (Values_Differ(self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest(i)),-1.0d0,absTol=1.0d-6)) &
+            & call Error_Report(                                                                                                         &
+            &                   'normalization to A_s is supported only for a cosmological constant (w=-1) as CLASS is run for that case'// &
+            &                   {introspection:location}                                                                                  &
+            &                  )
+    end do
     amplitudeTransfer=Interface_CLASS_Transfer_Function_Amplitude(self%cosmologyParameters_)
     timePresent      =self%cosmologyFunctions_%cosmicTime(1.0d0)
     normalization    =+2.0d0                                           &

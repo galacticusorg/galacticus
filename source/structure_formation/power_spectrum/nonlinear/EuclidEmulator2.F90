@@ -337,7 +337,8 @@ contains
     parameterValue(7)=euclidEmulator2EquationOfStateA(self)
     ! Determine the amplitude of the primordial scalar power spectrum. Unless it was specified explicitly, invert the ratio
     ! σ₈²/A_s computed by CLASS - this is exact, as the linear power spectrum is directly proportional to A_s. CLASS is given the
-    ! spectral index of the model (which has no running), with A_s defined at the pivot wavenumber used by EuclidEmulator2.
+    ! spectral index of the model (which has no running), with A_s defined at the pivot wavenumber used by EuclidEmulator2, and
+    ! the CPL dark energy equation of state passed to EuclidEmulator2.
     if (self%amplitudeScalarIsSet) then
        parameterValue(8)=self%amplitudeScalar
     else
@@ -346,7 +347,9 @@ contains
             &                                                   self%cosmologyParameters_                          , &
             &                                                   indexSpectral       =parameterValue (4)            , &
             &                                                   indexSpectralRunning=0.0d0                         , &
-            &                                                   wavenumberPivot     =wavenumberPivot                 &
+            &                                                   wavenumberPivot     =wavenumberPivot               , &
+            &                                                   equationOfState0    =parameterValue (6)            , &
+            &                                                   equationOfStateA    =parameterValue (7)              &
             &                                                  )
     end if
     ! Validate that the cosmological parameters fall within the range over which EuclidEmulator2 is applicable. EuclidEmulator2

@@ -394,8 +394,8 @@ contains
          &            /wavenumberOffsetLogarithmic
     ! Determine the amplitude of the primordial scalar power spectrum. Unless it was specified explicitly, invert the ratio
     ! σ₈²/A_s computed by CLASS - this is exact, as the linear power spectrum is directly proportional to A_s. CLASS is given the
-    ! spectral index and its running at the pivot wavenumber, at which A_s is also defined. NGenHalofit expects the amplitude in
-    ! units of that of the fiducial Daemmerung cosmology.
+    ! spectral index and its running at the pivot wavenumber, at which A_s is also defined, and the CPL dark energy equation of
+    ! state passed to NGenHalofit. NGenHalofit expects the amplitude in units of that of the fiducial Daemmerung cosmology.
     if (self%amplitudeScalarIsSet) then
        parameterValue(7)=+self%amplitudeScalar         &
             &            /     amplitudeScalarFiducial
@@ -405,7 +405,9 @@ contains
             &                                                   self%cosmologyParameters_                          , &
             &                                                   indexSpectral       =parameterValue (6)            , &
             &                                                   indexSpectralRunning=parameterValue (8)            , &
-            &                                                   wavenumberPivot     =wavenumberPivot                 &
+            &                                                   wavenumberPivot     =wavenumberPivot               , &
+            &                                                   equationOfState0    =parameterValue (1)            , &
+            &                                                   equationOfStateA    =parameterValue (2)              &
             &                                                  )                                                     &
             &            /amplitudeScalarFiducial
     end if

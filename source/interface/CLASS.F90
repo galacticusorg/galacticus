@@ -748,11 +748,13 @@ contains
     return
   end function Interface_CLASS_Transfer_Function_Amplitude
 
-  double precision function Interface_CLASS_Normalization(cosmologyParameters_,indexSpectral,indexSpectralRunning,wavenumberPivot) result(normalization)
+  double precision function Interface_CLASS_Normalization(cosmologyParameters_,indexSpectral,indexSpectralRunning,wavenumberPivot,equationOfState0,equationOfStateA) result(normalization)
     !!{RST
     Run CLASS to compute the ratio :math:`\sigma_8^2/A_s` for a primordial power spectrum with the given spectral index,
     ``indexSpectral``, and running of that index, ``indexSpectralRunning``, both defined at the given pivot wavenumber,
-    ``wavenumberPivot`` (in units of Mpc\ :math:`^{-1}`), at which :math:`A_s` is also defined.
+    ``wavenumberPivot`` (in units of Mpc\ :math:`^{-1}`), at which :math:`A_s` is also defined, and for dark energy with an
+    equation of state of the form :math:`w(a)=w_0+w_a(1-a)` with :math:`w_0=`\ ``equationOfState0`` and :math:`w_a=`\
+    ``equationOfStateA``.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass
     use               :: Dependencies                    , only : dependencyVersion       , dependencyVersionLabel
@@ -771,7 +773,8 @@ contains
     implicit none
     class           (cosmologyParametersClass), intent(inout)                   :: cosmologyParameters_
     double precision                          , intent(in   )                   :: indexSpectral              , indexSpectralRunning, &
-         &                                                                         wavenumberPivot
+         &                                                                         wavenumberPivot            , equationOfState0    , &
+         &                                                                         equationOfStateA
     type            (lockDescriptor          )                                  :: fileLock
     type            (hdf5File                )                                  :: classOutput
     character       (len=32                  )                                  :: parameterLabel
@@ -792,6 +795,11 @@ contains
     call descriptor%addParameter("alpha_s",trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e24.16)') wavenumberPivot
     call descriptor%addParameter("k_pivot",trim(adjustl(parameterLabel)))
+    ! Add the dark energy equation of state parameters to the descriptor.
+    write (parameterLabel,'(e24.16)') equationOfState0
+    call descriptor%addParameter("w0_fld" ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e24.16)') equationOfStateA
+    call descriptor%addParameter("wa_fld" ,trim(adjustl(parameterLabel)))
     ! Add the unique label string to the descriptor.
     ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
     ! function when it is consumed directly by another function.
@@ -821,7 +829,7 @@ contains
        !$ call hdf5Access %unset        (                             )
     else
        ! Run CLASS to compute the normalization.
-       call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization,indexSpectral=indexSpectral,indexSpectralRunning=indexSpectralRunning,wavenumberPivot=wavenumberPivot)
+       call Interface_CLASS_Run(cosmologyParameters_,ratioSigma8SquaredAs=normalization,indexSpectral=indexSpectral,indexSpectralRunning=indexSpectralRunning,wavenumberPivot=wavenumberPivot,equationOfState0=equationOfState0,equationOfStateA=equationOfStateA)
        ! Construct the output HDF5 file.
        !$ call hdf5Access %set           (                              )
        hdf5WriteScope: block
@@ -836,7 +844,7 @@ contains
     return
   end function Interface_CLASS_Normalization
 
-  subroutine Interface_CLASS_Run(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions,perturbations,ratioSigma8SquaredAs,indexSpectral,indexSpectralRunning,wavenumberPivot)
+  subroutine Interface_CLASS_Run(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions,perturbations,ratioSigma8SquaredAs,indexSpectral,indexSpectralRunning,wavenumberPivot,equationOfState0,equationOfStateA)
     !!{RST
     Run CLASS and extract required information.
     !!}
@@ -864,8 +872,10 @@ contains
     double precision                          , intent(inout), optional, dimension(:,:,:), allocatable :: transferFunctions                , perturbations
     double precision                          , intent(  out), optional                                :: ratioSigma8SquaredAs
     double precision                          , intent(in   ), optional                                :: indexSpectral                    , indexSpectralRunning   , &
-         &                                                                                                wavenumberPivot
+         &                                                                                                wavenumberPivot                  , equationOfState0       , &
+         &                                                                                                equationOfStateA
     double precision                          , parameter                                              :: normalizationAs           =1.0d-9
+    double precision                          , parameter                                              :: toleranceEquationOfState  =1.0d-6
     integer         (c_size_t                ), allocatable            , dimension(:    )              :: redshiftRanks
     character       (len= 9                  ), allocatable            , dimension(:    )              :: redshiftLabels
     character       (len=255                 )                                                         :: hostName                         , classTransferLine
@@ -962,6 +972,17 @@ contains
     if (present(indexSpectral       )) write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'n_s             ',indexSpectral
     if (present(indexSpectralRunning)) write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'alpha_s         ',indexSpectralRunning
     if (present(wavenumberPivot     )) write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'k_pivot         ',wavenumberPivot
+    ! The dark energy equation of state. If not given, or if it is that of a cosmological constant (to within a tolerance, as w_a
+    ! may be found by finite difference), CLASS' default (a cosmological constant) is used. Otherwise, the dark energy is a fluid, with density fixed by the closure relation.
+    if (present(equationOfState0) .and. present(equationOfStateA)) then
+       if (abs(equationOfState0+1.0d0) > toleranceEquationOfState .or. abs(equationOfStateA) > toleranceEquationOfState) then
+          write (classParameterFile,'(a,1x,"=",1x,a     )') 'Omega_Lambda    ','0'
+          write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'w0_fld          ',equationOfState0
+          write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'wa_fld          ',equationOfStateA
+       end if
+    else if (present(equationOfState0) .or. present(equationOfStateA)) then
+       call Error_Report('both or neither of `equationOfState0` and `equationOfStateA` must be given'//{introspection:location})
+    end if
     write (classParameterFile,'(a,1x,"=",1x,i1   )') 'fourier_verbose ',1
     if (haveTransferFunctions .or. havePerturbations) then
        write        (classParameterFile,'(a,1x,"=",1x,e12.6)') 'P_k_max_1/Mpc      ',wavenumberCLASS
