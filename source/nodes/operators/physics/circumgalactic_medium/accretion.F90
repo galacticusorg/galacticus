@@ -575,7 +575,7 @@ contains
        ! Only accumulate the rate of change of unaccreted abundances if the hot halo component tracks them. (For a component that
        ! does not, setting a non-zero rate triggers an interrupt to create the component - which already exists, so evolution would
        ! never proceed.)
-       if (hotHalo%unaccretedAbundancesIsSettable())                                                  &
+       if (hotHalo%unaccretedAbundancesIsSettable())                                                           &
             & call hotHalo%unaccretedAbundancesRate(rateMetalsAccretionFailed    ,interrupt,functionInterrupt)
     end if
     if (self%countChemicals > 0) &
