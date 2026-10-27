@@ -572,7 +572,11 @@ contains
     end if
     if (rateMassAccretionFailed > 0.0d0 .or. hotHalo%unaccretedMass() > 0.0d0 .or. self%allowNegativeCGMMass) then
        call hotHalo%      unaccretedMassRate(rateMassAccretionFailed         ,interrupt,functionInterrupt)
-       call hotHalo%unaccretedAbundancesRate(rateMetalsAccretionFailed       ,interrupt,functionInterrupt)
+       ! Only accumulate the rate of change of unaccreted abundances if the hot halo component tracks them. (For a component that
+       ! does not, setting a non-zero rate triggers an interrupt to create the component - which already exists, so evolution would
+       ! never proceed.)
+       if (hotHalo%unaccretedAbundancesIsSettable())                                                  &
+            & call hotHalo%unaccretedAbundancesRate(rateMetalsAccretionFailed    ,interrupt,functionInterrupt)
     end if
     if (self%countChemicals > 0) &
          & call hotHalo%           chemicalsRate(rateChemicalsAccretionHot       ,interrupt,functionInterrupt)
