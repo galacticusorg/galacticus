@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Direct tests of the halo accretion mass/rate methods, with no merger-tree evolution or Cloudy calculation. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="255964b1351336044b381634e10bb9cbdc9cdbfd" time="2026-10-26T22:25:04"/>
+
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.0" />
+    <OmegaMatter     value="0.3"  />
+    <OmegaDarkEnergy value="0.7"  />
+    <OmegaBaryon     value="0.045"/>
+    <temperatureCMB  value="2.725"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType value="mean"/>
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <intergalacticMediumState value="metallicityFixed">
+    <!-- This parameter is in Solar units; the test expects a mass fraction of 0.1*metallicitySolar. -->
+    <metallicity value="0.1"/>
+    <intergalacticMediumState value="simple"/>
+  </intergalacticMediumState>
+  <accretionHaloTotal value="simple"/>
+  <accretionHalo value="simple">
+    <redshiftReionization value="9.97"/>
+    <!-- All of the test halo's gas is suppressed after reionization, but none before it. -->
+    <velocitySuppressionReionization value="1.0e6"/>
+    <accretionNegativeAllowed value="true"/>
+    <accretionNewGrowthOnly value="false"/>
+  </accretionHalo>
+
+  <componentBasic   value="standard"  />
+  <componentHotHalo value="verySimple"/>
+  <componentBlackHole         value="null"/>
+  <componentDisk              value="null"/>
+  <componentSpheroid          value="null"/>
+  <componentSatellite         value="null"/>
+  <componentSpin              value="null"/>
+  <componentDarkMatterProfile value="null"/>
+  <hotHaloMassDistribution value="null"/>
+  <mergerRemnantSize value="null"/>
+</parameters>

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+ Contributions to this file made by: Andrew Benson, Andrew Robertson, ChatGPT.
+
   !!{RST
   An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization.
   !!}
@@ -441,7 +443,7 @@ contains
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
     call simpleAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     simpleAccretedMassMetals=+     simpleAccretedMassMetals                     &
-         &                   *self%accretionRate           (node,accretionMode)
+         &                   *self%accretedMass            (node,accretionMode)
     return
   end function simpleAccretedMassMetals
 
@@ -487,7 +489,7 @@ contains
     metallicityIGM =  self%intergalacticMediumState_%metallicity(basic%time())
     call simpleFailedAccretedMassMetals%metallicitySet(metallicityIGM,metallicityTypeLinearByMass,adjustElementsReset,self%abundancePatternSolar)
     simpleFailedAccretedMassMetals=+     simpleFailedAccretedMassMetals                     &
-         &                         *self%accretionRate                 (node,accretionMode)
+         &                         *self%failedAccretedMass            (node,accretionMode)
     return
   end function simpleFailedAccretedMassMetals
   

@@ -1358,6 +1358,7 @@ jobs:
                       tests.gaunt_factors.exe,
                       tests.cooling_functions.exe,
                       tests.accretion_disks.exe,
+                      tests.accretion_halo_metals.exe,
                       tests.mass_accretion_history.Hearin2021.exe,
                       tests.mass_accretion_history.Hearin2021_stochastic.exe,
                       tests.dark_matter_profiles.exe,
