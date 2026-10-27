@@ -118,7 +118,7 @@ contains
       <source>parameters</source>
       <description>
       The minimum angle, in degrees, between any two filaments feeding a halo. Must be less than 90 degrees if
-      [countFilamentsMean] exceeds 2.
+      ``countFilamentsMean`` exceeds 2.
       </description>
     </inputParameter>
     !!]
