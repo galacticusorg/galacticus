@@ -12,7 +12,7 @@ task) and the outputs of the runs of a campaign over it, it:
 3. *trains* an emulator of each observable: the bins are standardized, compressed by principal components analysis
    (PCA), and one Gaussian process (GP) is fitted to each (standardized) principal component coefficient, using
    scikit-learn, with a Matérn-5/2 kernel with a separate length scale for each input, and the finite-sampling noise of
-   each run as heteroscedastic noise (optionally with a learned, homoscedastic, excess noise);
+   each run as heteroscedastic noise (by default with a learned, homoscedastic, excess noise);
 4. optionally *cross-validates* each emulator; and
 5. writes everything to an emulator file (see :mod:`Galacticus.Emulation.emulatorFile`).
 
@@ -304,14 +304,14 @@ def collect(design_file, observables, model_files=None, directory='.'):
 
 
 def fit_emulator(inputs, input_names, y, root_variance, pca_variance_retained=0.99, restarts=4, seed=0,
-                 length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=False):
+                 length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=True):
     """Fit an emulator to training data.
 
     ``inputs`` (N, d) are prior quantiles; ``y`` and ``root_variance`` (N, B) are the (transformed) training values and
     their uncertainties. Returns a :class:`Galacticus.Emulation.emulatorFile.Emulator`.
 
     ``length_scale_minimum`` is the lower bound on the length scales (in units of prior quantiles). If ``learn_noise`` is
-    true, each Gaussian process also fits a homoscedastic noise, in addition to the stated noise of each run, to allow for
+    true (the default), each Gaussian process also fits a homoscedastic noise, in addition to the stated noise of each run, to allow for
     scatter between runs in excess of their stated uncertainties (which would otherwise be fitted as structure, at short
     length scales). The learned noise is added to the stated noise in the ``noise_variance`` of the component (so that the
     emulator is evaluated exactly as fitted), and recorded as its ``noise_variance_learned``.
@@ -466,7 +466,7 @@ def _run_task(task):
 
 
 def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0, seed=0, store_cholesky=True, processes=1,
-          length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=False):
+          length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=True):
     """Train an emulator for each training set, optionally cross-validating it.
 
     Returns an :class:`Galacticus.Emulation.emulatorFile.EmulatorFile`, ready to be written. ``folds`` of zero disables

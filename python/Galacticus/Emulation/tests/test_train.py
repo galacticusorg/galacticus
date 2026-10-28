@@ -422,8 +422,8 @@ def test_learn_noise(tmp_path):
     from sklearn.gaussian_process.kernels import ConstantKernel, Matern
 
     inputs, y, rootVariance = _noisy_training_data()
-    stated = fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=2)
-    learned = fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=2, learn_noise=True)
+    stated = fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=2, learn_noise=False)
+    learned = fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=2)
     assert all(component.noise_variance_learned is None for component in stated.components)
     for componentStated, componentLearned in zip(stated.components, learned.components):
         assert componentLearned.noise_variance_learned > 0.0
@@ -453,13 +453,13 @@ def test_learn_noise(tmp_path):
     training_set = ef.TrainingSet(x=np.array([1.0, 2.0]), y=y, root_variance=rootVariance, mask=np.zeros_like(y, dtype=np.int8),
                                   point_index=np.arange(inputs.shape[0]), y_target=np.full(2, np.nan),
                                   covariance_target=np.full((2, 2), np.nan), y_raw=y, attributes={'transform': 'identity'})
-    content = train(design, {'f': training_set}, restarts=1, folds=4, learn_noise=True, length_scale_minimum=0.05)
+    content = train(design, {'f': training_set}, restarts=1, folds=4, length_scale_minimum=0.05)
     ef.write(tmp_path / 'emulator.hdf5', content)
     restored = ef.read(tmp_path / 'emulator.hdf5')
     assert restored.attributes['noiseLearned'] == 1 and restored.attributes['lengthScaleMinimum'] == 0.05
     for component, componentRestored in zip(content.emulators['f'].components, restored.emulators['f'].components):
         assert componentRestored.noise_variance_learned == component.noise_variance_learned
-    contentStated = train(design, {'f': training_set}, restarts=1, folds=4)
+    contentStated = train(design, {'f': training_set}, restarts=1, folds=4, learn_noise=False)
     ef.write(tmp_path / 'emulatorStated.hdf5', contentStated)
     assert all(component.noise_variance_learned is None for component in ef.read(tmp_path / 'emulatorStated.hdf5').emulators['f'].components)
     # Without the learned noise the scatter is fitted as structure, at short length scales; with it the length scales are

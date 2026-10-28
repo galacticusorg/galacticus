@@ -149,13 +149,14 @@ The stated finite-sampling uncertainty of a run may underestimate its true scatt
 in ways its own error estimate does not capture, or if the uncertainty of a principal component coefficient, propagated
 from the bins while ignoring their covariance, is underestimated. A Gaussian process then fits the excess scatter as
 structure, with short length scales, so that its predictions are noisy and its emulated likelihood is rough in the
-parameters. With ``noiseLearned`` set to ``true``, each Gaussian process also fits a noise variance, the same at every
-point, in addition to the stated noise. For a noisy observable this gives longer length scales and predictions closer to
+parameters. So, by default (``noiseLearned`` set to ``true``), each Gaussian process also fits a noise variance, the same
+at every point, in addition to the stated noise. For a noisy observable this gives longer length scales and predictions closer to
 the true function. A higher ``lengthScaleMinimum`` (such as 0.1) also suppresses the fitting of noise, but less
 effectively, and only when the true structure is not on such short scales. The learned variance is added to the
 ``noiseVariance`` of each component, so the emulator is evaluated exactly as it was fitted, and is recorded in the
 component's ``noiseVarianceLearned`` attribute. The predicted variance is that of the emulated function, and does not
-include the learned noise.
+include the learned noise. With ``noiseLearned`` set to ``false``, only the stated noise is used (as by GalacticEmu, so
+``galacticEmu.py configure`` sets this).
 
 With ``foldsCrossValidation`` greater than zero, each emulator is also cross-validated: it is refitted with each fold of
 the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator file,
