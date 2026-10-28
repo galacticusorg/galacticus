@@ -1415,7 +1415,8 @@ jobs:
                       tests.orbits.exe,
                       tests.debugging.exe,
                       tests.hashes.cryptographic.exe,
-                      tests.accretion_halo_isocurvature.exe ]
+                      tests.accretion_halo_isocurvature.exe,
+                      tests.accretion_halo_cold_mode_chemicals.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
       executable: ${{ matrix.executable }}
