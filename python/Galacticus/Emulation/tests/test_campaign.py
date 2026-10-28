@@ -285,7 +285,7 @@ def test_refresh_interrupted_slurm(workspace):
     # Without a list of live jobs, Slurm runs are not checked.
     campaign.refresh()
     assert campaign.summary() == {'submitted': 6}
-    # Tasks 0 and 1 are still listed (running or pending); the others have ended without writing a log (e.g. cancelled).
+    # Tasks 0 and 1 are still listed (running or pending); the others have ended without writing a log (e.g. canceled).
     campaign.refresh(live_jobs=cm._parse_job_list('500_0 500_[1]'))
     assert [run.status for run in campaign.runs] == ['submitted', 'submitted'] + ['failed'] * 4
     # A job not listed at all has ended.

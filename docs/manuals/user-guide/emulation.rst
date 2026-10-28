@@ -103,7 +103,7 @@ reports the reason for each failure, and ``resubmit`` submits the failed runs ag
 from Python, in ``Galacticus.Emulation.campaign``, for use from other pipelines.
 
 A run which was started but could not record its exit status is *interrupted*, and is treated as failed. This happens
-when a local ``run`` is killed, or when a SLURM job is cancelled or reaches its time limit. A local run records the host
+when a local ``run`` is killed, or when a SLURM job is canceled or reaches its time limit. A local run records the host
 and process ID of its Galacticus process, and is interrupted once that process has ended: so after a killed ``run``,
 running it again finishes the campaign, taking the runs it had not started and those it had interrupted. (Runs started
 on another host are left alone, since their processes cannot be checked from here.) ``status``, ``submit`` and
