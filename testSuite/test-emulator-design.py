@@ -31,7 +31,7 @@ import subprocess  # noqa: E402
 import lxml.etree as ET  # noqa: E402
 
 from Galacticus.Emulation.campaign import Campaign  # noqa: E402
-from Galacticus.Emulation.design import read_design  # noqa: E402
+from Galacticus.Emulation.design import pool_designs, prior_cumulative, read_design, split_design  # noqa: E402
 
 directory = 'testSuite/outputs/emulatorDesign'
 countPoints = 16
@@ -96,6 +96,20 @@ def main():
     errors = np.array(errors)
     check(np.max(errors) < 1.0e-8, f'quantiles agree with the prior distributions (maximum difference {np.max(errors):.1e})',
           f'quantiles disagree with the prior distributions (maximum difference {np.max(errors):.1e})')
+    # The Python implementation of the prior cumulative distributions (used to pool designs) agrees with Galacticus.
+    errors = np.array([np.max(np.abs(prior_cumulative(design.design.priors[j], values[:, j]) - quantiles[:, j])) for j in range(3)])
+    check(np.max(errors) < 1.0e-12, f'prior_cumulative() reproduces the quantiles of the design (maximum difference {np.max(errors):.1e})',
+          f'prior_cumulative() does not reproduce the quantiles of the design (maximum difference {np.max(errors):.1e})')
+    # Splitting the design into its even and odd points, then pooling the parts, recovers every point and its quantiles.
+    parts = split_design(design)
+    pooled = pool_designs(parts)
+    order = np.argsort(np.concatenate([np.arange(0, countPoints, 2), np.arange(1, countPoints, 2)]))
+    check(all(part.design.quantiles.shape[0] == countPoints // 2 for part in parts)
+          and np.array_equal(pooled.design.values[order], values)
+          and np.max(np.abs(pooled.design.quantiles[order] - quantiles)) < 1.0e-12
+          and sorted(pooled.runs['changeFileName']) == sorted(design.runs['changeFileName']),
+          'splitting and pooling the design recovers its points, quantiles and runs',
+          'splitting and pooling the design does not recover its points, quantiles and runs')
     bins = np.minimum((quantiles * countPoints).astype(int), countPoints - 1)
     check(all(len(set(bins[:, j])) == countPoints for j in range(3)), 'design is balanced', 'design is not balanced')
     # Change files set exactly the design's values.
