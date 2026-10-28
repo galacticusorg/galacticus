@@ -31,6 +31,14 @@
   <nodeOperator name="nodeOperatorSatelliteMergingTime" docformat="rst">
    <description>
    A node operator class that assigns a merging time to each satellite halo computed from the orbital parameters at virial infall using a :galacticus-class:`satelliteMergingTimescalesClass`, then triggers the merger when that time is reached. ``resetOnHaloFormation`` controls whether the virial orbital parameters (and hence merging time) are reset at halo formation events detected during tree traversal. Merging times of satellites already present when a tree is initialized are set during their host's tree initialization, so after any node operators listed before this one have initialized the host. Any filter applied to this operator is therefore tested on the host, not the satellite.
+
+   When a satellite moves to a new host (for example, when its own host becomes a satellite of a larger halo, or merges with
+   it), it keeps its virial orbit, except that its direction of infall, :math:`(\theta,\phi)`, is replaced by that of its former
+   host: of the chain of hosts containing the satellite, the one which is itself a satellite of the new host. The satellite
+   entered the new host together with its former host, and the orbit of the former host was drawn about the new host, so that
+   any alignment of infall with the new host (e.g. along its filaments, as in :galacticus-class:`virialOrbitFilamentary`)
+   applies to the satellite too, and satellites accreted in the same group share a direction of infall. If the orbit of the
+   former host has no direction of infall, that of the satellite is unchanged.
    </description>
   </nodeOperator>
   !!]
@@ -119,12 +127,13 @@ contains
     !!{RST
     Attach to various event hooks.
     !!}
-    use :: Events_Hooks, only : satelliteHostChangeEvent, haloFormationEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : satellitePreHostChangeEvent, satelliteHostChangeEvent, haloFormationEvent, openMPThreadBindingAtLevel
     implicit none
     class(nodeOperatorSatelliteMergingTime), intent(inout) :: self
     
-    call satelliteHostChangeEvent%attach(self,satelliteHostChange,openMPThreadBindingAtLevel,label='satelliteMergingTime')
-    call       haloFormationEvent%attach(self,haloFormation      ,openMPThreadBindingAtLevel,label='satelliteMergingTime')
+    call satellitePreHostChangeEvent%attach(self,satellitePreHostChange,openMPThreadBindingAtLevel,label='satelliteMergingTime')
+    call    satelliteHostChangeEvent%attach(self,satelliteHostChange   ,openMPThreadBindingAtLevel,label='satelliteMergingTime')
+    call          haloFormationEvent%attach(self,haloFormation         ,openMPThreadBindingAtLevel,label='satelliteMergingTime')
     return
   end subroutine satelliteMergingTimeAutoHook
 
@@ -132,7 +141,7 @@ contains
     !!{RST
     Destructor for the :galacticus-class:`nodeOperatorSatelliteMergingTime` node operator class.
     !!}
-    use :: Events_Hooks, only : satelliteHostChangeEvent, haloFormationEvent
+    use :: Events_Hooks, only : satellitePreHostChangeEvent, satelliteHostChangeEvent, haloFormationEvent
     implicit none
     type(nodeOperatorSatelliteMergingTime), intent(inout) :: self
 
@@ -140,8 +149,9 @@ contains
     <objectDestructor name="self%virialOrbit_"               />
     <objectDestructor name="self%satelliteMergingTimescales_"/>
     !!]
-    if (satelliteHostChangeEvent%isAttached(self,satelliteHostChange)) call satelliteHostChangeEvent%detach(self,satelliteHostChange)
-    if (      haloFormationEvent%isAttached(self,haloFormation      )) call       haloFormationEvent%detach(self,haloFormation      )
+    if (satellitePreHostChangeEvent%isAttached(self,satellitePreHostChange)) call satellitePreHostChangeEvent%detach(self,satellitePreHostChange)
+    if (   satelliteHostChangeEvent%isAttached(self,satelliteHostChange   )) call    satelliteHostChangeEvent%detach(self,satelliteHostChange   )
+    if (         haloFormationEvent%isAttached(self,haloFormation         )) call          haloFormationEvent%detach(self,haloFormation         )
     return
   end subroutine satelliteMergingTimeDestructor
 
@@ -185,6 +195,50 @@ contains
     return
   end subroutine satelliteMergingTimeNodesMerge
   
+  subroutine satellitePreHostChange(self,node,nodeHostNew)
+    !!{RST
+    Handle cases where a satellite is about to switch host node, by giving it the direction of infall of its former host.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite
+    use :: ISO_Varying_String, only : char
+    use :: Function_Classes  , only : functionClass
+    use :: Kepler_Orbits     , only : keplerOrbit           , keplerOrbitTheta, keplerOrbitPhi
+    implicit none
+    class(*                     ), intent(inout)         :: self
+    type (treeNode              ), intent(inout), target :: node         , nodeHostNew
+    type (treeNode              ), pointer               :: nodeHostFormer
+    class(nodeComponentSatellite), pointer               :: satellite    , satelliteHostFormer
+    type (keplerOrbit           )                        :: orbit        , orbitHostFormer
+
+    select type (self)
+    class is (nodeOperatorSatelliteMergingTime)
+       ! Find the former host which is itself a satellite of the new host.
+       nodeHostFormer => node%parent
+       do while (.not.associated(nodeHostFormer%parent,nodeHostNew))
+          nodeHostFormer => nodeHostFormer%parent
+          if (.not.associated(nodeHostFormer)) call Error_Report('new host is not an ancestor of the satellite'//{introspection:location})
+       end do
+       ! Get the orbits of the satellite and its former host. Nothing is done unless both exist, and the orbit of the former host
+       ! has a direction of infall.
+       satellite           => node          %satellite()
+       satelliteHostFormer => nodeHostFormer%satellite()
+       if (.not.(satellite%virialOrbitIsGettable().and.satellite%virialOrbitIsSettable().and.satelliteHostFormer%virialOrbitIsGettable())) return
+       orbit          =satellite          %virialOrbit()
+       orbitHostFormer=satelliteHostFormer%virialOrbit()
+       if (.not.(orbit%isDefined().and.orbitHostFormer%isSet(keplerOrbitTheta).and.orbitHostFormer%isSet(keplerOrbitPhi))) return
+       ! Give the satellite the direction of infall of its former host.
+       call orbit    %thetaSet      (orbitHostFormer%theta())
+       call orbit    %phiSet        (orbitHostFormer%phi  ())
+       call satellite%virialOrbitSet(orbit                  )
+    class is (functionClass)
+       call Error_Report('object is not of [nodeOperatorSatelliteMergingTime] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
+    class default
+       call Error_Report('object is not of [nodeOperatorSatelliteMergingTime] class'//{introspection:location})
+    end select
+    return
+  end subroutine satellitePreHostChange
+
   subroutine satelliteHostChange(self,node)
     !!{RST
     Handle cases where a satellite switches host node.

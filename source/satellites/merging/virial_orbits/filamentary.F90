@@ -47,6 +47,10 @@
    and :math:`\kappa` sets the angular width of each filament. The tangential velocity is oriented isotropically, so that the mean
    vector tangential velocity and the mean vector angular momentum both remain zero.
 
+   A satellite which moves to a new host (e.g. a satellite of a halo which itself becomes a satellite) is not assigned a new
+   orbit. Instead, :galacticus-class:`nodeOperatorSatelliteMergingTime` gives it the direction of infall of its former host,
+   with which it entered the new host, and which was drawn about the filaments of the new host.
+
    The fraction accreted along filaments depends on the mass of the host, :math:`M`, relative to the mass, :math:`M_*`, of
    halos just collapsing at the time of accretion, :math:`\sigma(M_*,t) = \delta_\mathrm{c}(t)`:
 

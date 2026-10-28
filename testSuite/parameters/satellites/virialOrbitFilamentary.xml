@@ -12,6 +12,7 @@
   <!-- Component selection -->
   <componentBasic             value="standard"/>
   <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="standard"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>
@@ -55,5 +56,8 @@
     <neutrinoMassSummed      value="0.000"/>
   </transferFunction>
   <cosmologicalMassVariance value="filteredPower"/>
+
+  <!-- Merging times, needed by the node operator which handles satellites moving to a new host. -->
+  <satelliteMergingTimescales value="infinite"/>
 
 </parameters>
