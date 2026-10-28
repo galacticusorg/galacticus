@@ -157,6 +157,7 @@ contains
     self%useLock                            =  .true.
     ! Set initialization state.
     self%initialized                        =  .false.
+    self%fileName                           =  ""
     self%massHalfModeAvailable              =  .false.
     self%massQuarterModeAvailable           =  .false.
     ! No reference transfer function is used.
@@ -200,25 +201,48 @@ contains
     implicit none
     class           (transferFunctionCLASSCDM), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
-    logical                                                   :: makeTransferFunction
+    logical                                                   :: makeTransferFunction, cacheUsed
+    integer                                                   :: useCache            , i
 
-    ! If the file has been read and the wavenumber is within range, simply return.
-    makeTransferFunction=.false.
-    if (self%initialized) then
-       if     (                                       &
-            &   wavenumber > exp(self%transfer%x(-1)) &
-            &  .and.                                  &
-            &   .not.self%wavenumberMaximumReached    &
-            & ) makeTransferFunction=.true.
-    else
-       makeTransferFunction=.true.
+    ! Check for a cached transfer function that we can reuse.
+    cacheUsed=.false.
+    if (.not.self%initialized) then
+       !$omp critical(transferFunctionFileCache)
+       useCache=0
+       if (countCache > 0) then
+          do i=1,countCache
+             if (cachedTransferFunctions(i)%hashedDescriptor == self%hashedDescriptor()) then
+                useCache=i
+                exit
+             end if
+          end do
+       end if
+       if (useCache /= 0 .and. wavenumber <= cachedTransferFunctions(useCache)%wavenumber(size(cachedTransferFunctions(useCache)%wavenumber))) then
+          ! We have a cached entry with sufficient extent, so "read" it.
+          call self%readFile(char(self%fileName),invalidateCache=.false.,lockCache=.false.)
+          cacheUsed=.true.
+       end if
+       !$omp end critical(transferFunctionFileCache)
     end if
-    if (.not.makeTransferFunction) return
-    ! Retrieve the transfer function.
-    call Interface_CLASS_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached,equationOfState0=self%equationOfState0,equationOfStateA=self%equationOfStateA)
-    ! Read the newly created file. Any cached copy of the transfer function is invalidated, as it may have been read from this
-    ! file before it was extended to larger wavenumbers.
-    call self%readFile(char(self%fileName),invalidateCache=.true.)
+    if (.not.cacheUsed) then
+       ! If the file has been read and the wavenumber is within range, simply return.
+       makeTransferFunction=.false.
+       if (self%initialized) then
+          if     (                                       &
+               &   wavenumber > exp(self%transfer%x(-1)) &
+               &  .and.                                  &
+               &   .not.self%wavenumberMaximumReached    &
+               & ) makeTransferFunction=.true.
+       else
+          makeTransferFunction=.true.
+       end if
+       if (.not.makeTransferFunction) return
+       ! Retrieve the transfer function.
+       call Interface_CLASS_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached,equationOfState0=self%equationOfState0,equationOfStateA=self%equationOfStateA)
+       ! Read the newly created file. Any cached copy of the transfer function is invalidated, as it may have been read from this
+       ! file before it was extended to larger wavenumbers.
+       call self%readFile(char(self%fileName),invalidateCache=.true.)
+    end if
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.
