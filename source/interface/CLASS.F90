@@ -30,7 +30,7 @@ module Interfaces_CLASS
   use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_CLASS_Initialize                 , Interface_CLASS_Perturbations, Interface_CLASS_Transfer_Function, Interface_CLASS_Normalization, &
-       &    Interface_CLASS_Transfer_Function_Amplitude
+       &    Interface_CLASS_Transfer_Function_Amplitude, Interface_CLASS_Dark_Energy
 
   ! Current file format version for transfer function files. Note that this file format matches that used by the "file" transfer
   ! function class.
@@ -38,6 +38,11 @@ module Interfaces_CLASS
 
   ! Default maximum wavenumber to tabulate.
   double precision                , parameter :: classLogWavenumberMaximumDefault=log(10.0d0)
+
+  ! Tolerance within which a CPL dark energy equation of state is treated as that of a cosmological constant (w_a may be found by
+  ! finite difference), and tolerance within which a dark energy equation of state must match the CPL form.
+  double precision                , parameter :: toleranceEquationOfStateLambda  =1.0d-6
+  double precision                , parameter :: toleranceEquationOfStateCPL     =1.0d-3
 
   !![
   <enumeration docformat="rst">
@@ -402,9 +407,64 @@ contains
     return
   end subroutine Interface_CLASS_Perturbations
 
-  subroutine Interface_CLASS_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
+  subroutine Interface_CLASS_Dark_Energy(cosmologyFunctions_,equationOfState0,equationOfStateA)
     !!{RST
-    Run CLASS as necessary to compute transfer functions.
+    Find the parameters, :math:`w_0` and :math:`w_a`, of the CPL form, :math:`w(a)=w_0+w_a(1-a)`, of the dark energy equation of
+    state (the form supported by CLASS) which match the equation of state of the given ``cosmologyFunctions_`` object. These are
+    found from the equation of state, and its derivative, at the present epoch, and an error is reported if the equation of state
+    does not then follow the CPL form at earlier epochs.
+    !!}
+    use :: Cosmology_Functions , only : cosmologyFunctionsClass
+    use :: Error               , only : Error_Report
+    use :: Numerical_Comparison, only : Values_Differ
+    implicit none
+    class           (cosmologyFunctionsClass), intent(inout)               :: cosmologyFunctions_
+    double precision                         , intent(  out)               :: equationOfState0          , equationOfStateA
+    double precision                         , parameter                   :: expansionFactorOffset=1.0d-3
+    double precision                         , parameter    , dimension(2) :: expansionFactorTest  =[0.5d0,0.1d0]
+    integer                                                                :: i
+
+    equationOfState0=+cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0                      )
+    equationOfStateA=-(                                                                                          &
+         &             +cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0                      ) &
+         &             -cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0-expansionFactorOffset) &
+         &            )                                                                                          &
+         &           /expansionFactorOffset
+    do i=1,size(expansionFactorTest)
+       if     (                                                                                                              &
+            &  Values_Differ(                                                                                                &
+            &                cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest(i))         , &
+            &                equationOfState0+equationOfStateA*(1.0d0-expansionFactorTest(i))                              , &
+            &                absTol=toleranceEquationOfStateCPL                                                              &
+            &               )                                                                                                &
+            & )                                                                                                              &
+            & call Error_Report(                                                                                             &
+            &                   'CLASS supports only dark energy equations of state of the CPL form, w(a)=w₀+wₐ(1-a)'     // &
+            &                   {introspection:location}                                                                     &
+            &                  )
+    end do
+    return
+  end subroutine Interface_CLASS_Dark_Energy
+
+  logical function classDarkEnergyIsLambda(equationOfState0,equationOfStateA)
+    !!{RST
+    Return true if the CPL dark energy equation of state with the given parameters is that of a cosmological constant (to within a
+    tolerance).
+    !!}
+    implicit none
+    double precision, intent(in   ) :: equationOfState0, equationOfStateA
+
+    classDarkEnergyIsLambda= abs(equationOfState0+1.0d0) <= toleranceEquationOfStateLambda &
+         &                  .and.                                                         &
+         &                   abs(equationOfStateA      ) <= toleranceEquationOfStateLambda
+    return
+  end function classDarkEnergyIsLambda
+
+  subroutine Interface_CLASS_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons,equationOfState0,equationOfStateA)
+    !!{RST
+    Run CLASS as necessary to compute transfer functions. If given, ``equationOfState0`` and ``equationOfStateA`` are the parameters,
+    :math:`w_0` and :math:`w_a`, of a CPL dark energy equation of state, :math:`w(a)=w_0+w_a(1-a)` (see
+    ``Interface_CLASS_Dark_Energy``); otherwise the dark energy is a cosmological constant.
     !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: Dependencies                    , only : dependencyVersion           , dependencyVersionLabel
@@ -436,6 +496,7 @@ contains
     type            (varying_string          ), intent(  out), optional         :: fileName
     type            (table1DGeneric          ), intent(  out), optional         :: transferFunctionDarkMatter              , transferFunctionBaryons
     logical                                   , intent(inout), optional         :: wavenumberMaximumReached
+    double precision                          , intent(in   ), optional         :: equationOfState0                        , equationOfStateA
     double precision                          , allocatable  , dimension(:    ) :: wavenumbers                             , wavenumbersLogarithmic      , &
          &                                                                         transferFunctionLogarithmic             , redshiftsCombined
     double precision                          , allocatable  , dimension(:,:,:) :: transferFunctions
@@ -475,6 +536,18 @@ contains
     ! Add wavenumber resolution to descriptor.
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
+    ! Add the dark energy equation of state to the descriptor. This is done only if it is not a cosmological constant, so that the
+    ! descriptor is unchanged in that (default) case.
+    if (present(equationOfState0) .neqv. present(equationOfStateA)) &
+         & call Error_Report('both or neither of `equationOfState0` and `equationOfStateA` must be given'//{introspection:location})
+    if (present(equationOfState0)) then
+       if (.not.classDarkEnergyIsLambda(equationOfState0,equationOfStateA)) then
+          write (parameterLabel,'(e24.16)') equationOfState0
+          call descriptor%addParameter("w0_fld",trim(adjustl(parameterLabel)))
+          write (parameterLabel,'(e24.16)') equationOfStateA
+          call descriptor%addParameter("wa_fld",trim(adjustl(parameterLabel)))
+       end if
+    end if
     ! Add the unique label string to the descriptor.
     ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
     ! function when it is consumed directly by another function.
@@ -569,7 +642,7 @@ contains
           end if
        end do
        ! Run CLASS to get transfer functions.
-       call Interface_CLASS_Run(cosmologyParameters_,redshiftsCombined,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions)
+       call Interface_CLASS_Run(cosmologyParameters_,redshiftsCombined,wavenumberRequired,wavenumberMaximum,countPerDecade,wavenumberMaximumReached,wavenumbers,transferFunctions,equationOfState0=equationOfState0,equationOfStateA=equationOfStateA)
        ! Construct the output HDF5 file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
@@ -661,7 +734,7 @@ contains
     return
   end subroutine Interface_CLASS_Transfer_Function
 
-  double precision function Interface_CLASS_Transfer_Function_Amplitude(cosmologyParameters_) result(amplitude)
+  double precision function Interface_CLASS_Transfer_Function_Amplitude(cosmologyParameters_,equationOfState0,equationOfStateA) result(amplitude)
     !!{RST
     Return the large-scale amplitude of the CLASS matter transfer function at the present day,
 
@@ -684,6 +757,9 @@ contains
     normalized such that :math:`D \rightarrow a` in the matter-dominated era, as computed by CLASS (including the effects of
     radiation and neutrinos).
 
+    If given, ``equationOfState0`` and ``equationOfStateA`` are the parameters of a CPL dark energy equation of state (as for
+    ``Interface_CLASS_Transfer_Function``); otherwise the dark energy is a cosmological constant.
+
     It is taken from the matter (dark matter and baryon) transfer function at the smallest wavenumber tabulated by CLASS, after
     removing the factor :math:`1-3K/k^2` which, in a curved universe, arises from the curvature term in the Poisson equation (as
     for :galacticus-class:`transferFunctionFile`).
@@ -697,6 +773,7 @@ contains
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     class           (cosmologyParametersClass), intent(inout)               :: cosmologyParameters_
+    double precision                          , intent(in   ), optional     :: equationOfState0    , equationOfStateA
     double precision                          , allocatable  , dimension(:) :: wavenumbers         , transferDarkMatter, &
          &                                                                     transferBaryons
     type            (varying_string          )                              :: fileName
@@ -708,7 +785,7 @@ contains
     ! Ensure that the present day transfer functions exist. Only the large-scale limit is needed, so the smallest range of
     ! wavenumbers that CLASS computes by default is requested. The maximum wavenumber is not limited, so that the file (which is
     ! shared with the CLASS transfer function class) is the same as that class would create.
-    call Interface_CLASS_Transfer_Function(cosmologyParameters_,[0.0d0],1.0d0,huge(0.0d0),fileName=fileName)
+    call Interface_CLASS_Transfer_Function(cosmologyParameters_,[0.0d0],1.0d0,huge(0.0d0),fileName=fileName,equationOfState0=equationOfState0,equationOfStateA=equationOfStateA)
     ! Read the transfer functions directly. (They are not read into tables, as those store logarithms, and the baryon transfer
     ! function can be negative at large wavenumbers.)
     ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
@@ -875,7 +952,6 @@ contains
          &                                                                                                wavenumberPivot                  , equationOfState0     , &
          &                                                                                                equationOfStateA
     double precision                          , parameter                                              :: normalizationAs           =1.0d-9
-    double precision                          , parameter                                              :: toleranceEquationOfState  =1.0d-6
     integer         (c_size_t                ), allocatable            , dimension(:    )              :: redshiftRanks
     character       (len= 9                  ), allocatable            , dimension(:    )              :: redshiftLabels
     character       (len=255                 )                                                         :: hostName                         , classTransferLine
@@ -975,7 +1051,7 @@ contains
     ! The dark energy equation of state. If not given, or if it is that of a cosmological constant (to within a tolerance, as w_a
     ! may be found by finite difference), CLASS' default (a cosmological constant) is used. Otherwise, the dark energy is a fluid, with density fixed by the closure relation.
     if (present(equationOfState0) .and. present(equationOfStateA)) then
-       if (abs(equationOfState0+1.0d0) > toleranceEquationOfState .or. abs(equationOfStateA) > toleranceEquationOfState) then
+       if (.not.classDarkEnergyIsLambda(equationOfState0,equationOfStateA)) then
           write (classParameterFile,'(a,1x,"=",1x,a      )') 'Omega_Lambda    ','0'
           write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'w0_fld          ',equationOfState0
           write (classParameterFile,'(a,1x,"=",1x,es24.16)') 'wa_fld          ',equationOfStateA
