@@ -1283,6 +1283,7 @@ jobs:
                       tests.survey_geometry_martin2010_alfalfa.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
+                      tests.mass_distributions.exponential_disk_tidal.exe,
                       tests.kinematic_distributions.NFW.exe,
                       tests.kinematic_distributions.velocity_dispersion_gradient.exe,
                       tests.prompt_cusps.exe,
