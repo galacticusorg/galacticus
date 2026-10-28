@@ -21,7 +21,7 @@
 
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
   !!{RST
-  Tests linear growth calculations.
+  Tests spherical collapse calculations in universes containing baryons and dark matter.
   !!}
   use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda

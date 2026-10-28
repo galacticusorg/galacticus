@@ -52,7 +52,7 @@ def _parse_args():
                              'mass errors: "hinkley" (exact ratio-of-normals) or "normal" (linearized '
                              'Gaussian approximation) (default: hinkley)')
     args = parser.parse_args()
-    # Normalise paths to end with '/'.
+    # Normalize paths to end with '/'.
     for key in ('pipelinePath', 'outputDirectory'):
         val = getattr(args, key)
         if val and not val.endswith('/'):

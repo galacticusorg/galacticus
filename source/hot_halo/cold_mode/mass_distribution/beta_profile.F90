@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-An implementation of the hot halo mass distribution class for :math:`\beta`-profile distributions.
+An implementation of the hot halo cold mode mass distribution class for :math:`\beta`-profile distributions.
 !!}
 
   use :: Hot_Halo_Cold_Mode_Density_Core_Radii, only : hotHaloColdModeCoreRadiiClass

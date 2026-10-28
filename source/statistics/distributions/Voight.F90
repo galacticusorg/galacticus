@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implementation of a peak-background split density 1D distribution function.
+  Implementation of a Voigt profile 1D distribution function.
   !!}
 
   !![

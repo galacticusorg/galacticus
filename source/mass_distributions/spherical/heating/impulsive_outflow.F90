@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a mass distribution heating class that computes heating due to two-body relaxation.
+  Implements a mass distribution heating class that computes heating due to impulsive outflows.
   !!}
 
   !![
