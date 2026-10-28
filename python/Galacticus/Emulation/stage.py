@@ -165,8 +165,10 @@ class Stage:
         made pending. Runs which failed stay failed (and are left out of training) unless ``retry_failed``, when they are
         made pending, and the emulators of their components are set aside (renamed ``<emulator>.previous``) for retraining.
         An emulator whose training was claimed but did not complete (possibly written by a killed training) is removed.
+        The record of a model process started by an earlier worker and still running (a local worker's model runs outlive
+        it if it is killed) is kept, so that no worker starts that run again until the process has ended.
         """
-        summary = {'runs': 0, 'seconds': 0.0, 'failed': [], 'trainings': 0}
+        summary = {'runs': 0, 'seconds': 0.0, 'failed': [], 'trainings': 0, 'orphaned': 0}
         for component in self.components:
             state = self.state(component)
             if os.path.isdir(state):
@@ -176,8 +178,12 @@ class Stage:
                     if claimed and not complete and os.path.exists(training.emulator):
                         os.remove(training.emulator)
                 for name in os.listdir(state):
+                    if name.endswith('.process') and _process_alive(os.path.join(state, name)):
+                        summary['orphaned'] += 1
+                        continue
                     os.remove(os.path.join(state, name))
-                os.rmdir(state)
+                if not os.listdir(state):
+                    os.rmdir(state)
             campaign = self.campaign(component)
             for run in campaign.runs:
                 if run.status != COMPLETE and os.path.exists(campaign.path(run.log_file)):
@@ -300,7 +306,7 @@ class Stage:
                     log(f'{component.name}: training {item.name} {outcome}')
             # The live jobs are needed only to take over the claims of ended jobs: refresh them at most every five minutes.
             if time.time() - liveTime > 300.0:
-                live, liveTime = slurm_live_jobs() if 'SLURM_JOB_ID' in os.environ else None, time.time()
+                live, liveTime = _live_jobs(), time.time()
             # Training first.
             waiting = False
             for component, training in trainable():
@@ -335,7 +341,7 @@ class Stage:
                 continue
             # Nothing of this worker's is running, and no unclaimed run is left. Take over the runs of workers which have
             # ended, if any; then any training which can be started; otherwise stop.
-            live, liveTime = slurm_live_jobs() if 'SLURM_JOB_ID' in os.environ else None, time.time()
+            live, liveTime = _live_jobs(), time.time()
             stale = [(component, run) for component, run in deferred
                      if not self.run_ended(component, run.index) and _claimable(self.state(component, f'run{run.index:06d}.claim'), live)
                      and not _process_alive(self.state(component, f'run{run.index:06d}.process'))]
@@ -375,6 +381,18 @@ def time_left():
         return None
     days, hours, minutes, seconds = (int(value) if value else 0 for value in match.groups())
     return ((days * 24 + hours) * 60 + minutes) * 60 + seconds
+
+
+def _live_jobs():
+    """The live Slurm jobs (see :func:`slurm_live_jobs`), or None if they are unknown: outside Slurm, if Slurm can not be
+    queried, or if the listing omits this worker's own job (which is running, so the listing can not be trusted, and
+    taking it as complete would make every other worker look ended)."""
+    if 'SLURM_JOB_ID' not in os.environ:
+        return None
+    live = slurm_live_jobs()
+    if live is None or owner_identity().split(':')[0] not in live:
+        return None
+    return live
 
 
 def _holder_ended(holder, live):

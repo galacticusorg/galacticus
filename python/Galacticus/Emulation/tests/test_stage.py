@@ -207,3 +207,38 @@ def test_holder_ended():
     assert not sg._holder_ended(f'local:{host}:{os.getpid()}', None)
     assert not sg._holder_ended(f'local:another-host:{process.pid}', None)
     assert not sg._holder_ended('malformed', set())
+
+
+def test_plan_keeps_orphans(workspace):
+    import socket
+    root, executable = workspace
+    components = [_component(root, 'first', executable)]
+    stage = sg.Stage.create(str(root / 'stage.json'), components)
+    os.makedirs(stage.state(components[0]))
+    # Records of model processes left by killed workers: one still running (this process), one ended.
+    ended = subprocess.Popen([sys.executable, '-c', 'pass'])
+    ended.wait()
+    for index, pid in ((0, os.getpid()), (1, ended.pid)):
+        sg._write(stage.state(components[0], f'run{index:06d}.process'), f'{socket.gethostname()}:{pid}')
+        os.symlink(f'local:{socket.gethostname()}:{pid}', stage.state(components[0], f'run{index:06d}.claim'))
+    # Planning clears the queue, but keeps the record of the process still running, so that no worker starts its run.
+    summary = stage.plan()
+    assert summary['orphaned'] == 1 and summary['runs'] == COUNT_POINTS
+    assert sorted(os.listdir(stage.state(components[0]))) == ['run000000.process']
+    messages, log = _messages()
+    stage.work(slots=2, log=log)
+    assert not stage.run_ended(components[0], 0)
+    assert all(stage.run_ended(components[0], index) for index in range(1, COUNT_POINTS))
+
+
+def test_live_jobs(monkeypatch):
+    # A listing of the live jobs is trusted only if it includes this worker's own job.
+    monkeypatch.setenv('SLURM_JOB_ID', '200')
+    monkeypatch.setenv('SLURM_ARRAY_JOB_ID', '123')
+    monkeypatch.setenv('SLURM_ARRAY_TASK_ID', '4')
+    for listing, expected in ((set(), None), ({'123', '123_5'}, None), (None, None), ({'123', '123_4', '99'}, {'123', '123_4', '99'})):
+        monkeypatch.setattr(sg, 'slurm_live_jobs', lambda listing=listing: listing)
+        assert sg._live_jobs() == expected
+    monkeypatch.delenv('SLURM_JOB_ID')
+    monkeypatch.setattr(sg, 'slurm_live_jobs', lambda: {'1'})
+    assert sg._live_jobs() is None

@@ -32,6 +32,8 @@ def _plan(stage, retry_failed):
     summary = stage.plan(retry_failed=retry_failed)
     for component, index, message in summary['failed']:
         print(f'{component} run {index} failed (left out of training; --retryFailed to run it again): {message}')
+    if summary['orphaned'] > 0:
+        print(f"{summary['orphaned']} model runs started by an earlier worker are still running: no worker will start them again until they end")
     hours = summary['seconds'] / 3600.0
     print(f"remaining: {summary['runs']} model runs" + (f' (about {hours:.1f} CPU-hours)' if hours > 0.0 else '')
           + f", {summary['trainings']} emulators to train")
