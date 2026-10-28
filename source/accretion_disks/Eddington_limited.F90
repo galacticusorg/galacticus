@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an Eddington-limited accretion disk.
   !!}
@@ -25,6 +27,10 @@
   <accretionDisks name="accretionDisksEddingtonLimited" docformat="rst">
    <description>
    A circumnuclear accretion disk class in which accretion is always Eddington-limited. This class does not assume any physical model for the accretion disk, but merely assumes that jets are powered at a fixed fraction ``[efficiencyJet]`` of the Eddington luminosity. The radiative efficiency is similarly set at a fixed value of ``[efficiencyRadiation]``. Since no physical model for the disk is assumed, the black hole spin up rate is always set to zero.
+
+   Below an accretion rate of :math:`0.01\,\mathrm{[efficiencyJet]}\,\dot{M}_\mathrm{Edd}`, where :math:`\dot{M}_\mathrm{Edd}=L_\mathrm{Edd}/\mathrm{c}^2`, the jet power is tapered smoothly to zero, in proportion to :math:`3x^2-2x^3`, where :math:`x` is the accretion rate in units of that threshold.
+
+   Because the jet power is a fixed fraction of the Eddington luminosity, rather than of the accretion power :math:`\dot{M}\mathrm{c}^2`, the jet efficiency, :math:`\epsilon_\mathrm{jet}=\mathrm{[efficiencyJet]}\,\dot{M}_\mathrm{Edd}/\dot{M}` above the taper, exceeds unity at low accretion rates. A black hole grows at a rate :math:`\dot{M}(1-\epsilon_\mathrm{rad}-\epsilon_\mathrm{jet})`, so whenever :math:`\epsilon_\mathrm{rad}+\epsilon_\mathrm{jet}` exceeds unity the black hole *loses* mass while it accretes. With the default parameters this happens for :math:`3\times 10^{-6} \lesssim \dot{M}/\dot{M}_\mathrm{Edd} \lesssim 0.11`, with :math:`\epsilon_\mathrm{jet}` peaking at 112.5, within the taper (at :math:`x=3/4`). As this class has no model for black hole spin, the energy carried by the jet is not drawn from the spin of the black hole, but from its mass.
    </description>
   </accretionDisks>
   !!]
@@ -75,7 +81,7 @@ contains
       <source>parameters</source>
       <defaultValue>0.1d0</defaultValue>
       <description>
-      The jet efficiency of the Eddington-limited accretion disk, defined as the fraction of the accreted rest-mass energy :math:`\dot{M}\mathrm{c}^2` that is channeled into a relativistic jet outflow.
+      The jet efficiency of the Eddington-limited accretion disk, defined as the fraction of the Eddington luminosity, :math:`L_\mathrm{Edd}`, that is channeled into a relativistic jet outflow. Since this is not a fraction of the accreted rest-mass energy :math:`\dot{M}\mathrm{c}^2`, black holes lose mass while accreting at low rates (see the description of the :galacticus-class:`accretionDisksEddingtonLimited` class).
       </description>
     </inputParameter>
     !!]

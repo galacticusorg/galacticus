@@ -88,6 +88,15 @@ interstellar = root.findall("kinematicsDistributionInterstellarMedium")
 if len(interstellar) != 1 or interstellar[0].get("value") != "local":
     print("FAILED: missing 'kinematicsDistributionInterstellarMedium' set to 'local'")
     failures += 1
+# The removed `relativePosition` ram pressure force must have become `orbitalPosition`, without the hot halo mass distribution
+# which `orbitalPosition` does not accept.
+force = root.findall("hotHaloRamPressureForce")
+if len(force) != 1 or force[0].get("value") != "orbitalPosition":
+    print("FAILED: 'hotHaloRamPressureForce' not migrated from 'relativePosition' to 'orbitalPosition'")
+    failures += 1
+elif force[0].find("hotHaloMassDistribution") is not None:
+    print("FAILED: unremoved parameter 'hotHaloMassDistribution' in 'hotHaloRamPressureForce'")
+    failures += 1
 
 if failures == 0:
     print("SUCCESS: migrated parameter file has the expected content")

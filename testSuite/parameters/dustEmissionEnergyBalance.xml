@@ -1,6 +1,6 @@
 <!-- Default parameters for Galacticus v0.9.4 --><!-- 30-October-2011                          --><parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
 
   <!-- Component selection -->
@@ -48,9 +48,10 @@
     <running value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>
@@ -175,19 +176,11 @@
   </blackHoleCGMHeating>
 
   <!-- Accretion disk properties -->
-  <accretionDisks value="switched">
-    <accretionRateThinDiskMaximum value="0.30"/>
-    <accretionRateThinDiskMinimum value="0.01"/>
-    <scaleADAFRadiativeEfficiency value="true"/>
-    <accretionDisksShakuraSunyaev value="shakuraSunyaev"/>
-    <accretionDisksADAF value="ADAF">
-      <efficiencyRadiationType value="thinDisk"/>
-      <adiabaticIndex value="1.444"/>
-      <energyOption value="pureADAF"/>
-      <efficiencyRadiation value="0.01"/>
-      <viscosityOption value="fit"/>
-    </accretionDisksADAF>
-  </accretionDisks>
+  <!-- All accretion disks are thin, so that every AGN emits a spectrum (that of a thin disk, below) which tori can attenuate. -->
+  <accretionDisks value="shakuraSunyaev"/>
+  <!-- The spectrum of the accretion disk alone: the default spectrum includes the emission of the dusty torus, and so can
+       not be attenuated by a model of the torus. -->
+  <accretionDiskSpectra value="thinDisk"/>
 
   <!-- Black hole options -->
   <blackHoleAccretionRate value="standard">

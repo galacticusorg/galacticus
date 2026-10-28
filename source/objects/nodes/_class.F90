@@ -702,6 +702,47 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Get_Isolated_Parent
 
+  function Tree_Node_Get_Host_Contemporaneous(self) result (nodeHost)
+    !!{RST
+    Returns a pointer to the host of satellite node ``self`` at the time closest to that of ``self``. Satellites can evolve
+    ahead of their hosts, so the descendants of the immediate host (i.e. ``self%parent``) are searched to find that which
+    is closest in time to ``self``.
+    !!}
+    implicit none
+    class           (treeNode          ), intent(inout), target  :: self
+    type            (treeNode          )               , pointer :: nodeHost
+    type            (treeNode          )               , pointer :: nodeHostPrevious, nodeHostCurrent
+    class           (nodeComponentBasic)               , pointer :: basicPrevious   , basicCurrent
+    double precision                                             :: time
+
+    basicCurrent     => self            %basic ()
+    time             =  basicCurrent    %time  ()
+    nodeHostPrevious => self            %parent
+    nodeHostCurrent  => self            %parent
+    basicCurrent     => nodeHostCurrent %basic ()
+    basicPrevious    => basicCurrent
+    do while (associated(nodeHostCurrent))
+       if (basicCurrent%time() > time) exit
+       nodeHostPrevious    => nodeHostCurrent
+       nodeHostCurrent     => nodeHostCurrent%parent
+       basicPrevious       => basicCurrent
+       if (associated(nodeHostCurrent))                &
+            & basicCurrent => nodeHostCurrent%basic ()
+    end do
+    if     (                                  &
+         &    abs(basicPrevious%time()-time)  &
+         &   <                                &
+         &    abs(basicCurrent %time()-time)  &
+         &  .or.                              &
+         &   .not.associated(nodeHostCurrent) &
+         & ) then
+       nodeHost => nodeHostPrevious
+    else
+       nodeHost => nodeHostCurrent
+    end if
+    return
+  end function Tree_Node_Get_Host_Contemporaneous
+
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
     !!{RST
     Returns a pointer to the final satellite node associated with ``self``.

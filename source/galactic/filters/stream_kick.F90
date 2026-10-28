@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Paul Menker
+!+    Contributions to this file made by: Paul Menker, Claude.
   
 !!{RST
 Implements a filter for subhalos that could impact a stream during the timestep.
@@ -112,6 +112,10 @@ contains
     <constructorAssign variables="radiusOrbitalStream, speedOrbitalStream, cutoffVelocityKick, *outputTimes_"/>
     !!]
     
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function streamKickConstructorInternal
 

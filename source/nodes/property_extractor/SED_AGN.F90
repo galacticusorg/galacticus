@@ -47,23 +47,25 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Return an array of the wavelengths at which the SED is computed." method="wavelengths"/>
-       <method description="Return true if the SED is computed in the rest frame."            method="isRestFrame"/>
+       <method description="Return an array of the wavelengths at which the SED is computed." method="wavelengths"          />
+       <method description="Return true if the SED is computed in the rest frame."            method="isRestFrame"          />
+       <method description="Return true if the SED includes the emission of the dusty torus." method="includesTorusEmission"/>
      </methods>
      !!]
-     final     ::                        sedAGNDestructor
-     procedure :: wavelengths         => sedAGNWavelengths
-     procedure :: columnDescriptions  => sedAGNColumnDescriptions
-     procedure :: size                => sedAGNSize
-     procedure :: elementCount        => sedAGNElementCount
-     procedure :: extract             => sedAGNExtract
-     procedure :: names               => sedAGNNames
-     procedure :: descriptions        => sedAGNDescriptions
-     procedure :: unitsInSI           => sedAGNUnitsInSI
-     procedure :: units               => sedAGNUnits
-     procedure :: isRestFrame         => sedAGNIsRestFrame
-     procedure :: supportsAttenuation => sedAGNSupportsAttenuation
-     procedure :: decompose           => sedAGNDecompose
+     final     ::                          sedAGNDestructor
+     procedure :: wavelengths           => sedAGNWavelengths
+     procedure :: columnDescriptions    => sedAGNColumnDescriptions
+     procedure :: size                  => sedAGNSize
+     procedure :: elementCount          => sedAGNElementCount
+     procedure :: extract               => sedAGNExtract
+     procedure :: names                 => sedAGNNames
+     procedure :: descriptions          => sedAGNDescriptions
+     procedure :: unitsInSI             => sedAGNUnitsInSI
+     procedure :: units                 => sedAGNUnits
+     procedure :: isRestFrame           => sedAGNIsRestFrame
+     procedure :: supportsAttenuation   => sedAGNSupportsAttenuation
+     procedure :: includesTorusEmission => sedAGNIncludesTorusEmission
+     procedure :: decompose             => sedAGNDecompose
   end type nodePropertyExtractorSEDAGN
   
   interface nodePropertyExtractorSEDAGN
@@ -414,6 +416,18 @@ contains
     supportsAttenuation=.true.
     return
   end function sedAGNSupportsAttenuation
+
+  logical function sedAGNIncludesTorusEmission(self) result(includesTorusEmission)
+    !!{RST
+    Return true if the spectrum of the accretion disk already includes the emission of the dusty torus around the AGN, in
+    which case it must not be attenuated by a model of that torus.
+    !!}
+    implicit none
+    class(nodePropertyExtractorSEDAGN), intent(inout) :: self
+
+    includesTorusEmission=self%accretionDiskSpectra_%includesTorusEmission()
+    return
+  end function sedAGNIncludesTorusEmission
 
   function sedAGNDecompose(self,node,time,request) result(decomposition)
     !!{RST

@@ -2,7 +2,7 @@
 <!-- Parameters for the satellite tidal stripping radius "limited" unit test. -->
 
 <parameters>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <formatVersion>2</formatVersion>
 
   <!-- Component selection -->
@@ -11,7 +11,7 @@
   <componentDarkMatterProfile value="scale"   />
   <componentDisk              value="null"    />
   <componentHotHalo           value="null"    />
-  <componentSatellite         value="null"    />
+  <componentSatellite         value="orbiting"/>
   <componentSpheroid          value="null"    />
   <componentSpin              value="null"    />
 

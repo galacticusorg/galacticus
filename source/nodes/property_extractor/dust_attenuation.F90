@@ -289,6 +289,19 @@ contains
             &                   ' parcels of emission'                                                      // &
             &                   {introspection:location}                                                       &
             &                  )
+       ! Light from an accretion disk whose spectrum already includes the emission of the dusty torus around the AGN must
+       ! not be attenuated by a model of that torus, which would count the emission of the torus twice.
+       select type (child => extractor_%extractor_)
+       class is (nodePropertyExtractorSEDAGN)
+          if (child%includesTorusEmission() .and. self%dustAttenuation_%includesTorus())                                   &
+               & call Error_Report(                                                                                        &
+               &                   'the spectrum of the accretion disk already includes the emission of the dusty torus'// &
+               &                   ' around the AGN, so can not be attenuated by a model of the torus, which would'     // &
+               &                   ' count that emission twice - use a spectrum of the accretion disk alone, such as'   // &
+               &                   ' [accretionDiskSpectra value="thinDisk"]'                                           // &
+               &                   {introspection:location}                                                                &
+               &                  )
+       end select
        select type (child => extractor_%extractor_)
        class is (nodePropertyExtractorScalar  )
           ! Supported.

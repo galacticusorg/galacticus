@@ -48,11 +48,13 @@
    contains
      !![
      <methods docformat="rst">
-       <method method="initialize" description="(Re)initialize the scaling factors of the scaled mass distribution."/>
+       <method method="initialize"   description="(Re)initialize the scaling factors of the scaled mass distribution."                                  />
+       <method method="reinitialize" description="Re-point the scaled mass distribution (e.g. when re-used from a pool) and clear stale memoized state."/>
      </methods>
      !!]
      final     ::                                      sphericalScalerDestructor
      procedure :: initialize                        => sphericalScalerInitialize
+     procedure :: reinitialize                      => sphericalScalerReinitialize
      procedure :: massTotal                         => sphericalScalerMassTotal
      procedure :: density                           => sphericalScalerDensity
      procedure :: densityGradientRadial             => sphericalScalerDensityGradientRadial
@@ -176,6 +178,28 @@ contains
     call self%tabulationReset()
     return
   end subroutine sphericalScalerInitialize
+
+  subroutine sphericalScalerReinitialize(self,massDistribution_)
+    !!{RST
+    Re-point the scaled mass distribution of a :galacticus-class:`massDistributionSphericalScaler` to that for a new system, and clear all stale memoized state. This is used when the object is re-used from a pool: it releases the currently-held scaled distribution (returning, e.g., a pooled distribution to its own pool), takes a counted reference to the new one, and resets the memoized tidal tensor and the tabulations cached in the spherical base class, so that the re-used object never serves results computed for the previous system. The scaling factors are unchanged. Any attached kinematics distribution is not modified, and must be re-pointed separately by the caller.
+    !!}
+    implicit none
+    class(massDistributionSphericalScaler), intent(inout)         :: self
+    class(massDistributionSpherical      ), intent(in   ), target :: massDistribution_
+
+    !![
+    <objectDestructor name="self%massDistribution_"/>
+    !!]
+    self%massDistribution_ => massDistribution_
+    !![
+    <referenceCountIncrement object="self%massDistribution_"/>
+    !!]
+    self%componentType              =self%massDistribution_%componentType
+    self%     massType              =self%massDistribution_%     massType
+    self%positionTidalTensorPrevious=-huge(0.0d0)
+    call self%tabulationReset()
+    return
+  end subroutine sphericalScalerReinitialize
 
   subroutine sphericalScalerDestructor(self)
     !!{RST

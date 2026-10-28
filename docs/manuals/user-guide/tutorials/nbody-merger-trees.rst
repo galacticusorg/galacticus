@@ -59,9 +59,9 @@ follows:
     <OmegaDarkEnergy value="0.75"  />
     <OmegaBaryon     value="0.0455"/>
     </cosmologyParameters>
-   <cosmologicalMassVariance value="filteredPower">
+   <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.900"/>
-    </cosmologicalMassVariance>
+    </powerSpectrumNormalizer>
    <powerSpectrumPrimordial value="powerLaw">
      <index               value="1.000"/>
      <wavenumberReference value="1.000"/>

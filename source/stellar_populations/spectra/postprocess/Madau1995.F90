@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a spectrum postprocessor that applies the :cite:t:`madau_radiative_1995` calculation of the attenuation of spectra by the intergalactic medium.
   !!}
@@ -34,7 +36,8 @@
      !!}
      private
    contains
-     procedure :: multiplier => madau1995Multiplier
+     procedure :: multiplier     => madau1995Multiplier
+     procedure :: isAgeDependent => madau1995IsAgeDependent
   end type stellarPopulationSpectraPostprocessorMadau1995
 
   interface stellarPopulationSpectraPostprocessorMadau1995
@@ -111,3 +114,14 @@ contains
     return
   end function madau1995Multiplier
 
+  logical function madau1995IsAgeDependent(self) result(isAgeDependent)
+    !!{RST
+    Return false indicating that the postprocessor is independent of the age of the stellar population.
+    !!}
+    implicit none
+    class(stellarPopulationSpectraPostprocessorMadau1995), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    isAgeDependent=.false.
+    return
+  end function madau1995IsAgeDependent

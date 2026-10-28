@@ -27,27 +27,27 @@ program Test_Mass_Distributions
   !!{RST
   Tests mass distributions.
   !!}
-  use :: Coordinates                   , only : assignment(=)                    , coordinateSpherical                   , coordinateCartesian
-  use :: Display                       , only : displayVerbositySet              , verbosityLevelStandard
+  use :: Coordinates                   , only : assignment(=)                        , coordinateSpherical                   , coordinateCartesian
+  use :: Display                       , only : displayVerbositySet                  , verbosityLevelStandard                , displayMessage
   use :: Error_Functions               , only : Error_Function
   use :: Error                         , only : Error_Report
   use :: Events_Hooks                  , only : eventsHooksInitialize
-  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass , galacticComponentTruncationExponential
-  use :: Galactic_Structure_Options    , only : componentTypeSpheroid            , componentTypeDisk                     , radiusLarge
+  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass     , galacticComponentTruncationExponential
+  use :: Galactic_Structure_Options    , only : componentTypeSpheroid                , componentTypeDisk                     , radiusLarge
   use :: IO_HDF5                       , only : ioHDF5AccessInitialize
-  use :: Linear_Algebra                , only : assignment(=)                    , vector
-  use :: Mass_Distributions            , only : massDistributionBetaProfile      , massDistributionClass                 , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid           , &
-       &                                    massDistributionHernquist            , massDistributionSersic                , massDistributionSpherical              , massDistributionComposite                   , &
-       &                                    massDistributionList               , massDistributionSymmetryCylindrical   , enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
-       &                                    massDistributionCylindricalScaler    , massDistributionCylindrical           , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
-       &                                    massDistributionIsothermal           , kinematicsDistributionClass           , kinematicsDistributionLocal            , kinematicsDistributionCollisionlessTabulated, &
-       &                                    massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
-       &                                    massDistributionSphericalHeated      , massDistributionHeatingTidal          , massDistributionHeatingClass           , massDistributionSphericalHeatedTracer       , &
-       &                                    nonAnalyticSolversNumerical
-  use :: Numerical_Constants_Math  , only : Pi                                   , e
-  use :: Tensors                   , only : assignment(=)
-  use :: Unit_Tests                , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
-       &                                    compareEquals                        , compareNotEqual
+  use :: Linear_Algebra                , only : assignment(=)                        , vector
+  use :: Mass_Distributions            , only : massDistributionBetaProfile          , massDistributionClass                 , massDistributionExponentialDisk        , massDistributionGaussianEllipsoid           , &
+       &                                        massDistributionHernquist            , massDistributionSersic                , massDistributionSpherical              , massDistributionComposite                   , &
+       &                                        massDistributionList                 , massDistributionSymmetryCylindrical   , enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
+       &                                        massDistributionCylindricalScaler    , massDistributionCylindrical           , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
+       &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
+       &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
+       &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
+       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator
+  use :: Numerical_Constants_Math      , only : Pi                                   , e
+  use :: Tensors                       , only : assignment(=)
+  use :: Unit_Tests                    , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
+       &                                        compareEquals                        , compareNotEqual                       , compareLessThan
   implicit none
   class           (massDistributionClass                  )                                    , allocatable :: massDistribution_                                                                                                       , massDistributionRotated         , &
        &                                                                                                        massDistributionDisk                                                                                                    , massDistributionSpheroid        , &
@@ -60,6 +60,12 @@ program Test_Mass_Distributions
   class           (massDistributionClass                  )                                    , pointer     :: massDistributionDisk_                                                                                                   , massDistributionSpheroid_       , &
        &                                                                                                        massDistributionAll_                                                                                                    , massDistributionDiskAgain_
   class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistribution_
+  ! Objects for the spherical scaler re-initialization (pool re-use) test.
+  class           (massDistributionClass                  )                                    , pointer     :: massDistributionScalerInnerA                                                                                            , massDistributionScalerInnerB
+  class           (massDistributionClass                  )                                    , allocatable :: massDistributionScalerFresh
+  class           (kinematicsDistributionClass            )                                    , pointer     :: kinematicsDistributionInnerA                                                                                            , kinematicsDistributionInnerB    , &
+       &                                                                                                        kinematicsDistributionScaler_
+  double precision                                         , dimension(5)                                    :: scalerReinitializeFresh                                                                                                 , scalerReinitializeReused
   ! Objects for the galactic component truncation tests.
   class           (galacticComponentTruncationClass       )                                    , allocatable :: galacticComponentTruncation_
   class           (massDistributionSpherical              )                                    , pointer     :: massDistributionUntruncated_                                                                                            , massDistributionTruncated_
@@ -104,13 +110,14 @@ program Test_Mass_Distributions
   type            (coordinateCartesian                    )                                                  :: positionCartesian
   type            (enumerationMassDistributionSymmetryType)                                                  :: symmetry_
   integer                                                                                                    :: i                                                                                                                       , referenceCountDiscard                            , &
-       &                                                                                                        indexDisk
+       &                                                                                                        indexDisk                                                                                                               , j
   double precision                                                                                           :: radiusInProjection                                                                                                      , radius                                           , &
        &                                                                                                        rotationCurveGradientAnalytic                                                                                           , rotationCurveGradientNumerical                   , &
        &                                                                                                        massFraction                                                                                                            , time                                             , &
        &                                                                                                        radiusCylindrical                                                                                                       , height                                           , &
        &                                                                                                        scaleHeight                                                                                                             , potentialGradientRadial                          , &
-       &                                                                                                        potentialGradientVertical
+       &                                                                                                        potentialGradientVertical                                                                                               , quadrupole                                       , &
+       &                                                                                                        toleranceAcceleration                                                                                                   , toleranceTidalTensor
   ! Reference values for the exponential disk profile.
   double precision                                         , dimension(3,4)                                  :: accelerationReferences
   double precision                                         , dimension(  6)                                  :: potentialReferences
@@ -639,6 +646,48 @@ program Test_Mass_Distributions
      call Assert("Mass within outer radius",massDistribution_%massEnclosedBySphere(0.12829569846196026d0),182582297.19568533d0,relTol=1.0d-6)
   end select
   deallocate(massDistribution_)
+  ! Ensure that the potential of a dimensionful profile truncated at its outer radius matches (Φ(r)-Φ(0))/G=∫₀ʳ M(r′)/r′² dr′,
+  ! found by direct numerical integration of the density (using mpmath), at radii well inside the core, inside the outer radius,
+  ! and beyond the outer radius (where the potential must be that of a point mass).
+  block
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    double precision          , parameter                  :: radiusCore     =3.8492316686261747d-002, radiusOuter=0.12829569846196026d0, &
+         &                                                    mass           =182582297.19568533d0
+    double precision          , dimension(2  ), parameter  :: betas          =[2.0d0/3.0d0,0.9d0]
+    character       (len=4   ), dimension(2  ), parameter  :: labelsBeta     =['2/3 ','0.9 ']
+    double precision          , dimension(4  ), parameter  :: radii          =[5.0d-4*radiusCore,0.5d0*radiusCore,radiusOuter,2.0d0*radiusOuter]
+    character       (len=11  ), dimension(4  ), parameter  :: labelsRadius   =['5e-4 r_core','0.5 r_core ','r_outer    ','2 r_outer  ']
+    double precision          , dimension(4,2), parameter  :: potentialsTarget=reshape(                                                                                  &
+         &                                                                             [                                                                                &
+         &                                                                              96.235390151914037d0,89769133.903370879d0,1456940246.0073782d0,2168508519.0848309d0, &
+         &                                                                             165.60492933421483d0,150858194.57747654d0,1882837097.8388988d0,2594405370.9163515d0  &
+         &                                                                             ]                                                                              , &
+         &                                                                             [4,2]                                                                            &
+         &                                                                            )
+    integer                                                :: j
+    do i=1,2
+       allocate(massDistributionBetaProfile :: massDistribution_)
+       select type (massDistribution_)
+       type is (massDistributionBetaProfile)
+          massDistribution_=massDistributionBetaProfile(beta=betas(i),radiusCore=radiusCore,mass=mass,radiusOuter=radiusOuter,truncateAtOuterRadius=.true.)
+       end select
+       positionZero=[0.0d0,0.0d0,0.0d0]
+       do j=1,4
+          position=[radii(j),0.0d0,0.0d0]
+          call Assert(                                                                                                        &
+               &      "Truncated, dimensionful profile, β="//trim(labelsBeta(i))//", potential at r="//trim(labelsRadius(j)), &
+               &      +(                                                                                                      &
+               &        +massDistribution_%potential(position    )                                                            &
+               &        -massDistribution_%potential(positionZero)                                                            &
+               &       )                                                                                                      &
+               &      /gravitationalConstant_internal                                                                       , &
+               &      potentialsTarget(j,i)                                                                                 , &
+               &      relTol=1.0d-6                                                                                           &
+               &     )
+       end do
+       deallocate(massDistribution_)
+    end do
+  end block
   call Unit_Tests_End_Group()
 
   ! Exponential disk profile. Tests are carried out for a thin disk, and for a thicker disk with a scale height typical of those
@@ -708,65 +757,109 @@ program Test_Mass_Distributions
            call Assert("Rotation curve gradient at r="//trim(adjustl(label)),rotationCurveGradientAnalytic,rotationCurveGradientNumerical,relTol=5.0d0*epsilonFiniteDifference)
         end do
         call Unit_Tests_End_Group()
-        ! Test that gravitational acceleration matches expectations for a point mass distribution at large radii.
-        call Unit_Tests_Begin_Group("Acceleration approaches point mass solution at large radii")
+        ! Test that gravitational acceleration matches the multipole expansion of the potential to quadrupole order at large radii.
+        ! The quadrupole moment (for unit mass and scale length) is Q=⟨z²⟩-⟨R²⟩/2=π²h²/12-3. The first radius lies within the
+        ! tabulated solution, the second beyond it (where the multipole expansion is used directly). The tolerances within the
+        ! tabulated solution reflect its accuracy at these large radii (about 0.3% for the acceleration, and 1% for the tidal
+        ! tensor).
+        quadrupole=Pi**2*scaleHeight**2/12.0d0-3.0d0
+        call Unit_Tests_Begin_Group("Acceleration approaches multipole expansion at large radii")
         do i=1,2
            select case (i)
            case (1)
-              radius  =45.0d0
+              radius               =45.0d0
+              toleranceAcceleration=5.0d-3
+              toleranceTidalTensor =2.0d-2
            case (2)
-              radius  =55.0d0
+              radius               =55.0d0
+              toleranceAcceleration=1.0d-6
+              toleranceTidalTensor =1.0d-6
            end select
            write (label,'(f4.1)') radius
            ! Vertically above the disk.
            position=[radius,0.0d0,0.0d0]
            accelerationReference=massDistribution_%acceleration(position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",accelerationReference,[0.0d0,0.0d0,-1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+           call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",accelerationReference,[0.0d0,0.0d0,-1.0d0/radius**2-3.0d0*quadrupole/radius**4],absTol=1.0d-12,relTol=toleranceAcceleration)
            ! Vertically below the disk.
            position=[radius,Pi,0.0d0]
            accelerationReference=massDistribution_%acceleration(position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",accelerationReference,[0.0d0,0.0d0,+1.0d0/radius**2],absTol=1.0d-6,relTol=1.0d-3)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",accelerationReference,[0.0d0,0.0d0,+1.0d0/radius**2+3.0d0*quadrupole/radius**4],absTol=1.0d-12,relTol=toleranceAcceleration)
            ! Disk plane, along +x-axis.
            position=[radius,Pi/2.0d0,0.0d0]
            accelerationReference=massDistribution_%acceleration(position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",accelerationReference,[-1.0d0/radius**2,0.0d0,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",accelerationReference,[-1.0d0/radius**2+1.5d0*quadrupole/radius**4,0.0d0,0.0d0],absTol=1.0d-12,relTol=toleranceAcceleration)
            ! Disk plane, along -y-axis.
            position=[radius,Pi/2.0d0,-Pi/2.0d0]
            accelerationReference=massDistribution_%acceleration(position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+1.0d0/radius**2,0.0d0],absTol=1.0d-6,relTol=1.0d-2)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",accelerationReference,[0.0d0,+1.0d0/radius**2-1.5d0*quadrupole/radius**4,0.0d0],absTol=1.0d-12,relTol=toleranceAcceleration)
         end do
         call Unit_Tests_End_Group()
-        ! Test that gravitational tidal tensor matches expectations for a point mass distribution at large radii.
-        call Unit_Tests_Begin_Group("Tidal tensor approaches point mass solution at large radii")
+        ! Test that gravitational tidal tensor matches the multipole expansion of the potential to quadrupole order at large radii.
+        call Unit_Tests_Begin_Group("Tidal tensor approaches multipole expansion at large radii")
         do i=1,2
            select case (i)
            case (1)
-              radius  =45.0d0
+              radius               =45.0d0
+              toleranceAcceleration=5.0d-3
+              toleranceTidalTensor =2.0d-2
            case (2)
-              radius  =55.0d0
+              radius               =55.0d0
+              toleranceAcceleration=1.0d-6
+              toleranceTidalTensor =1.0d-6
            end select
            write (label,'(f4.1)') radius
            ! Vertically above the disk.
            position                      =[radius,0.0d0,0.0d0]
-           tidalTensorSphericalComponents=reshape([-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,+2.0d0]/radius**3,[3,3])
+           tidalTensorSphericalComponents=reshape([-1.0d0/radius**3-6.0d0*quadrupole/radius**5,0.0d0,0.0d0,0.0d0,-1.0d0/radius**3-6.0d0*quadrupole/radius**5,0.0d0,0.0d0,0.0d0,+2.0d0/radius**3+12.0d0*quadrupole/radius**5],[3,3])
            tidalTensorComponents         =massDistribution_%tidalTensor         (position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+           call Assert("[r,θ,φ] = ["//trim(label)//",0  , 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-12,relTol=toleranceTidalTensor)
            ! Vertically below the disk.
            position=[radius,Pi,0.0d0]
-           tidalTensorSphericalComponents=reshape([-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,+2.0d0]/radius**3,[3,3])
            tidalTensorComponents         =massDistribution_%tidalTensor         (position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=3.0d-3)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π  , 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-12,relTol=toleranceTidalTensor)
            ! Disk plane, along +x-axis.
            position                      =[radius,Pi/2.0d0,0.0d0]
-           tidalTensorSphericalComponents=reshape([+2.0d0,0.0d0,0.0d0,0.0d0,-1.0d0,0.0d0,0.0d0,0.0d0,-1.0d0]/radius**3,[3,3])
+           tidalTensorSphericalComponents=reshape([+2.0d0/radius**3-6.0d0*quadrupole/radius**5,0.0d0,0.0d0,0.0d0,-1.0d0/radius**3+1.5d0*quadrupole/radius**5,0.0d0,0.0d0,0.0d0,-1.0d0/radius**3+4.5d0*quadrupole/radius**5],[3,3])
            tidalTensorComponents         =massDistribution_%tidalTensor         (position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=2.0d-2)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2, 0  ]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-12,relTol=toleranceTidalTensor)
            ! Disk plane, along -y-axis.
            position                      =[radius,Pi/2.0d0,-Pi/2.0d0]
-           tidalTensorSphericalComponents=reshape([-1.0d0,0.0d0,0.0d0,0.0d0,+2.0d0,0.0d0,0.0d0,0.0d0,-1.0d0]/radius**3,[3,3])
+           tidalTensorSphericalComponents=reshape([-1.0d0/radius**3+1.5d0*quadrupole/radius**5,0.0d0,0.0d0,0.0d0,+2.0d0/radius**3-6.0d0*quadrupole/radius**5,0.0d0,0.0d0,0.0d0,-1.0d0/radius**3+4.5d0*quadrupole/radius**5],[3,3])
            tidalTensorComponents         =massDistribution_%tidalTensor         (position)
-           call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-6,relTol=1.0d-2)
+           call Assert("[r,θ,φ] = ["//trim(label)//",π/2,-π/2]",tidalTensorComponents,tidalTensorSphericalComponents,absTol=1.0d-12,relTol=toleranceTidalTensor)
         end do
+        call Unit_Tests_End_Group()
+        ! Test that the rotation curve, acceleration, and tidal tensor are continuous where they switch from tabulated solutions to
+        ! the multipole expansion (at 30 scale lengths for the mid-plane rotation curve, and 50 scale lengths for the acceleration
+        ! and tidal tensor).
+        call Unit_Tests_Begin_Group("Continuity at transitions to the multipole expansion")
+        block
+          double precision, parameter      :: offsetFractional=1.0d-6
+          double precision, dimension(3  ) :: accelerationInner, accelerationOuter
+          double precision, dimension(3,3) :: tidalTensorInner , tidalTensorOuter
+          double precision                 :: radiusInner      , radiusOuter
+          call Assert("rotation curve at R=30"         ,massDistribution_%rotationCurve        (30.0d0*(1.0d0-offsetFractional)),massDistribution_%rotationCurve        (30.0d0*(1.0d0+offsetFractional)),relTol=1.0d-4)
+          call Assert("rotation curve gradient at R=30",massDistribution_%rotationCurveGradient(30.0d0*(1.0d0-offsetFractional)),massDistribution_%rotationCurveGradient(30.0d0*(1.0d0+offsetFractional)),relTol=1.0d-3)
+          do j=1,2
+             select case (j)
+             case (1)
+                height=0.0d0
+             case (2)
+                height=10.0d0
+             end select
+             write (labelHeight,'(f5.2)') height
+             radiusInner      =50.0d0*(1.0d0-offsetFractional)
+             radiusOuter      =50.0d0*(1.0d0+offsetFractional)
+             position         =[sqrt(radiusInner**2+height**2),atan2(radiusInner,height),0.0d0]
+             accelerationInner=massDistribution_%acceleration(position)
+             tidalTensorInner =massDistribution_%tidalTensor (position)
+             position         =[sqrt(radiusOuter**2+height**2),atan2(radiusOuter,height),0.0d0]
+             accelerationOuter=massDistribution_%acceleration(position)
+             tidalTensorOuter =massDistribution_%tidalTensor (position)
+             call Assert("acceleration at R=50, z="//trim(adjustl(labelHeight)),accelerationInner,accelerationOuter,absTol=1.0d-12,relTol=1.0d-3)
+             call Assert("tidal tensor at R=50, z="//trim(adjustl(labelHeight)),tidalTensorInner ,tidalTensorOuter ,absTol=1.0d-12,relTol=1.0d-2)
+          end do
+        end block
         call Unit_Tests_End_Group()
         ! Test that the gravitational acceleration in the mid-plane is consistent with the rotation curve. These are tabulated
         ! separately (the acceleration on a grid in radius and height, the rotation curve in radius in the mid-plane).
@@ -1185,6 +1278,93 @@ program Test_Mass_Distributions
   call Assert("Cartesian input matches spherical input"      ,tidalTensorComponents,tidalTensorScalerReference,absTol=0.0d0                )
   ! Note that the scaler holds a counted reference to `massDistributionScalerInner` and destroys it in its own
   ! destructor, so only the scaler itself is deallocated here.
+  deallocate(massDistributionScalerTest )
+  call Unit_Tests_End_Group()
+
+  ! Spherical scaler re-initialization (pool re-use).
+  ! `darkMatterProfileDarkMatterOnly` re-uses pooled scalers (wrapping, for example, NFW distributions) by re-pointing them (and
+  ! their attached scaled kinematics distributions) to the distribution for a new node via their "reinitialize" methods. Verify
+  ! that a scaler which has been used for one distribution, and then re-initialized to a second, returns results identical to
+  ! those of a scaler freshly constructed for the second. The tidal tensor is evaluated at the same position for both
+  ! distributions, so that a stale memoized tensor would be detected.
+  call Unit_Tests_Begin_Group("Spherical scaler (re-initialization for pool re-use)")
+  allocate(massDistributionNFW       :: massDistributionScalerInnerA)
+  allocate(massDistributionNFW       :: massDistributionScalerInnerB)
+  allocate(kinematicsDistributionNFW :: kinematicsDistributionInnerA)
+  allocate(kinematicsDistributionNFW :: kinematicsDistributionInnerB)
+  select type (massDistributionScalerInnerA)
+  type is (massDistributionNFW)
+     massDistributionScalerInnerA=massDistributionNFW(mass=1.0d11,radiusVirial=0.1d0,scaleLength=0.01d0)
+  end select
+  select type (massDistributionScalerInnerB)
+  type is (massDistributionNFW)
+     massDistributionScalerInnerB=massDistributionNFW(mass=1.0d12,radiusVirial=0.2d0,scaleLength=0.03d0)
+  end select
+  select type (kinematicsDistributionInnerA)
+  type is (kinematicsDistributionNFW)
+     kinematicsDistributionInnerA=kinematicsDistributionNFW(useSeriesApproximation=.false.)
+  end select
+  select type (kinematicsDistributionInnerB)
+  type is (kinematicsDistributionNFW)
+     kinematicsDistributionInnerB=kinematicsDistributionNFW(useSeriesApproximation=.false.)
+  end select
+  call massDistributionScalerInnerA%setKinematicsDistribution(kinematicsDistributionInnerA)
+  call massDistributionScalerInnerB%setKinematicsDistribution(kinematicsDistributionInnerB)
+  position=[2.0d-2,Pi/3.0d0,Pi/5.0d0]
+  ! Reference results from a scaler freshly constructed around distribution B.
+  allocate(massDistributionSphericalScaler :: massDistributionScalerFresh)
+  select type (massDistributionScalerFresh)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionScalerInnerB)
+     class is (massDistributionSpherical)
+        massDistributionScalerFresh=massDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,massDistribution_=massDistributionScalerInnerB)
+     end select
+  end select
+  allocate(kinematicsDistributionSphericalScaler :: kinematicsDistributionScaler_)
+  select type (kinematicsDistributionScaler_)
+  type is (kinematicsDistributionSphericalScaler)
+     kinematicsDistributionScaler_=kinematicsDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,kinematicsDistribution_=kinematicsDistributionInnerB)
+  end select
+  call massDistributionScalerFresh%setKinematicsDistribution(kinematicsDistributionScaler_)
+  call scalerReinitializeEvaluate(massDistributionScalerFresh,scalerReinitializeFresh,tidalTensorScalerReference)
+  ! A scaler constructed around distribution A, used, and then re-initialized to distribution B.
+  allocate(massDistributionSphericalScaler :: massDistributionScalerTest)
+  select type (massDistributionScalerTest)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionScalerInnerA)
+     class is (massDistributionSpherical)
+        massDistributionScalerTest=massDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,massDistribution_=massDistributionScalerInnerA)
+     end select
+  end select
+  allocate(kinematicsDistributionSphericalScaler :: kinematicsDistributionScaler_)
+  select type (kinematicsDistributionScaler_)
+  type is (kinematicsDistributionSphericalScaler)
+     kinematicsDistributionScaler_=kinematicsDistributionSphericalScaler(factorScalingLength=2.0d0,factorScalingMass=3.0d0,kinematicsDistribution_=kinematicsDistributionInnerA)
+  end select
+  call massDistributionScalerTest%setKinematicsDistribution(kinematicsDistributionScaler_)
+  call scalerReinitializeEvaluate(massDistributionScalerTest,scalerReinitializeReused,tidalTensorScalerDisplaced)
+  call Assert("distribution A differs from distribution B",any(scalerReinitializeReused /= scalerReinitializeFresh),.true.)
+  select type (massDistributionScalerTest)
+  type is (massDistributionSphericalScaler)
+     select type (massDistributionScalerInnerB)
+     class is (massDistributionSpherical)
+        call massDistributionScalerTest%reinitialize(massDistributionScalerInnerB)
+     end select
+  end select
+  select type (kinematicsDistributionScaler_)
+  type is (kinematicsDistributionSphericalScaler)
+     call kinematicsDistributionScaler_%reinitialize(kinematicsDistributionInnerB)
+  end select
+  call scalerReinitializeEvaluate(massDistributionScalerTest,scalerReinitializeReused,tidalTensorComponents)
+  call Assert("re-use A->B: mass enclosed"                   ,scalerReinitializeReused(1),scalerReinitializeFresh(1),absTol=0.0d0)
+  call Assert("re-use A->B: density"                         ,scalerReinitializeReused(2),scalerReinitializeFresh(2),absTol=0.0d0)
+  call Assert("re-use A->B: potential"                       ,scalerReinitializeReused(3),scalerReinitializeFresh(3),absTol=0.0d0)
+  call Assert("re-use A->B: radius enclosing mass"           ,scalerReinitializeReused(4),scalerReinitializeFresh(4),absTol=0.0d0)
+  call Assert("re-use A->B: velocity dispersion"             ,scalerReinitializeReused(5),scalerReinitializeFresh(5),absTol=0.0d0)
+  call Assert("re-use A->B: tidal tensor"                    ,tidalTensorComponents      ,tidalTensorScalerReference,absTol=0.0d0)
+  ! The scalers hold counted references to their inner distributions, and to their attached kinematics distributions, and
+  ! destroy them in their own destructors, so only the scalers themselves are deallocated here.
+  deallocate(massDistributionScalerFresh)
   deallocate(massDistributionScalerTest )
   call Unit_Tests_End_Group()
 
@@ -1642,7 +1822,75 @@ program Test_Mass_Distributions
   end block
   call Unit_Tests_End_Group()
 
+  ! Test that enclosed masses interpolated by the spherical accelerator agree with the exact masses to within (about) its
+  ! tolerance, a relative tolerance on the mass. The cache is populated on a coarse grid of radii, and then queried between those
+  ! radii. The accelerator accepts an interpolated mass if two interpolations agree to within the tolerance, which estimates, but
+  ! does not bound, the error of each, so the actual errors are required to be within twice the tolerance.
+  call Unit_Tests_Begin_Group("Spherical accelerator")
+  block
+    class           (massDistributionSpherical), pointer :: nfwAccelerated_, accelerator_
+    double precision                                     :: radius_        , errorMaximum
+    integer                                              :: i_
+    character       (len=12                   )          :: labelError
+    allocate(massDistributionNFW                  :: nfwAccelerated_)
+    allocate(massDistributionSphericalAccelerator :: accelerator_   )
+    select type (nfwAccelerated_)
+    type is (massDistributionNFW)
+       !![
+       <referenceConstruct object="nfwAccelerated_" constructor="massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=1.0d12,dimensionless=.false.)"/>
+       !!]
+    end select
+    select type (accelerator_)
+    type is (massDistributionSphericalAccelerator)
+       !![
+       <referenceConstruct object="accelerator_" constructor="massDistributionSphericalAccelerator(toleranceRelative=1.0d-2,factorRadiusMaximum=20.0d0,nonAnalyticSolver=nonAnalyticSolversNumerical,massDistribution_=nfwAccelerated_)"/>
+       !!]
+    end select
+    do i_=0,8
+       radius_     =1.0d-3*3.0d0**i_
+       errorMaximum=accelerator_%massEnclosedBySphere(radius_)
+    end do
+    errorMaximum=0.0d0
+    do i_=0,399
+       radius_     =1.0d-3*10.0d0**((dble(i_)+0.37d0)/200.0d0)
+       errorMaximum=max(errorMaximum,abs(accelerator_%massEnclosedBySphere(radius_)/nfwAccelerated_%massEnclosedBySphere(radius_)-1.0d0))
+    end do
+    write (labelError,'(e12.6)') errorMaximum
+    call displayMessage('maximum fractional error in accelerated NFW enclosed mass: '//trim(labelError))
+    call Assert("NFW enclosed mass within tolerance",errorMaximum,2.0d-2,compare=compareLessThan)
+    !![
+    <objectDestructor name="accelerator_"   />
+    <objectDestructor name="nfwAccelerated_"/>
+    !!]
+  end block
+  call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()
+
+contains
+
+  subroutine scalerReinitializeEvaluate(massDistributionScaler,results,tidalTensor)
+    !!{RST
+    Evaluate the quantities compared in the spherical scaler re-initialization test.
+    !!}
+    implicit none
+    class           (massDistributionClass      ), intent(inout), target        :: massDistributionScaler
+    double precision                             , intent(  out), dimension(5  ) :: results
+    double precision                             , intent(  out), dimension(3,3) :: tidalTensor
+    class           (kinematicsDistributionClass), pointer                       :: kinematicsDistributionScaler
+
+    kinematicsDistributionScaler => massDistributionScaler%kinematicsDistribution()
+    results(1) =massDistributionScaler      %massEnclosedBySphere         (radius=2.0d-2                                         )
+    results(2) =massDistributionScaler      %density                      (coordinates=position                                  )
+    results(3) =massDistributionScaler      %potential                    (coordinates=position                                  )
+    results(4) =massDistributionScaler      %radiusEnclosingMass          (mass=1.0d11                                           )
+    results(5) =kinematicsDistributionScaler%velocityDispersion1D         (position,massDistributionScaler,massDistributionScaler)
+    tidalTensor=massDistributionScaler      %tidalTensor                  (position                                              )
+    !![
+    <objectDestructor name="kinematicsDistributionScaler"/>
+    !!]
+    return
+  end subroutine scalerReinitializeEvaluate
+
 end program Test_Mass_Distributions

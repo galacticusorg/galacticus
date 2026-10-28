@@ -21,30 +21,32 @@ program Tests_Merger_Tree_Branching
   !!{RST
   Tests of merger tree branching rates.
   !!}
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower          , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
-  use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
-  use :: Cosmology_Parameters                , only : cosmologyParametersSimple
-  use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
-  use :: Display                             , only : displayVerbositySet                            , verbosityLevelWorking
-  use :: Events_Hooks                        , only : eventsHooksInitialize
-  use :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
-  use :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingFarahiMidpoint        , excursionSetFirstCrossingFarahiMidpointBrownianBridge       , excursionSetFirstCrossingLinearBarrier, excursionSetFirstCrossingLinearBarrierBrownianBridge
-  use :: Galacticus_Nodes                    , only : treeNode
-  use :: ISO_Varying_String                  , only : var_str
-  use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
-  use, intrinsic :: ISO_C_Binding             , only : c_long
-  use :: Error                               , only : Error_Report                                   , Error_Handler_Register
-  use :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityGeneralizedPressSchechter, mergerTreeBranchingProbabilityParkinsonColeHelly            , mergerTreeBranchingProbabilityPCHPlus, mergerTreeBranchingProbabilityClass                  , &
-       &                                              mergerTreeBranchingBoundLower                  , mergerTreeBranchingBoundUpper
-  use :: Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity , mergerTreeBranchingProbabilityModifierPCHPlus
-  use :: Numerical_Constants_Math            , only : Pi
-  use :: Numerical_Random_Numbers            , only : randomNumberGeneratorGSL
-  use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
-  use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
-  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
-  use :: Transfer_Functions                  , only : transferFunctionIdentity
-  use :: Unit_Tests                          , only : Assert                                         , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group                 , Unit_Tests_Finish                                    , &
-       &                                              compareLessThan                                , compareLessThanOrEqual                                      , compareGreaterThan
+  use            :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower                  , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use            :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
+  use            :: Cosmology_Parameters                , only : cosmologyParametersSimple
+  use            :: Dark_Matter_Particles               , only : darkMatterParticleCDM
+  use            :: Display                             , only : displayVerbositySet                                    , verbosityLevelWorking
+  use            :: Events_Hooks                        , only : eventsHooksInitialize
+  use            :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use            :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
+  use            :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingFarahiMidpoint                , excursionSetFirstCrossingFarahiMidpointBrownianBridge       , excursionSetFirstCrossingLinearBarrier, excursionSetFirstCrossingLinearBarrierBrownianBridge
+  use            :: Galacticus_Nodes                    , only : treeNode
+  use            :: ISO_Varying_String                  , only : var_str
+  use            :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
+  use, intrinsic :: ISO_C_Binding                       , only : c_long
+  use            :: Error                               , only : Error_Report                                           , Error_Handler_Register
+  use            :: Merger_Tree_Branching               , only : mergerTreeBranchingProbabilityGeneralizedPressSchechter, mergerTreeBranchingProbabilityParkinsonColeHelly            , mergerTreeBranchingProbabilityPCHPlus, mergerTreeBranchingProbabilityClass                  , &
+       &                                                         mergerTreeBranchingBoundLower                          , mergerTreeBranchingBoundUpper
+  use            :: Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity         , mergerTreeBranchingProbabilityModifierPCHPlus
+  use            :: Numerical_Constants_Math            , only : Pi
+  use            :: Numerical_Random_Numbers            , only : randomNumberGeneratorGSL
+  use            :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
+  use            :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use            :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
+  use            :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
+  use            :: Transfer_Functions                  , only : transferFunctionIdentity
+  use            :: Unit_Tests                          , only : Assert                                                 , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group                 , Unit_Tests_Finish                                    , &
+       &                                                         compareLessThan                                        , compareLessThanOrEqual                                      , compareGreaterThan
   implicit none
   type            (cosmologyParametersSimple                                   )                           :: cosmologyParametersSimple_
   type            (cosmologyFunctionsMatterLambda                              )                           :: cosmologyFunctionsMatterLambda_
@@ -53,6 +55,7 @@ program Tests_Merger_Tree_Branching
   type            (powerSpectrumPrimordialPowerLaw                             )                           :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionIdentity                                    )                           :: transferFunctionIdentity_
   type            (powerSpectrumPrimordialTransferredSimple                    )                           :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                               )                           :: powerSpectrumNormalizerSigma8_
   type            (linearGrowthCollisionlessMatter                             )                           :: linearGrowthCollisionlessMatter_
   type            (excursionSetFirstCrossingLinearBarrier                      )                           :: excursionSetFirstCrossingLinearBarrier_
   type            (excursionSetFirstCrossingLinearBarrierBrownianBridge        )                           :: excursionSetFirstCrossingLinearBarrierBrownianBridge_
@@ -98,21 +101,29 @@ program Tests_Merger_Tree_Branching
        &                                                                                                      branchingFresh_                   , branchingReference_, &
        &                                                                                                      branchingSamplerGeneric_
   type            (mergerTreeBranchingProbabilityPCHPlus                       ), dimension(            3) :: branchingPCHPlus_
+  type            (mergerTreeBranchingProbabilityPCHPlus                       ), dimension(          3,2) :: branchingPCHPlusTabulation_
   type            (randomNumberGeneratorGSL                                    )                           :: randomNumberGenerator_
   ! Parameters of the configurations swept over. The values of γ₁ are chosen so that the effective exponent γ₁-1/α (=γ₁+3 here)
   ! avoids the odd integers at which the hypergeometric functions used to bound the branching probability are singular; γ₁=0,
   ! which does sit on such a point, is tested separately through `branchingPole_`.
   double precision                                                              , dimension(countIdentity  ), parameter :: G0Identity          =[ 0.57d0, 0.57d0, 1.00d0, 1.00d0, 0.80d0, 0.80d0]                    , &
-       &                                                                                                                  gamma1Identity      =[ 0.38d0, 0.38d0,-0.50d0,-0.50d0, 0.80d0, 0.80d0]                    , &
-       &                                                                                                                  gamma2Identity      =[-0.01d0,-0.01d0, 0.00d0, 0.00d0,-0.30d0,-0.30d0]
+       &                                                                                                                   gamma1Identity      =[ 0.38d0, 0.38d0,-0.50d0,-0.50d0, 0.80d0, 0.80d0]                    , &
+       &                                                                                                                   gamma2Identity      =[-0.01d0,-0.01d0, 0.00d0, 0.00d0,-0.30d0,-0.30d0]
   logical                                                                       , dimension(countIdentity  ), parameter :: tabulateIdentity    =[.true. ,.false.,.true. ,.false.,.true. ,.false.]
   double precision                                                              , dimension(countClosedForm), parameter :: gamma1ClosedForm    =[ 0.00d0, 0.00d0,-1.00d0,-1.00d0,-3.00d0,-3.00d0]
   logical                                                                       , dimension(countClosedForm), parameter :: tabulateClosedForm  =[.true. ,.false.,.true. ,.false.,.true. ,.false.]
   double precision                                                              , dimension(countRatio     ), parameter :: ratioResolution     =[2.5d0,1.0d1,1.0d2,1.0d3,1.0d6,1.0d8]
   ! The three PCH+ configurations tested: a null one, one exercising only γ₄ and γ₅, and one exercising only γ₃.
   double precision                                                              , dimension(            3  ), parameter :: gamma3PCHPlus       =[0.0d0,0.0d0,0.3d0]                    , &
-       &                                                                                                                  gamma4PCHPlus       =[0.0d0,0.5d0,0.0d0]                    , &
-       &                                                                                                                  gamma5PCHPlus       =[0.0d0,0.3d0,0.0d0]
+       &                                                                                                                   gamma4PCHPlus       =[0.0d0,0.5d0,0.0d0]                    , &
+       &                                                                                                                   gamma5PCHPlus       =[0.0d0,0.3d0,0.0d0]
+  ! Values of γ₃ at which the tabulated subresolution rate is checked: one with s=γ₃-½<0, for which the w^s term of the connection
+  ! formula dominates as x→0; that of the reference merger tree parameters, with s>0, for which the constant term dominates and
+  ! the two terms partly cancel; and γ₃=³/₂, at which the first parameter of the hypergeometric function is zero. The direct
+  ! evaluation against which each is compared fails at exactly γ₃=³/₂ (GSL's ₂F₁ takes the logarithm of Γ(0)), so there it is
+  ! made at a value displaced by 10⁻⁸ - a difference far below the tolerance of the comparison.
+  double precision                                                              , dimension(            3  ), parameter :: gamma3Tabulation    =[0.3d0,0.6456d0,1.5d0     ], &
+       &                                                                                                                   gamma3Direct        =[0.3d0,0.6456d0,1.5d0-1.0d-8]
   double precision                                                              , dimension(countAlpha     ), parameter :: massAlpha           =[1.0d8,1.0d10,1.0d12,1.0d14,1.0d16]
   double precision                                                              , dimension(countInverse   ), parameter :: fractionInverse     =[0.25d0,0.50d0,0.75d0]
   double precision                                                              , dimension(countX         ), parameter :: xTarget             =[1.00d-7,1.00d-6,1.00d-5,1.00d-4,1.00d-3,1.00d-2,5.00d-2,9.90d-2,1.00d-1,1.01d-1,5.00d-1,1.00d0,5.00d0,1.25d1,1.00d2,1.00d3]
@@ -158,6 +169,7 @@ program Tests_Merger_Tree_Branching
   call Error_Handler_Register()
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set()
   ! Build all objects needed for these tests.
   darkMatterParticleCDM_                                        =darkMatterParticleCDM                                        (                                                                                                        &
        &                                                                                                                      )
@@ -186,10 +198,19 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                   , &
        &                                                                                                                       time                                    =13.8d0                                                         &
        &                                                                                                                      )
+  powerSpectrumNormalizerSigma8_                                =powerSpectrumNormalizerSigma8                                (                                                                                                       &
+       &                                                                                                                       sigma8                                  =1.0d+0                                                      , &
+       &                                                                                                                       tolerance                               =1.0d-4                                                      , &
+       &                                                                                                                       integrationFailureIsFatal               =.true.                                                      , &
+       &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                  , &
+       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                     &
+       &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &
        &                                                                                                                       powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_                             , &
        &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                    , &
-       &                                                                                                                       linearGrowth_                           =linearGrowthCollisionlessMatter_                               &
+       &                                                                                                                       linearGrowth_                           =linearGrowthCollisionlessMatter_                             , &
+       &                                                                                                                       powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_                                 &
        &                                                                                                                      )
   powerSpectrumWindowFunctionSharpKSpace_                       =powerSpectrumWindowFunctionSharpKSpace                       (                                                                                                        &
        &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                   , &
@@ -197,7 +218,6 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                      )
 
   cosmologicalMassVarianceFilteredPower_                        =cosmologicalMassVarianceFilteredPower                        (                                                                                                        &
-       &                                                                                                                       sigma8                                  =1.0d+0                                                       , &
        &                                                                                                                       tolerance                               =1.0d-4                                                       , &
        &                                                                                                                       toleranceTopHat                         =1.0d-4                                                       , &
        &                                                                                                                       rootVarianceLogarithmicGradientTolerance=1.0d-9                                                       , &
@@ -822,7 +842,40 @@ program Tests_Merger_Tree_Branching
   call Assert('lower bound = probability'  ,boundLowerIdentity,probabilityIdentity,relTol=toleranceIdentityDirect)
   call Assert('upper bound = probability'  ,boundUpperIdentity,probabilityIdentity,relTol=toleranceIdentityDirect)
   call Unit_Tests_End_Group  (                                                        )
-  call Unit_Tests_End_Group  (                                                        )
+  ! With γ₃ non-zero the first parameter of the hypergeometric function in the subresolution accretion rate becomes 3/2-γ₃, so its
+  ! tabulation must be built from that parameter. Compare the tabulated rate against the direct evaluation over the full range of
+  ! the excess x of σ(M_resolution)/σ(M_parent) over unity, from deep inside the region evaluated through the connection formula
+  ! (x<1/10) to well beyond it. For σ ∝ M^{-1/3} a resolution mass of M_parent/(1+x)³ gives exactly that excess.
+  do i=1,3
+     do k=1,2
+        branchingPCHPlusTabulation_(i,k)=mergerTreeBranchingProbabilityPCHPlus(                                                                                         &
+             &                                                                 G0                       =+0.57d0                                                      , &
+             &                                                                 gamma1                   =+0.38d0                                                      , &
+             &                                                                 gamma2                   =-0.01d0                                                      , &
+             &                                                                 gamma3                   =merge(gamma3Tabulation(i),gamma3Direct(i),k == 1)            , &
+             &                                                                 gamma4                   =0.0d0                                                        , &
+             &                                                                 gamma5                   =0.0d0                                                        , &
+             &                                                                 accuracyFirstOrder       =1.0d-1                                                       , &
+             &                                                                 precisionHypergeometric  =1.0d-6                                                       , &
+             &                                                                 hypergeometricTabulate   =k == 1                                                       , &
+             &                                                                 cdmAssumptions           =.true.                                                       , &
+             &                                                                 tolerateRoundOffErrors   =.false.                                                      , &
+             &                                                                 cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &
+             &                                                                 criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+             &                                                                 linearGrowth_            =linearGrowthCollisionlessMatter_                               &
+             &                                                                )
+     end do
+     do j=1,countX
+        massResolution_    =massParent/(1.0d0+xTarget(j))**3
+        fractionActual  (j)=branchingPCHPlusTabulation_(i,1)%fractionSubresolution(massParent,deltaAnalytic,timeAnalytic,massResolution_,node)
+        fractionExpected(j)=branchingPCHPlusTabulation_(i,2)%fractionSubresolution(massParent,deltaAnalytic,timeAnalytic,massResolution_,node)
+     end do
+     write (label,'(f6.4)') gamma3Tabulation(i)
+     call Unit_Tests_Begin_Group("γ₃ = "//trim(label)//" tabulated subresolution rate")
+     call Assert('tabulated = direct',fractionActual,fractionExpected,relTol=toleranceIdentityTabulated)
+     call Unit_Tests_End_Group()
+  end do
+  call Unit_Tests_End_Group()
 
   ! ----------------------------------------------------------------------------------------------------------------------------------
   ! Maximum step, limiting cases, and sentinel values.
@@ -833,37 +886,37 @@ program Tests_Merger_Tree_Branching
   ! all, which is signaled by a negative return value on which the tree builder branches.
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("Maximum step, limiting cases, and sentinels")
-  branchingFresh_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                                       &
-       &                                                             G0                       =0.57d0                                                                   , &
-       &                                                             gamma1                   =0.38d0                                                                   , &
-       &                                                             gamma2                   =-0.01d0                                                                  , &
-       &                                                             accuracyFirstOrder       =1.0d-1                                                                   , &
-       &                                                             precisionHypergeometric  =1.0d-6                                                                   , &
-       &                                                             hypergeometricTabulate   =.false.                                                                  , &
-       &                                                             cdmAssumptions           =.false.                                                                  , &
-       &                                                             tolerateRoundOffErrors   =.false.                                                                  , &
-       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
-       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+  branchingFresh_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                           &
+       &                                                             G0                       =0.57d0                                                       , &
+       &                                                             gamma1                   =0.38d0                                                       , &
+       &                                                             gamma2                   =-0.01d0                                                      , &
+       &                                                             accuracyFirstOrder       =1.0d-1                                                       , &
+       &                                                             precisionHypergeometric  =1.0d-6                                                       , &
+       &                                                             hypergeometricTabulate   =.false.                                                      , &
+       &                                                             cdmAssumptions           =.false.                                                      , &
+       &                                                             tolerateRoundOffErrors   =.false.                                                      , &
+       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                            )
   massResolution_=massParent/1.0d3
-  stepExpected   =+1.0d-1                       &
-       &          *sqrt(                        &
-       &                +2.0d0                  &
-       &                *(                      &
-       &                  +sigmaHalfAnalytic**2 &
+  stepExpected   =+1.0d-1                         &
+       &          *sqrt(                          &
+       &                +2.0d0                    &
+       &                *(                        &
+       &                  +sigmaHalfAnalytic  **2 &
        &                  -sigmaParentAnalytic**2 &
-       &                 )                      &
+       &                 )                        &
        &               )
-  call Assert('maximum step, object not previously used'      ,branchingFresh_%stepMaximum(massParent,deltaAnalytic,timeAnalytic,massResolution_    ),stepExpected,relTol=1.0d-12)
-  call Assert('maximum step is unbounded below 2M_res'        ,branchingFresh_%stepMaximum(massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent   ),1.0d10      ,relTol=1.0d-12)
-  call Assert('probability vanishes at M_res = M/2'           ,branchingFresh_%probability(massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent   ,node),0.0d0 ,absTol=0.0d0  )
-  call Assert('lower bound vanishes at M_res = M/2'           ,branchingFresh_%probabilityBound(massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent,mergerTreeBranchingBoundLower,node),0.0d0,absTol=0.0d0)
-  call Assert('upper bound vanishes at M_res = M/2'           ,branchingFresh_%probabilityBound(massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent,mergerTreeBranchingBoundUpper,node),0.0d0,absTol=0.0d0)
-  call Assert('subresolution accretion signals M_res ≥ M'     ,branchingFresh_%fractionSubresolution(massParent,deltaAnalytic,timeAnalytic,2.0d0*massParent,node),-1.0d0,relTol=1.0d-12)
+  call Assert('maximum step, object not previously used' ,branchingFresh_%stepMaximum          (massParent,deltaAnalytic,timeAnalytic,     massResolution_                                  ),stepExpected,relTol=1.0d-12           )
+  call Assert('maximum step is unbounded below 2M_res'   ,branchingFresh_%stepMaximum          (massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent                                      ),+1.0d10     ,relTol=1.0d-12           )
+  call Assert('probability vanishes at M_res = M/2'      ,branchingFresh_%probability          (massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent                                 ,node),+0.0d00     ,absTol=0.0d+00           )
+  call Assert('lower bound vanishes at M_res = M/2'      ,branchingFresh_%probabilityBound     (massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent   ,mergerTreeBranchingBoundLower,node),+0.0d00     ,absTol=0.0d+00           )
+  call Assert('upper bound vanishes at M_res = M/2'      ,branchingFresh_%probabilityBound     (massParent,deltaAnalytic,timeAnalytic,0.5d0*massParent   ,mergerTreeBranchingBoundUpper,node),+0.0d00     ,absTol=0.0d+00           )
+  call Assert('subresolution accretion signals M_res ≥ M',branchingFresh_%fractionSubresolution(massParent,deltaAnalytic,timeAnalytic,2.0d0*massParent                                 ,node),-1.0d00     ,relTol=1.0d-12           )
   ! An extreme dynamic range between the halo and resolution masses, well beyond that used in practice.
-  call Assert('probability is positive at M/M_res = 10¹⁰'     ,branchingFresh_%probability(massParent,deltaAnalytic,timeAnalytic,massParent/1.0d10   ,node),0.0d0 ,compareGreaterThan)
-  call Unit_Tests_End_Group  (                                                        )
-  call Unit_Tests_End_Group  (                                                        )
+  call Assert('probability is positive at M/M_res = 10¹⁰',branchingFresh_%probability          (massParent,deltaAnalytic,timeAnalytic,massParent/1.0d10                                ,node),+0.0d00     ,       compareGreaterThan)
+  call Unit_Tests_End_Group()
+  call Unit_Tests_End_Group()
 
   ! End unit tests.
   call Unit_Tests_End_Group()
@@ -887,9 +940,9 @@ contains
     ! second order, so that by x=10³ the γ=-3 form has lost some twelve digits and is no longer accurate enough to serve as a
     ! reference. Writing 1-s as ε/(1+s) removes the cancellation entirely.
     implicit none
-    double precision, intent(in   ) :: x, gamma
-    double precision                :: u, rootDifference, &
-         &                             s, epsilon_       , &
+    double precision, intent(in   ) :: x        , gamma
+    double precision                :: u        , rootDifference, &
+         &                             s        , epsilon_      , &
          &                             oneMinusS
 
     u             =+1.0d0+x
@@ -917,10 +970,10 @@ contains
     ! probability itself, it provides a genuinely independent evaluation of that integral.
     implicit none
     class           (mergerTreeBranchingProbabilityClass), intent(inout), target :: branching_
-    double precision                                     , intent(in   )         :: massLower   , massUpper
+    double precision                                     , intent(in   )         :: massLower         , massUpper
     integer                                              , parameter             :: countInterval=2000
-    double precision                                                             :: logMassLower, logMassUpper, &
-         &                                                                          deltaLogMass, weight      , &
+    double precision                                                             :: logMassLower      , logMassUpper, &
+         &                                                                          deltaLogMass      , weight      , &
          &                                                                          massCurrent
     integer                                                                      :: l
 
@@ -938,9 +991,9 @@ contains
        end if
        massCurrent =exp(logMassLower+deltaLogMass*dble(l))
        ! The rate is per unit progenitor mass, so a factor of the mass converts it to a rate per unit logarithmic mass.
-       rateIntegral=+rateIntegral                                                                                 &
-            &       +weight                                                                                       &
-            &       *branching_%rate(massParent,deltaAnalytic,timeAnalytic,massCurrent,node)                      &
+       rateIntegral=+rateIntegral                                                            &
+            &       +weight                                                                  &
+            &       *branching_%rate(massParent,deltaAnalytic,timeAnalytic,massCurrent,node) &
             &       *massCurrent
     end do
     rateIntegral=+rateIntegral  &

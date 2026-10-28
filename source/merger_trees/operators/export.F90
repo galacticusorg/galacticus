@@ -217,8 +217,8 @@ contains
     type            (mergerTree                    ), intent(inout), target         :: tree
     integer         (size_t                        ), parameter                     :: hdfChunkSize             =1024
     ! Trees are appended one at a time, so each export recompresses the partially-filled final chunk of every dataset. At the
-    ! maximum compression level (9) this dominated the run time of tree building and export, while giving no smaller files than
-    ! the fastest level for these data.
+    ! maximum compression level (9) this dominated the run time of tree building and export, while giving files no smaller than
+    ! level 1 does for these data.
     integer                                         , parameter                     :: hdfCompressionLevel      =   1
     double precision                                , allocatable  , dimension(:  ) :: nodeMass                      , nodeRedshift         , &
          &                                                                             snapshotTime                  , snapshotTimeTemp     , &

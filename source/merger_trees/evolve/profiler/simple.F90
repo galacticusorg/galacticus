@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree evolve profiler that collects simple data.
   !!}
@@ -174,9 +176,9 @@ contains
     type            (varying_string                ), allocatable  , dimension(:) :: propertyNames
     integer                                         , allocatable  , dimension(:) :: propertyHitCount
     type            (hdf5Dataset                   )                              :: metaDataDataset
-    type            (hdf5Group                     )                              :: metaDataGroup    , profilerDataGroup
+    type            (hdf5Group                     )                              :: metaDataGroup   , profilerDataGroup
     integer                                                                       :: i
-    type            (varying_string                )                              :: message
+    type            (varying_string                )                              :: message         , propertyName
     character       (len=12                        )                              :: label
     
     if (.not.allocated(self%timestepCount     )) return
@@ -208,10 +210,11 @@ contains
           self%deepCopiedFrom%timeStepSmallest =  self%timeStepSmallest
        end if
        do i=1,self%propertyHits%size()
-          if (self%deepCopiedFrom%propertyHits%exists(self%propertyHits%key(i))) then
-             call self%deepCopiedFrom%propertyHits%set(self%propertyHits%key(i),self%propertyHits%value(i)+self%deepCopiedFrom%propertyHits%value(i))
+          propertyName=self%propertyHits%key(i)
+          if (self%deepCopiedFrom%propertyHits%exists(propertyName)) then
+             call self%deepCopiedFrom%propertyHits%set(propertyName,self%propertyHits%value(i)+self%deepCopiedFrom%propertyHits%value(propertyName))
           else
-             call self%deepCopiedFrom%propertyHits%set(self%propertyHits%key(i),self%propertyHits%value(i)                                          )
+             call self%deepCopiedFrom%propertyHits%set(propertyName,self%propertyHits%value(i)                                                     )
           end if
        end do       
        call self%deepCopiedFrom%reduceLock%unset()

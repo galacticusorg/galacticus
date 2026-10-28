@@ -231,7 +231,8 @@ contains
     ! Find the luminosity corresponding to the requested filter.
     self%indexLuminosity=unitStellarLuminosities%index(char(filterName),char(filterType),redshift)
     ! Construct property extractors.
-    self%radiusOrbital_        =nodePropertyExtractorRadiusOrbital        ()
+    ! The orbital radius extractor is needed (and requires satellite orbital positions) only for orbital positions.
+    if (positionType%ID == positionTypeOrbital%ID) self%radiusOrbital_=nodePropertyExtractorRadiusOrbital()
     self%radiusHalfMassStellar_=nodePropertyExtractorRadiusHalfMassStellar()
     return
   end function localGroupDetectionConstructorInternal

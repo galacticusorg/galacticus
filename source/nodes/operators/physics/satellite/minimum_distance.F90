@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that tracks the minimum distance from the center that a satellite has ever reached in its current host halo.
   !!}
@@ -113,6 +115,10 @@ contains
     !![
     <addMetaProperty component="satellite" name="satelliteDistanceMinimum" id="self%satelliteDistanceMinimumID" isEvolvable="yes"  isCreator="yes"/>
     <addMetaProperty component="satellite" name="isolatedHostID"           id="self%isolatedHostID"             type="longInteger" isCreator="yes"/>
+    !!]
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position" require="gettable"/>
     !!]
     return
   end function satelliteMinimumDistanceConstructorInternal
@@ -284,12 +290,13 @@ contains
        satellite =>  nodeWork %satellite()
        position  =  +          position    &
             &       +satellite%position ()
-       if (self%relativeTo == relativeToImmediateHost) then
+       if (self%relativeTo == relativeToImmediateHost .or. .not.nodeWork%isSatellite()) then
           nodeWork => null()
-       else if (nodeWork%isSatellite()) then
-          nodeWork => nodeWork%parent
        else
-          nodeWork => null()
+          ! Move to the host, but stop (before adding its position) if the host is the isolated host - an isolated host may
+          ! carry a position relative to its own future host (e.g. if pre-infall orbits are tracked), which must not be included.
+          nodeWork => nodeWork%parent
+          if (.not.nodeWork%isSatellite()) nodeWork => null()
        end if
     end do
     distance=Vector_Magnitude(position)

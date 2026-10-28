@@ -195,6 +195,20 @@ module Dust_Attenuations
      dustAttenuationIsOrientationDependent=.false.
     </code>
    </method>
+   <method name="includesTorus" >
+    <description>
+    Return true if this attenuator includes a model of the dusty torus around an AGN. Light from an accretion disk whose
+    spectrum already includes the emission of a torus (see :galacticus-class:`accretionDiskSpectraClass`) must not be
+    attenuated by such a model, and property extractors use this to reject that combination at construction. Attenuators
+    which combine others report true if any of them does. The default is false.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     dustAttenuationIncludesTorus=.false.
+    </code>
+   </method>
    <method name="absorbedFractions" >
     <description>
     Return the fraction of the emission of each of the given parcels which is absorbed by each phase of dust, averaged

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a model of the ram pressure stripping force from hot halos based on orbital position within the host halo.
   !!}
@@ -101,7 +103,14 @@ contains
     type            (coordinateSpherical                   )                :: coordinates
     double precision                                                        :: radiusOrbital, velocityOrbital
 
-    ! Find the host node.
+    ! Find the host node. This is deliberately the immediate host, rather than the host closest in time to the satellite (as
+    ! returned by `node%hostContemporaneous()`). Satellites can evolve ahead of their hosts. Where satellite positions are known
+    ! in advance (e.g. the "preset" satellite component with N-body merger trees) they are computed relative to that
+    ! contemporaneous host, but the baryonic physics of that host may not yet have been evolved up to date. The immediate host
+    ! is up to date in its own evolution, so we take the hot gas density from it. The density is therefore evaluated at a time
+    ! somewhat earlier than that of the satellite. This lag is unavoidable when nodes are evolved one at a time, but is
+    ! controlled by the maximum time by which satellites may evolve ahead of their host (the `[timestepHostAbsolute]` and
+    ! `[timestepHostRelative]` parameters of the merger tree evolver), allowing convergence to be tested.
     nodeHost             =>  node%parent
     ! Get the satellite component.
     satellite            =>  node%satellite()

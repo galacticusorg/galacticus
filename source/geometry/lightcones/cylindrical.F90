@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the lightcone geometry class which assumes a cylindrical "cone".
   !!}
@@ -59,6 +61,7 @@
           &                                                                             radiusVirialComovingLens              , correlationLensMaximum
      integer         (kind_int8                       )                              :: activeCenterUniqueID                  , activeUniqueID
      integer                                                                         :: activeCenterCount                     , activeCount
+     logical                                                                         :: orbitalPositionSupported
      logical                                           , dimension(:  ), allocatable :: activeInCylinder
      integer                                           , dimension(:  ), allocatable :: activeInstances
      double precision                                  , dimension(:,:), allocatable :: activeCenterPosition                  , activePosition
@@ -347,6 +350,10 @@ contains
     self%activeCenterUniqueID=-1_kind_int8
     self%activeUniqueID      =-1_kind_int8
     self%activeOutput        =-1_c_size_t
+    ! Record whether satellite orbital positions are available - these are needed only if satellites are sampled.
+    !![
+    <componentPropertyAssert class="satellite" properties="position" require="gettable" assignTo="self%orbitalPositionSupported"/>
+    !!]
     ! Determine properties of the lens halo.
     if (self%massHaloLens > 0.0d0) then
        allocate(node)
@@ -776,6 +783,9 @@ contains
        positionOffset=0.0d0
        nodeHost => node
        do while (nodeHost%isSatellite())
+          !![
+          <componentPropertyAssert class="satellite" properties="position" require="gettable" condition="self%orbitalPositionSupported"/>
+          !!]
           satellite      =>  nodeHost      %satellite                          (                )
           positionOffset =  +positionOffset                                                       &
                &            +satellite                         %position       (                ) &

@@ -352,33 +352,12 @@ module Cosmological_Density_Field
    <name>cosmologicalMassVariance</name>
    <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
    <description>
-   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g. top-hat in real space) and integrate over wavenumber, with normalization set by :math:`\sigma_8`.
+   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g. top-hat in real space) and integrate over wavenumber, with normalization set by that of the power spectrum (see :galacticus-class:`powerSpectrumNormalizer`).
    </description>
    <default>filteredPower</default>
-   <method name="descriptorNormalizationOnly" >
-    <description>
-    Return a descriptor for this object suitable for normalization-only usage.
-    </description>
-    <type>void</type>
-    <pass>yes</pass>
-    <modules>Input_Parameters</modules>
-    <argument>type     (inputParameters), intent(inout)           :: descriptor                                </argument>
-    <argument>logical                   , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
-    <argument>character(len=*          ), intent(in   ), optional :: parameterName                             </argument>
-    <code>
-      call self%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)
-    </code>
-   </method>
-   <method name="powerNormalization" >
-    <description>
-    Return the overall amplitude normalization of the linear matter power spectrum, used to scale the dimensionless power :math:`\Delta^2(k)` so that the integrated variance matches the observed :math:`\sigma_8`.
-    </description>
-    <type>double precision</type>
-    <pass>yes</pass>
-   </method>
    <method name="sigma8" >
     <description>
-    Return :math:`\sigma_8`, the rms linear density fluctuation smoothed with a top-hat filter of radius :math:`8\,h^{-1}\,\mathrm{Mpc}`, which sets the overall normalization of the matter power spectrum.
+    Return :math:`\sigma_8`, the rms linear density fluctuation at the present day smoothed with a top-hat filter of radius :math:`8\,h^{-1}\,\mathrm{Mpc}`, as computed from the (normalized) power spectrum.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
