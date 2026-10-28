@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+ Contributions to this file made by: Sachi Weerasooriya, Claude
+  !+ Contributions to this file made by: Sachi Weerasooriya, Claude.
 
   !!{RST
   An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
@@ -79,14 +79,16 @@
      procedure :: accretedMass              => coldModeAccretedMass
      procedure :: failedAccretionRate       => coldModeFailedAccretionRate
      procedure :: failedAccretedMass        => coldModeFailedAccretedMass
-     procedure :: accretionRateMetals       => coldModeAccretionRateMetals
      procedure :: accretedMassMetals        => coldModeAccretedMassMetals
-     procedure :: failedAccretionRateMetals => coldModeAccretionRateMetals
-     procedure :: failedAccretedMassMetals  => coldModeAccretedMassMetals
+     procedure :: failedAccretedMassMetals  => coldModeFailedAccretedMassMetals
      procedure :: accretionRateChemicals    => coldModeAccretionRateChemicals
      procedure :: accretedMassChemicals     => coldModeAccretedMassChemicals
      procedure :: chemicalMasses            => coldModeChemicalMasses
      procedure :: coldModeFraction          => coldModeColdModeFraction
+     procedure :: rateReaccretionFractional => coldModeRateReaccretionFractional
+     ! The accretionRateMetals() and failedAccretionRateMetals() methods are inherited from the parent class. Through the polymorphic
+     ! accretionRate(), failedAccretionRate(), and rateReaccretionFractional() methods they split each rate into terms scaled by the
+     ! fraction of accretion in each mode, with gas lost from the CGM carrying the metallicity of the CGM of that mode.
   end type accretionHaloColdMode
 
   interface accretionHaloColdMode
@@ -277,21 +279,6 @@ contains
     return
   end function coldModeFailedAccretedMass
 
-  function coldModeAccretionRateMetals(self,node,accretionMode)
-    !!{RST
-    Computes the rate of mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
-    !!}
-    implicit none
-    type (abundances                  )                :: coldModeAccretionRateMetals
-    class(accretionHaloColdMode       ), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
-
-    coldModeAccretionRateMetals=+self%accretionHaloSimple%accretionRateMetals(node,accretionMode) &
-         &                      *self                    %coldModeFraction   (node,accretionMode)
-    return
-  end function coldModeAccretionRateMetals
-
   function coldModeAccretedMassMetals(self,node,accretionMode)
     !!{RST
     Computes the mass of abundances accreted (in :math:`\mathrm{M}_\odot`) onto ``node`` from the intergalactic medium.
@@ -302,25 +289,10 @@ contains
     type (treeNode                    ), intent(inout) :: node
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
-    coldModeAccretedMassMetals=+self%accretionHaloSimple%accretedMassMetals(node,accretionMode) &
-         &                     *self                    %coldModeFraction  (node,accretionMode)
+    coldModeAccretedMassMetals=+self%accretionHaloSimple%accretedMassMetals(node,accretionModeTotal) &
+         &                     *self                    %coldModeFraction  (node,accretionMode     )
     return
   end function coldModeAccretedMassMetals
-
-  function coldModeFailedAccretionRateMetals(self,node,accretionMode)
-    !!{RST
-    Computes the rate of failed mass of abundance accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium.
-    !!}
-    implicit none
-    type (abundances                  )                :: coldModeFailedAccretionRateMetals
-    class(accretionHaloColdMode       ), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
-
-    coldModeFailedAccretionRateMetals=+self%accretionHaloSimple%failedAccretionRateMetals(node,accretionMode) &
-         &                            *self                    %coldModeFraction         (node,accretionMode)
-    return
-  end function coldModeFailedAccretionRateMetals
 
   function coldModeFailedAccretedMassMetals(self,node,accretionMode)
     !!{RST
@@ -332,11 +304,26 @@ contains
     type (treeNode                    ), intent(inout) :: node
     type (enumerationAccretionModeType), intent(in   ) :: accretionMode
 
-    coldModeFailedAccretedMassMetals=+self%accretionHaloSimple%failedAccretedMassMetals(node,accretionMode) &
-         &                           *self                    %coldModeFraction        (node,accretionMode)
+    coldModeFailedAccretedMassMetals=+self%accretionHaloSimple%failedAccretedMassMetals(node,accretionModeTotal) &
+         &                           *self                    %coldModeFraction        (node,accretionMode     )
     return
   end function coldModeFailedAccretedMassMetals
   
+  double precision function coldModeRateReaccretionFractional(self,node,accretionMode)
+    !!{RST
+    Returns the fractional rate (in Gyr\ :math:`^{-1}`) at which gas in the unaccreted reservoir of ``node`` is reaccreted onto the
+    halo in the given ``accretionMode``.
+    !!}
+    implicit none
+    class(accretionHaloColdMode       ), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
+    type (enumerationAccretionModeType), intent(in   ) :: accretionMode
+
+    coldModeRateReaccretionFractional=+self%accretionHaloSimple%rateReaccretionFractional(node,accretionModeTotal) &
+         &                            *self                    %coldModeFraction         (node,accretionMode     )
+    return
+  end function coldModeRateReaccretionFractional
+
   function coldModeAccretionRateChemicals(self,node,accretionMode)
     !!{RST
     Computes the rate of mass of chemicals accretion (in :math:`\mathrm{M}_\odot/`\ Gyr) onto ``node`` from the intergalactic medium. Assumes a primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial temperature.

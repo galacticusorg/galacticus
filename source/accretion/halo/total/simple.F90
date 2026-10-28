@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
+  An implementation of the halo total accretion class which assumes that the accretion rate equals the growth rate of the basic mass.
   !!}
 
   !![

@@ -109,7 +109,7 @@ module Galactic_Structure_Radii_Definitions
   type radiusDefinitions
      !!{RST
      Type used to hold a decoded set of radius definitions, together with a record of which node components are required in order
-     to evaluate them. Radii are evaluated in a given node by first constructing a :galacticus-type:`radiusResolver` from this
+     to evaluate them. Radii are evaluated in a given node by first constructing a ``radiusResolver`` from this
      object.
      !!}
      type   (radiusSpecifier), allocatable, dimension(:) :: specifiers
@@ -130,7 +130,7 @@ module Galactic_Structure_Radii_Definitions
 
   type radiusResolver
      !!{RST
-     Type used to evaluate a set of :galacticus-type:`radiusDefinitions` in a single :galacticus-type:`treeNode`. Constructing a
+     Type used to evaluate a set of ``radiusDefinitions`` in a single ``treeNode``. Constructing a
      resolver gathers, once, all of the node components and halo scales needed by the definitions; each radius is then evaluated by
      a call to the ``evaluate`` method. A resolver holds pointers into the node it was built for, so it must be constructed as a
      local variable of the routine which uses it (and never cached in a shared object), and must not outlive that node.
@@ -158,7 +158,7 @@ module Galactic_Structure_Radii_Definitions
 
   interface radiusResolver
      !!{RST
-     Constructors for the :galacticus-type:`radiusResolver` type.
+     Constructors for the ``radiusResolver`` type.
      !!}
      module procedure radiusResolverConstructor
   end interface radiusResolver
@@ -400,7 +400,7 @@ contains
 
   function radiusResolverConstructor(definitions_,node,darkMatterHaloScale_,fractionDarkMatter,radiusVirialRequired) result(self)
     !!{RST
-    Constructor for the :galacticus-type:`radiusResolver` type. Gathers, once, all of the node components and halo scales which
+    Constructor for the ``radiusResolver`` type. Gathers, once, all of the node components and halo scales which
     are required in order to evaluate the given set of radius definitions in the given node.
 
     The optional ``fractionDarkMatter`` argument gives the fraction of the bound mass of a satellite which is

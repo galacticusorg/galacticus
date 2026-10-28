@@ -69,6 +69,7 @@
        <method description="Tabulate the mid-plane rotation curve of a thick disk."                                                   method="rotationCurveMidplaneTabulate"    />
        <method description="Interpolate in the tabulated gravitational acceleration, tidal tensor, and/or potential due to the disk." method="accelerationInterpolate"          />
        <method description="Interpolate in the tabulated mid-plane rotation curve (and its gradient) of a thick disk."                method="rotationCurveSquaredMidplane"     />
+       <method description="Return the coefficient of the quadrupole term in the mid-plane rotation curve at large radii."            method="quadrupoleCoefficient"            />
      </methods>
      !!]
      final     ::                                            exponentialDiskDestructor
@@ -98,6 +99,7 @@
      procedure :: rotationCurveMidplaneTabulate           => exponentialDiskRotationCurveMidplaneTabulate
      procedure :: accelerationInterpolate                 => exponentialDiskAccelerationInterpolate
      procedure :: rotationCurveSquaredMidplane            => exponentialDiskRotationCurveSquaredMidplane
+     procedure :: quadrupoleCoefficient                   => exponentialDiskQuadrupoleCoefficient
      procedure :: positionSample                          => exponentialDiskPositionSample
   end type massDistributionExponentialDisk
 
@@ -109,21 +111,21 @@
      module procedure exponentialDiskConstructorInternal
   end interface massDistributionExponentialDisk
 
-  ! The radius (in units of the disk scale length) beyond which the disk is treated as a point mass for the purposes of computing
-  ! rotation curves.
-  double precision, parameter :: radiusMaximum           =3.0d+1
+  ! The radius (in units of the disk scale length) beyond which the rotation curve is computed from the multipole expansion of the
+  ! potential (to quadrupole order).
+  double precision, parameter :: radiusMaximum                        =3.0d+1
 
   ! Potential tabulation.
-  integer         , parameter :: potentialPointsPerDecade=10
-  double precision, parameter :: potentialRadiusMinimum  =1.0d-3
-  double precision, parameter :: potentialRadiusMaximum  =5.0d+2
+  integer         , parameter :: potentialPointsPerDecade             =10
+  double precision, parameter :: potentialRadiusMinimum               =1.0d-3
+  double precision, parameter :: potentialRadiusMaximum               =5.0d+2
 
   ! Seed range for the rotation curve tabulations. Every range begins from this one, so that any two tabulations - built in
   ! different runs, at different requested half-radii - overlap and can be merged onto the common lattice.
   double precision, parameter :: rotationCurveHalfRadiusMinimumDefault=1.0d-6, rotationCurveHalfRadiusMaximumDefault=1.0d+1
 
   ! Tabulation of the mid-plane rotation curve of a thick disk (radii in units of the disk scale length). The table extends to
-  ! `radiusMaximum`, beyond which the disk is treated as a point mass.
+  ! `radiusMaximum`, beyond which the multipole expansion of the potential is used.
   double precision, parameter :: radiusRotationCurveMidplaneMinimum   =1.0d-4
   integer         , parameter :: countRotationCurveMidplanePerDecade  =100
 
@@ -538,32 +540,32 @@ contains
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
     double precision                                 , intent(in   ) :: radius
-    double precision                                                 :: r           , halfRadius, &
+    double precision                                                 :: radiusScaleFree, radiusHalf, &
          &                                                              radiusFactor
 
     ! Get scale-free radius.
-    r=radius/self%radiusScale
+    radiusScaleFree=radius/self%radiusScale
     ! Compute rotation curve.
-    if (r > radiusMaximum) then
-       ! Beyond some maximum radius, approximate the disk as a spherical distribution to avoid evaluating Bessel functions for
-       ! very large arguments.
-       exponentialDiskRotationCurve=sqrt( self%mass/     radius                                           )
+    if (radiusScaleFree > radiusMaximum) then
+       ! Beyond some maximum radius, use the multipole expansion of the potential to quadrupole order to avoid evaluating Bessel
+       ! functions for very large arguments.
+       exponentialDiskRotationCurve=sqrt( self%mass/     radius      *(1.0d0+self%quadrupoleCoefficient()/radius**2))
     else if (self%scaleHeight > 0.0d0) then
        ! For a thick disk, interpolate in the tabulated mid-plane rotation curve.
-       exponentialDiskRotationCurve=sqrt((self%mass/self%radiusScale)*self%rotationCurveSquaredMidplane(r))
+       exponentialDiskRotationCurve=sqrt((self%mass/self%radiusScale)*self%rotationCurveSquaredMidplane(radiusScaleFree))
     else
        ! For a razor-thin disk, use the analytic solution.
        ! We are often called at precisely one scale length. Use pre-computed factors in that case.
-       if (r == 1.0d0) then
+       if (radiusScaleFree == 1.0d0) then
           if (.not.self%scaleLengthFactorSet) then
-             halfRadius               =0.5d0
-             self%scaleLengthFactor   =self%besselFactorRotationCurve(halfRadius)
+             radiusHalf               =0.5d0
+             self%scaleLengthFactor   =self%besselFactorRotationCurve(radiusHalf)
              self%scaleLengthFactorSet=.true.
           end if
           radiusFactor=self%scaleLengthFactor
        else
-          halfRadius       =0.5d0*r
-          radiusFactor=self%besselFactorRotationCurve(halfRadius)
+          radiusHalf       =0.5d0*radiusScaleFree
+          radiusFactor=self%besselFactorRotationCurve(radiusHalf)
        end if
        exponentialDiskRotationCurve=sqrt(2.0d0*(self%mass/self%radiusScale)*radiusFactor)
     end if
@@ -573,6 +575,22 @@ contains
          & *exponentialDiskRotationCurve
     return
   end function exponentialDiskRotationCurve
+
+  double precision function exponentialDiskQuadrupoleCoefficient(self) result(coefficient)
+    !!{RST
+    Return the coefficient, :math:`c`, of the quadrupole term in the mid-plane rotation curve at large radii,
+    :math:`V_\mathrm{c}^2 = (GM/R)(1+c/R^2)`. For an axisymmetric distribution the multipole expansion of the potential gives
+    :math:`c = (3/4)\langle R^2 \rangle - (3/2)\langle z^2 \rangle`. For the exponential disk :math:`\langle R^2 \rangle = 6
+    r_\mathrm{s}^2`, and for the :math:`\mathrm{sech}^2` vertical profile :math:`\langle z^2 \rangle = \pi^2 z_\mathrm{s}^2/12`.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class(massDistributionExponentialDisk), intent(inout) :: self
+
+    coefficient=+      4.5d0*self%radiusScale**2 &
+         &      -Pi**2/8.0d0*self%scaleHeight**2
+    return
+  end function exponentialDiskQuadrupoleCoefficient
 
   double precision function exponentialDiskRotationCurveGradient(self,radius)
     !!{RST
@@ -590,10 +608,11 @@ contains
          &         /2.0d0            &
          &         /self%radiusScale
     if (2.0d0*besselArgument > fractionalRadiusMaximum) then
-       ! Beyond some maximum radius, approximate the disk as a point mass to avoid evaluating Bessel functions for
-       ! very large arguments.
+       ! Beyond some maximum radius, use the multipole expansion of the potential to quadrupole order to avoid evaluating Bessel
+       ! functions for very large arguments.
        exponentialDiskRotationCurveGradient=-self%mass                                                               &
-            &                               /     radius     **2
+            &                               /                                          radius**2                     &
+            &                               *(1.0d0+3.0d0*self%quadrupoleCoefficient()/radius**2)
     else if (self%scaleHeight > 0.0d0) then
        ! For a thick disk, use the gradient of the interpolant in the tabulated mid-plane rotation curve, so that the gradient
        ! is exactly consistent with the rotation curve.
@@ -681,7 +700,7 @@ contains
     class           (coordinate                       ), intent(in   )           :: coordinates
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     type            (coordinateCylindrical            )                          :: position
-    double precision                                                             :: halfRadius  , radius, &
+    double precision                                                             :: radiusHalf  , radius, &
          &                                                                          potential
 
     if (present(status)) status=structureErrorCodeSuccess
@@ -697,18 +716,19 @@ contains
             &                   /self%radiusScale &
             &                   *     potential
     else if (radius > potentialRadiusMaximum*self%radiusScale) then
-       ! If the radius is sufficiently large, treat the disk as a point mass.
-       exponentialDiskPotential=-self%mass        &
-            &                   /     radius
+       ! If the radius is sufficiently large, use the multipole expansion of the potential to quadrupole order.
+       exponentialDiskPotential=-self%mass                                            &
+            &                   /     radius                                          &
+            &                   *(1.0d0+self%quadrupoleCoefficient()/3.0d0/radius**2)
     else
        ! Radius is sufficiently small to use the full calculation for a razor-thin disk. Note that this potential is evaluated
        ! in the plane of the disk - it is independent of height.
-       halfRadius              =+radius           &
-            &                   /2.0d0            &
+       radiusHalf              =+radius                                 &
+            &                   /2.0d0                                  &
             &                   /self%radiusScale
        exponentialDiskPotential=-self%mass                              &
             &                   /self%radiusScale                       &
-            &                   *self%besselFactorPotential(halfRadius)
+            &                   *self%besselFactorPotential(radiusHalf)
     end if
     ! Make dimensionful if necessary.
     if (.not.self%dimensionless) exponentialDiskPotential= &
@@ -717,28 +737,28 @@ contains
     return
   end function exponentialDiskPotential
 
-  double precision function exponentialDiskBesselFactorPotential(self,halfRadius)
+  double precision function exponentialDiskBesselFactorPotential(self,radiusHalf)
     !!{RST
     Compute Bessel function factors appearing in the expression for an razor-thin exponential disk gravitational potential.
     !!}
     use :: Numerical_Constants_Math, only : eulersConstant, ln2
     implicit none
     class           (massDistributionExponentialDisk), intent(inout) :: self
-    double precision                                 , intent(in   ) :: halfRadius
+    double precision                                 , intent(in   ) :: radiusHalf
 
     ! For small half-radii, use a series expansion for a more accurate result.
-    if      (halfRadius <=                 0.0d0) then
+    if      (radiusHalf <=                 0.0d0) then
        exponentialDiskBesselFactorPotential=1.0d0
-    else if (halfRadius < potentialRadiusMinimum) then
-       exponentialDiskBesselFactorPotential=1.0d0+(eulersConstant-ln2+log(halfRadius))*halfRadius**2
+    else if (radiusHalf < potentialRadiusMinimum) then
+       exponentialDiskBesselFactorPotential=1.0d0+(eulersConstant-ln2+log(radiusHalf))*radiusHalf**2
     else
        call self%tabulate()
-       exponentialDiskBesselFactorPotential=self%potentialTable%interpolate(halfRadius)
+       exponentialDiskBesselFactorPotential=self%potentialTable%interpolate(radiusHalf)
     end if
     return
   end function exponentialDiskBesselFactorPotential
 
-  double precision function exponentialDiskBesselFactorRotationCurve(self,halfRadius)
+  double precision function exponentialDiskBesselFactorRotationCurve(self,radiusHalf)
     !!{RST
     Compute Bessel function factors appearing in the expression for an razor-thin exponential disk rotation curve.
     !!}
@@ -747,8 +767,8 @@ contains
     use :: Numerical_Ranges        , only : Range_Pinned      , rangeLattice      , gridSchemePerDecade
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)               :: self
-    double precision                                 , intent(in   )               :: halfRadius
-    double precision                                 , parameter                   :: halfRadiusSmall             =1.0d-3
+    double precision                                 , intent(in   )               :: radiusHalf
+    double precision                                 , parameter                   :: radiusHalfSmall             =1.0d-3
     integer                                          , parameter                   :: rotationCurvePointsPerDecade=100
     integer                                                                        :: iPoint
     double precision                                                               :: x
@@ -756,11 +776,11 @@ contains
     logical                                          , allocatable  , dimension(:) :: isComputed
 
     ! For small half-radii, use a series expansion for a more accurate result.
-    if (halfRadius <= 0.0d0) then
+    if (radiusHalf <= 0.0d0) then
        exponentialDiskBesselFactorRotationCurve=0.0d0
        return
-    else if (halfRadius < halfRadiusSmall) then
-       exponentialDiskBesselFactorRotationCurve=(ln2-eulersConstant-0.5d0-log(halfRadius))*halfRadius**2
+    else if (radiusHalf < radiusHalfSmall) then
+       exponentialDiskBesselFactorRotationCurve=(ln2-eulersConstant-0.5d0-log(radiusHalf))*radiusHalf**2
        return
     end if
     ! Find the range of half-radii to tabulate, pinned to an absolute lattice so that the tabulation - and hence every value
@@ -768,7 +788,7 @@ contains
     ! extended without recomputing any value already found. The safety margin which `Range_Pinned` applies by default is a factor
     ! of two at each end, which is the margin this tabulation always used.
     lattice=Range_Pinned(                                                                                              &
-         &                              halfRadius                                                                   , &
+         &                              radiusHalf                                                                   , &
          &                              rotationCurvePointsPerDecade                                                 , &
          &                              gridSchemePerDecade                                                          , &
          &               rangeCurrent  =[rotationCurveHalfRadiusMinimumDefault,rotationCurveHalfRadiusMaximumDefault], &
@@ -794,11 +814,11 @@ contains
        self%rotationCurveInitialized=.true.
     end if
     ! Interpolate in the tabulated function.
-    exponentialDiskBesselFactorRotationCurve=self%rotationCurveTable%interpolate(halfRadius)
+    exponentialDiskBesselFactorRotationCurve=self%rotationCurveTable%interpolate(radiusHalf)
     return
   end function exponentialDiskBesselFactorRotationCurve
 
-  double precision function exponentialDiskBesselFactorRotationCurveGradient(self,halfRadius)
+  double precision function exponentialDiskBesselFactorRotationCurveGradient(self,radiusHalf)
     !!{RST
     Compute Bessel function factors appearing in the expression for a razor-thin exponential disk rotation curve gradient.
     !!}
@@ -807,9 +827,9 @@ contains
     use :: Numerical_Ranges        , only : Range_Pinned      , rangeLattice      , gridSchemePerDecade
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)               :: self
-    double precision                                 , intent(in   )               :: halfRadius
-    double precision                                 , parameter                   :: halfRadiusSmall                     =1.0d-3
-    double precision                                 , parameter                   :: halfRadiusLarge                     =1.0d+2
+    double precision                                 , intent(in   )               :: radiusHalf
+    double precision                                 , parameter                   :: radiusHalfSmall                     =1.0d-3
+    double precision                                 , parameter                   :: radiusHalfLarge                     =1.0d+2
     integer                                          , parameter                   :: rotationCurveGradientPointsPerDecade=100
     integer                                                                        :: iPoint
     double precision                                                               :: x
@@ -817,21 +837,21 @@ contains
     logical                                          , allocatable  , dimension(:) :: isComputed
 
     ! For small and large half-radii, use a series expansion for a more accurate result.
-    if (halfRadius == 0.0d0) then
+    if (radiusHalf == 0.0d0) then
        exponentialDiskBesselFactorRotationCurveGradient=0.0d0
        return
-    else if (halfRadius < halfRadiusSmall) then
-       exponentialDiskBesselFactorRotationCurveGradient=(ln2-log(halfRadius)-eulersConstant-1.0d0)*halfRadius &
-            & +(1.5d0*ln2-1.5d0*log(halfRadius)+0.25d0-1.5d0*eulersConstant)*halfRadius**3
+    else if (radiusHalf < radiusHalfSmall) then
+       exponentialDiskBesselFactorRotationCurveGradient=(ln2-log(radiusHalf)-eulersConstant-1.0d0)*radiusHalf &
+            & +(1.5d0*ln2-1.5d0*log(radiusHalf)+0.25d0-1.5d0*eulersConstant)*radiusHalf**3
        return
-    else if (halfRadius > halfRadiusLarge) then
-       exponentialDiskBesselFactorRotationCurveGradient=-0.125d0-27.0d0/64.0d0/halfRadius**2
+    else if (radiusHalf > radiusHalfLarge) then
+       exponentialDiskBesselFactorRotationCurveGradient=-0.125d0-27.0d0/64.0d0/radiusHalf**2
        return
     end if
     ! As for the rotation curve itself, pin the range to an absolute lattice so that the tabulation does not depend on the
     ! half-radius at which it was first requested, and can be extended without recomputing any value already found.
     lattice=Range_Pinned(                                                                                              &
-         &                              halfRadius                                                                   , &
+         &                              radiusHalf                                                                   , &
          &                              rotationCurveGradientPointsPerDecade                                         , &
          &                              gridSchemePerDecade                                                          , &
          &               rangeCurrent  =[rotationCurveHalfRadiusMinimumDefault,rotationCurveHalfRadiusMaximumDefault], &
@@ -866,7 +886,7 @@ contains
        self%rotationCurveGradientInitialized=.true.
     end if
     ! Interpolate in the tabulated function.
-    exponentialDiskBesselFactorRotationCurveGradient=self%rotationCurveGradientTable%interpolate(halfRadius)
+    exponentialDiskBesselFactorRotationCurveGradient=self%rotationCurveGradientTable%interpolate(radiusHalf)
     return
   end function exponentialDiskBesselFactorRotationCurveGradient
 
@@ -1019,13 +1039,15 @@ contains
   subroutine exponentialDiskAccelerationInterpolate(self,coordinatesCylindrical,accelerationRadial,accelerationVertical,tidalTensorRadialRadial,tidalTensorVerticalVertical,tidalTensorCross,potential)
     !!{RST
     Interpolate gravitational accelerations, tidal tensors, and the potential in the tabulated solutions for an exponential disk.
-    Results are for a disk of unit mass and unit scale length (with :math:`G=1`), at positive height. Beyond the tabulated range the
-    disk is treated as a point mass. Below the smallest tabulated radius the radial acceleration is taken to decrease linearly to
-    zero, and the tidal tensor to be constant. The potential there is found by integrating that acceleration from the edge of the
-    table, so that it remains consistent with the acceleration. The table includes the mid-plane. Between the mid-plane and the
-    smallest non-zero height tabulated, quantities which are odd functions of :math:`z` (the vertical acceleration, and the
-    cross term of the tidal tensor) are interpolated linearly in :math:`z`, while those which are even functions of :math:`z` are
-    interpolated linearly in :math:`z^2`, such that their gradients vanish in the mid-plane.
+    Results are for a disk of unit mass and unit scale length (with :math:`G=1`), at positive height. Beyond the tabulated range
+    the multipole expansion of the potential to quadrupole order, :math:`\Phi=-1/r-Q(3z^2-r^2)/2r^5`, is used, with quadrupole
+    moment :math:`Q=\langle z^2 \rangle - \langle R^2 \rangle/2` (see ``quadrupoleCoefficient``). Below the smallest tabulated
+    radius the radial acceleration is taken to decrease linearly to zero, and the tidal tensor to be constant. The potential there
+    is found by integrating that acceleration from the edge of the table, so that it remains consistent with the acceleration. The
+    table includes the mid-plane. Between the mid-plane and the smallest non-zero height tabulated, quantities which are odd
+    functions of :math:`z` (the vertical acceleration, and the cross term of the tidal tensor) are interpolated linearly in
+    :math:`z`, while those which are even functions of :math:`z` are interpolated linearly in :math:`z^2`, such that their
+    gradients vanish in the mid-plane.
     !!}
     use :: Coordinates, only : coordinateCylindrical
     implicit none
@@ -1037,7 +1059,7 @@ contains
     double precision                                 , dimension(0:1)           :: hRadius                , hHeightEven                , &
          &                                                                         hHeightOdd
     double precision                                                            :: radiusCylindrical      , heightCylindrical          , &
-         &                                                                         radiusSpherical
+         &                                                                         radiusSpherical        , quadrupole
     integer                                                                     :: iRadius                , iHeight
 
     ! Find the scale-free position.
@@ -1048,16 +1070,39 @@ contains
          &  .or.                                                                          &
          &   heightCylindrical > self%accelerationHeights(size(self%accelerationHeights)) &
          & ) then
-       ! Use point mass approximation.
+       ! Use the multipole expansion of the potential to quadrupole order. The quadrupole moment (for unit mass and scale length) is
+       ! Q=-(2/3)c, where c is the coefficient of the quadrupole term in the mid-plane rotation curve.
        radiusSpherical=sqrt(radiusCylindrical**2+heightCylindrical**2)
-       if (present(accelerationVertical       )) accelerationVertical       =-                           heightCylindrical   /radiusSpherical**3
-       if (present(accelerationRadial         )) accelerationRadial         =-       radiusCylindrical                       /radiusSpherical**3
-       if (present(tidalTensorVerticalVertical)) tidalTensorVerticalVertical=-1.0d0                                          /radiusSpherical**3 &
-            &                                                                +3.0d0*                     heightCylindrical**2/radiusSpherical**5
-       if (present(tidalTensorRadialRadial    )) tidalTensorRadialRadial    =-1.0d0                                          /radiusSpherical**3 &
-            &                                                                +3.0d0*radiusCylindrical**2                     /radiusSpherical**5
-       if (present(tidalTensorCross           )) tidalTensorCross           =+3.0d0*radiusCylindrical   *heightCylindrical   /radiusSpherical**5
-       if (present(potential                  )) potential                  =-1.0d0                                          /radiusSpherical
+       quadrupole     =-2.0d0/3.0d0*self%quadrupoleCoefficient()/self%radiusScale**2
+       if (present(accelerationVertical       )) accelerationVertical       =-                                 heightCylindrical   /radiusSpherical**3    &
+            &                                                                +quadrupole*heightCylindrical                                                &
+            &                                                                *(+4.5d0/radiusSpherical**5-7.5d0*heightCylindrical**2/radiusSpherical**7)
+       if (present(accelerationRadial         )) accelerationRadial         =-       radiusCylindrical                             /radiusSpherical**3    &
+            &                                                                +quadrupole*radiusCylindrical                                                &
+            &                                                                *(+1.5d0/radiusSpherical**5-7.5d0*heightCylindrical**2/radiusSpherical**7)
+       if (present(tidalTensorVerticalVertical)) tidalTensorVerticalVertical=-1.0d0                                                /radiusSpherical**3    &
+            &                                                                +3.0d0*                           heightCylindrical**2/radiusSpherical**5    &
+            &                                                                +quadrupole                                                                  &
+            &                                                                *(                                                                           &
+            &                                                                  +52.5d0*heightCylindrical**4                     /radiusSpherical**9       &
+            &                                                                  -45.0d0*heightCylindrical**2                     /radiusSpherical**7       &
+            &                                                                  + 4.5d0                                          /radiusSpherical**5       &
+            &                                                                 )
+       if (present(tidalTensorRadialRadial    )) tidalTensorRadialRadial    =-1.0d0                                             /radiusSpherical**3       &
+            &                                                                +3.0d0*radiusCylindrical**2                        /radiusSpherical**5       &
+            &                                                                +quadrupole                                                                  &
+            &                                                                *(                                                                           &
+            &                                                                  +52.5d0*radiusCylindrical**2*heightCylindrical**2/radiusSpherical**9       &
+            &                                                                  - 7.5d0*radiusCylindrical**2                     /radiusSpherical**7       &
+            &                                                                  - 7.5d0*                     heightCylindrical**2/radiusSpherical**7       &
+            &                                                                  + 1.5d0                                          /radiusSpherical**5       &
+            &                                                                 )
+       if (present(tidalTensorCross           )) tidalTensorCross           =+3.0d0*radiusCylindrical      *heightCylindrical   /radiusSpherical**5       &
+            &                                                                +quadrupole*radiusCylindrical*heightCylindrical                              &
+            &                                                                *(+52.5d0*heightCylindrical**2/radiusSpherical**9-22.5d0/radiusSpherical**7)
+       if (present(potential                  )) potential                  =-1.0d0                                                  /radiusSpherical     &
+            &                                                                -quadrupole                                                                  &
+            &                                                                *(  3.0d0*heightCylindrical**2-radiusSpherical**2)/2.0d0/radiusSpherical**5
     else
        ! Find interpolating factors.
        if (radiusCylindrical < self%accelerationRadii  (1)) then
@@ -1180,47 +1225,41 @@ contains
        \Phi(R,z) = -G M \int_0^\infty \mathrm{d}k \, {J_0(kR) K(k,z) \over (1+k^2)^{3/2}},
 
     in units where the disk scale length is unity, and the mid-plane rotation curve is :math:`V_\mathrm{c}^2(R) = -R
-    a_R(R,0)`. The vertical kernel is evaluated by direct numerical integration (see ``kernelVertical``) rather than by the series
-    expansion of :cite:t:`kuijken_mass_1989`, the terms of which do not decay with order. The tabulation is built for a
+    a_R(R,0)`. The vertical kernel is evaluated by direct numerical integration (see :galacticus-type:`kernelVerticalSechSquared`)
+    rather than by the series expansion of :cite:t:`kuijken_mass_1989`, the terms of which do not decay with order. The tabulation is built for a
     dimensionless disk.
     !!}
-    use    :: Display              , only : displayCounter              , displayCounterClear , displayIndent , displayUnindent, &
-          &                                 verbosityLevelWorking
-    use    :: File_Utilities       , only : Directory_Make              , File_Exists         , File_Lock     , File_Path      , &
-          &                                 File_Unlock                 , lockDescriptor
-    use    :: Input_Paths          , only : inputPath                   , pathTypeDataDynamic
-    use    :: HDF5_Access          , only : hdf5Access
-    use    :: IO_HDF5              , only : hdf5File
-    use    :: ISO_Varying_String   , only : char                        , operator(//)        , varying_string
-    use    :: Numerical_Integration, only : integrator
-    use    :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic
-    use    :: String_Handling      , only : operator(//)
-    use    :: Table_Labels         , only : extrapolationTypeExtrapolate
+    use    :: Display                                 , only : displayCounter              , displayCounterClear                 , displayIndent                         , displayUnindent          , &
+          &                                                    verbosityLevelWorking
+    use    :: File_Utilities                          , only : Directory_Make              , File_Exists                         , File_Lock                             , File_Path                , &
+          &                                                    File_Unlock                 , lockDescriptor
+    use    :: Input_Paths                             , only : inputPath                   , pathTypeDataDynamic
+    use    :: Mass_Distributions_Cylindrical_Utilities, only : Hankel_Transform_Integrate  , Kernel_Vertical_Integrators_Allocate, Kernel_Vertical_Integrators_Deallocate, kernelVerticalSechSquared
+    use    :: HDF5_Access                             , only : hdf5Access
+    use    :: IO_HDF5                                 , only : hdf5File
+    use    :: ISO_Varying_String                      , only : char                        , operator(//)                        , varying_string
+    use    :: Numerical_Integration                   , only : integrator
+    use    :: Numerical_Ranges                        , only : Make_Range                  , rangeTypeLogarithmic
+    use    :: String_Handling                         , only : operator(//)
+    use    :: Table_Labels                            , only : extrapolationTypeExtrapolate
     implicit none
     class           (massDistributionExponentialDisk), intent(inout)                   :: self
     logical                                          , intent(in   )                   :: midplane
     double precision                                 , parameter                       :: radiusTableMinimum                 = 1.0d-2, radiusTableMaximum                   =5.0d1
     double precision                                 , parameter                       :: radiiPerDecade                     =30.0d+0
     integer                                          , parameter                       :: fileFormatVersionCurrent           = 5
-    double precision                                 , parameter                       :: wavenumberKernelMinimum            = 1.0d-3, wavenumberKernelMaximum              =1.0d7
-    double precision                                 , parameter                       :: wavenumberKernelPerDecade          =32.0d+0
     type            (integrator                     ), save         , allocatable      :: integratorAccelerationRadial               , integratorAccelerationVertical             , &
          &                                                                                integratorTidalTensorRadialRadial          , integratorTidalTensorVerticalVertical      , &
-         &                                                                                integratorTidalTensorCross                 , integratorPotential                        , &
-         &                                                                                integratorKernel                           , integratorKernelGradient                   , &
-         &                                                                                integratorKernelGradient2
+         &                                                                                integratorTidalTensorCross                 , integratorPotential
     integer                                          , save                            :: besselOrder                                , indexHeight
-    double precision                                 , save                            :: radius                                     , height                                     , &
-         &                                                                                wavenumberScaled                           , heightScaled
-    !$omp threadprivate(radius,height,indexHeight,wavenumberScaled,heightScaled,besselOrder,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross,integratorPotential,integratorKernel,integratorKernelGradient,integratorKernelGradient2)
+    double precision                                 , save                            :: radius                                     , height
+    !$omp threadprivate(radius,height,indexHeight,besselOrder,integratorAccelerationRadial,integratorAccelerationVertical,integratorTidalTensorRadialRadial,integratorTidalTensorVerticalVertical,integratorTidalTensorCross,integratorPotential)
     integer                                                                            :: countRadii                                 , iRadius                                    , &
          &                                                                                iHeight                                    , countWork                                  , &
-         &                                                                                countWavenumbers                           , iWavenumber                                , &
          &                                                                                countRotationCurve                         , iRotationCurve                             , &
-         &                                                                                countHeights                               , countHeightsKernel
-    double precision                                                                   :: scaleHeight                                , wavenumber                                 , &
-         &                                                                                wavenumberKernelLogarithmicMinimum         , wavenumberKernelLogarithmicInterval
-    double precision                                 , allocatable  , dimension(:,:,:) :: kernelTable
+         &                                                                                countHeights
+    double precision                                                                   :: scaleHeight
+    type            (kernelVerticalSechSquared      )                                  :: kernel_
     double precision                                 , allocatable  , dimension(:    ) :: rotationCurveRadii                         , rotationCurveSquared                       , &
          &                                                                                heightsKernel
     logical                                                                            :: tableRead
@@ -1288,40 +1327,12 @@ contains
             self%accelerationHeights(2:countHeights)=Make_Range(radiusTableMinimum,radiusTableMaximum,countRadii,rangeTypeLogarithmic)
             heightsKernel                           =self%accelerationHeights
          end if
-         countHeightsKernel=size(heightsKernel)
          ! Compute the dimensionless scale height (in units of the radial scale length), as the tabulation is built for a
          ! dimensionless disk.
          scaleHeight=+self%scaleHeight &
               &      /self%radiusScale
-         ! Tabulate the vertical kernel, and its derivatives, as a function of wavenumber at each height. The kernel depends only on wavenumber and height, so tabulating it once
-         ! here avoids recomputing it (each evaluation of which requires a numerical integration) for every radius, and for every
-         ! component of the acceleration, tidal tensor, and potential.
-         countWavenumbers                   =int(log10(wavenumberKernelMaximum/wavenumberKernelMinimum)*wavenumberKernelPerDecade)+1
-         wavenumberKernelLogarithmicMinimum =log(wavenumberKernelMinimum)
-         wavenumberKernelLogarithmicInterval=log(wavenumberKernelMaximum/wavenumberKernelMinimum)/dble(countWavenumbers-1)
-         allocate(kernelTable(countWavenumbers,countHeightsKernel,3))
-         !$omp parallel private(iWavenumber,wavenumber)
-         allocate(integratorKernel         )
-         allocate(integratorKernelGradient )
-         allocate(integratorKernelGradient2)
-         integratorKernel         =integrator(kernelIntegrand         ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
-         integratorKernelGradient =integrator(kernelGradientIntegrand ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
-         integratorKernelGradient2=integrator(kernelGradient2Integrand,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
-         !$omp do schedule(dynamic)
-         do iHeight=1,countHeightsKernel
-            height=heightsKernel(iHeight)
-            do iWavenumber=1,countWavenumbers
-               wavenumber=exp(wavenumberKernelLogarithmicMinimum+dble(iWavenumber-1)*wavenumberKernelLogarithmicInterval)
-               kernelTable(iWavenumber,iHeight,1)=kernelVerticalDirect         (wavenumber)
-               kernelTable(iWavenumber,iHeight,2)=kernelVerticalGradientDirect (wavenumber)
-               kernelTable(iWavenumber,iHeight,3)=kernelVerticalGradient2Direct(wavenumber)
-            end do
-         end do
-         !$omp end do
-         deallocate(integratorKernel         )
-         deallocate(integratorKernelGradient )
-         deallocate(integratorKernelGradient2)
-         !$omp end parallel
+         ! Tabulate the vertical kernel, and its derivatives, as a function of wavenumber at each height.
+         kernel_=kernelVerticalSechSquared(scaleHeight,heightsKernel)
          if (midplane) then
             ! Tabulate the mid-plane rotation curve, V_c²(R) = -R a_R(R,z=0).
             !$omp parallel
@@ -1331,8 +1342,8 @@ contains
             !$omp do schedule(dynamic)
             do iRotationCurve=1,countRotationCurve
                radius                              =+rotationCurveRadii(iRotationCurve)
-               rotationCurveSquared(iRotationCurve)=-radius                                          &
-                    &                               *hankelIntegrate(integratorAccelerationRadial,1)
+               rotationCurveSquared(iRotationCurve)=-radius                                                            &
+                    &                               *Hankel_Transform_Integrate(integratorAccelerationRadial,1,radius)
             end do
             !$omp end do
             call integratorsDeallocate()
@@ -1355,9 +1366,9 @@ contains
                   ! Evaluate the integrals for the components of the acceleration. In the mid-plane the vertical acceleration (and the
                   ! cross term of the tidal tensor) vanish by symmetry - their integrands are identically zero there, so are not
                   ! integrated.
-                  self%accelerationRadial         (iRadius,iHeight)=+hankelIntegrate(integratorAccelerationRadial         ,1          )
+                  self%accelerationRadial         (iRadius,iHeight)=+Hankel_Transform_Integrate(integratorAccelerationRadial         ,1          ,radius)
                   if (height > 0.0d0) then
-                  self%accelerationVertical       (iRadius,iHeight)=+hankelIntegrate(integratorAccelerationVertical       ,0          )
+                  self%accelerationVertical       (iRadius,iHeight)=+Hankel_Transform_Integrate(integratorAccelerationVertical       ,0          ,radius)
                   else
                      self%accelerationVertical    (iRadius,iHeight)=+0.0d0
                   end if
@@ -1365,17 +1376,17 @@ contains
                   ! Bessel functions of order 0 and 2.
                   self%tidalTensorRadialRadial    (iRadius,iHeight)=+0.0d0
                   do besselOrder=0,2,2
-                     self%tidalTensorRadialRadial (iRadius,iHeight)=+self%tidalTensorRadialRadial(iRadius,iHeight)                      &
-                          &                                         +hankelIntegrate(integratorTidalTensorRadialRadial    ,besselOrder)
+                     self%tidalTensorRadialRadial (iRadius,iHeight)=+self%tidalTensorRadialRadial(iRadius,iHeight)                                        &
+                          &                                         +Hankel_Transform_Integrate(integratorTidalTensorRadialRadial    ,besselOrder,radius)
                   end do
-                  self%tidalTensorVerticalVertical(iRadius,iHeight)=+hankelIntegrate(integratorTidalTensorVerticalVertical,0          )
+                  self%tidalTensorVerticalVertical(iRadius,iHeight)=+Hankel_Transform_Integrate(integratorTidalTensorVerticalVertical,0          ,radius)
                   if (height > 0.0d0) then
-                     self%tidalTensorCross        (iRadius,iHeight)=+hankelIntegrate(integratorTidalTensorCross           ,1          )
+                     self%tidalTensorCross        (iRadius,iHeight)=+Hankel_Transform_Integrate(integratorTidalTensorCross           ,1          ,radius)
                   else
                      self%tidalTensorCross        (iRadius,iHeight)=+0.0d0
                   end if
                   ! Evaluate the integral for the potential.
-                  self%potentialTabulated         (iRadius,iHeight)=hankelIntegrate(integratorPotential                  ,0          )
+                  self%potentialTabulated         (iRadius,iHeight)=Hankel_Transform_Integrate(integratorPotential                   ,0          ,radius)
                end do
                !$omp end do
                call integratorsDeallocate()
@@ -1476,9 +1487,6 @@ contains
       allocate(integratorTidalTensorVerticalVertical)
       allocate(integratorTidalTensorCross           )
       allocate(integratorPotential                  )
-      allocate(integratorKernel                     )
-      allocate(integratorKernelGradient             )
-      allocate(integratorKernelGradient2            )
       integratorAccelerationRadial         =integrator(accelerationRadialIntegrand         ,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
       integratorAccelerationVertical       =integrator(accelerationVerticalIntegrand       ,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
       integratorTidalTensorRadialRadial    =integrator(tidalTensorRadialRadialIntegrand    ,toleranceAbsolute=1.0d-06,toleranceRelative=1.0d-3)
@@ -1488,9 +1496,8 @@ contains
       ! varies by only a small fraction of its value between grid points, and so must be computed precisely to give an accurate
       ! (and monotonic) radial gradient.
       integratorPotential                  =integrator(potentialIntegrand                  ,toleranceAbsolute=1.0d-10,toleranceRelative=1.0d-7)
-      integratorKernel                     =integrator(kernelIntegrand                     ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
-      integratorKernelGradient             =integrator(kernelGradientIntegrand             ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
-      integratorKernelGradient2            =integrator(kernelGradient2Integrand            ,toleranceAbsolute=1.0d-12,toleranceRelative=1.0d-6)
+      ! Integrators for direct evaluation of the vertical kernel outside of its tabulated range.
+      call Kernel_Vertical_Integrators_Allocate()
       return
     end subroutine integratorsAllocate
 
@@ -1506,130 +1513,9 @@ contains
       deallocate(integratorTidalTensorVerticalVertical)
       deallocate(integratorTidalTensorCross           )
       deallocate(integratorPotential                  )
-      deallocate(integratorKernel                     )
-      deallocate(integratorKernelGradient             )
-      deallocate(integratorKernelGradient2            )
+      call Kernel_Vertical_Integrators_Deallocate()
       return
     end subroutine integratorsDeallocate
-
-    double precision function hankelIntegrate(integrator_,order) result(integral)
-      !!{RST
-      Evaluate the integral over wavenumber, from zero to infinity, of the integrand of the given integrator at the current
-      radius. The integral is accumulated over the intervals between successive zeros of the Bessel function of the given
-      ``order`` (as a function of :math:`kR`). The partial sums so obtained form a (typically alternating) sequence which
-      converges slowly - for the components of the tidal tensor, whose integrands carry additional powers of :math:`k`, many
-      thousands of intervals would be needed for the contribution from an interval to fall below :math:`10^{-6}` of the total.
-      The limit of the sequence is therefore estimated using the :math:`\epsilon`-algorithm of :cite:t:`wynn_device_1956`
-      applied to the most recent partial sums, and accumulation stops once successive estimates agree to a relative precision
-      of :math:`10^{-8}`. Accumulation also stops (and the partial sum is returned) if the contribution from an interval falls
-      below :math:`10^{-6}` of the total, which occurs first if the integrand decays rapidly.
-      !!}
-      use :: Bessel_Functions, only : Bessel_Function_J0_Zero, Bessel_Function_J1_Zero, Bessel_Function_Jn_Zero
-      use :: Error           , only : Error_Report
-      implicit none
-      type            (integrator), intent(inout)               :: integrator_
-      integer                     , intent(in   )               :: order
-      integer                     , parameter                   :: countPartialSums=16     , countIntervalsMinimum=8
-      double precision            , parameter                   :: toleranceDirect = 1.0d-6, toleranceAccelerated =1.0d-8
-      double precision            , dimension(countPartialSums) :: partialSums
-      double precision            , dimension(3               ) :: estimates
-      double precision                                          :: wavenumberLow           , wavenumberHigh              , &
-           &                                                       integralDelta
-      integer                                                   :: iBesselZero             , countStored
-      logical                                                   :: converged
-
-      integral      =0.0d0
-      wavenumberHigh=0.0d0
-      iBesselZero   =0
-      countStored   =0
-      estimates     =huge(0.0d0)
-      converged     =.false.
-      do while (.not.converged)
-         iBesselZero  =+iBesselZero    &
-              &        +1
-         wavenumberLow=+wavenumberHigh
-         select case (order)
-         case (0)
-            wavenumberHigh=+Bessel_Function_J0_Zero(      iBesselZero) &
-                 &         /radius
-         case (1)
-            wavenumberHigh=+Bessel_Function_J1_Zero(      iBesselZero) &
-                 &         /radius
-         case (2)
-            wavenumberHigh=+Bessel_Function_Jn_Zero(2.0d0,iBesselZero) &
-                 &         /radius
-         case default
-            wavenumberHigh=+0.0d0
-            call Error_Report('incorrect Bessel function order'//{introspection:location})
-         end select
-         integralDelta=+integrator_%integrate(wavenumberLow,wavenumberHigh)
-         converged    = abs(integralDelta) < toleranceDirect*abs(integral)
-         integral     =+integral      &
-              &        +integralDelta
-         ! Store the partial sum, retaining only the most recent.
-         if (countStored < countPartialSums) then
-            countStored             =countStored+1
-         else
-            partialSums(1:countStored-1)=partialSums(2:countStored)
-         end if
-         partialSums(countStored)=integral
-         ! Estimate the limit of the sequence of partial sums, and test for convergence of successive estimates.
-         if (.not.converged .and. iBesselZero >= countIntervalsMinimum) then
-            estimates=[estimates(2:3),wynnEpsilon(partialSums(1:countStored))]
-            if     (                                                                         &
-                 &   abs(estimates(3)-estimates(2)) < toleranceAccelerated*abs(estimates(3)) &
-                 &  .and.                                                                    &
-                 &   abs(estimates(3)-estimates(1)) < toleranceAccelerated*abs(estimates(3)) &
-                 & ) then
-               integral =estimates(3)
-               converged=.true.
-            end if
-         end if
-      end do
-      return
-    end function hankelIntegrate
-
-    double precision function wynnEpsilon(sequence) result(estimate)
-      !!{RST
-      Estimate the limit of the given sequence using the :math:`\epsilon`-algorithm of :cite:t:`wynn_device_1956`. The estimate is
-      the final element of the highest even-order column of the :math:`\epsilon` table which can be constructed. Construction
-      stops early if two successive elements of a column are equal (to within rounding), as the sequence has then converged.
-      !!}
-      implicit none
-      double precision, intent(in   ), dimension(:             ) :: sequence
-      double precision               , dimension(size(sequence)) :: columnPrevious            , columnCurrent, &
-           &                                                        columnNext
-      double precision, parameter                                :: differenceMinimum=1.0d-280
-      double precision                                           :: difference
-      integer                                                    :: countSequence             , iColumn      , &
-           &                                                        i
-      logical                                                    :: degenerate
-
-      countSequence =size(sequence)
-      estimate      =sequence(countSequence)
-      columnPrevious=0.0d0
-      columnCurrent =sequence
-      degenerate    =.false.
-      do iColumn=1,countSequence-1
-         do i=1,countSequence-iColumn
-            difference=columnCurrent(i+1)-columnCurrent(i)
-            if (abs(difference) <= max(epsilon(0.0d0)*max(abs(columnCurrent(i+1)),abs(columnCurrent(i))),differenceMinimum)) then
-               degenerate=.true.
-               exit
-            end if
-            columnNext(i)=columnPrevious(i+1)+1.0d0/difference
-         end do
-         if (degenerate) then
-            ! Two successive elements of this column are equal. If this is an even-order column, this is the limit.
-            if (mod(iColumn-1,2) == 0) estimate=columnCurrent(i+1)
-            exit
-         end if
-         if (mod(iColumn,2) == 0) estimate=columnNext(countSequence-iColumn)
-         columnPrevious(1:countSequence-iColumn+1)=columnCurrent(1:countSequence-iColumn+1)
-         columnCurrent (1:countSequence-iColumn  )=columnNext   (1:countSequence-iColumn  )
-      end do
-      return
-    end function wynnEpsilon
 
     double precision function potentialIntegrand(wavenumber)
       !!{RST
@@ -1748,290 +1634,41 @@ contains
       return
     end function tidalTensorVerticalVerticalIntegrand
 
-    double precision function kernelVerticalDirect(wavenumber)
-      !!{RST
-      The vertical kernel, :math:`K(k,z)`, appearing in the expression for the potential of the disk,
-      :math:`\Phi(R,z) = -2\pi G \int_0^\infty \mathrm{d}k \, J_0(kR) \tilde{\Sigma}(k) K(k,z)`, where :math:`\tilde{\Sigma}(k)`
-      is the Hankel transform of the surface density. :math:`K(k,z)` is the convolution of the normalized vertical density
-      profile, :math:`\rho_z(z)=\mathrm{sech}^2(z/h)/2h`, with the razor-thin kernel, :math:`\exp(-k|z|)`. Writing
-      :math:`u=z/h` and :math:`\kappa=kh` this can be expressed as a single Laplace-type integral:
-
-      .. math::
-
-         K(k,z) = {1 \over 2} \int_0^\infty \mathrm{d}x \, \mathrm{e}^{-\kappa x} \left[ \mathrm{sech}^2(u+x) + \mathrm{sech}^2(u-x) \right],
-
-      which is normalized such that :math:`K(0,z)=1`. This function evaluates the kernel directly, by numerical integration. During
-      tabulation the kernel is instead interpolated from a pre-computed table (see ``kernelVertical``).
-      !!}
-      implicit none
-      double precision, intent(in   ) :: wavenumber
-
-      kernelVerticalDirect=+0.5d0                                        &
-           &               *kernelIntegrate(wavenumber,integratorKernel)
-      return
-    end function kernelVerticalDirect
-
-    double precision function kernelVerticalGradientDirect(wavenumber)
-      !!{RST
-      The :math:`z` derivative of the vertical kernel, :math:`K(k,z)`:
-
-      .. math::
-
-         {\partial K \over \partial z} = {k \over 2} \int_0^\infty \mathrm{d}x \, \mathrm{e}^{-\kappa x} \left[ \mathrm{sech}^2(u+x) - \mathrm{sech}^2(u-x) \right].
-      !!}
-      implicit none
-      double precision, intent(in   ) :: wavenumber
-
-      kernelVerticalGradientDirect=+0.5d0                                                &
-           &                       *wavenumber                                           &
-           &                       *kernelIntegrate(wavenumber,integratorKernelGradient)
-      return
-    end function kernelVerticalGradientDirect
-
-    double precision function kernelVerticalGradient2Direct(wavenumber)
-      !!{RST
-      The second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, found by differentiating the integrand of
-      :math:`\partial K/\partial z` with respect to :math:`u`:
-
-      .. math::
-
-         {\partial^2 K \over \partial z^2} = {k \over 2h} \int_0^\infty \mathrm{d}x \, \mathrm{e}^{-\kappa x} \left[ S^\prime(u+x) - S^\prime(u-x) \right],
-
-      where :math:`S(y)=\mathrm{sech}^2 y`. This is equivalent to :math:`k^2 K - 2 k \rho_z(z)` (which follows from
-      :math:`(\partial^2/\partial z^2 - k^2)K = -2k\rho_z`), but avoids the catastrophic cancellation between those two terms
-      which occurs for :math:`\kappa \gg 1`.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: wavenumber
-
-      kernelVerticalGradient2Direct=+0.5d0                                                 &
-           &                        *wavenumber                                            &
-           &                        /scaleHeight                                           &
-           &                        *kernelIntegrate(wavenumber,integratorKernelGradient2)
-      return
-    end function kernelVerticalGradient2Direct
-
     double precision function kernelVertical(wavenumber)
       !!{RST
-      The vertical kernel, :math:`K(k,z)`, at the current height (see ``kernelVerticalDirect``), interpolated from the table
-      computed at the start of the tabulation.
+      The vertical kernel, :math:`K(k,z)`, at the current height, interpolated from the table computed at the start of the
+      tabulation (see :galacticus-type:`kernelVerticalSechSquared`).
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      kernelVertical=kernelInterpolate(wavenumber,1)
+      kernelVertical=kernel_%value(wavenumber,indexHeight,1)
       return
     end function kernelVertical
 
     double precision function kernelVerticalGradient(wavenumber)
       !!{RST
-      The :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height (see
-      ``kernelVerticalGradientDirect``), interpolated from the table computed at the start of the tabulation.
+      The :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height, interpolated from the table computed
+      at the start of the tabulation (see :galacticus-type:`kernelVerticalSechSquared`).
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      kernelVerticalGradient=kernelInterpolate(wavenumber,2)
+      kernelVerticalGradient=kernel_%value(wavenumber,indexHeight,2)
       return
     end function kernelVerticalGradient
 
     double precision function kernelVerticalGradient2(wavenumber)
       !!{RST
-      The second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height (see
-      ``kernelVerticalGradient2Direct``), interpolated from the table computed at the start of the tabulation.
+      The second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height, interpolated from the table
+      computed at the start of the tabulation (see :galacticus-type:`kernelVerticalSechSquared`).
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
 
-      kernelVerticalGradient2=kernelInterpolate(wavenumber,3)
+      kernelVerticalGradient2=kernel_%value(wavenumber,indexHeight,3)
       return
     end function kernelVerticalGradient2
-
-    double precision function kernelInterpolate(wavenumber,indexKernel)
-      !!{RST
-      Interpolate the vertical kernel (``indexKernel=1``), or its first (``indexKernel=2``) or second (``indexKernel=3``)
-      :math:`z` derivative, at the current height in the table computed at the start of the tabulation. Four-point Lagrange
-      interpolation in :math:`\log k` is used, as this requires no state (and so is safe for concurrent use by multiple OpenMP
-      threads). Outside of the tabulated range of wavenumber the kernel is evaluated directly.
-      !!}
-      use :: Error, only : Error_Report
-      implicit none
-      double precision              , intent(in   ) :: wavenumber
-      integer                       , intent(in   ) :: indexKernel
-      double precision, dimension(4)                :: weight
-      double precision                              :: position
-      integer                                       :: i
-
-      if (wavenumber < wavenumberKernelMinimum .or. wavenumber > wavenumberKernelMaximum) then
-         select case (indexKernel)
-         case (1)
-            kernelInterpolate=kernelVerticalDirect         (wavenumber)
-         case (2)
-            kernelInterpolate=kernelVerticalGradientDirect (wavenumber)
-         case (3)
-            kernelInterpolate=kernelVerticalGradient2Direct(wavenumber)
-         case default
-            kernelInterpolate=0.0d0
-            call Error_Report('incorrect kernel index'//{introspection:location})
-         end select
-      else
-         ! Find the position in the table, and the index of the second of the four points used in the interpolation.
-         position=+(                                         &
-              &     +log(wavenumber)                         &
-              &     -    wavenumberKernelLogarithmicMinimum  &
-              &    )                                         &
-              &   /      wavenumberKernelLogarithmicInterval
-         i       =min(max(int(position)+1,2),countWavenumbers-2)
-         position=position-dble(i-1)
-         ! Evaluate the Lagrange interpolation weights.
-         weight  =[                                                           &
-              &    -(position      )*(position-1.0d0)*(position-2.0d0)/6.0d0, &
-              &    +(position+1.0d0)*(position-1.0d0)*(position-2.0d0)/2.0d0, &
-              &    -(position+1.0d0)*(position      )*(position-2.0d0)/2.0d0, &
-              &    +(position+1.0d0)*(position      )*(position-1.0d0)/6.0d0  &
-              &   ]
-         kernelInterpolate=sum(weight*kernelTable(i-1:i+2,indexHeight,indexKernel))
-      end if
-      return
-    end function kernelInterpolate
-
-    double precision function kernelIntegrate(wavenumber,integrator_)
-      !!{RST
-      Evaluate the integral over :math:`x` appearing in the vertical kernel, :math:`K(k,z)`, or its derivatives, using the
-      provided integrator.
-
-      The integrand has structure on three scales: near :math:`x=0` (where it decays as :math:`\mathrm{e}^{-(\kappa+2)x}`), and
-      near :math:`x=u` (where :math:`\mathrm{sech}^2(u-x)` peaks, with width of order unity). For large :math:`\kappa` the
-      structure near :math:`x=0` (and the onset of the peak at :math:`x=u`) has width :math:`1/\kappa`. Since an adaptive
-      integrator can entirely miss a narrow feature lying between its initial sample points (and so report a confident, but
-      incorrect, result) the range of integration is broken at each of these scales, so that every feature lies close to the
-      boundary of some sub-interval.
-      !!}
-      implicit none
-      double precision            , intent(in   ) :: wavenumber
-      type            (integrator), intent(inout) :: integrator_
-      ! Range (in x) beyond which sech²(u±x) has decayed by a factor e⁻⁵⁰ from its peak.
-      double precision            , parameter     :: rangeSech       =25.0d0
-      ! Range (in κx) beyond which exp(-κx) has decayed by a factor e⁻⁵⁰.
-      double precision            , parameter     :: rangeExponential=50.0d0
-      double precision            , dimension(7)  :: limits
-      double precision                            :: rangeDecay
-      integer                                     :: i
-
-      wavenumberScaled=+wavenumber  &
-           &           *scaleHeight
-      heightScaled    =+height      &
-           &           /scaleHeight
-      if (wavenumberScaled*rangeSech > rangeExponential) then
-         rangeDecay=+rangeExponential &
-              &     /wavenumberScaled
-      else
-         rangeDecay=+rangeSech
-      end if
-      limits=[                                                         &
-           &  0.0d0                                                  , &
-           &  min(heightScaled,rangeSech,rangeDecay)                 , &
-           &  min(heightScaled,rangeSech           )                 , &
-           &  max(min(heightScaled,rangeSech),heightScaled-rangeSech), &
-           &  heightScaled                                           , &
-           &  heightScaled+rangeDecay                                , &
-           &  heightScaled+rangeSech                                   &
-           & ]
-      kernelIntegrate=0.0d0
-      do i=1,size(limits)-1
-         if (limits(i+1) > limits(i)) kernelIntegrate=+kernelIntegrate                              &
-              &                                       +integrator_%integrate(limits(i),limits(i+1))
-      end do
-      return
-    end function kernelIntegrate
-
-    double precision function kernelIntegrand(x)
-      !!{RST
-      Integrand for the vertical kernel, :math:`K(k,z)`.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: x
-
-      kernelIntegrand=+exp(-wavenumberScaled*x)      &
-           &          *(                             &
-           &            +sechSquared(heightScaled+x) &
-           &            +sechSquared(heightScaled-x) &
-           &           )
-      return
-    end function kernelIntegrand
-
-    double precision function kernelGradientIntegrand(x)
-      !!{RST
-      Integrand for the :math:`z` derivative of the vertical kernel, :math:`K(k,z)`.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: x
-
-      kernelGradientIntegrand=+exp(-wavenumberScaled*x)      &
-           &                  *(                             &
-           &                    +sechSquared(heightScaled+x) &
-           &                    -sechSquared(heightScaled-x) &
-           &                   )
-      return
-    end function kernelGradientIntegrand
-
-    double precision function kernelGradient2Integrand(x)
-      !!{RST
-      Integrand for the second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: x
-
-      kernelGradient2Integrand=+exp(-wavenumberScaled*x)                &
-           &                   *(                                       &
-           &                     +sechSquaredDerivative(heightScaled+x) &
-           &                     -sechSquaredDerivative(heightScaled-x) &
-           &                    )
-      return
-    end function kernelGradient2Integrand
-
-    double precision function sechSquared(y)
-      !!{RST
-      Evaluate :math:`\mathrm{sech}^2 y`, written in terms of :math:`\mathrm{e}^{-2|y|}` so that it can not overflow at large
-      :math:`|y|`.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: y
-      double precision                :: expTerm
-
-      expTerm    =+exp(-2.0d0*abs(y))
-      sechSquared=+4.0d0           &
-           &      *expTerm         &
-           &      /(               &
-           &        +1.0d0         &
-           &        +expTerm       &
-           &       )**2
-      return
-    end function sechSquared
-
-    double precision function sechSquaredDerivative(y)
-      !!{RST
-      Evaluate :math:`\mathrm{d}\,\mathrm{sech}^2 y/\mathrm{d}y = -2\,\mathrm{sech}^2 y \tanh y`, written in terms of
-      :math:`\mathrm{e}^{-2|y|}` so that it can not overflow at large :math:`|y|`.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: y
-      double precision                :: expTerm
-
-      expTerm              =+exp(-2.0d0*abs(y))
-      sechSquaredDerivative=-2.0d0          &
-           &                *sechSquared(y) &
-           &                *sign(1.0d0,y)  &
-           &                *(              &
-           &                  +1.0d0        &
-           &                  -expTerm      &
-           &                 )              &
-           &                /(              &
-           &                  +1.0d0        &
-           &                  +expTerm      &
-           &                 )
-      return
-    end function sechSquaredDerivative
     
   end subroutine exponentialDiskSolutionTabulate
   

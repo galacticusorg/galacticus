@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a :cite:t:`tinker_towardhalo_2008` dark matter halo mass function class.
+  Implements a :cite:t:`rodriguez-puebla_halo_2016` dark matter halo mass function class.
   !!}
 
   !![

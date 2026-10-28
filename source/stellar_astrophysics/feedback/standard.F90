@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
   !!}
@@ -29,7 +31,7 @@
   !![
   <stellarFeedback name="stellarFeedbackStandard" docformat="rst">
    <description>
-   A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total number of (Type II and Type Ia) supernovae multiplied by ``[supernovaEnergy]`` (specified in ergs) plus any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a star required to form a Type II supernova is specified (in :math:`\mathrm{M}_\odot`) via the ``[initialMassForSupernovaeTypeII]`` parameter.
+   A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total number of (Type II and Type Ia) supernovae multiplied by ``[supernovaEnergy]`` (specified in ergs) plus any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum initial mass of a star required to form a Type II supernova is taken from the ``stellarAstrophysics`` class, so that the supernova energy and the stellar yields are consistent.
    </description>
   </stellarFeedback>
   !!]
@@ -38,11 +40,11 @@
      A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
      !!}
      private
-     class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_              => null()
-     class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_       => null()
-     class           (stellarWindsClass           ), pointer :: stellarWinds_                  => null()
-     class           (stellarAstrophysicsClass    ), pointer :: stellarAstrophysics_           => null()
-     double precision                                        :: initialMassForSupernovaeTypeII          , supernovaEnergy
+     class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_        => null()
+     class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_ => null()
+     class           (stellarWindsClass           ), pointer :: stellarWinds_            => null()
+     class           (stellarAstrophysicsClass    ), pointer :: stellarAstrophysics_     => null()
+     double precision                                        :: supernovaEnergy
    contains
      final     ::                          standardDestructor
      procedure :: energyInputCumulative => standardEnergyInputCumulative
@@ -78,17 +80,9 @@ contains
     class           (supernovaePopulationIIIClass), pointer       :: supernovaePopulationIII_
     class           (stellarWindsClass           ), pointer       :: stellarWinds_
     class           (stellarAstrophysicsClass    ), pointer       :: stellarAstrophysics_
-    double precision                                              :: initialMassForSupernovaeTypeII, supernovaEnergy
+    double precision                                              :: supernovaEnergy
 
     !![
-    <inputParameter docformat="rst">
-      <name>initialMassForSupernovaeTypeII</name>
-      <defaultValue>8.0d0</defaultValue>
-      <description>
-      The minimum mass that a star must have in order that is result in a Type II supernova.
-      </description>
-      <source>parameters</source>
-    </inputParameter>
     <inputParameter docformat="rst">
       <name>supernovaEnergy</name>
       <defaultValue>1.0d51</defaultValue>
@@ -106,7 +100,7 @@ contains
     <objectBuilder class="stellarWinds"            name="stellarWinds_"            source="parameters"/>
     <objectBuilder class="stellarAstrophysics"     name="stellarAstrophysics_"     source="parameters"/>
     !!]
-    self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_)
+    self=stellarFeedbackStandard(supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="supernovaeTypeIa_"       />
@@ -117,7 +111,7 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
+  function standardConstructorInternal(supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
     !!{RST
     Constructor for the :galacticus-class:`stellarFeedbackStandard` stellar feedback class which takes a parameter list as input.
     !!}
@@ -127,9 +121,9 @@ contains
     class           (supernovaePopulationIIIClass), intent(in   ), target :: supernovaePopulationIII_
     class           (stellarWindsClass           ), intent(in   ), target :: stellarWinds_
     class           (stellarAstrophysicsClass    ), intent(in   ), target :: stellarAstrophysics_
-    double precision                              , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
+    double precision                              , intent(in   )         :: supernovaEnergy
     !![
-    <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_, *stellarAstrophysics_"/>
+    <constructorAssign variables="supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_, *stellarAstrophysics_"/>
     !!]
 
     return
@@ -168,7 +162,7 @@ contains
     ! Begin with zero energy input.
     standardEnergyInputCumulative=0.0d0
     ! Check if the star is sufficiently massive to result in a Type II supernova.
-    if (initialMass >= self%initialMassForSupernovaeTypeII) then
+    if (initialMass >= self%stellarAstrophysics_%massInitialSupernovaeTypeII()) then
        ! Get the lifetime of the star.
        lifetime=self%stellarAstrophysics_%lifetime(initialMass,metallicity)
        ! If lifetime is exceeded, assume a SNe has occurred.

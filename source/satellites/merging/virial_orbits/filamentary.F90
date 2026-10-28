@@ -25,13 +25,15 @@
   !!}
 
   use :: Cosmological_Density_Field, only : criticalOverdensityClass
+  use :: Dark_Matter_Halo_Filaments, only : darkMatterHaloFilamentsClass
 
   !![
   <virialOrbit name="virialOrbitFilamentary" docformat="rst">
    <description>
    A virial orbit class which assigns infall directions to the orbits returned by another virial orbit class such that
-   satellites fall in preferentially along the cosmic web filaments feeding their host. The axes of those filaments are
-   assigned to each halo by :galacticus-class:`nodeOperatorHaloFilaments`, which must therefore be included in the model.
+   satellites fall in preferentially along the cosmic web filaments feeding their host. The directions of those filaments,
+   which persist along each branch of the merger tree, are given by the :galacticus-class:`darkMatterHaloFilamentsClass`
+   object.
 
    The direction of infall, :math:`\hat{\mathbf{n}}`, is drawn from a mixture of an isotropic distribution and a von
    Mises--Fisher distribution about each filament axis, :math:`\hat{\mathbf{f}}_i`:
@@ -41,9 +43,9 @@
       p(\hat{\mathbf{n}}) = \frac{1-f}{4\pi} + \frac{f}{N} \sum_{i=1}^N \frac{\kappa}{4\pi \sinh\kappa}
       \exp\left(\kappa\, \hat{\mathbf{n}}\cdot\hat{\mathbf{f}}_i\right),
 
-   where :math:`N` is the number of axes, :math:`f` is the fraction of satellites accreted along filaments, and :math:`\kappa`
-   sets the angular width of each filament. The tangential velocity is oriented isotropically, so that the mean vector
-   tangential velocity and the mean vector angular momentum both remain zero.
+   where :math:`N` is the number of filaments feeding the host, :math:`f` is the fraction of satellites accreted along filaments,
+   and :math:`\kappa` sets the angular width of each filament. The tangential velocity is oriented isotropically, so that the mean
+   vector tangential velocity and the mean vector angular momentum both remain zero.
 
    The fraction accreted along filaments depends on the mass of the host, :math:`M`, relative to the mass, :math:`M_*`, of
    halos just collapsing at the time of accretion, :math:`\sigma(M_*,t) = \delta_\mathrm{c}(t)`:
@@ -59,27 +61,36 @@
 
    Two consequences of this convention should be noted. First, :math:`\theta_\mathrm{half}` is the dispersion of the angle
    from the axis in the limit of large :math:`\kappa` (for which that distribution is Gaussian, with
-   :math:`\sigma=\kappa^{-1/2}`), not the half-width at half maximum, which is larger (:math:`32^\circ` for the default
-   :math:`\theta_\mathrm{half}=27^\circ`). Second, :math:`\kappa` does not vanish for wide filaments: any :math:`x \ge 1`
+   :math:`\sigma=\kappa^{-1/2}`), not the half-width at half maximum, which is larger (:math:`31^\circ` for the default
+   :math:`\theta_\mathrm{half}=26^\circ`). Second, :math:`\kappa` does not vanish for wide filaments: any :math:`x \ge 1`
    gives :math:`\theta_\mathrm{half}=\pi/2` and :math:`\kappa=4/\pi^2\approx 0.41`, for which infall directions of the
    filamentary component are still :math:`\cosh(4/\pi^2)\approx 1.08` times more probable along the filament than
    perpendicular to it. Increasing the width of the filaments therefore never makes infall fully isotropic. Isotropic infall
    is obtained only with :math:`f=0`, i.e. with ``fractionFilamentaryCharacteristic`` and
    ``fractionFilamentaryLogarithmicSlope`` both set to zero.
 
-   The default parameters are from a fit of this model, for a single filament passing through the halo (i.e. :math:`N=2`
-   opposite axes), to the distribution of the angle between the points at which subhalos enter their hosts and the axis of
-   slowest collapse of the velocity shear tensor (smoothed on a scale of four virial radii) measured by
-   :cite:t:`libeskind_universal_2014`, in four bins of :math:`M/M_*`. With a single :math:`\kappa` the fit gives
-   :math:`f_*=0.184`, :math:`\alpha=0.055`, and :math:`\kappa=4.49`. The concentration shows no trend with mass when fitted
-   separately in each bin, consistent with the profiles of filaments being universal when scaled to the virial radius of the
-   halo they feed :cite:p:`xu_universal_2026`, which is why the width is specified in units of the virial radius. Since that
-   measurement averages over all accretion since :math:`z \approx 5`, the fit describes accretion averaged over redshift.
+   The default parameters are from a joint fit of this model to the distributions of the angles between the points at which
+   subhalos enter their hosts and both the axes of slowest (:math:`\mathbf{e}_3`) and fastest (:math:`\mathbf{e}_1`) collapse of
+   the velocity shear tensor (smoothed on a scale of four virial radii) measured by :cite:t:`libeskind_universal_2014`, in four
+   bins of :math:`M/M_*`. The model was evaluated with the default :galacticus-class:`darkMatterHaloFilamentsRandomSequential`
+   filaments (three filaments per halo: one passing through the halo, plus one further filament at least :math:`60^\circ` from
+   it), identifying :math:`\mathbf{e}_3` and :math:`\mathbf{e}_1` with the major and minor axes of the tensor
+   :math:`\sum_i \hat{\mathbf{f}}_i \hat{\mathbf{f}}_i^\mathrm{T}` of the filament directions. With a single :math:`\kappa` the fit gives
+   :math:`f_*=0.291`, :math:`\alpha=0.102`, and :math:`\kappa=5.0`. It matches both distributions in each mass bin with root mean
+   square residuals of 0.009--0.033. The number of filaments is constrained by :math:`\mathbf{e}_1`: infall avoids the axis of
+   fastest collapse in all bins above :math:`M/M_*=0.1`, which a single filament (being axisymmetric) cannot reproduce, but which
+   follows from filaments lying preferentially in a plane. Fewer than about 2.8 filaments per halo on average are strongly
+   disfavored. The concentration shows no trend with mass, consistent with the profiles of filaments being universal when scaled
+   to the virial radius of the halo they feed :cite:p:`xu_universal_2026`, which is why the width is specified in units of the
+   virial radius.  Since the measurement averages over all accretion since :math:`z \approx 5`, the fit describes accretion
+   averaged over redshift.
 
-   The assumption of a single filament matters: :cite:t:`libeskind_universal_2014` measure angles relative to a single axis,
-   so a model with more filaments per halo would require a larger :math:`f` to give the same anisotropy. Note also that a
-   model axisymmetric about the filament reproduces only about half of the avoidance of the axis of fastest collapse measured
-   by :cite:t:`libeskind_universal_2014` for the most massive hosts.
+   The calibration depends on the filaments: with more filaments per halo, a larger :math:`f` is needed to give the same
+   anisotropy relative to any one axis. For example, for a single filament passing through each halo (a mean number of two
+   filaments in :galacticus-class:`darkMatterHaloFilamentsRandomSequential`) a fit to the distribution relative to
+   :math:`\mathbf{e}_3` alone gives :math:`f_*=0.184`, :math:`\alpha=0.055`, and :math:`\kappa=4.49`
+   (``radiusFilamentFractional`` :math:`=0.4546`), but reproduces only about half of the avoidance of :math:`\mathbf{e}_1` in
+   the most massive hosts.
 
    This class sets the angles :math:`\theta`, :math:`\phi`, and :math:`\epsilon` of the orbit, so wrapping another class which
    sets them (such as :galacticus-class:`virialOrbitIsotropic` or :galacticus-class:`virialOrbitSpinCorrelated`) is not
@@ -92,12 +103,12 @@
      A virial orbit class in which satellites fall in preferentially along the cosmic web filaments feeding their host.
      !!}
      private
-     class           (virialOrbitClass        ), pointer :: virialOrbit_                      => null()
-     class           (criticalOverdensityClass), pointer :: criticalOverdensity_              => null()
-     double precision                                    :: fractionFilamentaryCharacteristic          , fractionFilamentaryLogarithmicSlope, &
-          &                                                 radiusFilamentFractional                   , concentration                      , &
-          &                                                 timePrevious                      =-1.0d0  , massCollapsingPrevious
-     integer                                             :: filamentAxesID
+     class           (virialOrbitClass            ), pointer :: virialOrbit_                      => null()
+     class           (criticalOverdensityClass    ), pointer :: criticalOverdensity_              => null()
+     class           (darkMatterHaloFilamentsClass), pointer :: darkMatterHaloFilaments_          => null()
+     double precision                                        :: fractionFilamentaryCharacteristic          , fractionFilamentaryLogarithmicSlope, &
+          &                                                     radiusFilamentFractional                   , concentration                      , &
+          &                                                     timePrevious                      =-1.0d0  , massCollapsingPrevious
    contains
      final     ::                                    filamentaryDestructor
      procedure :: orbit                           => filamentaryOrbit
@@ -128,18 +139,19 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (virialOrbitFilamentary  )                :: self
-    type            (inputParameters         ), intent(inout) :: parameters
-    class           (virialOrbitClass        ), pointer       :: virialOrbit_
-    class           (criticalOverdensityClass), pointer       :: criticalOverdensity_
-    double precision                                          :: fractionFilamentaryCharacteristic, fractionFilamentaryLogarithmicSlope, &
-         &                                                       radiusFilamentFractional
+    type            (virialOrbitFilamentary      )                :: self
+    type            (inputParameters             ), intent(inout) :: parameters
+    class           (virialOrbitClass            ), pointer       :: virialOrbit_
+    class           (criticalOverdensityClass    ), pointer       :: criticalOverdensity_
+    class           (darkMatterHaloFilamentsClass), pointer       :: darkMatterHaloFilaments_
+    double precision                                              :: fractionFilamentaryCharacteristic, fractionFilamentaryLogarithmicSlope, &
+         &                                                           radiusFilamentFractional
 
     !![
     <inputParameter docformat="rst">
       <name>fractionFilamentaryCharacteristic</name>
-      <defaultValue>0.184d0</defaultValue>
-      <defaultSource>Fit to :cite:t:`libeskind_universal_2014`.</defaultSource>
+      <defaultValue>0.291d0</defaultValue>
+      <defaultSource>Fit to :cite:t:`libeskind_universal_2014`, for the default filaments.</defaultSource>
       <source>parameters</source>
       <description>
       The fraction, :math:`f_*`, of satellites accreted along filaments by hosts of mass equal to the mass of halos just
@@ -148,8 +160,8 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>fractionFilamentaryLogarithmicSlope</name>
-      <defaultValue>0.055d0</defaultValue>
-      <defaultSource>Fit to :cite:t:`libeskind_universal_2014`.</defaultSource>
+      <defaultValue>0.102d0</defaultValue>
+      <defaultSource>Fit to :cite:t:`libeskind_universal_2014`, for the default filaments.</defaultSource>
       <source>parameters</source>
       <description>
       The rate of change, :math:`\alpha=\mathrm{d}f/\mathrm{d}\log_{10}(M/M_*)`, of the fraction of satellites accreted along
@@ -158,8 +170,8 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>radiusFilamentFractional</name>
-      <defaultValue>0.4546d0</defaultValue>
-      <defaultSource>Fit to :cite:t:`libeskind_universal_2014`, corresponding to a concentration :math:`\kappa=4.49`.</defaultSource>
+      <defaultValue>0.4325d0</defaultValue>
+      <defaultSource>Fit to :cite:t:`libeskind_universal_2014`, corresponding to a concentration :math:`\kappa=5.0`.</defaultSource>
       <source>parameters</source>
       <description>
       The radius of a filament, :math:`x`, in units of the virial radius of the host, which sets the angular half-width,
@@ -168,31 +180,34 @@ contains
       isotropic only if the filamentary fraction is zero.
       </description>
     </inputParameter>
-    <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters"/>
-    <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
+    <objectBuilder class="virialOrbit"             name="virialOrbit_"             source="parameters"/>
+    <objectBuilder class="criticalOverdensity"     name="criticalOverdensity_"     source="parameters"/>
+    <objectBuilder class="darkMatterHaloFilaments" name="darkMatterHaloFilaments_" source="parameters"/>
     !!]
-    self=virialOrbitFilamentary(fractionFilamentaryCharacteristic,fractionFilamentaryLogarithmicSlope,radiusFilamentFractional,virialOrbit_,criticalOverdensity_)
+    self=virialOrbitFilamentary(fractionFilamentaryCharacteristic,fractionFilamentaryLogarithmicSlope,radiusFilamentFractional,virialOrbit_,criticalOverdensity_,darkMatterHaloFilaments_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="virialOrbit_"        />
-    <objectDestructor name="criticalOverdensity_"/>
+    <objectDestructor name="virialOrbit_"            />
+    <objectDestructor name="criticalOverdensity_"    />
+    <objectDestructor name="darkMatterHaloFilaments_"/>
     !!]
     return
   end function filamentaryConstructorParameters
 
-  function filamentaryConstructorInternal(fractionFilamentaryCharacteristic,fractionFilamentaryLogarithmicSlope,radiusFilamentFractional,virialOrbit_,criticalOverdensity_) result(self)
+  function filamentaryConstructorInternal(fractionFilamentaryCharacteristic,fractionFilamentaryLogarithmicSlope,radiusFilamentFractional,virialOrbit_,criticalOverdensity_,darkMatterHaloFilaments_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`virialOrbitFilamentary` virial orbits class.
     !!}
     use :: Error, only : Error_Report
     implicit none
-    type            (virialOrbitFilamentary  )                        :: self
-    double precision                          , intent(in   )         :: fractionFilamentaryCharacteristic, fractionFilamentaryLogarithmicSlope, &
-         &                                                               radiusFilamentFractional
-    class           (virialOrbitClass        ), intent(in   ), target :: virialOrbit_
-    class           (criticalOverdensityClass), intent(in   ), target :: criticalOverdensity_
+    type            (virialOrbitFilamentary      )                        :: self
+    double precision                              , intent(in   )         :: fractionFilamentaryCharacteristic, fractionFilamentaryLogarithmicSlope, &
+         &                                                                   radiusFilamentFractional
+    class           (virialOrbitClass            ), intent(in   ), target :: virialOrbit_
+    class           (criticalOverdensityClass    ), intent(in   ), target :: criticalOverdensity_
+    class           (darkMatterHaloFilamentsClass), intent(in   ), target :: darkMatterHaloFilaments_
     !![
-    <constructorAssign variables="fractionFilamentaryCharacteristic, fractionFilamentaryLogarithmicSlope, radiusFilamentFractional, *virialOrbit_, *criticalOverdensity_"/>
+    <constructorAssign variables="fractionFilamentaryCharacteristic, fractionFilamentaryLogarithmicSlope, radiusFilamentFractional, *virialOrbit_, *criticalOverdensity_, *darkMatterHaloFilaments_"/>
     !!]
 
     if (radiusFilamentFractional <= 0.0d0) call Error_Report('[radiusFilamentFractional] must be positive'//{introspection:location})
@@ -200,9 +215,6 @@ contains
     if (self%virialOrbit_%isAngularlyResolved()) call Error_Report('the wrapped virial orbit class sets the angles of the orbit, which this class would overwrite'//{introspection:location})
     ! Find the concentration of the von Mises-Fisher distribution from the angular half-width of the filament.
     self%concentration=1.0d0/asin(min(1.0d0,radiusFilamentFractional))**2
-    !![
-    <addMetaProperty component="basic" name="filamentAxes" id="self%filamentAxesID" rank="1" isEvolvable="no"/>
-    !!]
     return
   end function filamentaryConstructorInternal
 
@@ -214,8 +226,9 @@ contains
     type(virialOrbitFilamentary), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%virialOrbit_"        />
-    <objectDestructor name="self%criticalOverdensity_"/>
+    <objectDestructor name="self%virialOrbit_"            />
+    <objectDestructor name="self%criticalOverdensity_"    />
+    <objectDestructor name="self%darkMatterHaloFilaments_"/>
     !!]
     return
   end subroutine filamentaryDestructor
@@ -225,9 +238,8 @@ contains
     Return orbital parameters for a satellite, with the direction of infall drawn preferentially along the filaments feeding
     the host.
     !!}
-    use :: Dark_Matter_Halo_Filaments, only : Dark_Matter_Halo_Filament_Axes
-    use :: Numerical_Constants_Math  , only : Pi
-    use :: Vectors                   , only : Vector_Product
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Vectors                 , only : Vector_Product
     implicit none
     type            (keplerOrbit           )                                :: filamentaryOrbit
     class           (virialOrbitFilamentary), intent(inout), target         :: self
@@ -244,8 +256,8 @@ contains
     filamentaryOrbit=self%virialOrbit_%orbit(node,host,acceptUnboundOrbits)
     ! Choose between accretion along a filament and isotropic accretion.
     if (node%hostTree%randomNumberGenerator_%uniformSample() < self%fractionFilamentary(host)) then
-       ! Choose one of the filament axes of the host at random.
-       axes=Dark_Matter_Halo_Filament_Axes(host,self%filamentAxesID)
+       ! Choose one of the filaments of the host at random.
+       axes=self%darkMatterHaloFilaments_%axes(host)
        i   =min(int(dble(size(axes,dim=2))*node%hostTree%randomNumberGenerator_%uniformSample())+1,size(axes,dim=2))
        axis=axes(:,i)
        ! Draw the angle from the axis from the von Mises-Fisher distribution. Its cumulative distribution inverts analytically.

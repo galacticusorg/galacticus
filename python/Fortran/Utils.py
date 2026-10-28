@@ -34,7 +34,7 @@ ARGUMENT_LIST = r'[a-zA-Z0-9_{}¦,\s]*'
 # `extends( parent )`.  The tree uses both freedoms: `type, bind(C) ::
 # unitType` and `type, extends(hdf5Group             ) :: hdf5File`.
 #
-# An opener that fails to match is *not* merely left unlabelled.  The unit
+# An opener that fails to match is *not* merely left unlabeled.  The unit
 # parser never opens a `type` node, so the type's components are absorbed into
 # the enclosing scope's declaration node as though they were ordinary
 # variables, and its `end type` is stranded as an orphan code node.  Nothing

@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which implements a dark matter profile method that provides a scale radius and a shape parameter.
+Contains a module which implements a dark matter profile method that provides a scale radius and triaxial axis ratios.
 !!}
 
 module Node_Component_Dark_Matter_Profile_Scale_Triaxial
   !!{RST
-  Implements a dark matter profile method that provides a scale radius and a shape parameter.
+  Implements a dark matter profile method that provides a scale radius and triaxial axis ratios.
   !!}
   implicit none
   private
