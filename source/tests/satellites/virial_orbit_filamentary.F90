@@ -56,26 +56,26 @@ program Test_Satellite_Virial_Orbit_Filamentary
   direction of infall of its former host, which differs from its own before the move, and must keep its radius and velocities.
   If the orbit of the former host has no direction of infall, that of the satellite must be unchanged.
   !!}
-  use, intrinsic :: ISO_C_Binding             , only : c_long
-  use            :: Cosmological_Density_Field, only : criticalOverdensityClass
-  use            :: Dark_Matter_Halo_Filaments, only : darkMatterHaloFilamentsClass  , darkMatterHaloFilamentsRandomSequential
-  use            :: Display                   , only : displayMessage                , displayVerbositySet                    , verbosityLevelStandard
-  use            :: Error                     , only : Error_Handler_Register
-  use            :: Events_Hooks              , only : eventsHooksInitialize
-  use            :: Functions_Global_Utilities, only : Functions_Global_Set
-  use            :: Galacticus_Nodes          , only : mergerTree                    , nodeClassHierarchyFinalize             , nodeClassHierarchyInitialize       , nodeComponentBasic          , &
-       &                                               nodeComponentDarkMatterProfile, nodeComponentSatellite                 , treeNode
-  use            :: IO_HDF5                   , only : ioHDF5AccessInitialize
-  use            :: Input_Parameters          , only : inputParameters
-  use            :: Kepler_Orbits             , only : keplerOrbit
-  use            :: Node_Components           , only : Node_Components_Initialize    , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use            :: Nodes_Operators           , only : nodeOperatorHaloFilaments     , nodeOperatorSatelliteMergingTime
-  use            :: Numerical_Constants_Math  , only : Pi
-  use            :: Numerical_Random_Numbers  , only : randomNumberGeneratorGSL
+  use, intrinsic :: ISO_C_Binding               , only : c_long
+  use            :: Cosmological_Density_Field  , only : criticalOverdensityClass
+  use            :: Dark_Matter_Halo_Filaments  , only : darkMatterHaloFilamentsClass   , darkMatterHaloFilamentsRandomSequential
+  use            :: Display                     , only : displayMessage                 , displayVerbositySet                    , verbosityLevelStandard
+  use            :: Error                       , only : Error_Handler_Register
+  use            :: Events_Hooks                , only : eventsHooksInitialize
+  use            :: Functions_Global_Utilities  , only : Functions_Global_Set
+  use            :: Galacticus_Nodes            , only : mergerTree                     , nodeClassHierarchyFinalize             , nodeClassHierarchyInitialize       , nodeComponentBasic          , &
+       &                                                 nodeComponentDarkMatterProfile , nodeComponentSatellite                 , treeNode
+  use            :: IO_HDF5                     , only : ioHDF5AccessInitialize
+  use            :: Input_Parameters            , only : inputParameters
+  use            :: Kepler_Orbits               , only : keplerOrbit
+  use            :: Node_Components             , only : Node_Components_Initialize     , Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use            :: Nodes_Operators             , only : nodeOperatorHaloFilaments      , nodeOperatorSatelliteMergingTime
+  use            :: Numerical_Constants_Math    , only : Pi
+  use            :: Numerical_Random_Numbers    , only : randomNumberGeneratorGSL
   use            :: Satellite_Merging_Timescales, only : satelliteMergingTimescalesClass
-  use            :: Satellite_Promotion       , only : Satellite_Move_To_New_Host
-  use            :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group               , Unit_Tests_Finish
-  use            :: Virial_Orbits             , only : virialOrbitClass              , virialOrbitFilamentary
+  use            :: Satellite_Promotion         , only : Satellite_Move_To_New_Host
+  use            :: Unit_Tests                  , only : Assert                         , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use            :: Virial_Orbits               , only : virialOrbitClass               , virialOrbitFilamentary
   implicit none
   type            (inputParameters                        )                              :: parameters                         , parametersFilamentary
   type            (nodeOperatorHaloFilaments              ), pointer                     :: nodeOperator_
@@ -137,11 +137,11 @@ program Test_Satellite_Virial_Orbit_Filamentary
   ! collapsing mass is found.
   parametersFilamentary=parameters%subParameters('virialOrbit')
   !![
-  <objectBuilder class="darkMatterHaloFilaments" name="darkMatterHaloFilaments_" source="parameters"           />
-  <objectBuilder class="virialOrbit"             name="virialOrbit_"             source="parameters"           />
-  <objectBuilder class="virialOrbit"             name="virialOrbitWrapped_"      source="parametersFilamentary"/>
-  <objectBuilder class="criticalOverdensity"     name="criticalOverdensity_"     source="parameters"           />
-  <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"     />
+  <objectBuilder class="darkMatterHaloFilaments"    name="darkMatterHaloFilaments_"    source="parameters"           />
+  <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"           />
+  <objectBuilder class="virialOrbit"                name="virialOrbitWrapped_"         source="parametersFilamentary"/>
+  <objectBuilder class="criticalOverdensity"        name="criticalOverdensity_"        source="parameters"           />
+  <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"           />
   <addMetaProperty component="basic" name="filamentAxes" id="filamentAxesID" rank="1" isEvolvable="no"/>
   !!]
   allocate(nodeOperator_                )
@@ -235,7 +235,7 @@ program Test_Satellite_Virial_Orbit_Filamentary
   allocate(nodeOperatorMerging_)
   nodeOperatorMerging_=nodeOperatorSatelliteMergingTime(.false.,virialOrbit_,satelliteMergingTimescales_)
   call nodeOperatorMerging_%autoHook()
-  call testHostChange('former host has a direction of infall',virialOrbit_       ,inherits=.true. )
+  call testHostChange('former host has a direction of infall' ,virialOrbit_       ,inherits=.true. )
   call testHostChange('former host has no direction of infall',virialOrbitWrapped_,inherits=.false.)
   call Unit_Tests_End_Group()
   ! Clean up.
@@ -312,10 +312,10 @@ contains
     character(len=*                 ), intent(in   ) :: label
     class    (virialOrbitClass      ), intent(inout) :: virialOrbitHostFormer_
     logical                          , intent(in   ) :: inherits
-    type     (treeNode              ), pointer       :: nodeHost             , nodeHostFormer , &
+    type     (treeNode              ), pointer       :: nodeHost              , nodeHostFormer , &
          &                                              nodeSatellite
     class    (nodeComponentSatellite), pointer       :: satellite
-    type     (keplerOrbit           )                :: orbitSatellite       , orbitHostFormer, &
+    type     (keplerOrbit           )                :: orbitSatellite        , orbitHostFormer, &
          &                                              orbitMoved
 
     call Unit_Tests_Begin_Group(label)
@@ -329,11 +329,11 @@ contains
     nodeHostFormer%firstSatellite => nodeSatellite
     nodeSatellite %parent         => nodeHostFormer
     ! Assign orbits.
-    orbitHostFormer =  virialOrbitHostFormer_%orbit         (nodeHostFormer,nodeHost      ,acceptUnboundOrbits=.true.)
-    orbitSatellite  =  virialOrbit_          %orbit         (nodeSatellite ,nodeHostFormer,acceptUnboundOrbits=.true.)
-    satellite       => nodeHostFormer        %satellite     (autoCreate=.true.                                       )
+    orbitHostFormer =  virialOrbitHostFormer_%orbit    (nodeHostFormer,nodeHost      ,acceptUnboundOrbits=.true.)
+    orbitSatellite  =  virialOrbit_          %orbit    (nodeSatellite ,nodeHostFormer,acceptUnboundOrbits=.true.)
+    satellite       => nodeHostFormer        %satellite(                              autoCreate         =.true.)
     call satellite%virialOrbitSet(orbitHostFormer)
-    satellite       => nodeSatellite         %satellite     (autoCreate=.true.                                       )
+    satellite       => nodeSatellite         %satellite(                              autoCreate         =.true.)
     call satellite%virialOrbitSet(orbitSatellite )
     ! Move the satellite, and test its orbit.
     call Satellite_Move_To_New_Host(nodeSatellite,nodeHost)
@@ -341,12 +341,12 @@ contains
     orbitMoved =  satellite    %virialOrbit()
     call Assert('satellite is moved to the new host',associated(nodeSatellite%parent,nodeHost),.true.)
     if (inherits) then
-       call Assert('former host has a direction of infall'           ,orbitHostFormer%isSet(keplerOrbitTheta).and.orbitHostFormer%isSet(keplerOrbitPhi),.true.                                          )
-       call Assert('directions of satellite and former host differ'  ,any([orbitSatellite%theta(),orbitSatellite%phi()] /= [orbitHostFormer%theta(),orbitHostFormer%phi()]),.true.)
-       call Assert('direction of infall is that of the former host'  ,[orbitMoved%theta(),orbitMoved%phi()]                                         ,[orbitHostFormer%theta(),orbitHostFormer%phi()])
+       call Assert('former host has a direction of infall'         ,orbitHostFormer%isSet(keplerOrbitTheta).and.orbitHostFormer%isSet(keplerOrbitPhi),.true. )
+       call Assert('directions of satellite and former host differ',any([orbitSatellite%theta(),orbitSatellite%phi()] /= [orbitHostFormer%theta(),orbitHostFormer%phi()]),.true.)
+       call Assert('direction of infall is that of the former host',[orbitMoved%theta(),orbitMoved%phi()]                                         ,[orbitHostFormer%theta(),orbitHostFormer%phi()])
     else
-       call Assert('former host has no direction of infall'          ,orbitHostFormer%isSet(keplerOrbitTheta).or. orbitHostFormer%isSet(keplerOrbitPhi),.false.                                         )
-       call Assert('direction of infall is unchanged'                ,[orbitMoved%theta(),orbitMoved%phi()]                                         ,[orbitSatellite %theta(),orbitSatellite %phi()])
+       call Assert('former host has no direction of infall'        ,orbitHostFormer%isSet(keplerOrbitTheta).or. orbitHostFormer%isSet(keplerOrbitPhi),.false.)
+       call Assert('direction of infall is unchanged'              ,[orbitMoved%theta(),orbitMoved%phi()]                                         ,[orbitSatellite %theta(),orbitSatellite %phi()])
     end if
     call Assert('radius and velocities are unchanged',[orbitMoved%radius(),orbitMoved%velocityRadial(),orbitMoved%velocityTangential()],[orbitSatellite%radius(),orbitSatellite%velocityRadial(),orbitSatellite%velocityTangential()])
     call nodeSatellite %destroy()
