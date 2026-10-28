@@ -44,6 +44,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -271,7 +272,7 @@ class EmulatedStage:
         from Galacticus.Emulation.stage import Stage
         script = os.path.join(self.exec_path, 'scripts', 'emulation', 'emulatorStageWorker.py')
         state = self.state()
-        if not self.local() and _job_active(label):
+        if not self.local() and _job_active(state.get('jobs', {}).get(label)):
             print(f'[{STAGE}] workers ({label}) are running.')
             return False
         stage = Stage.load(stage_file)
@@ -299,7 +300,14 @@ class EmulatedStage:
             command += ['--memory', str(self.options['progenitorMassFunctionWorkerMemory'])]
         if self.options.get('partition'):
             command += ['--partition', self.options['partition']]
-        subprocess.run(command, check=True)
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        print(result.stdout, end='')
+        match = re.search(r'as array job (\S+)', result.stdout)
+        if match is None and 'nothing to do' in result.stdout:
+            return False
+        if match is None:
+            raise RuntimeError(f'the job ID of the submitted workers ({label}) was not reported')
+        self.update(jobs={**self.state().get('jobs', {}), label: match.group(1)})
         return False
 
     def profile_stage_file(self, kind):
@@ -442,7 +450,7 @@ class EmulatedStage:
         for variant in VARIANTS:
             label = _job_label(variant)
             root = self.path('mcmc', f'{variant}Chains')
-            if not self.local() and _job_active(label):
+            if not self.local() and _job_active(self.state().get('jobs', {}).get(label)):
                 pending.append(variant)
                 continue
             if self.state().get('mcmcSubmitted', {}).get(variant):
@@ -462,6 +470,7 @@ class EmulatedStage:
                 job_id = submit({'command': command, 'launchFile': self.path('mcmc', f'{variant}.sh'),
                                  'logFile': self.path('mcmc', f'{variant}.log'), 'label': label, 'ppn': chains, 'nodes': 1,
                                  'walltime': '2-00:00:00'})
+                self.update(jobs={**self.state().get('jobs', {}), label: str(job_id)})
                 print(f'[{STAGE}] submitted the {variant} emulated MCMC (job {job_id}).')
                 pending.append(variant)
         return not pending
@@ -605,19 +614,35 @@ def _set(parent, tag, value):
     element.set('value', value)
 
 
+# Slurm job states (as reported by `sacct`) of jobs which have ended.
+JOB_STATES_ENDED = {'BOOT_FAIL', 'CANCELLED', 'COMPLETED', 'DEADLINE', 'FAILED', 'NODE_FAIL', 'OUT_OF_MEMORY', 'PREEMPTED', 'TIMEOUT'}
+
+
 def _job_label(name):
     return f'darkMatterPipeline{STAGE[0].upper()}{STAGE[1:]}{name[0].upper()}{name[1:]}'
 
 
-def _job_active(label):
-    """Whether a Slurm job of this name is pending or running. If Slurm can not be queried, the job is taken to be active,
-    so that nothing (in particular, planning a stage, which clears its work queue) is done while workers may be running."""
+def _job_active(job_id):
+    """Whether a submitted Slurm job (None if none was submitted) may still be pending or running. The job is checked by its
+    ID, in the accounting records and then in the queue; if neither says that it has ended, it is taken to be active, so that
+    nothing (in particular, planning a stage, which clears its work queue) is done while its workers may be running."""
+    if job_id is None:
+        return False
     try:
-        result = subprocess.run(['squeue', '--me', '--name', label, '-h', '-o', '%i'], capture_output=True, text=True, timeout=120)
+        result = subprocess.run(['sacct', '-j', job_id, '-X', '-n', '-P', '-o', 'State'], capture_output=True, text=True, timeout=120)
+        states = [line.split()[0] for line in result.stdout.splitlines() if line.strip()] if result.returncode == 0 else []
     except (OSError, subprocess.TimeoutExpired):
-        print(f'[{STAGE}] could not query Slurm: waiting.')
-        return True
-    if result.returncode != 0:
-        print(f'[{STAGE}] could not query Slurm: waiting.')
-        return True
-    return bool(result.stdout.strip())
+        states = []
+    if states:
+        return any(state not in JOB_STATES_ENDED for state in states)
+    # No accounting records: ask the queue, which lists the job (by its ID) until it ends, and soon after forgets it.
+    try:
+        result = subprocess.run(['squeue', '-j', job_id, '-h', '-o', '%i'], capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired):
+        result = None
+    if result is not None and result.returncode == 0:
+        return bool(result.stdout.strip())
+    if result is not None and 'Invalid job id' in result.stderr:
+        return False
+    print(f'[{STAGE}] could not query Slurm about job {job_id}: waiting.')
+    return True

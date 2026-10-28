@@ -588,6 +588,11 @@ def main():
         _do_diagnose(output_dir, options['diagnose'], options['diagnoseSteps'])
         return
     if options.get('markConverged'):
+        if options['markConverged'] == 'progenitorMassFunction':
+            # An emulated stage can be judged only once its emulated MCMCs have ended.
+            stage = progenitorMassFunctionEmulated.EmulatedStage(output_dir, options, galacticus)
+            if os.path.exists(stage.state_file) and stage.state()['state'] != 'ready':
+                raise RuntimeError(f"the emulated progenitorMassFunction stage is not ready for a convergence decision (state: {stage.state()['state']})")
         _do_mark_converged(output_dir, options['markConverged'])
         return
     for option, action in (('markProfiled', 'mark_profiled'), ('reprofile', 'reprofile')):

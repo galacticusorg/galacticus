@@ -98,7 +98,7 @@ def read_configuration(path):
 
 def expand_patterns(observables, design_file, directory='.'):
     """Replace each observable whose label is a pattern by one observable per matching analysis label, found in the
-    first run output (of the design's runs) which exists."""
+    first run output (of the design's runs) which has analyses (the output of a run which failed part way may have none)."""
     import re
     from dataclasses import replace
     import h5py
@@ -111,12 +111,13 @@ def expand_patterns(observables, design_file, directory='.'):
         path = output_file_path(os.path.join(directory, name))
         try:
             with h5py.File(path, 'r') as file:
-                labels = sorted(file['analyses'].keys()) if 'analyses' in file else []
-            break
+                if 'analyses' in file and len(file['analyses']) > 0:
+                    labels = sorted(file['analyses'].keys())
+                    break
         except OSError:
             continue
     if labels is None:
-        raise ValueError('no run output exists in which to match observable label patterns')
+        raise ValueError('no run output with analyses exists in which to match observable label patterns')
     expanded = []
     for observable in observables:
         if not getattr(observable, 'pattern', False):

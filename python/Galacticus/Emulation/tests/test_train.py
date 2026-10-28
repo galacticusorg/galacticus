@@ -377,6 +377,9 @@ def test_command_line_pattern(campaign, tmp_path):
   <observable label="number.*" pattern="true" transform="log10" floor="-6.0" rootVarianceFloored="0.5"/>
 </emulatorTrain>
 ''')
+    # The first run failed part way, leaving an output with no analyses: patterns are matched in the next output.
+    with h5py.File(path / 'models' / 'run0.hdf5', 'w') as file:
+        file.create_group('Parameters')
     assert module.main([str(configuration), '--directory', str(path)]) == 0
     assert set(ef.read(tmp_path / 'emulator.hdf5').emulators) == {'numberDensity'}
     configuration.write_text(configuration.read_text().replace('number.*', 'noSuch.*'))

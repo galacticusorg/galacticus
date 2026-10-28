@@ -9,6 +9,7 @@ import os
 import stat
 import sys
 
+import h5py
 import numpy as np
 import pytest
 
@@ -142,3 +143,19 @@ def test_profile_command_line(workspace, capsys):
     fixed = ET.parse(str(workspace / 'fixed' / 'base.xml')).getroot()
     for name in ('a', 'b'):
         assert float(fixed.find(name).get('value')) == pytest.approx(line['optimum'][name], rel=1e-14)
+
+
+def test_observable_patterns(tmp_path):
+    """Label patterns are matched in the first output which has analyses: a run which failed part way leaves none."""
+    from types import SimpleNamespace
+    outputs = [tmp_path / 'failed.hdf5', tmp_path / 'complete.hdf5']
+    with h5py.File(outputs[0], 'w') as file:
+        file.create_group('Parameters')
+    with h5py.File(outputs[1], 'w') as file:
+        file.create_group('analyses/countsA')
+        file.create_group('analyses/other')
+    with h5py.File(tmp_path / 'design.hdf5', 'w') as file:
+        file['runs/outputFileName'] = np.array([str(output).encode() for output in outputs])
+    component = SimpleNamespace(name='stub', observables=[SimpleNamespace(pattern=True, observable=Observable('co.*'), form='poissonCounts')])
+    observables = pf.Profile._observables(None, component, str(tmp_path / 'design.hdf5'))
+    assert [(observable.label, form) for observable, form in observables] == [('countsA', 'poissonCounts')]
