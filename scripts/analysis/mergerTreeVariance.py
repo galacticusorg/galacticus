@@ -62,8 +62,22 @@ parser.add_argument('--cumulativeCount' ,action='store',default=12              
 parser.add_argument('--seed'            ,action='store',default=8783                  ,type=int              ,help='seed for the bootstrap random number generator'                                   )
 parser.add_argument('--splitTreeStride' ,action='store',default=1                     ,type=int              ,help='write per-split values only for trees whose index is a multiple of this (per-split output is large for high-resolution trees; all trees are still analyzed)')
 parser.add_argument('--processes'       ,action='store',default=1                     ,type=int              ,help='number of worker processes over which chunks are distributed; peak memory scales with this times the chunk size')
+parser.add_argument('--foldOffset'    ,action='store',default=None                  ,type=int              ,help='assign trees to folds by (forest index + this offset) modulo the number of folds, rather than by their order; with the base random number seed as the offset this matches the folds of the branchingVariance merger tree operator, which assigns trees by their seed')
+parser.add_argument('--omegaTable'    ,action='store',default=None                                         ,help='an output file of the branchingVariance merger tree operator, from whose "redshift" and "omega" datasets ω(z) is interpolated, in place of δc0/D(z)')
 parser.add_argument('--chunkNodes'      ,action='store',default=20000000              ,type=int              ,help='approximate number of nodes processed at once (whole forests are always kept together); peak memory scales with this'                                                       )
 args = parser.parse_args()
+
+def omegaOfRedshift(redshift):
+    # The time variable ω: by default δc0/D(z); optionally the relation tabulated by the branchingVariance merger tree operator.
+    if omegaSpline is not None:
+        return omegaSpline(redshift)
+    return args.deltaCritical0/linearGrowthFactor(redshift,OmegaMatter,OmegaLambda)
+
+omegaSpline = None
+if args.omegaTable is not None:
+    import scipy.interpolate
+    with h5py.File(args.omegaTable,'r') as omegaFile:
+        omegaSpline = scipy.interpolate.CubicSpline(omegaFile['branchingVariance/redshift'][:],omegaFile['branchingVariance/omega'][:])
 
 def linearGrowthFactor(redshift,OmegaMatter,OmegaLambda):
     # Compute the linear growth factor, normalized to unity at z=0, for a matter plus cosmological constant universe (the
@@ -187,7 +201,7 @@ class chunkOfTrees:
         self.countNodes = countNodesTotal
         forest          = np.repeat(np.arange(len(firstNode),dtype=np.int64),numberOfNodes)
         # Compute ω for each node.
-        self.omega   = args.deltaCritical0/linearGrowthFactor(self.redshift,OmegaMatter,OmegaLambda)
+        self.omega   = omegaOfRedshift(self.redshift)
         self.logMass = np.log10(mass)
         omega        = self.omega
         # Build the tree structure. Node indices are unique only within a forest, so key on (forest, node index).
@@ -283,6 +297,14 @@ class chunkOfTrees:
         # output).
         self.treeLocal  = treeOfNode
         self.treeOfNode = treeOfNode+treeOffset
+        # Key used to assign each node's tree to a fold: the global tree index, or the forest index plus an offset.
+        if args.foldOffset is None:
+            self.foldKeyOfNode = self.treeOfNode
+        else:
+            if self.countTrees != len(firstNode):
+                sys.exit('mergerTreeVariance.py: --foldOffset requires one tree per forest')
+            forestIndex        = treeFile['forestIndex/forestIndex'][forestStart:forestEnd].astype(np.int64)
+            self.foldKeyOfNode = forestIndex[treeOfNode]+args.foldOffset
 
     def nodesAtDepth(self,d):
         return self.depthOrder[self.depthBoundaries[d]:self.depthBoundaries[d+1]]
@@ -389,7 +411,7 @@ for indexFile, treeFileName in enumerate(args.treeFileNames):
     countNodesAll += nodesBefore[-1][-1]
     treeFile.close()
 del numberOfNodes
-omega1        = args.deltaCritical0/linearGrowthFactor(args.redshiftTarget,OmegaMatter,OmegaLambda)
+omega1        = omegaOfRedshift(args.redshiftTarget)
 print('  {:d} forests, {:d} nodes, in {:d} file(s) and {:d} chunk(s)'.format(countForests,countNodesAll,len(args.treeFileNames),len(chunks)))
 
 # Pass 1: global ranges of mass and redshift (which set the n₁ table ranges), and the number of trees in each chunk (which sets
@@ -412,7 +434,7 @@ treeOffsets     = np.concatenate(([0],np.cumsum(treeCounts)))[:-1]
 countTrees      = int(treeCounts.sum())
 del ranges
 # ω increases monotonically with redshift.
-omegaMinimum, omegaMaximum = args.deltaCritical0/linearGrowthFactor(np.array([redshiftMinimum,redshiftMaximum]),OmegaMatter,OmegaLambda)
+omegaMinimum, omegaMaximum = omegaOfRedshift(np.array([redshiftMinimum,redshiftMaximum]))
 logMassMinimum, logMassMaximum = np.log10(massMinimum), np.log10(massMaximum)
 massResolution = massMinimum
 
@@ -456,7 +478,7 @@ def passTables(group):
             c      = chunk.statisticCounts(statistic,massThreshold)
             select = c['tableNodes']
             for h in range(countFolds):
-                selectFold = select if countFolds == 1 else select & (chunk.treeOfNode % countFolds == h)
+                selectFold = select if countFolds == 1 else select & (chunk.foldKeyOfNode % countFolds == h)
                 tablesGroup[(statistic,indexThreshold)][h].accumulate(chunk.logMass[selectFold],chunk.omega[selectFold],c['count'][selectFold])
             if indexThreshold == 0:
                 summary['omegaSplitsActive'][statistic].append(chunk.omegaSplit[c['activeSplit']])
@@ -545,9 +567,9 @@ def passJumps(indexChunk):
         # n₁ at each node, and at the end state of each segment (the summed progenitor mass at the split, or the branch end).
         segments = np.nonzero(chunk.countChildren > 0)[0]
         def n1NodeEnd(variant):
-            n1Node_ = n1(chunk.logMass,chunk.omega,chunk.treeOfNode,variant)
+            n1Node_ = n1(chunk.logMass,chunk.omega,chunk.foldKeyOfNode,variant)
             n1End_  = np.zeros(chunk.countNodes)
-            n1End_[segments] = n1(np.log10(chunk.massChildren[segments]),chunk.omegaSplit[segments],chunk.treeOfNode[segments],variant)
+            n1End_[segments] = n1(np.log10(chunk.massChildren[segments]),chunk.omegaSplit[segments],chunk.foldKeyOfNode[segments],variant)
             return n1Node_, n1End_
         n1Node, n1End = n1NodeEnd(0)
         # Markov check: by the Markov property the mean of (count - n₁) must vanish for every kind of node (roots, the primary and
@@ -620,7 +642,7 @@ def passJumps(indexChunk):
                 alive &= chunk.isMain
             p = np.nonzero(alive)[0]
             logMassG = chunk.logMass[p]+(np.log10(chunk.massChildren[p])-chunk.logMass[p])*(omegaG-chunk.omega[p])/(chunk.omegaSplit[p]-chunk.omega[p])
-            expectation = np.bincount(chunk.treeLocal[p],weights=n1(logMassG,np.full(len(p),omegaG),chunk.treeOfNode[p]),minlength=chunk.countTrees)
+            expectation = np.bincount(chunk.treeLocal[p],weights=n1(logMassG,np.full(len(p),omegaG),chunk.foldKeyOfNode[p]),minlength=chunk.countTrees)
             before      = activeSplit & (chunk.omegaSplit <= omegaG)
             if statistic != 'A':
                 expectation += chunk.treeSum(countAdded,before)
