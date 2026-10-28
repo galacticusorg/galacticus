@@ -231,7 +231,8 @@ likelihood rather than an input to the emulator:
 
 Only parameters which change the likelihood without changing the model prediction can be handled in this way. Parameters
 of the model of N-body halo mass errors (``nbodyHaloMassError``), for example, change the progenitor mass function itself
-(through its convolution with those errors), so must be parameters of the design, and inputs to the emulator.
+(through its convolution with those errors), so must either be parameters of the design, and inputs to the emulator, or
+be fit by direct runs and then fixed (see :ref:`manual-sec-EmulatorProfile`).
 
 A number density emulated in its logarithm with a floor (``transform="log10"`` with a ``floor``) may use the
 ``logNormalFloored`` form, which treats bins at or below the floor - in the target data, or in the model prediction - as in
@@ -240,6 +241,64 @@ softly, rather than being excluded (as in ``gaussianDiagonal``, for which the lo
 :math:`-\infty`). With ``pathSamples`` set, the predictions of each emulator at every evaluation are written to a file
 (``<pathSamples>/<label>_<process>.txt``), keyed by simulation step and chain index, for checking the emulators along the
 chains.
+
+.. _manual-sec-EmulatorProfile:
+
+Fitting analysis-only parameters by direct runs
+-----------------------------------------------
+
+Some parameters change only the analyses of a model, not its merger trees: the parameters of the model of N-body halo mass
+errors, for example, change a progenitor mass function only through its convolution with those errors. An emulator often
+cannot resolve their effects, which may be about a percent in each bin (below the accuracy of the emulator) yet worth tens in
+the log-likelihood summed over many bins. They are better fit by direct runs, and then fixed in the base parameter files of
+the design, which then varies only the remaining parameters. At a fixed random number seed, runs which differ only in such
+parameters build identical merger trees, so the likelihood is a smooth, exact function of them. (This holds only for
+parameters which really do not change the trees; it is up to the user to choose them.)
+
+The script ``scripts/emulation/emulatorProfile.py`` makes this fit. Its configuration names the parameters (each with a
+centre, and a step, in the parameter or in its logarithm), and the *components* of the likelihood: each a base parameter
+file, and the analyses of its output (given as for training, with a likelihood form):
+
+.. code-block:: xml
+
+   <emulatorProfile>
+     <directory value="profile"/>
+     <rootVarianceTargetFractional value="profile"/>
+     <parameter name="progenitorMassFunctionParameters/errorAmplitude" centre="0.16" step="0.15" scale="log"/>
+     <parameter name="progenitorMassFunctionParameters/errorExponent"  centre="0.50" step="0.05"/>
+     <component name="MDPL2" baseParameters="progenitorMassFunctionBaseMDPL2.xml">
+       <observable label="progenitorMassFunction.*" pattern="true" likelihoodForm="poissonCounts"
+                   transform="log10" floor="-13.6" rootVarianceFloored="1.0" likelihoodRangeOnly="true"/>
+     </component>
+   </emulatorProfile>
+
+The log-likelihood of a run is that which the emulated likelihood would assign given an exact emulator: the same forms,
+evaluated in Python (``Galacticus.Emulation.likelihood``) on the training-set values collected from the run. It is summed over
+the components and their analyses. With ``rootVarianceTargetFractional`` set to ``profile``, the fractional root variance of
+counts of the ``poissonCounts`` form is maximized at each point, as for a parameter of the likelihood sampled in the
+calibration. Otherwise it is fixed at the given value.
+
+The fit has two stages. Each stage has the commands ``prepare``, ``run`` (or ``submit``), ``status`` and ``analyze``.
+Its runs are tracked as one campaign per component (see :ref:`manual-sec-EmulatorCampaign`).
+
+#. ``star``: the centre, a step either side along each parameter, and the four sign combinations of each pair of
+   parameters, all at one seed. That is :math:`1+2n+2n(n-1)` points for :math:`n` parameters, enough to fit a full
+   quadratic. ``analyze`` fits the quadratic, and reports:
+
+   * its optimum, within ``offsetMaximum`` steps of the centre;
+   * the gain in log-likelihood it predicts there;
+   * the uncertainties of the parameters, from its curvature, if that is negative definite.
+
+#. ``line``: points from the centre toward that optimum (at the fractions ``lineFractions`` of the way there), at several
+   seeds (``lineSeeds``). The optimum of the star is fit to the noise of its one seed, and is often too far, so ``analyze``
+   takes the log-likelihood of the predictions averaged over :math:`N` seeds, for :math:`N=1, 2, 4, \ldots`, and
+   extrapolates it linearly in :math:`1/N` to infinitely many seeds. That is the noise-free model which an emulator
+   approximates. (The noise of a single run always lowers its log-likelihood, because the misfit is quadratic in it.) The
+   best point of the line, and its gain, are reported. Trust this gain, not the one predicted by the star.
+
+``fix`` then writes a change file setting the parameters to the optimum of a stage. With ``--baseDirectory``, it also writes
+copies of the base parameter files with that change applied. If the optimum lies at the bound of the star, center a new
+profile on it and repeat.
 
 .. _manual-sec-EmulatorGalacticEmu:
 

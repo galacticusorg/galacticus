@@ -45,6 +45,7 @@ __all__ = [
     'ValidationResult',
     'run_status_from_log',
     'output_file_path',
+    'run_local',
     'slurm_live_jobs',
 ]
 
@@ -301,45 +302,36 @@ class Campaign:
         those it had started are found to be interrupted by the next :meth:`refresh`. A run whose executable cannot be
         launched (e.g. it is being relinked) fails, without stopping the other runs.
         """
-        self.refresh()
-        runs = self.select(indices=indices) if indices is not None else self.select(statuses=(PENDING, FAILED))
-        environment = os.environ.copy()
-        if threads is not None:
-            environment['OMP_NUM_THREADS'] = str(threads)
-        lock = threading.Lock()
-        host = socket.gethostname()
+        return run_local([self], indices=None if indices is None else [indices], parallel=parallel, threads=threads)[0]
 
-        def execute(run):
-            log_file = self.path(run.log_file)
-            os.makedirs(os.path.dirname(log_file) or '.', exist_ok=True)
-            with open(log_file, 'w') as log:
-                try:
-                    process = subprocess.Popen(self.command(run), cwd=self.working_directory, env=environment,
-                                               stdout=log, stderr=subprocess.STDOUT)
-                except OSError as error:
-                    log.write(f'could not launch {self.executable}: {error}\n')
-                    with lock:
-                        run.attempts += 1
-                        run.status = FAILED
-                        run.job_id = None
-                        run.exit_status = None
-                        run.message = f'could not launch: {error}'
-                        self.save()
-                    return
+    def _execute(self, run, environment, lock):
+        """Run Galacticus for one run, recording its process when it starts, and appending its exit status to its log."""
+        log_file = self.path(run.log_file)
+        os.makedirs(os.path.dirname(log_file) or '.', exist_ok=True)
+        with open(log_file, 'w') as log:
+            try:
+                process = subprocess.Popen(self.command(run), cwd=self.working_directory, env=environment,
+                                           stdout=log, stderr=subprocess.STDOUT)
+            except OSError as error:
+                log.write(f'could not launch {self.executable}: {error}\n')
                 with lock:
                     run.attempts += 1
-                    run.status = RUNNING
-                    run.job_id = f'local:{host}:{process.pid}'
+                    run.status = FAILED
+                    run.job_id = None
                     run.exit_status = None
-                    run.message = ''
+                    run.message = f'could not launch: {error}'
                     self.save()
-                process.wait()
-            with open(log_file, 'a') as log:
-                log.write(f'\n{EXIT_SENTINEL}{process.returncode}\n')
-
-        with ThreadPoolExecutor(max_workers=max(1, parallel)) as pool:
-            list(pool.map(execute, runs))
-        return self.refresh()
+                return
+            with lock:
+                run.attempts += 1
+                run.status = RUNNING
+                run.job_id = f'local:{socket.gethostname()}:{process.pid}'
+                run.exit_status = None
+                run.message = ''
+                self.save()
+            process.wait()
+        with open(log_file, 'a') as log:
+            log.write(f'\n{EXIT_SENTINEL}{process.returncode}\n')
 
     def array_script(self, runs, job_options=None):
         """Return a Slurm job description (for :mod:`queueManager`) which runs the given runs as one array job.
@@ -416,6 +408,28 @@ class Campaign:
                     run.message = 'interrupted: ended without recording an exit status'
         self.save()
         return self.summary()
+
+
+def run_local(campaigns, indices=None, parallel=1, threads=None):
+    """Run the runs of several campaigns locally, sharing ``parallel`` slots between them.
+
+    ``indices`` is None (run the pending and failed runs of every campaign), or a list giving, for each campaign, the
+    indices of the runs to run (or None for its pending and failed runs). Runs are started in the order of the campaigns,
+    so list the slowest first. Returns the summary of each campaign. See :meth:`Campaign.run_local`.
+    """
+    environment = os.environ.copy()
+    if threads is not None:
+        environment['OMP_NUM_THREADS'] = str(threads)
+    tasks = []
+    for i, campaign in enumerate(campaigns):
+        campaign.refresh()
+        selected = None if indices is None else indices[i]
+        runs = campaign.select(indices=selected) if selected is not None else campaign.select(statuses=(PENDING, FAILED))
+        lock = threading.Lock()
+        tasks += [(campaign, run, lock) for run in runs]
+    with ThreadPoolExecutor(max_workers=max(1, parallel)) as pool:
+        list(pool.map(lambda task: task[0]._execute(task[1], environment, task[2]), tasks))
+    return [campaign.refresh() for campaign in campaigns]
 
 
 def slurm_live_jobs():
