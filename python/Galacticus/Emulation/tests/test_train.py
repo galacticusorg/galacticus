@@ -388,3 +388,89 @@ def test_collect_zero_and_target_floors(tmp_path):
     assert training_set.attributes['rootVarianceTargetMinimum'] == 3.0e-3
     with pytest.raises(ValueError):
         Observable('relation', root_variance_zero=0.0).validate()
+
+
+def _noisy_training_data(seed=5, countPoints=80, scatter=0.2, stated=0.02):
+    """A smooth function of two inputs, in two bins, with scatter between runs much larger than their stated noise."""
+    rng = np.random.default_rng(seed)
+    inputs = rng.uniform(size=(countPoints, 2))
+    truth = np.column_stack([np.sin(3.0 * inputs[:, 0]) + inputs[:, 1] ** 2, np.cos(2.0 * inputs[:, 1]) + inputs[:, 0]])
+    y = truth + scatter * rng.standard_normal(truth.shape)
+    return inputs, y, np.full_like(y, stated)
+
+
+def test_length_scale_minimum():
+    """The length scales of every component respect the minimum given, and an invalid minimum is an error."""
+    pytest.importorskip('sklearn')
+    inputs, y, rootVariance = _noisy_training_data()
+    for minimum in (1.0e-2, 0.3):
+        emulator = fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=1, length_scale_minimum=minimum)
+        for component in emulator.components:
+            assert np.all(np.exp(component.log_length_scales) >= minimum * (1.0 - 1.0e-9))
+    for minimum in (0.0, 10.0):
+        with pytest.raises(ValueError, match='minimum length scale'):
+            fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=1, length_scale_minimum=minimum)
+
+
+def test_learn_noise(tmp_path):
+    """With ``learn_noise``, scatter in excess of the stated noise is learned as noise rather than fitted as structure: the
+    learned noise is added to the stated noise of each component, the emulator evaluates exactly what scikit-learn fitted,
+    the learned noise survives a round trip through an emulator file, and cross-validation (which includes the learned noise
+    in that of the held-out runs) becomes calibrated where it was not."""
+    pytest.importorskip('sklearn')
+    from sklearn.gaussian_process import GaussianProcessRegressor
+    from sklearn.gaussian_process.kernels import ConstantKernel, Matern
+
+    inputs, y, rootVariance = _noisy_training_data()
+    stated = fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=2)
+    learned = fit_emulator(inputs, ['a', 'b'], y, rootVariance, restarts=2, learn_noise=True)
+    assert all(component.noise_variance_learned is None for component in stated.components)
+    for componentStated, componentLearned in zip(stated.components, learned.components):
+        assert componentLearned.noise_variance_learned > 0.0
+        # The stated noise depends only on the PCA (the same for both), so the learned noise is exactly the difference.
+        np.testing.assert_allclose(componentLearned.noise_variance - componentStated.noise_variance,
+                                   componentLearned.noise_variance_learned, rtol=1.0e-12)
+    # The emulator file evaluates exactly what scikit-learn fitted, with the learned noise on the diagonal of the training
+    # covariance only (so the predicted variance is that of the function, not of a further noisy run).
+    rng = np.random.default_rng(7)
+    points = rng.uniform(size=(10, 2))
+    mean, variance = ef.predict(learned, points)
+    for k, component in enumerate(learned.components):
+        kernel = (ConstantKernel(np.exp(component.log_amplitude), 'fixed')
+                  * Matern(length_scale=np.exp(component.log_length_scales), length_scale_bounds='fixed', nu=2.5))
+        regressor = GaussianProcessRegressor(kernel=kernel, alpha=component.noise_variance + learned.jitter, optimizer=None)
+        regressor.fit(inputs, component.targets)
+        np.testing.assert_allclose(regressor.alpha_, component.alpha, rtol=1.0e-6, atol=1.0e-10)
+    # The variance of the prediction does not depend on whether the Cholesky factors are stored.
+    for component in learned.components:
+        component.cholesky_factor = None
+    meanNoFactor, varianceNoFactor = ef.predict(learned, points)
+    np.testing.assert_allclose(meanNoFactor, mean, rtol=1.0e-8)
+    np.testing.assert_allclose(varianceNoFactor, variance, rtol=1.0e-5, atol=1.0e-12)
+    # Round trip through an emulator file.
+    design = ef.Design(names=['a', 'b'], priors=[ef.Prior('uniform', {'limitLower': 0.0, 'limitUpper': 1.0})] * 2,
+                       mappers=['identity'] * 2, quantiles=inputs, values=inputs)
+    training_set = ef.TrainingSet(x=np.array([1.0, 2.0]), y=y, root_variance=rootVariance, mask=np.zeros_like(y, dtype=np.int8),
+                                  point_index=np.arange(inputs.shape[0]), y_target=np.full(2, np.nan),
+                                  covariance_target=np.full((2, 2), np.nan), y_raw=y, attributes={'transform': 'identity'})
+    content = train(design, {'f': training_set}, restarts=1, folds=4, learn_noise=True, length_scale_minimum=0.05)
+    ef.write(tmp_path / 'emulator.hdf5', content)
+    restored = ef.read(tmp_path / 'emulator.hdf5')
+    assert restored.attributes['noiseLearned'] == 1 and restored.attributes['lengthScaleMinimum'] == 0.05
+    for component, componentRestored in zip(content.emulators['f'].components, restored.emulators['f'].components):
+        assert componentRestored.noise_variance_learned == component.noise_variance_learned
+    contentStated = train(design, {'f': training_set}, restarts=1, folds=4)
+    ef.write(tmp_path / 'emulatorStated.hdf5', contentStated)
+    assert all(component.noise_variance_learned is None for component in ef.read(tmp_path / 'emulatorStated.hdf5').emulators['f'].components)
+    # Without the learned noise the scatter is fitted as structure, at short length scales; with it the length scales are
+    # long, the emulator is several times closer to the true function, and cross-validation (whose held-out runs include
+    # the learned noise) is calibrated, with smaller errors.
+    assert min(np.exp(component.log_length_scales).min() for component in stated.components) < 0.1
+    assert min(np.exp(component.log_length_scales).min() for component in learned.components) > 0.3
+    points = rng.uniform(size=(500, 2))
+    truth = np.column_stack([np.sin(3.0 * points[:, 0]) + points[:, 1] ** 2, np.cos(2.0 * points[:, 1]) + points[:, 0]])
+    errorStated = np.sqrt(np.mean((ef.predict(stated, points)[0] - truth) ** 2, axis=0))
+    errorLearned = np.sqrt(np.mean((ef.predict(learned, points)[0] - truth) ** 2, axis=0))
+    assert np.all(errorLearned < 0.5 * errorStated)
+    assert np.all(content.validation['f'].rmse < contentStated.validation['f'].rmse)
+    assert np.all(np.abs(content.validation['f'].rms_standardized_residual - 1.0) < 0.25)

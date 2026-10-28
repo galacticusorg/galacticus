@@ -12,7 +12,7 @@ task) and the outputs of the runs of a campaign over it, it:
 3. *trains* an emulator of each observable: the bins are standardized, compressed by principal components analysis
    (PCA), and one Gaussian process (GP) is fitted to each (standardized) principal component coefficient, using
    scikit-learn, with a Matérn-5/2 kernel with a separate length scale for each input, and the finite-sampling noise of
-   each run as heteroscedastic noise;
+   each run as heteroscedastic noise (optionally with a learned, homoscedastic, excess noise);
 4. optionally *cross-validates* each emulator; and
 5. writes everything to an emulator file (see :mod:`Galacticus.Emulation.emulatorFile`).
 
@@ -44,9 +44,11 @@ __all__ = [
     'train',
 ]
 
-# Bounds on the hyperparameters of the Gaussian processes (amplitude, and length scales in units of prior quantiles).
+# Bounds on the hyperparameters of the Gaussian processes (amplitude, length scales in units of prior quantiles, and the
+# variance of the learned excess noise in units of the variance of the standardized coefficient).
 AMPLITUDE_BOUNDS = (1.0e-3, 1.0e3)
 LENGTH_SCALE_BOUNDS = (1.0e-2, 1.0e1)
+NOISE_LEARNED_BOUNDS = (1.0e-8, 1.0e1)
 JITTER = 1.0e-10
 
 
@@ -301,15 +303,25 @@ def collect(design_file, observables, model_files=None, directory='.'):
     return design, training_sets, reports
 
 
-def fit_emulator(inputs, input_names, y, root_variance, pca_variance_retained=0.99, restarts=4, seed=0):
+def fit_emulator(inputs, input_names, y, root_variance, pca_variance_retained=0.99, restarts=4, seed=0,
+                 length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=False):
     """Fit an emulator to training data.
 
     ``inputs`` (N, d) are prior quantiles; ``y`` and ``root_variance`` (N, B) are the (transformed) training values and
     their uncertainties. Returns a :class:`Galacticus.Emulation.emulatorFile.Emulator`.
+
+    ``length_scale_minimum`` is the lower bound on the length scales (in units of prior quantiles). If ``learn_noise`` is
+    true, each Gaussian process also fits a homoscedastic noise, in addition to the stated noise of each run, to allow for
+    scatter between runs in excess of their stated uncertainties (which would otherwise be fitted as structure, at short
+    length scales). The learned noise is added to the stated noise in the ``noise_variance`` of the component (so that the
+    emulator is evaluated exactly as fitted), and recorded as its ``noise_variance_learned``.
     """
     from sklearn.exceptions import ConvergenceWarning
     from sklearn.gaussian_process import GaussianProcessRegressor
-    from sklearn.gaussian_process.kernels import ConstantKernel, Matern
+    from sklearn.gaussian_process.kernels import ConstantKernel, Matern, WhiteKernel
+
+    if not 0.0 < length_scale_minimum < LENGTH_SCALE_BOUNDS[1]:
+        raise ValueError(f'the minimum length scale must be between 0 and {LENGTH_SCALE_BOUNDS[1]}')
 
     countPoints, countInputs = inputs.shape
     # Standardize the bins. A bin which does not vary is given unit scale.
@@ -334,23 +346,30 @@ def fit_emulator(inputs, input_names, y, root_variance, pca_variance_retained=0.
         targets = (coefficients[:, k] - coefficientMean[k]) / coefficientScale[k]
         noiseVariance = coefficientVariance[:, k] / coefficientScale[k] ** 2
         kernel = (ConstantKernel(1.0, AMPLITUDE_BOUNDS)
-                  * Matern(length_scale=np.ones(countInputs), length_scale_bounds=LENGTH_SCALE_BOUNDS, nu=2.5))
+                  * Matern(length_scale=np.ones(countInputs), length_scale_bounds=(length_scale_minimum, LENGTH_SCALE_BOUNDS[1]), nu=2.5))
+        if learn_noise:
+            # The white noise kernel adds its variance to the diagonal of the covariance of the training points only, so the
+            # fitted `alpha_` and `L_` are those of the stated noise plus the learned noise.
+            kernel = kernel + WhiteKernel(noise_level=1.0e-2, noise_level_bounds=NOISE_LEARNED_BOUNDS)
         regressor = GaussianProcessRegressor(kernel=kernel, alpha=noiseVariance + JITTER, normalize_y=False,
                                              n_restarts_optimizer=restarts, random_state=seed + k)
         with warnings.catch_warnings():
             # A hyperparameter at a bound is reported, not fatal; the fit is checked by cross-validation.
             warnings.simplefilter('ignore', ConvergenceWarning)
             regressor.fit(inputs, targets)
-        amplitude = regressor.kernel_.k1.constant_value
-        lengthScales = np.atleast_1d(regressor.kernel_.k2.length_scale) * np.ones(countInputs)
+        kernelSignal = regressor.kernel_.k1 if learn_noise else regressor.kernel_
+        noiseLearned = float(regressor.kernel_.k2.noise_level) if learn_noise else None
+        amplitude = kernelSignal.k1.constant_value
+        lengthScales = np.atleast_1d(kernelSignal.k2.length_scale) * np.ones(countInputs)
         gpComponents.append(ef.Component(
             log_amplitude=float(np.log(amplitude)),
             log_length_scales=np.log(lengthScales),
             targets=targets,
-            noise_variance=noiseVariance,
+            noise_variance=noiseVariance + (noiseLearned or 0.0),
             alpha=np.asarray(regressor.alpha_).ravel(),
             log_marginal_likelihood=float(regressor.log_marginal_likelihood_value_),
             cholesky_factor=np.asarray(regressor.L_),
+            noise_variance_learned=noiseLearned,
         ))
     return ef.Emulator(
         kernel='matern52ARD',
@@ -371,7 +390,8 @@ def cross_validate(inputs, input_names, y, root_variance, folds=5, seed=0, **fit
     """k-fold cross-validation of an emulator: refit on each training fold and predict the held-out fold.
 
     Returns a :class:`Galacticus.Emulation.emulatorFile.Validation`. Standardized residuals and coverage use the combined
-    variance of the emulator and of the finite-sampling noise of the held-out runs.
+    variance of the emulator and of the noise of the held-out runs: their finite-sampling noise, plus any noise learned by
+    the emulator (see :func:`fit_emulator`).
     """
     foldOf = _assign_folds(inputs.shape[0], folds, seed)
     predictions = [_predict_fold(inputs, input_names, y, root_variance, foldOf, fold, seed, fit_options) for fold in range(folds)]
@@ -390,21 +410,30 @@ def _assign_folds(countPoints, folds, seed):
 
 
 def _predict_fold(inputs, input_names, y, root_variance, foldOf, fold, seed, fit_options):
-    """Refit an emulator with one fold held out, and predict the held-out points: (mean, variance)."""
+    """Refit an emulator with one fold held out, and predict the held-out points: (mean, variance, learned noise variance)."""
     heldOut = foldOf == fold
     emulator = fit_emulator(inputs[~heldOut], input_names, y[~heldOut], root_variance[~heldOut], seed=seed, **fit_options)
-    return ef.predict(emulator, inputs[heldOut])
+    return (*ef.predict(emulator, inputs[heldOut]), noise_variance_learned(emulator))
+
+
+def noise_variance_learned(emulator):
+    """The variance in each bin of the noise learned by an emulator (zero if it learned none), projected from its
+    components onto the bins in the same way as the variance of its prediction."""
+    variances = np.array([component.noise_variance_learned or 0.0 for component in emulator.components])
+    return emulator.bin_scale ** 2 * ((emulator.coefficient_scale ** 2 * variances) @ emulator.pca_components ** 2)
 
 
 def _validation(y, root_variance, foldOf, predictions):
     """Assemble the held-out predictions of each fold into a :class:`Galacticus.Emulation.emulatorFile.Validation`."""
     prediction = np.empty_like(y)
     variance = np.empty_like(y)
-    for fold, (mean, varianceFold) in enumerate(predictions):
+    varianceNoise = root_variance ** 2
+    for fold, (mean, varianceFold, varianceNoiseLearned) in enumerate(predictions):
         heldOut = foldOf == fold
         prediction[heldOut], variance[heldOut] = mean, varianceFold
+        varianceNoise[heldOut] += varianceNoiseLearned
     residual = prediction - y
-    varianceTotal = variance + root_variance ** 2
+    varianceTotal = variance + varianceNoise
     standardized = residual / np.sqrt(varianceTotal)
     varianceBins = y.var(axis=0)
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -436,7 +465,8 @@ def _run_task(task):
     return _predict_fold(*arguments)
 
 
-def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0, seed=0, store_cholesky=True, processes=1):
+def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0, seed=0, store_cholesky=True, processes=1,
+          length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=False):
     """Train an emulator for each training set, optionally cross-validating it.
 
     Returns an :class:`Galacticus.Emulation.emulatorFile.EmulatorFile`, ready to be written. ``folds`` of zero disables
@@ -446,18 +476,22 @@ def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0
     The fit of each emulator, and of each fold of its cross-validation, is independent of the others. With ``processes``
     greater than one they are made in that many worker processes, each limited to a single thread (threading within a
     fit gains little), and the results are identical to those of a serial run.
+
+    ``length_scale_minimum`` and ``learn_noise`` are as for :func:`fit_emulator`, and are recorded in the attributes of the
+    emulator file.
     """
-    fitOptions = {'pca_variance_retained': pca_variance_retained, 'restarts': restarts, 'seed': seed}
+    fitOptions = {'pca_variance_retained': pca_variance_retained, 'restarts': restarts,
+                  'length_scale_minimum': length_scale_minimum, 'learn_noise': learn_noise}
     tasks = []
     foldsOf = {}
     for label, training_set in training_sets.items():
         inputs = design.quantiles[training_set.point_index]
-        tasks.append(('fit', label, (inputs, design.names, training_set.y, training_set.root_variance, fitOptions)))
+        tasks.append(('fit', label, (inputs, design.names, training_set.y, training_set.root_variance, {**fitOptions, 'seed': seed})))
         if folds:
             foldsOf[label] = _assign_folds(inputs.shape[0], folds, seed)
             for fold in range(folds):
                 tasks.append(('fold', label, (inputs, design.names, training_set.y, training_set.root_variance, foldsOf[label],
-                                              fold, seed, {'pca_variance_retained': pca_variance_retained, 'restarts': restarts})))
+                                              fold, seed, fitOptions)))
     if processes > 1:
         import concurrent.futures
         import multiprocessing
@@ -489,4 +523,5 @@ def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0
     validation = {label: _validation(training_sets[label].y, training_sets[label].root_variance, foldsOf[label], predictions[label])
                   for label in predictions}
     return ef.EmulatorFile(design=design, training_sets=training_sets, emulators=emulators, validation=validation,
-                           attributes={'creator': 'Galacticus.Emulation.train'})
+                           attributes={'creator': 'Galacticus.Emulation.train', 'lengthScaleMinimum': length_scale_minimum,
+                                       'noiseLearned': int(learn_noise)})
