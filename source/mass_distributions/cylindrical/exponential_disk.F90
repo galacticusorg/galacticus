@@ -1225,7 +1225,7 @@ contains
        \Phi(R,z) = -G M \int_0^\infty \mathrm{d}k \, {J_0(kR) K(k,z) \over (1+k^2)^{3/2}},
 
     in units where the disk scale length is unity, and the mid-plane rotation curve is :math:`V_\mathrm{c}^2(R) = -R
-    a_R(R,0)`. The vertical kernel is evaluated by direct numerical integration (see :galacticus-type:`kernelVerticalSechSquared`)
+    a_R(R,0)`. The vertical kernel is evaluated by direct numerical integration (see :galacticus-class:`kernelVerticalSechSquared`)
     rather than by the series expansion of :cite:t:`kuijken_mass_1989`, the terms of which do not decay with order. The tabulation is built for a
     dimensionless disk.
     !!}
@@ -1637,7 +1637,7 @@ contains
     double precision function kernelVertical(wavenumber)
       !!{RST
       The vertical kernel, :math:`K(k,z)`, at the current height, interpolated from the table computed at the start of the
-      tabulation (see :galacticus-type:`kernelVerticalSechSquared`).
+      tabulation (see :galacticus-class:`kernelVerticalSechSquared`).
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
@@ -1649,7 +1649,7 @@ contains
     double precision function kernelVerticalGradient(wavenumber)
       !!{RST
       The :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height, interpolated from the table computed
-      at the start of the tabulation (see :galacticus-type:`kernelVerticalSechSquared`).
+      at the start of the tabulation (see :galacticus-class:`kernelVerticalSechSquared`).
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
@@ -1661,7 +1661,7 @@ contains
     double precision function kernelVerticalGradient2(wavenumber)
       !!{RST
       The second :math:`z` derivative of the vertical kernel, :math:`K(k,z)`, at the current height, interpolated from the table
-      computed at the start of the tabulation (see :galacticus-type:`kernelVerticalSechSquared`).
+      computed at the start of the tabulation (see :galacticus-class:`kernelVerticalSechSquared`).
       !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
