@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Alex Merson.
+  !+    Contributions to this file made by: Alex Merson, Claude.
 
   !!{RST
   Implements a file-based stellar population spectra class.
@@ -203,8 +203,12 @@ contains
     !$omp threadprivate(message)
     character       (len=12                      )                           :: metallicityLabel           , label
 
-    ! Ensure that the file has been read.
-    call self%readFile()
+    ! Ensure that the file has been read. The test is made here, rather than left to `readFile()` which makes it too, because
+    ! this function is called for every evaluation of the integrands over stellar population spectra. Once the file has been
+    ! read the call itself is the whole of the cost, and that is not negligible: the FSPS implementation of `readFile()`
+    ! declares a `lockDescriptor`, whose `varying_string` component is constructed on entry and finalized on exit whether or
+    ! not the body of the routine runs.
+    if (.not.self%fileRead) call self%readFile()
     ! Set status code if present.
     if (present(status)) status=errorStatusSuccess
     ! Check for out of range conditions.
@@ -339,7 +343,7 @@ contains
     double precision                              , allocatable, dimension(:), intent(  out) :: ages     , metallicity
 
     ! Ensure that the file has been read.
-    call self%readFile()
+    if (.not.self%fileRead) call self%readFile()
     ! Return the relevant data.
     agesCount         =self%spectra%agesCount
     metallicitiesCount=self%spectra%metallicityCount
@@ -360,7 +364,7 @@ contains
     double precision                              , allocatable, dimension(:), intent(  out) :: wavelengths
 
     ! Ensure that the file has been read.
-    call self%readFile()
+    if (.not.self%fileRead) call self%readFile()
     ! Return the relevant data.
     wavelengthsCount=self%spectra  %wavelengthsCount
     allocate(wavelengths(wavelengthsCount))
@@ -379,7 +383,7 @@ contains
     double precision                              , allocatable, dimension(:)                :: wavelengths     , wavelengthDifference
 
     ! Ensure that the file is read.
-    call self%readFile()
+    if (.not.self%fileRead) call self%readFile()
     ! Return the relevant data.
     wavelengthsCount=self%spectra  %wavelengthsCount
     allocate(wavelengths(wavelengthsCount))
