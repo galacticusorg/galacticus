@@ -443,11 +443,14 @@ with safe_section("nodeOperatorEmpiricalGalaxyUniverseMachine"):
 # kind_int8 → c_long mapping, `nodeIndicesReport` would be emitted as
 # `integer(c_int)` (32-bit) and mismatch the inner constructor.  We
 # include a value > 2^31 to make the 64-bit-ness load-bearing.
+# `orphanTrajectory` is a `type(enumerationOrphanTrajectoryType)`
+# argument, passed as its integer ID (0 = host, 1 = decay).
 with safe_section("nodeOperatorPositionInterpolated"):
     indices = np.array([1, 42, 1_000_000_000_000], dtype=np.int64)
     nopi = galacticus.nodeOperatorPositionInterpolated(
         lengthBox=100.0, wrapPeriodic=True,
         nodeIndicesReport=indices,
+        orphanTrajectory=1,
         cosmologyFunctions_=cosmologyFunctions,
     )
     check_eq("constructed type",
