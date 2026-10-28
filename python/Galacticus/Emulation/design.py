@@ -29,6 +29,7 @@ __all__ = [
     'parse_descriptor',
     'pool_designs',
     'prior_cumulative',
+    'priors_from_file',
     'read_design',
     'resolve_paths',
     'split_design',
@@ -215,6 +216,32 @@ def prior_cumulative(prior, values):
     raise NotImplementedError(f"prior class '{prior.class_name}' is not supported")
 
 
+def priors_from_file(path, names):
+    """Read the prior of each parameter in ``names`` from a design file, or from the active ``modelParameter`` blocks
+    (their ``distributionFunction1DPrior``) of a Galacticus parameter file, such as that of the ``emulatorDesign`` task or
+    of posterior sampling. Returns a list of :class:`Galacticus.Emulation.emulatorFile.Prior`."""
+    import lxml.etree as ET
+    try:
+        design = read_design(path).design
+        priors = dict(zip(design.names, design.priors))
+    except (OSError, ValueError):
+        priors = {}
+        for element in ET.parse(path).getroot().iter('modelParameter'):
+            if element.get('value') != 'active' or element.find('name') is None:
+                continue
+            distribution = element.find('distributionFunction1DPrior')
+            if distribution is None:
+                continue
+            parameters = {child.tag: float(child.get('value')) for child in distribution
+                          if isinstance(child.tag, str) and child.get('value') is not None and child.tag != 'randomNumberGenerator'}
+            parameters['descriptor'] = serialize_descriptor(parameters)
+            priors[element.find('name').get('value')] = Prior(distribution.get('value'), parameters)
+    missing = [name for name in names if name not in priors]
+    if missing:
+        raise ValueError(f"'{path}' gives no prior for: {', '.join(missing)}")
+    return [priors[name] for name in names]
+
+
 def resolve_paths(design_file, directory):
     """Return a copy of a :class:`DesignFile` with the change and output file names of its runs made absolute, resolving
     relative names against ``directory`` (the directory from which the runs were made)."""
@@ -281,7 +308,7 @@ def pool_designs(design_files, priors=None):
     values = np.concatenate([design_file.design.values for design_file in design_files])
     quantiles = np.column_stack([prior_cumulative(prior, values[:, k]) for k, prior in enumerate(priors)])
     for k, prior in enumerate(priors):
-        outside = (quantiles[:, k] <= 0.0) | (quantiles[:, k] >= 1.0)
+        outside = ~((quantiles[:, k] > 0.0) & (quantiles[:, k] < 1.0))
         if outside.any():
             raise ValueError(f"parameter '{first.names[k]}': {int(outside.sum())} points lie outside the support of the given prior")
     runs, offset = {name: [] for name in design_files[0].runs}, 0

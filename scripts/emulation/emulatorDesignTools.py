@@ -25,35 +25,9 @@ import argparse
 import os
 import sys
 
-import lxml.etree as ET
-
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', '.'), 'python'))
 
-from Galacticus.Emulation.design import pool_designs, read_design, resolve_paths, serialize_descriptor, split_design, write_design  # noqa: E402
-from Galacticus.Emulation.emulatorFile import Prior  # noqa: E402
-
-
-def priors_from_file(path, names):
-    """Read the prior of each of ``names`` from a design file, or from the `modelParameter` blocks of a parameter file."""
-    try:
-        design = read_design(path).design
-        priors = dict(zip(design.names, design.priors))
-    except (OSError, ValueError):
-        priors = {}
-        for element in ET.parse(path).getroot().iter('modelParameter'):
-            if element.get('value') != 'active' or element.find('name') is None:
-                continue
-            distribution = element.find('distributionFunction1D')
-            if distribution is None:
-                continue
-            parameters = {child.tag: float(child.get('value')) for child in distribution if isinstance(child.tag, str)
-                          and child.get('value') is not None and child.tag != 'randomNumberGenerator'}
-            parameters['descriptor'] = serialize_descriptor(parameters)
-            priors[element.find('name').get('value')] = Prior(distribution.get('value'), parameters)
-    missing = [name for name in names if name not in priors]
-    if missing:
-        raise ValueError(f"'{path}' gives no prior for: {', '.join(missing)}")
-    return [priors[name] for name in names]
+from Galacticus.Emulation.design import pool_designs, priors_from_file, read_design, resolve_paths, split_design, write_design  # noqa: E402
 
 
 def main(argv=None):

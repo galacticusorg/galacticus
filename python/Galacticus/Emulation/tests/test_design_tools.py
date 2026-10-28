@@ -90,6 +90,10 @@ def test_split_and_pool(tmp_path):
     with warnings.catch_warnings():
         warnings.simplefilter('error')
         ds.pool_designs([first, second], [union])
+    # A value at or below zero has no quantile under a log prior: it is outside the support.
+    negative = _design_file(np.array([-0.5, 0.5]), Prior('uniform', {'limitLower': -1.0, 'limitUpper': 1.0}), [200, 201], tmp_path, 'negative')
+    with pytest.raises(ValueError, match='outside the support'):
+        ds.pool_designs([first, negative], [Prior('logUniform', {'limitLower': 1.0e-3, 'limitUpper': 2.0})])
     # Designs of different parameters can not be pooled.
     other = _design_file(np.linspace(0.1, 0.9, 4), priorFirst, np.arange(4), tmp_path, 'other')
     other.design.names = ['b']
@@ -131,11 +135,15 @@ def test_command_line(tmp_path, monkeypatch):
   <posteriorSampleSimulation value="differentialEvolution">
     <modelParameter value="active">
       <name value="a"/>
-      <distributionFunction1D value="uniform">
+      <distributionFunction1DPrior value="uniform">
         <limitLower value="0.0"/>
         <limitUpper value="2.0"/>
-      </distributionFunction1D>
+      </distributionFunction1DPrior>
       <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+        <median value="0.0"/>
+        <scale value="1.0e-3"/>
+      </distributionFunction1DPerturber>
     </modelParameter>
   </posteriorSampleSimulation>
 </parameters>
@@ -143,6 +151,17 @@ def test_command_line(tmp_path, monkeypatch):
     assert emulatorDesignTools.main(['pool', 'pooled2.hdf5', 'first/design.hdf5', 'second/design.hdf5', '--directories', 'first', 'second',
                                      '--priors', 'priors.xml']) == 0
     assert np.array_equal(ds.read_design('pooled2.hdf5').design.quantiles, pooled.design.quantiles)
+
+
+def test_priors_from_parameter_file():
+    """Priors are read from the `modelParameter` blocks of a real parameter file (that of the design test)."""
+    path = os.path.join(os.path.dirname(os.path.abspath(ds.__file__)), '..', '..', '..', 'testSuite', 'parameters', 'emulatorDesign.xml')
+    names = ['hotHaloOutflowReincorporation/multiplier', 'blackHoleWind/efficiencyWind']
+    priors = ds.priors_from_file(path, names)
+    assert [prior.class_name for prior in priors] == ['uniform', 'logUniform']
+    assert priors[1].parameters['limitLower'] == 2.4e-4 and priors[1].parameters['limitUpper'] == 2.4e-2
+    with pytest.raises(ValueError, match='gives no prior'):
+        ds.priors_from_file(path, ['noSuchParameter'])
 
 
 def _write_chains(root, samples, converged_from):
@@ -183,3 +202,6 @@ def test_compare_posteriors(tmp_path, capsys):
     assert 'systematic' in capsys.readouterr().out
     with pytest.raises(FileNotFoundError):
         ch.read_chains(str(tmp_path / 'missing'))
+    # A root which is a prefix of another (`full` and `full_extra`) reads only its own chains.
+    _write_chains(str(tmp_path / 'full_extra'), [np.full((10, 2), 50.0)], converged_from=0)
+    assert ch.read_chains(roots['full'])[1].shape == (4 * 19500, 2)

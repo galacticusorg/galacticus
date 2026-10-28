@@ -33,7 +33,7 @@ def read_chains(root, converged_only=True, burn_fraction=0.5):
     parameter values of the states used. If ``converged_only`` is true and any state is flagged as converged, only the
     converged states are used; otherwise the first ``burn_fraction`` of the states of each chain are discarded.
     """
-    files = sorted(path for path in glob.glob(f'{glob.escape(root)}_*.log') if re.fullmatch(r'.*_\d{4}\.log', path))
+    files = sorted(path for path in glob.glob(f'{glob.escape(root)}_*.log') if re.fullmatch(re.escape(root) + r'_\d{4}\.log', path))
     if not files:
         raise FileNotFoundError(f"no chain logs found matching '{root}_NNNN.log'")
     names = {}

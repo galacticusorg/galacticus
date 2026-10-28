@@ -31,7 +31,7 @@ import subprocess  # noqa: E402
 import lxml.etree as ET  # noqa: E402
 
 from Galacticus.Emulation.campaign import Campaign  # noqa: E402
-from Galacticus.Emulation.design import pool_designs, prior_cumulative, read_design, split_design  # noqa: E402
+from Galacticus.Emulation.design import pool_designs, prior_cumulative, priors_from_file, read_design, split_design  # noqa: E402
 
 directory = 'testSuite/outputs/emulatorDesign'
 countPoints = 16
@@ -100,6 +100,12 @@ def main():
     errors = np.array([np.max(np.abs(prior_cumulative(design.design.priors[j], values[:, j]) - quantiles[:, j])) for j in range(3)])
     check(np.max(errors) < 1.0e-12, f'prior_cumulative() reproduces the quantiles of the design (maximum difference {np.max(errors):.1e})',
           f'prior_cumulative() does not reproduce the quantiles of the design (maximum difference {np.max(errors):.1e})')
+    # Priors read from the parameter file of the design reproduce its quantiles when the design is pooled under them.
+    pooledFromFile = pool_designs(split_design(design), priors_from_file('testSuite/parameters/emulatorDesign.xml', design.design.names))
+    order = np.argsort(np.concatenate([np.arange(0, countPoints, 2), np.arange(1, countPoints, 2)]))
+    error = np.max(np.abs(pooledFromFile.design.quantiles[order] - quantiles))
+    check(error < 1.0e-12, f'priors read from the parameter file reproduce the quantiles of the design (maximum difference {error:.1e})',
+          f'priors read from the parameter file do not reproduce the quantiles of the design (maximum difference {error:.1e})')
     # Splitting the design into its even and odd points, then pooling the parts, recovers every point and its quantiles.
     parts = split_design(design)
     pooled = pool_designs(parts)
