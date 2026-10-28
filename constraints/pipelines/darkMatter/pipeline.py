@@ -24,6 +24,7 @@ from Galacticus.Constraints.Parameters import (
     log_file_root,
     maximum_parameter_dict,
 )
+import progenitorMassFunctionEmulated
 
 
 # ---------------------------------------------------------------------------
@@ -93,6 +94,7 @@ def _parse_args():
                              '(submit fresh/resume, or advance a converged stage) and exits, '
                              'instead of blocking until each MCMC finishes. Re-invoke (by hand, '
                              'cron, or /loop) to advance. Default: no (blocking).')
+    progenitorMassFunctionEmulated.add_arguments(parser)
     args, args_extra = parser.parse_known_args()
     for attr in ('outputDirectory', 'pipelinePath'):
         val = getattr(args, attr)
@@ -501,9 +503,21 @@ def _run_detached(options, args, args_extra, tasks, pipeline_path, output_dir, g
         config_file = output_dir + f'{label}Config.xml'
         manifest    = _manifest_read(output_dir, label)
 
+        emulated = label == 'progenitorMassFunction' and options['progenitorMassFunctionEmulated'] == 'yes'
         if manifest.get('converged'):
             if not manifest.get('processed'):
                 print(f"[{label}] converged -> extracting, writing hand-off, post-processing.")
+                if emulated:
+                    # The best fit of the emulated posterior, with the parameters fixed by direct profiling.
+                    stage  = progenitorMassFunctionEmulated.EmulatedStage(output_dir, options, galacticus)
+                    params = _extract_parameters(_parse_config(stage.config_for_extraction()), options)
+                    params.update(stage.fixed_parameters())
+                    _merge_results(results_file, params)
+                    _write_calibrated_containers(output_dir, params)
+                    subprocess.run(_postprocess_command(label, pipeline_path, output_dir, options), check=True)
+                    _manifest_write(output_dir, label, processed=True)
+                    print(f"[{label}] done.")
+                    continue
                 config = _parse_config(config_file)
                 params = _extract_parameters(config, options)
                 _merge_results(results_file, params)
@@ -512,6 +526,16 @@ def _run_detached(options, args, args_extra, tasks, pipeline_path, output_dir, g
                 _manifest_write(output_dir, label, processed=True)
                 print(f"[{label}] done.")
             continue
+
+        if emulated:
+            # The emulated stage takes one action of its own state machine per invocation.
+            stage = progenitorMassFunctionEmulated.EmulatedStage(output_dir, options, galacticus)
+            stage.advance(
+                generate=lambda: _generate_content(label, options, pipeline_path, output_dir, args_extra),
+                submit=lambda job: submit_job_detached(queueManager.factory(args), job),
+            )
+            print(f"  Then re-invoke this command to advance.")
+            return
 
         # First non-converged stage: submit one job, record it, and exit.
         if _job_active(label):
@@ -566,6 +590,12 @@ def main():
     if options.get('markConverged'):
         _do_mark_converged(output_dir, options['markConverged'])
         return
+    for option, action in (('markProfiled', 'mark_profiled'), ('reprofile', 'reprofile')):
+        if options.get(option):
+            if options[option] != 'progenitorMassFunction':
+                raise ValueError(f"only the progenitorMassFunction stage can be emulated (got '{options[option]}')")
+            getattr(progenitorMassFunctionEmulated.EmulatedStage(output_dir, options, galacticus), action)()
+            return
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -586,6 +616,9 @@ def main():
             'postprocess': True,
         },
    ]
+
+    if options['progenitorMassFunctionEmulated'] == 'yes' and options['detached'] != 'yes':
+        raise ValueError('the emulated progenitorMassFunction stage requires the detached driver (`--detached yes`)')
 
     # Detached driver: one state-machine action per invocation, then exit.
     if options['detached'] == 'yes':
