@@ -333,7 +333,7 @@ def _self_cmd(output_dir):
 def _do_mark_converged(output_dir, stage):
     """Record the human 'converged' decision for a stage and stop its job."""
     if _job_active(stage):
-        print(f"Cancelling active '{stage}' job ({_job_label(stage)})...")
+        print(f"Canceling active '{stage}' job ({_job_label(stage)})...")
         subprocess.run(['scancel', '--name', _job_label(stage)], check=False)
     _manifest_write(
         output_dir, stage,
@@ -465,7 +465,7 @@ def _extract_parameters(config, options):
     """Return the {name: value} best-fit parameter dict for a parsed stage config.
 
     Values are matched to names by the chain logs' own column header, so a config regenerated
-    with a narrower selection than the chains were run with raises rather than mislabelling.
+    with a narrower selection than the chains were run with raises rather than mislabeling.
     """
     return maximum_parameter_dict(config, maximum=options['maximum'])
 

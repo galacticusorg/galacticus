@@ -433,7 +433,7 @@ jobs:
         with:
           # Full history: `spelling_ignore_contributor_names` in docs/conf.py reads
           # the contributor names from the git log, so a shallow clone would leave
-          # them unrecognised and flag every one of them.
+          # them unrecognized and flag every one of them.
           fetch-depth: 0
       - name: "Set environmental variables"
         run: |

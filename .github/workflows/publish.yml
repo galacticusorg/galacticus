@@ -5,7 +5,7 @@ name: 'Publish'
 #     to PyPI via Trusted Publishing (OIDC -- no stored token); and
 #   * create a versioned GitHub Release carrying the same pre-built binary and
 #     tools assets that the CI/CD `Deploy` job publishes to `bleeding-edge`, so
-#     that the launcher can fetch reproducible artefacts pinned to the version.
+#     that the launcher can fetch reproducible artifacts pinned to the version.
 #
 # Trigger by pushing a semantic-version tag, e.g.:
 #   git tag v1.2.3 && git push origin v1.2.3
@@ -116,7 +116,7 @@ jobs:
 
   Release-Assets:
     # Mirror the current `bleeding-edge` binary/tools assets onto the versioned
-    # tag so the launcher can fetch artefacts pinned to this release. Runs only
+    # tag so the launcher can fetch artifacts pinned to this release. Runs only
     # for real tag pushes (not the TestPyPI dry run).
     if: ${{ github.event_name == 'push' }}
     needs: [Build-Distribution, Verify-Release]
@@ -135,7 +135,7 @@ jobs:
           # Only names `bleeding-edge` still refreshes may be listed here. An asset the deploy no longer
           # uploads is never removed from that rolling release by `gh release upload --clobber`, so it sits
           # there frozen at whatever commit last produced it -- and mirroring such a copy onto a new version
-          # tag would publish an artefact built from an unrelated commit. Missing names are warned about and
+          # tag would publish an artifact built from an unrelated commit. Missing names are warned about and
           # skipped below, so a superseded name is dropped from this list rather than kept "just in case".
           #
           # Deliberately absent for that reason: the macOS Intel assets (`Galacticus_MacOS.exe`,

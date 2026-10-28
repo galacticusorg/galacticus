@@ -106,7 +106,7 @@ def _add_implicit_directives(directive, per_file_entry, file_name, file_path):
 
 
 # ---------------------------------------------------------------------------
-# Per-file processing (parallelised across files)
+# Per-file processing (parallelized across files)
 # ---------------------------------------------------------------------------
 #
 # Each source file is scanned independently: it reads the file (and any

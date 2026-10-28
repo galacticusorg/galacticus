@@ -1,7 +1,7 @@
 Using N-body Merger Trees
 =========================
 
-See `the documentation <https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html>`_ for details of how to build merger tree
+See `the documentation <https://galacticus.readthedocs.io/en/latest/manuals/developer-guide/index.html>`__ for details of how to build merger tree
 files suitable for input into Galacticus. There are many options which control
 precisely how merger trees read from file should be handled. The
 following section provides guidance on the best choice of parameters.
@@ -53,7 +53,7 @@ follows:
 .. code-block:: xml
 
    <!-- Use Millennium Simulation cosmology. -->
-   <cosmologyParameters value="simple"/>
+   <cosmologyParameters value="simple">
     <HubbleConstant  value="73.0"  />
     <OmegaMatter     value="0.25"  />
     <OmegaDarkEnergy value="0.75"  />
@@ -200,7 +200,7 @@ immediately prior to the merger and the time of virial radius crossing.
 If the computed orbit does not cross the virial radius of the larger
 halo or if the computed orbit is unbound, the above options cause an
 orbit to be preset by drawing orbital parameters at random from the
-chosen cosmological distribution (see `the documentation <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_).
+chosen cosmological distribution (see :galacticus-class:`virialOrbit`).
 
 **Subhalo Merging:** If your merger trees contain subhalo
 information, that information can be used to specify when, and with
@@ -223,7 +223,8 @@ possibility that the subhalo should not actually merge immediately at
 this time. For example, in N-body simulations, the subhalo may have
 simply been lost due to limitations of resolution or halo finder
 algorithms. The final option specifies that some additional time until
-merging be added based on the subhalo merging timescale algorithm of `Boylan-Kolchin et al. (2008 <https://ui.adsabs.harvard.edu/abs/2008MNRAS.383...93B>`_; `boylanKolchin2008 <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_),
+merging be added based on the subhalo merging timescale algorithm of :cite:t:`boylan-kolchin_dynamical_2008`
+(:galacticus-class:`satelliteMergingTimescalesBoylanKolchin2008`),
 and computed using the last known orbital properties of the subhalo.
 
 **Halo Scale Radii:** If your merger trees contain
@@ -246,13 +247,15 @@ Minimum and maximum concentrations are specified—these are used to
 restrict the range of scale radii that are allowed for a given halo. If
 scale radii are to be determined based on half-mass radii given in the
 merger tree file, and if the computed scale radius does not result in a
-concentration between these limits, then a fatal error is issued.
+concentration between these limits, then a fatal error is issued (unless
+``scaleRadiiFailureIsFatal`` is ``false``, in which case the fallback method
+described below is used instead).
 
-Finally, you can set a minimum halo mass via the parameter below which
-the scale radii or half-mass radii in your file should be considered not
-reliable. For halos below this mass, scale radii will instead be
-assigned via the selected dark matter halo concentration method (see
-`the documentation <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_).
+Finally, you can set a minimum halo mass via the ``presetScaleRadiiMinimumMass``
+parameter, below which the scale radii or half-mass radii in your file should be
+considered not reliable. For halos below this mass, scale radii will instead be
+assigned via the selected dark matter profile scale radius method (see
+:galacticus-class:`darkMatterProfileScaleRadius`).
 
 **Halo Angular Momenta:** If your merger trees contain spin
 or angular momentum information these can be preset for each node.
@@ -269,7 +272,7 @@ Recommended settings are:
 The last of these options causes any halos for which the spin given in
 the merger tree file is non-positive to be assigned a spin at random
 instead, drawn from the specified cosmological distribution (see
-`the documentation <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_).
+:galacticus-class:`haloSpinDistribution`).
 
 If subhalo masses are not included in their host halo masses in your
 merger tree file, you should specify how the angular momenta of subhalos
@@ -456,10 +459,10 @@ was seen in a simulation and the time at which it is considered to
 merge. This functionality is motivated by the consideration that a
 subhalo vanishing from a simulation may be simply due to it dropping
 below resolution rather than it actually having undergone a merger. The
-parameter can be used to select a satellite merging timescale method
-(see `the documentation <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_) to use in this case. (It is
-set by default to "``null``" such that no delay before merging
-occurs.) The orbit of the subhalo around its parent at the last time it
+``satelliteMergingTimescalesSubresolution`` parameter can be used to select a
+satellite merging timescale method (see :galacticus-class:`satelliteMergingTimescales`)
+to use in this case. (It is set by default to "``zero``" such that no delay
+before merging occurs.) The orbit of the subhalo around its parent at the last time it
 is present in the merger tree is passed to this method and used to
 estimate a time until merging. This delay is added to the time at which
 the subhalo merges and, if merge target nodes are being set, the target
@@ -537,9 +540,9 @@ using:
 
 If spins could not be determined for some halos the spin (or angular
 momentum) should be set to zero in the merger tree file, and the
-parameter set to ``true``. Galacticus will then assign a spin to such
-halos by sampling from the selected spin distribution (see
-`the documentation <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_).
+``presetUnphysicalAngularMomenta`` parameter set to ``true``. Galacticus will
+then assign a spin to such halos by sampling from the selected spin distribution
+(see :galacticus-class:`haloSpinDistribution`).
 
 Node Scale Radii
 ~~~~~~~~~~~~~~~~
@@ -558,16 +561,17 @@ Before doing this, it is important to be sure that the half-mass or
 scale radii of the nodes are reliable. For example, in low mass nodes
 extracted from an N-body simulation resolution effect may limit the
 accuracy of the measured half-mass or scale radius. In such cases, use
-the parameter to specify the lowest mass halos for which the scale radii
-should be preset—lower mass halos will be assigned a scale radius using
-the method specified by the parameter (which will default to the value
-of ; see `the documentation <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_). It is also possible
-to specify minimum and maximum allowed concentrations when computing the
-scale radius from the half mass radius using the and parameters. If
-matching the half mass radius would require a concentration outside of
-this range, Galacticus will abort unless ``presetScaleRadiiFailureIsFatal=false``, in which case it
-will instead silently use the fallback concentration method described
-above.
+the ``presetScaleRadiiMinimumMass`` parameter to specify the lowest mass halos
+for which the scale radii should be preset—lower mass halos will be assigned a
+scale radius using the method specified by the ``darkMatterProfileScaleRadius``
+parameter (see :galacticus-class:`darkMatterProfileScaleRadius`). It is also
+possible to specify minimum and maximum allowed concentrations when computing
+the scale radius from the half mass radius using the
+``presetScaleRadiiConcentrationMinimum`` and ``presetScaleRadiiConcentrationMaximum``
+parameters. If matching the half mass radius would require a concentration
+outside of this range, Galacticus will abort unless
+``scaleRadiiFailureIsFatal=false``, in which case it will instead silently use
+the fallback scale radius method described above.
 
 If only half-mass radii are available, the scale radius is set by using
 a root finding algorithm to ensure that half of the total halo mass is
@@ -667,7 +671,7 @@ To add particle tracking data to a merger tree file, follow these steps:
 
 #. Write these data (along with the particle index) to the
    ``particles`` group in the merger tree file as described
-   `here <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/data/merger-tree-file-format.html#particles-group>`_;
+   `here <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/data/merger-tree-file-format.html#particles-group>`__;
 
 #. Add two datasets to the ``forestHalos`` group:
 
@@ -737,14 +741,14 @@ Positions and Velocities
 Components of the position of each node are output as
 ``positionX``, ``positionY`` and
 ``positionZ`` and can be accessed in the same way as other
-output properties from Galacticus (see `the documentation <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/index.html>`_).
+output properties from Galacticus (see `the documentation <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/index.html>`__).
 
 Subhalo Masses
 ~~~~~~~~~~~~~~
 
 The current mass of subhalos is available via the
 ``nodeBoundMass`` output dataset and can be accessed in the
-same way as other output properties from Galacticus (see `the documentation <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/index.html>`_).
+same way as other output properties from Galacticus (see `the documentation <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/index.html>`__).
 For non-subhalos this property is equal to the usual
 ``nodeMass`` property.
 
@@ -752,7 +756,7 @@ For non-subhalos this property is equal to the usual
 
 .. [#footnote1] The following assumes that merger trees will be read from a file
    following Galacticus's standard HDF5 format which is described
-   `here <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/data/merger-tree-file-format.html>`_.
+   `here <https://galacticus.readthedocs.io/en/latest/manuals/user-guide/data/merger-tree-file-format.html>`__.
 
 .. [#footnote2] These two behaviors are called out as they specifically *do not*
    occur in merger trees created using Press-Schechter-based algorithms
