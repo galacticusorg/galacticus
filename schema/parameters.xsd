@@ -2339,6 +2339,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="assignOrbits"/>
           <xs:enumeration value="augment"/>
+          <xs:enumeration value="branchingVariance"/>
           <xs:enumeration value="conditionalMF"/>
           <xs:enumeration value="consolidateBranches"/>
           <xs:enumeration value="deforest"/>
