@@ -18,7 +18,9 @@ The configuration is an XML file:
   </emulatorTrain>
 
 Each observable may also give ``rootVarianceZero`` (the root variance given to values whose root variance is zero) and
-``rootVarianceTargetMinimum`` (a floor on the root variance of the target data).
+``rootVarianceTargetMinimum`` (a floor on the root variance of the target data). With ``pattern="true"`` the label is a
+regular expression, matched in full against the labels of the analyses in the first run output found, and the observable
+stands for every analysis it matches (each with the same options).
 
 The outputs of the runs are those named in the design file, resolved relative to the working directory (or to
 --directory). The emulator file format is described in the "Emulator-Assisted Calibration" chapter of the user guide.
@@ -84,11 +86,50 @@ def read_configuration(path):
             root_variance_target_minimum=number('rootVarianceTargetMinimum'),
             likelihood_range_only=element.get('likelihoodRangeOnly', 'false').strip().lower() in ('true', 't', '1', 'yes'),
         )
-        observable.validate()
+        if element.get('pattern', 'false').strip().lower() in ('true', 't', '1', 'yes'):
+            observable.pattern = True
+        else:
+            observable.validate()
         observables.append(observable)
     if not observables:
         raise ValueError('at least one <observable> must be given')
     return options, observables
+
+
+def expand_patterns(observables, design_file, directory='.'):
+    """Replace each observable whose label is a pattern by one observable per matching analysis label, found in the
+    first run output (of the design's runs) which exists."""
+    import re
+    from dataclasses import replace
+    import h5py
+    from Galacticus.Emulation.campaign import output_file_path
+    from Galacticus.Emulation.design import read_design
+    if not any(getattr(observable, 'pattern', False) for observable in observables):
+        return observables
+    labels = None
+    for name in read_design(design_file).runs['outputFileName']:
+        path = output_file_path(os.path.join(directory, name))
+        try:
+            with h5py.File(path, 'r') as file:
+                labels = sorted(file['analyses'].keys()) if 'analyses' in file else []
+            break
+        except OSError:
+            continue
+    if labels is None:
+        raise ValueError('no run output exists in which to match observable label patterns')
+    expanded = []
+    for observable in observables:
+        if not getattr(observable, 'pattern', False):
+            expanded.append(observable)
+            continue
+        matched = [label for label in labels if re.fullmatch(observable.label, label)]
+        if not matched:
+            raise ValueError(f"no analysis label matches the pattern '{observable.label}'")
+        for label in matched:
+            copy = replace(observable, label=label)
+            copy.validate()
+            expanded.append(copy)
+    return expanded
 
 
 def main(argv=None):
@@ -100,6 +141,7 @@ def main(argv=None):
                         help='the number of processes in which to fit emulators (and cross-validation folds) in parallel')
     args = parser.parse_args(argv)
     options, observables = read_configuration(args.configuration)
+    observables = expand_patterns(observables, options['designFileName'], args.directory)
     design, training_sets, reports = collect(options['designFileName'], observables, directory=args.directory)
     for label, report in reports.items():
         print(f'{label}: {report}')

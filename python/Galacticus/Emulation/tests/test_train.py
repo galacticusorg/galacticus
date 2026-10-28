@@ -358,6 +358,32 @@ def test_command_line(campaign, tmp_path, capsys):
     assert set(content.validation) == {'numberDensity', 'relation'}
 
 
+def test_command_line_pattern(campaign, tmp_path):
+    """An observable whose label is a pattern stands for every analysis label it matches in the run outputs."""
+    pytest.importorskip('sklearn')
+    import importlib.util
+    import pathlib
+    path, _, _ = campaign
+    script = pathlib.Path(__file__).resolve().parents[4] / 'scripts' / 'emulation' / 'emulatorTrainReference.py'
+    specification = importlib.util.spec_from_file_location('emulatorTrainReference', script)
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    configuration = tmp_path / 'train.xml'
+    configuration.write_text(f'''<emulatorTrain>
+  <designFileName       value="{path / 'design.hdf5'}"/>
+  <emulatorFileName     value="{tmp_path / 'emulator.hdf5'}"/>
+  <restartsOptimizer    value="1"/>
+  <foldsCrossValidation value="0"/>
+  <observable label="number.*" pattern="true" transform="log10" floor="-6.0" rootVarianceFloored="0.5"/>
+</emulatorTrain>
+''')
+    assert module.main([str(configuration), '--directory', str(path)]) == 0
+    assert set(ef.read(tmp_path / 'emulator.hdf5').emulators) == {'numberDensity'}
+    configuration.write_text(configuration.read_text().replace('number.*', 'noSuch.*'))
+    with pytest.raises(ValueError, match='no analysis label matches'):
+        module.main([str(configuration), '--directory', str(path), '--overwrite'])
+
+
 def test_collect_zero_and_target_floors(tmp_path):
     """Values with zero root variance are given `root_variance_zero`, and the target root variance is floored at
     `root_variance_target_minimum`; without these options both are left unchanged."""
