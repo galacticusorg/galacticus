@@ -39,23 +39,23 @@ program Test_Mass_Distributions_Shi2016_Self_Similarity
   use :: Events_Hooks            , only : eventsHooksInitialize
   use :: Mass_Distributions      , only : massDistributionShi2016       , kinematicsDistributionShi2016
   use :: Numerical_Constants_Math, only : Pi
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (cosmologyParametersSimple     ), pointer               :: cosmologyParametersLate      , cosmologyParametersEarly
-  type            (cosmologyFunctionsMatterLambda), pointer               :: cosmologyFunctionsLate       , cosmologyFunctionsEarly
+  type            (cosmologyParametersSimple     ), pointer               :: cosmologyParametersLate                          , cosmologyParametersEarly
+  type            (cosmologyFunctionsMatterLambda), pointer               :: cosmologyFunctionsLate                           , cosmologyFunctionsEarly
   integer                                         , parameter             :: countRadii             =4
   double precision                                , dimension(countRadii) :: radiusScaleFree        =[1.5d0,2.0d0,3.0d0,5.0d0]
-  double precision                                , dimension(countRadii) :: densityLate                  , densityEarly        , &
-       &                                                                     velocityLate                 , velocityEarly
+  double precision                                , dimension(countRadii) :: densityLate                                      , densityEarly                     , &
+       &                                                                     velocityLate                                     , velocityEarly
   ! Halo mass [M☉], growth index, ratio of turnaround to virial radii, and density contrast (relative to the mean) defining the
   ! virial radius. The growth index avoids s=3/2, at which the initial estimate of the splashback radius changes form, so that
   ! rounding cannot place the two halos on different sides of that boundary.
-  double precision                                , parameter             :: mass                   =1.0d12, growthIndex         =1.2d0, &
-       &                                                                     ratioRadiusTurnaround  =2.0d0 , densityContrast     =2.0d2
+  double precision                                , parameter             :: mass                   =1.0d12                    , growthIndex         =1.2d0      , &
+       &                                                                     ratioRadiusTurnaround  =2.0d0                     , densityContrast     =2.0d2
   ! Present day matter density parameters of the two (flat, radiation-free) cosmologies, and the expansion factors at which the
   ! halos are observed.
-  double precision                                , parameter             :: OmegaMatterLate        =0.3d0 , OmegaMatterEarly    =0.3d0/5.9d0, &
-       &                                                                     expansionFactorLate    =1.0d0 , expansionFactorEarly=0.5d0
+  double precision                                , parameter             :: OmegaMatterLate        =0.3d0                     , OmegaMatterEarly    =0.3d0/5.9d0, &
+       &                                                                     expansionFactorLate    =1.0d0                     , expansionFactorEarly=0.5d0
 
   call displayVerbositySet  (verbosityLevelStandard)
   call eventsHooksInitialize(                      )
@@ -73,7 +73,7 @@ program Test_Mass_Distributions_Shi2016_Self_Similarity
   call Assert('Ωₘ(t) matches',cosmologyFunctionsEarly%OmegaMatterEpochal(expansionFactor=expansionFactorEarly),cosmologyFunctionsLate%OmegaMatterEpochal(expansionFactor=expansionFactorLate),relTol=1.0d-6)
   call evaluate(cosmologyFunctionsLate ,expansionFactorLate ,densityLate ,velocityLate )
   call evaluate(cosmologyFunctionsEarly,expansionFactorEarly,densityEarly,velocityEarly)
-  call Assert('ρ(r) r_v³/M_v at z=1 equals that at z=0'  ,densityEarly ,densityLate ,relTol=1.0d-4)
+  call Assert('ρ(r) r_v³/M_v at z=1 equals that at z=0'    ,densityEarly ,densityLate ,relTol=1.0d-4)
   call Assert('v_r(r)/[H(t) r_v] at z=1 equals that at z=0',velocityEarly,velocityLate,relTol=1.0d-4)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
@@ -95,36 +95,36 @@ contains
     implicit none
     type            (cosmologyFunctionsMatterLambda), intent(inout)                :: cosmologyFunctions_
     double precision                                , intent(in   )                :: expansionFactor
-    double precision                                , intent(  out), dimension(:)  :: density          , velocity
+    double precision                                , intent(  out), dimension(:)  :: density                , velocity
     type            (massDistributionShi2016       ), pointer                      :: massDistribution_
     type            (kinematicsDistributionShi2016 ), pointer                      :: kinematicsDistribution_
     type            (coordinateSpherical           )                               :: coordinates
-    double precision                                                               :: time             , radiusVirial, &
+    double precision                                                               :: time                   , radiusVirial, &
          &                                                                            massAccretionRate
     integer                                                                        :: i
 
-    time             =+cosmologyFunctions_%cosmicTime          (expansionFactor)
-    massAccretionRate=+growthIndex                                                &
-         &            *cosmologyFunctions_%expansionRate       (expansionFactor) &
+    time             =+cosmologyFunctions_%cosmicTime            (expansionFactor)
+    massAccretionRate=+growthIndex                                                 &
+         &            *cosmologyFunctions_%expansionRate         (expansionFactor) &
          &            *mass
-    radiusVirial     =+(                                                          &
-         &              +3.0d0                                                    &
-         &              *mass                                                     &
-         &              /4.0d0                                                    &
-         &              /Pi                                                       &
-         &              /densityContrast                                          &
+    radiusVirial     =+(                                                           &
+         &              +3.0d0                                                     &
+         &              *mass                                                      &
+         &              /4.0d0                                                     &
+         &              /Pi                                                        &
+         &              /densityContrast                                           &
          &              /cosmologyFunctions_%matterDensityEpochal(time           ) &
          &             )**(1.0d0/3.0d0)
-    allocate(massDistribution_)
+    allocate(massDistribution_      )
     allocate(kinematicsDistribution_)
     !![
     <referenceConstruct object="massDistribution_"       constructor="massDistributionShi2016(mass,massAccretionRate,radiusVirial,ratioRadiusTurnaround,time,1.0d0,cosmologyFunctions_)"/>
-    <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionShi2016()"                                                                          />
+    <referenceConstruct object="kinematicsDistribution_" constructor="kinematicsDistributionShi2016()"                                                                                  />
     !!]
     do i=1,size(radiusScaleFree)
        coordinates=[radiusScaleFree(i)*radiusVirial,0.0d0,0.0d0]
        density (i)=+massDistribution_      %density               (coordinates                  ) &
-            &      *radiusVirial**3                                                                      &
+            &      *radiusVirial**3                                                               &
             &      /mass
        velocity(i)=+kinematicsDistribution_%velocityRadial        (coordinates,massDistribution_) &
             &      /cosmologyFunctions_    %hubbleParameterEpochal(time                         ) &

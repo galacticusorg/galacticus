@@ -357,17 +357,17 @@ contains
     ! Create a module-scope pointer to self for use in ODE solver functions.
     self_ => self
     ! Compute the scaled cosmological constant parameter ("w" in the notation of Shi 2016, Table A1).
-    self%cosmologicalConstantScaled=+1.0d0/self%cosmologyFunctions_ %OmegaMatterEpochal(self%time)                &
+    self%cosmologicalConstantScaled=+1.0d0/self%cosmologyFunctions_ %OmegaMatterEpochal(self%time) &
          &                          -1.0d0
     ! Compute expansion factor, and scaled expansion factor ("u" in the notation of Shi 2016, Table A1). Shi (2016) defines u=w^⅓ a
     ! with a=1 at the epoch of observation, so u=w^⅓ with w evaluated at that epoch. (Multiplying by our expansion factor, which
     ! is unity at z=0, would be correct only for observation at z=0.)
-    expansionFactorOriginal        =+self%cosmologyFunctions_       %expansionFactor   (self%time)
-    self%expansionFactorScaled     =+self%cosmologicalConstantScaled                              **(1.0d0/3.0d0)
+    expansionFactorOriginal        =+           self%cosmologyFunctions_%expansionFactor           (self%time)
+    self%expansionFactorScaled     =+           self                    %cosmologicalConstantScaled                               **(1.0d0/3.0d0)
     ! Find the scaled time at the current epoch.
-    self%timeNowScaled             =+sqrt(1.0d0-self %cosmologyFunctions_%OmegaMatterEpochal(self%time              )) & ! Equation A5 from Shi (2016).
-         &                          *           self %cosmologyFunctions_%expansionRate     (expansionFactorOriginal)  &
-         &                          *           self%time
+    self%timeNowScaled             =+sqrt(1.0d0-self%cosmologyFunctions_%OmegaMatterEpochal        (self%time                   )) & ! Equation A5 from Shi (2016).
+         &                          *           self%cosmologyFunctions_%expansionRate             (     expansionFactorOriginal)  &
+         &                          *                                                               self%time
     ! Choose an initial epoch and (scaled) radius for the ODE. This is chosen to be an expansion factor much smaller than the
     ! present day such that the perturbations will be small.
     expansionFactorScaledInitial   =+     expansionFactorRelativeInitial &
