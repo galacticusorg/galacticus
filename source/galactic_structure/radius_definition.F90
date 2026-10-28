@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides parsing and evaluation of radii definitions used in output specifiers.
 !!}
@@ -512,7 +514,8 @@ contains
     case   (radiusTypeSatelliteBoundMassFraction      %ID)
        mass              =  +self             %satellite%boundMass       (                                             &
             &                                                            )                                             &
-            &               *self             %fractionDarkMatter
+            &               *self             %fractionDarkMatter                                                      &
+            &               *specifier_       %fraction
        massDistribution_ =>  self             %node_    %massDistribution(                                             &
             &                                                             massType      =           massTypeDark    ,  &
             &                                                             componentType =           componentTypeAll,  &
