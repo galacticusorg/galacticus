@@ -48,6 +48,10 @@ __all__ = [
 # variance of the learned excess noise in units of the variance of the standardized coefficient).
 AMPLITUDE_BOUNDS = (1.0e-3, 1.0e3)
 LENGTH_SCALE_BOUNDS = (1.0e-2, 1.0e1)
+# The default lower bound on the length scales. Below this, a Gaussian process fitted to noisy runs can fit their scatter
+# as structure, even with a learned noise, giving ripples in the emulated likelihood; and a design of a few hundred points
+# cannot resolve such structure in any case.
+LENGTH_SCALE_MINIMUM = 0.1
 NOISE_LEARNED_BOUNDS = (1.0e-8, 1.0e1)
 JITTER = 1.0e-10
 
@@ -304,13 +308,13 @@ def collect(design_file, observables, model_files=None, directory='.'):
 
 
 def fit_emulator(inputs, input_names, y, root_variance, pca_variance_retained=0.99, restarts=4, seed=0,
-                 length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=True):
+                 length_scale_minimum=LENGTH_SCALE_MINIMUM, learn_noise=True):
     """Fit an emulator to training data.
 
     ``inputs`` (N, d) are prior quantiles; ``y`` and ``root_variance`` (N, B) are the (transformed) training values and
     their uncertainties. Returns a :class:`Galacticus.Emulation.emulatorFile.Emulator`.
 
-    ``length_scale_minimum`` is the lower bound on the length scales (in units of prior quantiles). If ``learn_noise`` is
+    ``length_scale_minimum`` is the lower bound on the length scales (in units of prior quantiles; by default 0.1). If ``learn_noise`` is
     true (the default), each Gaussian process also fits a homoscedastic noise, in addition to the stated noise of each run, to allow for
     scatter between runs in excess of their stated uncertainties (which would otherwise be fitted as structure, at short
     length scales). The learned noise is added to the stated noise in the ``noise_variance`` of the component (so that the
@@ -466,7 +470,7 @@ def _run_task(task):
 
 
 def train(design, training_sets, pca_variance_retained=0.99, restarts=4, folds=0, seed=0, store_cholesky=True, processes=1,
-          length_scale_minimum=LENGTH_SCALE_BOUNDS[0], learn_noise=True):
+          length_scale_minimum=LENGTH_SCALE_MINIMUM, learn_noise=True):
     """Train an emulator for each training set, optionally cross-validating it.
 
     Returns an :class:`Galacticus.Emulation.emulatorFile.EmulatorFile`, ready to be written. ``folds`` of zero disables

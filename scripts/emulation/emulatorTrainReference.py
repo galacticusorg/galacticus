@@ -11,7 +11,7 @@ The configuration is an XML file:
     <foldsCrossValidation value="5"   />      <!-- optional; 0 disables cross-validation -->
     <seed                 value="0"   />      <!-- optional -->
     <storeCholesky        value="true"/>      <!-- optional -->
-    <lengthScaleMinimum   value="0.01"/>      <!-- optional; the lower bound on length scales, in prior quantiles -->
+    <lengthScaleMinimum   value="0.1" />      <!-- optional; the lower bound on length scales, in prior quantiles -->
     <noiseLearned         value="true"/>      <!-- optional; learn noise in excess of the runs' stated noise -->
     <collectOnly          value="false"/>     <!-- optional; write the training sets only -->
     <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
@@ -66,7 +66,7 @@ def read_configuration(path):
         'foldsCrossValidation': _value(task, 'foldsCrossValidation', 5    , int  ),
         'seed':                 _value(task, 'seed'                , 0    , int  ),
         'storeCholesky':        _value(task, 'storeCholesky'       , True , bool ),
-        'lengthScaleMinimum':   _value(task, 'lengthScaleMinimum'  , 0.01 , float),
+        'lengthScaleMinimum':   _value(task, 'lengthScaleMinimum'  , 0.1  , float),
         'noiseLearned':         _value(task, 'noiseLearned'        , True , bool ),
         'collectOnly':          _value(task, 'collectOnly'         , False, bool ),
     }
