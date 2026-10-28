@@ -606,12 +606,16 @@ def _range_label(constraints: dict | None) -> str | None:
 
 
 def _parameter_facets(p: dict) -> list[str]:
-    """Catalog-derived annotations for a parameter: type, allowed values, range,
-    and default — shown as a parenthetical after the parameter name."""
+    """Catalog-derived annotations for a parameter: type, cardinality, allowed
+    values, range, and default — shown as a parenthetical after the parameter
+    name."""
     facets = []
     ptype = p.get('type')
     if ptype and ptype != 'unknown':
         facets.append(ptype)
+    cardinality = p.get('cardinality')
+    if cardinality:
+        facets.append(f'``{cardinality}``')
     allowed = p.get('allowedValues')
     if allowed:
         facets.append('one of ' + ', '.join(f'``{v}``' for v in allowed))

@@ -165,7 +165,7 @@ contains
          <source>parameters</source>
          <variable>idUnique</variable>
          <type>integer</type>
-         <cardinality>1..*</cardinality>
+         <cardinality>0..*</cardinality>
          <description>
          The unique IDs of the nodes whose evolutionary trajectories are to be recorded. Note that unique IDs are not
          reproducible between runs which use differing numbers of OpenMP threads or MPI processes.
@@ -193,7 +193,7 @@ contains
          <source>parameters</source>
          <variable>indexTree</variable>
          <type>integer</type>
-         <cardinality>1..*</cardinality>
+         <cardinality>0..*</cardinality>
          <description>
          The indices of the merger trees containing the nodes whose evolutionary trajectories are to be recorded.
          </description>
@@ -203,7 +203,7 @@ contains
          <source>parameters</source>
          <variable>indexNode</variable>
          <type>integer</type>
-         <cardinality>1..*</cardinality>
+         <cardinality>0..*</cardinality>
          <description>
          The indices, within the corresponding merger tree, of the nodes whose evolutionary trajectories are to be recorded.
          </description>
