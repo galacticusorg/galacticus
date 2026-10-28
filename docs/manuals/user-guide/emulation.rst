@@ -102,6 +102,16 @@ machine. A run is complete when Galacticus exited with status zero, its log cont
 reports the reason for each failure, and ``resubmit`` submits the failed runs again. The same operations are available
 from Python, in ``Galacticus.Emulation.campaign``, for use from other pipelines.
 
+A run which was started but could not record its exit status is *interrupted*, and is treated as failed. This happens
+when a local ``run`` is killed, or when a SLURM job is cancelled or reaches its time limit. A local run records the host
+and process ID of its Galacticus process, and is interrupted once that process has ended: so after a killed ``run``,
+running it again finishes the campaign, taking the runs it had not started and those it had interrupted. (Runs started
+on another host are left alone, since their processes cannot be checked from here.) ``status``, ``submit`` and
+``resubmit`` ask SLURM which jobs are still pending or running, and runs of any other job are interrupted. If the
+executable cannot be launched, each run fails without stopping the others. This happens, for example, while
+``Galacticus.exe`` is being relinked by ``make``, so run a long campaign from a copy of the executable (``--executable``
+when creating the manifest).
+
 Each run is a single Galacticus process. An MPI build of Galacticus may be used: it appends the label of its process to
 the name of its output file (``point0000.hdf5`` becomes ``point0000:MPI0000.hdf5``), and that file is then accepted as the
 run's output, both here and when training.
