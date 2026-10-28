@@ -256,7 +256,7 @@ parameters build identical merger trees, so the likelihood is a smooth, exact fu
 parameters which really do not change the trees; it is up to the user to choose them.)
 
 The script ``scripts/emulation/emulatorProfile.py`` makes this fit. Its configuration names the parameters (each with a
-centre, and a step, in the parameter or in its logarithm), and the *components* of the likelihood: each a base parameter
+center, and a step, in the parameter or in its logarithm), and the *components* of the likelihood: each a base parameter
 file, and the analyses of its output (given as for training, with a likelihood form):
 
 .. code-block:: xml
@@ -264,8 +264,8 @@ file, and the analyses of its output (given as for training, with a likelihood f
    <emulatorProfile>
      <directory value="profile"/>
      <rootVarianceTargetFractional value="profile"/>
-     <parameter name="progenitorMassFunctionParameters/errorAmplitude" centre="0.16" step="0.15" scale="log"/>
-     <parameter name="progenitorMassFunctionParameters/errorExponent"  centre="0.50" step="0.05"/>
+     <parameter name="progenitorMassFunctionParameters/errorAmplitude" center="0.16" step="0.15" scale="log"/>
+     <parameter name="progenitorMassFunctionParameters/errorExponent"  center="0.50" step="0.05"/>
      <component name="MDPL2" baseParameters="progenitorMassFunctionBaseMDPL2.xml">
        <observable label="progenitorMassFunction.*" pattern="true" likelihoodForm="poissonCounts"
                    transform="log10" floor="-13.6" rootVarianceFloored="1.0" likelihoodRangeOnly="true"/>
@@ -281,15 +281,15 @@ calibration. Otherwise it is fixed at the given value.
 The fit has two stages. Each stage has the commands ``prepare``, ``run`` (or ``submit``), ``status`` and ``analyze``.
 Its runs are tracked as one campaign per component (see :ref:`manual-sec-EmulatorCampaign`).
 
-#. ``star``: the centre, a step either side along each parameter, and the four sign combinations of each pair of
+#. ``star``: the center, a step either side along each parameter, and the four sign combinations of each pair of
    parameters, all at one seed. That is :math:`1+2n+2n(n-1)` points for :math:`n` parameters, enough to fit a full
    quadratic. ``analyze`` fits the quadratic, and reports:
 
-   * its optimum, within ``offsetMaximum`` steps of the centre;
+   * its optimum, within ``offsetMaximum`` steps of the center;
    * the gain in log-likelihood it predicts there;
    * the uncertainties of the parameters, from its curvature, if that is negative definite.
 
-#. ``line``: points from the centre toward that optimum (at the fractions ``lineFractions`` of the way there), at several
+#. ``line``: points from the center toward that optimum (at the fractions ``lineFractions`` of the way there), at several
    seeds (``lineSeeds``). The optimum of the star is fit to the noise of its one seed, and is often too far, so ``analyze``
    takes the log-likelihood of the predictions averaged over :math:`N` seeds, for :math:`N=1, 2, 4, \ldots`, and
    extrapolates it linearly in :math:`1/N` to infinitely many seeds. That is the noise-free model which an emulator

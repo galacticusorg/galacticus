@@ -9,10 +9,10 @@ The configuration is an XML file:
     <seed          value="1"/>                          <!-- optional; the seed of the star design -->
     <lineSeeds     value="101 202 303 404"/>            <!-- optional; the seeds of the line search -->
     <lineFractions value="0 0.5 1 1.5"/>                <!-- optional; points of the line search, as fractions of the way to the star optimum -->
-    <offsetMaximum value="2"/>                          <!-- optional; the star optimum is sought within this many steps of the centre -->
+    <offsetMaximum value="2"/>                          <!-- optional; the star optimum is sought within this many steps of the center -->
     <rootVarianceTargetFractional value="profile" minimum="1.0e-3" maximum="3.0"/>   <!-- optional; or a fixed value (default 0) -->
-    <parameter name="progenitorMassFunctionParameters/errorAmplitude" centre="0.16" step="0.15" scale="log"/>
-    <parameter name="progenitorMassFunctionParameters/errorExponent"  centre="0.50" step="0.05"/>
+    <parameter name="progenitorMassFunctionParameters/errorAmplitude" center="0.16" step="0.15" scale="log"/>
+    <parameter name="progenitorMassFunctionParameters/errorExponent"  center="0.50" step="0.05"/>
     <component name="MDPL2" baseParameters="progenitorMassFunctionBaseMDPL2.xml">
       <observable label="progenitorMassFunction.*" pattern="true" likelihoodForm="poissonCounts"
                   transform="log10" floor="-13.6" rootVarianceFloored="1.0" likelihoodRangeOnly="true"/>
@@ -75,7 +75,7 @@ def read_configuration(path):
     def resolve(name):
         return name if os.path.isabs(name) else os.path.join(base, name)
 
-    parameters = [ProfileParameter(name=element.get('name'), centre=float(element.get('centre')), step=float(element.get('step')),
+    parameters = [ProfileParameter(name=element.get('name'), center=float(element.get('center')), step=float(element.get('step')),
                                    scale=element.get('scale', 'linear'))
                   for element in root.findall('parameter')]
     components = []
@@ -144,10 +144,10 @@ def _report_result(profile, result):
     names = [parameter.name for parameter in profile.parameters]
     if result['stage'] == 'star':
         fit = result['fit']
-        print(f"star: {result['pointsUsed']} of {len(result['offsets'])} points; log-likelihood at the centre "
+        print(f"star: {result['pointsUsed']} of {len(result['offsets'])} points; log-likelihood at the center "
               f"{result['logLikelihood'][0]:.2f}")
         if result['rootVarianceTargetFractional'] is not None:
-            print(f"  fractional root variance of counts at the centre: {result['rootVarianceTargetFractional'][0]:.4g}")
+            print(f"  fractional root variance of counts at the center: {result['rootVarianceTargetFractional'][0]:.4g}")
         print(f"  quadratic fit: residual RMS {fit['residualRMS']:.2f}, maximum {fit['residualMaximum']:.2f}")
         print('  gradient (per step):  ' + '  '.join(f'{name} {value:+.2f}' for name, value in zip(names, fit['gradient'])))
         print('  curvature (diagonal): ' + '  '.join(f'{name} {value:+.2f}' for name, value in zip(names, np.diag(fit['hessian']))))

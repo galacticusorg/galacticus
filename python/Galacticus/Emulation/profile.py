@@ -9,11 +9,11 @@ better fit directly, and then fixed while the remaining parameters are emulated.
 
 The procedure (see the "Emulator-Assisted Calibration" chapter of the user guide) has two stages:
 
-1. A **star** design about a centre, at one seed: the centre, one step either side along each parameter, and the four
+1. A **star** design about a center, at one seed: the center, one step either side along each parameter, and the four
    sign combinations of each pair of parameters (``1 + 2n + 2n(n-1)`` points for ``n`` parameters, enough to fit a full
    quadratic). The direct log-likelihood at each point is fit by a quadratic, which predicts the optimum (within a
-   bounded number of steps of the centre) and the gain in log-likelihood there.
-2. A **line** search from the centre toward that optimum, at several seeds. The optimum of a single seed is fit to that
+   bounded number of steps of the center) and the gain in log-likelihood there.
+2. A **line** search from the center toward that optimum, at several seeds. The optimum of a single seed is fit to that
    seed's noise, so the gain is checked at independent seeds: at each point along the line, the log-likelihood of the
    predictions averaged over ``N`` seeds is extrapolated linearly in ``1/N`` to infinitely many seeds - the noise-free
    model which an emulator approximates. (A single run's own noise always lowers its log-likelihood, because the misfit
@@ -66,14 +66,14 @@ _EXCLUDED = '/nonexistent/excluded-from-average.hdf5'
 
 @dataclass
 class ProfileParameter:
-    """A parameter to profile: its path in the parameter file, the centre of the profile, and the size of one step.
+    """A parameter to profile: its path in the parameter file, the center of the profile, and the size of one step.
 
     With ``scale`` ``log`` the step is in the natural logarithm of the parameter (which must then be positive), otherwise
     it is linear.
     """
 
     name: str
-    centre: float
+    center: float
     step: float
     scale: str = 'linear'
 
@@ -82,12 +82,12 @@ class ProfileParameter:
             raise ValueError(f"parameter '{self.name}': unknown scale '{self.scale}'")
         if not self.step > 0.0:
             raise ValueError(f"parameter '{self.name}': the step must be positive")
-        if self.scale == 'log' and not self.centre > 0.0:
-            raise ValueError(f"parameter '{self.name}': a log-scaled parameter must have a positive centre")
+        if self.scale == 'log' and not self.center > 0.0:
+            raise ValueError(f"parameter '{self.name}': a log-scaled parameter must have a positive center")
 
     def value(self, offset):
-        """The value of the parameter ``offset`` steps from the centre."""
-        return self.centre * np.exp(offset * self.step) if self.scale == 'log' else self.centre + offset * self.step
+        """The value of the parameter ``offset`` steps from the center."""
+        return self.center * np.exp(offset * self.step) if self.scale == 'log' else self.center + offset * self.step
 
 
 @dataclass
@@ -119,7 +119,7 @@ class ProfileComponent:
 
 
 def star_offsets(count):
-    """The offsets (in steps) of the points of a star design in ``count`` parameters: the centre, ±1 along each axis, and
+    """The offsets (in steps) of the points of a star design in ``count`` parameters: the center, ±1 along each axis, and
     the four sign combinations of each pair of axes."""
     offsets = [np.zeros(count)]
     for k in range(count):
@@ -142,7 +142,7 @@ def _features(offset):
 
 def fit_quadratic(offsets, values, offset_maximum=2.0):
     """Fit ``values = c + g.u + u.H.u/2`` to the log-likelihoods ``values`` at ``offsets`` (in steps), and maximize the fit
-    within ``offset_maximum`` steps of the centre in each parameter.
+    within ``offset_maximum`` steps of the center in each parameter.
 
     Returns a dictionary of the fit (``constant``, ``gradient``, ``hessian``, and the root-mean-square and maximum
     ``residual``), the ``optimum`` (in steps), the log-likelihood ``predicted`` there, and, if the Hessian is negative
@@ -241,7 +241,7 @@ class Profile:
     # Designs.
 
     def stage_points(self, stage):
-        """The offsets (in steps from the centre) of the points of a stage, and the seeds of each point."""
+        """The offsets (in steps from the center) of the points of a stage, and the seeds of each point."""
         if stage == 'star':
             return star_offsets(len(self.parameters)), [self.seed]
         star = self.read_result('star')
@@ -373,7 +373,7 @@ class Profile:
             result['logLikelihood'] = _list(logLikelihoods)
             result['rootVarianceTargetFractional'] = None if rootVariances is None else _list(rootVariances)
             if not used[0]:
-                raise RuntimeError('the likelihood at the centre of the star design could not be evaluated')
+                raise RuntimeError('the likelihood at the center of the star design could not be evaluated')
             result['fit'] = fit_quadratic(offsets[used], logLikelihoods[used], self.offset_maximum)
             result['pointsUsed'] = int(used.sum())
             optimum = np.array(result['fit']['optimum'])
@@ -420,7 +420,7 @@ class Profile:
             return json.load(handle)
 
     def values(self, offset):
-        """The values of the parameters at ``offset`` steps from the centre, as a dictionary."""
+        """The values of the parameters at ``offset`` steps from the center, as a dictionary."""
         return {parameter.name: float(parameter.value(offset[k])) for k, parameter in enumerate(self.parameters)}
 
     def write_fixed(self, path, values):

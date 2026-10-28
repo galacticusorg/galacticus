@@ -61,8 +61,8 @@ def workspace(tmp_path, monkeypatch):
   <lineSeeds     value="11 12 13 14"/>
   <lineFractions value="0 0.5 1"/>
   <rootVarianceTargetFractional value="profile" minimum="1.0e-3" maximum="1.0"/>
-  <parameter name="a" centre="1.05" step="0.05" scale="log"/>
-  <parameter name="b" centre="0.48" step="0.02"/>
+  <parameter name="a" center="1.05" step="0.05" scale="log"/>
+  <parameter name="b" center="0.48" step="0.02"/>
   <component name="stub" baseParameters="base.xml">
     <observable label="co.*" pattern="true" likelihoodForm="poissonCounts" transform="log10"/>
   </component>
@@ -113,7 +113,7 @@ def test_profile_command_line(workspace, capsys):
     assert star['fit']['residualRMS'] < 0.1 * star['gainPredicted']
     assert star['fit']['covariance'] is not None
     assert star['fit']['optimum'][0] == pytest.approx(-2.0)
-    # The direct log-likelihood at the centre is that of the model output there, with C maximized.
+    # The direct log-likelihood at the center is that of the model output there, with C maximized.
     from Galacticus.Emulation import likelihood as lk
     from Galacticus.Emulation.train import collect
     _, training_sets, _ = collect(profile.path('star', 'stub', 'design.hdf5'), [Observable('counts', transform='log10')])
@@ -126,7 +126,7 @@ def test_profile_command_line(workspace, capsys):
     assert emulatorProfile.main(['analyze', configuration, 'line']) == 0
     line = profile.read_result('line')
     assert line['countsSeeds'] == [1, 2, 4]
-    # Free of the noise of the star's seed, the line search stops half way, much nearer the truth than the centre.
+    # Free of the noise of the star's seed, the line search stops half way, much nearer the truth than the center.
     assert line['best'] == 1 and line['gain'] > 0.0
     assert line['optimum']['a'] == pytest.approx(1.0, abs=0.01)
     assert line['optimum']['b'] == pytest.approx(0.5, abs=0.035)
