@@ -34,7 +34,7 @@ module Linear_Algebra
   private
   public :: vector         , matrix              , matrixRotation, matrixLU      , &
        &    assignment(=)  , operator(*)         , gsl_vector_get, gsl_vector_set, &
-       &    gsl_vector_free, matrixRotationRandom, matrixCholesky
+       &    gsl_vector_free, matrixRotationRandom, matrixCholesky, determinant3x3
 
   type :: vectorWrapper
      !!{RST
@@ -1052,6 +1052,20 @@ contains
     call gsl_permutation_free(permutation)
     return
   end function matrixDeterminant
+
+  pure double precision function determinant3x3(a)
+    !!{RST
+    Return the determinant of a :math:`3\times 3` matrix, given as an array, by direct expansion. This avoids the allocations
+    and LU decomposition of the general ``determinant`` method of the ``matrix`` class.
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(3,3) :: a
+
+    determinant3x3=+a(1,1)*(a(2,2)*a(3,3)-a(2,3)*a(3,2)) &
+         &         -a(1,2)*(a(2,1)*a(3,3)-a(2,3)*a(3,1)) &
+         &         +a(1,3)*(a(2,1)*a(3,2)-a(2,2)*a(3,1))
+    return
+  end function determinant3x3
 
   double precision function matrixLogarithmicDeterminant(self)
     !!{RST
