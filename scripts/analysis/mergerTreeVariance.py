@@ -62,7 +62,7 @@ parser.add_argument('--cumulativeCount' ,action='store',default=12              
 parser.add_argument('--seed'            ,action='store',default=8783                  ,type=int              ,help='seed for the bootstrap random number generator'                                   )
 parser.add_argument('--splitTreeStride' ,action='store',default=1                     ,type=int              ,help='write per-split values only for trees whose index is a multiple of this (per-split output is large for high-resolution trees; all trees are still analyzed)')
 parser.add_argument('--processes'       ,action='store',default=1                     ,type=int              ,help='number of worker processes over which chunks are distributed; peak memory scales with this times the chunk size')
-parser.add_argument('--foldOffset'    ,action='store',default=None                  ,type=int              ,help='assign trees to folds by (forest index + this offset) modulo the number of folds, rather than by their order; with the base random number seed as the offset this matches the folds of the branchingVariance merger tree operator, which assigns trees by their seed')
+parser.add_argument('--foldOffset'    ,action='store',default=None                  ,type=int              ,help='assign trees to folds by (forest index + this offset) modulo the number of folds, rather than by their order; with the base random number seed as the offset this matches the folds of the branchingVariance merger tree operator, which assigns trees by their seed (this identifies a realization only when tree seeds are the base seed plus the tree index, as under the default mergerTreeSeeds=incremental)')
 parser.add_argument('--omegaTable'    ,action='store',default=None                                         ,help='an output file of the branchingVariance merger tree operator, from whose "redshift" and "omega" datasets ω(z) is interpolated, in place of δc0/D(z)')
 parser.add_argument('--chunkNodes'      ,action='store',default=20000000              ,type=int              ,help='approximate number of nodes processed at once (whole forests are always kept together); peak memory scales with this'                                                       )
 args = parser.parse_args()
@@ -540,8 +540,8 @@ treesGroup.create_dataset('omegaFormation'   ,data=omegaFormation   )
 # Pass 3: evaluate the jumps, drifts, and their per-tree sums, chunk by chunk. Each chunk returns its per-tree sums, Markov
 # check sums, cumulative-check expectations, per-split values, and the number of table evaluations touching empty bins; these
 # are gathered in chunk order.
-treeQuantities = ('count','n1Root','sumDelta','sumDrift','sumDeltaSquared','sumDeltaSquaredTerminal','sumDeltaSquaredStructural',
-                  'sumDeltaSquaredMain','sumDeltaSquaredSide','sumDeltaSquaredBeforeFormation','telescopeResidual')
+treeQuantities = ('countTotal','n1Root','sumDelta','sumDrift','sumDeltaSquared','sumDeltaSquaredTerminal','sumDeltaSquaredStructural',
+                  'sumDeltaSquaredMain','sumDeltaSquaredSide','sumDeltaSquaredAfterFormation','telescopeResidual')
 nodeTypeNames  = ('root','primary at split','secondary at split','accretion')
 def passJumps(indexChunk):
     indexFile, forestStart, forestEnd = chunks[indexChunk]
@@ -622,7 +622,7 @@ def passJumps(indexChunk):
         else:
             deltaSquared = delta**2
         t = result['trees']
-        t['count'                         ] = countTree
+        t['countTotal'                    ] = countTree
         t['n1Root'                        ] = n1Node[chunk.roots]
         t['sumDelta'                      ] = chunk.treeSum(delta                       )
         t['sumDeltaSquared'               ] = chunk.treeSum(deltaSquared                )
@@ -631,8 +631,8 @@ def passJumps(indexChunk):
         t['sumDeltaSquaredMain'           ] = chunk.treeSum(deltaSquared, chunk.isMain  )
         t['sumDeltaSquaredSide'           ] = chunk.treeSum(deltaSquared,~chunk.isMain  )
         t['sumDrift'                      ] = chunk.treeSum(drift                       )
-        beforeFormation = chunk.omegaSplit < chunk.omegaFormation[chunk.treeLocal]
-        t['sumDeltaSquaredBeforeFormation'] = chunk.treeSum(deltaSquared,beforeFormation)
+        afterFormation = chunk.omegaSplit < chunk.omegaFormation[chunk.treeLocal]
+        t['sumDeltaSquaredAfterFormation'] = chunk.treeSum(deltaSquared,afterFormation)
         t['telescopeResidual'             ] = countTree-t['n1Root']-t['sumDelta']-t['sumDrift']
         # Cumulative variance: at each ω on a grid, Var(E[N|tree built to ω]) should equal <Σ_{ω_split<ω} Δ²>. E[N|tree built to
         # ω] is the count already realized (for statistics B, C) plus n₁ summed over the branches alive at ω.
@@ -656,7 +656,7 @@ def passJumps(indexChunk):
                             ('isMainBranch',chunk.isMain[s].astype(np.int8)),('hierarchyDepth',chunk.hierarchyDepth[s]),('countAdded',countAdded[s]))
         result['evaluationsEmpty'] = sum(table.evaluationsEmpty for table in tablesCase)-emptyBefore
         returns[(statistic,indexThreshold)] = result
-        del c, n1Node, n1End, delta, drift, deltaSquared, terminal, beforeFormation
+        del c, n1Node, n1End, delta, drift, deltaSquared, terminal, afterFormation
     return returns
 results = {}
 for statistic, indexThreshold, massThreshold in cases:
@@ -702,7 +702,7 @@ for statistic in args.statistics:
     for indexThreshold, massThreshold in enumerate(massThresholds):
         result            = results[(statistic,indexThreshold)]
         t                 = result['trees']
-        countTree         = t['count'          ]
+        countTree         = t['countTotal'     ]
         sumDelta          = t['sumDelta'       ]
         sumDrift          = t['sumDrift'       ]
         sumDeltaSquared   = t['sumDeltaSquared']
