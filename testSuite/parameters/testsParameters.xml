@@ -5,7 +5,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyParameters value="simple">
@@ -14,12 +14,14 @@
     <OmegaDarkEnergy value="0.7275"/>
     <OmegaBaryon value="0.0455"/>
     <temperatureCMB value="2.72548"/>
-    <cosmologicalMassVariance value="filteredPower" id="myCMV">
+    <cosmologicalMassVariance value="filteredPower" id="myCMV"/>
+    <powerSpectrumNormalizer value="sigma8" id="myNormalizer">
       <sigma_8 value="0.912"/>
-    </cosmologicalMassVariance>
+    </powerSpectrumNormalizer>
   </cosmologyParameters>
 
   <cosmologicalMassVariance idRef="myCMV"/>
+  <powerSpectrumNormalizer idRef="myNormalizer"/>
 
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
@@ -97,7 +99,7 @@
   <derivedInteger3 value="=0.29*100"/>
   <derivedInteger4 value="=[integerValue1]/4"/>
   <derivedText1 value="=mouse_[%s|cosmologicalMassVariance]_[%4.2f|derivedValue6]_[%12.6e|derivedValue7]_[%4.4d|integerValue1]"/>
-  <active1 value="0.1" active="[cosmologicalMassVariance/sigma_8] != 0.912"/>
-  <active1 value="0.2" active="[cosmologicalMassVariance/sigma_8] == 0.912"/>
+  <active1 value="0.1" active="[powerSpectrumNormalizer/sigma_8] != 0.912"/>
+  <active1 value="0.2" active="[powerSpectrumNormalizer/sigma_8] == 0.912"/>
 
 <componentHotHalo value="standard"/></parameters>

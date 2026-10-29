@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree operator which perturbs halo masses by some error model.
   !!}
@@ -181,6 +183,7 @@ contains
           iNode1     =  0_c_size_t
           nodeChild1 => node
           do while (associated(nodeChild1))
+             iNode1=iNode1+1_c_size_t
              basic => nodeChild1%basic()
              call basic%massSet(                                   &
                   &             +basic%mass(                     ) &

@@ -25,12 +25,19 @@ _XML_CLOSE_RE       = re.compile(r'^\s*!!\]')
 _XML_ROOT_TAG_RE    = re.compile(r'^\s*<([^\s>/]+)')
 
 
-# Define the directory where schemas are stored
-EXEC_PATH = os.environ.get('GALACTICUS_EXEC_PATH')
-if EXEC_PATH:
-    SCHEMAS_DIR = os.path.abspath(os.path.join(EXEC_PATH, 'schema'))
-else:
-    SCHEMAS_DIR = None
+def schemas_dir():
+    """Where directive schemas live, under ``$GALACTICUS_EXEC_PATH``.
+
+    Resolved on each call rather than at import, so that a caller which knows
+    which tree it is working on can set the variable and be obeyed. Binding it
+    at import made the answer depend on whichever checkout the environment had
+    been set up for: directives that did not validate against *that* tree's
+    schemas were dropped, silently and only from whatever they contributed. A
+    schema generated in one worktree while the environment named another lost
+    eight enumeration values that way on 2026-10-26.
+    """
+    exec_path = os.environ.get('GALACTICUS_EXEC_PATH')
+    return os.path.abspath(os.path.join(exec_path, 'schema')) if exec_path else None
 
 if _HAS_LXML:
     class SchemaResolver(_lxml_etree.Resolver):
@@ -43,7 +50,7 @@ if _HAS_LXML:
             # Check if the import path refers to the file we want to redirect
             if 'commonTypes.xsd' in system_url:
                 # Construct the absolute path to the file
-                full_path = os.path.join(SCHEMAS_DIR, 'commonTypes.xsd')
+                full_path = os.path.join(schemas_dir(), 'commonTypes.xsd')
                 # Return the resolved file path to lxml
                 return self.resolve_filename(full_path, context)
             return None
@@ -133,6 +140,25 @@ _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
           </xs:element>
          </xs:sequence>
          <xs:attribute name="forceArrayAssign" use="optional"/>
+        </xs:complexType>
+       </xs:element>
+       <!-- allowedParameters/object declares an object which is held as an unlimited polymorphic (class(*)) pointer, and so
+            is built by a global function rather than by an objectBuilder directive. Its parameter name ("name", found in
+            "source") is then allowed, and the global function "function" (from module "module") adds the parameters which
+            the object itself allows. -->
+       <xs:element name="allowedParameters"            minOccurs="0" maxOccurs="1" >
+        <xs:complexType>
+         <xs:sequence>
+          <xs:element name="object" minOccurs="1" maxOccurs="unbounded" >
+           <xs:complexType>
+            <xs:attribute name="variable" use="required"/>
+            <xs:attribute name="name"     use="required"/>
+            <xs:attribute name="source"   use="required"/>
+            <xs:attribute name="function" use="required"/>
+            <xs:attribute name="module"   use="optional"/>
+           </xs:complexType>
+          </xs:element>
+         </xs:sequence>
         </xs:complexType>
        </xs:element>
        <xs:element name="stateStorable"                minOccurs="0" maxOccurs="1" >
@@ -265,8 +291,9 @@ def _validate_directive(directive_name, xml_text, context_node, line_number):
     elif state_storables and directive_name in event_hook_statics:
         schema_xml = _EVENT_HOOK_STATIC_SCHEMA.format(name=directive_name)
     else:
-        if SCHEMAS_DIR:
-            candidate = os.path.join(SCHEMAS_DIR, directive_name + '.xsd')
+        schemas = schemas_dir()
+        if schemas:
+            candidate = os.path.join(schemas, directive_name + '.xsd')
             if os.path.exists(candidate):
                 with open(candidate, 'r') as fh:
                     schema_xml = fh.read()

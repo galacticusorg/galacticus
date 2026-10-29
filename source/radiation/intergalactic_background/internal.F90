@@ -43,6 +43,9 @@
    <assignment>
      <functionClass variables="accretionDiskSpectra_"/>
    </assignment>
+   <allowedParameters>
+     <object variable="accretionDiskSpectra_" name="accretionDiskSpectra" source="parameters" function="accretionDiskSpectraAllowedParameters_" module="Functions_Global"/>
+   </allowedParameters>
   </radiationField>
   !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal
@@ -196,7 +199,7 @@ contains
     call accretionDiskSpectraConstruct_(parameters,accretionDiskSpectra_)
     self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationSelector_,outputTimes_)
     !![
-    <inputParametersValidate source="parameters" extraAllowedNames="accretionDiskSpectra"/>
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"              />
     <objectDestructor name="cosmologyFunctions_"               />
     <objectDestructor name="intergalacticMediumState_"         />

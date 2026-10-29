@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a transfer function class using the CLASS code.
 !!}
@@ -207,8 +209,9 @@ contains
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
     call Interface_CLASS_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached)
-    ! Read the newly created file.
-    call self%readFile(char(self%fileName))
+    ! Read the newly created file. Any cached copy of the transfer function is invalidated, as it may have been read from this
+    ! file before it was extended to larger wavenumbers.
+    call self%readFile(char(self%fileName),invalidateCache=.true.)
     ! Check the maximum wavenumber.
     if (self%transfer%x(-1) > log(self%wavenumberMaximum)-0.01d0) self%wavenumberMaximumReached=.true.
     ! Record that the transfer function has now been initialized.

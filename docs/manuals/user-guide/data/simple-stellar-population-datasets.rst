@@ -8,7 +8,7 @@ Bruzual & Charlot (2003)
 
 Models from `Bruzual & Charlot (2003; MNRAS; 344; 1000) <http://adsabs.harvard.edu/abs/2003MNRAS.344.1000B>`_. Data was downloaded from `http://www.bruzual.org/bc03/Original_version_2003/ <http://www.bruzual.org/bc03/Original_version_2003/>`_.
 
-`Download from Zenodo <https://doi.org/10.5281/zenodo.6338452>`_
+`Download from Zenodo <https://doi.org/10.5281/zenodo.6338452>`__
 
 * ``SSP_Spectra_BC2003_lowResolution_imfChabrier.hdf5``: Low-resolution, `Chabrier <http://adsabs.harvard.edu/abs/2001ApJ...554.1274C>`_ IMF;
 * ``SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5``: Low-resolution, `Salpeter <http://adsabs.harvard.edu/abs/1955ApJ...121..161S>`_ IMF;
@@ -23,7 +23,7 @@ v2.0.0
 
 The BPASS models of `Eldridge & Stanway (2012, MNRAS, 419, 479) <http://adsabs.harvard.edu/abs/2012MNRAS.419..479E>`_; `Eldridge, Langer & Tout (2011, MNRAS, 414, 3501) <http://adsabs.harvard.edu/abs/2011MNRAS.414.3501E>`_; `Eldridge & Stanway (2009, MNRAS, 400, 1019) <http://adsabs.harvard.edu/abs/2009MNRAS.400.1019E>`_; `Eldridge, Izzard & Tout (2008, MNRAS, 384, 1109) <http://adsabs.harvard.edu/abs/2008MNRAS.384.1109E>`_. Data was downloaded from the now defunct Google drive link ``https://drive.google.com/open?id=0B7vqPPPgOdtIfjUtb3RsV2JUOTFFX29WV1FZNURPMHAxTEtZQjhJOGtyNXZUTTNVSzFZazQ``.
 
-`Download from Zenodo <https://doi.org/10.5281/zenodo.6338458>`_
+`Download from Zenodo <https://doi.org/10.5281/zenodo.6338458>`__
 
 * ``SSP_Spectra_BPASS_binary.hdf5``
 
@@ -42,7 +42,7 @@ v2.2.1
 
 The BPASS models of `Eldridge, Stanway et al. (2017) <https://ui.adsabs.harvard.edu/abs/2017PASA...34...58E>`_ and `Stanway & Eldridge et al. (2018) <https://ui.adsabs.harvard.edu/abs/2018MNRAS.479...75S>`_. Data was downloaded from `https://drive.google.com/drive/folders/1BS2w9hpdaJeul6-YtZum--F4gxWIPYXl?usp=sharing <https://drive.google.com/drive/folders/1BS2w9hpdaJeul6-YtZum--F4gxWIPYXl?usp=sharing>`_.
 
-`Download from Zenodo <https://doi.org/10.5281/zenodo.6338460>`_
+`Download from Zenodo <https://doi.org/10.5281/zenodo.6338460>`__
 
 * ``SSP_Spectra_BPASSv2.2.1_bin-imf100_100.hdf5``
 
@@ -157,7 +157,7 @@ v2.3
 
 The BPASS models of `Eldridge, Stanway et al. (2017) <https://ui.adsabs.harvard.edu/abs/2017PASA...34...58E>`_, `Stanway & Eldridge et al. (2018) <https://ui.adsabs.harvard.edu/abs/2018MNRAS.479...75S>`_ and `Byrne et al. (2022, MNRAS in press) <https://ui.adsabs.harvard.edu/abs/2022MNRAS.512.5329B/abstract>`_. Data was downloaded from `here <https://livewarwickac-my.sharepoint.com/:f:/g/personal/phsjaq_live_warwick_ac_uk/EljEErGiiqdMhfY7LVJqUnUBrX2f_rXh89I4lPxvc7LKnQ?e=l9qt5p>`_.
 
-`Download from Zenodo <https://doi.org/10.5281/zenodo.6383329>`_
+`Download from Zenodo <https://doi.org/10.5281/zenodo.6383329>`__
 
 * ``SSP_Spectra_BPASSv2.3_sin-imf135_300-alpha-02.hdf5``
 
@@ -234,7 +234,7 @@ Conroy et al. (2010)
 
 Models from `Conroy & Gunn (2010; ascl:1010.043) <http://adsabs.harvard.edu/abs/2010ascl.soft10043C>`_.
 
-`Download from Zenodo <https://doi.org/10.5281/zenodo.6338462>`_
+`Download from Zenodo <https://doi.org/10.5281/zenodo.6338462>`__
 
 * ``SSP_Spectra_Conroy-et-al_v2.5_imfChabrier.hdf5``
 
@@ -261,7 +261,7 @@ Maraston
 
 Models from `Maraston (2005, MNRAS, 362, 799) <http://adsabs.harvard.edu/abs/2005MNRAS.362..799M>`_; `Maraston (1998, MNRAS, 300, 872) <http://adsabs.harvard.edu/abs/1998MNRAS.300..872M>`_. Data downloaded from http://www.icg.port.ac.uk/~maraston/Claudia's_Stellar_Population_Model.html (now available from `http://web.archive.org/web/20220121155147/http://www.icg.port.ac.uk/~maraston/Claudia's_Stellar_Population_Model.html <http://web.archive.org/web/20220121155147/http://www.icg.port.ac.uk/~maraston/Claudia's_Stellar_Population_Model.html>`_).
 
-`Download from Zenodo <https://doi.org/10.5281/zenodo.6338464>`_
+`Download from Zenodo <https://doi.org/10.5281/zenodo.6338464>`__
 
 * ``SSP_Spectra_Maraston_hbMorphologyRed_imfKroupa.hdf5``
 
@@ -288,7 +288,7 @@ Venkatesan
 
 Models from `Venkatesan et al. (2003; ApJ; 584; 621) <http://adsabs.harvard.edu/abs/2003ApJ...584..621V>`_.
 
-`Download from Zenodo <https://doi.org/10.5281/zenodo.6338389>`_
+`Download from Zenodo <https://doi.org/10.5281/zenodo.6338389>`__
 
 * ``SSP_Spectra_Venkatesan_PopIII_m10:140.hdf5``
 

@@ -71,60 +71,42 @@
     <description>
     A standard stellar population class, which uses a fully non-instantaneous, metal-dependent calculation of recycling, metal production and rates. These rates are determined from the :galacticus-class:`stellarPopulationClass` object provided by a :galacticus-class:`stellarPopulationSelectorClass`.
 
-    It is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison) by setting:
+    It is possible to force this method to operate in the instantaneous recycling approximation limit (which can be useful for testing and comparison). Three parameters control this, independently, for the three quantities that are computed: ``instantaneousRecyclingApproximation`` (recycling of mass), ``instantaneousYieldApproximation`` (metal yields), and ``instantaneousEnergyInputApproximation`` (energy input). For example, to use the approximation for all three:
 
-    .. code-block:: none
+    .. code-block:: xml
 
-       &lt;stellarPopulations value="standard"&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of recycling, yields etc. to   --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- be done assuming instantaneous recycling             --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Set the recycled fraction and yield --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;recycledFraction value="0.35"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;metalYield       value="0.02"/&gt;
-       &lt;/stellarPopulationProperties&gt;
+       &lt;stellarPopulation value="standard"&gt;
+         &lt;!-- Force the calculation of recycling to be done       --&gt;
+         &lt;!-- assuming the instantaneous recycling approximation  --&gt;
+         &lt;instantaneousRecyclingApproximation value="true"/&gt;
+         &lt;!-- Force the calculation of yields to be done          --&gt;
+         &lt;!-- assuming the instantaneous recycling approximation  --&gt;
+         &lt;instantaneousYieldApproximation value="true"/&gt;
+         &lt;!-- Force the calculation of energy input to be done    --&gt;
+         &lt;!-- assuming the instantaneous recycling approximation  --&gt;
+         &lt;instantaneousEnergyInputApproximation value="true"/&gt;
+         &lt;!-- Set the mass of stars which should be used as the    --&gt;
+         &lt;!-- dividing line between long-lived and instantaneously --&gt;
+         &lt;!-- evolving in this approximation.                      --&gt;
+         &lt;massLongLived value="1.0"/&gt;
+         &lt;!-- Set the effective age of populations to use in this --&gt;
+         &lt;!-- approximation when computing SNe numbers.           --&gt;
+         &lt;ageEffective value="13.8"/&gt;
+       &lt;/stellarPopulation&gt;
 
-    where the recycled fraction and metal yield are specified directly, or
+    In this approximation: recycling and the yields of isolated stars are computed assuming that all stars with mass greater than ``massLongLived`` evolve instantaneously and that less massive stars never evolve; the yield from Type Ia supernovae is computed for a population of age ``ageEffective``; energy input (from stellar winds and supernovae) is computed assuming that stars with mass greater than ``massLongLived`` instantaneously reach an age of ``ageEffective``, while less massive stars contribute nothing; and all populations are treated as having Solar metallicity.
 
-    .. code-block:: none
+    Separately, the recycled fraction and metal yield of a population in the instantaneous approximation (as returned by the ``recycledFractionInstantaneous`` and ``yieldInstantaneous`` methods, used, for example, by :galacticus-class:`posteriorSampleLikelihoodSEDFit`) can be specified directly:
 
-       &amp;nbsp;&amp;nbsp;&lt;stellarPopulations value="standard"&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- evolving in this approximation.                      --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;massLongLived value="1.0"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;ageEffective value="13.8"/&gt;
-       &lt;/stellarPopulationProperties&gt;
+    .. code-block:: xml
 
-    in which case the recycled fraction and metal yield will be computed that all stars with mass greater than ``massLongLived`` have fully evolved, and energy input (from stellar winds and supernovae) will be computed assuming that stellar populations instantaneously reach an age of ``ageEffective``.
+       &lt;stellarPopulation value="standard"&gt;
+         &lt;!-- Set the recycled fraction and yield --&gt;
+         &lt;recycledFraction value="0.35"/&gt;
+         &lt;metalYield       value="0.02"/&gt;
+       &lt;/stellarPopulation&gt;
 
-    Similar options are available to control whether metal yields and energy input from stellar populations are computed using the fully non-instantaneous or instantaneous approximations, e.g.:
-
-    .. code-block:: none
-
-       &amp;nbsp;&amp;nbsp;&lt;stellarPopulations value="standard"&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of recycling to be done       --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;instantaneousRecyclingApproximation value="true"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of yields to be done          --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;instantaneousYieldApproximation value="true"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Force the calculation of energy input to be done    --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- assuming the instantaneous recycling approximation  --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;instantaneousEnergyInputApproximation value="true"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Set the mass of stars which should be used as the    --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- dividing line between long-lived and instantaneously --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- evolving in this approximation.                      --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;massLongLived value="1.0"/&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- Set the effective age of populations to use in this --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;!-- approximation when computing SNe numbers.           --&gt;
-       &amp;nbsp;&amp;nbsp;&lt;ageEffective value="13.8"/&gt;
-       &lt;/stellarPopulationProperties&gt;
+    If they are not specified, they are computed by integrating the recycling and yield rates of a Solar metallicity population up to an age of ``ageEffective``. These parameters do not change the recycling and yield rates themselves, which are always computed as described above.
     </description>
   </stellarPopulation>
   !!]

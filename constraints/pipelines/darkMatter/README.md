@@ -89,7 +89,7 @@ pipeline.py --outputDirectory /path/to/run/ --markConverged haloMassFunction
 
 This cancels the still-running chain job, writes a durable `converged` marker (with
 a timestamp and git revision) to `haloMassFunction.state.json`, and exits.
-Cancelling the job unblocks the waiting driver in the first terminal, which then
+Canceling the job unblocks the waiting driver in the first terminal, which then
 extracts the best fit, writes the calibrated hand-off, post-processes, and advances
 to the progenitor stage.
 
