@@ -922,11 +922,11 @@ contains
     class           (outputAnalysisProgenitorMassFunction         ), intent(inout) :: self
     type            (mergerTree                                   ), intent(inout) :: tree
     integer         (c_size_t                                     ), intent(in   ) :: iOutput
-    double precision                                               , parameter     :: timeTolerance=1.0d-4
-    type            (treeNode                                     ), pointer       :: node                  , nodeBaseFirst
+    double precision                                               , parameter     :: timeTolerance   =1.0d-4
+    type            (treeNode                                     ), pointer       :: node                   , nodeBaseFirst
     class           (nodeComponentBasic                           ), pointer       :: basic
     type            (mergerTreeWalkerIsolatedNodes                )                :: treeWalker
-    double precision                                                               :: weight                , mass
+    double precision                                                               :: weight                 , mass
     type            (enumerationOutputAnalysisPropertyTypeType    )                :: propertyType 
     type            (enumerationOutputAnalysisPropertyQuantityType)                :: propertyQuantity
     logical                                                                        :: treeIsNew
@@ -940,8 +940,8 @@ contains
     ! The walk below spans the whole forest, while this function is called once for each tree in the forest. So, process each
     ! forest only once, when its first tree is passed, and identify it by that first tree.
     nodeBaseFirst => tree%nodeBase
-    if (associated(tree%firstTree)) nodeBaseFirst => tree%firstTree%nodeBase
-    if (.not.associated(nodeBaseFirst,tree%nodeBase)) return
+    if (     associated(              tree%firstTree)) nodeBaseFirst => tree%firstTree%nodeBase
+    if (.not.associated(nodeBaseFirst,tree%nodeBase )) return
     treeIsNew                =nodeBaseFirst%uniqueID() /= self%uniqueIDTreePrevious
     self%uniqueIDTreePrevious=nodeBaseFirst%uniqueID()
     if (.not.(iOutput == self%indexOutput .or. (treeIsNew .and. iOutput > self%indexOutput))) return
