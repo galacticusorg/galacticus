@@ -39,8 +39,10 @@ with h5py.File(output, 'w') as file:
     group.attrs['type'] = np.bytes_(b'function1D')
     group.attrs['xDataset'] = np.bytes_(b'x')
     group.attrs['yDataset'] = np.bytes_(b'y')
+    group.attrs['yCovariance'] = np.bytes_(b'yCovariance')
     group['x'] = x
     group['y'] = y
+    group['yCovariance'] = np.diag((0.2 * y) ** 2)
     group['countTarget'] = countTarget
     group['countPerValue'] = countPerValue
 print('stub Galacticus: done')
@@ -159,3 +161,41 @@ def test_observable_patterns(tmp_path):
     component = SimpleNamespace(name='stub', observables=[SimpleNamespace(pattern=True, observable=Observable('co.*'), form='poissonCounts')])
     observables = pf.Profile._observables(None, component, str(tmp_path / 'design.hdf5'))
     assert [(observable.label, form) for observable, form in observables] == [('countsA', 'poissonCounts')]
+
+
+def test_profile_model_variance(workspace):
+    """With the model variance included, the direct log-likelihood of each point is the negative binomial likelihood with
+    over-dispersion c^2 = C^2 + v + C^2 v, v being the fractional variance of the model written by its analysis."""
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(pf.__file__)), '..', '..', '..', 'scripts', 'emulation'))
+    import emulatorProfile
+    from scipy.special import gammaln
+    configuration = workspace / 'profile.xml'
+    text = configuration.read_text().replace('<rootVarianceTargetFractional value="profile" minimum="1.0e-3" maximum="1.0"/>',
+                                             '<rootVarianceTargetFractional value="0.1"/>\n  <modelVariance value="true"/>')
+    configuration.write_text(text)
+    profile = emulatorProfile.read_configuration(str(configuration))
+    assert profile.model_variance and profile.root_variance_target_fractional == 0.1
+    assert emulatorProfile.main(['prepare', str(configuration), 'star']) == 0
+    assert emulatorProfile.main(['run', str(configuration), 'star', '--parallel', '4']) == 0
+    logLikelihoods, _ = profile.point_likelihoods('star')
+    with h5py.File(profile.path('star', 'stub', 'design.hdf5'), 'r') as file:
+        outputs = [name.decode() for name in file['runs']['outputFileName'][()]]
+        points = file['runs']['pointIndex'][()]
+    C = 0.1
+    for point, output in zip(points, outputs):
+        with h5py.File(output, 'r') as file:
+            group = file['analyses/counts']
+            y, n, countPerValue = group['y'][()], group['countTarget'][()], group['countPerValue'][()]
+            v = np.diag(group['yCovariance'][()]) / y ** 2
+        mu = y * countPerValue
+        r = 1.0 / (C ** 2 + v + C ** 2 * v)
+        expected = np.sum(n * np.log(mu) - gammaln(n + 1.0) + gammaln(r + n) - gammaln(r) - n * np.log(r + mu) - r * np.log1p(mu / r))
+        assert logLikelihoods[point] == pytest.approx(expected, rel=1e-10)
+    # Without the model variance, the likelihood differs.
+    profile.model_variance = False
+    assert np.all(np.abs(profile.point_likelihoods('star')[0] - logLikelihoods) > 1.0)
+    # Only the `poissonCounts` form can include it.
+    profile.model_variance = True
+    profile.components[0].observables[0].form = 'gaussianDiagonal'
+    with pytest.raises(ValueError):
+        profile.validate()

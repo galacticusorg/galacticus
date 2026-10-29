@@ -103,6 +103,41 @@ def test_poisson_counts_variance():
                              variance=variance) == pytest.approx(expected, rel=1e-12)
 
 
+def test_poisson_counts_variance_model():
+    """The variance of a model run itself enters the over-dispersion as c^2 = C^2 + v + C^2 v, without a correction to the
+    mean, as in the progenitor mass function analysis with `covarianceTargetOnly` false."""
+    countTarget, countPerValue = np.array([12.0, 30.0, 0.0]), np.array([100.0, 100.0, 100.0])
+    C, value, varianceFractional = 0.2, np.array([0.1, 0.25, 0.02]), np.array([0.3, 0.05, 1.0])
+    training_set = _training_set(np.full(3, np.nan), np.full((3, 3), np.nan), count_target=countTarget, count_per_value=countPerValue)
+    mu = value * countPerValue
+
+    def expected(C):
+        dispersion = C ** 2 + varianceFractional + C ** 2 * varianceFractional
+        r = 1.0 / dispersion
+        return np.sum(stats.nbinom.logpmf(countTarget, r, r / (r + mu)))
+    # In the untransformed observable, the variance is that of the value; in its logarithm, it is in dex^2, transformed to
+    # first order (as by `collect`).
+    variance = varianceFractional * value ** 2
+    for C_ in (C, 0.0):
+        assert lk.log_likelihood(training_set, 'poissonCounts', value, root_variance_target_fractional=C_,
+                                 variance_model=variance) == pytest.approx(expected(C_), rel=1e-12)
+    training_set.attributes['transform'] = 'log10'
+    assert lk.log_likelihood(training_set, 'poissonCounts', np.log10(value), root_variance_target_fractional=C,
+                             variance_model=varianceFractional / np.log(10.0) ** 2) == pytest.approx(expected(C), rel=1e-12)
+    # It is combined with the variance of a prediction as independent factors.
+    variancePrediction = np.array([1.0e-3, 2.0e-3, 0.0])
+    varianceFractionalPrediction = np.expm1(np.log(10.0) ** 2 * variancePrediction)
+    dispersion = (1.0 + C ** 2) * (1.0 + varianceFractionalPrediction) * (1.0 + varianceFractional) - 1.0
+    r = 1.0 / dispersion
+    muPrediction = mu * np.sqrt(1.0 + varianceFractionalPrediction)
+    assert lk.log_likelihood(training_set, 'poissonCounts', np.log10(value), root_variance_target_fractional=C, variance=variancePrediction,
+                             variance_model=varianceFractional / np.log(10.0) ** 2) == pytest.approx(
+                                 np.sum(stats.nbinom.logpmf(countTarget, r, r / (r + muPrediction))), rel=1e-12)
+    # Only the `poissonCounts` form takes it.
+    with pytest.raises(ValueError):
+        lk.log_likelihood(_training_set([1.0], [[1.0]]), 'gaussianDiagonal', np.array([1.0]), variance_model=np.array([1.0]))
+
+
 def test_profile_root_variance():
     rng = np.random.default_rng(4)
     mu = np.full(4000, 50.0)

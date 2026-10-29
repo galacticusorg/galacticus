@@ -6,7 +6,9 @@ These are the forms of :galacticus-class:`posteriorSampleLikelihoodEmulated` (``
 prediction of a model run itself - a row of the ``y`` of a training set, collected from the run's output by
 :func:`Galacticus.Emulation.train.collect` - they give the *direct* likelihood of that run: the likelihood which an MCMC with
 an exact emulator would assign to its parameters. This is used to profile parameters by direct runs
-(:mod:`Galacticus.Emulation.profile`), and to compare emulated with direct likelihoods.
+(:mod:`Galacticus.Emulation.profile`), and to compare emulated with direct likelihoods. For the ``poissonCounts`` form, the
+direct likelihood may also include the variance of the model run itself, as the progenitor mass function analysis does
+with ``[covarianceTargetOnly]`` false.
 
 Andrew Benson, Claude (28-October-2026).
 """
@@ -29,7 +31,7 @@ FORMS = ('gaussianDiagonal', 'gaussianCovariance', 'logNormalFloored', 'poissonC
 LOG_IMPROBABLE = -1.0e-16 * np.finfo(float).max
 
 
-def log_likelihood(training_set, form, mean, root_variance_target_fractional=0.0, variance=None):
+def log_likelihood(training_set, form, mean, root_variance_target_fractional=0.0, variance=None, variance_model=None):
     """Return the log-likelihood of the prediction ``mean`` of one observable.
 
     ``training_set`` is the observable's :class:`Galacticus.Emulation.emulatorFile.TrainingSet`, which supplies the target
@@ -39,9 +41,18 @@ def log_likelihood(training_set, form, mean, root_variance_target_fractional=0.0
     prediction in each bin (as with ``includeEmulatorVariance`` true), or None for none. For that form, a bin in which no counts
     are expected but some are observed makes the model impossible, and the result is then ``LOG_IMPROBABLE``, as in the
     emulated likelihood.
+
+    ``variance_model`` (``poissonCounts`` only) is the variance of a model run's own prediction in each bin, in the
+    transformed space (as the squares of ``training_set.root_variance``), or None for none. Its fractional variance,
+    :math:`v`, in the untransformed observable (:math:`v = (\\sigma \\log 10)^2` if the logarithm is emulated, inverting the
+    first-order transform of :func:`Galacticus.Emulation.train.collect`, or :math:`v = \\sigma^2/\\mu^2` otherwise) is added to
+    the over-dispersion, as :math:`c^2 = C^2 + v + C^2 v`, without the correction to the mean applied for ``variance``. This
+    is the counts likelihood of the progenitor mass function analysis with ``[covarianceTargetOnly]`` false.
     """
     if form not in FORMS:
         raise ValueError(f"unknown likelihood form '{form}'")
+    if variance_model is not None and form != 'poissonCounts':
+        raise ValueError('the variance of the model can be included only in the `poissonCounts` form')
     mean = np.asarray(mean, dtype=float)
     variance = np.zeros_like(mean) if variance is None else np.asarray(variance, dtype=float)
     yTarget = np.asarray(training_set.y_target, dtype=float)
@@ -94,6 +105,15 @@ def log_likelihood(training_set, form, mean, root_variance_target_fractional=0.0
         value = mean[included]
         with np.errstate(divide='ignore', invalid='ignore'):
             varianceFractional = np.where(value > 0.0, variance[included] / value ** 2, 0.0)
+    if variance_model is not None:
+        # The fractional variance of the model run's own prediction (which, unlike that of an emulator's prediction, needs no
+        # correction to its mean), combined with that of the prediction as independent factors.
+        varianceModel = np.asarray(variance_model, dtype=float)[included]
+        with np.errstate(divide='ignore', invalid='ignore'):
+            varianceFractionalModel = (np.log(10.0) ** 2 * varianceModel if transformLog
+                                       else np.where(value > 0.0, varianceModel / value ** 2, 0.0))
+        varianceFractionalModel = np.where(np.isfinite(varianceFractionalModel), varianceFractionalModel, 0.0)
+        varianceFractional = varianceFractional + varianceFractionalModel + varianceFractional * varianceFractionalModel
     countExpected = value * countPerValue[included]
     countTarget = countTarget[included]
     empty = countExpected <= 0.0

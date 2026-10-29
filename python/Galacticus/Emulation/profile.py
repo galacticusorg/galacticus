@@ -189,7 +189,12 @@ class Profile:
     ``directory`` holds every file written (designs, change files, outputs, logs, manifests and results), in a
     subdirectory for each stage. ``root_variance_target_fractional`` is the fractional root variance of counts of the
     ``poissonCounts`` form: a number, or None to maximize the likelihood over it (within
-    ``root_variance_target_fractional_bounds``) at each point.
+    ``root_variance_target_fractional_bounds``) at each point. If ``model_variance``, the variance of the model at each point
+    (the variance of its predictions averaged over seeds, from the analyses' own covariances) is included in the over-dispersion
+    of the ``poissonCounts`` form, as the progenitor mass function analysis does with ``[covarianceTargetOnly]`` false (see
+    :func:`Galacticus.Emulation.likelihood.log_likelihood`). This reduces the bias of the likelihood of a model built from one,
+    or a few, realizations of its merger trees, whose noise otherwise adds to its misfit. Bins whose value was floored (or
+    replaced) in collection are given no model variance.
     """
 
     directory: str
@@ -202,6 +207,7 @@ class Profile:
     offset_maximum: float = 2.0
     root_variance_target_fractional: float | None = 0.0
     root_variance_target_fractional_bounds: tuple = (1.0e-3, 3.0)
+    model_variance: bool = False
 
     def validate(self):
         if not self.parameters:
@@ -220,6 +226,9 @@ class Profile:
                 observable.validate()
         if len(self.line_seeds) < 2:
             raise ValueError('the line search needs at least two seeds')
+        if self.model_variance and any(observable.form != 'poissonCounts' for component in self.components
+                                       for observable in component.observables):
+            raise ValueError('the variance of the model can be included only for observables of the `poissonCounts` form')
 
     # Paths.
 
@@ -339,7 +348,8 @@ class Profile:
                 missing = np.ones(countPoints, dtype=bool)
                 for row, point in enumerate(training_set.point_index):
                     missing[point] = False
-                    terms[point].append((training_set, form, training_set.y[row]))
+                    varianceModel = np.where(training_set.mask[row] != 0, 0.0, training_set.root_variance[row] ** 2) if self.model_variance else None
+                    terms[point].append((training_set, form, training_set.y[row], varianceModel))
                 present &= ~missing
         rootVariance = self.root_variance_target_fractional
         logLikelihoods, rootVariances = np.full(len(terms), np.nan), np.full(len(terms), np.nan)
@@ -349,14 +359,14 @@ class Profile:
 
             def evaluate(C, pointTerms=pointTerms):
                 total = 0.0
-                for training_set, form, mean in pointTerms:
-                    value = log_likelihood(training_set, form, mean, root_variance_target_fractional=C)
+                for training_set, form, mean, varianceModel in pointTerms:
+                    value = log_likelihood(training_set, form, mean, root_variance_target_fractional=C, variance_model=varianceModel)
                     if value == LOG_IMPROBABLE:
                         return LOG_IMPROBABLE
                     total += value
                 return total
 
-            if rootVariance is None and any(form == 'poissonCounts' for _, form, _ in pointTerms):
+            if rootVariance is None and any(form == 'poissonCounts' for _, form, _, _ in pointTerms):
                 logLikelihoods[point], rootVariances[point] = profile_root_variance(evaluate, self.root_variance_target_fractional_bounds)
             else:
                 logLikelihoods[point] = evaluate(rootVariance or 0.0)

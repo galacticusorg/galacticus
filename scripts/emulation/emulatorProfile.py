@@ -11,6 +11,7 @@ The configuration is an XML file:
     <lineFractions value="0 0.5 1 1.5"/>                <!-- optional; points of the line search, as fractions of the way to the star optimum -->
     <offsetMaximum value="2"/>                          <!-- optional; the star optimum is sought within this many steps of the center -->
     <rootVarianceTargetFractional value="profile" minimum="1.0e-3" maximum="3.0"/>   <!-- optional; or a fixed value (default 0) -->
+    <modelVariance value="true"/>                       <!-- optional; include the model's variance (default false) -->
     <parameter name="progenitorMassFunctionParameters/errorAmplitude" center="0.16" step="0.15" scale="log"/>
     <parameter name="progenitorMassFunctionParameters/errorExponent"  center="0.50" step="0.05"/>
     <component name="MDPL2" baseParameters="progenitorMassFunctionBaseMDPL2.xml">
@@ -23,7 +24,10 @@ Each parameter is stepped linearly, or (with scale="log") in its natural logarit
 and the analyses of its output which contribute to the likelihood: observables are given as for training an emulator
 (see emulatorTrainReference.py), plus the likelihood form of each (as in the emulated likelihood). With pattern="true" the
 label is a regular expression matched against the labels of the analyses. With <rootVarianceTargetFractional
-value="profile"/> the fractional root variance of counts of the poissonCounts form is maximized at each point.
+value="profile"/> the fractional root variance of counts of the poissonCounts form is maximized at each point. With
+<modelVariance value="true"/> the variance of the model (of its predictions averaged over seeds) is included in the
+over-dispersion of the poissonCounts form, which reduces the bias of the likelihood of a model built from few realizations
+of its merger trees (see Galacticus.Emulation.profile.Profile).
 
 The commands, each taking the configuration and a stage (`star` or `line`), are:
 
@@ -123,6 +127,7 @@ def read_configuration(path):
         offset_maximum=_value(root, 'offsetMaximum', 2.0, float),
         root_variance_target_fractional=rootVariance,
         root_variance_target_fractional_bounds=bounds,
+        model_variance=_true(_value(root, 'modelVariance', None)),
     )
     profile.validate()
     return profile
