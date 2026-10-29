@@ -4,12 +4,12 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "255964b1351336044b381634e10bb9cbdc9cdbfd",
-        "message": "docs(excursion-sets): fix LaTeX typos in Brownian bridge first crossing formula\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n",
-        "timestamp": "2026-10-26 15:25:04-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/255964b1351336044b381634e10bb9cbdc9cdbfd"
+        "id": "4c1327d5158ca93f2afe0f9439e51d8b1359a9a9",
+        "message": "Merge pull request #1694 from galacticusorg/fix/atomic-rt-electron-numbers\n\nfix(radiativeTransfer): pass electron numbers to the excitation, Gaunt factor, and dielectronic rate methods in atomic matter\n",
+        "timestamp": "2026-10-28 15:51:16+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/4c1327d5158ca93f2afe0f9439e51d8b1359a9a9"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-45.36239161008438",
+                "logLikelihood": "-45.3623916100844",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -223,13 +223,13 @@ window.ANALYSES_DATA = {
                     28.42224140733348,
                     32.37916427659637,
                     37.426185566970254,
-                    43.2782276240107,
+                    43.278227624010704,
                     49.97226421210762,
                     54.916285251148494,
-                    64.85614313670628,
+                    64.85614313670627,
                     70.60054881097273,
                     82.87443152525334,
-                    86.60619261098755,
+                    86.60619261098753,
                     100.85790230169135,
                     114.64474878870594,
                     149.8822794086754,
@@ -265,10 +265,10 @@ window.ANALYSES_DATA = {
                     0.23090206793206286,
                     0.2826527399127803,
                     0.40866622435020594,
-                    0.49534631445332045,
+                    0.49534631445331734,
                     0.6573807149512365,
                     1.092009492736342,
-                    2.349873871788705,
+                    2.3498738717887124,
                     1.59297885005833,
                     2.826408604228061,
                     5.348863103112666,

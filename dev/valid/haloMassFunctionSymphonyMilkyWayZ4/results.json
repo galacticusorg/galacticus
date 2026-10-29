@@ -4,18 +4,18 @@ window.ANALYSES_DATA = {
     "commit": {
         "author": {
             "name": "Andrew Benson",
-            "email": "abenson@obs.carnegiescience.edu"
+            "email": "abensonca@gmail.com"
         },
-        "id": "255964b1351336044b381634e10bb9cbdc9cdbfd",
-        "message": "docs(excursion-sets): fix LaTeX typos in Brownian bridge first crossing formula\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n",
-        "timestamp": "2026-10-26 15:25:04-07:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/255964b1351336044b381634e10bb9cbdc9cdbfd"
+        "id": "4c1327d5158ca93f2afe0f9439e51d8b1359a9a9",
+        "message": "Merge pull request #1694 from galacticusorg/fix/atomic-rt-electron-numbers\n\nfix(radiativeTransfer): pass electron numbers to the excitation, Gaunt factor, and dielectronic rate methods in atomic matter\n",
+        "timestamp": "2026-10-28 15:51:16+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/4c1327d5158ca93f2afe0f9439e51d8b1359a9a9"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2739.904548415725",
+                "logLikelihood": "-2739.9045576947383",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,14 +39,14 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.163553816890629,
-                    3.354872421810734,
-                    2.1674407053790357,
-                    1.3926939488339782,
-                    0.9885789953465189,
-                    0.788203493242323,
-                    0.5649710274959012,
-                    0.352673552401306,
+                    5.163554053794874,
+                    3.354872590586433,
+                    2.167440630081674,
+                    1.3926938443899417,
+                    0.9885788883477108,
+                    0.7882033950227623,
+                    0.5649709626597553,
+                    0.35267352836099475,
                     0.21850378797720318,
                     0.13297855858528548,
                     0.08192696232916079,
@@ -54,14 +54,14 @@ window.ANALYSES_DATA = {
                     0.03991925662675977
                 ],
                 "yError": [
-                    0.08045875246730666,
-                    0.05444064075054492,
-                    0.03722881176658075,
-                    0.026236271698935366,
-                    0.028791273613828723,
-                    0.02456339009647007,
-                    0.013984911701047022,
-                    0.011021928195214635,
+                    0.08045875808023198,
+                    0.054440644832415716,
+                    0.037228810154112446,
+                    0.02623626927373515,
+                    0.028791270083597543,
+                    0.0245633868426407,
+                    0.01398491012462432,
+                    0.011021927510681,
                     0.008948561268476958,
                     0.00721715300434557,
                     0.007047344168914017,
