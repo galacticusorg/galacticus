@@ -1051,9 +1051,9 @@ contains
           ! variance of the last known non-zero bin (it would otherwise have none, although it is the least certain).
           if (self%likelihoodInCounts .and. .not.self%covarianceTargetOnly .and. self%functionValue(iLastNonZero) > 0.0d0) &
                & self%functionCovariance(i,i)=+self%functionCovariance(iLastNonZero,iLastNonZero) &
-               &                              *(                                                   &
-               &                                +self%functionValue     (i                       ) &
-               &                                /self%functionValue     (iLastNonZero            ) &
+               &                              *(                                                  &
+               &                                +self%functionValue    (i                       ) &
+               &                                /self%functionValue    (iLastNonZero            ) &
                &                               )**2
        end do
        if (warnFillIn) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' had to extrapolate to empty bin with potential non-neglible content')
@@ -1165,21 +1165,21 @@ contains
                       exit
                    end if
                 end if
-                ! Compute the over-dispersion, c^2, the square of the fractional root variance of the expected count. This is
-                ! C^2, where C is the fractional root variance of the target, combined (unless only the target covariance is to be
-                ! included) with the fractional variance, v, of the model, as c^2 = C^2 + v + C^2 v (the fractional variance of the
-                ! product of two independent factors with unit means and fractional variances C^2 and v). This is the same
+                ! Compute the over-dispersion, c², the square of the fractional root variance of the expected count. This is
+                ! C², where C is the fractional root variance of the target, combined (unless only the target covariance is to be
+                ! included) with the fractional variance, v, of the model, as c² = C² + v + C² v (the fractional variance of the
+                ! product of two independent factors with unit means and fractional variances C² and v). This is the same
                 ! combination as used by the `poissonCounts` form of the emulated likelihood.
                 dispersion=self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))**2
-                if (.not.self%covarianceTargetOnly)                                    &
-                     & dispersion=+dispersion                                          &
+                if (.not.self%covarianceTargetOnly)                                      &
+                     & dispersion=+dispersion                                            &
                      &            +self%functionCovariance(i,i)/self%functionValue(i)**2 &
                      &            *(1.0d0+dispersion)
                 if (dispersion > 0.0d0) then
                    ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial
                    ! distribution (which is used in the alternative parameterization as given by, e.g.,
                    ! https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution) represents an
-                   ! over-dispersed Poisson distribution, with stopping-time parameter r=1/c^2.
+                   ! over-dispersed Poisson distribution, with stopping-time parameter r=1/c².
                    stoppingTimeParameter=1.0d0/dispersion
                    logLikelihood_=+dble(countsTarget         )*log                       (                                       countsModel  ) &
                         &         -                            Logarithmic_Factorial     (                                 +int (countsTarget)) &
@@ -1188,8 +1188,8 @@ contains
                         &         -dble(countsTarget         )*log                       (            stoppingTimeParameter+     countsModel  ) &
                         &         -     stoppingTimeParameter *log                       (countsModel/stoppingTimeParameter+1.0d0             )
                 else
-                   ! Evaluate the Poisson likelihood (the limit of the negative binomial likelihood as c -> 0).
-                   logLikelihood_=+dble(countsTarget)*log                  (      countsModel ) &
+                   ! Evaluate the Poisson likelihood (the limit of the negative binomial likelihood as c → 0).
+                   logLikelihood_=+dble(countsTarget)*log                  (      countsModel )  &
                         &         -                   Logarithmic_Factorial(+int (countsTarget)) &
                         &         -                                               countsModel
                 end if
