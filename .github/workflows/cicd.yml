@@ -1375,6 +1375,7 @@ jobs:
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.mass_distributions.Zhao1996_limits.exe,
+                      tests.mass_distributions.Shi2016_self_similarity.exe,
                       tests.mass_distributions.Zhao1996_dispersion.exe,
                       tests.mass_distributions.Einasto_Burkert.exe,
                       tests.mass_distributions.cusp_soliton_NFW_limits.exe,
