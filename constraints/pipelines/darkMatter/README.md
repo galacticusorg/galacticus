@@ -166,7 +166,13 @@ held only in memory.
 
 The last form is how per-stage generator options are set, e.g.
 `--progenitorMassFunction_massRatioDistribution normal` selects the Gaussian (rather
-than the default Hinkley) mass-ratio distribution for the progenitor stage.
+than the default Hinkley) mass-ratio distribution for the progenitor stage, and
+`--progenitorMassFunction_modelVariance yes` adds the variance of the model (from its
+finite number of merger trees) to the over-dispersion of the progenitor mass function
+likelihood. A model built from a single realization of its trees scores lower than the
+mean of many realizations would, since its noise adds to the misfit. Including its
+variance in the likelihood largely removes that bias, which would otherwise inflate the
+fitted `rootVarianceTargetFractional`.
 
 ---
 

@@ -1580,6 +1580,7 @@ jobs:
                 test-luminosity-function-Halpha-Sobral.py,
                 test-dust-analyses-SDSS.py,
                 test-outputAnalysisLikelihoods.py,
+                test-progenitorMassFunctionLikelihood.py,
                 test-morphologicalFractionGAMAMoffett2016.py,
                 test-dust-emission-energy-balance.py,
                 test-AGN-torus-misalignment.py,
