@@ -67,11 +67,14 @@ def runModel(arguments,logName):
     return status.returncode, log
 
 def ratios(nodes,filter,frame):
-    """Return the ratio of the two routes' luminosities, for the galaxies which both find luminous."""
-    direct    = nodes[f"diskStellarSFH:identity:{filter}:{frame}"][:]
-    reference = nodes[f"diskStellarSED:identity:{filter}:{frame}"][:]
-    luminous  = ( direct > 0.0 ) & ( reference > 0.0 )
-    return luminous, direct[luminous]/reference[luminous]
+    """Return the ratio of the two routes' luminosities, for the galaxies which both find luminous, and the number on which the
+    two routes disagree about being luminous at all. A galaxy luminous by one route and not the other would be dropped from the
+    comparison, so it is counted and reported rather than passing silently."""
+    direct      = nodes[f"diskStellarSFH:identity:{filter}:{frame}"][:]
+    reference   = nodes[f"diskStellarSED:identity:{filter}:{frame}"][:]
+    luminous    = ( direct > 0.0 ) & ( reference > 0.0 )
+    countDiffer = int(np.sum(( direct > 0.0 ) != ( reference > 0.0 )))
+    return luminous, direct[luminous]/reference[luminous], countDiffer
 
 print("Running model...")
 status, log = runModel("testSuite/parameters/test-luminosities-from-SFH-lightcone.xml","galacticus.log")
@@ -87,7 +90,7 @@ with h5py.File(outputPath,"r") as model:
         nodes    = model["Lightcone/Output1/nodeData"]
         redshift = nodes["redshift"][:]
         # Check that the lightcone holds galaxies which both routes find luminous, as otherwise nothing below is tested.
-        luminous, _ = ratios(nodes,"SDSS_r","rest")
+        luminous, _, _ = ratios(nodes,"SDSS_r","rest")
         countLuminous = int(luminous.sum())
         if countLuminous == 0:
             print("FAILED: no galaxy in the lightcone is luminous by both routes, so nothing is being tested")
@@ -96,7 +99,14 @@ with h5py.File(outputPath,"r") as model:
         differenceFine = {}
         for frame in FRAMES:
             for filter in FILTERS:
-                _, ratio   = ratios(nodes,filter,frame)
+                luminousBoth, ratio, countDiffer = ratios(nodes,filter,frame)
+                # A filter on which the two routes never agree that a galaxy is luminous would otherwise compare nothing at all.
+                if luminousBoth.sum() == 0:
+                    print(f"FAILED: {filter}:{frame}: no galaxy is luminous by both routes, so the two are not being compared")
+                    continue
+                if countDiffer > 0:
+                    print(f"FAILED: {filter}:{frame}: the two routes disagree about whether {countDiffer} galaxies are luminous at all")
+                    continue
                 difference = np.abs(ratio-1.0)
                 if filter == FILTER_COARSE and frame == "observed":
                     differenceFine[filter] = np.median(difference)
@@ -118,11 +128,17 @@ if status != 0 or re.search(r"fatal|aborted",log,re.IGNORECASE) or not os.path.e
     sys.exit(0)
 with h5py.File(coarsePath,"r") as model:
     try:
-        _, ratio         = ratios(model["Lightcone/Output1/nodeData"],FILTER_COARSE,"observed")
+        luminousBoth, ratio, _ = ratios(model["Lightcone/Output1/nodeData"],FILTER_COARSE,"observed")
+        if luminousBoth.sum() == 0:
+            print("FAILED: no galaxy is luminous by both routes in the coarse-grid model, so the sensitivity of the comparison is not being confirmed")
+            sys.exit(0)
         differenceCoarse = np.median(np.abs(ratio-1.0))
     except KeyError as e:
         print(f"FAILED: expected dataset missing from the coarse-grid output: {e}")
         sys.exit(0)
+if FILTER_COARSE not in differenceFine:
+    print(f"FAILED: the default-grid comparison for {FILTER_COARSE} did not complete, so the coarse-grid comparison has nothing to measure against")
+    sys.exit(0)
 if differenceCoarse < COARSE_MINIMUM or differenceCoarse < FACTOR_COARSE_MINIMUM*differenceFine[FILTER_COARSE]:
     print(f"FAILED: a coarse grid of redshifts is in error by only {differenceCoarse:.3e}, against {differenceFine[FILTER_COARSE]:.3e} for the default grid, so the comparison of the two routes is not demonstrably sensitive to the interpolation in redshift")
 else:

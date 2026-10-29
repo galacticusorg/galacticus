@@ -37,23 +37,73 @@ Implements a property extractor class for broadband stellar luminosities compute
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromStarFormationHistory" docformat="rst">
    <description>
-   A property extractor that computes broadband stellar luminosities in AB units directly from the star formation history, by contracting it against a template of filter-convolved simple stellar population luminosities. For each filter named in ``filterNames`` the luminosity is
+   A property extractor that computes broadband stellar luminosities in AB units directly from the star formation history, by
+   contracting it against a template of filter-convolved simple stellar population luminosities. For each filter named in
+   ``filterNames`` the luminosity is
 
    .. math::
 
       L = \sum_{i,j} M_{ij} \bar{L}_{ij},
 
-   where :math:`M_{ij}` is the mass formed in bin :math:`i` of age and bin :math:`j` of metallicity in the galaxy's star formation history, and :math:`\bar{L}_{ij}` is the mean luminosity per unit mass of a simple stellar population over that bin, convolved with the filter response. The cost per galaxy is therefore a single contraction over (age :math:`\times` metallicity) bins per filter, with no wavelength integration---in contrast to :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`, which integrates a filter response over an SED. That makes this the efficient route when many galaxies and few filters dominate the cost, which is the usual case for lightcone output. It is also free of the resolution of any SED: the filter integral is performed when the simple stellar population luminosities are tabulated, not over an SED sampled at finite ``resolution``.
+   where :math:`M_{ij}` is the mass formed in bin :math:`i` of age and bin :math:`j` of metallicity in the galaxy's star formation
+   history, and :math:`\bar{L}_{ij}` is the mean luminosity per unit mass of a simple stellar population over that bin, convolved
+   with the filter response. The cost per galaxy is therefore a single contraction over (age :math:`\times` metallicity) bins per
+   filter, with no wavelength integration---in contrast to :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`,
+   which integrates a filter response over an SED. That makes this the efficient route when many galaxies and few filters dominate
+   the cost, which is the usual case for lightcone output. It is also free of the resolution of any SED: the filter integral is
+   performed when the simple stellar population luminosities are tabulated, not over an SED sampled at finite ``resolution``.
 
-   The template depends on the bin structure of the star formation history, which must therefore be the same for every galaxy: the star formation history class must report fixed ages (see :galacticus-class:`starFormationHistoryFixedAges`). The template is built on first use---not at construction---because the bin structure is obtained from a galaxy's own star formation history.
+   This extractor does not support dust attenuation: it does not implement the ``decompose`` method, so it can not split its output into parcels of emission which a dust model could attenuate separately, and :galacticus-class:`nodePropertyExtractorDustAttenuation` rejects it at construction with an error naming it. The same is true of :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`; of the luminosity-producing extractors only :galacticus-class:`nodePropertyExtractorSED` and :galacticus-class:`nodePropertyExtractorSEDAGN` decompose their output today. A decomposition by age would be natural here, since the template is already formed bin by bin of age and the mean over an arbitrary interval of age is what the closed form computes, but it is not implemented.
 
-   For ``frame`` = ``observed`` the simple stellar population luminosities depend on redshift, through both the shift of the filter relative to the spectrum and the redshift-dependent postprocessing of the spectrum (e.g. attenuation by the :term:`IGM`). Since a lightcone galaxy is observed at its own crossing redshift, and not at an output redshift, the template is tabulated on a grid spanning ``redshiftMinimum`` to ``redshiftMaximum``, spaced by ``redshiftSpacingLogarithmic`` in :math:`\log(1+z)`, and interpolated to the redshift of each galaxy by a local cubic in that same variable. The rest-frame position of a filter scales as :math:`1/(1+z)`, so equal steps in :math:`\log(1+z)` sweep the filter across the spectrum by equal fractions of wavelength, which is what sets how fast the tabulated luminosity varies: a single spacing in this variable is therefore the right criterion at every redshift. A galaxy falling outside the grid is reported as an error rather than extrapolated.
+   The template depends on the bin structure of the star formation history, which must therefore be the same for every galaxy: the
+   star formation history class must report fixed ages (see :galacticus-class:`starFormationHistoryFixedAges`). The template is
+   built on first use---not at construction---because the bin structure is obtained from a galaxy's own star formation history.
 
-   The spacing which is needed depends on the filter, and is set by how fast the filter sweeps across structure in the spectrum rather than by the smoothness of the postprocessing alone. Measured against :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`, which needs no grid and is exact, for galaxies at :math:`z \simeq 0.44`: a broad filter (``Galex_NUV``, ``SDSS_r``) agrees to :math:`3\times10^{-4}` at a spacing of :math:`\Delta z = 0.05`, and to :math:`\sim10^{-3}` even at :math:`\Delta z = 0.1`; but a narrow top-hat at :math:`1300\,\AA`, which at that redshift samples the spectrum across the Lyman break, is in error by :math:`2\times10^{-2}` at :math:`\Delta z = 0.05`, :math:`8\times10^{-3}` at :math:`0.025`, and :math:`10^{-3}` only by :math:`\Delta z = 0.01`. A filter which straddles a break at the redshifts of interest is therefore the case which sets the spacing, and the default is chosen to satisfy it. Where the two routes are both available, comparing them is the way to confirm the choice; and note that a residual difference of :math:`\sim10^{-3}` remains however fine the grid, since the from-SED route integrates the filter over an SED of finite ``resolution`` while this route uses the exact filter integral.
+   For ``frame`` = ``observed`` the simple stellar population luminosities depend on redshift, through both the shift of the
+   filter relative to the spectrum and the redshift-dependent postprocessing of the spectrum (e.g. attenuation by the
+   :term:`IGM`). Since a lightcone galaxy is observed at its own crossing redshift, and not at an output redshift, the template is
+   tabulated on a grid spanning ``redshiftMinimum`` to ``redshiftMaximum``, spaced by ``redshiftSpacingLogarithmic`` in
+   :math:`\log(1+z)`, and interpolated to the redshift of each galaxy by a local cubic in that same variable. The rest-frame
+   position of a filter scales as :math:`1/(1+z)`, so equal steps in :math:`\log(1+z)` sweep the filter across the spectrum by
+   equal fractions of wavelength, which is what sets how fast the tabulated luminosity varies: a single spacing in this variable
+   is therefore the right criterion at every redshift. A galaxy falling outside the grid is reported as an error rather than
+   extrapolated.
 
-   For ``frame`` = ``rest`` no grid is needed and none is built: rest-frame luminosities are tabulated at zero redshift, following the convention of the broadband luminosity tabulation, which is passed the redshift to which the *filter* is shifted (zero for a rest-frame filter). Note that this differs from :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`, which for a rest-frame luminosity applies the postprocessing at the redshift of the galaxy. The two routes therefore agree in the rest frame only for redshift-independent postprocessing.
+   The spacing which is needed depends on the filter, and is set by how fast the filter sweeps across structure in the spectrum
+   rather than by the smoothness of the postprocessing alone. Measured against
+   :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`, which needs no grid and is exact, for galaxies at :math:`z
+   \approx 0.44`: a broad filter (``Galex_NUV``, ``SDSS_r``) agrees to :math:`3\times10^{-4}` at a spacing of :math:`\Delta z =
+   0.05`, and to :math:`\sim10^{-3}` even at :math:`\Delta z = 0.1`; but a narrow top-hat at 1300 Angstroms, which at that redshift
+   samples the spectrum across the Lyman break, is in error by :math:`2\times10^{-2}` at :math:`\Delta z = 0.05`,
+   :math:`8\times10^{-3}` at :math:`0.025`, and :math:`10^{-3}` only by :math:`\Delta z = 0.01`. A filter which straddles a break
+   at the redshifts of interest is therefore the case which sets the spacing, and the default is chosen to satisfy it. Where the
+   two routes are both available, comparing them is the way to confirm the choice; and note that a residual difference of
+   :math:`\sim10^{-3}` remains however fine the grid, since the from-SED route integrates the filter over an SED of finite
+   ``resolution`` while this route uses the exact filter integral.
 
-   The template is the mean over each bin of the same bilinear (in age, and in :math:`\log_{10}` metallicity) interpolant of the tabulated simple stellar population luminosities that the broadband luminosity tabulation itself uses, and it is computed in closed form rather than by quadrature: on each cell of the tabulation the interpolant is linear in age and in :math:`\log_{10} Z`, so both integrals are elementary. There is consequently no integration tolerance here, and no possibility of an unmet one. Outside the tabulated range of age or of metallicity the interpolant is held constant at the edge of the tabulation, which matches the tabulation's own treatment of metallicity, and which for age is bounded where a linear extrapolation of a steeply rising young-population luminosity need not be.
+   For ``frame`` = ``rest`` no grid is needed and none is built: rest-frame luminosities are tabulated at zero redshift, following
+   the convention of the broadband luminosity tabulation, which is passed the redshift to which the *filter* is shifted (zero for
+   a rest-frame filter). Note that this differs from :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`, which for
+   a rest-frame luminosity applies the postprocessing at the redshift of the galaxy. The two routes therefore agree in the rest
+   frame only for redshift-independent postprocessing.
+
+   No separability of the postprocessing is required, unlike for
+   :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED`: the tabulation evaluates the multiplier at the wavelength,
+   age and redshift of each cell which it integrates, so a multiplier depending on both age and redshift is represented
+   exactly. Its structure in age, though, is resolved only as well as the grid of ages on which the luminosities are tabulated,
+   since that tabulation is interpolated linearly in age---a property of the broadband tabulation, and so of the evolved
+   luminosities too, but one which the from-SED route does not share, since it integrates the multiplier over each bin of age. For
+   a multiplier with sharp structure in age the difference is not small: with ``sequence{madau1995,recent}`` the two routes differ
+   by 4 per cent, against :math:`10^{-3}` for a postprocessor without age structure. A warning is issued when the postprocessing
+   depends on age.
+
+   The template is the mean over each bin of the same bilinear (in age, and in :math:`\log_{10}` metallicity) interpolant of the
+   tabulated simple stellar population luminosities that the broadband luminosity tabulation itself uses, and it is computed in
+   closed form rather than by quadrature: on each cell of the tabulation the interpolant is linear in age and in :math:`\log_{10}
+   Z`, so both integrals are elementary. There is consequently no integration tolerance here, and no possibility of an unmet
+   one. Outside the tabulated range of age or of metallicity the interpolant is held constant at the edge of the tabulation, which
+   matches the tabulation's own treatment of metallicity, and which for age is bounded where a linear extrapolation of a steeply
+   rising young-population luminosity need not be.
    </description>
   </nodePropertyExtractor>
   !!]
@@ -84,6 +134,11 @@ Implements a property extractor class for broadband stellar luminosities compute
      integer                                                                                        :: countRedshifts
      logical                                                                                        :: templateBuilt
    contains
+     !![
+     <methods docformat="rst">
+       <method description="Build the template of mean filter-convolved luminosities per unit mass over each bin of age and metallicity of the star formation history, for each filter and each grid redshift." method="templateBuild"/>
+     </methods>
+     !!]
      final              ::                  luminosityStellarFromSFHDestructor
      procedure          :: elementCount  => luminosityStellarFromSFHElementCount
      procedure          :: extract       => luminosityStellarFromSFHExtract
@@ -116,6 +171,11 @@ Implements a property extractor class for broadband stellar luminosities compute
   ! silently share one tabulation, so indices are allocated here from a single counter which starts above the block reserved
   ! for the evolved luminosities.
   integer                     :: luminosityIndexAllocated =-1
+  ! The counter is threadprivate because indices need only be disjoint among the objects which share one tabulation, and a deep
+  ! copy of this object---which is how each thread gets its own, inside the parallel region of `taskEvolveForests`---is given a
+  ! tabulation of its own. Were the counter shared, every thread would draw a further disjoint block, and the tabulation, which
+  ! is dimensioned by the largest index it has been asked for, would grow as the square of the thread count.
+  !$omp threadprivate(luminosityIndexAllocated)
 
 contains
 
@@ -197,18 +257,18 @@ contains
     <objectBuilder class="stellarPopulationSpectraPostprocessor"  name="stellarPopulationSpectraPostprocessor_"  source="parameters"/>
     <objectBuilder class="cosmologyFunctions"                     name="cosmologyFunctions_"                     source="parameters"/>
     !!]
-    self=nodePropertyExtractorLuminosityStellarFromStarFormationHistory(                                                                              &
-         &                                                              filterNames                                                                 , &
-         &                                                              enumerationComponentTypeEncode(char(component),includesPrefix=.false.)       , &
-         &                                                              enumerationFrameEncode        (char(frame    ),includesPrefix=.false.)       , &
-         &                                                              redshiftMinimum                                                             , &
-         &                                                              redshiftMaximum                                                             , &
-         &                                                              redshiftSpacingLogarithmic                                                  , &
-         &                                                              starFormationHistory_                                                       , &
-         &                                                              stellarPopulation_                                                          , &
-         &                                                              stellarPopulationBroadBandLuminosities_                                     , &
-         &                                                              stellarPopulationSpectraPostprocessor_                                      , &
-         &                                                              cosmologyFunctions_                                                           &
+    self=nodePropertyExtractorLuminosityStellarFromStarFormationHistory(                                                                        &
+         &                                                              filterNames                                                           , &
+         &                                                              enumerationComponentTypeEncode(char(component),includesPrefix=.false.), &
+         &                                                              enumerationFrameEncode        (char(frame    ),includesPrefix=.false.), &
+         &                                                              redshiftMinimum                                                       , &
+         &                                                              redshiftMaximum                                                       , &
+         &                                                              redshiftSpacingLogarithmic                                            , &
+         &                                                              starFormationHistory_                                                 , &
+         &                                                              stellarPopulation_                                                    , &
+         &                                                              stellarPopulationBroadBandLuminosities_                               , &
+         &                                                              stellarPopulationSpectraPostprocessor_                                , &
+         &                                                              cosmologyFunctions_                                                     &
          &                                                             )
     !![
     <inputParametersValidate source="parameters"/>
@@ -225,6 +285,8 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromStarFormationHistory` property extractor class.
     !!}
+    use :: Display                       , only : displayMagenta               , displayMessage                 , &
+    &                                             displayReset
     use :: Error                         , only : Error_Report
     use :: Galactic_Structure_Options    , only : componentTypeDisk            , componentTypeNuclearStarCluster, &
     &                                             componentTypeSpheroid        , enumerationComponentTypeDecode
@@ -264,32 +326,38 @@ contains
          &   self%component /= componentTypeSpheroid           &
          &  .and.                                              &
          &   self%component /= componentTypeNuclearStarCluster &
-         & ) call Error_Report(                                                                                        &
-         &                     'component "'                                                                        // &
-         &                     enumerationComponentTypeDecode(self%component,includePrefix=.false.)                 // &
-         &                     '" carries no star formation history: use disk, spheroid, or nuclearStarCluster'      // &
-         &                     {introspection:location}                                                                &
+         & ) call Error_Report(                                                                                   &
+         &                     'component "'                                                                   // &
+         &                     enumerationComponentTypeDecode(self%component,includePrefix=.false.)            // &
+         &                     '" carries no star formation history: use disk, spheroid, or nuclearStarCluster'// &
+         &                     {introspection:location}                                                           &
          &                    )
     ! The template is shared by every galaxy, so it is usable only if every galaxy's star formation history has the same bin
     ! structure, which is what fixed ages mean.
     if (self%starFormationHistory_%ageDistribution() /= starFormationHistoryAgesFixed)                                      &
          & call Error_Report(                                                                                               &
-         &                   'the star formation history must use fixed ages, so that one template serves every galaxy: ' // &
-         &                   'use `starFormationHistory` of class `fixedAges`'                                            // &
+         &                   'the star formation history must use fixed ages, so that one template serves every galaxy: '// &
+         &                   'use `starFormationHistory` of class `fixedAges`'                                           // &
          &                   {introspection:location}                                                                       &
          &                  )
-    ! The tabulation is passed a single redshift, which serves both the shift of the filter relative to the spectrum and the
-    ! postprocessing multiplier, so a multiplier which couples age and redshift can not be represented by it.
-    if     (                                                                   &
-         &   self%frame == frameObserved                                       &
-         &  .and.                                                              &
-         &   self%stellarPopulationSpectraPostprocessor_%isAgeDependent     () &
-         &  .and.                                                              &
-         &   self%stellarPopulationSpectraPostprocessor_%isRedshiftDependent() &
-         & ) call Error_Report(                                                                                               &
-         &                     'the spectra postprocessor depends on both age and redshift, which the broadband tabulation '// &
-         &                     'can not represent: use `nodePropertyExtractorLuminosityStellarFromSED` for this case'       // &
-         &                     {introspection:location}                                                                       &
+    ! No condition is imposed on the postprocessing. The tabulation evaluates the multiplier at the wavelength, age and redshift
+    ! of each cell which it integrates, so a multiplier which depends on both age and redshift is represented exactly, and needs
+    ! none of the separability which `nodePropertyExtractorLuminosityStellarFromSED` requires in order to move the
+    ! redshift-dependent factor onto the filter.
+    !
+    ! Structure in the multiplier is, however, resolved only as well as the tabulation's own grid of ages resolves it, since the
+    ! tabulation is interpolated linearly in age. That is a property of the broadband tabulation, and so of the evolved
+    ! luminosities too, but it is worth saying here because the from-SED route integrates the multiplier over each bin of age
+    ! instead and so does better.
+    if (self%stellarPopulationSpectraPostprocessor_%isAgeDependent())                                                                  &
+         & call displayMessage(                                                                                                        &
+         &                     displayMagenta()//'WARNING:'//displayReset()//                                                          &
+         &                     ' the postprocessing of the spectrum depends on the age of the stellar population, and'    //char(10)// &
+         &                     '         is resolved only as well as the grid of ages on which the broadband luminosities'//char(10)// &
+         &                     '         are tabulated. For a multiplier with sharp structure in age, such as a window on'//char(10)// &
+         &                     '         recent star formation, this differs from `luminosityStellarFromSED`, which'      //char(10)// &
+         &                     '         integrates the multiplier over each bin of age: measured at 4 per cent for'      //char(10)// &
+         &                     '         `sequence{madau1995,recent}`. Use that route where the difference matters.'                   &
          &                    )
     ! Build the redshift grid. Rest-frame luminosities are tabulated at zero redshift---the tabulation is passed the redshift to
     ! which the filter is shifted, which is zero for a rest-frame filter---so a single grid point serves every galaxy.
@@ -298,42 +366,55 @@ contains
        self%countRedshifts=1
        allocate(self%redshiftGrid(1))
        self%redshiftGrid=0.0d0
+       ! The postprocessing is then evaluated at zero redshift too, following the convention of the broadband tabulation. Where
+       ! it depends on redshift that is worth saying, since it differs from
+       ! `nodePropertyExtractorLuminosityStellarFromSED`, which applies the postprocessing at the redshift of the galaxy even
+       ! for a rest-frame luminosity.
+       if (self%stellarPopulationSpectraPostprocessor_%isRedshiftDependent())                                                          &
+            & call displayMessage(                                                                                                     &
+            &                     displayMagenta()//'WARNING:'//displayReset()//                                                       &
+            &                     ' rest-frame luminosities are tabulated at zero redshift, so the redshift-dependent'    //char(10)// &
+            &                     '         postprocessing of the spectrum is evaluated there, and not at the redshift of'//char(10)// &
+            &                     '         each galaxy. This follows the convention of the broadband luminosity'         //char(10)// &
+            &                     '         tabulation, but it differs from `luminosityStellarFromSED`. Use a `frame` of' //char(10)// &
+            &                     '         `observed`, or a redshift-independent postprocessor, if that is not intended.'             &
+            &                    )
     case (frameObserved%ID)
-       if (self%redshiftSpacingLogarithmic <= 0.0d0)                                                      &
-            & call Error_Report(                                                                          &
-            &                   'redshiftSpacingLogarithmic must be positive'                           // &
-            &                   {introspection:location}                                                  &
+       if (self%redshiftSpacingLogarithmic <= 0.0d0)                            &
+            & call Error_Report(                                                &
+            &                   'redshiftSpacingLogarithmic must be positive'// &
+            &                   {introspection:location}                        &
             &                  )
-       if (self%redshiftMaximum <= self%redshiftMinimum)                                                  &
-            & call Error_Report(                                                                          &
-            &                   'redshiftMaximum must exceed redshiftMinimum'                           // &
-            &                   {introspection:location}                                                  &
+       if (self%redshiftMaximum <= self%redshiftMinimum)                        &
+            & call Error_Report(                                                &
+            &                   'redshiftMaximum must exceed redshiftMinimum'// &
+            &                   {introspection:location}                        &
             &                  )
        ! The number of grid points follows from the requested spacing. At least four are used, so that the interpolation in
        ! redshift is cubic.
-       self%countRedshifts=max(                                                                        &
-            &                  4                                                                     , &
-            &                  1+int(                                                                 &
-            &                        ceiling(                                                         &
-            &                                 log((1.0d0+self%redshiftMaximum)/(1.0d0+self%redshiftMinimum)) &
-            &                                /self%redshiftSpacingLogarithmic                          &
-            &                               )                                                          &
-            &                       )                                                                  &
+       self%countRedshifts=max(                                                                               &
+            &                  4                                                                            , &
+            &                  1+int(                                                                         &
+            &                        ceiling(                                                                 &
+            &                                 log((1.0d0+self%redshiftMaximum)/(1.0d0+self%redshiftMinimum))  &
+            &                                /self%redshiftSpacingLogarithmic                                 &
+            &                               )                                                                 &
+            &                       )                                                                         &
             &                 )
        allocate(self%redshiftGrid(self%countRedshifts))
        ! Space the grid logarithmically in 1+z. The rest-frame position of the filter scales as 1/(1+z), so equal steps in
        ! log(1+z) sweep the filter across the spectrum by equal fractions of wavelength---which is what sets how fast the
        ! tabulated luminosity varies, and so makes a single spacing in this variable the right criterion at every redshift.
        do i=1,self%countRedshifts
-          self%redshiftGrid(i)=+exp(                                                      &
-               &                    +log(1.0d0+self%redshiftMinimum)                       &
-               &                    +log(                                                  &
-               &                         +(1.0d0+self%redshiftMaximum)                     &
-               &                         /(1.0d0+self%redshiftMinimum)                     &
-               &                        )                                                  &
-               &                    *dble(i-1)                                             &
-               &                    /dble(self%countRedshifts-1)                           &
-               &                   )                                                       &
+          self%redshiftGrid(i)=+exp(                                    &
+               &                    +log(  1.0d0+self%redshiftMinimum ) &
+               &                    +log(                               &
+               &                         +(1.0d0+self%redshiftMaximum)  &
+               &                         /(1.0d0+self%redshiftMinimum)  &
+               &                        )                               &
+               &                    *dble(i                  -1)        &
+               &                    /dble(self%countRedshifts-1)        &
+               &                   )                                    &
                &               -1.0d0
        end do
        ! The tabulation names the dataset holding each redshift in `f7.4` format, so grid points closer than this would silently
@@ -342,7 +423,7 @@ contains
           if (self%redshiftGrid(i)-self%redshiftGrid(i-1) < redshiftSeparationMinimum)                                       &
                & call Error_Report(                                                                                          &
                &                   var_str('the redshift grid is too fine: the broadband luminosity tabulation resolves ')// &
-               &                   'redshifts only to 1.0e-4, so these grid points would share a tabulation. Increase '   // &
+               &                   'redshifts only to 10⁻⁴, so these grid points would share a tabulation. Increase '     // &
                &                   'redshiftSpacingLogarithmic, or widen the range'                                       // &
                &                   {introspection:location}                                                                  &
                &                  )
@@ -353,16 +434,16 @@ contains
     ! Build the private index space for the tabulation: one entry per (filter, grid redshift). These indices address this
     ! object's own tabulation, and are unrelated to the indices of the evolved luminosities registered in
     ! `Stellar_Luminosities_Structure`, so no luminosities need be registered there and none are evolved.
-    allocate(self%luminosityIndex  (size(filterNames)*self%countRedshifts))
-    allocate(self%filterIndex      (size(filterNames)*self%countRedshifts))
+    allocate(self%luminosityIndex   (size(filterNames)*self%countRedshifts))
+    allocate(self%filterIndex       (size(filterNames)*self%countRedshifts))
     allocate(self%redshiftTabulation(size(filterNames)*self%countRedshifts))
-    allocate(self%postprocessor    (size(filterNames)*self%countRedshifts))
+    allocate(self%postprocessor     (size(filterNames)*self%countRedshifts))
     k=0
     do i=1,self%countRedshifts
        do j=1,size(filterNames)
-          k                          =  k+1
-          self%filterIndex       (k) =  Filter_Get_Index(filterNames(j))
-          self%redshiftTabulation(k) =  self%redshiftGrid(i)
+          k                                                                 =  k+1
+          self%filterIndex       (k)                                        =  Filter_Get_Index(filterNames(j))
+          self%redshiftTabulation(k)                                        =  self%redshiftGrid(i)
           self%postprocessor     (k)%stellarPopulationSpectraPostprocessor_ => self%stellarPopulationSpectraPostprocessor_
        end do
     end do
@@ -452,9 +533,8 @@ contains
 
     ! Allocate the luminosity indices, now that the stellar luminosities registry is initialized and the block it reserves is
     ! therefore known.
-    !$omp critical(luminosityStellarFromSFHIndexAllocate)
-    if (luminosityIndexAllocated < 0)                                             &
-         & luminosityIndexAllocated=max(                                          &
+    if (luminosityIndexAllocated < 0)                                                             &
+         & luminosityIndexAllocated=max(                                                          &
          &                              unitStellarLuminosities%luminosityCount(               ), &
          &                              unitStellarLuminosities%luminosityCount(unmapped=.true.)  &
          &                             )
@@ -462,17 +542,16 @@ contains
        self%luminosityIndex(iIndex)=luminosityIndexAllocated+iIndex
     end do
     luminosityIndexAllocated=luminosityIndexAllocated+size(self%luminosityIndex)
-    !$omp end critical(luminosityStellarFromSFHIndexAllocate)
     ! Get the bin structure of the star formation history. The ages are fixed---the constructor refuses any other case---so this
     ! structure is the same for every galaxy, and the template built here serves all of them.
     times                     =self%starFormationHistory_%times                (node=node,starFormationHistory=starFormationHistory,allowTruncation=.false.,timeStart=timeStart)
     self%metallicityBoundaries=self%starFormationHistory_%metallicityBoundaries()
     ! The bin counts are those of the mass array which will be contracted against the template, so that the two cannot disagree
     ! about the bin structure.
-    if (size(times) /= countAgeBins)                                                                                        &
-         & call Error_Report(                                                                                               &
-         &                   'the star formation history reports a different number of age bins from its mass array'      // &
-         &                   {introspection:location}                                                                       &
+    if (size(times) /= countAgeBins)                                                                                   &
+         & call Error_Report(                                                                                          &
+         &                   'the star formation history reports a different number of age bins from its mass array'// &
+         &                   {introspection:location}                                                                  &
          &                  )
     ! Get the tabulation of the stellar population spectra: the grid on which the broadband luminosities are tabulated, and so
     ! the grid of the interpolant whose bin means are wanted here.
@@ -483,25 +562,33 @@ contains
       call stellarPopulationSpectra_%tabulation(countAgesTable,countMetallicitiesTable,ageTable,metallicityTable)
     end block
     allocate(metallicityTableLog(countMetallicitiesTable))
-    metallicityTableLog     =log10(metallicityTable/metallicitySolar)
-    metallicityPopulationLow =     metallicityTable(                      1)/metallicitySolar
-    metallicityPopulationHigh=     metallicityTable(countMetallicitiesTable)/metallicitySolar
+    ! The tabulation is interpolated linearly in the logarithm of metallicity, so a tabulated metallicity of zero---which
+    ! `standardTabulate` guards against, and so may occur---has no logarithm over which to average.
+    if (metallicityTable(1) <= 0.0d0)                                                                                         &
+         & call Error_Report(                                                                                                 &
+         &                   'the stellar population spectra are tabulated at zero metallicity, which can not be averaged '// &
+         &                   'in the logarithm of metallicity, as this extractor requires'                                 // &
+         &                   {introspection:location}                                                                         &
+         &                  )
+    metallicityTableLog      =log10(metallicityTable                         /metallicitySolar)
+    metallicityPopulationLow =      metallicityTable(                      1)/metallicitySolar
+    metallicityPopulationHigh=      metallicityTable(countMetallicitiesTable)/metallicitySolar
     ! Collect the tabulated luminosities at each tabulated metallicity. At a tabulated metallicity the tabulation's own
     ! interpolation returns the tabulated value exactly, so these calls recover the table itself, for every filter and grid
     ! redshift at once.
     allocate(tableLuminosity(size(self%luminosityIndex),countAgesTable,countMetallicitiesTable))
     do iTable=1,countMetallicitiesTable
        call abundancesStellar%metallicitySet(metallicityTable(iTable)/metallicitySolar,metallicityType=metallicityTypeLinearByMassSolar)
-       call self%stellarPopulationBroadBandLuminosities_%luminosityTracks(      &
-            &                                                            self%luminosityIndex   , &
-            &                                                            self%filterIndex       , &
-            &                                                            self%postprocessor     , &
-            &                                                            self%stellarPopulation_, &
-            &                                                            abundancesStellar      , &
-            &                                                            self%redshiftTabulation, &
-            &                                                            ages                   , &
-            &                                                            luminositiesNode         &
-            &                                                           )
+       call self%stellarPopulationBroadBandLuminosities_%luminosityTracks(                         &
+            &                                                             self%luminosityIndex   , &
+            &                                                             self%filterIndex       , &
+            &                                                             self%postprocessor     , &
+            &                                                             self%stellarPopulation_, &
+            &                                                             abundancesStellar      , &
+            &                                                             self%redshiftTabulation, &
+            &                                                             ages                   , &
+            &                                                             luminositiesNode         &
+            &                                                            )
        if (size(ages) /= countAgesTable) call Error_Report('the luminosity tabulation is not on the spectra tabulation grid'//{introspection:location})
        do iIndex=1,size(self%luminosityIndex)
           tableLuminosity(iIndex,:,iTable)=luminositiesNode(:,iIndex)
@@ -517,17 +604,17 @@ contains
              ! The bin spans times [timeStart or times(iAgeBin-1), times(iAgeBin)], and so ages measured back from the time of
              ! observation. Fixed ages make these the same for every galaxy.
              if (iAgeBin == 1) then
-                ageHigh=time-     timeStart
+                ageHigh=time-    timeStart
              else
-                ageHigh=time-     times(iAgeBin-1)
+                ageHigh=time-    times    (iAgeBin-1)
              end if
-             ageLow    =time-min(times(iAgeBin  ),time)
+             ageLow    =time-min(times    (iAgeBin  ),time)
              if (ageHigh <= ageLow) cycle
              do iMetallicityBin=1,countMetallicityBins
                 ! Determine the metallicity range of the bin, clamped to the tabulated range, following the convention of
                 ! `nodePropertyExtractorSED`.
                 if (iMetallicityBin == 1) then
-                   metallicityLow =                                                                   metallicityPopulationLow
+                   metallicityLow =                                                      metallicityPopulationLow
                 else
                    metallicityLow =min(max(self%metallicityBoundaries(iMetallicityBin-1),metallicityPopulationLow),metallicityPopulationHigh)
                 end if
@@ -535,17 +622,17 @@ contains
                 ! A bin which lies wholly outside the tabulated range of metallicity clamps to zero width. Its mass is not
                 ! discarded: the luminosity is taken at the edge of the tabulation, which is what `nodePropertyExtractorSED`
                 ! does for such a bin, and is the same treatment of metallicity which the tabulation's own lookup applies.
-                self%template(iFilter,iAgeBin,iMetallicityBin,iRedshift)=                                       &
-                     & +luminosityStellarFromSFHBinMean(                                                                                &
-                     &          tableLuminosity    (iIndex,:,:),                                                &
-                     &          ageTable                       ,                                                &
-                     &          metallicityTable  /metallicitySolar,                                            &
-                     &          metallicityTableLog            ,                                                &
-                     &          ageLow                         ,                                                &
-                     &          ageHigh                        ,                                                &
-                     &          metallicityLow                 ,                                                &
-                     &          metallicityHigh                                                                 &
-                     &         )
+                self%template(iFilter,iAgeBin,iMetallicityBin,iRedshift)=                                 &
+                     & +luminosityStellarFromSFHBinMean(                                                  &
+                     &                                  tableLuminosity    (iIndex,:,:)                 , &
+                     &                                  ageTable                                        , &
+                     &                                  metallicityTable               /metallicitySolar, &
+                     &                                  metallicityTableLog                             , &
+                     &                                  ageLow                                          , &
+                     &                                  ageHigh                                         , &
+                     &                                  metallicityLow                                  , &
+                     &                                  metallicityHigh                                   &
+                     &                                 )
              end do
           end do
        end do
@@ -601,7 +688,7 @@ contains
        if (min(ageCellHigh,ageHigh) <= max(ageCellLow,ageLow)) cycle
        call luminosityStellarFromSFHAgeWeights(ageTable,iAge,max(ageCellLow,ageLow),min(ageCellHigh,ageHigh),weightAgeLow,weightAgeHigh)
        if (metallicityCollapsed) then
-          luminosityStellarFromSFHBinMean=+luminosityStellarFromSFHBinMean                                                                                      &
+          luminosityStellarFromSFHBinMean=+              luminosityStellarFromSFHBinMean                                                                            &
                &                          +weightAgeLow *luminosityStellarFromSFHLuminosity(table,metallicityTable,metallicityTableLog,iAge,.false.,metallicityLow) &
                &                          +weightAgeHigh*luminosityStellarFromSFHLuminosity(table,metallicityTable,metallicityTableLog,iAge,.true. ,metallicityLow)
           cycle
@@ -623,15 +710,15 @@ contains
           ! factorizes cell by cell.
           integralLow =luminosityStellarFromSFHMetallicityIntegral(table,metallicityTable,metallicityTableLog,iAge,iMetallicity,.false.,max(metallicityCellLow,metallicityLow),min(metallicityCellHigh,metallicityHigh))
           integralHigh=luminosityStellarFromSFHMetallicityIntegral(table,metallicityTable,metallicityTableLog,iAge,iMetallicity,.true. ,max(metallicityCellLow,metallicityLow),min(metallicityCellHigh,metallicityHigh))
-          luminosityStellarFromSFHBinMean=+luminosityStellarFromSFHBinMean                   &
-               &  +weightAgeLow *integralLow  &
-               &  +weightAgeHigh*integralHigh
+          luminosityStellarFromSFHBinMean=+luminosityStellarFromSFHBinMean &
+               &                          +weightAgeLow *integralLow       &
+               &                          +weightAgeHigh*integralHigh
        end do
     end do
     ! Normalize to a mean.
     luminosityStellarFromSFHBinMean=+luminosityStellarFromSFHBinMean &
          &                          /(ageHigh-ageLow)
-    if (.not.metallicityCollapsed)                                      &
+    if (.not.metallicityCollapsed)                                            &
          & luminosityStellarFromSFHBinMean=+luminosityStellarFromSFHBinMean   &
          &                                 /(metallicityHigh-metallicityLow)
     return
@@ -661,11 +748,11 @@ contains
        ageCellLow   =ageTable(iAge  )
        ageCellHigh  =ageTable(iAge+1)
        ! The integral over [ageLow,ageHigh] of (ageCellHigh-age)/(ageCellHigh-ageCellLow), and of its complement.
-       weightAgeLow =+(                                                         &
-            &          +(ageCellHigh-ageLow )**2                                &
-            &          -(ageCellHigh-ageHigh)**2                                &
-            &         )                                                         &
-            &        /2.0d0                                                     &
+       weightAgeLow =+(                          &
+            &          +(ageCellHigh-ageLow )**2 &
+            &          -(ageCellHigh-ageHigh)**2 &
+            &         )                          &
+            &        /2.0d0                      &
             &        /(ageCellHigh-ageCellLow)
        weightAgeHigh=+(ageHigh-ageLow)-weightAgeLow
     end if
@@ -699,17 +786,17 @@ contains
     else
        ! Within the tabulation the luminosity is linear in log-metallicity, so its integral over linear metallicity is
        ! elementary: with L = intercept + gradient log₁₀Z, ∫L dZ = intercept Z + gradient (Z log₁₀Z - Z/ln10).
-       luminosityLow      =table(indexAge,iMetallicity  )
-       luminosityHigh     =table(indexAge,iMetallicity+1)
-       gradient           =+(luminosityHigh        -luminosityLow        ) &
-            &              /(metallicityTableLog(iMetallicity+1)-metallicityTableLog(iMetallicity))
-       intercept          =+luminosityLow                                  &
-            &              -gradient*metallicityTableLog(iMetallicity)
-       luminosityStellarFromSFHMetallicityIntegral=+intercept*(metallicityHigh-metallicityLow)                                   &
-            &              +gradient *(                                                                  &
-            &                          +metallicityHigh*log10(metallicityHigh)-metallicityHigh/log(10.0d0) &
-            &                          -metallicityLow *log10(metallicityLow )+metallicityLow /log(10.0d0) &
-            &                         )
+       luminosityLow                              =table(indexAge,iMetallicity  )
+       luminosityHigh                             =table(indexAge,iMetallicity+1)
+       gradient                                   =+(luminosityHigh                     -luminosityLow                    ) &
+            &                                      /(metallicityTableLog(iMetallicity+1)-metallicityTableLog(iMetallicity))
+       intercept                                  =+luminosityLow                                  &
+            &                                      -gradient*metallicityTableLog(iMetallicity)
+       luminosityStellarFromSFHMetallicityIntegral=+intercept*(metallicityHigh-metallicityLow)                                     &
+            &                                      +gradient *(                                                                    &
+            &                                                  +metallicityHigh*log10(metallicityHigh)-metallicityHigh/log(10.0d0) &
+            &                                                  -metallicityLow *log10(metallicityLow )+metallicityLow /log(10.0d0) &
+            &                                                 )
     end if
     ! The tabulation's lookup clamps interpolated luminosities to be non-negative; do the same here.
     luminosityStellarFromSFHMetallicityIntegral=max(luminosityStellarFromSFHMetallicityIntegral,0.0d0)
@@ -741,8 +828,8 @@ contains
        do while (iMetallicity < size(metallicityTable)-1 .and. metallicityTable(iMetallicity+1) < metallicity)
           iMetallicity=iMetallicity+1
        end do
-       h                                 =+(log10(metallicity                  )-metallicityTableLog(iMetallicity)) &
-            &                             /(metallicityTableLog(iMetallicity+1)-metallicityTableLog(iMetallicity))
+       h                                 =+(log10(metallicity                       )-metallicityTableLog(iMetallicity)) &
+            &                             /(      metallicityTableLog(iMetallicity+1)-metallicityTableLog(iMetallicity))
        luminosityStellarFromSFHLuminosity=+table(indexAge,iMetallicity  )*(1.0d0-h) &
             &                             +table(indexAge,iMetallicity+1)*       h
     end if
@@ -786,9 +873,9 @@ contains
     do i=1,4
        do j=1,4
           if (j == i) cycle
-          weight(i)=+weight(i)       &
-               &    *(x_   -x    (j)) &
-               &    /(x (i)-x    (j))
+          weight(i)=+weight(i)    &
+               &    *(x_   -x(j)) &
+               &    /(x (i)-x(j))
        end do
     end do
     return
@@ -854,13 +941,13 @@ contains
     if (.not.self%templateBuilt) call self%templateBuild(node,starFormationHistory,time,size(masses,dim=1),size(masses,dim=2))
     ! The template is shared by every galaxy, so a galaxy whose star formation history has a different bin structure would be
     ! silently wrong.
-    if     (                                                      &
-         &   size(masses,dim=1) /= size(self%template,dim=2)      &
-         &  .or.                                                  &
-         &   size(masses,dim=2) /= size(self%template,dim=3)      &
+    if     (                                                                                                                &
+         &   size(masses,dim=1) /= size(self%template,dim=2)                                                                &
+         &  .or.                                                                                                            &
+         &   size(masses,dim=2) /= size(self%template,dim=3)                                                                &
          & ) call Error_Report(                                                                                             &
-         &                     'the star formation history of this galaxy has a different bin structure from the first: ' // &
-         &                     'the template can not be shared'                                                           // &
+         &                     'the star formation history of this galaxy has a different bin structure from the first: '// &
+         &                     'the template can not be shared'                                                          // &
          &                     {introspection:location}                                                                     &
          &                    )
     ! Locate the galaxy in the redshift grid.
@@ -883,20 +970,20 @@ contains
           end do
           call luminosityStellarFromSFHWeightsCubic(log(1.0d0+self%redshiftGrid(indexWeight(1:4))),log(1.0d0+redshift),weight)
        else
-          countWeights     =2
-          indexWeight(1:2) =[iRedshift,iRedshift+1]
-          weight     (1:2) =[hRedshift(0),hRedshift(1)]
+          countWeights    =2
+          indexWeight(1:2)=[iRedshift   ,iRedshift   +1]
+          weight     (1:2)=[hRedshift(0),hRedshift(1)  ]
        end if
     else
-       countWeights   =1
-       indexWeight(1) =1
-       weight     (1) =1.0d0
+       countWeights       =1
+       indexWeight   (1  )=1
+       weight        (1  )=1.0d0
     end if
     ! Contract the star formation history with the template at each grid redshift which carries weight, and combine the results.
     ! This is identical to interpolating the template itself, and avoids building an interpolated template for every galaxy.
     do i=1,size(self%filterNames)
        do j=1,countWeights
-          luminosities(i)=+luminosities(i)                                             &
+          luminosities(i)=+luminosities(i)                                           &
                &          +sum(self%template(i,:,:,indexWeight(j))*masses)*weight(j)
        end do
     end do
@@ -922,12 +1009,12 @@ contains
       write (labelMinimum,'(f12.6)') self%redshiftMinimum
       write (labelMaximum,'(f12.6)') self%redshiftMaximum
       !$omp end critical(gfortranInternalIO)
-      message=var_str('a galaxy at redshift ')//trim(adjustl(label))//' lies outside the tabulated range ['// &
-           &  trim(adjustl(labelMinimum))//','//trim(adjustl(labelMaximum))//']'//char(10)
+      message=var_str('a galaxy at redshift ')//trim(adjustl(label))//' lies outside the tabulated range ['//         &
+           &  trim(adjustl(labelMinimum))//','//trim(adjustl(labelMaximum))//']'                           //char(10)
       message=message//displayGreen()//'HELP:'//displayReset()//' the luminosities are tabulated on a grid of redshifts and'//char(10)
-      message=message//'      interpolated to the redshift of each galaxy, and are not extrapolated beyond the grid, since'//char(10)
-      message=message//'      the postprocessing of the spectrum varies sharply with redshift. Widen the range in your'//char(10)
-      message=message//'      parameter file, for example to:'//char(10)//char(10)
+      message=message//'      interpolated to the redshift of each galaxy, and are not extrapolated beyond the grid, since' //char(10)
+      message=message//'      the postprocessing of the spectrum varies sharply with redshift. Widen the range in your'     //char(10)
+      message=message//'      parameter file, for example to:'                                                              //char(10)//char(10)
       !$omp critical(gfortranInternalIO)
       write (labelMinimum,'(f12.6)') min(self%redshiftMinimum,0.9d0*redshift)
       write (labelMaximum,'(f12.6)') max(self%redshiftMaximum,1.1d0*redshift)
@@ -969,12 +1056,12 @@ contains
 
     allocate(names(size(self%filterNames)))
     do i=1,size(names)
-       names(i)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)                  // &
-            &   "StellarSFH:"                                                                         // &
-            &   self%stellarPopulationSpectraPostprocessor_%objectType(short=.true.)                  // &
-            &   ":"                                                                                   // &
-            &   self%filterNames(i)                                                                   // &
-            &   ":"                                                                                   // &
+       names(i)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)// &
+            &   "StellarSFH:"                                                       // &
+            &   self%stellarPopulationSpectraPostprocessor_%objectType(short=.true.)// &
+            &   ":"                                                                 // &
+            &   self%filterNames(i)                                                 // &
+            &   ":"                                                                 // &
             &   enumerationFrameDecode(self%frame,includePrefix=.false.)
     end do
     return
@@ -996,12 +1083,12 @@ contains
 
     allocate(descriptions(size(self%filterNames)))
     do i=1,size(descriptions)
-       descriptions(i)="Luminosity in "                                                               // &
-            &          self%filterNames(i)                                                           // &
-            &          " filter in the "                                                              // &
-            &          enumerationFrameDecode(self%frame,includePrefix=.false.)                       // &
+       descriptions(i)="Luminosity in "                                                                    // &
+            &          self%filterNames(i)                                                                 // &
+            &          " filter in the "                                                                   // &
+            &          enumerationFrameDecode(self%frame,includePrefix=.false.)                            // &
             &          " frame in units of the AB-magnitude system zero-point; computed directly from the "// &
-            &          enumerationComponentTypeDecode(self%component,includePrefix=.false.)           // &
+            &          enumerationComponentTypeDecode(self%component,includePrefix=.false.)                // &
             &          " star formation history."
     end do
     return
