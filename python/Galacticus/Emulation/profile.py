@@ -194,7 +194,8 @@ class Profile:
     of the ``poissonCounts`` form, as the progenitor mass function analysis does with ``[covarianceTargetOnly]`` false (see
     :func:`Galacticus.Emulation.likelihood.log_likelihood`). This reduces the bias of the likelihood of a model built from one,
     or a few, realizations of its merger trees, whose noise otherwise adds to its misfit. Bins whose value was floored (or
-    replaced) in collection are given no model variance.
+    replaced) in collection are given no model variance. It can not be combined with observables which set
+    ``root_variance_zero``, and an observable whose model has no variance in any bin is an error.
     """
 
     directory: str
@@ -229,6 +230,11 @@ class Profile:
         if self.model_variance and any(observable.form != 'poissonCounts' for component in self.components
                                        for observable in component.observables):
             raise ValueError('the variance of the model can be included only for observables of the `poissonCounts` form')
+        if self.model_variance and any(observable.observable.root_variance_zero is not None for component in self.components
+                                       for observable in component.observables):
+            # Collection replaces zero root variances by `rootVarianceZero` (a regularization for training) without marking
+            # them, so they could not be told apart from the model's own variance.
+            raise ValueError('the variance of the model can not be included for observables with `rootVarianceZero`')
 
     # Paths.
 
@@ -345,6 +351,9 @@ class Profile:
             _, training_sets, reports = collect(design_file, [observable for observable, _ in observables], model_files=outputs)
             for observable, form in observables:
                 training_set = training_sets[observable.label]
+                if self.model_variance and not np.any((training_set.mask == 0) & (training_set.root_variance > 0.0)):
+                    raise ValueError(f"component '{component.name}', observable '{observable.label}': the model has no variance in "
+                                     "any bin (its analysis may write no covariance), so it can not be included")
                 missing = np.ones(countPoints, dtype=bool)
                 for row, point in enumerate(training_set.point_index):
                     missing[point] = False

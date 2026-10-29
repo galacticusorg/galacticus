@@ -194,8 +194,18 @@ def test_profile_model_variance(workspace):
     # Without the model variance, the likelihood differs.
     profile.model_variance = False
     assert np.all(np.abs(profile.point_likelihoods('star')[0] - logLikelihoods) > 1.0)
-    # Only the `poissonCounts` form can include it.
+    # An analysis which writes no covariance has no model variance to include.
     profile.model_variance = True
+    for output in outputs:
+        with h5py.File(output, 'r+') as file:
+            del file['analyses/counts'].attrs['yCovariance']
+    with pytest.raises(ValueError, match='no variance'):
+        profile.point_likelihoods('star')
+    # It can not be combined with `rootVarianceZero`, nor with forms other than `poissonCounts`.
+    profile.components[0].observables[0].observable.root_variance_zero = 0.1
+    with pytest.raises(ValueError, match='rootVarianceZero'):
+        profile.validate()
+    profile.components[0].observables[0].observable.root_variance_zero = None
     profile.components[0].observables[0].form = 'gaussianDiagonal'
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='poissonCounts'):
         profile.validate()
