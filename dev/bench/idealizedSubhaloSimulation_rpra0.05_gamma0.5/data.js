@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793133867395,
+  "lastUpdate": 1793270036515,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "429b2f2ad82cd83b9033ebbc939de7d21f37e682",
-          "message": "Merge pull request #718 from galacticusorg/featModelReportState\n\nAdd options to report the base parameter file name and sampling state from the `posteriorSampleLikelihoodBaseParameters` class",
-          "timestamp": "2024-10-12T23:13:47Z",
-          "tree_id": "a652bc99765a83e04f82a1519576e8d08ebda588",
-          "url": "https://github.com/galacticusorg/galacticus/commit/429b2f2ad82cd83b9033ebbc939de7d21f37e682"
-        },
-        "date": 1728800268183,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": "21.58128069887297",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "7.8967620087179835",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "9.849830842989993",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9926,6 +9887,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/255964b1351336044b381634e10bb9cbdc9cdbfd"
         },
         "date": 1793133865985,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": -23.380591021144156,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -8.011177098874096,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -10.110657914761397,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c1327d5158ca93f2afe0f9439e51d8b1359a9a9",
+          "message": "Merge pull request #1694 from galacticusorg/fix/atomic-rt-electron-numbers\n\nfix(radiativeTransfer): pass electron numbers to the excitation, Gaunt factor, and dielectronic rate methods in atomic matter",
+          "timestamp": "2026-10-28T15:51:16Z",
+          "tree_id": "aab1feba3ef02298f30b18dde49f085442d7aee7",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4c1327d5158ca93f2afe0f9439e51d8b1359a9a9"
+        },
+        "date": 1793270035585,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
