@@ -1081,7 +1081,7 @@ contains
     !!{RST
     Return the position of the orbit in Cartesian coordinates.
     !!}
-    use :: Coordinates, only : assignment(=) , coordinateCartesian
+    use :: Coordinates, only : assignment(=)   , coordinateCartesian
     use :: Vectors    , only : Vector_Magnitude, Vector_Product
     implicit none
     type            (coordinateCartesian)                :: velocity

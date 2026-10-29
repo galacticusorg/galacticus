@@ -146,21 +146,21 @@ program Tests_Kepler_Orbits
   ! Propagate to orbit to apocenter (or very close to it, to avoid rounding errors).
   call orbit%propagate            (1.0d0-1.0d-6)
   ! Check that we are at the expected position.
-  call Assert('Propagation: θ',orbit%theta             (),0.5d0               *Pi,absTol=1.0d-2              )
-  call Assert('Propagation: φ',orbit%phi               (),1.0d0               *Pi,absTol=1.0d-2              )
-  call Assert('Propagation: ε',orbit%epsilon           (),0.0d0                  ,absTol=1.0d-2              )
+  call Assert('Propagation: θ' ,orbit%theta             (),0.5d0               *Pi,absTol=1.0d-2              )
+  call Assert('Propagation: φ' ,orbit%phi               (),1.0d0               *Pi,absTol=1.0d-2              )
+  call Assert('Propagation: ε' ,orbit%epsilon           (),0.0d0                  ,absTol=1.0d-2              )
   call Assert('Propagation: vᵣ',orbit%velocityRadial    (),0.0d0                  ,absTol=1.0d-2*velocityScale)
   call Assert('Propagation: vᵩ',orbit%velocityTangential(),3.279170147274157d-5   ,absTol=1.0d-2*velocityScale)
   ! Check that the Cartesian velocity of an orbit uses the tangential basis defined for the class: the direction r×ẑ, rotated by
   ! ε around r toward (r×ẑ)×r. Decomposing the velocity in that basis must recover the radial and tangential velocities and ε.
-  call orbit%reset                (                            )
-  call orbit%massesSet            (0.0d0                 ,1.0d0)
-  call orbit%radiusSet            (0.3d0                       )
-  call orbit%velocityRadialSet    (-0.4d0*velocityScale        )
-  call orbit%velocityTangentialSet(+0.7d0*velocityScale        )
-  call orbit%thetaSet             (0.3d0*Pi                    )
-  call orbit%phiSet               (0.7d0*Pi                    )
-  call orbit%epsilonSet           (0.4d0*Pi                    )
+  call orbit%reset                (                          )
+  call orbit%massesSet            (0.0d0               ,1.0d0)
+  call orbit%radiusSet            (0.3d0                     )
+  call orbit%velocityRadialSet    (-0.4d0*velocityScale      )
+  call orbit%velocityTangentialSet(+0.7d0*velocityScale      )
+  call orbit%thetaSet             (0.3d0*Pi                  )
+  call orbit%phiSet               (0.7d0*Pi                  )
+  call orbit%epsilonSet           (0.4d0*Pi                  )
   velocityCartesian=orbit%velocity()
   velocity         =velocityCartesian
   vectorRadial     =[sin(0.3d0*Pi)*cos(0.7d0*Pi),sin(0.3d0*Pi)*sin(0.7d0*Pi),cos(0.3d0*Pi)]
@@ -168,9 +168,9 @@ program Tests_Kepler_Orbits
   vectorTangential1=vectorTangential1/Vector_Magnitude(vectorTangential1)
   vectorTangential2=Vector_Product(vectorTangential1,vectorRadial       )
   vectorTangential2=vectorTangential2/Vector_Magnitude(vectorTangential2)
-  call Assert('Velocity: vᵣ',dot_product(velocity,vectorRadial)                                                   ,-0.4d0*velocityScale,relTol=1.0d-9)
-  call Assert('Velocity: vₜ',sqrt(dot_product(velocity,vectorTangential1)**2+dot_product(velocity,vectorTangential2)**2),+0.7d0*velocityScale,relTol=1.0d-9)
-  call Assert('Velocity: ε' ,atan2(dot_product(velocity,vectorTangential2),dot_product(velocity,vectorTangential1))  , 0.4d0*Pi            ,relTol=1.0d-9)
+  call Assert('Velocity: vᵣ',      dot_product(velocity,vectorRadial     )                                               ,-0.4d0*velocityScale,relTol=1.0d-9)
+  call Assert('Velocity: vₜ',sqrt (dot_product(velocity,vectorTangential1)**2+dot_product(velocity,vectorTangential2)**2),+0.7d0*velocityScale,relTol=1.0d-9)
+  call Assert('Velocity: ε' ,atan2(dot_product(velocity,vectorTangential2)   ,dot_product(velocity,vectorTangential1)   ), 0.4d0*Pi           ,relTol=1.0d-9)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
