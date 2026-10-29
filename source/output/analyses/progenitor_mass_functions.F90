@@ -172,7 +172,9 @@ contains
       <name>fillInZeroBins</name>
       <source>parameters</source>
       <description>
-      If true, fill in values of empty bins to avoid improbable likelihoods.
+      If true, fill in values of empty bins to avoid improbable likelihoods. If the variance of the model is included in a
+      counts likelihood (``[likelihoodInCounts]`` true, ``[covarianceTargetOnly]`` false), a filled-in bin is given the
+      fractional variance of the last non-empty bin before it.
       </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -1045,6 +1047,14 @@ contains
           ! Extrapolate a value to this bin from the last known non-zero bin.
           self%functionValue(i)=+self%functionValue  (  iLastNonZero) &
                &                /     factorDecline**(i-iLastNonZero)
+          ! If the variance of the model is included in the counts likelihood, give the extrapolated value the fractional
+          ! variance of the last known non-zero bin (it would otherwise have none, although it is the least certain).
+          if (self%likelihoodInCounts .and. .not.self%covarianceTargetOnly .and. self%functionValue(iLastNonZero) > 0.0d0) &
+               & self%functionCovariance(i,i)=+self%functionCovariance(iLastNonZero,iLastNonZero) &
+               &                              *(                                                   &
+               &                                +self%functionValue     (i                       ) &
+               &                                /self%functionValue     (iLastNonZero            ) &
+               &                               )**2
        end do
        if (warnFillIn) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' had to extrapolate to empty bin with potential non-neglible content')
     end if

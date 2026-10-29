@@ -6,7 +6,10 @@ over-dispersion c² = C² (C being `rootVarianceTargetFractional`), or, if `cova
 where v is the fractional variance of the model in the bin (from the diagonal of the model covariance). If c² = 0 it is a
 Poisson likelihood. Here a small model is run with four progenitor mass function analyses, which differ only in C (0.1, or 0)
 and in whether the model variance is included, and the log-likelihood reported by each is compared with an independent
-calculation from the model, its covariance, and the target counts written to the output file.
+calculation from the model, its covariance, and the target counts written to the output file. A fifth analysis, which
+includes the model variance, extends its bins to mass ratios of 10, where the model is empty, and fills in those bins
+(`fillInZeroBins`, which extrapolates from the last non-empty bin, halving the value in each successive bin): each filled-in
+bin must be given the fractional variance of that last non-empty bin.
 
 Andrew Benson, Claude (29-October-2026).
 """
@@ -25,12 +28,16 @@ os.environ['GALACTICUS_EXEC_PATH'] = root
 os.chdir(root)
 
 directory = 'testSuite/outputs/progenitorMassFunctionLikelihood'
-massRatioBins = np.logspace(-2.0, 0.0, 8)
-massRatioLikelihood = (0.015, 1.0)
 toleranceRelative = 1.0e-9
-# The analyses: label, C, and whether the model variance is included.
-analyses = [('TargetOnly', 0.1, False), ('ModelVariance', 0.1, True), ('PoissonTargetOnly', 0.0, False),
-            ('PoissonModelVariance', 0.0, True)]
+# The analyses: label, C, whether the model variance is included, and whether empty bins are filled in (when the mass ratio
+# bins extend to 10, and the likelihood range to 5).
+analyses = [('TargetOnly', 0.1, False, False), ('ModelVariance', 0.1, True, False), ('PoissonTargetOnly', 0.0, False, False),
+            ('PoissonModelVariance', 0.0, True, False), ('FillInModelVariance', 0.1, True, True)]
+
+
+def bins(fillIn):
+    """The mass ratio bins, and the range of mass ratio used in the likelihood."""
+    return (np.logspace(-2.0, 1.0, 11), (0.015, 5.0)) if fillIn else (np.logspace(-2.0, 0.0, 8), (0.015, 1.0))
 
 
 def values(array):
@@ -53,12 +60,14 @@ def writeParameters():
                         ('correlationModelTrivial', 'false'), ('correlationNormalization', '1.0'),
                         ('correlationMassExponent', '1.0'), ('correlationRedshiftExponent', '0.0')):
         ET.SubElement(errors, name, value=value)
-    # Target counts, with some empty bins.
-    value = 0.3 * massRatioBins ** -0.9
-    count = np.round(40.0 * value * massRatioBins ** 0.6)
-    count[3] = 0
     multi = ET.SubElement(tree.getroot(), 'outputAnalysis', value='multi')
-    for label, rootVariance, modelVariance in analyses:
+    for label, rootVariance, modelVariance, fillIn in analyses:
+        massRatioBins, massRatioLikelihood = bins(fillIn)
+        # Target counts, with some empty bins (including every bin beyond a mass ratio of 1).
+        value = 0.3 * massRatioBins ** -0.9
+        count = np.round(40.0 * value * massRatioBins ** 0.6)
+        count[3] = 0
+        count[massRatioBins > 1.0] = 0
         analysis = ET.SubElement(multi, 'outputAnalysis', value='progenitorMassFunction')
         for name, setting in (('label', label), ('comment', 'Progenitor mass function'), ('targetLabel', 'synthetic'),
                               ('massRatioMinimum', f'{massRatioBins[0]}'), ('massRatioMaximum', f'{massRatioBins[-1]}'),
@@ -70,6 +79,7 @@ def writeParameters():
                               ('rootVarianceTargetFractional', f'{rootVariance}'), ('alwaysIsolatedOnly', 'false'),
                               ('functionValueTarget', values(value)), ('functionCovarianceTarget', values(np.diag((0.2 * value) ** 2))),
                               ('functionCountTarget', ' '.join(f'{int(n)}' for n in count)),
+                              ('fillInZeroBins', 'true' if fillIn else 'false'),
                               ('virialDensityContrastDefinition', 'sphericalCollapseClsnlssMttrCsmlgclCnstnt')):
             ET.SubElement(analysis, name, value=setting)
     path = f'{directory}/parameters.xml'
@@ -115,7 +125,7 @@ def main():
     failures = []
     reported = {}
     with h5py.File(f'{directory}/galacticus.hdf5', 'r') as file:
-        for label, rootVariance, modelVariance in analyses:
+        for label, rootVariance, modelVariance, fillIn in analyses:
             group = file[f'analyses/progenitorMassFunction{label}']
             reported[label] = float(group.attrs['logLikelihood'])
             expected = logLikelihood(group, rootVariance, modelVariance)
@@ -129,6 +139,21 @@ def main():
                 fractional = np.diag(covariance)[y > 0.0] / y[y > 0.0] ** 2
                 if fractional.max() < 1.0e-3:
                     failures.append(f'{label}: the model variance is too small (at most {fractional.max():.2e}) to test')
+            if fillIn:
+                # Filled-in bins are found by the exact halving of the value from one bin to the next. (Bins just beyond a mass
+                # ratio of 1 are not empty, as the convolution with N-body mass errors gives them tiny values.)
+                y = group[group.attrs['yDataset'].decode()][:]
+                fractional = np.diag(group[group.attrs['yCovariance'].decode()][:]) / np.where(y > 0.0, y, 1.0) ** 2
+                filled = [i for i in range(1, y.size) if y[i] > 0.0 and y[i] == 0.5 * y[i - 1]]
+                if not filled:
+                    failures.append(f'{label}: no bin was filled in')
+                for i in filled:
+                    source = i
+                    while source in filled:
+                        source -= 1
+                    if not np.isclose(fractional[i], fractional[source], rtol=1.0e-12, atol=0.0):
+                        failures.append(f'{label}: filled-in bin {i} has fractional variance {fractional[i]!r}, not that of the '
+                                        f'last non-empty bin, {source} ({fractional[source]!r})')
     # Including the model variance must change the likelihood.
     for withVariance, without in (('ModelVariance', 'TargetOnly'), ('PoissonModelVariance', 'PoissonTargetOnly')):
         if reported[withVariance] == reported[without]:

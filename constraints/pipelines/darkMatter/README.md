@@ -170,9 +170,15 @@ than the default Hinkley) mass-ratio distribution for the progenitor stage, and
 `--progenitorMassFunction_modelVariance yes` adds the variance of the model (from its
 finite number of merger trees) to the over-dispersion of the progenitor mass function
 likelihood. A model built from a single realization of its trees scores lower than the
-mean of many realizations would, since its noise adds to the misfit. Including its
-variance in the likelihood largely removes that bias, which would otherwise inflate the
-fitted `rootVarianceTargetFractional`.
+mean of many realizations would, since its noise adds to the misfit, and this inflates
+the fitted `rootVarianceTargetFractional`. Including the model's variance reduces that
+bias, but only approximately: the variance is the Poisson estimate from the analysis's
+covariance model, which treats progenitors as independent, and so only approximates the
+scatter between realizations of the trees. (In an offline test on the 2026 calibration,
+a similar correction, adding the model's fractional variance to C², moved the fitted values
+of `rootVarianceTargetFractional` for three groups of redshifts from 0.18, 0.21 and 0.56 to
+0.13, 0.16 and 0.50, against 0.14, 0.19 and 0.54 for the seed-averaged model: it removed
+the inflation, but overcorrected slightly.)
 
 ---
 
