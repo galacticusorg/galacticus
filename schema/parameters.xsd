@@ -5105,6 +5105,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="orphanTrajectory">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="decay"/>
+          <xs:enumeration value="host"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="outputFormat">
    <xs:complexType mixed="true">
     <xs:sequence>
