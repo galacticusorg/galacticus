@@ -167,10 +167,10 @@ contains
     use :: Interfaces_CLASS        , only : Interface_CLASS_Dark_Energy, Interface_CLASS_Transfer_Function_Amplitude
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target       :: self
-    procedure       (powerSpectrumNormalizerPowerUnnormalized)                              :: powerUnnormalized
-    double precision                                                                        :: amplitudeTransfer, timePresent     , &
-         &                                                                                     equationOfState0 , equationOfStateA
+    class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target :: self
+    procedure       (powerSpectrumNormalizerPowerUnnormalized)                        :: powerUnnormalized
+    double precision                                                                  :: amplitudeTransfer, timePresent     , &
+         &                                                                               equationOfState0 , equationOfStateA
 
     ! Find the large-scale transfer amplitude from CLASS. This includes the growth of perturbations to the present day, so CLASS is
     ! given the dark energy equation of state of the model.

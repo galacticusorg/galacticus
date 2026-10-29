@@ -424,23 +424,23 @@ contains
     double precision                         , parameter    , dimension(2) :: expansionFactorTest  =[0.5d0,0.1d0]
     integer                                                                :: i
 
-    equationOfState0=+cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0                      )
-    equationOfStateA=-(                                                                                          &
+    equationOfState0=+  cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0                      )
+    equationOfStateA=-(                                                                                            &
          &             +cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0                      ) &
          &             -cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=1.0d0-expansionFactorOffset) &
-         &            )                                                                                          &
+         &            )                                                                                            &
          &           /expansionFactorOffset
     do i=1,size(expansionFactorTest)
-       if     (                                                                                                              &
-            &  Values_Differ(                                                                                                &
-            &                cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest(i))         , &
-            &                equationOfState0+equationOfStateA*(1.0d0-expansionFactorTest(i))                              , &
-            &                absTol=toleranceEquationOfStateCPL                                                              &
-            &               )                                                                                                &
-            & )                                                                                                              &
-            & call Error_Report(                                                                                             &
-            &                   'CLASS supports only dark energy equations of state of the CPL form, w(a)=w₀+wₐ(1-a)'     // &
-            &                   {introspection:location}                                                                     &
+       if     (                                                                                                        &
+            &  Values_Differ(                                                                                          &
+            &                cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest(i)),    &
+            &                equationOfState0+equationOfStateA*(1.0d0-expansionFactorTest(i))                     ,    &
+            &                absTol=toleranceEquationOfStateCPL                                                        &
+            &               )                                                                                          &
+            & )                                                                                                        &
+            & call Error_Report(                                                                                       &
+            &                   'CLASS supports only dark energy equations of state of the CPL form, w(a)=w₀+wₐ(1-a)'// &
+            &                   {introspection:location}                                                               &
             &                  )
     end do
     return
@@ -455,7 +455,7 @@ contains
     double precision, intent(in   ) :: equationOfState0, equationOfStateA
 
     classDarkEnergyIsLambda= abs(equationOfState0+1.0d0) <= toleranceEquationOfStateLambda &
-         &                  .and.                                                         &
+         &                  .and.                                                          &
          &                   abs(equationOfStateA      ) <= toleranceEquationOfStateLambda
     return
   end function classDarkEnergyIsLambda
