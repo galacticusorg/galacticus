@@ -2424,39 +2424,39 @@ contains
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use            :: HDF5_Access       , only : hdf5Access
     implicit none
-    class           (inputParameters                         ), intent(inout), target   :: self
-    type            (inputParameter                          ), intent(inout), target   :: parameterNode
-    {Type¦intrinsic}                                          , intent(  out)           :: parameterValue
-    type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
-    logical                                                   , intent(in   ), optional :: writeOutput        , evaluate
+    class           (inputParameters                         ), intent(inout), target    :: self
+    type            (inputParameter                          ), intent(inout), target    :: parameterNode
+    {Type¦intrinsic}                                          , intent(  out)            :: parameterValue
+    type            (enumerationInputParameterErrorStatusType), intent(  out), optional  :: errorStatus
+    logical                                                   , intent(in   ), optional  :: writeOutput        , evaluate
 #ifdef MATHEVALAVAIL
-    integer         (c_int64_t                               )                          :: evaluator
+    integer         (c_int64_t                               )                           :: evaluator
     ! Declarations of GNU libmatheval procedures used.
-    integer         (c_int64_t                               ), external                :: Evaluator_Create_
-    double precision                                          , external                :: Evaluator_Evaluate_
-    external                                                                            :: Evaluator_Destroy_
+    integer         (c_int64_t                               ), external                 :: Evaluator_Create_
+    double precision                                          , external                 :: Evaluator_Evaluate_
+    external                                                                             :: Evaluator_Destroy_
 #endif
-    type            (inputParameter                          )               , pointer  :: sibling
-    type            (node                                    )               , pointer  :: valueElement       , identifierNode
-    type            (inputParameters                         )               , pointer  :: parentParameters
-    type            (DOMException                            )                          :: exception
-    integer                                                                             :: copyInstance       , copyCount       , &
-         &                                                                                 status
-    logical                                                                             :: hasValueAttribute  , hasValueElement , &
-         &                                                                                 isException        , isPresent       , &
-         &                                                                                 isDouble           , isText          , &
-         &                                                                                 isInteger          , haveDefault
-    character       (len=parameterLengthMaximum              )                          :: expression         , parameterName   , &
-         &                                                                                 workText           , content         , &
-         &                                                                                 workValueText      , formatSpecifier , &
-         &                                                                                 parameterLeafName  , defaultValue
-    type            (varying_string                          )                          :: attributeName      , nodeName        , &
-         &                                                                                 siblingName
-    double precision                                                                    :: workValueDouble
-    double precision                                                         , parameter:: toleranceRoundingInteger=1.0d-9
-    integer         (c_size_t                                )                          :: workValueInteger
-    type            (enumerationInputParameterTypeType       )                          :: parameterType
-    {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
+    type            (inputParameter                          )               , pointer   :: sibling
+    type            (node                                    )               , pointer   :: valueElement       , identifierNode
+    type            (inputParameters                         )               , pointer   :: parentParameters
+    type            (DOMException                            )                           :: exception
+    integer                                                                              :: copyInstance       , copyCount       , &
+         &                                                                                  status
+    logical                                                                              :: hasValueAttribute  , hasValueElement , &
+         &                                                                                  isException        , isPresent       , &
+         &                                                                                  isDouble           , isText          , &
+         &                                                                                  isInteger          , haveDefault
+    character       (len=parameterLengthMaximum              )                           :: expression         , parameterName   , &
+         &                                                                                  workText           , content         , &
+         &                                                                                  workValueText      , formatSpecifier , &
+         &                                                                                  parameterLeafName  , defaultValue
+    type            (varying_string                          )                           :: attributeName      , nodeName        , &
+         &                                                                                  siblingName
+    double precision                                                                     :: workValueDouble
+    double precision                                                         , parameter :: toleranceRoundingInteger=1.0d-9
+    integer         (c_size_t                                )                           :: workValueInteger
+    type            (enumerationInputParameterTypeType       )                           :: parameterType
+    {Type¦match¦^Long.*¦character(len=parameterLengthMaximum)  :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
