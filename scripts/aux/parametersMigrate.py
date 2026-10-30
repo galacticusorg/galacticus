@@ -135,6 +135,42 @@ def restore_multiline_attributes(input_filename, output_filename):
             fout.write(line.replace("%%NEWLINE%%", "\n"))
 
 
+def scale_values(parameter, xpath, scale):
+    """Multiply the value(s) of a parameter by a constant factor.
+
+    A parameter may hold a single value or a space-separated list of values, either in its `value` attribute or in `value`
+    child elements (as in parameter grids). Each value which is a plain number is multiplied by the factor. Any other value (an
+    expression, say) can not be rescaled here, and is left unchanged with a warning.
+    """
+    value_children = parameter.findall("value")
+    all_values = value_children if value_children else [parameter]
+    description = f" ({scale['description']})" if scale["description"] is not None else ""
+    for value_elem in all_values:
+        if value_elem is parameter:
+            values_text = value_elem.get("value", "")
+        else:
+            values_text = value_elem.text or ""
+        values = values_text.split()
+        values_scaled = []
+        for value in values:
+            try:
+                value_scaled = repr(float(value) * scale["factor"])
+            except ValueError:
+                print(
+                    f"   WARNING: can not rescale value '{value}' of '{xpath}' by {scale['factor']}{description}"
+                    " - rescale it by hand"
+                )
+                values_scaled.append(value)
+                continue
+            print(f"   scale parameter value: {xpath}")
+            print(f"                                 {value} --> {value_scaled}{description}")
+            values_scaled.append(value_scaled)
+        if value_elem is parameter:
+            value_elem.set("value", " ".join(values_scaled))
+        else:
+            value_elem.text = " ".join(values_scaled)
+
+
 def parse_migrations(path):
     """Parse migrations.xml into a structured dict.
 
@@ -168,6 +204,12 @@ def parse_migrations(path):
             remove_elem = trans_elem.find("remove")
             if remove_elem is not None:
                 translation["remove"] = True
+            scale_elem = trans_elem.find("scale")
+            if scale_elem is not None:
+                translation["scale"] = {
+                    "factor":      float(scale_elem.get("factor")),
+                    "description": scale_elem.get("description"),
+                }
             migration["translation"].append(translation)
         migrations["migration"].append(migration)
     for default_elem in root.findall("default"):
@@ -405,6 +447,11 @@ def migrate(input_doc, parameters, root_level, is_grid, input_filename, options,
                             value_elem.set("value", " ".join(values))
                         else:
                             value_elem.text = " ".join(values)
+
+            # Scale values.
+            if "scale" in translation:
+                for parameter in parameters.xpath(translation["xpath"]):
+                    scale_values(parameter, translation["xpath"], translation["scale"])
 
     # Put subparameters into their host parameter.
     # We need to iterate over a snapshot since we're modifying the tree.
