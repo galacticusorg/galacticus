@@ -25,6 +25,7 @@
   
   use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
   use :: Galactic_Filters                      , only : galacticFilterAll
+  use :: Kind_Numbers                          , only : kind_int8
   use :: Node_Property_Extractors              , only : nodePropertyExtractorMassHalo
   use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorNbodyMass
   use :: Output_Analysis_Distribution_Operators, only : enumerationMassRatioDistributionType
@@ -66,6 +67,7 @@
           &                                                                                massRatioLikelihoodMaximum                      , countConversionFactor
      integer                                                                            :: indexParent                                     , indexRedshift
      integer         (c_size_t                             )                            :: countMassRatio                                  , indexOutput
+     integer         (kind_int8                            )                            :: uniqueIDTreePrevious
      logical                                                                            :: alwaysIsolatedOnly                              , covarianceDiagonalize               , &
           &                                                                                covarianceTargetOnly                            , likelihoodInLog                     , &
           &                                                                                weightsFinalized                                , likelihoodInCounts                  , &
@@ -160,7 +162,9 @@ contains
       <name>covarianceTargetOnly</name>
       <source>parameters</source>
       <description>
-      If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).
+      If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added). If
+      ``[likelihoodInCounts]`` is true, the target has no covariance, and this instead controls whether the fractional variance
+      of the model in each bin is added to the over-dispersion of the negative binomial likelihood.
       </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -168,7 +172,9 @@ contains
       <name>fillInZeroBins</name>
       <source>parameters</source>
       <description>
-      If true, fill in values of empty bins to avoid improbable likelihoods.
+      If true, fill in values of empty bins to avoid improbable likelihoods. If the variance of the model is included in a
+      counts likelihood (``[likelihoodInCounts]`` true, ``[covarianceTargetOnly]`` false), a filled-in bin is given the
+      fractional variance of the last non-empty bin before it.
       </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -377,6 +383,8 @@ contains
        end if
        if (parameters%isPresent('functionValueTarget')) then
           if (parameters%isPresent('functionCovarianceTarget')) then
+             allocate(functionValueTarget       (parameters%count('functionValueTarget'     )))
+             allocate(functionCovarianceTarget1D(parameters%count('functionCovarianceTarget')))
              !![
              <inputParameter docformat="rst">
                <name>functionValueTarget</name>
@@ -407,6 +415,7 @@ contains
           if (parameters%isPresent('functionCovariance')) call Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
        end if
        if (parameters%isPresent('functionCountTarget')) then
+          allocate(functionCountTarget(parameters%count('functionCountTarget')))
           !![
           <inputParameter docformat="rst">
             <name>functionCountTarget</name>
@@ -647,11 +656,10 @@ contains
     self%massRatioDistribution=massRatioDistribution_
 
     ! Validate.
-    !! Evaluating the likelihood in counts (using a negative binomial likelihood) requires that we ignore covariance in the model
-    !! (so covarianceTargetOnly must be true), and that the correlation between bins is ignored (so covarianceDiagonalize must be
-    !! true).
+    !! Evaluating the likelihood in counts (using a negative binomial likelihood) requires that the correlation between bins is
+    !! ignored (so covarianceDiagonalize must be true). The variance of the model may be included (in the over-dispersion of the
+    !! negative binomial distribution) or not (if covarianceTargetOnly is true).
     if (likelihoodInCounts.and.     likelihoodInLog      ) call Error_Report('[likelihoodInCounts] and [likelihoodInLog] can not both be true'//{introspection:location})
-    if (likelihoodInCounts.and..not.covarianceTargetOnly ) call Error_Report('[likelihoodInCounts] requires [covarianceTargetOnly]'           //{introspection:location})
     if (likelihoodInCounts.and..not.covarianceDiagonalize) call Error_Report('[likelihoodInCounts] requires [covarianceDiagonalize]'          //{introspection:location})
     ! Initialize state.
     self%weightsFinalized=.false.
@@ -684,7 +692,8 @@ contains
        call Error_Report(message//{introspection:location})
     end if
     ! Initialize accumulated weight of parent nodes.
-    self%weightParents=0.0d0
+    self%weightParents       =0.0d0
+    self%uniqueIDTreePrevious=-huge(0_kind_int8)
     ! Compute conversion from progenitor mass function to counts.
     valueSum     =     sum  (self%massRatios*dble(functionCountTarget)/functionValueTarget,mask=functionValueTarget > 0.0d0)
     valueSumTotal=dble(count(                                                              mask=functionValueTarget > 0.0d0))
@@ -916,17 +925,29 @@ contains
     class           (outputAnalysisProgenitorMassFunction         ), intent(inout) :: self
     type            (mergerTree                                   ), intent(inout) :: tree
     integer         (c_size_t                                     ), intent(in   ) :: iOutput
-    double precision                                               , parameter     :: timeTolerance=1.0d-4
-    type            (treeNode                                     ), pointer       :: node
+    double precision                                               , parameter     :: timeTolerance   =1.0d-4
+    type            (treeNode                                     ), pointer       :: node                   , nodeBaseFirst
     class           (nodeComponentBasic                           ), pointer       :: basic
     type            (mergerTreeWalkerIsolatedNodes                )                :: treeWalker
-    double precision                                                               :: weight                , mass
+    double precision                                                               :: weight                 , mass
     type            (enumerationOutputAnalysisPropertyTypeType    )                :: propertyType 
     type            (enumerationOutputAnalysisPropertyQuantityType)                :: propertyQuantity
+    logical                                                                        :: treeIsNew
 
     ! Only accumulate tree weight if the output corresponds to the one for which we are constructing the conditional mass
-    ! function.
-    if (iOutput /= self%indexOutput) return
+    ! function. A tree is output only at those outputs after the earliest time in the tree. So, a tree with no node at or before
+    ! the progenitor time is first output at a later output, and never at this one. Its parents must still be counted (they simply
+    ! have no progenitors in range), so accumulate their weight at the first output of such a tree. Outputs are indexed in order
+    ! of increasing time, and each tree is passed through all of its outputs before the next tree is begun.
+    !
+    ! The walk below spans the whole forest, while this function is called once for each tree in the forest. So, process each
+    ! forest only once, when its first tree is passed, and identify it by that first tree.
+    nodeBaseFirst => tree%nodeBase
+    if (     associated(              tree%firstTree)) nodeBaseFirst => tree%firstTree%nodeBase
+    if (.not.associated(nodeBaseFirst,tree%nodeBase )) return
+    treeIsNew                =nodeBaseFirst%uniqueID() /= self%uniqueIDTreePrevious
+    self%uniqueIDTreePrevious=nodeBaseFirst%uniqueID()
+    if (.not.(iOutput == self%indexOutput .or. (treeIsNew .and. iOutput > self%indexOutput))) return
     ! Walk the tree, applying a filter to find parent nodes, and accumulate their weights.
     treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
     do while (treeWalker%next(node))
@@ -1032,6 +1053,14 @@ contains
           ! Extrapolate a value to this bin from the last known non-zero bin.
           self%functionValue(i)=+self%functionValue  (  iLastNonZero) &
                &                /     factorDecline**(i-iLastNonZero)
+          ! If the variance of the model is included in the counts likelihood, give the extrapolated value the fractional
+          ! variance of the last known non-zero bin (it would otherwise have none, although it is the least certain).
+          if (self%likelihoodInCounts .and. .not.self%covarianceTargetOnly .and. self%functionValue(iLastNonZero) > 0.0d0) &
+               & self%functionCovariance(i,i)=+self%functionCovariance(iLastNonZero,iLastNonZero) &
+               &                              *(                                                  &
+               &                                +self%functionValue    (i                       ) &
+               &                                /self%functionValue    (iLastNonZero            ) &
+               &                               )**2
        end do
        if (warnFillIn) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' had to extrapolate to empty bin with potential non-neglible content')
     end if
@@ -1053,7 +1082,7 @@ contains
 
   subroutine progenitorMassFunctionMetadataWrite(self,analysisGroup)
     !!{RST
-    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts.
+    Write progenitor-mass-function-specific metadata to the analysis output group, namely the ranges of mass ratio and parent mass considered, together with the parent and progenitor redshifts. If target counts are available, also write those counts, and the factor converting the progenitor mass function in each bin to a count (``countPerValue``), so that the counts-based likelihood can be reconstructed from the output (for example, by an emulator of this analysis). The range of mass ratio used in the likelihood is also written as the generic ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes for this purpose.
     !!}
     use :: IO_HDF5, only : hdf5File, hdf5Group
     implicit none
@@ -1066,6 +1095,12 @@ contains
     call analysisGroup%writeAttribute(self%massParentMaximum         ,'massParentMaximum'         )
     call analysisGroup%writeAttribute(self%redshiftParent            ,'redshiftParent'            )
     call analysisGroup%writeAttribute(self%redshiftProgenitor        ,'redshiftProgenitor'        )
+    if (allocated(self%functionCountTarget)) then
+       call analysisGroup%writeAttribute(self%massRatioLikelihoodMinimum,'xLikelihoodMinimum')
+       call analysisGroup%writeAttribute(self%massRatioLikelihoodMaximum,'xLikelihoodMaximum')
+       call analysisGroup%writeDataset  (dble(self%functionCountTarget)                     ,'countTarget'  ,'Target counts in each bin'                                  )
+       call analysisGroup%writeDataset  (     self%countConversionFactor/self%massRatios    ,'countPerValue','Factor converting the function value in each bin to a count')
+    end if
     return
   end subroutine progenitorMassFunctionMetadataWrite
 
@@ -1096,7 +1131,8 @@ contains
     integer                                                                               :: status
     double precision                                                                      :: covarianceTermTarget              , covarianceTerm            , &
          &                                                                                   ratioCovarianceMaximum            , countsModel               , &
-         &                                                                                   stoppingTimeParameter             , logLikelihood_
+         &                                                                                   stoppingTimeParameter             , logLikelihood_            , &
+         &                                                                                   dispersion
     
     ! Check for existence of a target distribution.
     if (allocated(self%functionValueTarget)) then
@@ -1135,22 +1171,34 @@ contains
                       exit
                    end if
                 end if
-                ! Compute the stopping time parameter.
-                if (self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional))) > 0.0d0) then
-                   stoppingTimeParameter=1.0d0/self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))**2
+                ! Compute the over-dispersion, c², the square of the fractional root variance of the expected count. This is
+                ! C², where C is the fractional root variance of the target, combined (unless only the target covariance is to be
+                ! included) with the fractional variance, v, of the model, as c² = C² + v + C² v (the fractional variance of the
+                ! product of two independent factors with unit means and fractional variances C² and v). This is the same
+                ! combination as used by the `poissonCounts` form of the emulated likelihood.
+                dispersion=self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))**2
+                if (.not.self%covarianceTargetOnly)                                      &
+                     & dispersion=+dispersion                                            &
+                     &            +self%functionCovariance(i,i)/self%functionValue(i)**2 &
+                     &            *(1.0d0+dispersion)
+                if (dispersion > 0.0d0) then
+                   ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial
+                   ! distribution (which is used in the alternative parameterization as given by, e.g.,
+                   ! https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution) represents an
+                   ! over-dispersed Poisson distribution, with stopping-time parameter r=1/c².
+                   stoppingTimeParameter=1.0d0/dispersion
+                   logLikelihood_=+dble(countsTarget         )*log                       (                                       countsModel  ) &
+                        &         -                            Logarithmic_Factorial     (                                 +int (countsTarget)) &
+                        &         +                            Gamma_Function_Logarithmic(            stoppingTimeParameter+dble(countsTarget)) &
+                        &         -                            Gamma_Function_Logarithmic(            stoppingTimeParameter                   ) &
+                        &         -dble(countsTarget         )*log                       (            stoppingTimeParameter+     countsModel  ) &
+                        &         -     stoppingTimeParameter *log                       (countsModel/stoppingTimeParameter+1.0d0             )
                 else
-                   stoppingTimeParameter=0.0d0
+                   ! Evaluate the Poisson likelihood (the limit of the negative binomial likelihood as c → 0).
+                   logLikelihood_=+dble(countsTarget)*log                  (      countsModel )  &
+                        &         -                   Logarithmic_Factorial(+int (countsTarget)) &
+                        &         -                                               countsModel
                 end if
-                ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial
-                ! distribution (which is used in the alternative parameterization as given by, e.g.,
-                ! https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution) represents an
-                ! over-dispersed Poisson distribution.
-                logLikelihood_=+dble(countsTarget         )*log                       (                                       countsModel  ) &
-                     &         -                            Logarithmic_Factorial     (                                 +int (countsTarget)) &
-                     &         +                            Gamma_Function_Logarithmic(            stoppingTimeParameter+dble(countsTarget)) &
-                     &         -                            Gamma_Function_Logarithmic(            stoppingTimeParameter                   ) &
-                     &         -dble(countsTarget         )*log                       (            stoppingTimeParameter+     countsModel  ) &
-                     &         -     stoppingTimeParameter *log                       (countsModel/stoppingTimeParameter+1.0d0             )
                 ! Accumulate the likelihood.
                 progenitorMassFunctionLogLikelihood=+progenitorMassFunctionLogLikelihood &
                      &                              +logLikelihood_

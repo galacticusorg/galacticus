@@ -356,9 +356,13 @@ contains
 
     ! Determine cosmological time.
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    ! Remake the table if necessary.
+    call self%retabulate(time_)
+    ! The critical overdensity is linear in the interpolating factor, so its gradient with respect to mass is the difference
+    ! between the clustered and unclustered cases multiplied by the gradient of that factor.
     sphericalCollapseBrynsDrkMttrDrkEnrgyGradientMass=+(                                                                                &
          &                                              +self%overdensityCriticalClustered     %interpolate                (     time_) &
-         &                                              +self%overdensityCriticalUnclustered   %interpolate                (     time_) &
+         &                                              -self%overdensityCriticalUnclustered   %interpolate                (     time_) &
          &                                             )                                                                                &
          &                                            *  self%intergalacticMediumFilteringMass_%fractionBaryonsGradientMass(mass,time_) &
          &                                            *  self%normalization

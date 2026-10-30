@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameter file used by tests.galactic_structure_equilibrium.exe, which validates the equilibrium galactic structure solver
-     against independently computed reference values (galacticusDevTools/galacticStructureEquilibrium.py).
+     against independently computed reference values (galacticusDevTools/physicsReferences/galacticStructureEquilibrium.py).
 
      Every class is declared here rather than constructed in the test program. This is not a stylistic choice: the dark matter
      profile component builds its `darkMatterProfile` through an `<objectBuilder>` reading these parameters, so the contracted
@@ -43,7 +43,7 @@
   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="59b672b08cc97f69fa250ec125931c9ab4311d4e" time="2026-09-16T00:00:00"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <!-- Cosmology. Planck 2018 values, matching the reference calculation. -->
   <cosmologyParameters value="simple">

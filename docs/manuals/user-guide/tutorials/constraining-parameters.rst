@@ -12,7 +12,7 @@ For this tutorial we require Galacticus to be compiled with `MPI <https://en.wik
 
 .. code-block:: bash
 
-   make -j8 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe
+   make -j8 MPI=yes Galacticus.exe
 
 Note that you must have MPI installed for this to work.
 
@@ -21,7 +21,7 @@ Once compilation is completed, to run the tutorial model:
 .. code-block:: bash
 
    export OMP_NUM_THREADS=1
-   mpirun -np 4 Galacticus.exe parameters/tutorials/mcmcConfig.xml
+   mpirun -np 4 Galacticus.exe_MPI parameters/tutorials/mcmcConfig.xml
 
 The ``export OMP_NUM_THREADS=1`` effectively switches off `OpenMP <https://en.wikipedia.org/wiki/OpenMP>`_ parallelism (which we don't want to use for this tutorial). The ``mpirun -np 4`` prefix command launches 4 parallel Galacticus processes which will communicate via MPI.
 

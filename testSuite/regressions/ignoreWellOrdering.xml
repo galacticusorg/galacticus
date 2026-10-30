@@ -7,7 +7,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <!-- Specify tasks to perform -->
   <task value="evolveForests"/>
@@ -55,13 +55,16 @@
     <running value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.807"/>
+    <tolerance value="3.0e-4"/>
+  </powerSpectrumNormalizer>
   <cosmologicalMassVariance value="filteredPower">
     <monotonicInterpolation value="true" />
     <nonMonotonicIsFatal value="false" />
     <powerSpectrumWindowFunction value="sharpKSpace">
       <normalization value="2.5" />
     </powerSpectrumWindowFunction>
-    <sigma_8 value="0.807"/>
     <tolerance value="3.0e-4" />
     <toleranceTopHat value="3.0e-4" />
   </cosmologicalMassVariance>
@@ -122,6 +125,7 @@
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
   </mergerTreeEvolver>

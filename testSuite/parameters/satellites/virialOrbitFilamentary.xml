@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for the filamentary virial orbit unit test                                               -->
+<!-- (source/tests/satellites/virial_orbit_filamentary.F90). The filamentary class is built with its     -->
+<!-- default parameters, wrapping the Li et al. (2020) class, which supplies everything other than the   -->
+<!-- direction of infall. The critical overdensity and cosmological mass variance give the collapsing    -->
+<!-- mass, M*, on which the filamentary fraction depends.                                                -->
+
+<parameters>
+  <lastModified revision="b97be37cd9cbc2a189aa0c8bb027d7d64d390296" time="2026-10-23T19:56:05"/>
+  <formatVersion>2</formatVersion>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="standard"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36000"/>
+    <OmegaMatter     value=" 0.31530"/>
+    <OmegaDarkEnergy value=" 0.68470"/>
+    <OmegaBaryon     value=" 0.04930"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Dark matter halo structure -->
+  <virialDensityContrast value="bryanNorman1998"                />
+  <darkMatterHaloScale   value="virialDensityContrastDefinition"/>
+  <darkMatterProfile     value="darkMatterOnly"                 />
+  <darkMatterProfileDMO  value="NFW">
+    <velocityDispersionUseSeriesExpansion value="false"/>
+  </darkMatterProfileDMO>
+
+  <!-- The filamentary orbit class, wrapping the Li et al. (2020) class, and the objects needed for the   -->
+  <!-- collapsing mass and the peak height. The Eisenstein & Hu (1999) transfer function is analytic, so  -->
+  <!-- the test needs no tabulated data.                                                                  -->
+  <virialOrbit value="filamentary">
+    <virialOrbit value="li2020"/>
+  </virialOrbit>
+  <darkMatterParticle                 value="CDM"                                      />
+  <linearGrowth                       value="collisionlessMatter"                      />
+  <criticalOverdensity                value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <powerSpectrumPrimordialTransferred value="simple"                                   />
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8111"/>
+  </powerSpectrumNormalizer>
+  <powerSpectrumWindowFunction        value="topHat"                                   />
+  <powerSpectrumPrimordial            value="powerLaw">
+    <index               value="0.9649"/>
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+  </transferFunction>
+  <cosmologicalMassVariance value="filteredPower"/>
+
+  <!-- Merging times, needed by the node operator which handles satellites moving to a new host. -->
+  <satelliteMergingTimescales value="infinite"/>
+
+</parameters>

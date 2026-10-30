@@ -23,7 +23,7 @@ import xml.etree.ElementTree as ET
 from Galacticus.Build.Directives   import extract_directives
 from Galacticus.Build.FileChanges  import update as file_changes_update
 from Galacticus.Build.ParallelScan import scan as parallel_scan
-from List.ExtraUtils              import as_array, hash_list, smart_push
+from List.ExtraUtils              import as_array, hash_list
 from XML.Utils                    import xml_to_dict
 from Galacticus.Build.Libraries import (
     EXTERNAL_MODULES,
@@ -39,7 +39,7 @@ from Galacticus.Build.ScanCache import (
 
 # Version stamp for the Makefile_Use_Dependencies.blob cache. Bump when the
 # scan rules change so stale-rule entries are discarded.
-_BLOB_VERSION = 4
+_BLOB_VERSION = 6
 
 # Directives consulted per source file (module-level so the parallel worker can
 # see it). Order matters only in that it is fixed.
@@ -424,6 +424,43 @@ def _find_containing_module_memo(file_name, fc_map):
     return _CONTAINING_MODULE_MEMO[file_name]
 
 
+def _directive_files(locations, name):
+    """Return the source files containing directives of the given name, as
+    listed in directiveLocations.xml (in its order)."""
+    if not locations:
+        return []
+    return as_array((locations.get(name) or {}).get('file'))
+
+
+def _track_directive_files(entry, locations, name):
+    """Record that `entry`'s dependencies are derived from the files
+    containing directives named `name`, and return those files.
+
+    The files are added to the entry's tracked `files`, so an edit to any of
+    them triggers a rescan of this entry, and the set is recorded under
+    `directiveFiles` so that a change in *which* files contain such directives
+    also triggers one (see `_directive_files_changed`)."""
+    files = _directive_files(locations, name)
+    entry['files'].extend(files)
+    entry.setdefault('directiveFiles', {})[name] = sorted(set(files))
+    return files
+
+
+def _directive_files_changed(cached_entry, locations):
+    """True if, for any directive name recorded in a cached entry's
+    `directiveFiles`, the set of files containing that directive now differs
+    from the set recorded when the entry was scanned. Edits to those files are
+    caught by the mtime check on the entry's tracked `files`, and adding or
+    deleting a source file forces a full rescan anyway; this catches an
+    existing, unrelated file that gains or loses a directive (e.g. an
+    implementation moved from one functionClass to another), which neither of
+    those detects."""
+    for name, recorded in (cached_entry.get('directiveFiles') or {}).items():
+        if set(_directive_files(locations, name)) != set(recorded):
+            return True
+    return False
+
+
 def _apply_directive_requirements(entry, source_file, directives,
                                   locations, state_storables,
                                   work_dir, file_identifier,
@@ -438,13 +475,13 @@ def _apply_directive_requirements(entry, source_file, directives,
     fc_map = _functionclass_state_storables_map(state_storables)
 
     # functionClass: pull instance source files onto the scan stack, and
-    # always require function_classes.mod.
+    # always require function_classes.mod. The instance files' `use`
+    # statements are attributed to this file, so they are tracked too (see
+    # `_track_directive_files`).
     if directives['functionClass']:
         for fc in directives['functionClass']:
-            smart_push(
-                file_names_to_process,
-                (locations.get(fc['name']) or {}).get('file')
-                if locations else None,
+            file_names_to_process.extend(
+                _track_directive_files(entry, locations, fc['name'])
             )
         entry['modulesUsed'].append(work_dir + 'function_classes.mod')
 
@@ -492,8 +529,11 @@ def _apply_directive_requirements(entry, source_file, directives,
         uses_per_file['eventHooksManager']['fileIdentifier'] = file_identifier
 
     # functionsGlobal: type=pointers and type=establish impose different
-    # module requirements.
+    # module requirements. Both are derived from the files containing
+    # functionGlobal directives (their <module> elements, or their containing
+    # modules), so those files are tracked.
     if directives['functionsGlobal']:
+        fg_files = _track_directive_files(entry, locations, 'functionGlobal')
         has_pointers  = any(
             d.get('type') == 'pointers'  for d in directives['functionsGlobal']
         )
@@ -510,10 +550,7 @@ def _apply_directive_requirements(entry, source_file, directives,
                 )
 
         if has_establish:
-            for fg_file in as_array(
-                (locations.get('functionGlobal') or {}).get('file')
-                if locations else None,
-            ):
+            for fg_file in fg_files:
                 module_name = _find_containing_module_memo(fg_file, fc_map)
                 if module_name is None:
                     sys.exit(
@@ -527,10 +564,7 @@ def _apply_directive_requirements(entry, source_file, directives,
     # eventHookStatic: pull in the module that *declares* each static event.
     if directives['eventHookStatic']:
         for ehs in directives['eventHookStatic']:
-            ehs_files = as_array(
-                (locations.get(ehs['name']) or {}).get('file')
-                if locations else None,
-            )
+            ehs_files = _track_directive_files(entry, locations, ehs['name'])
             for ehs_file in ehs_files:
                 module_name = _find_containing_module_memo(ehs_file, fc_map)
                 if module_name is None:
@@ -1137,11 +1171,12 @@ def main(argv):
         file_identifier = _file_identifier(sf['fullPathFileName'])
         rescan = True
         if have_per_file and file_identifier in uses_per_file:
-            tracked = uses_per_file[file_identifier].get('files') or []
+            cached  = uses_per_file[file_identifier]
+            tracked = cached.get('files') or []
             stale = any(
                 os.path.exists(t) and os.stat(t).st_mtime > cache_mtime
                 for t in tracked
-            )
+            ) or _directive_files_changed(cached, locations)
             rescan = bool(stale)
         if not (rescan or force_rescan):
             continue

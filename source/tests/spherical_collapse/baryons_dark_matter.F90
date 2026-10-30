@@ -17,9 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Spherical_Collapse_Baryons_Dark_Matter
   !!{RST
-  Tests linear growth calculations.
+  Tests spherical collapse calculations in universes containing baryons and dark matter.
   !!}
   use :: Cosmological_Density_Field           , only : cosmologicalMassVarianceFilteredPower                     , criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      , criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt
   use :: Cosmology_Functions                  , only : cosmologyFunctionsMatterLambda
@@ -27,11 +29,13 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   use :: Dark_Matter_Particles                , only : darkMatterParticleCDM
   use :: Display                              , only : displayVerbositySet                                       , verbosityLevelStandard
   use :: Events_Hooks                         , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities           , only : Functions_Global_Set
   use :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
   use :: Intergalactic_Medium_State           , only : intergalacticMediumStateSimple
   use :: Linear_Growth                        , only : componentDarkMatter                                       , linearGrowthBaryonsDarkMatter                                 , linearGrowthCollisionlessMatter
   use :: Power_Spectra_Primordial             , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred , only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers           , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions      , only : powerSpectrumWindowFunctionSharpKSpace
   use :: Spherical_Collapse_Solvers           , only : collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                   , only : transferFunctionIdentity
@@ -52,9 +56,11 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   type            (powerSpectrumPrimordialPowerLaw                               )                          :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionIdentity                                      )                          :: transferFunctionIdentity_
   type            (powerSpectrumPrimordialTransferredSimple                      )                          :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                                 )                          :: powerSpectrumNormalizerSigma8_
   type            (intergalacticMediumFilteringMassGnedin2000                    )                          :: intergalacticMediumFilteringMassGnedin2000_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensitySphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgy_
+  type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy      )                          :: criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrastSphrclCllpsCllsnlssMttrCsmlgclCnstnt_
   type            (virialDensityContrastSphericalCollapseBrynsDrkMttrDrkEnrgy    )                          :: virialDensityContrastSphrclCllpsBrynsDrkMttrDrkEnrgy_
   character       (len=1024                                                      )                          :: message                                                                                     , outputFractions
@@ -64,7 +70,9 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
        &                                                                                                       criticalOverdensityBaryons                                                                  , criticalOverdensityDMO    , &
        &                                                                                                       virialDensityContrastBaryons                                                                , virialDensityContrastDMO  , &
        &                                                                                                       radiusTurnaroundBaryons                                                                     , radiusTurnaroundDMO       , &
-       &                                                                                                       fractionBaryons
+       &                                                                                                       fractionBaryons                                                                             , mass                      , &
+       &                                                                                                       gradientMass                                                                                , gradientMassNumerical
+  double precision                                                                              , parameter :: stepMassFractional                                         =1.0d-4
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -76,6 +84,7 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   end if
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Open output file for z=0 results.
   if (trim(outputFractions) == "yes") then
      open(newUnit=outputFile,file='testSuite/outputs/sphericalCollapseBaryonsDarkMatter.txt',status='unknown',form='formatted')
@@ -141,10 +150,19 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
           &                                                                                                                      time                                    =13.8d0                                       &
           &                                                                                                                     )
+     powerSpectrumNormalizerSigma8_                             =powerSpectrumNormalizerSigma8                                  (                                                                                      &
+          &                                                                                                                      sigma8                                  =1.0d+0                                     , &
+          &                                                                                                                      tolerance                               =1.0d-4                                     , &
+          &                                                                                                                      integrationFailureIsFatal               =.true.                                     , &
+          &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
+          &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_            , &
+          &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                    &
+          &                                                                                                                     )
      powerSpectrumPrimordialTransferredSimple_                  =powerSpectrumPrimordialTransferredSimple                       (                                                                                      &
           &                                                                                                                      powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_           , &
           &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                  , &
-          &                                                                                                                      linearGrowth_                           =linearGrowthBaryonsDarkMatter_               &
+          &                                                                                                                      linearGrowth_                           =linearGrowthBaryonsDarkMatter_             , &
+          &                                                                                                                      powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_               &
           &                                                                                                                     )
      powerSpectrumWindowFunctionSharpKSpace_                    =powerSpectrumWindowFunctionSharpKSpace                         (                                                                                      &
           &                                                                                                                      cosmologyParameters_                    =cosmologyParametersBaryons_                , &
@@ -152,7 +170,6 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                     )
 
      cosmologicalMassVarianceFilteredPower_                     =cosmologicalMassVarianceFilteredPower                          (                                                                                      &
-          &                                                                                                                      sigma8                                  =1.0d+0                                     , &
           &                                                                                                                      tolerance                               =1.0d-4                                     , &
           &                                                                                                                      toleranceTopHat                         =1.0d-4                                     , &
           &                                                                                                                      rootVarianceLogarithmicGradientTolerance=1.0d-9                                     , &
@@ -233,6 +250,47 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
   end do
   if (trim(outputFractions) == "yes") close(outputFile)
   ! End unit tests.
+  call Unit_Tests_End_Group()
+  ! Test gradients with respect to mass against finite differences. These are evaluated at z=3, at a mass close to the
+  ! filtering mass where the fraction of baryons accreted, and so the critical overdensity, depends strongly on mass.
+  call Unit_Tests_Begin_Group("Spherical collapse: gradients with respect to mass")
+  criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(                                                                                  &
+       &                                                                                                              cosmologyParameters_             =cosmologyParametersBaryons_                   , &
+       &                                                                                                              cosmologyFunctions_              =cosmologyFunctionsMatterLambda_               , &
+       &                                                                                                              cosmologicalMassVariance_        =cosmologicalMassVarianceFilteredPower_        , &
+       &                                                                                                              darkMatterParticle_              =darkMatterParticleCDM_                        , &
+       &                                                                                                              intergalacticMediumFilteringMass_=intergalacticMediumFilteringMassGnedin2000_   , &
+       &                                                                                                              tablePointsPerOctave             =300                                           , &
+       &                                                                                                              tableStore                       =.false.                                       , &
+       &                                                                                                              energyFixedAt                    =collisionlessMatterDarkEnergyFixedAtTurnaround, &
+       &                                                                                                              perturbationSmall                =1.0d-3                                        , &
+       &                                                                                                              normalization                    =1.0d+0                                          &
+       &                                                                                                             )
+  expansionFactor      =cosmologyFunctionsMatterLambda_%expansionFactorFromRedshift(3.0d0          )
+  time                 =cosmologyFunctionsMatterLambda_%cosmicTime                 (expansionFactor)
+  mass                 =2.0d0*intergalacticMediumFilteringMassGnedin2000_%massFiltering(time)
+  gradientMass         =+intergalacticMediumFilteringMassGnedin2000_%fractionBaryonsGradientMass(mass                               ,time)
+  gradientMassNumerical=+(                                                                                                              &
+       &                  +intergalacticMediumFilteringMassGnedin2000_%fractionBaryons            (mass*(1.0d0+stepMassFractional),time) &
+       &                  -intergalacticMediumFilteringMassGnedin2000_%fractionBaryons            (mass*(1.0d0-stepMassFractional),time) &
+       &                 )                                                                                                              &
+       &                /(                                                                                                              &
+       &                  +2.0d0                                                                                                        &
+       &                  *mass                                                                                                         &
+       &                  *stepMassFractional                                                                                           &
+       &                 )
+  call Assert('fraction of baryons accreted [z = 3.0]'  ,gradientMass,gradientMassNumerical,relTol=1.0d-6)
+  gradientMass         =+criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%gradientMass(time=time,mass=mass                           )
+  gradientMassNumerical=+(                                                                                                                       &
+       &                  +criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%value     (time=time,mass=mass*(1.0d0+stepMassFractional)) &
+       &                  -criticalOverdensitySphrclCllpsBrynsDrkMttrDrkEnrgyBaryons_%value     (time=time,mass=mass*(1.0d0-stepMassFractional)) &
+       &                 )                                                                                                                       &
+       &                /(                                                                                                                       &
+       &                  +2.0d0                                                                                                                 &
+       &                  *mass                                                                                                                  &
+       &                  *stepMassFractional                                                                                                    &
+       &                 )
+  call Assert('critical overdensity for collapse [z = 3.0]',gradientMass,gradientMassNumerical,relTol=1.0d-6)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 end program Tests_Spherical_Collapse_Baryons_Dark_Matter

@@ -5,7 +5,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyParameters value="simple">
@@ -14,12 +14,14 @@
     <OmegaDarkEnergy value="0.7275"/>
     <OmegaBaryon value="0.0455"/>
     <temperatureCMB value="2.72548"/>
-    <cosmologicalMassVariance value="filteredPower" id="myCMV">
+    <cosmologicalMassVariance value="filteredPower" id="myCMV"/>
+    <powerSpectrumNormalizer value="sigma8" id="myNormalizer">
       <sigma_8 value="0.912"/>
-    </cosmologicalMassVariance>
+    </powerSpectrumNormalizer>
   </cosmologyParameters>
 
   <cosmologicalMassVariance idRef="myCMV"/>
+  <powerSpectrumNormalizer idRef="myNormalizer"/>
 
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
@@ -91,8 +93,13 @@
   </container2>
   <derivedValue11 value="=[container2/container3/derivedValue10]+1.0"/>
   <integerValue1 value="6"/>
+  <derivedInteger1 value="=2*[integerValue1]+1"/>
+  <derivedInteger2 value="=3*[nonExistantParameter|7]"/>
+  <derivedLong1 value="=[integerValue1]*1000000000000"/>
+  <derivedInteger3 value="=0.29*100"/>
+  <derivedInteger4 value="=[integerValue1]/4"/>
   <derivedText1 value="=mouse_[%s|cosmologicalMassVariance]_[%4.2f|derivedValue6]_[%12.6e|derivedValue7]_[%4.4d|integerValue1]"/>
-  <active1 value="0.1" active="[cosmologicalMassVariance/sigma_8] != 0.912"/>
-  <active1 value="0.2" active="[cosmologicalMassVariance/sigma_8] == 0.912"/>
+  <active1 value="0.1" active="[powerSpectrumNormalizer/sigma_8] != 0.912"/>
+  <active1 value="0.2" active="[powerSpectrumNormalizer/sigma_8] == 0.912"/>
 
 <componentHotHalo value="standard"/></parameters>

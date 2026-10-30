@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements a class for stellar spectra postprocessors.
 !!}
@@ -94,6 +96,88 @@ module Stellar_Population_Spectra_Postprocess
     <code>
       !$GLC attributes unused :: self
       stellarPopulationSpectraPostprocessorIsRedshiftDependent=.true.
+    </code>
+   </method>
+   <method name="isAgeDependent" >
+    <description>
+    Return true if this postprocessor's correction factor depends on the age of the stellar population. The default is true,
+    which is always safe; postprocessors whose multiplier is independent of age override it.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      stellarPopulationSpectraPostprocessorIsAgeDependent=.true.
+    </code>
+   </method>
+   <method name="isSeparable" >
+    <description>
+    Return true if this postprocessor's multiplier separates into the product of a factor independent of redshift and a
+    factor independent of age,
+
+    .. math::
+
+       M(\lambda,\tau,z) = M_\tau(\lambda,\tau) M_z(\lambda,z),
+
+    where :math:`\tau` is the age of the stellar population, the two factors being returned by ``multiplierAge`` and
+    ``multiplierRedshift`` respectively.
+
+    This allows the redshift-dependent factor to be applied after the stellar population has been integrated over its star
+    formation history, so that a single template spectrum, built with only the redshift-independent factor, can serve
+    galaxies at all redshifts. A postprocessor is separable unless it depends on both age and redshift. A
+    :galacticus-class:`stellarPopulationSpectraPostprocessorSequence` is separable if each of its members is, even though it
+    may depend on both.
+    </description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+      stellarPopulationSpectraPostprocessorIsSeparable=.not.(self%isRedshiftDependent().and.self%isAgeDependent())
+    </code>
+   </method>
+   <method name="multiplierAge" >
+    <description>
+    Return the redshift-independent factor, :math:`M_\tau(\lambda,\tau)`, of the multiplier of a separable postprocessor (see
+    ``isSeparable``) at the given wavelength (Å) and stellar population age (Gyr).
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <modules>Error</modules>
+    <argument>double precision, intent(in   ) :: wavelength, age</argument>
+    <code>
+      if (self%isRedshiftDependent()) then
+         if (self%isAgeDependent()) then
+            stellarPopulationSpectraPostprocessorMultiplierAge=0.0d0
+            call Error_Report('postprocessor is not separable'//{introspection:location})
+         else
+            stellarPopulationSpectraPostprocessorMultiplierAge=1.0d0
+         end if
+      else
+         ! The multiplier is independent of redshift, so any redshift may be passed.
+         stellarPopulationSpectraPostprocessorMultiplierAge=self%multiplier(wavelength,age,redshift=0.0d0)
+      end if
+    </code>
+   </method>
+   <method name="multiplierRedshift" >
+    <description>
+    Return the age-independent factor, :math:`M_z(\lambda,z)`, of the multiplier of a separable postprocessor (see
+    ``isSeparable``) at the given wavelength (Å, in the rest frame of the source) and source redshift.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <modules>Error</modules>
+    <argument>double precision, intent(in   ) :: wavelength, redshift</argument>
+    <code>
+      if (self%isRedshiftDependent()) then
+         if (self%isAgeDependent()) then
+            stellarPopulationSpectraPostprocessorMultiplierRedshift=0.0d0
+            call Error_Report('postprocessor is not separable'//{introspection:location})
+         else
+            ! The multiplier is independent of age, so any age may be passed.
+            stellarPopulationSpectraPostprocessorMultiplierRedshift=self%multiplier(wavelength,age=0.0d0,redshift=redshift)
+         end if
+      else
+         stellarPopulationSpectraPostprocessorMultiplierRedshift=1.0d0
+      end if
     </code>
    </method>
   </functionClass>

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Yu Zhao
+  !+    Contributions to this file made by: Yu Zhao, Claude.
 
   !!{RST
   Implements a satellite tidal stripping class which computes the rate of mass loss from an :term:`FDM` solitonic core, following the model of :cite:t:`du_tidal_2018`.
@@ -98,6 +98,10 @@ contains
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"       id="self%massCoreID"       isEvolvable="no"  isCreator="no"/>
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"    id="self%densityCoreID"    isEvolvable="no"  isCreator="no"/>
     !!]
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function du2018ConstructorInternal
 
@@ -120,64 +124,32 @@ contains
     !!}
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile, nodeComponentSatellite, treeNode
     use :: Mass_Distributions                  , only : massDistributionClass
-    use :: Numerical_Constants_Astronomical    , only : gigaYear                      , megaParsec
     use :: Mass_Distribution_Soliton_Schive2014, only : massTotalPerMassCore
     use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Constants_Prefixes        , only : kilo
-    use :: Vectors                             , only : Vector_Magnitude              , Vector_Product
+    use :: Satellite_Orbits                    , only : Satellite_Orbit_Period
+    use :: Vectors                             , only : Vector_Magnitude
     implicit none
     class           (satelliteTidalStrippingDu2018 ), intent   (inout):: self
     type            (treeNode                      ), intent   (inout):: node
     class           (nodeComponentSatellite        ), pointer         :: satellite
     class           (nodeComponentDarkMatterProfile), pointer         :: darkMatterProfile
     class           (massDistributionClass         ), pointer         :: massDistribution_
-    double precision                                , dimension(3    ):: position                          , velocity
-    double precision                                , parameter       :: frequencyFractionalTiny=1.00000d-6
+    double precision                                , dimension(3    ):: position
     ! Parameters appearing in the fitting function for soliton energy from equation (7) of Du et al. (2018; PRD; 97; 3507;
     ! https://ui.adsabs.harvard.edu/abs/2018PhRvD..97f3507D).
-    double precision                                  , parameter        :: energyFitA      =5.89794d-5, energyFitB      =-8.72733d-2, &
-         &                                                                  energyFitC      =1.67740d+0, energyFitGamma  =+1.50000d+0
-    double precision                                                     :: frequencyAngular           , periodOrbital               , &
-         &                                                                  radius                     , &
-         &                                                                  frequencyOrbital           , frequencyRadial             , &
-         &                                                                  massHost                   , densityHost                 , &
-         &                                                                  densityCore                , densityRatio                , &
-         &                                                                  energyIm                   , massCore                    , &
-         &                                                                  timescaleDynamical
+    double precision                                  , parameter        :: energyFitA     =5.89794d-5, energyFitB    =-8.72733d-2, &
+         &                                                                  energyFitC     =1.67740d+0, energyFitGamma=+1.50000d+0
+    double precision                                                     :: periodOrbital             , radius                    , &
+         &                                                                  massHost                  , densityHost               , &
+         &                                                                  densityCore               , densityRatio              , &
+         &                                                                  energyIm                  , massCore
 
     ! Get required quantities from the satellite node.
     satellite          =>  node     %satellite (        )
     position           =   satellite%position  (        )
-    velocity           =   satellite%velocity  (        )
     radius             =   Vector_Magnitude    (position)
-    ! Compute the orbital frequency. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
-    ! radial or purely circular orbits.
-    frequencyAngular   =  +Vector_Magnitude(Vector_Product(position,velocity)) &
-         &                /radius**2                                           &
-         &                *kilo                                                &
-         &                *gigaYear                                            &
-         &                /megaParsec
-    frequencyRadial    =  +abs             (   Dot_Product(position,velocity)) &
-         &                /radius**2                                           &
-         &                *kilo                                                &
-         &                *gigaYear                                            &
-         &                /megaParsec
-    ! Find the orbital frequency. We use the larger of the angular and radial frequencies to avoid numerical problems for purely
-    ! radial or purely circular orbits.
-    frequencyOrbital   =max(                  &
-         &                  frequencyAngular, &
-         &                  frequencyRadial   &
-         &                 )
-    ! Find the orbital period. Guard against a degenerate orbit, for which both the angular and radial frequencies vanish, by
-    ! falling back on the dynamical timescale of the host halo.
-    timescaleDynamical =   self%darkMatterHaloScale_%timescaleDynamical(node%parent)
-    if (frequencyOrbital > frequencyFractionalTiny/timescaleDynamical) then
-       periodOrbital   =   +2.0d0             &
-            &              *Pi                &
-            &              /frequencyOrbital
-    else
-       periodOrbital   =   +timescaleDynamical
-    end if
+    ! Find the orbital period.
+    periodOrbital      =   Satellite_Orbit_Period(node,self%darkMatterHaloScale_)
     ! Get required quantities from the host node.
     darkMatterProfile  => node       %darkMatterProfile()
     massDistribution_  => node%parent%massDistribution ()

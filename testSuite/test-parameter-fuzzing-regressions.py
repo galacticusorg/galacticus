@@ -271,9 +271,14 @@ cases = [
         1,
     ),
     (
+        # The merging timescale is switched to one which needs no dark matter profile. Otherwise the merging time of the first
+        # satellite, which needs the scale radius, stops the model before the halo spin is computed.
         "halo spin with no dark matter profile",
         """  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']"/>
   <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+  <change type="replace" path="satelliteMergingTimescales">
+    <satelliteMergingTimescales value="laceyCole1993"/>
+  </change>
 """,
         ("rejected", ["the halo has no dark matter mass distribution, so its angular momentum scale",
                       "[nodeOperator]=darkMatterProfileScaleSet"]),
@@ -315,6 +320,8 @@ cases = [
     ),
     (
         # `accretionHalo` is changed too, so that something asks the IGM for its state: nothing in `quickTest` does otherwise.
+        # `intergalacticMediumFilteringMass` is changed because the default, `gnedin2000`, is rejected outright with an internal
+        # IGM state.
         "internal IGM state without the universe operator which solves for it",
         """  <change type="replaceOrAppend" path="intergalacticMediumState">
     <intergalacticMediumState value="internal"/>
@@ -322,9 +329,38 @@ cases = [
   <change type="replace" path="accretionHalo">
     <accretionHalo value="naozBarkana2007"/>
   </change>
+  <change type="replaceOrAppend" path="intergalacticMediumFilteringMass">
+    <intergalacticMediumFilteringMass value="internal"/>
+  </change>
 """,
         ("rejected", ["the state of the IGM has not been solved for",
                       "[universeOperator]=intergalacticMediumStateEvolve"]),
+        1,
+    ),
+    (
+        # The `gnedin2000` filtering mass (the default) would integrate its ODEs through an IGM state that has been solved only
+        # in part (issue #1546).
+        "gnedin2000 filtering mass with an internal IGM state",
+        """  <change type="replaceOrAppend" path="intergalacticMediumState">
+    <intergalacticMediumState value="internal"/>
+  </change>
+  <change type="replace" path="accretionHalo">
+    <accretionHalo value="naozBarkana2007"/>
+  </change>
+""",
+        ("rejected", ["[intergalacticMediumFilteringMass]=gnedin2000 can not be used with [intergalacticMediumState]=internal"]),
+        1,
+    ),
+    (
+        "internal filtering mass without an internal IGM state",
+        """  <change type="replace" path="accretionHalo">
+    <accretionHalo value="naozBarkana2007"/>
+  </change>
+  <change type="replaceOrAppend" path="intergalacticMediumFilteringMass">
+    <intergalacticMediumFilteringMass value="internal"/>
+  </change>
+""",
+        ("rejected", ["[intergalacticMediumFilteringMass]=internal requires [intergalacticMediumState]=internal"]),
         1,
     ),
     (

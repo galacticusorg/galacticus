@@ -76,6 +76,7 @@
      procedure :: labelPhase             => inclinationAveragedLabelPhase
      procedure :: transmissionPhases     => inclinationAveragedTransmissionPhases
      procedure :: absorbedFractions      => inclinationAveragedAbsorbedFractions
+     procedure :: includesTorus          => inclinationAveragedIncludesTorus
   end type dustAttenuationInclinationAveraged
 
   interface dustAttenuationInclinationAveraged
@@ -197,6 +198,18 @@ contains
     supportsComponent=self%dustAttenuation_%supportsComponent(componentType)
     return
   end function inclinationAveragedSupportsComponent
+
+  logical function inclinationAveragedIncludesTorus(self) result(includesTorus)
+    !!{RST
+    Return true if the wrapped attenuator includes a model of the dusty torus around an AGN: averaging over orientation
+    does not remove the torus.
+    !!}
+    implicit none
+    class(dustAttenuationInclinationAveraged), intent(inout) :: self
+
+    includesTorus=self%dustAttenuation_%includesTorus()
+    return
+  end function inclinationAveragedIncludesTorus
 
   function inclinationAveragedRequest(self) result(request)
     !!{RST

@@ -19,7 +19,7 @@
   </pbs>
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+    <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
     <mergerTreeConstructor value="build">
       <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
@@ -34,9 +34,7 @@
         <OmegaBaryon value="0.045"/>
         <HubbleConstant value="73.0"/>
       </cosmologyParameters>
-      <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
-        <sigma_8 value="0.9"/>
-      </cosmologicalMassVariance>
+      <cosmologicalMassVariance value="filteredPower" parameterLevel="top"/>
       <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeOperator value="export" parameterLevel="top">
         <outputFileName value="testSuite/outputs/test-merger-tree-write/exportedTreesIRATE.hdf5"/>
@@ -52,5 +50,8 @@
       <presetScaleRadii value="false"/>
       <presetAngularMomenta value="false"/>
     </mergerTreeConstructor>
+    <powerSpectrumNormalizer value="sigma8">
+      <sigma_8 value="0.9"/>
+    </powerSpectrumNormalizer>
   </parameters>
 </parameterGrid>

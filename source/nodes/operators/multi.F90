@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a multi node operator class.
   !!}
@@ -160,7 +162,10 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%nodeTreeInitialize(node)
+       ! Skip any operator which has previously been found to use the default (null) implementation of this method - see the
+       ! "methodIsNull" flags in the nodeOperatorClass.
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodNodeTreeInitialize%ID)) &
+            & call process_%process_%nodeTreeInitialize(node)
        process_ => process_%next
     end do
     return
@@ -178,7 +183,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%nodeInitialize(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodNodeInitialize%ID)) &
+            & call process_%process_%nodeInitialize(node)
        process_ => process_%next
     end do
     return
@@ -196,7 +202,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%nodesMerge(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodNodesMerge%ID)) &
+            & call process_%process_%nodesMerge(node)
        process_ => process_%next
     end do
     return
@@ -214,7 +221,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%nodePromote(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodNodePromote%ID)) &
+            & call process_%process_%nodePromote(node)
        process_ => process_%next
     end do
     return
@@ -232,7 +240,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%galaxiesMerge(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodGalaxiesMerge%ID)) &
+            & call process_%process_%galaxiesMerge(node)
        process_ => process_%next
     end do
     return
@@ -250,7 +259,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionPre(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionPre%ID)) &
+            & call process_%process_%differentialEvolutionPre(node)
        process_ => process_%next
     end do
     return
@@ -268,7 +278,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionScales(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionScales%ID)) &
+            & call process_%process_%differentialEvolutionScales(node)
        process_ => process_%next
     end do
     return
@@ -286,7 +297,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionAnalytics(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionAnalytics%ID)) &
+            & call process_%process_%differentialEvolutionAnalytics(node)
        process_ => process_%next
     end do
     return
@@ -304,7 +316,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionInactives(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionInactives%ID)) &
+            & call process_%process_%differentialEvolutionInactives(node)
        process_ => process_%next
     end do
     return
@@ -325,7 +338,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolution%ID)) &
+            & call process_%process_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
        process_ => process_%next
     end do
     return
@@ -344,7 +358,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionSolveAnalytics(node,time)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionSolveAnalytics%ID)) &
+            & call process_%process_%differentialEvolutionSolveAnalytics(node,time)
        process_ => process_%next
     end do
     return
@@ -363,7 +378,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%predeterminedSolveAnalytics(node,time)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodPredeterminedSolveAnalytics%ID)) &
+            & call process_%process_%predeterminedSolveAnalytics(node,time)
        process_ => process_%next
     end do
     return
@@ -381,7 +397,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionStepFinalState(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionStepFinalState%ID)) &
+            & call process_%process_%differentialEvolutionStepFinalState(node)
        process_ => process_%next
     end do
     return
@@ -399,7 +416,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionPost(node)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionPost%ID)) &
+            & call process_%process_%differentialEvolutionPost(node)
        process_ => process_%next
     end do
     return
@@ -418,7 +436,8 @@ contains
     if (.not.self%isActive(node)) return
     process_ => self%processes
     do while (associated(process_))
-       call process_%process_%differentialEvolutionPostStep(node,status)
+       if (.not.process_%process_%methodIsNull(nodeOperatorMethodDifferentialEvolutionPostStep%ID)) &
+            & call process_%process_%differentialEvolutionPostStep(node,status)
        process_ => process_%next
     end do
     return

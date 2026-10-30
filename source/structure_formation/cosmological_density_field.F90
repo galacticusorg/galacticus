@@ -110,6 +110,12 @@ module Cosmological_Density_Field
              &amp;       )
         finderInitialized=.true.
      end if
+     ! If the critical overdensity is non-positive (as can occur if a large-scale environmental overdensity is included in it)
+     ! then σ(M) &gt; δ_c on all mass scales - all masses have collapsed, and there is no root to find.
+     if (self%value(time=collapseTime,mass=massGuess,node=node) &lt;= 0.0d0) then
+        criticalOverdensityCollapsingMass=huge(0.0d0)
+        return
+     end if
      globalSelf                           => self
      self      %time                      =  collapseTime
      self      %nodePresent               =  present(node)
@@ -208,20 +214,22 @@ module Cosmological_Density_Field
    <default>uniform</default>
    <method name="overdensityLinear" >
     <description>
-    Return the linear (pre-collapse) large-scale environmental overdensity for the given ``node``, optionally evaluated at the present day rather than at the node's cosmic time.
+    Return the linear (pre-collapse) large-scale environmental overdensity for the given ``node``, optionally evaluated at the present day rather than at the node's cosmic time. If a ``time`` (or ``expansionFactor``) is given, the overdensity is evaluated at that epoch instead of the node's cosmic time. The ``node`` may be omitted only for environments which are neither node- nor tree-dependent.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout)           :: node</argument>
-    <argument>logical          , intent(in   ), optional :: presentDay</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
+    <argument>logical                   , intent(in   ), optional :: presentDay                 </argument>
+    <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
    </method>
    <method name="overdensityLinearGradientTime" >
     <description>
-    Return the gradient with time of the environmental linear overdensity for the given ``node``.
+    Return the gradient with time of the environmental linear overdensity for the given ``node``. If a ``time`` (or ``expansionFactor``) is given, the gradient is evaluated at that epoch instead of the node's cosmic time. The ``node`` may be omitted only for environments which are neither node- nor tree-dependent.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type   (treeNode), intent(inout)           :: node</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                 </argument>
+    <argument>double precision          , intent(in   ), optional :: time, expansionFactor</argument>
    </method>
    <method name="overdensityNonLinear" >
     <description>
@@ -344,33 +352,12 @@ module Cosmological_Density_Field
    <name>cosmologicalMassVariance</name>
    <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
    <description>
-   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g. top-hat in real space) and integrate over wavenumber, with normalization set by :math:`\sigma_8`.
+   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g. top-hat in real space) and integrate over wavenumber, with normalization set by that of the power spectrum (see :galacticus-class:`powerSpectrumNormalizer`).
    </description>
    <default>filteredPower</default>
-   <method name="descriptorNormalizationOnly" >
-    <description>
-    Return a descriptor for this object suitable for normalization-only usage.
-    </description>
-    <type>void</type>
-    <pass>yes</pass>
-    <modules>Input_Parameters</modules>
-    <argument>type     (inputParameters), intent(inout)           :: descriptor                                </argument>
-    <argument>logical                   , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
-    <argument>character(len=*          ), intent(in   ), optional :: parameterName                             </argument>
-    <code>
-      call self%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)
-    </code>
-   </method>
-   <method name="powerNormalization" >
-    <description>
-    Return the overall amplitude normalization of the linear matter power spectrum, used to scale the dimensionless power :math:`\Delta^2(k)` so that the integrated variance matches the observed :math:`\sigma_8`.
-    </description>
-    <type>double precision</type>
-    <pass>yes</pass>
-   </method>
    <method name="sigma8" >
     <description>
-    Return :math:`\sigma_8`, the rms linear density fluctuation smoothed with a top-hat filter of radius :math:`8\,h^{-1}\,\mathrm{Mpc}`, which sets the overall normalization of the matter power spectrum.
+    Return :math:`\sigma_8`, the rms linear density fluctuation at the present day smoothed with a top-hat filter of radius :math:`8\,h^{-1}\,\mathrm{Mpc}`, as computed from the (normalized) power spectrum.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -670,11 +657,13 @@ contains
                &                                               /globalSelf%cosmologicalMassVariance_%rootVariance(time=time,mass=globalSelf%mass                     )
        end if
     else
-       if (globalSelf%nodePresent) then
+       if (globalSelf%nodePresent .or. globalSelf%treePresent) then
+          ! A tree-dependent (but node-independent) critical overdensity still requires the node (as a route to its tree). The
+          ! node is assigned only if it is node- or tree-dependent, so must not be passed otherwise.
           collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        else
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                                          ) &
                &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        end if
     end if

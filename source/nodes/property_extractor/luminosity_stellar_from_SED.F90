@@ -17,29 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
-Implements a stellar mass output analysis property extractor class.
+Implements a property extractor class for broadband stellar luminosities computed from an SED.
 !!}
 
-  use :: ISO_Varying_String     , only : varying_string
-  use :: Output_Times           , only : outputTimesClass
-  use :: Numerical_Interpolation, only : interpolator
-  
-  type :: filterResponse
-     !!{RST
-     Type used to hold pointers to filter response functions.
-     !!}
-     type(interpolator), pointer :: interpolator_ => null()
-  end type filterResponse
+  use :: Cosmology_Functions           , only : cosmologyFunctionsClass
+  use :: ISO_Varying_String            , only : varying_string
+  use :: Output_Times                  , only : outputTimesClass
+  use :: Numerical_Interpolation       , only : interpolator
+  use :: Stellar_Luminosities_Structure, only : enumerationFrameType
   
   !![
   <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED" docformat="rst">
    <description>
    A property extractor that computes broadband stellar luminosities in AB units by integrating an SED (provided by a :galacticus-class:`nodePropertyExtractorSED` property extractor object) through a set of broadband filter response functions specified by ``filterNames``. For each filter, the filter transmission curve is convolved with the galaxy SED to compute :math:`L_\nu` in the AB zero-point system. This approach allows luminosities to be derived from an already-computed SED without re-running the full stellar population synthesis, making it efficient when many filters are required from a single SED.
+
+   Luminosities are computed in the frame given by ``frame`` (``rest`` or ``observed``). If the SED is in the same frame the filter response is integrated over it directly. Observed-frame luminosities can also be computed from a rest-frame SED, by blueshifting the filter response into the rest frame of the galaxy:
+
+   .. math::
+
+      L = \frac{\int R(\lambda/a) M_z(\lambda,z) S(\lambda) \mathrm{d}\lambda/\lambda}{\int R(\lambda) L_\mathrm{AB} \mathrm{d}\lambda/\lambda},
+
+   where :math:`R` is the filter response, :math:`S` the rest-frame SED, :math:`a` the expansion factor, and :math:`L_\mathrm{AB}` the AB zero point. The measure :math:`\mathrm{d}\lambda/\lambda` is unchanged by the blueshift, so this is identical to integrating the filter over the observed-frame SED.
+
+   Here :math:`M_z(\lambda,z)` is the redshift-dependent factor of the postprocessing of the SED (e.g. attenuation by the :term:`IGM`). Where that postprocessing is separable (see the ``isSeparable`` method of :galacticus-class:`stellarPopulationSpectraPostprocessorClass`), and the star formation history has fixed ages (see :galacticus-class:`starFormationHistoryFixedAges`), the SED is computed with only the redshift-independent factor of the postprocessing applied, and :math:`M_z(\lambda,z)` is applied to the filter instead. The SED is then independent of redshift, so a single template serves galaxies at all redshifts---which makes this the efficient route to observed-frame luminosities for lightcone output. Otherwise, the SED is computed with its full postprocessing at the redshift of the galaxy, and :math:`M_z(\lambda,z)=1`.
+
+   The SED must span the range of wavelengths covered by each filter (blueshifted into the rest frame if appropriate), as otherwise the luminosity would be silently truncated. This is reported as an error.
+
+   The integral over the filter is performed adaptively, to the relative tolerance ``toleranceRelative``. Note that the error in the result can exceed this tolerance: adaptive quadrature estimates its own error, and for a sharply-structured integrand---such as one carrying :term:`IGM` attenuation across the Lyman series---that estimate is occasionally optimistic. A few galaxies in a large sample may therefore be in error by somewhat more than ``toleranceRelative``, even though the typical error is far smaller. Where the integrator can not meet the requested tolerance at all it warns, once, rather than reporting the result as though the tolerance had been achieved; set ``tolerateIntegrationFailures`` to ``false`` to make such a failure fatal instead, and note that a failure which leaves no usable estimate of the integral is fatal regardless of that parameter. Because the integrand has a kink at every point of the filter and SED tabulations, a tolerance much tighter than the default can not usually be reached, and how tight a tolerance is attainable depends on the filter and on the SED. The integral of the AB zero point over the filter, which normalizes the result, depends only on the filter, so it is computed once per filter when the object is constructed, is not affected by ``toleranceRelative``, and---since an error in it would rescale every luminosity measured through that filter---is fatal if it fails, whatever ``tolerateIntegrationFailures`` is set to.
    </description>
-   <deepCopy>
-    <functionClass variables="nodePropertyExtractor_"/>
-   </deepCopy>
    <stateStorable>
     <functionClass variables="nodePropertyExtractor_"/>
    </stateStorable>
@@ -52,11 +60,16 @@ Implements a stellar mass output analysis property extractor class.
      private
      type            (varying_string          ), allocatable, dimension(:  ) :: filterNames
      integer                                   , allocatable, dimension(:  ) :: luminosityIndex
-     type            (filterResponse          ), allocatable, dimension(:  ) :: filterResponses
+     type            (interpolator            ), allocatable, dimension(:  ) :: filterResponses
+     double precision                          , allocatable, dimension(:  ) :: normalizationAB
      double precision                          , allocatable, dimension(:,:) :: wavelengthRanges
-     class           (nodePropertyExtractorSED), pointer                     :: nodePropertyExtractor_ => null()
+     class           (nodePropertyExtractorSED), pointer                     :: nodePropertyExtractor_      => null()
+     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_         => null()
+     type            (enumerationFrameType    )                              :: frame
+     double precision                                                        :: toleranceRelative
+     logical                                                                 :: tolerateIntegrationFailures          , warningIssued
    contains
-     final     ::                luminosityStellarFromSEDDestructor
+     final     ::                 luminosityStellarFromSEDDestructor
      procedure :: elementCount => luminosityStellarFromSEDElementCount
      procedure :: extract      => luminosityStellarFromSEDExtract
      procedure :: quantity     => luminosityStellarFromSEDQuantity
@@ -80,13 +93,18 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class which takes a parameter set as input.
     !!}
-    use :: Error           , only : Error_Report
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Error                         , only : Error_Report
+    use :: Input_Parameters              , only : inputParameter        , inputParameters
+    use :: Stellar_Luminosities_Structure, only : enumerationFrameEncode
     implicit none
     type (nodePropertyExtractorLuminosityStellarFromSED)                             :: self
     type (inputParameters                              ), intent(inout)              :: parameters
     class(nodePropertyExtractorClass                   ), pointer                    :: nodePropertyExtractor_
+    class(cosmologyFunctionsClass                      ), pointer                    :: cosmologyFunctions_
     type (varying_string                               ), dimension(:) , allocatable :: filterNames
+    type (varying_string                               )                             :: frame
+    double precision                                                                 :: toleranceRelative
+    logical                                                                          :: tolerateIntegrationFailures
 
     allocate(filterNames(parameters%count('filterNames')))
     !![
@@ -97,42 +115,144 @@ contains
       The filters to select.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>frame</name>
+      <source>parameters</source>
+      <defaultValue>var_str('rest')</defaultValue>
+      <description>
+      The frame (``rest`` or ``observed``) for which to compute luminosities.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>toleranceRelative</name>
+      <source>parameters</source>
+      <defaultValue>4.0d-3</defaultValue>
+      <description>
+      The relative tolerance used in the integration of the SED over the filter response.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>tolerateIntegrationFailures</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      Specifies whether or not a failure to reach ``toleranceRelative`` in the integration of the SED over the filter response
+      should be tolerated. If ``true``, the luminosity which the integrator returned is used as it stands and a warning is
+      issued once; if ``false``, such a failure is fatal. Only a failure for which the integrator still returns its best
+      estimate of the integral can be tolerated: a failure which leaves no usable estimate---an invalid tolerance, for which
+      the integrator returns zero, for example---is fatal whatever this parameter is set to.
+      </description>
+    </inputParameter>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorSED)
-       self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,nodePropertyExtractor_)
+       self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,enumerationFrameEncode(char(frame),includesPrefix=.false.),toleranceRelative,tolerateIntegrationFailures,nodePropertyExtractor_,cosmologyFunctions_)
     class default
        call Error_Report('an "SED" nodePropertyExtractor is required'//{introspection:location})
     end select
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="nodePropertyExtractor_"/>
+    <objectDestructor name="cosmologyFunctions_"   />
     !!]
     return
   end function luminosityStellarFromSEDConstructorParameters
 
-  function luminosityStellarFromSEDConstructorInternal(filterNames,nodePropertyExtractor_) result(self)
-    use, intrinsic :: ISO_C_Binding      , only : c_size_t
-    use            :: Instruments_Filters, only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
+  function luminosityStellarFromSEDConstructorInternal(filterNames,frame,toleranceRelative,tolerateIntegrationFailures,nodePropertyExtractor_,cosmologyFunctions_) result(self)
+    !!{RST
+    Internal constructor for the :galacticus-class:`nodePropertyExtractorLuminosityStellarFromSED` property extractor class.
+    !!}
+    use, intrinsic :: ISO_C_Binding                 , only : c_size_t
+    use            :: Error                         , only : Error_Report    , errorStatusSuccess
+    use            :: Instruments_Filters           , only : Filter_Get_Index, Filter_Response_Function, Filter_Extent
+    use            :: Interface_GSL                 , only : gslErrorDecode
+    use            :: ISO_Varying_String            , only : operator(//)
+    use            :: Numerical_Integration         , only : integrator
+    use            :: String_Handling               , only : operator(//)
+    use            :: Stellar_Luminosities_Structure, only : frameRest
     implicit none
-    type   (nodePropertyExtractorLuminosityStellarFromSED)                              :: self
-    type   (varying_string                               ), intent(in   ), dimension(:) :: filterNames
-    class  (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
-    integer                                                                             :: i                     , indexFilter
+    type            (nodePropertyExtractorLuminosityStellarFromSED)                              :: self
+    type            (varying_string                               ), intent(in   ), dimension(:) :: filterNames
+    type            (enumerationFrameType                         ), intent(in   )               :: frame
+    double precision                                               , intent(in   )               :: toleranceRelative
+    logical                                                        , intent(in   )               :: tolerateIntegrationFailures
+    class           (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
+    class           (cosmologyFunctionsClass                      ), intent(in   ), target       :: cosmologyFunctions_
+    type            (integrator                                   ), allocatable                 :: integratorAB_
+    type            (interpolator                                 ), pointer                     :: filterResponse_
+    integer                                                                                      :: i                     , indexFilter, errorStatus
     !![
-    <constructorAssign variables="filterNames, *nodePropertyExtractor_"/>
+    <constructorAssign variables="filterNames, frame, toleranceRelative, tolerateIntegrationFailures, *nodePropertyExtractor_, *cosmologyFunctions_"/>
     !!]
+
+    ! No warning about an unmet integration tolerance has been issued yet.
+    self%warningIssued=.false.
+
+    ! A rest-frame luminosity can not be computed from an observed-frame SED.
+    if (self%frame == frameRest .and. .not.self%nodePropertyExtractor_%isRestFrame()) &
+         & call Error_Report('rest-frame luminosities can not be computed from an observed-frame SED'//{introspection:location})
 
     ! Get filter functions for all requested filters.
     allocate(self%filterResponses (size(filterNames)  ))
+    allocate(self%normalizationAB (size(filterNames)  ))
     allocate(self%wavelengthRanges(size(filterNames),2))
+    allocate(integratorAB_                             )
+    ! The normalization of each filter---the luminosity of a zeroth magnitude (AB) source seen through it---depends only on the
+    ! filter, so it is computed here, once, instead of for every galaxy. `toleranceRelative` is deliberately not applied to it,
+    ! for two reasons. It is a property of the filter alone, so any error in it rescales every luminosity through that filter
+    ! by the same factor instead of scattering them, which is what that tolerance exists to control. And its integrand has a
+    ! kink at each point of the tabulated response, so for a tight tolerance the integrator can not certify its own result even
+    ! though that result is accurate: at 4.0d-3 the value is good to better than 1.0d-4, while at 1.0d-6 the integrator reports
+    ! failure for some filters. The fixed tolerance below is therefore reliable, and more accurate than it appears.
+    integratorAB_=integrator(integrandFilteredLuminosityAB,toleranceRelative=4.0d-3)
+    ! Note that `Filter_Response_Function` allocates a new interpolator and returns a pointer to it, so a copy of that
+    ! interpolator is taken below and the original released. Holding the interpolator itself, rather than a pointer to it,
+    ! means that it is destroyed along with this object, and that a deep copy of this object is given an interpolator of its
+    ! own instead of sharing ours---the latter matters because an interpolator carries mutable state (a GSL accelerator, and a
+    ! cached bracket index) which must not be shared between threads. Neither needs any action here: an allocatable component
+    ! is finalized along with its parent, which releases the GSL objects through the interpolator's resource managers, while the
+    ! deep copy of the interpolator is handled by the code generator, which emits its `deepCopyActions` for a component of this
+    ! type.
     do i=1,size(filterNames)
-       indexFilter                              =  Filter_Get_Index        (filterNames(i          ))
-       self%filterResponses (i  )%interpolator_ => Filter_Response_Function(            indexFilter )
-       self%wavelengthRanges(i,:)               =  Filter_Extent           (            indexFilter )
+       indexFilter                =  Filter_Get_Index        (filterNames(i          ))
+       filterResponse_            => Filter_Response_Function(            indexFilter )
+       self%filterResponses (i  ) =  filterResponse_
+       deallocate(filterResponse_)
+       self%wavelengthRanges(i,:) =  Filter_Extent           (            indexFilter )
+       self%normalizationAB (i  ) =  integratorAB_%integrate (self%wavelengthRanges(i,1),self%wavelengthRanges(i,2),status=errorStatus)
+       ! Passing `status` suppresses the GSL error handler, so the status is tested rather than discarded.
+       ! A failure here is always fatal: an error in this integral would rescale every luminosity measured through the filter, and
+       ! the tolerance is ours, not the user's, so `tolerateIntegrationFailures` does not apply to it.
+       if (errorStatus /= errorStatusSuccess)                                                                              &
+            & call Error_Report(                                                                                           &
+            &                   'integration of the AB zero point over filter "'//filterNames(i)//'" failed'//             &
+            &                   char(10)//'  integrator status: '//errorStatus//' ("'//gslErrorDecode(errorStatus)//'")'// &
+            &                   {introspection:location}                                                                   &
+            &                  )
     end do
+    deallocate(integratorAB_)
     return
+
+  contains
+
+    double precision function integrandFilteredLuminosityAB(wavelength)
+      !!{RST
+      Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      !!}
+      use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
+      implicit none
+      double precision, intent(in   ) :: wavelength
+      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
+      double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
+
+      integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolate(wavelength) &
+           &                        *luminosityZeroPointABSolar                      &
+           &                        /                                    wavelength
+      return
+    end function integrandFilteredLuminosityAB
+
   end function luminosityStellarFromSEDConstructorInternal
   
   subroutine luminosityStellarFromSEDDestructor(self)
@@ -144,6 +264,7 @@ contains
 
     !![
     <objectDestructor name="self%nodePropertyExtractor_"/>
+    <objectDestructor name="self%cosmologyFunctions_"   />
     !!]
     return
   end subroutine luminosityStellarFromSEDDestructor
@@ -165,8 +286,10 @@ contains
     !!{RST
     Implement a stellar luminosity output analysis property extractor.
     !!}
-    use :: Table_Labels         , only : extrapolationTypeZero
-    use :: Numerical_Integration, only : GSL_Integ_Gauss15    , integrator
+    use :: Error                         , only : errorStatusSuccess
+    use :: Stellar_Luminosities_Structure, only : frameObserved
+    use :: Table_Labels                  , only : extrapolationTypeZero
+    use :: Numerical_Integration         , only : GSL_Integ_Gauss15    , integrator
     implicit none
     double precision                                               , allocatable   , dimension(:) :: luminosities
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout) , target       :: self
@@ -175,26 +298,61 @@ contains
     type            (multiCounter                                 ), intent(inout) , optional     :: instance
     double precision                                               , dimension(:  ), allocatable  :: wavelengths
     double precision                                               , dimension(:,:), allocatable  :: sed
-    type            (integrator                                   ), allocatable                  :: integrator_    , integratorAB_
+    type            (integrator                                   ), allocatable                  :: integrator_
     type            (interpolator                                 ), allocatable                  :: interpolatorSED   
-    integer                                                                                       :: i              , errorStatus
+    integer                                                                                       :: i               , errorStatus
+    double precision                                                                              :: expansionFactor , redshift
+    logical                                                                                       :: separateRedshift
 
-    allocate(luminosities   (size(self%filterNames)))
-    allocate(interpolatorSED                        )
-    allocate(integrator_                            )
-    allocate(integratorAB_                          )
-    wavelengths     =  self        %nodePropertyExtractor_%wavelengths(                              time                                                                                              )
-    sed             =  self        %nodePropertyExtractor_%extract    (node                         ,time                      ,                  instance                                             )
-    interpolatorSED =  interpolator                                   (wavelengths                  ,                  sed(:,1),extrapolationType=extrapolationTypeZero                                )
-    integrator_     =  integrator                                     (integrandFilteredLuminosity  ,toleranceRelative=4.0d-3  ,integrationRule  =GSL_Integ_Gauss15    ,intervalsMaximum=10000_c_size_t)
-    integratorAB_   =  integrator                                     (integrandFilteredLuminosityAB,toleranceRelative=4.0d-3                                                                          )
+    allocate(luminosities(size(self%filterNames)))
+    ! Observed-frame luminosities from a rest-frame SED are computed by blueshifting the filter response into the rest frame of
+    ! the galaxy. Otherwise the SED is in the frame of the luminosity, and the filter is integrated over it directly.
+    if (self%frame == frameObserved .and. self%nodePropertyExtractor_%isRestFrame()) then
+       expansionFactor =self%cosmologyFunctions_%expansionFactor            (time           )
+       redshift        =self%cosmologyFunctions_%redshiftFromExpansionFactor(expansionFactor)
+       ! Where possible, compute the SED with only the redshift-independent factor of its postprocessing applied, and apply the
+       ! redshift-dependent factor to the filter instead. The SED can then be computed from a single template.
+       separateRedshift=self%nodePropertyExtractor_%isRedshiftSeparable()
+    else
+       expansionFactor =1.0d0
+       redshift        =0.0d0
+       separateRedshift=.false.
+    end if
+    wavelengths=self%nodePropertyExtractor_%wavelengths(time)
+    ! Check that the SED spans the range of each filter. Beyond its tabulated range the SED is extrapolated as zero, so a
+    ! filter which extends beyond it would give a silently truncated luminosity.
     do i=1,size(self%filterNames)
-       luminosities(i)=+integrator_  %integrate(self%wavelengthRanges(i,1),self%wavelengthRanges(i,2),status=errorStatus) &
-            &          /integratorAB_%integrate(self%wavelengthRanges(i,1),self%wavelengthRanges(i,2)                   )
+       if     (                                                                              &
+            &   size(wavelengths)              == 0                                          &
+            &  .or.                                                                          &
+            &   wavelengths(1                ) >  self%wavelengthRanges(i,1)*expansionFactor &
+            &  .or.                                                                          &
+            &   wavelengths(size(wavelengths)) <  self%wavelengthRanges(i,2)*expansionFactor &
+            & ) call reportCoverageError(i)
+    end do
+    if (separateRedshift) then
+       sed=self%nodePropertyExtractor_%extractRedshiftIndependent(node,time         )
+    else
+       sed=self%nodePropertyExtractor_%extract                   (node,time,instance)
+    end if
+    ! A galaxy with no SED has zero luminosity.
+    if (all(sed(:,1) == 0.0d0)) then
+       luminosities=0.0d0
+       return
+    end if
+    allocate(interpolatorSED)
+    allocate(integrator_    )
+    interpolatorSED=interpolator(wavelengths                  ,                  sed(:,1),extrapolationType=extrapolationTypeZero                                        )
+    integrator_    =integrator  (integrandFilteredLuminosity  ,toleranceRelative=self%toleranceRelative,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
+    do i=1,size(self%filterNames)
+       luminosities(i)=+integrator_%integrate(self%wavelengthRanges(i,1)*expansionFactor,self%wavelengthRanges(i,2)*expansionFactor,status=errorStatus) &
+            &          /self%normalizationAB(i)
+       ! Passing `status` above suppresses the GSL error handler, so the status must be tested here: otherwise a tolerance
+       ! which the integrator can not meet would be reported to the user as though it had been achieved.
+       if (errorStatus /= errorStatusSuccess) call reportIntegrationError(i,errorStatus)
     end do
     deallocate(interpolatorSED)
     deallocate(integrator_    )
-    deallocate(integratorAB_  )
     return
 
   contains
@@ -210,28 +368,136 @@ contains
       ! Hogg et al. (2002) and assume that the filter response gives the fraction of incident photons received by the detector at
       ! a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector such as a
       ! CCD, or proportional to the photon energy for a bolometer/calorimeter type detector).
-      integrandFilteredLuminosity=+self%filterResponses(i)%interpolator_  %interpolate(wavelength) &
-           &                      *                        interpolatorSED%interpolate(wavelength) &
-           &                      /                                                    wavelength
+      !
+      ! When computing an observed-frame luminosity from a rest-frame SED, the wavelength here is in the rest frame, and the
+      ! filter response is evaluated at the corresponding observed wavelength, λ/a. The measure dλ/λ is unchanged by this
+      ! transformation.
+      integrandFilteredLuminosity=+self%filterResponses(i)%interpolate(wavelength/expansionFactor) &
+           &                      *     interpolatorSED   %interpolate(wavelength                ) &
+           &                      /                                    wavelength
+      if (separateRedshift)                                                                                            &
+           & integrandFilteredLuminosity=+                            integrandFilteredLuminosity                      &
+           &                             *self%nodePropertyExtractor_%multiplierRedshift         (wavelength,redshift)
       return
     end function integrandFilteredLuminosity
 
-    double precision function integrandFilteredLuminosityAB(wavelength)
+    subroutine reportCoverageError(i)
       !!{RST
-      Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      Report that the SED does not span the range of a filter.
       !!}
-      use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
+      use :: Display           , only : displayGreen, displayReset
+      use :: Error             , only : Error_Report
+      use :: ISO_Varying_String, only : operator(//), var_str
       implicit none
-      double precision, intent(in   ) :: wavelength
-      ! Luminosity of a zeroth magnitude (AB) source in Solar luminosities per Hz.
-      double precision, parameter     :: luminosityZeroPointABSolar=luminosityZeroPointAB/luminositySolar
+      integer                  , intent(in   ) :: i
+      character(len=12        )                :: label
+      type     (varying_string)                :: message
 
-      integrandFilteredLuminosityAB=+self%filterResponses(i)%interpolator_%interpolate(wavelength) &
-           &                        *luminosityZeroPointABSolar                                    &
-           &                        /                                                  wavelength
+      message=var_str('the SED does not cover the wavelength range of filter "')//self%filterNames(i)//'"'
+      !$omp critical(gfortranInternalIO)
+      write (label,'(f12.3)') self%wavelengthRanges(i,1)*expansionFactor
+      message=message//char(10)//'  filter range: '//trim(adjustl(label))//'Å - '
+      write (label,'(f12.3)') self%wavelengthRanges(i,2)*expansionFactor
+      message=message//trim(adjustl(label))//'Å'
+      if (expansionFactor < 1.0d0) then
+         write (label,'(f12.6)') redshift
+         message=message//' (blueshifted to the rest frame of a galaxy at z='//trim(adjustl(label))//')'
+      end if
+      if (size(wavelengths) > 0) then
+         write (label,'(f12.3)') wavelengths(1)
+         message=message//char(10)//'     SED range: '//trim(adjustl(label))//'Å - '
+         write (label,'(f12.3)') wavelengths(size(wavelengths))
+         message=message//trim(adjustl(label))//'Å'
+      else
+         message=message//char(10)//'     SED range: empty'
+      end if
+      !$omp end critical(gfortranInternalIO)
+      message=message//char(10)//displayGreen()//'HELP:'//displayReset()//' widen the range of wavelengths (`wavelengthMinimum` and `wavelengthMaximum`) of the SED'
+      if (self%frame == frameObserved .and. self%nodePropertyExtractor_%isRestFrame()) &
+           & message=message//char(10)//'      to cover the filter blueshifted to the rest frame of galaxies at all redshifts of interest'
+      call Error_Report(message//{introspection:location})
       return
-    end function integrandFilteredLuminosityAB
-    
+    end subroutine reportCoverageError
+
+    subroutine reportIntegrationError(i,status)
+      !!{RST
+      Report that the integration of the SED over a filter did not reach the requested tolerance.
+      !!}
+      use :: Display           , only : displayGreen  , displayMagenta, displayMessage, displayReset, &
+           &                            displayYellow
+      use :: Error             , only : Error_Report
+      use :: Interface_GSL     , only : GSL_EMaxIter  , GSL_ERound    , GSL_ESing     , GSL_ETol    , &
+           &                            gslErrorDecode
+      use :: ISO_Varying_String, only : operator(//)  , var_str
+      use :: String_Handling   , only : operator(//)  , stringXMLFormat
+      implicit none
+      integer                  , intent(in   ) :: i            , status
+      character(len=12        )                :: label
+      type     (varying_string)                :: message
+      logical                                  :: resultUsable
+
+      ! For these failures the integrator still returns its best estimate of the integral, so that estimate can be used if the
+      ! user chooses to tolerate a tolerance which was not met. Any other failure leaves no usable estimate---`GSL_EBadTol`, for
+      ! example, sets the result to zero before returning---and so is fatal whatever `tolerateIntegrationFailures` says.
+      resultUsable=     status == GSL_ERound    &
+           &       .or. status == GSL_EMaxIter  &
+           &       .or. status == GSL_ESing     &
+           &       .or. status == GSL_ETol
+      ! A tolerated failure is reported once only, since there could be one for every filter of every galaxy.
+      if (self%tolerateIntegrationFailures .and. resultUsable .and. self%warningIssued) return
+      if (self%tolerateIntegrationFailures .and. resultUsable) then
+         message=var_str(displayMagenta()//'WARNING:'//displayReset()//' ')
+      else
+         message=var_str(''                                               )
+      end if
+      message=message//'integration of the SED over filter "'//self%filterNames(i)//'" did not reach the requested tolerance'
+      !$omp critical(gfortranInternalIO)
+      write (label,'(e12.6)') self%toleranceRelative
+      message=message//char(10)//'  requested relative tolerance: '//trim(adjustl(label))
+      !$omp end critical(gfortranInternalIO)
+      message=message//char(10)//'  integrator status           : '//status//' ("'//gslErrorDecode(status)//'")'
+      if (resultUsable) then
+         ! The tolerance was accepted but not reached, so a looser one may well be attainable.
+         message=message//char(10)//displayGreen()//'HELP:'//displayReset()//' the filter response and the SED are both tabulated, so the integrand has a kink at every'
+         message=message//char(10)//'      point of either tabulation, and the integrator can not always certify a tight tolerance.'
+         message=message//char(10)//'      How tight a tolerance can be reached depends on the filter and on the SED. Loosen it in'
+         message=message//char(10)//'      your parameter file, for example to:'//char(10)//char(10)
+         !$omp critical(gfortranInternalIO)
+         write (label,'(e12.6)') 2.0d0*self%toleranceRelative
+         !$omp end critical(gfortranInternalIO)
+         message=message//stringXMLFormat('<nodePropertyExtractor value="luminosityStellarFromSED">**B<toleranceRelative value="'//trim(adjustl(label))//'"/>**C</nodePropertyExtractor>',indentInitial=6)//char(10)
+      else
+         ! The tolerance was rejected outright, so doubling it would not help: the integrand is irrelevant, and the limit is
+         ! GSL's own, namely fifty times the machine epsilon.
+         !$omp critical(gfortranInternalIO)
+         write (label,'(e12.6)') 50.0d0*epsilon(0.0d0)
+         !$omp end critical(gfortranInternalIO)
+         message=message//char(10)//displayGreen()//'HELP:'//displayReset()//' the integrator rejected this tolerance outright, rather than failing to reach it: a relative'
+         message=message//char(10)//'      tolerance must exceed fifty times the machine epsilon, which is '//trim(adjustl(label))//'. Doubling the'
+         message=message//char(10)//'      tolerance will therefore not help. A tolerance much tighter than the default can not be reached'
+         message=message//char(10)//'      for this integrand in any case, since the filter response and the SED are both tabulated and so'
+         message=message//char(10)//'      the integrand has a kink at every point of either tabulation.'//char(10)
+      end if
+      if (self%tolerateIntegrationFailures .and. resultUsable) then
+         message=message//'      The luminosity reported is the one the integrator returned, which may be in error by more than'//char(10)
+         message=message//'      the requested tolerance. Set'//char(10)//char(10)
+         message=message//stringXMLFormat('<nodePropertyExtractor value="luminosityStellarFromSED">**B<tolerateIntegrationFailures value="false"/>**C</nodePropertyExtractor>',indentInitial=6)//char(10)
+         message=message//'      to make such a failure fatal instead. This warning is issued once for each extractor on each'//char(10)
+         message=message//'      thread.'
+         ! `Warn` is not used here: it displays nothing below `verbosityLevelWarn`, and reviews its record of warnings only when the
+         ! run hits an error condition, so a tolerated failure would go unseen in a run which succeeds.
+         call displayMessage(message)
+         self%warningIssued=.true.
+      else
+         if (self%tolerateIntegrationFailures)                                                                                        &
+              & message=message//'      This failure is fatal although `tolerateIntegrationFailures` is '//displayYellow()//'true'//  &
+              &                  displayReset()//', because the integrator'//char(10)//                                               &
+              &                  '      returns no usable estimate of the integral for it.'//char(10)
+         call Error_Report  (message//{introspection:location})
+      end if
+      return
+    end subroutine reportIntegrationError
+
   end function luminosityStellarFromSEDExtract
 
   function luminosityStellarFromSEDQuantity(self)
@@ -252,6 +518,7 @@ contains
     !!{RST
     Return the name of the luminosityStellarFromSED property.
     !!}
+    use :: Stellar_Luminosities_Structure, only : enumerationFrameDecode
     implicit none
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)                            :: self
     double precision                                               , intent(in   )                            :: time
@@ -262,7 +529,7 @@ contains
     allocate(names(size(self%filterNames)))
     call self%nodePropertyExtractor_%names(name,time)
     do i=1,size(names)
-       names(i)=name(1)//":"//self%filterNames(i)
+       names(i)=name(1)//":"//self%filterNames(i)//":"//enumerationFrameDecode(self%frame,includePrefix=.false.)
     end do
     return
   end subroutine luminosityStellarFromSEDNames
@@ -271,6 +538,7 @@ contains
     !!{RST
     Return a description of the luminosityStellarFromSED property.
     !!}
+    use :: Stellar_Luminosities_Structure, only : enumerationFrameDecode
     implicit none
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)                            :: self
     double precision                                               , intent(in   )                            :: time
@@ -281,7 +549,7 @@ contains
     allocate(descriptions(size(self%filterNames)))
     call self%nodePropertyExtractor_%descriptions(description,time)
     do i=1,size(descriptions)
-       descriptions(i)="Luminosity in "//self%filterNames(i)//" filter in units of the AB-magnitude system zero-point; derived from: "//description(1)
+       descriptions(i)="Luminosity in "//self%filterNames(i)//" filter in the "//enumerationFrameDecode(self%frame,includePrefix=.false.)//" frame in units of the AB-magnitude system zero-point; derived from: "//description(1)
     end do
     return
   end subroutine luminosityStellarFromSEDDescriptions
@@ -308,11 +576,11 @@ contains
     !!}
     use :: Units_MetaData, only : unitType
     implicit none
-    type            (unitType                                     ), dimension(:), allocatable :: units
-    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)             :: self
-    double precision                                               , intent(in   )             :: time
-    double precision                                               , dimension(:), allocatable :: siValues
-    integer                                                                                    :: i
+    type            (unitType                                     ), dimension(:) , allocatable :: units
+    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)              :: self
+    double precision                                               , intent(in   )              :: time
+    double precision                                               , dimension(:) , allocatable :: siValues
+    integer                                                                                     :: i
 
     siValues=self%unitsInSI(time)
     allocate(units(size(siValues)))

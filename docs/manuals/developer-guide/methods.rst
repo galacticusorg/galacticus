@@ -615,6 +615,8 @@ which should set ``node%isPhysicallyPlausible`` (and/or ``node%isSolvable``) to 
 
 When called, the subroutine should set ``componentActive`` to indicate whether or not this node contains an active component of the type, and ``component`` to the corresponding component type (e.g. ``componentTypeDisk``; see Section :galacticus-ref:`ComponentMassTypes`). If the component is active, it should also set ``specificAngularMomentum`` to reflect the specific angular momentum (in km s\ :math:`^{-1}` Mpc) of the component (at whatever point in its profile the radius is required; this is required only if ``specificAngularMomentumRequired`` is true) and should point the four procedure pointers to routines which get and set the radius and circular velocity properties of the component (which should have the standard form for component get and set methods). It is acceptable for the set procedures to point to dummy routines.
 
+A component which is not physically plausible, but whose mass is too small to matter for the structure of the other components, may instead leave ``node%isPhysicallyPlausible`` unchanged and set ``componentActive`` to false. It is then excluded from radius solving (retaining its current radius and circular velocity), while the radii of the other components are still solved for. The ``standard`` disk and spheroid components do this when their angular momentum is implausible but their mass is less than a fraction ``[fractionMassImplausibleNegligible]`` of the mass of the galaxy.
+
 The galactic structure radii solver routines will use this information to determine (and set) the radius and circular velocity of the component. An advantage of this approach is that different radii solver methods can all use this same system, ensuring that just a single interface is needed in each component.
 
 Analytic Solvers
@@ -662,7 +664,7 @@ The chemicals subsystem provides both a interface to a database of known chemica
 Chemical Database
 ^^^^^^^^^^^^^^^^^
 
-The file ``data/Chemical_Database.cml`` contains a database of chemicals that can currently be used by Galacticus. It uses a simplified version of the `Chemical Markup Language <http://www.xml-cml.org>`_ to describe chemicals. An excerpt from the database is shown below:
+The file ``static/abundances/Chemical_Database.cml`` in the Galacticus datasets contains a database of chemicals that can currently be used by Galacticus. It uses a simplified version of the `Chemical Markup Language <http://www.xml-cml.org>`_ to describe chemicals. An excerpt from the database is shown below:
 
 .. code-block:: none
 

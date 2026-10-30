@@ -1,0 +1,158 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Model used by test-ram-pressure-history.py, which checks the time integral and running maximum of the ram pressure
+     accumulated by the ramPressureHistory node operator against values computed independently from the satellite's recorded
+     trajectory.
+
+     A single satellite orbits, on an eccentric orbit, in a static host which carries a hot halo. Only the equations of motion
+     and the ram pressure history act: there is no dynamical friction, tidal mass loss, merging or ram pressure stripping, so the
+     satellite survives the whole run on an unbroken orbit. The outputTrajectory node operator records the satellite after every
+     accepted ODE step, giving the finely-sampled history of the instantaneous ram pressure that the test integrates. It is
+     placed last in the list of node operators, so that each record is made after the running maximum has been updated for that
+     step.
+
+     The test runs this model twice: as written, with [efficiencyDecay]=0, and with [efficiencyDecay]=1. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
+
+  <!-- Task -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection: hot halo + orbiting satellite only. -->
+  <componentBasic             value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="scale"   />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="standard"/>
+  <componentSatellite         value="orbiting"/>
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Cosmology: a static universe, so that the host potential and hot halo do not evolve. -->
+  <cosmologyFunctions  value="staticUniverse"/>
+  <cosmologyParameters value="simple"         >
+    <HubbleConstant  value="67.36000"/>
+    <OmegaMatter     value=" 0.31530"/>
+    <OmegaDarkEnergy value=" 0.68470"/>
+    <OmegaBaryon     value=" 0.04930"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"/>
+  <virialDensityContrast value="fixed"               >
+    <densityContrastValue value="329.6207717164546"/>
+    <densityType          value="mean"             />
+  </virialDensityContrast>
+
+  <!-- Merger tree: a single, fully-specified host + subhalo pair. -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/ramPressureHistoryTree.xml"/>
+  </mergerTreeConstructor>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfile              value="darkMatterOnly"/>
+  <darkMatterProfileDMO           value="NFW"           />
+  <darkMatterProfileConcentration value="fixed"          >
+    <concentration value="10.0"/>
+  </darkMatterProfileConcentration>
+
+  <!-- No halo accretion. -->
+  <accretionHalo value="zero"/>
+
+  <!-- Hot halo gas model: a beta profile, with a finite central density. -->
+  <hotHaloMassDistribution value="betaProfile"/>
+
+  <!-- Ram pressure: evaluated at the satellite's instantaneous orbital position. -->
+  <hotHaloRamPressureForce value="orbitalPosition"/>
+
+  <!-- Galactic structure solver -->
+  <galacticStructureSolver value="fixed"/>
+
+  <!-- Satellite orbits -->
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+  <satelliteDynamicalFriction value="zero"/>
+  <satelliteTidalStripping    value="zero"/>
+  <satelliteTidalHeatingRate  value="zero"/>
+  <mergerRemnantSize          value="null"/>
+
+  <!-- Node evolution and physics. -->
+  <nodeOperator value="multi">
+    <nodeOperator value="cosmicTime"                       />
+    <nodeOperator value="DMOInterpolate"                   />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="satelliteOrbit"                   />
+    <!-- The operator under test. -->
+    <nodeOperator value="ramPressureHistory"               >
+      <efficiencyDecay value="0.0"/>
+    </nodeOperator>
+    <!-- Record the satellite after every accepted ODE step. This must come after the operator under test. -->
+    <nodeOperator value="outputTrajectory"                 >
+      <treeIndex                           value="1"    />
+      <nodeIndex                           value="3"    />
+      <groupPerNode                        value="true" />
+      <recordNodeInitialize                value="false"/>
+      <recordDifferentialEvolutionPostStep value="true" />
+      <recordDifferentialEvolutionPost     value="false"/>
+      <recordNodePromote                   value="false"/>
+      <recordNodesMerge                    value="false"/>
+      <recordGalaxiesMerge                 value="false"/>
+      <mergerTreeOutputter value="standard">
+        <outputsGroupName value="nodeTrajectories"/>
+        <outputReferences value="false"/>
+        <nodePropertyExtractor value="multi">
+          <nodePropertyExtractor value="time"              />
+          <nodePropertyExtractor value="trajectoryEvent"   />
+          <nodePropertyExtractor value="positionOrbital"   />
+          <nodePropertyExtractor value="velocityOrbital"   />
+          <nodePropertyExtractor value="ramPressureHistory"/>
+        </nodePropertyExtractor>
+      </mergerTreeOutputter>
+    </nodeOperator>
+  </nodeOperator>
+
+  <!-- Numerical tolerances: tight, so that the comparison measures the equations rather than the integrator. -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-8"/>
+    <odeToleranceRelative value="1.0e-8"/>
+    <reuseODEStepSize     value="false" />
+  </mergerTreeNodeEvolver>
+  <!-- timestepHostRelative MUST be zero: a non-zero value makes the evolver compute an expansion timescale as 1/expansionRate,
+       which divides by zero in a static universe. -->
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.00"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple"    >
+      <timeStepAbsolute value="1.000"/>
+      <timeStepRelative value="0.000"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite" >
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Regular output: the final state only. -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <times value="7.0"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+  </nodePropertyExtractor>
+
+  <outputFileName value="testSuite/outputs/ramPressureHistory.hdf5"/>
+
+</parameters>

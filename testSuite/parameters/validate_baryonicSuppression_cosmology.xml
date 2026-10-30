@@ -4,7 +4,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
 
   <!-- Dark matter properties -->
@@ -27,24 +27,6 @@
     <nonMonotonicIsFatal         value="false" />
     <monotonicInterpolation      value="true"  />
     <powerSpectrumWindowFunction value="topHat"/>
-    <wavenumberReference         value="1.0d0" />
-    <reference>
-      <cosmologicalMassVariance value="filteredPower">
-	<sigma_8                     value="0.8288"/>
-	<tolerance                   value="1.0e-2"/>
-	<toleranceTopHat             value="1.0e-2"/>
-	<nonMonotonicIsFatal         value="false" />
-	<monotonicInterpolation      value="true"  />
-	<powerSpectrumWindowFunction value="topHat"/>
-      </cosmologicalMassVariance>
-      <powerSpectrumPrimordialTransferred value="simple"/>
-      <powerSpectrumPrimordial value="powerLaw">
-	<index               value="0.9611"/>
-	<wavenumberReference value="1.0000"/>
-	<running             value="0.0000"/>
-      </powerSpectrumPrimordial>
-      <linearGrowth          value="collisionlessMatter"/>
-    </reference>
   </cosmologicalMassVariance>
   <transferFunction value="CAMB">
     <redshift value="100.0"/>  
@@ -55,5 +37,21 @@
     <running             value="0.0000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="matchedWavenumber">
+    <wavenumberReference value="1.0d0"/>
+    <reference>
+      <powerSpectrumPrimordialTransferred value="simple"/>
+      <powerSpectrumPrimordial value="powerLaw">
+	<index value="0.9611"/>
+	<wavenumberReference value="1.0000"/>
+	<running value="0.0000"/>
+      </powerSpectrumPrimordial>
+      <linearGrowth value="collisionlessMatter"/>
+      <powerSpectrumNormalizer value="sigma8">
+        <sigma_8 value="0.8288"/>
+        <tolerance value="1.0e-2"/>
+      </powerSpectrumNormalizer>
+    </reference>
+  </powerSpectrumNormalizer>
 
 </parameters>

@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 _digests            = {}
 _composite_digests  = {}
 _modification_times = {}
+_source_existence   = {}
 
 
 def process_source_digests(tree, options):
@@ -85,6 +86,18 @@ def _b64digest(hasher):
     padding.  Existing `.md5` caches depend on this exact format.
     """
     return base64.b64encode(hasher.digest()).rstrip(b'=').decode('ascii')
+
+
+def _source_exists(file_name):
+    """Return whether the source file `file_name` exists, caching repeated lookups.
+
+    `find_hash` probes five suffixes for every object in every dependency
+    list, so the same few thousand paths are tested millions of times in a
+    cold run.  Source files are not created or removed while it runs.
+    """
+    if file_name not in _source_existence:
+        _source_existence[file_name] = os.path.exists(file_name)
+    return _source_existence[file_name]
 
 
 def modification_time(file_name):
@@ -172,12 +185,11 @@ def _component_digest_map():
         _COMPONENT_DIGEST_MAP = result
         return result
 
-    import xml.etree.ElementTree as ET
-    from XML.Utils                   import xml_to_dict
+    from Galacticus.Build            import Catalogs
     from List.ExtraUtils             import as_array
     from Galacticus.Build.Directives import extract_directives
 
-    locations     = xml_to_dict(ET.parse(locations_path).getroot())
+    locations     = Catalogs.load(locations_path)
     builder_files = list(as_array(
         (locations.get('componentBuilder') or {}).get('file')))
     if not builder_files:
@@ -443,7 +455,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                             logger.info(f"   => Dependency file: {source_prefix}")
                         for suffix in ('F90', 'c', 'h', 'Inc', 'cpp'):
                             source_file_name = f"{source_prefix}.{suffix}"
-                            if not os.path.exists(source_file_name):
+                            if not _source_exists(source_file_name):
                                 continue
                             if report:
                                 logger.info(f"    => Dependency file: {source_file_name}")
@@ -513,7 +525,7 @@ def find_hash(file_names, *, use_locks=True, include_files_excluded=None,
                         )
                         for suffix in ('F90', 'c', 'h', 'Inc', 'cpp'):
                             source_file_name = f"{source_prefix}.{suffix}"
-                            if not os.path.exists(source_file_name):
+                            if not _source_exists(source_file_name):
                                 continue
                             digest = ensure_file_digest(
                                 source_file_name, suffix, build_path,

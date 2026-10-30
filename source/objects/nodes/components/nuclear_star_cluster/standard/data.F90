@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Claude.
 
 !!{RST
 Contains a module which stores data for the standard nuclear star cluster node component.
@@ -27,23 +27,34 @@ module Node_Component_NSC_Standard_Data
   !!{RST
   Stores data for the standard nuclear star cluster node component.
   !!}
-  use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionLocal
-  use :: Object_Pools      , only : objectPool
+  use :: Galactic_Component_Heatings   , only : galacticComponentHeatingClass
+  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass
+  use :: Mass_Distributions            , only : massDistributionClass           , kinematicsDistributionLocal, kinematicsDistributionClass
+  use :: Object_Pools                  , only : objectPool
   implicit none
   public
   
   ! Records the value of the normalization factor used to estimate the radius of the NSC
-  double precision                            :: radiusNormalization
+  double precision                                           :: radiusNormalization
   ! The mass distribution objects.
-  class(massDistributionClass      ), pointer :: massDistributionStellar_, massDistributionGas_
-  type (kinematicsDistributionLocal), pointer :: kinematicDistribution_
-  !$omp threadprivate(massDistributionStellar_,massDistributionGas_,kinematicDistribution_)
+  class           (massDistributionClass          ), pointer :: massDistributionStellar_    , massDistributionGas_
+  type            (kinematicsDistributionLocal    ), pointer :: kinematicDistribution_
+  class           (kinematicsDistributionClass    ), pointer :: kinematicDistributionGas_
+  !$omp threadprivate(massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_)
 
   ! Per-thread pools of the (lightweight) scaler mass distributions that wrap the dimensionless
   ! stellar and gas distributions above, re-used across nodes to avoid allocating and destroying a
   ! scaler on every call. A separate pool is used per wrapped distribution so the wrapped pointer
   ! never changes on re-use. Released in the component's thread uninitialization task.
-  type (objectPool                 )          :: scalerStellarPool       , scalerGasPool
+  type            (objectPool                     )          :: scalerStellarPool           , scalerGasPool
   !$omp threadprivate(scalerStellarPool,scalerGasPool)
+
+  ! The model of truncation of the mass distribution, and the ID of the meta-property giving the degree of tidal truncation.
+  class          (galacticComponentTruncationClass), pointer :: galacticComponentTruncation_
+  !$omp threadprivate(galacticComponentTruncation_)
+  integer                                                    :: tidalTruncationID
+  ! The model of heating of the mass distribution.
+  class          (galacticComponentHeatingClass   ), pointer :: galacticComponentHeating_
+  !$omp threadprivate(galacticComponentHeating_)
   
 end module Node_Component_NSC_Standard_Data

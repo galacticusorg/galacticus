@@ -167,8 +167,7 @@ contains
          &                                                                    rateMassLossFractional , radiusHalfMass     , &
          &                                                                    surfaceDensityGas      , surfaceDensityTotal, &
          &                                                                    timeDynamical          , radius             , &
-         &                                                                    radiusHalfMass         , velocity           , &
-         &                                                                    massGas
+         &                                                                    velocity               , massGas
 
     ! Assume no mass loss rate due to ram pressure by default.
     simpleCylindricalRateMassLoss=0.0d0
@@ -189,7 +188,7 @@ contains
        componentType =componentTypeDisk
        radius        =0.0d0
        radiusHalfMass=0.0d0
-       velocity      =0.
+       velocity      =0.0d0
        massGas       =0.0d0
        call Error_Report(                                                                                                                                                                                                                                                                     &
             &            'only "'//displayBlue()//'disk'//displayReset()//'" components are supported by the "'//displayGreen()//'simpleCylindrical'//displayReset()//'" '//displayBlue()//'ramPressureStripping'//displayReset()//' class'//char(10)//                                       &

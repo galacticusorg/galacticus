@@ -26,10 +26,28 @@
       "reason": "Pre-migration parameter of dustAttenuationAtlasCompendium, removed when dust attenuation took its normalization from dustProperties; migration test fixture. Remove once the validator applies migrations (Step 4)."
     },
     {
+      "file": "parameterMigration.xml",
+      "kind": "selector",
+      "name": "hotHaloRamPressureForce",
+      "reason": "Pre-migration implementation 'relativePosition' of hotHaloRamPressureForce, removed in favor of orbitalPosition; migration test fixture. Remove once the validator applies migrations (Step 4)."
+    },
+    {
       "file": "test-allowed-parameters.xml",
       "kind": "unknown",
       "name": "scaleCutOff",
       "reason": "Deliberately-invalid parameter included to assert run-time unknown-parameter detection. Must NOT carry ignoreWarnings (that would disable the run-time check), so it is excepted here instead."
+    },
+    {
+      "file": "strictOutdated.xml",
+      "kind": "unknown",
+      "name": "sigma_8",
+      "reason": "Pre-migration location of sigma_8 (a parameter of cosmologicalMassVarianceFilteredPower until it moved to powerSpectrumNormalizerSigma8); this file must stay outdated to exercise the outdated-parameter-file paths, so it is never migrated."
+    },
+    {
+      "file": "unstrictOutdated.xml",
+      "kind": "unknown",
+      "name": "sigma_8",
+      "reason": "Pre-migration location of sigma_8 (a parameter of cosmologicalMassVarianceFilteredPower until it moved to powerSpectrumNormalizerSigma8); this file must stay outdated to exercise the outdated-parameter-file paths, so it is never migrated."
     }
   ]
 }

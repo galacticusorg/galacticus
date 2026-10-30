@@ -148,7 +148,11 @@ target['withBaryons_noReionization'].append(
 # by at most 1.3. The growth factor itself was checked directly over the same pair and agrees to 1.3e-6 in D(z)/D(0) at z=9,
 # so that swing is sampling noise and not a systematic. These targets are set to leave headroom comparable to the swing
 # observed; do not tighten them to sit just above whichever value the most recent run happened to produce.
-chiSquaredTarget = {"withBaryons": np.array([0.0,10.0,4.5,5.0,3.0]), "withBaryons_noReionization": np.array([0.0,10.0,3.5,5.0,4.0])}
+#
+# The z=5.72 `withBaryons` target is set from a scan over 8 random seeds, which gave χ² = 3.60 ± 0.56 (mean and seed-to-seed
+# scatter). The default seed happens to give the largest value of that set (4.32, then 4.58 once a merger tree builder fix
+# changed the realization, while the mean over seeds moved by only +0.02 ± 0.11), so a target just above it left no headroom.
+chiSquaredTarget = {"withBaryons": np.array([0.0,10.0,5.5,5.0,3.0]),"withBaryons_noReionization": np.array([0.0,10.0,3.5,5.0,4.0])}
 
 # Create output path.
 try:

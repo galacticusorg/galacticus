@@ -18,7 +18,7 @@
 
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+    <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
     <!-- Component selection -->
     <componentBasic value="standard"/>
@@ -66,9 +66,10 @@
       <running value="0.0"/>
     </powerSpectrumPrimordial>
     <powerSpectrumPrimordialTransferred value="simple"/>
-    <cosmologicalMassVariance value="filteredPower">
+    <powerSpectrumNormalizer value="sigma8">
       <sigma_8 value="0.814932725148418"/>
-    </cosmologicalMassVariance>
+    </powerSpectrumNormalizer>
+    <cosmologicalMassVariance value="filteredPower"/>
     <powerSpectrumNonlinear value="peacockDodds1996"/>
 
     <!-- Structure formation options -->
@@ -349,6 +350,7 @@
     </mergerTreeNodeEvolver>
 
     <mergerTreeEvolver value="standard">
+      <fractionTimestepSatelliteMinimum value="0.75"/>
       <timestepHostAbsolute value="1.0"/>
       <timestepHostRelative value="0.1"/>
     </mergerTreeEvolver>

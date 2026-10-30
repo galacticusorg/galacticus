@@ -50,6 +50,19 @@ def _add_tools_option(parser):
              "remembered until --tools is passed")
 
 
+def _add_pgo_option(parser):
+    """Add the ``--pgo`` / ``--no-pgo`` switch to a sub-command.
+
+    Tri-state like ``--tools`` (default ``None`` = "whatever was decided last time"). The PGO build is installed by
+    default wherever the release carries one built from its own commit.
+    """
+    parser.add_argument(
+        "--pgo", action=argparse.BooleanOptionalAction, default=None,
+        help="install the profile-guided optimization (PGO) build of the executable where the release carries one (the "
+             "default): faster, though its results can differ from the standard build's at the level of floating-point "
+             "round-off. --no-pgo installs the standard build; the choice is remembered until --pgo is passed")
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     # Shorthand: `galacticus params.xml` -> `galacticus run params.xml`.
@@ -66,9 +79,11 @@ def main(argv=None):
     install_parser = sub.add_parser("install",
                                     help="download the binary, datasets, and tools")
     _add_tools_option(install_parser)
+    _add_pgo_option(install_parser)
     update_parser = sub.add_parser("update",
                                    help="re-download the install for the current version")
     _add_tools_option(update_parser)
+    _add_pgo_option(update_parser)
 
     run_parser = sub.add_parser("run", help="run a parameter file")
     _add_tools_option(run_parser)
@@ -156,7 +171,7 @@ def _dispatch(args, argv=()):
     install = paths.resolve()
     if args.command in ("install", "update"):
         return _cmd_install(install, force=(args.command == "update"),
-                            tools=args.tools)
+                            tools=args.tools, pgo=args.pgo)
     if args.command == "resolve":
         # Resolution is pure Python; no binary/download is required.
         return _cmd_resolve(install, args)
@@ -188,12 +203,12 @@ def _ensure(install, *, tools=None):
             raise RuntimeError(reason)
 
 
-def _cmd_install(install, *, force, tools=None):
+def _cmd_install(install, *, force, tools=None, pgo=None):
     if not install.managed:
         print(f"Using existing {install.source} install at {install.exec_path}; "
               "nothing to download.")
         return 0
-    done = download.provision(install, force=force, tools=tools)
+    done = download.provision(install, force=force, tools=tools, pgo=pgo)
     if done:
         print("Provisioned: " + ", ".join(done))
     else:
@@ -202,6 +217,9 @@ def _cmd_install(install, *, force, tools=None):
     if download.tools_skipped(install):
         print("Pre-built tools are NOT installed; models needing them will fail. "
               "Run `galacticus install --tools` to add them.")
+    if download.pgo_installed(install):
+        print("Executable: the profile-guided optimization (PGO) build "
+              "(`galacticus update --no-pgo` installs the standard build).")
     return 0
 
 
@@ -302,6 +320,14 @@ def _cmd_info():
         print(f"release tag    : {install.tag}")
     print(f"executable     : {install.binary}"
           f"{'' if install.binary and Path(install.binary).is_file() else '  (not present)'}")
+    if install.managed and install.binary is not None and Path(install.binary).is_file():
+        if download.pgo_installed(install):
+            build = "profile-guided optimization (PGO)"
+        elif download.pgo_skipped(install):
+            build = "standard (PGO declined; `galacticus update --pgo` installs it where available)"
+        else:
+            build = "standard"
+        print(f"build          : {build}")
     if install.binary is not None and Path(install.binary).is_file():
         minimum = macos.parse_minimum_macos(install.binary)
         if minimum is not None:  # only macOS (Mach-O) binaries report this

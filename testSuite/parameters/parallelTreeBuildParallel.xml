@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters formatVersion="2" version="0.9.4">
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <componentBasic value="standard" />
   <componentBlackHole value="null" />
@@ -11,9 +11,7 @@
   <componentSatellite value="standard" />
   <componentSpheroid value="null" />
   <componentSpin value="null" />
-  <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.9" />
-  </cosmologicalMassVariance>
+  <cosmologicalMassVariance value="filteredPower"/>
   <cosmologyFunctions value="matterLambda" />
   <cosmologyParameters value="simple">
     <HubbleConstant value="73.00000" />
@@ -87,6 +85,9 @@
     <wavenumberReference value="1.000" />
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple" />
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.9"/>
+  </powerSpectrumNormalizer>
   <randomNumberGenerator value="GSL">
     <seed value="220"/>
   </randomNumberGenerator>

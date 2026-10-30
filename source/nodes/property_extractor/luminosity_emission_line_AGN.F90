@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson
+  !+    Contributions to this file made by: Sachi Weerasooriya, Andrew Benson, Claude.
 
   !!{RST
   Implements an emission line luminosity for AGN node property extractor class.
@@ -68,6 +68,7 @@
      procedure :: unitsInSI           => luminosityEmissionLineAGNUnitsInSI
      procedure :: metaData            => luminosityEmissionLineAGNMetaData
      procedure :: units               => luminosityEmissionLineAGNUnits
+     procedure :: quantity            => luminosityEmissionLineAGNQuantity
      procedure :: supportsAttenuation => luminosityEmissionLineAGNSupportsAttenuation
      procedure :: decompose           => luminosityEmissionLineAGNDecompose
   end type nodePropertyExtractorLuminosityEmissionLineAGN
@@ -624,6 +625,21 @@ contains
     end do
     return
   end function luminosityEmissionLineAGNUnits
+
+  function luminosityEmissionLineAGNQuantity(self) result(quantity)
+    !!{RST
+    Return the class of the emission line luminosity property: a luminosity, as for the emission line luminosities of star
+    forming regions, so that the two may be combined (e.g. attenuated together by dust).
+    !!}
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
+    implicit none
+    type (enumerationOutputAnalysisPropertyQuantityType )                :: quantity
+    class(nodePropertyExtractorLuminosityEmissionLineAGN), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    quantity=outputAnalysisPropertyQuantityLuminosity
+    return
+  end function luminosityEmissionLineAGNQuantity
 
   logical function luminosityEmissionLineAGNSupportsAttenuation(self) result(supportsAttenuation)
     !!{RST

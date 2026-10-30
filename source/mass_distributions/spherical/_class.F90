@@ -1015,28 +1015,30 @@ contains
     return
   end function sphericalSurfaceDensity
 
-  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity) result(integral)
+  function sphericalChandrasekharIntegral(self,massDistributionEmbedding,massDistributionPerturber,massPerturber,coordinates,velocity,logarithmCoulomb,dynamicalFrictionGaseous_) result(integral)
     !!{RST
-    Compute the Chandrasekhar integral at the specified ``coordinates`` in a spherical mass distribution.
+    Compute the Chandrasekhar integral at the specified ``coordinates`` in a spherical mass distribution. For collisional
+    (gaseous) distributions the drag is computed from the Mach number of the perturber using ``dynamicalFrictionGaseous_``.
     !!}
     use :: Coordinates               , only : coordinateCartesian  , assignment(=)
     use :: Numerical_Constants_Math  , only : Pi
     use :: Galactic_Structure_Options, only : componentTypeAll     , massTypeAll
-    use :: Ideal_Gases_Thermodynamics, only : Ideal_Gas_Sound_Speed
     use :: Error                     , only : Error_Report
     implicit none
-    type            (coordinateCartesian      )                :: integral
-    class           (massDistributionSpherical), intent(inout) :: self
-    class           (massDistributionClass    ), intent(inout) :: massDistributionEmbedding           , massDistributionPerturber
-    double precision                           , intent(in   ) :: massPerturber
-    class           (coordinate               ), intent(in   ) :: coordinates
-    type            (coordinateCartesian      ), intent(in   ) :: velocity
-    double precision                           , dimension(3)  :: velocityCartesian_                  , integralVector
-    double precision                           , parameter     :: XvMaximum                    =10.0d0
-    type            (coordinateCartesian      )                :: velocityCartesian
-    double precision                                           :: radius                              , velocity_                , &
-         &                                                        density                             , velocityDispersion       , &
-         &                                                        factorSuppressionExtendedMass       , xV
+    type            (coordinateCartesian          )                :: integral
+    class           (massDistributionSpherical    ), intent(inout) :: self
+    class           (massDistributionClass        ), intent(inout) :: massDistributionEmbedding           , massDistributionPerturber
+    double precision                               , intent(in   ) :: massPerturber                       , logarithmCoulomb
+    class           (coordinate                   ), intent(in   ) :: coordinates
+    type            (coordinateCartesian          ), intent(in   ) :: velocity
+    class           (dynamicalFrictionGaseousClass), intent(inout) :: dynamicalFrictionGaseous_
+    double precision                               , dimension(3)  :: velocityCartesian_                  , integralVector
+    double precision                               , parameter     :: XvMaximum                    =10.0d0
+    type            (coordinateCartesian          )                :: velocityCartesian
+    double precision                                               :: radius                              , velocity_                , &
+         &                                                            density                             , velocityDispersion       , &
+         &                                                            factorSuppressionExtendedMass       , xV                       , &
+         &                                                            soundSpeed                          , machNumber
 
     integralVector=0.0d0
     integral      =[0.0d0,0.0d0,0.0d0]
@@ -1046,32 +1048,44 @@ contains
     density=self       %density   (coordinates)
     if (density  <= 0.0d0) return
     if (.not.associated(self%kinematicsDistribution_)) call Error_Report('a kinematics distribution is needed to compute the Chandrasekhar integral'//{introspection:location})
-    if (self%kinematicsDistribution_%isCollisional()) then
-       velocityDispersion=Ideal_Gas_Sound_Speed(self%kinematicsDistribution_%temperature         (coordinates                               ))
-    else
-       velocityDispersion=                      self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
-    end if
-    if (velocityDispersion > 0.0d0) then    
-       xV             =+velocity_             &
-            &          /velocityDispersion    &
-            &          /sqrt(2.0d0)
-    else
-       xV             =+huge(0.0d0)
-    end if
     velocityCartesian = velocity
     velocityCartesian_= velocityCartesian
     integralVector    =-density               &
          &             *velocityCartesian_    &
          &             /velocity_         **3
-    if (Xv <= XvMaximum)                      &
-         & integralVector=+integralVector     &
-         &             *(                     &
-         &               +erf ( xV   )        &
-         &               -2.0d0               &
-         &               *      xV            &
-         &               *exp (-xV**2)        &
-         &               /sqrt( Pi   )        &
-         &              )
+    if (self%kinematicsDistribution_%isCollisional()) then
+       ! Collisional (gaseous) medium - the drag depends on the Mach number of the perturber.
+       soundSpeed=self%kinematicsDistribution_%soundSpeed(coordinates)
+       if (soundSpeed > 0.0d0) then
+          machNumber=+velocity_  &
+               &     /soundSpeed
+       else
+          machNumber=+huge(0.0d0)
+       end if
+       integralVector=+integralVector                                                     &
+            &         *dynamicalFrictionGaseous_%forceFactor(machNumber,logarithmCoulomb)
+    else
+       ! Collisionless medium - use the Chandrasekhar (1943) formula.
+       velocityDispersion=self%kinematicsDistribution_%velocityDispersion1D(coordinates,self,massDistributionEmbedding)
+       if (velocityDispersion > 0.0d0) then
+          xV             =+velocity_          &
+               &          /velocityDispersion &
+               &          /sqrt(2.0d0)
+       else
+          xV             =+huge(0.0d0)
+       end if
+       integralVector    =+integralVector     &
+            &             *logarithmCoulomb
+       if (Xv <= XvMaximum)                   &
+            & integralVector=+integralVector  &
+            &             *(                  &
+            &               +erf ( xV   )     &
+            &               -2.0d0            &
+            &               *      xV         &
+            &               *exp (-xV**2)     &
+            &               /sqrt( Pi   )     &
+            &              )
+    end if
     ! Compute suppression factor due to satellite being an extended mass distribution. This is largely untested - it is meant to
     ! simply avoid extremely large accelerations for subhalo close to the center of its host when that subhalo is much more
     ! extended than the host. It can be disabled (restoring the prior behavior) via the `chandrasekharIntegralSuppressExtendedMass`

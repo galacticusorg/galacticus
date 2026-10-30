@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.accretion_halo_cold_mode_chemicals to check the chemicals accreted in each mode by the -->
+<!-- coldMode halo accretion class.                                                                                     -->
+<!-- Andrew Benson (24-October-2026)                                                                                    -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="433f96f86088e084bc1c78253a0bbb24aa77223d" time="2026-10-24T12:00:00"/>
+  <componentBasic   value="standard"/>
+  <componentHotHalo value="standard"/>
+  <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation Electron"/>
+  <!-- A broad transition between the modes, so that both contribute substantially. -->
+  <accretionHalo    value="coldMode">
+    <widthTransitionStabilityShock value="3.0"/>
+  </accretionHalo>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"/>
+    <OmegaMatter     value=" 0.3153"/>
+    <OmegaDarkEnergy value=" 0.6847"/>
+    <OmegaBaryon     value=" 0.0493"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+</parameters>

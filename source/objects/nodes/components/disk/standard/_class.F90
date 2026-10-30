@@ -163,10 +163,10 @@ module Node_Component_Disk_Standard
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: toleranceAbsoluteMass                              , radiusStructureSolver               , &
-       &                                         toleranceRelativeMetallicity
-  logical                                     :: diskNegativeAngularMomentumAllowed                 , structureSolverUseCole2000Method    , &
-       &                                         inactiveLuminositiesStellar                        , postStepZeroNegativeMasses
+  double precision                            :: toleranceAbsoluteMass                    , radiusStructureSolver               , &
+       &                                         toleranceRelativeMetallicity             , fractionMassImplausibleNegligible
+  logical                                     :: diskNegativeAngularMomentumAllowed       , structureSolverUseCole2000Method    , &
+       &                                         inactiveLuminositiesStellar              , postStepZeroNegativeMasses
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
@@ -175,11 +175,11 @@ module Node_Component_Disk_Standard
 
   ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be
   ! physically plausible for a disk.
-  double precision, parameter                 :: angularMomentumMaximum                    =1.0d+1
-  double precision, parameter                 :: angularMomentumMinimum                    =1.0d-6
+  double precision, parameter                 :: angularMomentumMaximum            =1.0d+1
+  double precision, parameter                 :: angularMomentumMinimum            =1.0d-6
 
   ! Disk structural parameters.
-  double precision                            :: ratioAngularMomentumSolverRadius        , diskRadiusSolverFlatVsSphericalFactor
+  double precision                            :: ratioAngularMomentumSolverRadius         , diskRadiusSolverFlatVsSphericalFactor
   !$omp threadprivate(ratioAngularMomentumSolverRadius,diskRadiusSolverFlatVsSphericalFactor)
 
   ! A threadprivate object used to track to which thread events are attached.
@@ -215,6 +215,16 @@ contains
          <defaultValue>1.0d-6</defaultValue>
          <description>
          The mass tolerance used to judge whether the disk is physically plausible.
+         </description>
+         <source>subParameters</source>
+       </inputParameter>
+       <inputParameter docformat="rst">
+         <name>fractionMassImplausibleNegligible</name>
+         <defaultValue>1.0d-3</defaultValue>
+         <description>
+         The fraction of the galaxy mass below which a disk with physically implausible angular momentum is considered negligible.
+         Such a disk is excluded from radius solving, but does not prevent the radii of other components from being solved for. A
+         disk with implausible angular momentum and a larger mass prevents the radii of all components from being solved for.
          </description>
          <source>subParameters</source>
        </inputParameter>
@@ -278,12 +288,12 @@ contains
     !!{RST
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent          , &
           &                                          satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_    , kinematicDistributionGas_
     use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal
     use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
     implicit none
@@ -339,6 +349,11 @@ contains
        allocate(kinematicDistribution_)
        !![
        <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+       <objectBuilder class="kinematicsDistribution" parameterName="kinematicsDistributionInterstellarMedium" name="kinematicDistributionGas_" source="parameters" threadPrivate="yes">
+        <default>
+         <kinematicsDistributionInterstellarMedium value="effectiveSoundSpeed"/>
+        </default>
+       </objectBuilder>
        !!]
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
@@ -391,10 +406,10 @@ contains
     !!{RST
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, scalerStellarPool, &
-         &                                           scalerGasPool
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_     , kinematicDistribution_           , scalerStellarPool, &
+         &                                           scalerGasPool           , kinematicDistributionGas_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -412,6 +427,7 @@ contains
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        <objectDestructor name="kinematicDistribution_"      />
+       <objectDestructor name="kinematicDistributionGas_"   />
        !!]
     end if
     return
@@ -985,13 +1001,14 @@ contains
   !!]
   subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node)
     !!{RST
-    Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular
+    momentum. A disk with implausible angular momentum, but with a mass that is a negligible fraction of the galaxy mass, does not
+    render the node implausible - instead it is excluded from radius solving.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskStandard, treeNode
+    use :: Galacticus_Nodes               , only : defaultDiskComponent                                      , treeNode
+    use :: Node_Components_Galactic_Shared, only : Node_Component_Disk_Standard_Plausibility_Angular_Momentum, plausibilityAngularMomentumImplausible
     implicit none
-    type            (treeNode         ), intent(inout) :: node
-    class           (nodeComponentDisk), pointer       :: disk
-    double precision                                   :: angularMomentumScale
+    type(treeNode), intent(inout) :: node
 
     ! Return immediately if our method is not selected.
     if     (                                                &
@@ -1005,28 +1022,14 @@ contains
          &   )                                              &
          & ) return
 
-    ! Determine the plausibility of the current disk.
-    disk => node%disk()
-    select type (disk)
-    class is (nodeComponentDiskStandard)
-       if (disk%massStellar()+disk%massGas() >= 0.0d0 .and. disk%angularMomentum() > 0.0d0) then
-          angularMomentumScale=(                                           &
-               &                 disk%massStellar()                        &
-               &                +disk%massGas    ()                        &
-               &               )                                           &
-               &               * darkMatterHaloScale_%radiusVirial  (node) &
-               &               * darkMatterHaloScale_%velocityVirial(node)
-          if     (                                                                      &
-               &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-               &  .or.                                                                  &
-               &   disk%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
-               & ) then
-             ! Ignore disks with angular momenta greatly exceeding that which would be expected if they had a radius comparable to the
-             ! virial radius of their halo.
-             node%isPhysicallyPlausible=.false.
-          end if
-       end if
-    end select
+    ! Determine the plausibility of the current disk. Ignore disks with angular momenta greatly exceeding that which would be
+    ! expected if they had a radius comparable to the virial radius of their halo (or greatly less than this), unless their mass is
+    ! negligible.
+    if     (                                                                                                                                                                       &
+         &   Node_Component_Disk_Standard_Plausibility_Angular_Momentum(node,darkMatterHaloScale_,angularMomentumMinimum,angularMomentumMaximum,fractionMassImplausibleNegligible) &
+         &  ==                                                                                                                                                                     &
+         &   plausibilityAngularMomentumImplausible                                                                                                                                &
+         & ) node%isPhysicallyPlausible=.false.
 
     ! Reset the record of trial radii - negative values indicate that the entries have not yet been set to physically meaningful
     ! values.
@@ -1101,8 +1104,9 @@ contains
     !!{RST
     Interface for the size solver algorithm.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentDisk             , nodeComponentDiskStandard, treeNode
-    use :: Galactic_Structure_Options      , only : enumerationComponentTypeType  , componentTypeDisk
+    use :: Galacticus_Nodes                , only : nodeComponentDisk                                         , nodeComponentDiskStandard                       , treeNode
+    use :: Galactic_Structure_Options      , only : enumerationComponentTypeType                              , componentTypeDisk
+    use :: Node_Components_Galactic_Shared , only : Node_Component_Disk_Standard_Plausibility_Angular_Momentum, plausibilityAngularMomentumImplausibleNegligible
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     type            (treeNode                                     ), intent(inout)          :: node
@@ -1123,7 +1127,11 @@ contains
     disk                    => node%disk()
     select type (disk)
     class is (nodeComponentDiskStandard)
-       componentActive=.true.
+       ! A disk with implausible angular momentum, but negligible mass, is excluded from radius solving.
+       componentActive=   Node_Component_Disk_Standard_Plausibility_Angular_Momentum(node,darkMatterHaloScale_,angularMomentumMinimum,angularMomentumMaximum,fractionMassImplausibleNegligible) &
+            &          /=                                                                                                                                                                       &
+            &             plausibilityAngularMomentumImplausibleNegligible
+       if (.not.componentActive) return
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then
           angularMomentum=disk%angularMomentum()
@@ -1202,7 +1210,7 @@ contains
     !!}
     use            :: Display                          , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1210,7 +1218,7 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     write (stateFile) ratioAngularMomentumSolverRadius,diskRadiusSolverFlatVsSphericalFactor
     return
@@ -1225,7 +1233,7 @@ contains
     !!}
     use            :: Display                          , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                    , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1233,7 +1241,7 @@ contains
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ darkMatterHaloScale_ stellarPopulationProperties_ starFormationHistory_ mergerMassMovements_"/>
     !!]
     read (stateFile) ratioAngularMomentumSolverRadius,diskRadiusSolverFlatVsSphericalFactor
     return

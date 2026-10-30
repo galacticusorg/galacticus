@@ -109,7 +109,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <mergerTreeConstructor value="read">
     <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
@@ -122,6 +122,7 @@
     <presetScaleRadii value="false"/>
   </mergerTreeConstructor>
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <allTreesExistAtFinalTime value="false"/>
   </mergerTreeEvolver>
 
@@ -133,9 +134,11 @@
     <OmegaBaryon value="0.04"/>
   </cosmologyParameters>
 
-  <cosmologicalMassVariance value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower"/>
+
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.93"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
 
   <hotHaloRamPressureStripping value="virialRadius"/>
   <hotHaloOutflowStripping value="zero"/>

@@ -32,11 +32,11 @@ No additional Python packages (e.g., ``numpy``) are required merely to *use* the
 Build
 ~~~~~
 
-The shared library and its Python interface module are built by invoking ``make`` with the ``GALACTICUS_BUILD_OPTION=lib`` flag and specifying the ``libgalacticus.so`` target:
+The shared library and its Python interface module are built by invoking ``make`` with the ``LIBRARY=yes`` option and specifying the ``libgalacticus.so`` target:
 
 .. code-block:: none
 
-   make GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+   make LIBRARY=yes libgalacticus.so
 
 This build step performs the following actions:
 
@@ -166,10 +166,15 @@ A common use-case is to build up a chain of Galacticus objects that mirrors the 
    psprim  = galacticus.powerSpectrumPrimordialPowerLaw(
                  0.965, 0.0, 0.0, 1.0, False)
    pswin   = galacticus.powerSpectrumWindowFunctionTopHat(cospar)
+   psnorm  = galacticus.powerSpectrumNormalizerSigma8(
+                 sigma8=0.8, tolerance=1.0e-4,
+                 integrationFailureIsFatal=True,
+                 cosmologyParameters_=cospar, cosmologyFunctions_=cosfun,
+                 transferFunction_=transfn)
    pstran  = galacticus.powerSpectrumPrimordialTransferredSimple(
-                 psprim, transfn, lingrow)
+                 psprim, transfn, lingrow, psnorm)
    cmv     = galacticus.cosmologicalMassVarianceFilteredPower(
-                 sigma8=0.8, tolerance=1.0e-4, toleranceTopHat=1.0e-4,
+                 tolerance=1.0e-4, toleranceTopHat=1.0e-4,
                  nonMonotonicIsFatal=True, monotonicInterpolation=False,
                  truncateAtParticleHorizon=False,
                  cosmologyParameters_=cospar, cosmologyFunctions_=cosfun,
@@ -280,7 +285,7 @@ An ``AttributeError`` or ``OSError`` of the form *symbol not found* when calling
 
 .. code-block:: none
 
-   make GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+   make LIBRARY=yes libgalacticus.so
    mv galacticus.py    /path/to/prefix/galacticus/python/
    mv libgalacticus.so /path/to/prefix/galacticus/lib/
 

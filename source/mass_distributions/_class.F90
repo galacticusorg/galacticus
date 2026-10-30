@@ -27,14 +27,17 @@ module Mass_Distributions
   !!{RST
   Implements a class that provides mass distributions.
   !!}
-  use :: Coordinates               , only : coordinate                       , coordinateCartesian
-  use :: Galactic_Structure_Options, only : enumerationComponentTypeType     , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
-       &                                    massTypeBaryonic                 , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
-       &                                    massTypeBlackHole                , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
-       &                                    componentTypeDisk                , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType
-  use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
-  use :: Tensors                   , only : tensorRank2Dimension3Symmetric
-  use :: Numerical_Interpolation   , only : interpolator
+  use :: Coordinates                         , only : coordinate                     , coordinateCartesian
+  use :: Galactic_Structure_Options          , only : enumerationComponentTypeType   , enumerationMassTypeType, massTypeAll           , massTypeDark                     , &
+       &                                              massTypeBaryonic               , massTypeGalactic       , massTypeGaseous       , massTypeStellar                  , &
+       &                                              massTypeBlackHole              , componentTypeAll       , componentTypeUnknown  , massTypeUnknown                  , &
+       &                                              componentTypeDisk              , componentTypeSpheroid  , componentTypeBlackHole, enumerationStructureErrorCodeType, &
+       &                                              componentTypeNuclearStarCluster
+  use :: Numerical_Random_Numbers            , only : randomNumberGeneratorClass
+  use :: Tensors                             , only : tensorRank2Dimension3Symmetric
+  use :: Numerical_Interpolation             , only : interpolator
+  use :: Root_Finder                         , only : rootFinder
+  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousClass
   private
   public  :: massDistributionMatches_, massDistributionListAcquire, massDistributionListRelease
   
@@ -357,7 +360,7 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
-      type            (rootFinder)            :: finder
+      type            (rootFinder), pointer   :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
       double precision                        :: massTarget
 
@@ -373,18 +376,21 @@ module Mass_Distributions
        massDistributionRadiusEnclosingMassNumerical=0.0d0
        return
       end if
-      finder      =rootFinder(                                                             &amp;
-            &amp;             rootFunction                 =massEnclosedRoot             , &amp;
-            &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-            &amp;             toleranceRelative            =toleranceRelative            , &amp;
-            &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-            &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-            &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-            &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-            &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-            &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-            &amp;            )
       call self%solverSet  (massTarget=massTarget)
+      if (.not.associated(massSolvers(massSolversCount)%finderMassEnclosed)) then
+         allocate(massSolvers(massSolversCount)%finderMassEnclosed,source=rootFinder(                         &amp;
+               &amp;                             rootFunction                 =massEnclosedRoot             , &amp;
+               &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+               &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+               &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+               &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+               &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+               &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+               &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+               &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+               &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderMassEnclosed
       massDistributionRadiusEnclosingMassNumerical=finder%find(rootGuess=1.0d0)
       call self%solverUnset(                     )
     </code>
@@ -411,7 +417,7 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <argument>double precision, intent(in   ), optional :: mass, massFractional</argument>
     <code>
-      type            (rootFinder)            :: finder
+      type            (rootFinder), pointer   :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
       double precision                        :: massTarget
 
@@ -427,18 +433,21 @@ module Mass_Distributions
        massDistributionRadiusCylindricalEnclosingMassNumerical=0.0d0
        return
       end if
-      finder      =rootFinder(                                                             &amp;
-            &amp;             rootFunction                 =massEnclosedCylindricalRoot  , &amp;
-            &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-            &amp;             toleranceRelative            =toleranceRelative            , &amp;
-            &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-            &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-            &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-            &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-            &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-            &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-            &amp;            )
       call self%solverSet  (massTarget=massTarget)
+      if (.not.associated(massSolvers(massSolversCount)%finderMassEnclosedCylindrical)) then
+         allocate(massSolvers(massSolversCount)%finderMassEnclosedCylindrical,source=rootFinder(              &amp;
+               &amp;                             rootFunction                 =massEnclosedCylindricalRoot  , &amp;
+               &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+               &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+               &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+               &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+               &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+               &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+               &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+               &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+               &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderMassEnclosedCylindrical
       massDistributionRadiusCylindricalEnclosingMassNumerical=finder%find(rootGuess=1.0d0)
       call self%solverUnset(                     )
     </code>
@@ -467,24 +476,27 @@ module Mass_Distributions
     <argument>double precision, intent(in   )           :: density    </argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess</argument>
     <code>
-      type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-3
+      type            (rootFinder), pointer   :: finder
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
       double precision                        :: radiusGuess_
 
-      finder    =rootFinder(                                                             &amp;
-           &amp;            rootFunction                 =densityEnclosedRoot          , &amp;
-           &amp;            toleranceAbsolute            =toleranceAbsolute            , &amp;
-           &amp;            toleranceRelative            =toleranceRelative            , &amp;
-           &amp;            solverType                   =GSL_Root_fSolver_Brent       , &amp;
-           &amp;            rangeExpandUpward            =2.0d0                        , &amp;
-           &amp;            rangeExpandDownward          =0.5d0                        , &amp;
-           &amp;            rangeExpandType              =rangeExpandMultiplicative    , &amp;
-           &amp;            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
-           &amp;            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
-           &amp;           )
-      radiusGuess_                                    =     self%radiusEnclosingDensityPrevious__
-      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      radiusGuess_                          =self%radiusEnclosingDensityPrevious__
+      if (present(radiusGuess)) radiusGuess_=     radiusGuess
       call self%solverSet  (densityTarget=density)
+      if (.not.associated(massSolvers(massSolversCount)%finderDensityEnclosed)) then
+         allocate(massSolvers(massSolversCount)%finderDensityEnclosed,source=rootFinder(                    &amp;
+              &amp;                            rootFunction                 =densityEnclosedRoot          , &amp;
+              &amp;                            toleranceAbsolute            =toleranceAbsolute            , &amp;
+              &amp;                            toleranceRelative            =toleranceRelative            , &amp;
+              &amp;                            solverType                   =GSL_Root_fSolver_Brent       , &amp;
+              &amp;                            rangeExpandUpward            =2.0d0                        , &amp;
+              &amp;                            rangeExpandDownward          =0.5d0                        , &amp;
+              &amp;                            rangeExpandType              =rangeExpandMultiplicative    , &amp;
+              &amp;                            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
+              &amp;                            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
+              &amp;                           ))
+      end if
+      finder => massSolvers(massSolversCount)%finderDensityEnclosed
       massDistributionRadiusEnclosingDensityNumerical =     finder%find(rootGuess=radiusGuess_)
       call self%solverUnset(                     )
       self%radiusEnclosingDensityPrevious__           =     massDistributionRadiusEnclosingDensityNumerical
@@ -514,24 +526,27 @@ module Mass_Distributions
     <argument>double precision, intent(in   )           :: densitySurface</argument>
     <argument>double precision, intent(in   ), optional :: radiusGuess   </argument>
     <code>
-      type            (rootFinder)            :: finder
+      type            (rootFinder), pointer   :: finder
       double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
       double precision                        :: radiusGuess_
 
-      finder     =rootFinder(                                                             &amp;
-           &amp;             rootFunction                 =densitySurfaceEnclosedRoot   , &amp;
-           &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-           &amp;             toleranceRelative            =toleranceRelative            , &amp;
-           &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-           &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-           &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-           &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-           &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
-           &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
-           &amp;            )
-      radiusGuess_=self%radiusEnclosingDensitySurfacePrevious__
-      if (present(radiusGuess)) radiusGuess_=radiusGuess
+      radiusGuess_                          =self%radiusEnclosingDensitySurfacePrevious__
+      if (present(radiusGuess)) radiusGuess_=     radiusGuess
       call self%solverSet  (densitySurfaceTarget=densitySurface)
+      if (.not.associated(massSolvers(massSolversCount)%finderDensitySurfaceEnclosed)) then
+         allocate(massSolvers(massSolversCount)%finderDensitySurfaceEnclosed,source=rootFinder(              &amp;
+              &amp;                             rootFunction                 =densitySurfaceEnclosedRoot   , &amp;
+              &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+              &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+              &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+              &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+              &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+              &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+              &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
+              &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &amp;
+              &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderDensitySurfaceEnclosed
       massDistributionRadiusEnclosingSurfaceDensityNumerical=finder%find(rootGuess=radiusGuess_)
       call self%solverUnset(                                   )
       self%radiusEnclosingDensitySurfacePrevious__          =massDistributionRadiusEnclosingSurfaceDensityNumerical
@@ -559,24 +574,27 @@ module Mass_Distributions
     <modules>Root_Finder</modules>
     <argument>double precision, intent(in   ) :: angularMomentumSpecific</argument>
     <code>
-      type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
+      type            (rootFinder), pointer   :: finder
+      double precision            , parameter :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
 
       if (angularMomentumSpecific &lt;= 0.0d0) then
          massDistributionRadiusFromSpecificAngularMomentumNumerical=+0.0d0
       else         
-         finder     =rootFinder(                                                             &amp;
-              &amp;             rootFunction                 =specificAngularMomentumRoot  , &amp;
-              &amp;             toleranceAbsolute            =toleranceAbsolute            , &amp;
-              &amp;             toleranceRelative            =toleranceRelative            , &amp;
-              &amp;             solverType                   =GSL_Root_fSolver_Brent       , &amp;
-              &amp;             rangeExpandUpward            =2.0d0                        , &amp;
-              &amp;             rangeExpandDownward          =0.5d0                        , &amp;
-              &amp;             rangeExpandType              =rangeExpandMultiplicative    , &amp;
-              &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-              &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
-              &amp;            )
          call self%solverSet  (angularMomentumSpecificTarget=angularMomentumSpecific)
+         if (.not.associated(massSolvers(massSolversCount)%finderAngularMomentumSpecific)) then
+            allocate(massSolvers(massSolversCount)%finderAngularMomentumSpecific,source=rootFinder(             &amp;
+                 &amp;                             rootFunction                 =specificAngularMomentumRoot  , &amp;
+                 &amp;                             toleranceAbsolute            =toleranceAbsolute            , &amp;
+                 &amp;                             toleranceRelative            =toleranceRelative            , &amp;
+                 &amp;                             solverType                   =GSL_Root_fSolver_Brent       , &amp;
+                 &amp;                             rangeExpandUpward            =2.0d0                        , &amp;
+                 &amp;                             rangeExpandDownward          =0.5d0                        , &amp;
+                 &amp;                             rangeExpandType              =rangeExpandMultiplicative    , &amp;
+                 &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+                 &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &amp;
+                 &amp;                            ))
+         end if
+         finder => massSolvers(massSolversCount)%finderAngularMomentumSpecific
          massDistributionRadiusFromSpecificAngularMomentumNumerical =     finder%find(rootGuess=1.0d0)
          call self%solverUnSet(                                                     )
       end if
@@ -629,25 +647,28 @@ module Mass_Distributions
     <selfTarget>yes</selfTarget>
     <modules>Root_Finder Error</modules>
     <code>
-      type            (rootFinder)            :: finder
-      double precision            , parameter :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-06, &amp;
-         &amp;                                   radiusTiny       =1.0d-9 , radiusHuge       =1.0d+30
+      type            (rootFinder), pointer   :: finder
+      double precision            , parameter :: toleranceAbsolute=0.0d+0, toleranceRelative=1.0d-06, &amp;
+         &amp;                                   radiusTiny       =1.0d-9, radiusHuge       =1.0d+30
       integer                                 :: status
       
-      finder     =rootFinder(                                                              &amp;
-           &amp;             rootFunction                 =rotationCurveMaximumRoot      , &amp;
-           &amp;             toleranceAbsolute            =toleranceAbsolute             , &amp;
-           &amp;             toleranceRelative            =toleranceRelative             , &amp;
-           &amp;             solverType                   =GSL_Root_fSolver_Brent        , &amp;
-           &amp;             rangeExpandUpward            =2.0d0                         , &amp;
-           &amp;             rangeExpandDownward          =0.5d0                         , &amp;
-           &amp;             rangeExpandType              =rangeExpandMultiplicative     , &amp;
-           &amp;             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive , &amp;
-           &amp;             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative , &amp;
-           &amp;             rangeDownwardLimit           =radiusTiny                    , &amp;
-           &amp;             rangeUpwardLimit             =radiusHuge                      &amp;
-           &amp;            )
       call self%solverSet  ()
+      if (.not.associated(massSolvers(massSolversCount)%finderRotationCurveMaximum)) then
+         allocate(massSolvers(massSolversCount)%finderRotationCurveMaximum,source=rootFinder(                 &amp;
+              &amp;                             rootFunction                 =rotationCurveMaximumRoot      , &amp;
+              &amp;                             toleranceAbsolute            =toleranceAbsolute             , &amp;
+              &amp;                             toleranceRelative            =toleranceRelative             , &amp;
+              &amp;                             solverType                   =GSL_Root_fSolver_Brent        , &amp;
+              &amp;                             rangeExpandUpward            =2.0d0                         , &amp;
+              &amp;                             rangeExpandDownward          =0.5d0                         , &amp;
+              &amp;                             rangeExpandType              =rangeExpandMultiplicative     , &amp;
+              &amp;                             rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive , &amp;
+              &amp;                             rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative , &amp;
+              &amp;                             rangeDownwardLimit           =radiusTiny                    , &amp;
+              &amp;                             rangeUpwardLimit             =radiusHuge                      &amp;
+              &amp;                            ))
+      end if
+      finder => massSolvers(massSolversCount)%finderRotationCurveMaximum
       massDistributionRadiusRotationCurveMaximumNumerical =     finder%find(rootGuess=1.0d0,status=status)
       call self%solverUnset()
       if (status /= errorStatusSuccess .and. .not.self%tolerateVelocityMaximumFailure) &amp;
@@ -693,17 +714,20 @@ module Mass_Distributions
    </method>
    <method name="chandrasekharIntegral" >
     <description>
-    Return the Chandrasekhar integral of the distribution. The ``velocity`` is a Cartesian velocity vector (a
-    ``coordinateCartesian`` object); this is the only representation the implementations support and typing it
-    explicitly avoids the silent, incorrect point-transformation of a velocity expressed in a non-Cartesian
-    basis (see issue #75).
+    Return the Chandrasekhar integral of the distribution, including the Coulomb logarithm, ``logarithmCoulomb``. The
+    ``velocity`` is a Cartesian velocity vector (a ``coordinateCartesian`` object); this is the only representation the
+    implementations support and typing it explicitly avoids the silent, incorrect point-transformation of a velocity
+    expressed in a non-Cartesian basis (see issue #75). For collisional (gaseous) distributions the drag is computed
+    using ``dynamicalFrictionGaseous_`` in place of the collisionless :cite:t:`chandrasekhar_dynamical_1943` formula.
     </description>
     <type>type(coordinateCartesian)</type>
     <pass>yes</pass>
-    <argument>class           (massDistributionClass), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
-    <argument>double precision                       , intent(in   ) :: massPerturber                                       </argument>
-    <argument>class           (coordinate           ), intent(in   ) :: coordinates                                         </argument>
-    <argument>type            (coordinateCartesian  ), intent(in   ) :: velocity                                            </argument>
+    <argument>class           (massDistributionClass        ), intent(inout) :: massDistributionEmbedding, massDistributionPerturber</argument>
+    <argument>double precision                               , intent(in   ) :: massPerturber                                       </argument>
+    <argument>class           (coordinate                   ), intent(in   ) :: coordinates                                         </argument>
+    <argument>type            (coordinateCartesian          ), intent(in   ) :: velocity                                            </argument>
+    <argument>double precision                               , intent(in   ) :: logarithmCoulomb                                    </argument>
+    <argument>class           (dynamicalFrictionGaseousClass), intent(inout) :: dynamicalFrictionGaseous_                           </argument>
    </method>
    <method name="radiusFreefall" >
     <description>
@@ -844,6 +868,19 @@ module Mass_Distributions
       kinematicsDistributionTemperatureGradientLogarithmic=0.0d0
     </code>
    </method>
+   <method name="soundSpeed" >
+    <description>
+    Return the sound speed of the distribution at the given coordinates. By default this is the sound speed of an ideal gas at
+    the temperature of the distribution.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <modules>Ideal_Gases_Thermodynamics</modules>
+    <argument>class(coordinate), intent(in   ) :: coordinates</argument>
+    <code>
+      kinematicsDistributionSoundSpeed=Ideal_Gas_Sound_Speed(self%temperature(coordinates))
+    </code>
+   </method>
    <method name="velocityRadial" >
     <description>
     Return the mean radial velocity at the given coordinate.
@@ -880,6 +917,51 @@ module Mass_Distributions
     <code>
       call jeansEquationSolver(self,coordinates%rSpherical(),massDistribution_,massDistributionEmbedding)
       kinematicsDistributionVelocityDispersion1DNumerical=self%velocityDispersion1D__%interpolate(log(coordinates%rSpherical()))
+    </code>
+   </method>
+   <method name="velocityDispersion1DGradientLogarithmic" >
+    <description>
+    Return the logarithmic gradient, :math:`\mathrm{d}\log \sigma_\mathrm{r}/\mathrm{d}\log r`, of the 1D velocity dispersion at the given coordinate. The default implementation assumes that the velocity dispersion is the solution of the spherical Jeans equation with anisotropy parameter :math:`\beta=0` (see ``jeansEquationGradientLogarithmic()``). Classes whose velocity dispersion is not the solution of that equation must override this method.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(coordinate           ), intent(in   )         :: coordinates                                 </argument>
+    <argument>class(massDistributionClass), intent(inout), target :: massDistribution_, massDistributionEmbedding</argument>
+    <code>
+      kinematicsDistributionVelocityDispersion1DGradientLogarithmic=self%jeansEquationGradientLogarithmic(coordinates,massDistribution_,massDistributionEmbedding,self%velocityDispersion1D(coordinates,massDistribution_,massDistributionEmbedding))
+    </code>
+   </method>
+   <method name="jeansEquationGradientLogarithmic" >
+    <description>
+    Return the logarithmic gradient, :math:`\mathrm{d}\log \sigma_\mathrm{r}/\mathrm{d}\log r`, of a 1D velocity dispersion, :math:`\sigma_\mathrm{r}=`\ ``velocityDispersion``, which is the solution of the spherical Jeans equation with anisotropy parameter :math:`\beta=0`, :math:`\mathrm{d}(\rho \sigma_\mathrm{r}^2)/\mathrm{d}r = -\rho \mathrm{G} M(r)/r^2`, at the given coordinate:
+
+    .. math::
+
+       \frac{\mathrm{d}\log \sigma_\mathrm{r}}{\mathrm{d}\log r} = -\frac{1}{2} \frac{\mathrm{d}\log \rho}{\mathrm{d}\log r} - \frac{1}{2} \frac{\mathrm{G} M(r)}{r \sigma_\mathrm{r}^2},
+
+    where :math:`\rho` is the density of ``massDistribution_``, and :math:`M(r)` is the mass enclosed by ``massDistributionEmbedding``. The velocity dispersion is passed in, rather than computed here, so that classes which override ``velocityDispersion1DGradientLogarithmic()`` can apply this result in regions where their velocity dispersion is the Jeans solution.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <modules>Numerical_Constants_Astronomical</modules>
+    <argument>class           (coordinate           ), intent(in   ) :: coordinates                                 </argument>
+    <argument>class           (massDistributionClass), intent(inout) :: massDistribution_, massDistributionEmbedding</argument>
+    <argument>double precision                       , intent(in   ) :: velocityDispersion                          </argument>
+    <code>
+      double precision :: radius
+      !$GLC attributes unused :: self
+      radius=coordinates%rSpherical()
+      if (radius > 0.0d0 .and. velocityDispersion > 0.0d0) then
+         kinematicsDistributionJeansEquationGradientLogarithmic=-0.5d0                                                                           &amp;
+              &amp;                                             *massDistribution_        %densityGradientRadial(coordinates,logarithmic=.true.) &amp;
+              &amp;                                             -0.5d0                                                                           &amp;
+              &amp;                                             *gravitationalConstant_internal                                                  &amp;
+              &amp;                                             *massDistributionEmbedding%massEnclosedBySphere (radius                        ) &amp;
+              &amp;                                             /                                                radius                          &amp;
+              &amp;                                             /velocityDispersion**2
+      else
+         kinematicsDistributionJeansEquationGradientLogarithmic=+0.0d0
+      end if
     </code>
    </method>
    <method name="jeansEquationRadius" >
@@ -1059,14 +1141,24 @@ module Mass_Distributions
   integer                                              :: solversCount    = 0
   !$omp threadprivate(solvers,solversCount)
   
-  ! Module-scope pointers used in integrand functions and root finding.
+  ! Module-scope pointers used in integrand functions and root finding. The root finders are built on first use at each depth of
+  ! the stack and then retained (they are not released by "solverUnset"), so that the numerical radius solvers do not construct
+  ! and destroy a root finder (and its GSL solver) on every call. A finder is only ever used at its own depth, so this is safe
+  ! under recursion. They are held by pointer so that they remain at fixed addresses when the stack is grown. They are created
+  ! using "allocate(...,source=rootFinder(...))" because gfortran 16 miscompiles intrinsic assignment of a constructor result to
+  ! a pointer target of this type (writing through a null pointer). The bitwise copy made by "source=" bypasses reference
+  ! counting, which is safe here as a newly-constructed root finder holds no managed resources (its GSL objects are created on
+  ! first use).
   type :: massSolver
      class           (massDistributionClass), pointer      :: self                          => null()
-     double precision                       , dimension(3) :: position1                               , position2           , &
+     double precision                       , dimension(3) :: position1                               , position2                              , &
           &                                                   vectorUnit
-     double precision                                      :: massTarget                              , densityTarget       , &
-          &                                                   angularMomentumSpecificTarget           , densitySurfaceTarget, &
+     double precision                                      :: massTarget                              , densityTarget                          , &
+          &                                                   angularMomentumSpecificTarget           , densitySurfaceTarget                   , &
           &                                                   separation
+     type            (rootFinder           ), pointer      :: finderMassEnclosed            => null(), finderMassEnclosedCylindrical  => null(), &
+          &                                                   finderDensityEnclosed         => null(), finderDensitySurfaceEnclosed   => null(), &
+          &                                                   finderAngularMomentumSpecific => null(), finderRotationCurveMaximum     => null()
   end type massSolver
   type   (massSolver), allocatable, dimension(:) :: massSolvers
   integer            , parameter                 :: massSolversIncrement=10
@@ -1205,42 +1297,44 @@ contains
     type(enumerationMassTypeType     ), intent(in   ), optional :: massType
     
     if (present(componentType)) then
-       massDistributionMatches_   = componentType == componentTypeAll                                                                                                                                                           &
-            &                      .or.                                                                                                                                                                                         &
+       massDistributionMatches_   = componentType == componentTypeAll                                                                                                                                                                     &
+            &                      .or.                                                                                                                                                                                                   &
             &                       componentType == componentTypeTarget
        if (massDistributionMatches_.and.present(massType)) then
-          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                             ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeDark       .and.  massTypeTarget      == massTypeDark                                                                                                           ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGaseous    .and.  massTypeTarget      == massTypeGaseous                                                                                                        ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeStellar    .and.                                                massTypeTarget      == massTypeStellar                                                          ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBlackHole  .and.                                                                                                  massTypeTarget      == massTypeBlackHole      ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBaryonic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar                                                         )) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGalactic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar       .or. massTypeTarget      == massTypeBlackHole      ) &
-               &                                                         .and. (componentTypeTarget == componentTypeDisk .or. componentTypeTarget == componentTypeSpheroid .or. componentTypeTarget == componentTypeBlackHole)) 
+          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                                       ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeDark       .and.       massTypeTarget      == massTypeDark                                                                                                                ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGaseous    .and.       massTypeTarget      == massTypeGaseous                                                                                                             ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeStellar    .and.                                                          massTypeTarget      == massTypeStellar                                                          ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBlackHole  .and.                                                                                                                     massTypeTarget  == massTypeBlackHole ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBaryonic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                                                         )) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGalactic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                 .or. massTypeTarget == massTypeBlackHole ) &
+               &                                                         .and. (     componentTypeTarget == componentTypeDisk      .or. componentTypeTarget == componentTypeSpheroid                                                      &
+               &                                                                .or. componentTypeTarget == componentTypeBlackHole .or. componentTypeTarget == componentTypeNuclearStarCluster)) 
        end if
     else
        if (present(massType)) then
           ! Match on mass distribution only.
-          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                             ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeDark       .and.  massTypeTarget      == massTypeDark                                                                                                           ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGaseous    .and.  massTypeTarget      == massTypeGaseous                                                                                                        ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeStellar    .and.                                                massTypeTarget      == massTypeStellar                                                          ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBlackHole  .and.                                                                                                  massTypeTarget      == massTypeBlackHole      ) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeBaryonic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar                                                         )) &
-               &                   .or.                                                                                                                                                                                         &
-               &                    (massType      == massTypeGalactic   .and. (massTypeTarget      == massTypeGaseous   .or. massTypeTarget      == massTypeStellar       .or. massTypeTarget      == massTypeBlackHole      ) &
-               &                                                         .and. (componentTypeTarget == componentTypeDisk .or. componentTypeTarget == componentTypeSpheroid .or. componentTypeTarget == componentTypeBlackHole))
+          massDistributionMatches_= (massType      == massTypeAll                                                                                                                                                                       ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeDark       .and.       massTypeTarget      == massTypeDark                                                                                                                ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGaseous    .and.       massTypeTarget      == massTypeGaseous                                                                                                             ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeStellar    .and.                                                          massTypeTarget      == massTypeStellar                                                          ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBlackHole  .and.                                                                                                                      massTypeTarget == massTypeBlackHole ) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeBaryonic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                                                         )) &
+               &                   .or.                                                                                                                                                                                                   &
+               &                    (massType      == massTypeGalactic   .and. (     massTypeTarget      == massTypeGaseous        .or. massTypeTarget      == massTypeStellar                 .or. massTypeTarget == massTypeBlackHole ) &
+               &                                                         .and. (     componentTypeTarget == componentTypeDisk      .or. componentTypeTarget == componentTypeSpheroid&
+               &                                                                .or. componentTypeTarget == componentTypeBlackHole .or. componentTypeTarget == componentTypeNuclearStarCluster))
        else
           ! No selection was requested, so we always match.
           massDistributionMatches_=.true.

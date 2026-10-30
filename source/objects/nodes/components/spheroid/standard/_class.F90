@@ -176,17 +176,22 @@ module Node_Component_Spheroid_Standard
   !$omp threadprivate(starFormationHistoryTemplate,stellarPropertiesHistoryTemplate)
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: efficiencyEnergeticOutflow     , toleranceAbsoluteMass           , &
-       &                                         toleranceRelativeMetallicity
-  logical                                     :: inactiveLuminositiesStellar    , postStepZeroNegativeMasses
+  double precision                            :: efficiencyEnergeticOutflow             , toleranceAbsoluteMass            , &
+       &                                         toleranceRelativeMetallicity           , fractionMassImplausibleNegligible
+  logical                                     :: inactiveLuminositiesStellar            , postStepZeroNegativeMasses
 
   ! Spheroid structural parameters.
   double precision                            :: ratioAngularMomentumScaleRadius
 
   ! Minimum absolute scales for physically plausible spheroids.
-  double precision, parameter                 :: radiusMinimum                       =1.0d-12
-  double precision, parameter                 :: massMinimum                         =1.0d-06
-  double precision, parameter                 :: angularMomentumMinimum              =1.0d-20
+  double precision, parameter                 :: radiusMinimum                  =1.0d-12
+  double precision, parameter                 :: massMinimum                    =1.0d-06
+  double precision, parameter                 :: angularMomentumMinimum         =1.0d-20
+
+  ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be
+  ! physically plausible for a spheroid.
+  double precision, parameter                 :: angularMomentumPlausibleMaximum=1.0d+01
+  double precision, parameter                 :: angularMomentumPlausibleMinimum=1.0d-06
 
   ! A threadprivate object used to track to which thread events are attached.
   integer :: thread
@@ -201,13 +206,16 @@ contains
     !!{RST
     Initializes the tree node standard spheroid methods module.
     !!}
-    use :: Abundances_Structure, only : Abundances_Property_Count
-    use :: Galacticus_Nodes    , only : defaultSpheroidComponent , nodeComponentSpheroidStandard
-    use :: Input_Parameters    , only : inputParameter           , inputParameters
+    use :: Abundances_Structure                 , only : Abundances_Property_Count
+    use :: Galacticus_Nodes                     , only : defaultSpheroidComponent        , nodeComponentSpheroidStandard
+    use :: Galactic_Component_Truncations       , only : galacticComponentTruncationClass
+    use :: Input_Parameters                     , only : inputParameter                  , inputParameters
+    use :: Node_Component_Spheroid_Standard_Data, only : tidalTruncationID
     implicit none
-    type(inputParameters              ), intent(inout) :: parameters
-    type(nodeComponentSpheroidStandard)                :: spheroidStandardComponent
-    type(inputParameters              )                :: subParameters
+    type (inputParameters                 ), intent(inout) :: parameters
+    type (nodeComponentSpheroidStandard   )                :: spheroidStandardComponent
+    type (inputParameters                 )                :: subParameters
+    class(galacticComponentTruncationClass), pointer       :: galacticComponentTruncation__
 
     ! Initialize the module if necessary.
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -223,6 +231,23 @@ contains
 
        ! Find our parameters.
        subParameters=parameters%subParameters('componentSpheroid')
+       ! Find the meta-property giving the degree of tidal truncation of the spheroid, which exists only if some class (e.g. a
+       ! tidal mass loss node operator) creates it. This is needed only if the spheroid is truncated. It is not registered
+       ! otherwise since every registered evolvable meta-property adds a variable to the ODE system of every node, whether or not
+       ! it is created.
+       !![
+       <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation__" source="subParameters"/>
+       !!]
+       if (galacticComponentTruncation__%isActive()) then
+          !![
+          <addMetaProperty component="spheroid" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
+          !!]
+       else
+          tidalTruncationID=-1
+       end if
+       !![
+       <objectDestructor name="galacticComponentTruncation__"/>
+       !!]
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter docformat="rst">
@@ -246,6 +271,17 @@ contains
          <defaultValue>1.0d-6</defaultValue>
          <description>
          The mass tolerance used to judge whether the spheroid is physically plausible.
+         </description>
+         <source>subParameters</source>
+       </inputParameter>
+       <inputParameter docformat="rst">
+         <name>fractionMassImplausibleNegligible</name>
+         <defaultValue>1.0d-3</defaultValue>
+         <description>
+         The fraction of the galaxy mass below which a spheroid with physically implausible angular momentum is considered
+         negligible. Such a spheroid is excluded from radius solving, but does not prevent the radii of other components from
+         being solved for. A spheroid with implausible angular momentum and a larger mass prevents the radii of all components
+         from being solved for.
          </description>
          <source>subParameters</source>
        </inputParameter>
@@ -277,13 +313,14 @@ contains
     !!{RST
     Initializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent, &
+    use :: Events_Hooks                         , only : dependencyDirectionAfter , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent             , &
           &                                              satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
     use :: Error                                , only : Error_Report
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
     use :: Input_Parameters                     , only : inputParameter           , inputParameters
     use :: Mass_Distributions                   , only : massDistributionSpherical, kinematicsDistributionLocal
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_ , massDistributionGas_             , kinematicDistribution_    , galacticComponentTruncation_, &
+         &                                               galacticComponentHeating_, kinematicDistributionGas_
     use :: Galactic_Structure_Options           , only : componentTypeSpheroid    , massTypeStellar                  , massTypeGaseous
     implicit none
     type            (inputParameters), intent(inout) :: parameters
@@ -309,6 +346,8 @@ contains
        <objectBuilder class="starFormationHistory"                                                 name="starFormationHistory_"        source="subParameters"                    />
        <objectBuilder class="mergerMassMovements"                                                  name="mergerMassMovements_"         source="subParameters"                    />
        <objectBuilder class="mergerRemnantSize"                                                    name="mergerRemnantSize_"           source="subParameters"                    />
+       <objectBuilder class="galacticComponentTruncation"                                          name="galacticComponentTruncation_" source="subParameters" threadPrivate="yes"/>
+       <objectBuilder class="galacticComponentHeating"                                             name="galacticComponentHeating_"    source="subParameters" threadPrivate="yes"/>
        <objectBuilder class="massDistribution"            parameterName="massDistributionSpheroid" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionSpheroid value="hernquist">
@@ -340,6 +379,11 @@ contains
        allocate(kinematicDistribution_)
        !![
        <referenceConstruct object="kinematicDistribution_" constructor="kinematicsDistributionLocal(alpha=1.0d0/sqrt(2.0d0))"/>
+       <objectBuilder class="kinematicsDistribution" parameterName="kinematicsDistributionInterstellarMedium" name="kinematicDistributionGas_" source="parameters" threadPrivate="yes">
+        <default>
+         <kinematicsDistributionInterstellarMedium value="effectiveSoundSpeed"/>
+        </default>
+       </objectBuilder>
        !!]
        ! Determine the specific angular momentum at the scale radius in units of the mean specific angular
        ! momentum of the spheroid. This is equal to the ratio of the 2nd to 3rd radial moments of the density
@@ -381,10 +425,10 @@ contains
     !!{RST
     Uninitializes the standard spheroid module for each thread.
     !!}
-    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent, mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                         , only : postEvolveEvent         , satelliteMergerEvent        , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                     , only : defaultSpheroidComponent
-    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_           , scalerStellarPool, &
-         &                                               scalerGasPool
+    use :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_        , kinematicDistribution_           , scalerStellarPool, &
+         &                                               scalerGasPool           , galacticComponentTruncation_, galacticComponentHeating_        , kinematicDistributionGas_
     implicit none
 
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -400,9 +444,12 @@ contains
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
        <objectDestructor name="mergerRemnantSize_"          />
+       <objectDestructor name="galacticComponentTruncation_"/>
+       <objectDestructor name="galacticComponentHeating_"   />
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        <objectDestructor name="kinematicDistribution_"      />
+       <objectDestructor name="kinematicDistributionGas_"   />
        !!]
     end if
     return
@@ -1245,15 +1292,14 @@ contains
   !!]
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !!{RST
-    Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and
+    angular momentum. A spheroid with implausible angular momentum, but with a mass that is a negligible fraction of the galaxy
+    mass, does not render the node implausible - instead it is excluded from radius solving.
     !!}
-    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidStandard, treeNode
+    use :: Galacticus_Nodes               , only : defaultSpheroidComponent                                      , treeNode
+    use :: Node_Components_Galactic_Shared, only : Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum, plausibilityAngularMomentumImplausible
     implicit none
-    type            (treeNode                ), intent(inout) :: node
-    class           (nodeComponentSpheroid   ), pointer       :: spheroid
-    double precision                          , parameter     :: angularMomentumMaximum=1.0d+1
-    double precision                          , parameter     :: angularMomentumMinimum=1.0d-6
-    double precision                                          :: angularMomentumScale
+    type(treeNode), intent(inout) :: node
 
     ! Return immediately if our method is not selected.
     if     (                                                &
@@ -1267,28 +1313,14 @@ contains
          &   )                                              &
          & ) return
 
-    ! Determine the plausibility of the current spheroid.
-    spheroid => node%spheroid()
-    select type (spheroid)
-    class is (nodeComponentSpheroidStandard)
-       if (spheroid%massStellar()+spheroid%massGas() >= 0.0d0 .and. spheroid%angularMomentum() > 0.0d0) then
-          angularMomentumScale=(                                           &
-               &                 spheroid%massStellar()                    &
-               &                +spheroid%massGas    ()                    &
-               &               )                                           &
-               &               * darkMatterHaloScale_%radiusVirial  (node) &
-               &               * darkMatterHaloScale_%velocityVirial(node)
-          if     (                                                                          &
-               &   spheroid%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
-               &  .or.                                                                      &
-               &   spheroid%angularMomentum() < angularMomentumMinimum*angularMomentumScale &
-               & ) then
-             ! Ignore spheroids with angular momenta greatly exceeding that which would be expected if they had a radius
-             ! comparable to the virial radius of their halo.
-             node%isPhysicallyPlausible=.false.
-          end if
-       end if
-    end select
+    ! Determine the plausibility of the current spheroid. Ignore spheroids with angular momenta greatly exceeding that which would
+    ! be expected if they had a radius comparable to the virial radius of their halo (or greatly less than this), unless their
+    ! mass is negligible.
+    if     (                                                                                                                                                                                             &
+         &   Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum(node,darkMatterHaloScale_,angularMomentumPlausibleMinimum,angularMomentumPlausibleMaximum,fractionMassImplausibleNegligible) &
+         &  ==                                                                                                                                                                                           &
+         &   plausibilityAngularMomentumImplausible                                                                                                                                                      &
+         & ) node%isPhysicallyPlausible=.false.
     return
   end subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility
 
@@ -1358,8 +1390,9 @@ contains
     !!{RST
     Interface for the size solver algorithm.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentSpheroid       , nodeComponentSpheroidStandard, treeNode
-    use :: Galactic_Structure_Options, only : enumerationComponentTypeType, componentTypeSpheroid
+    use :: Galacticus_Nodes               , only : nodeComponentSpheroid                                         , nodeComponentSpheroidStandard                   , treeNode
+    use :: Galactic_Structure_Options     , only : enumerationComponentTypeType                                  , componentTypeSpheroid
+    use :: Node_Components_Galactic_Shared, only : Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum, plausibilityAngularMomentumImplausibleNegligible
     implicit none
     type            (treeNode                                         ), intent(inout)          :: node
     logical                                                            , intent(  out)          :: componentActive
@@ -1379,7 +1412,11 @@ contains
     specificAngularMomentum =  0.0d0
     select type (spheroid)
        class is (nodeComponentSpheroidStandard)
-       componentActive=.true.
+       ! A spheroid with implausible angular momentum, but negligible mass, is excluded from radius solving.
+       componentActive=   Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum(node,darkMatterHaloScale_,angularMomentumPlausibleMinimum,angularMomentumPlausibleMaximum,fractionMassImplausibleNegligible) &
+            &          /=                                                                                                                                                                                             &
+            &             plausibilityAngularMomentumImplausibleNegligible
+       if (.not.componentActive) return
        ! Get the angular momentum.
        if (specificAngularMomentumRequired) then
           angularMomentum=spheroid%angularMomentum()
@@ -1535,7 +1572,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1543,7 +1580,7 @@ contains
 
     call displayMessage('Storing state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateStore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
     write (stateFile) ratioAngularMomentumScaleRadius
     return
@@ -1558,7 +1595,7 @@ contains
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
-    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_
+    use            :: Node_Component_Spheroid_Standard_Data, only : massDistributionStellar_, massDistributionGas_, kinematicDistribution_, kinematicDistributionGas_
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
@@ -1566,7 +1603,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    <stateRestore variables="massDistributionStellar_ massDistributionGas_ kinematicDistribution_ kinematicDistributionGas_ stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     !!]
     read (stateFile) ratioAngularMomentumScaleRadius
     return

@@ -170,7 +170,7 @@
 #
 # COZMIC WDM 6keV X8 subhaloRadialDistribution is deliberately not re-anchored. It
 # returned logImpossible on 2026-08-14 because the model placed no subhalo in the
-# r/rvir=0.032 bin where the target holds one - correct behaviour for a negative
+# r/rvir=0.032 bin where the target holds one - correct behavior for a negative
 # binomial with zero mean, not a numerical failure. Its tree count, and those of the
 # 4keV, 5keV and 6.5keV models at the same resolution, are being raised so that an
 # empty bin becomes unlikely. All twelve analyses across those four models will settle

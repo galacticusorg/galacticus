@@ -3,7 +3,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
 
   <verbosityLevel value="standard"/>
@@ -40,7 +40,6 @@
        used WMAP cosmology (Hinshaw et al. 2013; https://ui.adsabs.harvard.edu/abs/2013ApJS..208...19H) as they do not explicitly
        state power spectrum choices.-->
   <cosmologicalMassVariance value="filteredPower">
-    <sigma_8                           value="0.8100"/>
     <tolerance                         value="3.0e-4"/>
     <toleranceTopHat                   value="3.0e-4"/>
     <nonMonotonicIsFatal               value="false" />
@@ -65,6 +64,10 @@
     <running             value="0.0000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"  />
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8100"/>
+    <tolerance value="3.0e-4"/>
+  </powerSpectrumNormalizer>
 
   <!-- Task -->
   <task                   value="evolveForests"/>

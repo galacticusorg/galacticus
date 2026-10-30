@@ -17,7 +17,6 @@ from Galacticus.Build.SourceTree import parse_code, serialize
 def _process(source, tmp_path, monkeypatch):
     """Run the inputParameter process on `source`, returning the serialized result."""
     from Galacticus.Build.SourceTree.Process.InputParameter import process_input_parameters
-    (tmp_path / 'Makefile_All_Execs').write_text("all_exes = Galacticus.exe\n")
     monkeypatch.setenv('BUILDPATH', str(tmp_path))
     tree = parse_code(source, name='test.F90')
     process_input_parameters(tree, {})

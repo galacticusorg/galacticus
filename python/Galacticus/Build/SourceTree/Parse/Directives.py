@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 
 from XML.Utils import xml_to_dict
+from Galacticus.Build import Catalogs
 
 try:
     from lxml import etree as _lxml_etree  # type: ignore[import-not-found]
@@ -17,16 +18,26 @@ except ImportError:
     _lxml_etree = None
     _HAS_LXML = False
 
-# Cached stateStorables.xml content, loaded lazily from $BUILDPATH.
-_state_storables = None
-_state_storables_loaded = False
+# Patterns applied to every line of a node's content when splitting out directives.
+_EMBEDDED_PREFIX_RE = re.compile(r'^\s*!<\s*')
+_XML_OPEN_RE        = re.compile(r'^\s*!!\[')
+_XML_CLOSE_RE       = re.compile(r'^\s*!!\]')
+_XML_ROOT_TAG_RE    = re.compile(r'^\s*<([^\s>/]+)')
 
-# Define the directory where schemas are stored
-EXEC_PATH = os.environ.get('GALACTICUS_EXEC_PATH')
-if EXEC_PATH:
-    SCHEMAS_DIR = os.path.abspath(os.path.join(EXEC_PATH, 'schema'))
-else:
-    SCHEMAS_DIR = None
+
+def schemas_dir():
+    """Where directive schemas live, under ``$GALACTICUS_EXEC_PATH``.
+
+    Resolved on each call rather than at import, so that a caller which knows
+    which tree it is working on can set the variable and be obeyed. Binding it
+    at import made the answer depend on whichever checkout the environment had
+    been set up for: directives that did not validate against *that* tree's
+    schemas were dropped, silently and only from whatever they contributed. A
+    schema generated in one worktree while the environment named another lost
+    eight enumeration values that way on 2026-10-26.
+    """
+    exec_path = os.environ.get('GALACTICUS_EXEC_PATH')
+    return os.path.abspath(os.path.join(exec_path, 'schema')) if exec_path else None
 
 if _HAS_LXML:
     class SchemaResolver(_lxml_etree.Resolver):
@@ -39,20 +50,16 @@ if _HAS_LXML:
             # Check if the import path refers to the file we want to redirect
             if 'commonTypes.xsd' in system_url:
                 # Construct the absolute path to the file
-                full_path = os.path.join(SCHEMAS_DIR, 'commonTypes.xsd')
+                full_path = os.path.join(schemas_dir(), 'commonTypes.xsd')
                 # Return the resolved file path to lxml
                 return self.resolve_filename(full_path, context)
             return None
 
 def _load_state_storables():
-    """Load $BUILDPATH/stateStorables.xml once and cache it.
+    """Load $BUILDPATH/stateStorables.xml (cached by `Galacticus.Build.Catalogs`).
 
     Returns None if BUILDPATH is unset or the file is missing.
     """
-    global _state_storables, _state_storables_loaded
-    if _state_storables_loaded:
-        return _state_storables
-    _state_storables_loaded = True
     build_path = os.environ.get('BUILDPATH')
     if not build_path:
         return None
@@ -60,11 +67,9 @@ def _load_state_storables():
     if not os.path.exists(path):
         return None
     try:
-        root = ET.parse(path).getroot()
+        return Catalogs.load(path)
     except ET.ParseError:
         return None
-    _state_storables = xml_to_dict(root)
-    return _state_storables
 
 
 # XSD schema templates.  `{name}` is filled in with the directive name.
@@ -135,6 +140,25 @@ _FUNCTION_CLASS_SCHEMA = """<?xml version="1.0"?>
           </xs:element>
          </xs:sequence>
          <xs:attribute name="forceArrayAssign" use="optional"/>
+        </xs:complexType>
+       </xs:element>
+       <!-- allowedParameters/object declares an object which is held as an unlimited polymorphic (class(*)) pointer, and so
+            is built by a global function rather than by an objectBuilder directive. Its parameter name ("name", found in
+            "source") is then allowed, and the global function "function" (from module "module") adds the parameters which
+            the object itself allows. -->
+       <xs:element name="allowedParameters"            minOccurs="0" maxOccurs="1" >
+        <xs:complexType>
+         <xs:sequence>
+          <xs:element name="object" minOccurs="1" maxOccurs="unbounded" >
+           <xs:complexType>
+            <xs:attribute name="variable" use="required"/>
+            <xs:attribute name="name"     use="required"/>
+            <xs:attribute name="source"   use="required"/>
+            <xs:attribute name="function" use="required"/>
+            <xs:attribute name="module"   use="optional"/>
+           </xs:complexType>
+          </xs:element>
+         </xs:sequence>
         </xs:complexType>
        </xs:element>
        <xs:element name="stateStorable"                minOccurs="0" maxOccurs="1" >
@@ -267,8 +291,9 @@ def _validate_directive(directive_name, xml_text, context_node, line_number):
     elif state_storables and directive_name in event_hook_statics:
         schema_xml = _EVENT_HOOK_STATIC_SCHEMA.format(name=directive_name)
     else:
-        if SCHEMAS_DIR:
-            candidate = os.path.join(SCHEMAS_DIR, directive_name + '.xsd')
+        schemas = schemas_dir()
+        if schemas:
+            candidate = os.path.join(schemas, directive_name + '.xsd')
             if os.path.exists(candidate):
                 with open(candidate, 'r') as fh:
                     schema_xml = fh.read()
@@ -402,9 +427,9 @@ def parse_directives(tree):
             new_nodes.append(pending_dir)
 
         for raw_line in content.splitlines(keepends=True):
-            stripped = re.sub(r'^\s*!<\s*', '', raw_line)
+            stripped = _EMBEDDED_PREFIX_RE.sub('', raw_line)
 
-            if re.match(r'^\s*!!\]', raw_line):
+            if _XML_CLOSE_RE.match(raw_line):
                 # Block is closing.  Flush any directive that didn't have its
                 # own end tag (rare — usually directives self-close before this).
                 if raw_dir_buf:
@@ -430,7 +455,7 @@ def parse_directives(tree):
                 current_line  += 1
                 continue
 
-            if re.match(r'^\s*!!\[', raw_line):
+            if _XML_OPEN_RE.match(raw_line):
                 # Close the current code run here: the marker line (and any
                 # non-directive XML block it opens) is dropped from the
                 # output, so code resuming after the block must start a new
@@ -445,7 +470,7 @@ def parse_directives(tree):
                 continue
 
             if in_xml:
-                m = re.match(r'^\s*<([^\s>/]+)', stripped)
+                m = _XML_ROOT_TAG_RE.match(stripped)
                 if m and not in_directive:
                     directive_root = m.group(1)
                     in_directive   = True

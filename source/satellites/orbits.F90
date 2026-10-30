@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements calculations related to satellite orbits.
 !!}
@@ -30,7 +32,7 @@ module Satellite_Orbits
   use :: Mass_Distributions, only : massDistributionClass
   implicit none
   private
-  public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
+  public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates, Satellite_Orbit_Period
 
   ! Orbital energy and angular momentum - used for finding radius of equivalent circular orbit.
   double precision                                               :: orbitalAngularMomentumInternal        , orbitalEnergyInternal
@@ -66,12 +68,73 @@ module Satellite_Orbits
 
 contains
 
-  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,errorCode)
+  double precision function Satellite_Orbit_Period(node,darkMatterHaloScale_) result(periodOrbital)
     !!{RST
-    Solves for the equivalent circular orbit radius for ``orbit`` in ``nodeHost``.
+    Return the orbital period (in Gyr) of the satellite ``node``, :math:`T_\mathrm{orb} = 2\pi/\hbox{max}(\omega,v_\mathrm{r}/r)`, where
+    :math:`\omega` is the angular velocity of the satellite, :math:`v_\mathrm{r}` is its radial velocity, and :math:`r` is its orbital
+    radius. The larger of the angular and radial frequencies is used to avoid numerical problems for purely radial or purely
+    circular orbits. For a degenerate orbit, for which both frequencies vanish, the dynamical timescale of the host halo is
+    returned instead.
     !!}
-    use :: Galacticus_Nodes       , only : nodeComponentBasic
-    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+    use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite
+    use :: Numerical_Constants_Astronomical, only : gigaYear                , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude        , Vector_Product
+    implicit none
+    type            (treeNode                ), intent(inout) :: node
+    class           (darkMatterHaloScaleClass), intent(inout) :: darkMatterHaloScale_
+    class           (nodeComponentSatellite  ), pointer       :: satellite
+    double precision                          , dimension(3)  :: position                      , velocity
+    double precision                          , parameter     :: frequencyFractionalTiny=1.0d-6
+    double precision                                          :: radius                        , frequencyAngular, &
+         &                                                       frequencyRadial               , frequencyOrbital, &
+         &                                                       timescaleDynamical
+
+    ! Get required quantities from the satellite node.
+    satellite => node     %satellite(        )
+    position  =  satellite%position (        )
+    velocity  =  satellite%velocity (        )
+    radius    =  Vector_Magnitude   (position)
+    ! Compute the angular and radial frequencies.
+    frequencyAngular  =+Vector_Magnitude(Vector_Product(position,velocity)) &
+         &             /radius**2                                           &
+         &             *kilo                                                &
+         &             *gigaYear                                            &
+         &             /megaParsec
+    frequencyRadial   =+abs             (   Dot_Product(position,velocity)) &
+         &             /radius**2                                           &
+         &             *kilo                                                &
+         &             *gigaYear                                            &
+         &             /megaParsec
+    frequencyOrbital  =max(                  &
+         &                 frequencyAngular, &
+         &                 frequencyRadial   &
+         &                )
+    ! Find the orbital period, falling back on the dynamical timescale of the host halo for a degenerate orbit.
+    timescaleDynamical=darkMatterHaloScale_%timescaleDynamical(node%parent)
+    if (frequencyOrbital > frequencyFractionalTiny/timescaleDynamical) then
+       periodOrbital=+2.0d0            &
+            &        *Pi               &
+            &        /frequencyOrbital
+    else
+       periodOrbital=+timescaleDynamical
+    end if
+    return
+  end function Satellite_Orbit_Period
+
+  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,errorCode)
+    !!{RST
+    Solves for the equivalent circular orbit radius for ``orbit`` in ``nodeHost``. The calculation (including the conversion of
+    the orbit to the potential of ``nodeHost``) uses the dark matter only profile of ``nodeHost``, for consistency with the
+    orbital circularity which the merging time classes using this radius compute in that same profile. (The
+    :cite:t:`boylan-kolchin_dynamical_2008` fits were calibrated on dark matter only simulations, while those of
+    :cite:t:`jiang_fitting_2008` were calibrated on a hydrodynamical simulation with star formation.)
+    !!}
+    use :: Galacticus_Nodes        , only : nodeComponentBasic
+    use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+    use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     use :: Kepler_Orbits          , only : keplerOrbit
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
@@ -79,6 +142,7 @@ contains
     type            (keplerOrbit              ), intent(inout)           :: orbit
     integer                                    , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass ), intent(inout)           :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass), intent(inout)           :: darkMatterProfileDMO_
     class           (nodeComponentBasic       )               , pointer  :: basicHost
     double precision                           , parameter               :: toleranceAbsolute    =0.0d0  , toleranceRelative=1.0d-6, &
          &                                                                  factorRadiusLarge    =1.0d6
@@ -90,16 +154,16 @@ contains
 
     ! Assign the active node.
     activeNode         => nodeHost
-    ! Get the mass distribution.
-    massDistribution__ => nodeHost%massDistribution()
+    ! Get the dark matter only mass distribution.
+    massDistribution__ => darkMatterProfileDMO_%get(nodeHost)
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost,darkMatterHaloScale_)
     ! Get virial properties.
     basicHost      => nodeHost             %basic       (        )
     radiusVirial__ =  darkMatterHaloScale_ %radiusVirial(nodeHost)
     massVirial__   =  basicHost            %mass        (        )
-    ! Store the orbital energy.
-    orbitalEnergyInternal=orbit%energy()
+    ! Store the orbital energy (in the potential of the current host).
+    orbitalEnergyInternal=orbitCurrent%energy()
     ! Test for conditions that an equivalent circular orbit exists.
     potential=Satellite_Orbit_Potential(factorRadiusLarge*radiusVirial__,radiusVirial__,massVirial__)
     if (orbitalEnergyInternal >= potential) then
@@ -337,6 +401,7 @@ contains
     where subscript :math:`0` refers to the original halo in which the orbit was defined and :math:`\Phi(r)` is the potential of the current halo.
     !!}
     use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
+    use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Kepler_Orbits                   , only : keplerOrbit
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
@@ -344,14 +409,17 @@ contains
     type            (keplerOrbit             ), intent(inout) :: orbit
     type            (treeNode                ), intent(inout) :: currentHost
     class           (darkMatterHaloScaleClass), intent(inout) :: darkMatterHaloScale_
+    class           (nodeComponentBasic      ), pointer       :: basicHost
     double precision                                          :: potentialHost         , radiusVirialOriginal, &
          &                                                       velocityVirialOriginal, radiusVirial
 
     ! Compute the properties of the initial orbit, and the current potential.
-    radiusVirialOriginal   =gravitationalConstant_internal*orbit%massHost()/orbit%velocityScale()**2
-    velocityVirialOriginal =                                                orbit%velocityScale()    
-    radiusVirial           =darkMatterHaloScale_%radiusVirial    (currentHost)
-    potentialHost          =Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,orbit%massHost())
+    radiusVirialOriginal   =  gravitationalConstant_internal*orbit%massHost()/orbit%velocityScale()**2
+    velocityVirialOriginal =                                                  orbit%velocityScale()
+    radiusVirial           =  darkMatterHaloScale_%radiusVirial(currentHost)
+    ! The potential is defined such that Φ(r_vir)=-V_vir² for the current host, so its current mass is used here.
+    basicHost              => currentHost%basic()
+    potentialHost          =  Satellite_Orbit_Potential(radiusVirialOriginal,radiusVirial,basicHost%mass())
     ! Create a new orbit with an adjusted energy.
     orbitCurrent=orbit
     call orbitCurrent%energySet(orbit%energy()+velocityVirialOriginal**2+potentialHost)

@@ -298,7 +298,7 @@ contains
     use    :: Numerical_ODE_Solvers, only : odeSolver
     use    :: Numerical_Ranges     , only : Range_Pinned                    , Range_Lattice_Offset, gridSchemePerDecade
     !$ use :: OMP_Lib              , only : omp_lock_kind
-    use    :: Table_Labels         , only : extrapolationTypeAbort          , extrapolationTypeFix
+    use    :: Table_Labels         , only : extrapolationTypeFix
     use    :: Tables               , only : table1DGeneric
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
@@ -352,7 +352,6 @@ contains
        ! and the nominal epoch depends only on the parameters of this object, so the lattice, and hence the epoch at which CAMB
        ! is asked for initial conditions, is the same for every tabulation this object ever builds.
        timeInitialNominal=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(self%redshiftInitial))
-       if (time        < timeInitialNominal) call Error_Report('requested epoch is before the chosen initial epoch'//{introspection:location})
        if (timePresent < timeInitialNominal) call Error_Report('present epoch is before the chosen initial epoch'  //{introspection:location})
        timeBigCrunch     =self%cosmologyFunctions_%timeBigCrunch()
        if (timeBigCrunch > 0.0d0 .and. timeInitialNominal > timeBigCrunch) &
@@ -360,8 +359,9 @@ contains
        ! Pin the time axis. The request itself is the target - never the range already tabulated, which `latticeCurrent` unions
        ! in afterwards - since folding the current range into the target would apply the margin to an already-margined bound
        ! and ratchet the range upward on every retabulation. No further margin is applied here (`marginFactor=1`) because the
-       ! factor of two on the requested epoch already is one.
-       timeTarget=[timeInitialNominal,timePresent,2.0d0*time,timeMaximumSeed]
+       ! factor of two on the requested epoch already is one. A request before the initial epoch is answered by continuing the
+       ! growth factor from that epoch (see `baryonsDarkMatterValue`), so it requires nothing beyond the initial epoch itself.
+       timeTarget=[timeInitialNominal,timePresent,2.0d0*max(time,timeInitialNominal),timeMaximumSeed]
        if (timeBigCrunch > 0.0d0) then
           ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
           latticeTime      =Range_Pinned(                                                            &
@@ -439,7 +439,12 @@ contains
           call Move_Alloc(self%valueBaryonsFinal        ,valueBaryonsPrevious             )
           call Move_Alloc(self%derivativeBaryonsFinal   ,derivativeBaryonsPrevious        )
        end if
-       call self%growthFactor%extend(latticeTime,latticeWavenumber,isComputed,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
+       ! The table is not evaluated before the initial epoch, as the growth factor is continued from that epoch there (see
+       ! `baryonsDarkMatterValue`). The time axis is nevertheless declared "fix" rather than "abort" so that evaluation at the
+       ! initial epoch itself is safe against rounding in the conversion of that epoch to the logarithmic abscissa. Beyond the
+       ! tabulated range of wavenumber the growth factor is held fixed at its value on the boundary, where it becomes independent
+       ! of wavenumber.
+       call self%growthFactor%extend(latticeTime,latticeWavenumber,isComputed,tableCount=2,extrapolationTypeX=extrapolationTypeFix,extrapolationTypeY=extrapolationTypeFix)
        self%latticeTime           =latticeTime
        self%latticeWavenumber     =latticeWavenumber
        growthTableNumberPoints    =latticeTime      %count
@@ -614,26 +619,28 @@ contains
 
       ! Get expansion factor.
       expansionFactor                    =+                                 cosmologyFunctions_      %expansionFactor (time)
-      ! Compute the instantaneous Jeans wavenumber. Note that we want the comoving wavenumber here, so we multiply by the expansion factor.
+      ! Compute the instantaneous Jeans wavenumber, k_J=a√(4πGρₘ)/cₛ=a√(3Ωₘ(t)/2)H/cₛ. Note that we want the comoving wavenumber here, so
+      ! we multiply by the expansion factor.
       massParticleMean                   =+(hydrogenByMassPrimordial*(1.0d0+intergalacticMediumState_%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
            &                              /(hydrogenByMassPrimordial*(1.0d0+intergalacticMediumState_%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
-      speedSound                         =+sqrt(                                                    &
-           &                                    +boltzmannsConstant                                 &
-           &                                    *intergalacticMediumState_%temperature       (time) &
-           &                                    /massParticleMean                                   &
-           &                                   )                                                    &
+      speedSound                         =+sqrt(                                             &
+           &                                    +boltzmannsConstant                          &
+           &                                    *intergalacticMediumState_%temperature(time) &
+           &                                    /massParticleMean                            &
+           &                                   )                                             &
            &                              /kilo
       if (speedSound > 0.0d0) then
-         wavenumberJeans                 =+sqrt(                                                    &
-              &                                 +1.5d0                                              &
-              &                                 *(                                                  &
-              &                                   +cosmologyFunctions_%hubbleParameterEpochal(time) &
-              &                                   /speedSound                                       &
-              &                                  )**2                                               &
-              &                                )                                                    &
+         wavenumberJeans                 =+sqrt(                                                                               &
+              &                                 +1.5d0                                                                         &
+              &                                 *  cosmologyFunctions_%omegaMatterEpochal    (expansionFactor=expansionFactor) &
+              &                                 *(                                                                             &
+              &                                   +cosmologyFunctions_%hubbleParameterEpochal(                time           ) &
+              &                                   /speedSound                                                                  &
+              &                                  )**2                                                                          &
+              &                                )                                                                               &
               &                           *expansionFactor
       else
-         wavenumberJeans=huge(0.0d0)
+         wavenumberJeans                 =huge(0.0d0)
       end if
       ! Compute perturbations and their derivatives.
       perturbationDarkMatter             =+    values(1)
@@ -707,7 +714,16 @@ contains
        wavenumber_=wavenumberReference
     end if
     ! Interpolate to get the linear growth factor.
-    baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=indexDarkMatter)
+    if (time_ < self%tableTimeMinimum) then
+       ! Before the initial epoch the growth factor is continued from its value there using the growth factor for collisionless
+       ! matter, which follows the background cosmology to arbitrarily early times. The shape of the wavenumber dependence is
+       ! held at that of the initial epoch.
+       baryonsDarkMatterValue=+self%growthFactor                    %interpolate(self%tableTimeMinimum,wavenumber_,table=indexDarkMatter) &
+            &                 *self%linearGrowthCollisionlessMatter_%value      (     time_                                             ) &
+            &                 /self%linearGrowthCollisionlessMatter_%value      (self%tableTimeMinimum                                  )
+    else
+       baryonsDarkMatterValue=+self%growthFactor                    %interpolate(     time_           ,wavenumber_,table=indexDarkMatter)
+    end if
     ! Normalize.
     select case (normalize_%ID)
     case (normalizeMatterDominated%ID)
@@ -743,9 +759,15 @@ contains
        wavenumber_=wavenumberReference
     end if
     ! Interpolate to get the expansion factor.
-    baryonsDarkMatterLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ,wavenumber_,table=indexDarkMatter,dim=1) &
-         &                                                /self%growthFactor       %interpolate        (time_           ,wavenumber_,table=indexDarkMatter      ) &
-         &                                                /self%cosmologyFunctions_%expansionRate      (expansionFactor_                                        )
+    if (time_ < self%tableTimeMinimum) then
+       ! Before the initial epoch the growth factor is that of collisionless matter scaled by a factor independent of time (see
+       ! `baryonsDarkMatterValue`), so its logarithmic derivative is that of collisionless matter.
+       baryonsDarkMatterLogarithmicDerivativeExpansionFactor=+self%linearGrowthCollisionlessMatter_%logarithmicDerivativeExpansionFactor(time_)
+    else
+       baryonsDarkMatterLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ,wavenumber_,table=indexDarkMatter,dim=1) &
+            &                                                /self%growthFactor       %interpolate        (time_           ,wavenumber_,table=indexDarkMatter      ) &
+            &                                                /self%cosmologyFunctions_%expansionRate      (expansionFactor_                                        )
+    end if
     return
   end function baryonsDarkMatterLogarithmicDerivativeExpansionFactor
 
@@ -760,7 +782,7 @@ contains
     type            (enumerationComponentType     ), intent(in   ), optional :: component
     double precision                               , intent(in   ), optional :: wavenumber
     double precision                                                         :: time_      , expansionFactor_, &
-         &                                                                      wavenumber_
+         &                                                                      wavenumber_, timeTable
     !$GLC attributes unused :: component
 
     ! Determine cosmological time.
@@ -773,10 +795,13 @@ contains
     else
        wavenumber_=wavenumberReference
     end if
-    ! Interpolate to get the expansion factor.
-    baryonsDarkMatterLogarithmicDerivativeWavenumber=+self%growthFactor%interpolateGradient(time_,wavenumber_,table=indexDarkMatter,dim=2) &
-         &                                           /self%growthFactor%interpolate        (time_,wavenumber_,table=indexDarkMatter      ) &
-         &                                           *                                            wavenumber_
+    ! Interpolate to get the expansion factor. Before the initial epoch the growth factor differs from that at the initial epoch
+    ! by a factor independent of wavenumber (see `baryonsDarkMatterValue`), so its logarithmic derivative is that at the initial
+    ! epoch.
+    timeTable=max(time_,self%tableTimeMinimum)
+    baryonsDarkMatterLogarithmicDerivativeWavenumber=+self%growthFactor%interpolateGradient(timeTable,wavenumber_,table=indexDarkMatter,dim=2) &
+         &                                           /self%growthFactor%interpolate        (timeTable,wavenumber_,table=indexDarkMatter      ) &
+         &                                           *                                                wavenumber_
     return
   end function baryonsDarkMatterLogarithmicDerivativeWavenumber
 
@@ -819,7 +844,7 @@ contains
     use :: IO_HDF5         , only : hdf5File
     use :: Numerical_Ranges, only : gridSchemePerDecade
     use :: Table_Caches    , only : Table_Cache_Lattice_Read
-    use :: Table_Labels    , only : extrapolationTypeAbort  , extrapolationTypeFix
+    use :: Table_Labels    , only : extrapolationTypeFix
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
     double precision                               , dimension(:,:), allocatable :: growthFactorDarkMatter, growthFactorBaryons
@@ -873,14 +898,15 @@ contains
          & ) return
     if (self%tableInitialized) call self%growthFactor%destroy()
     ! Build the table on the lattices recorded in the file, rather than by subdividing the ranges they span, so that its
-    ! abscissae are bit-identical to those of any other tabulation built on the same lattices.
-    call self%growthFactor%extend  (                                           &
-         &                                              latticeTime          , &
-         &                                              latticeWavenumber    , &
-         &                                              isComputed           , &
-         &                          tableCount        =2                     , &
-         &                          extrapolationTypeX=extrapolationTypeAbort, &
-         &                          extrapolationTypeY=extrapolationTypeFix    &
+    ! abscissae are bit-identical to those of any other tabulation built on the same lattices. The extrapolation types are
+    ! those of a table built by retabulation (see `baryonsDarkMatterRetabulate`).
+    call self%growthFactor%extend  (                                         &
+         &                                              latticeTime        , &
+         &                                              latticeWavenumber  , &
+         &                                              isComputed         , &
+         &                          tableCount        =2                   , &
+         &                          extrapolationTypeX=extrapolationTypeFix, &
+         &                          extrapolationTypeY=extrapolationTypeFix  &
          &                         )
     call self%growthFactor%populate(growthFactorDarkMatter,table=indexDarkMatter)
     call self%growthFactor%populate(growthFactorBaryons   ,table=indexBaryons   )

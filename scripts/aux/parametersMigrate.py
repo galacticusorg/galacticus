@@ -2,6 +2,8 @@
 """Update a Galacticus parameter file from its last modified revision to the current revision."""
 
 import argparse
+import difflib
+import html
 import os
 import re
 import subprocess
@@ -55,6 +57,77 @@ def preprocess_multiline_attributes(input_filename):
     return tmp_filename
 
 
+# Tokens of an XML document: comments, CDATA sections, processing instructions (including the XML declaration), tags
+# (allowing for quoted attribute values which contain `>`), and runs of text.
+_TOKEN = re.compile(r"<!--.*?-->|<!\[CDATA\[.*?\]\]>|<\?.*?\?>|<(?:[^>\"']|\"[^\"]*\"|'[^']*')*>|[^<]+", re.DOTALL)
+_TAG = re.compile(r"<([?/]?)([^\s/>?!]+)(.*?)\s*([/?]?)>\Z", re.DOTALL)
+_ATTRIBUTE = re.compile(r"([^\s=]+)\s*=\s*(\"[^\"]*\"|'[^']*')")
+
+
+def _token_key(token):
+    """Return a normalized form of an XML token, such that tokens which differ only in formatting compare equal.
+
+    Whitespace runs are collapsed, attributes are sorted, attribute values are compared with entities and quoting
+    resolved. Comments and CDATA are compared verbatim, up to whitespace.
+    """
+    if token.startswith("<!"):
+        return " ".join(token.split())
+    match = _TAG.match(token)
+    if match is None:
+        return html.unescape(" ".join(token.split()))
+    attributes = sorted((name, html.unescape(" ".join(value[1:-1].split()))) for name, value in _ATTRIBUTE.findall(match.group(3)))
+    return (match.group(1), match.group(2), tuple(attributes), match.group(4))
+
+
+def _tokenize(text):
+    """Split an XML document into a list of (whitespace, token) pairs, where `whitespace` is the whitespace preceding
+    the token, and return these along with any trailing whitespace."""
+    tokens = []
+    whitespace = ""
+    for match in _TOKEN.finditer(text):
+        token = match.group(0)
+        if not token.startswith("<"):
+            stripped = token.lstrip()
+            whitespace += token[:len(token) - len(stripped)]
+            token = stripped.rstrip()
+            if not token:
+                continue
+            trailing = stripped[len(token):]
+        else:
+            trailing = ""
+        tokens.append((whitespace, token))
+        whitespace = trailing
+    return tokens, whitespace
+
+
+def merge_unchanged_formatting(original, migrated):
+    """Return the migrated document, with every token unchanged by the migration taken verbatim from the original.
+
+    Serialization by `lxml` reformats content which the migration did not touch (attribute order and quoting, the XML
+    declaration, line breaks between adjacent tags). To keep the changes to a migrated file to a minimum, the two
+    documents are compared token by token, ignoring such formatting. Tokens which compare equal are written exactly as
+    they appear in the original, along with their preceding whitespace; only tokens which the migration inserted or
+    changed are taken from the migrated document. An XML declaration is not added to a document which had none.
+    """
+    tokens_original, trailing_original = _tokenize(original)
+    tokens_migrated, trailing_migrated = _tokenize(migrated)
+    if not any(token.startswith("<?xml") for _, token in tokens_original):
+        tokens_migrated = [(whitespace, token) for whitespace, token in tokens_migrated if not token.startswith("<?xml")]
+    matcher = difflib.SequenceMatcher(
+        None,
+        [_token_key(token) for _, token in tokens_original],
+        [_token_key(token) for _, token in tokens_migrated],
+        autojunk=False,
+    )
+    merged = []
+    for operation, i1, i2, j1, j2 in matcher.get_opcodes():
+        if operation == "equal":
+            merged.extend(tokens_original[i1:i2])
+        else:
+            merged.extend(tokens_migrated[j1:j2])
+    return "".join(whitespace + token for whitespace, token in merged) + trailing_original
+
+
 def restore_multiline_attributes(input_filename, output_filename):
     """Restore %%NEWLINE%% placeholders back to actual newlines."""
     with open(input_filename, "r") as fin, open(output_filename, "w") as fout:
@@ -105,6 +178,19 @@ def parse_migrations(path):
             }
         )
     return migrations
+
+
+def append_indented(parent, new_node):
+    """Append a node to a parent, on a new line indented as for the parent's first child."""
+    indent = parent.text if parent.text is not None and parent.text.strip() == "" and "\n" in parent.text else "\n  "
+    if len(parent) > 0:
+        last = parent[-1]
+        new_node.tail = last.tail
+        last.tail = indent
+    else:
+        new_node.tail = parent.text
+        parent.text = indent
+    parent.append(new_node)
 
 
 def insert_after(parent, new_node, ref_node):
@@ -1398,6 +1484,103 @@ def chandrasekhar_suppress_extended_mass(input_doc, parameters, is_grid):
     _suppress_extended_mass_disable(profile)
 
 
+def dynamical_friction_gaseous(input_doc, parameters, is_grid):
+    """Retain the collisionless treatment of dynamical friction from gaseous components.
+
+    Commit b3ff1596d6 introduced the `dynamicalFrictionGaseous` class, used to compute dynamical friction
+    from collisional (gaseous) components such as the hot halo, with a default (`kimKim2007`) that
+    differs from the collisionless Chandrasekhar (1943) formula previously applied to them. Parameter
+    files predating that commit expect the prior behavior, so we explicitly select
+    `dynamicalFrictionGaseous=chandrasekhar1943`, which reproduces it.
+
+    The option matters only where dynamical friction is computed (by a `satelliteDynamicalFriction`
+    node operator, or any non-`zero` `satelliteDynamicalFriction` class) *and* a gaseous component is
+    present (i.e. `componentHotHalo` is not `null` - the default is `standard`). Elsewhere it would have
+    no effect, so we do not add it.
+    """
+    if len(parameters.xpath(".//dynamicalFrictionGaseous[@value]")) > 0:
+        return
+    friction = parameters.xpath(".//satelliteDynamicalFriction[@value]")
+    operator = parameters.xpath(".//nodeOperator[@value='satelliteDynamicalFriction']")
+    if len(friction) == 0 and len(operator) == 0:
+        return
+    if len(friction) > 0 and all(element.get("value") == "zero" for element in friction):
+        return
+    hot_halo = parameters.xpath(".//componentHotHalo[@value]")
+    if len(hot_halo) > 0 and all(element.get("value") == "null" for element in hot_halo):
+        return
+    print("   insert dynamicalFrictionGaseous chandrasekhar1943 to retain collisionless dynamical friction from gas")
+    gaseous = etree.Element("dynamicalFrictionGaseous")
+    gaseous.set("value", "chandrasekhar1943")
+    if is_grid:
+        gaseous.set("iterable", "no")
+    append_indented(parameters, gaseous)
+
+
+def satellite_deferral_default(input_doc, parameters, is_grid):
+    """Retain the absence of satellite deferral across the change of its default.
+
+    The default of `fractionTimestepSatelliteMinimum` in the `standard` and `threaded` merger tree evolvers changed from
+    0 (never defer the evolution of a satellite) to 0.75 (issue #1431). Parameter files predating that change expect the
+    prior behavior, so we explicitly set `fractionTimestepSatelliteMinimum=0` in any such evolver which does not set it.
+
+    Only explicitly-present `mergerTreeEvolver` elements are modified. A file which relies on the default evolver (and so
+    has no `mergerTreeEvolver` element) is left unchanged, and will use the new default: whether such a file actually
+    evolves merger trees, or is a fragment to be combined with others (through `xi:include` or on the command line)
+    which select an evolver themselves, cannot be determined from the file alone, and adding an evolver to a fragment
+    could duplicate one selected elsewhere.
+    """
+    for evolver in parameters.xpath(".//mergerTreeEvolver[@value='standard' or @value='threaded']"):
+        # A model that stated its choice explicitly already means what it says - leave it alone.
+        if len(evolver.findall("fractionTimestepSatelliteMinimum")) > 0:
+            continue
+        print("   insert fractionTimestepSatelliteMinimum 0 to retain the absence of satellite deferral")
+        fraction = etree.Element("fractionTimestepSatelliteMinimum")
+        fraction.set("value", "0")
+        if is_grid:
+            fraction.set("iterable", "no")
+        append_indented(evolver, fraction)
+
+
+def interstellar_medium_kinematics(input_doc, parameters, is_grid):
+    """Retain the collisionless treatment of dynamical friction from the interstellar medium.
+
+    The gas of the standard disk, spheroid, and nuclear star cluster components is now described by
+    the `kinematicsDistributionInterstellarMedium` class, which defaults to `effectiveSoundSpeed` - a
+    collisional distribution for which dynamical friction is computed using the `dynamicalFrictionGaseous`
+    class. Previously this gas shared the collisionless `local` kinematics of the stars, so parameter
+    files predating this change expect that behavior, which we retain by explicitly selecting
+    `kinematicsDistributionInterstellarMedium=local`.
+
+    The option matters only where dynamical friction is computed (by a `satelliteDynamicalFriction`
+    node operator, or any non-`zero` `satelliteDynamicalFriction` class) *and* a standard disk,
+    spheroid, or nuclear star cluster component is present (the disk and spheroid default to
+    `standard`, the nuclear star cluster to `null`). Elsewhere it would have no effect (other than on
+    any output of the velocity dispersion of the gas), so we do not add it.
+    """
+    if len(parameters.xpath(".//kinematicsDistributionInterstellarMedium[@value]")) > 0:
+        return
+    friction = parameters.xpath(".//satelliteDynamicalFriction[@value]")
+    operator = parameters.xpath(".//nodeOperator[@value='satelliteDynamicalFriction']")
+    if len(friction) == 0 and len(operator) == 0:
+        return
+    if len(friction) > 0 and all(element.get("value") == "zero" for element in friction):
+        return
+    def has_standard(name, default):
+        elements = parameters.xpath(f".//{name}[@value]")
+        if len(elements) == 0:
+            return default
+        return any(element.get("value") == "standard" for element in elements)
+    if not (has_standard("componentDisk", True) or has_standard("componentSpheroid", True) or has_standard("componentNSC", False)):
+        return
+    print("   insert kinematicsDistributionInterstellarMedium local to retain collisionless dynamical friction from the interstellar medium")
+    kinematics = etree.Element("kinematicsDistributionInterstellarMedium")
+    kinematics.set("value", "local")
+    if is_grid:
+        kinematics.set("iterable", "no")
+    append_indented(parameters, kinematics)
+
+
 def vitvitska_subresolution_method(input_doc, parameters, is_grid):
     """Special handling to preserve the sub-resolution angular momentum method across the default flip."""
     nodes = parameters.xpath(".//nodeOperator[@value='haloAngularMomentumVitvitska2002']")
@@ -1695,6 +1878,341 @@ _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS = 3.1 / 5.8e21 * 0.707 / 1.660538782e-
 COLUMN_UNIT_OPTICAL_DEPTH = 1.0 / _DEPTH_OPTICAL_PER_SURFACE_DENSITY_METALS / 0.02 * 3.08567758135e18**2 / 1.98892e33
 
 
+def _whitespace_before(node):
+    """Return the whitespace preceding a node (the tail of its previous sibling, or the text of its parent)."""
+    previous = node.getprevious()
+    text = previous.tail if previous is not None else node.getparent().text
+    return text if text is not None and text.strip() == "" else "\n  "
+
+
+def _remove_preserving_whitespace(node):
+    """Remove a node from its parent, retaining the layout of the remaining siblings."""
+    parent = node.getparent()
+    previous = node.getprevious()
+    if previous is not None:
+        previous.tail = node.tail
+    else:
+        parent.text = node.tail
+    parent.remove(node)
+    if len(parent) == 0 and (parent.text is None or parent.text.strip() == ""):
+        parent.text = None
+
+
+def _reindent(node, indent_old, indent_new):
+    """Re-indent the subtree rooted at `node` (moved from indentation `indent_old` to `indent_new`)."""
+    for element in node.iter():
+        if element is not node and element.tail is not None and element.tail.strip() == "" and "\n" in element.tail:
+            element.tail = element.tail.replace("\n" + indent_old, "\n" + indent_new)
+        if element.text is not None and element.text.strip() == "" and "\n" in element.text:
+            element.text = element.text.replace("\n" + indent_old, "\n" + indent_new)
+
+
+def _append_child(parent, child, indent):
+    """Append `child` to `parent`, where `indent` is the indentation of `parent` itself."""
+    if len(parent) == 0:
+        parent.text = "\n" + indent + "  "
+    else:
+        parent[-1].tail = "\n" + indent + "  "
+    child.tail = "\n" + indent
+    parent.append(child)
+
+
+def _parameter_path(element):
+    """Return the absolute path (as used in derived parameter expressions) of a parameter element, or None if it can not be
+    determined (because the element, or one of its ancestors, is moved elsewhere in the parameter tree by a `parameterLevel`
+    attribute)."""
+    names = []
+    while element is not None and element.tag != "parameters":
+        if element.get("parameterLevel") is not None:
+            return None
+        names.insert(0, element.tag)
+        element = element.getparent()
+    return "/".join(names) if element is not None else None
+
+
+def _power_spectrum_normalizer_build(variance, indent, is_grid):
+    """Build a `powerSpectrumNormalizer` element from the normalization parameters of a `cosmologicalMassVariance` element,
+    removing those parameters which belong only to the normalizer. Returns the new element, or None if `variance` specifies
+    no normalization parameters."""
+    def child(name):
+        found = [c for c in variance if isinstance(c.tag, str) and c.tag == name]
+        return found[0] if found else None
+    sigma8               = child("sigma_8"                          )
+    amplitude            = child("amplitudeScalar"                  )
+    wavenumber           = child("wavenumberReference"              )
+    reference            = child("reference"                        )
+    tolerance            = child("toleranceTopHat"                  )
+    window               = child("powerSpectrumWindowFunctionTopHat")
+    # `[integrationFailureIsFatal]` also governed the σ₈ normalization integral, so a variance which relaxes it (with any value
+    # other than the default, "true") needs a normalizer to carry that setting, even if it specifies no other normalization
+    # parameters.
+    integration_failure_relaxed = any(
+        c.get("value", "").strip() != "true"
+        for c in variance if isinstance(c.tag, str) and c.tag == "integrationFailureIsFatal"
+    )
+    if (
+            sigma8 is None and amplitude is None and wavenumber is None and tolerance is None and window is None
+            and not integration_failure_relaxed
+    ):
+        return None
+    # A variance whose σ₈ is simply that of the top-level variance (for example, one which exists only to use a different window
+    # function) is normalized consistently with the power spectrum which it shares, so needs no normalizer of its own.
+    if sigma8 is not None and re.match(r"^\s*=\s*\[cosmologicalMassVariance/sigma_8\]\s*$", sigma8.get("value", "")):
+        _remove_preserving_whitespace(sigma8)
+        return None
+    normalizer = etree.Element("powerSpectrumNormalizer")
+    # In a grid, a variance may be one of several alternatives (siblings), so the normalizer inherits its iterability.
+    if variance.get("iterable") is not None:
+        normalizer.set("iterable", variance.get("iterable"))
+    if wavenumber is not None:
+        normalizer.set("value", "matchedWavenumber")
+        indent_old = _whitespace_before(wavenumber).split("\n")[-1]
+        for element in (wavenumber, reference):
+            if element is None:
+                continue
+            _remove_preserving_whitespace(element)
+            _reindent(element, indent_old, indent + "  ")
+            _append_child(normalizer, element, indent)
+        if reference is not None:
+            _power_spectrum_normalizer_reference(reference, indent + "  ", is_grid)
+    else:
+        normalizer.set("value", "amplitudeScalar" if amplitude is not None else "sigma8")
+        # Move all instances (a grid may list several values).
+        for element in [c for c in variance if isinstance(c.tag, str) and c.tag in ("sigma_8", "amplitudeScalar")]:
+            _remove_preserving_whitespace(element)
+            element.tail = None
+            _append_child(normalizer, element, indent)
+        # Parameters which are retained by the variance (for its own computation of σ₈) are copied into the normalizer.
+        #
+        # In a grid, sibling instances of a parameter are alternatives, and the grid runs every combination of alternatives. So
+        # copying a list of alternatives into the normalizer would make an independent second list, and generate models
+        # pairing (for example) a fatal normalization integral with a non-fatal variance - models which did not exist before.
+        # Instead, the normalizer's parameter is derived from the variance's, so that it always takes the value of whichever
+        # alternative is in use.
+        for name_variance, name_normalizer, reference_format in (
+                ("toleranceTopHat"          , "tolerance"                , "{path}"   ),
+                ("integrationFailureIsFatal", "integrationFailureIsFatal", "%s|{path}")
+        ):
+            elements = [c for c in variance if isinstance(c.tag, str) and c.tag == name_variance]
+            path     = _parameter_path(elements[0]) if is_grid and len(elements) > 1 else None
+            if path is not None:
+                copy = etree.Element(name_normalizer)
+                copy.set("value", "=[" + reference_format.format(path=path) + "]")
+                _append_child(normalizer, copy, indent)
+                continue
+            if is_grid and len(elements) > 1:
+                print(
+                    f"   WARNING: alternatives of '{name_variance}' could not be linked to the powerSpectrumNormalizer - only the"
+                    f" first is copied; edit the normalizer by hand"
+                )
+                elements = elements[:1]
+            for element in elements:
+                copy = etree.Element(name_normalizer)
+                for key, value in element.attrib.items():
+                    copy.set(key, value)
+                _append_child(normalizer, copy, indent)
+        # A window function is an object, so can not be derived from the variance's. In a grid with alternatives of it, copy only
+        # the first, and warn.
+        windows = [c for c in variance if isinstance(c.tag, str) and c.tag == "powerSpectrumWindowFunctionTopHat"]
+        if is_grid and len(windows) > 1:
+            print(
+                "   WARNING: alternatives of 'powerSpectrumWindowFunctionTopHat' can not be linked to the powerSpectrumNormalizer -"
+                " only the first is copied; edit the normalizer by hand"
+            )
+            windows = windows[:1]
+        for element in windows:
+            copy = etree.fromstring(etree.tostring(element, with_tail=False))
+            _reindent(copy, _whitespace_before(element).split("\n")[-1], indent + "  ")
+            _append_child(normalizer, copy, indent)
+    return normalizer
+
+
+def _power_spectrum_normalizer_reference(reference, indent, is_grid):
+    """Within a `reference` section, replace the `cosmologicalMassVariance` (which existed only to normalize the reference power
+    spectrum) and its window function with a normalizer for the reference power spectrum."""
+    variances = [c for c in reference if isinstance(c.tag, str) and c.tag == "cosmologicalMassVariance"]
+    normalizer = None
+    for variance in variances:
+        if variance.get("value") == "filteredPower":
+            normalizer = _power_spectrum_normalizer_build(variance, indent + "  ", is_grid)
+        _remove_preserving_whitespace(variance)
+    for window in [c for c in reference if isinstance(c.tag, str) and c.tag == "powerSpectrumWindowFunction"]:
+        _remove_preserving_whitespace(window)
+    if normalizer is None:
+        # The reference power spectrum must have its own normalizer (otherwise the search for one would find the matched
+        # wavenumber normalizer itself) - use the default. This is equivalent to the old behavior: the default σ₈ of the
+        # `sigma8` normalizer (0.8111) is that of the default mass variance which the reference section would have used.
+        normalizer = etree.Element("powerSpectrumNormalizer")
+        normalizer.set("value", "sigma8")
+    _append_child(reference, normalizer, indent)
+
+
+def power_spectrum_normalizer(input_doc, parameters, is_grid):
+    """Move the normalization of the power spectrum from `cosmologicalMassVariance` to `powerSpectrumNormalizer`.
+
+    The normalization (`[sigma_8]`, `[amplitudeScalar]`, or `[wavenumberReference]` with its `[reference]` section) was a
+    parameter of the `filteredPower` mass variance class. It is now determined by a `powerSpectrumNormalizer` object, which is
+    a member of the transferred primordial power spectrum. Each normalizer is placed alongside the
+    `powerSpectrumPrimordialTransferred` which the variance would use (found as an object builder would find it: among the
+    children of the variance, and then among those of each of its ancestors), or at the top level if there is no such
+    transferred power spectrum (in which case the default one is used). The `[toleranceTopHat]`,
+    `[integrationFailureIsFatal]`, and `[powerSpectrumWindowFunctionTopHat]` parameters of the variance are retained (they
+    control the computation of the derived value of σ₈) and are also copied into the normalizer. Since
+    `[integrationFailureIsFatal]` also governed the old normalization integral, a variance which sets it to anything other
+    than "true" gets a (default `sigma8`) normalizer carrying that setting, even if it has no other normalization parameters. In
+    a grid, where the variance lists alternatives of a copied parameter, the normalizer's parameter is instead derived from the
+    variance's (e.g. `value="=[cosmologicalMassVariance/toleranceTopHat]"`), since independent lists of alternatives would be
+    iterated over independently. Alternatives of the window function can not be linked in this way: only the first is copied,
+    with a warning.
+    """
+    def in_matched_reference(variance):
+        # Variances within the reference section of a matched wavenumber normalization are processed along with that
+        # normalization.
+        for ancestor in variance.iterancestors():
+            if isinstance(ancestor.tag, str) and ancestor.tag == "reference":
+                owner = ancestor.getparent()
+                if (
+                        owner is not None
+                        and owner.tag == "cosmologicalMassVariance"
+                        and any(isinstance(c.tag, str) and c.tag == "wavenumberReference" for c in owner)
+                ):
+                    return True
+        return False
+    variances = [
+        variance for variance in parameters.iter("cosmologicalMassVariance")
+        if variance.get("value") == "filteredPower" and not in_matched_reference(variance)
+    ]
+    created = {}
+    for variance in variances:
+        # Find the transferred power spectrum used by this variance.
+        transferred = None
+        level = variance
+        while level is not None:
+            found = [c for c in level if isinstance(c.tag, str) and c.tag == "powerSpectrumPrimordialTransferred"]
+            if found:
+                transferred = found[0]
+                break
+            if level is parameters:
+                break
+            level = level.getparent()
+        if transferred is not None:
+            anchor = transferred
+        else:
+            anchor = variance
+            while anchor.getparent() is not parameters:
+                anchor = anchor.getparent()
+        indent = _whitespace_before(anchor).split("\n")[-1]
+        normalizer = _power_spectrum_normalizer_build(variance, indent, is_grid)
+        if normalizer is None:
+            continue
+        print("   translate special './/cosmologicalMassVariance[@value=\'filteredPower\']' normalization --> powerSpectrumNormalizer")
+        # Skip a normalizer identical to one already placed at the same level (e.g. where several variances share a power
+        # spectrum).
+        key = (id(anchor.getparent()), etree.tostring(normalizer))
+        if key in created:
+            continue
+        created[key] = True
+        parent = anchor.getparent()
+        normalizer.tail = anchor.tail
+        anchor.tail = _whitespace_before(anchor)
+        parent.insert(parent.index(anchor) + 1, normalizer)
+    # In a grid, variances which have become identical are now redundant alternatives - remove all but the first.
+    if is_grid:
+        seen = {}
+        for variance in variances:
+            parent = variance.getparent()
+            if parent is None:
+                continue
+            key = (id(parent), etree.tostring(variance, with_tail=False))
+            if key in seen:
+                _remove_preserving_whitespace(variance)
+            else:
+                seen[key] = True
+
+
+def supernovae_type_ii_mass_stellar_astrophysics(input_doc, parameters, is_grid):
+    """Move `initialMassForSupernovaeTypeII` from the standard stellar feedback class to the stellar astrophysics class.
+
+    The minimum initial mass for a Type II supernova is now a parameter of `stellarAstrophysicsFile`, so that the
+    stellar yields (which are not interpolated across it) and the supernova energy input of `stellarFeedbackStandard`
+    (which takes it from its `stellarAstrophysics` object) are consistent. A value given inside a `stellarFeedback`
+    element is moved to the `stellarAstrophysics` element that the feedback class uses - the nearest one found by
+    searching the feedback element and then its ancestors, as the object builder does - creating one at the root of
+    the parameters if none is present. A value given at the root level needs no change, as the default
+    `stellarAstrophysics` object reads its parameters from there, unless an explicit root-level `stellarAstrophysics`
+    element is present, in which case it is moved into that.
+    """
+    def remove_element(element):
+        parent   = element.getparent()
+        previous = element.getprevious()
+        if previous is not None:
+            previous.tail = element.tail
+        else:
+            # If this is the only child, leave the parent empty.
+            parent.text   = element.tail if len(parent) > 1 else None
+        parent.remove(element)
+
+    def resolve(element):
+        # Follow an `idRef` to the referenced element.
+        reference = element.get("idRef")
+        if reference is None:
+            return element
+        targets = parameters.xpath(f".//stellarAstrophysics[@id='{reference}']")
+        return targets[0] if len(targets) > 0 else None
+
+    def append_child(parent, child):
+        # Append a child, indented one level deeper than the parent.
+        if len(parent) > 0:
+            append_indented(parent, child)
+            return
+        previous = parent.getprevious()
+        whitespace = (previous.tail if previous is not None else (parent.getparent().text if parent.getparent() is not None else None)) or "\n"
+        indentation = whitespace.split("\n")[-1]
+        parent.text = "\n" + indentation + "  "
+        child.tail  = "\n" + indentation
+        parent.append(child)
+
+    def move_into(mass, target, source):
+        if target.get("value") not in (None, "file"):
+            print(f"   WARNING: initialMassForSupernovaeTypeII can not be moved into stellarAstrophysics of type '{target.get('value')}' - removed")
+            remove_element(mass)
+            return
+        existing = target.find("initialMassForSupernovaeTypeII")
+        if existing is not None:
+            if existing.get("value") != mass.get("value"):
+                print(f"   WARNING: conflicting values of initialMassForSupernovaeTypeII ({existing.get('value')} retained, {mass.get('value')} discarded)")
+            remove_element(mass)
+            return
+        print(f"   move parameter: initialMassForSupernovaeTypeII from {source} to stellarAstrophysics")
+        remove_element(mass)
+        append_child(target, mass)
+
+    for mass in parameters.xpath(".//stellarFeedback/initialMassForSupernovaeTypeII[@value]"):
+        feedback = mass.getparent()
+        if feedback.get("value") not in (None, "standard"):
+            continue
+        # Search for the stellarAstrophysics element used by this feedback object.
+        target  = None
+        current = feedback
+        while current is not None:
+            candidates = [child for child in current if child.tag == "stellarAstrophysics" and (child.get("value") is not None or child.get("idRef") is not None)]
+            if len(candidates) > 0:
+                target = resolve(candidates[0])
+                break
+            current = current.getparent()
+        if target is None:
+            target = etree.Element("stellarAstrophysics")
+            target.set("value", "file")
+            if is_grid:
+                target.set("iterable", "no")
+            append_indented(parameters, target)
+        move_into(mass, target, "stellarFeedback")
+    for mass in parameters.xpath("initialMassForSupernovaeTypeII[@value]"):
+        targets = parameters.xpath("stellarAstrophysics[@value]")
+        if len(targets) > 0:
+            move_into(mass, targets[0], "the root level")
+
+
 SPECIAL_FUNCTIONS = {
     "extended_schmidt_normalization_per_gigayear": extended_schmidt_normalization_per_gigayear,
     "dust_properties": dust_properties,
@@ -1722,6 +2240,11 @@ SPECIAL_FUNCTIONS = {
     "splashback_radius_accretion_flow": splashback_radius_accretion_flow,
     "johnson2021_correlated_branches": johnson2021_correlated_branches,
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
+    "dynamical_friction_gaseous": dynamical_friction_gaseous,
+    "satellite_deferral_default": satellite_deferral_default,
+    "interstellar_medium_kinematics": interstellar_medium_kinematics,
+    "power_spectrum_normalizer": power_spectrum_normalizer,
+    "supernovae_type_ii_mass_stellar_astrophysics": supernovae_type_ii_mass_stellar_astrophysics,
 }
 
 
@@ -1780,19 +2303,13 @@ def main():
         tmp_output = f.name
         f.write(serialized)
 
-    # If requested, ignore whitespace changes.
+    # If requested, ignore whitespace (and other formatting) changes, keeping the original formatting of all unchanged
+    # content.
     if options.ignoreWhiteSpaceChanges == "yes":
-        # Make a patch from the old to the new file, but ignoring changes in whitespace.
-        with tempfile.NamedTemporaryFile(mode='w') as patch_file:
-            subprocess.run(
-                ["diff", "-w", "-u", tmp_input, tmp_output],
-                stdout=patch_file,
-            )
-            # Apply the patch to the old file.
-            subprocess.run(
-                ["patch", tmp_input, patch_file.name, f"--output={tmp_output}"],
-                stdout=subprocess.DEVNULL,
-            )
+        with open(tmp_input, "r") as f:
+            original = f.read()
+        with open(tmp_output, "w") as f:
+            f.write(merge_unchanged_formatting(original, serialized))
 
     # Undo any split line reformatting that we previously applied.
     restore_multiline_attributes(tmp_output, options.outputFile)

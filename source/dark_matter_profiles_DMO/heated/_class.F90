@@ -268,8 +268,9 @@ contains
     call self%pool%acquire(i,reused)
     if (.not.reused) allocate(massDistributionSphericalHeated :: self%pool%slots(i)%object_)
     ! Get the decorated distribution and heating object for this node. The decorated
-    ! distribution is (typically) itself drawn from a pool, so this is cheap; the heating
-    ! object is currently constructed afresh on each call.
+    ! distribution is (typically) itself drawn from a pool, so this is cheap. The heating
+    ! object is drawn from a pool by some implementations (e.g. tidal heating), and is
+    ! constructed afresh on each call by others.
     massDistributionDecorated => self%darkMatterProfileDMO_    %get(node,weightBy,weightIndex)
     massDistributionHeating_  => self%darkMatterProfileHeating_%get(node                     )
     select type (massDistribution__ => self%pool%slots(i)%object_)

@@ -177,7 +177,9 @@ To build with MPI parallelism replace the ``make`` command in the above with:
 
 .. code-block:: bash
 
-   make GALACTICUS_BUILD_OPTION=MPI Galacticus.exe
+   make MPI=yes Galacticus.exe
+
+This builds separately from a non-MPI build (in ``work/buildMPI/``), and produces ``Galacticus.exe_MPI``, so both can be kept. To name the executable ``Galacticus.exe`` instead, add ``SUFFIX=`` to the ``make`` command.
 
 Galacticus can take a long time to compile, so you may want to do a parallel make. For example:
 

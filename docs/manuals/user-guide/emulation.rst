@@ -6,8 +6,8 @@ Emulator-Assisted Calibration
 .. note::
 
    Emulator-assisted calibration is under development. This chapter currently describes generating a design, running a
-   campaign of models over it, and the emulator file format; training emulators and sampling with them will be
-   described here as they are added.
+   campaign of models over it, training emulators, and the emulator file format; sampling with emulators will be
+   described here as it is added.
 
 Calibrating a model by Markov Chain Monte Carlo (see :doc:`tutorials/constraining-parameters`) requires the model to be
 run at every step of every chain. When a single model run is expensive this is impractical. Emulator-assisted
@@ -102,6 +102,343 @@ machine. A run is complete when Galacticus exited with status zero, its log cont
 reports the reason for each failure, and ``resubmit`` submits the failed runs again. The same operations are available
 from Python, in ``Galacticus.Emulation.campaign``, for use from other pipelines.
 
+A run which was started but could not record its exit status is *interrupted*, and is treated as failed. This happens
+when a local ``run`` is killed, or when a SLURM job is canceled or reaches its time limit. A local run records the host
+and process ID of its Galacticus process, and is interrupted once that process has ended: so after a killed ``run``,
+running it again finishes the campaign, taking the runs it had not started and those it had interrupted. (Runs started
+on another host are left alone, since their processes cannot be checked from here.) ``status``, ``submit`` and
+``resubmit`` ask SLURM which jobs are still pending or running, and runs of any other job are interrupted. If the
+executable cannot be launched, each run fails without stopping the others. This happens, for example, while
+``Galacticus.exe`` is being relinked by ``make``, so run a long campaign from a copy of the executable (``--executable``
+when creating the manifest).
+
+Each run is a single Galacticus process. An MPI build of Galacticus may be used: it appends the label of its process to
+the name of its output file (``point0000.hdf5`` becomes ``point0000:MPI0000.hdf5``), and that file is then accepted as the
+run's output, both here and when training.
+
+.. _manual-sec-EmulatorStage:
+
+Running many campaigns as a stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A calibration against many simulations, such as the progenitor mass functions of tens of N-body simulations, is a set
+of campaigns, one per base parameter file. Together they can hold tens of thousands of single-threaded runs of very
+different costs. A *stage* (``Galacticus.Emulation.stage``) runs them from a shared work queue, together with the training
+of each campaign's emulators: for example, one on the whole design and one on each half
+(see :ref:`manual-sec-EmulatorSystematics`). A stage file, written with ``Stage.create``, lists the campaigns, the
+training configuration and emulator file of each emulator, and optionally the typical and maximum wall time of each
+campaign's runs. Then:
+
+.. code-block:: none
+
+   emulatorStageWorker.py submit stage.json --workers 8 --cpus 128 --walltime 24:00:00
+
+This submits eight *worker* jobs, which may start at any time and on any nodes. Each worker:
+
+* claims runs from the shared queue, from the slowest campaigns first, running ``--cpus`` of them at once;
+* trains a campaign's emulators as soon as all of its runs have ended, leaving out any runs that failed;
+* starts no run that could not finish before its job's time limit;
+* takes over the work of workers whose jobs have ended.
+
+A worker that starts after all the work is taken exits at once, so on a busy queue, ask for more, shorter jobs.
+``emulatorStageWorker.py work stage.json`` runs a worker locally. If the workers end before the work is done, run
+``submit`` again: it first brings the campaign manifests up to date, and frees the work of the ended workers.
+``plan --retryFailed`` runs failed runs again. ``check`` reports whether every emulator is trained.
+
+.. _manual-sec-EmulatorTraining:
+
+Training an emulator
+--------------------
+
+Emulators are trained by the script ``scripts/emulation/emulatorTrainReference.py``, which requires scikit-learn
+(``pip install -e '.[emulation-gp]'``). It reads a configuration file:
+
+.. code-block:: xml
+
+   <emulatorTrain>
+     <designFileName       value="design.hdf5"  />
+     <emulatorFileName     value="emulator.hdf5"/>
+     <foldsCrossValidation value="5"/>
+     <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
+     <observable label="massMetallicityBlanc2019" undefined="median" rootVarianceUndefined="5.0"/>
+   </emulatorTrain>
+
+For each ``observable`` it collects a training set from the ``analyses/{label}`` group written by the corresponding
+``outputAnalysis`` in the output of each run of the design (as listed in the design file). Runs which failed are excluded
+(and reported), and repeated realizations of a design point are averaged. Each observable may be transformed to
+:math:`\log_{10}` (``transform="log10"``), in which case values at or below :math:`10^\mathrm{floor}` (including empty bins)
+are set to the floor with root variance ``rootVarianceFloored`` (in dex); and bins which are undefined in some runs (as
+for a mean relation with no galaxies in a bin) may be replaced by the median of that bin over the other runs
+(``undefined="median"``), with root variance ``rootVarianceUndefined``. Values which have been floored or replaced are
+flagged in the ``mask`` of the training set. Values whose root variance is zero (as for a mean relation measured from a
+single galaxy) may be given root variance ``rootVarianceZero``, and the root variance of the target data may be floored
+at ``rootVarianceTargetMinimum`` (both in the units of the transformed observable). With ``likelihoodRangeOnly="true"``,
+only the bins inside the range used in the analysis's likelihood (recorded by the analysis as the ``xLikelihoodMinimum``
+and ``xLikelihoodMaximum`` attributes of its group, as for the ``progenitorMassFunction`` analysis) are collected. Bins which the likelihood never uses are then not
+emulated, which avoids spending principal components on them; for a mass function they are often empty, and so floored.
+
+The emulator of each observable standardizes its bins, compresses them by principal components analysis (retaining a
+fraction ``pcaVarianceRetained`` of the variance, by default 0.99), and fits a Gaussian process to each standardized
+principal component coefficient. The finite-sampling uncertainty of each run, propagated to the coefficients, is
+included as heteroscedastic noise, and the hyperparameters (an amplitude and one length scale per input, in units of
+prior quantiles) are found by maximizing the marginal likelihood, from ``restartsOptimizer`` (by default 4) random
+starts.
+
+The stated finite-sampling uncertainty of a run may underestimate its true scatter: for example, if the model is noisy
+in ways its own error estimate does not capture, or if the uncertainty of a principal component coefficient, propagated
+from the bins while ignoring their covariance, is underestimated. A Gaussian process then fits the excess scatter as
+structure, with short length scales, so that its predictions are noisy and its emulated likelihood is rough in the
+parameters, with spurious local maxima which trap an MCMC. Two defaults guard against this, and are needed together.
+First (``noiseLearned`` set to ``true``), each Gaussian process also fits a noise variance, the same at every point, in
+addition to the stated noise. Second, the length scales are bounded below by ``lengthScaleMinimum`` (by default 0.1, in
+units of prior quantiles: finer than the spacing of the points of any practical design). For the progenitor mass
+function, either alone left ripples in the emulated likelihood on scales of 0.001-0.003 in a parameter; together they
+removed them. Cross-validation does not detect such ripples, since they barely change the predictions at the held-out
+points. The learned variance is added to the
+``noiseVariance`` of each component, so the emulator is evaluated exactly as it was fitted, and is recorded in the
+component's ``noiseVarianceLearned`` attribute. The predicted variance is that of the emulated function, and does not
+include the learned noise. With ``noiseLearned`` set to ``false`` and ``lengthScaleMinimum`` set to 0.01, emulators are
+trained as by GalacticEmu (so ``galacticEmu.py configure`` sets these).
+
+With ``foldsCrossValidation`` greater than zero, each emulator is also cross-validated: it is refitted with each fold of
+the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator file,
+along with per-bin statistics. The standardized residuals use the variance of the emulator's prediction plus that of the
+held-out run, which is its stated variance plus any noise learned by the emulator, projected onto the bins. A
+well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2 sigma coverage near 0.68 and 0.95 (for the
+progenitor mass function, typical values were 0.85-0.9, and 0.74-0.78 and 0.98: slightly conservative). With ``collectOnly`` set to ``true``, only the training sets are written.
+
+The fit of each emulator, and of each fold of its cross-validation, is independent of the others, so with many observables
+training parallelizes well: ``--processes N`` makes the fits in :math:`N` processes (each using a single thread, since
+threading within a fit gains little), with results identical to those of a serial run. The cost of each fit grows steeply with the number of training points
+(about fourfold for each doubling, between 256 and 1024 points in ten dimensions).
+
+.. _manual-sec-EmulatorEvaluation:
+
+Evaluating an emulator
+----------------------
+
+Within Galacticus an emulator is an object of the :galacticus-class:`emulatorClass` class. The
+:galacticus-class:`emulatorGaussianProcess` implementation reads the emulator of one observable from an emulator file:
+
+.. code-block:: xml
+
+   <emulator value="gaussianProcess">
+     <fileName value="emulator.hdf5"/>
+     <label    value="massFunctionStellarTomczak2014ZFOURGEz0"/>
+   </emulator>
+
+The :galacticus-class:`taskEmulatorPredict` task evaluates an emulator at a list of points (given as prior quantiles in an
+HDF5 file), writing the predicted mean and variance of each output, which is useful for checking an emulator against
+direct runs of the model.
+
+Sampling the posterior with emulators
+-------------------------------------
+
+The :galacticus-class:`posteriorSampleLikelihoodEmulated` likelihood replaces runs of the model by predictions of
+emulators, so that any of the posterior sampling simulations (see :galacticus-class:`taskPosteriorSample`) can explore
+the posterior at the cost of evaluating the emulators. It takes one ``emulator`` for each observable, and compares each
+emulator's prediction with the target data stored with it in the emulator file:
+
+.. code-block:: xml
+
+   <posteriorSampleLikelihood value="emulated">
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="massFunctionStellarTomczak2014ZFOURGEz0"/>
+     </emulator>
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="massMetallicityBlanc2019"/>
+     </emulator>
+     <likelihoodForms         value="gaussianDiagonal gaussianCovariance"/>
+     <includeEmulatorVariance value="true"/>
+   </posteriorSampleLikelihood>
+
+The active parameters of the simulation must be those of the design: each emulator input is supplied by the active
+parameter of the same name, and their priors must be those under which the emulators were trained (this is checked when
+the likelihood is first evaluated). The emulators may also be checked by evaluating the emulated likelihood on a design
+with the ``grid`` simulation, and comparing with the likelihoods of direct runs of the model.
+
+An observable compared to counts, such as a progenitor mass function (the ``progenitorMassFunction`` analysis, with
+``likelihoodInCounts`` true), uses the ``poissonCounts`` likelihood form. The analysis writes its target counts, and the
+factors converting its values to counts, which are collected into the training set. The likelihood is then a negative
+binomial distribution, whose over-dispersion combines the fractional root variance of counts (``rootVarianceTargetFractional``)
+with the fractional variance of the emulator's prediction. If that root variance is itself a parameter of the calibration,
+it is given by an active parameter named by ``rootVarianceTargetFractionalParameter``, and is then a parameter of the
+likelihood rather than an input to the emulator:
+
+.. code-block:: xml
+
+   <posteriorSampleLikelihood value="emulated">
+     <emulator value="gaussianProcess">
+       <fileName value="emulator.hdf5"/>
+       <label    value="progenitorMassFunctionM0Z1"/>
+     </emulator>
+     <likelihoodForms                       value="poissonCounts"/>
+     <rootVarianceTargetFractionalParameter value="progenitorMassFunctionParameters/rootVarianceTargetFractional"/>
+   </posteriorSampleLikelihood>
+
+Only parameters which change the likelihood without changing the model prediction can be handled in this way. Parameters
+of the model of N-body halo mass errors (``nbodyHaloMassError``), for example, change the progenitor mass function itself
+(through its convolution with those errors), so must either be parameters of the design, and inputs to the emulator, or
+be fit by direct runs and then fixed (see :ref:`manual-sec-EmulatorProfile`).
+
+A number density emulated in its logarithm with a floor (``transform="log10"`` with a ``floor``) may use the
+``logNormalFloored`` form, which treats bins at or below the floor - in the target data, or in the model prediction - as in
+training: they are set to the floor, with the root variance of floored values. Empty bins then contribute to the likelihood
+softly, rather than being excluded (as in ``gaussianDiagonal``, for which the logarithm of an empty target bin is
+:math:`-\infty`). With ``pathSamples`` set, the predictions of each emulator at every evaluation are written to a file
+(``<pathSamples>/<label>_<process>.txt``), keyed by simulation step and chain index, for checking the emulators along the
+chains.
+
+.. _manual-sec-EmulatorProfile:
+
+Fitting analysis-only parameters by direct runs
+-----------------------------------------------
+
+Some parameters change only the analyses of a model, not its merger trees: the parameters of the model of N-body halo mass
+errors, for example, change a progenitor mass function only through its convolution with those errors. An emulator often
+cannot resolve their effects, which may be about a percent in each bin (below the accuracy of the emulator) yet worth tens in
+the log-likelihood summed over many bins. They are better fit by direct runs, and then fixed in the base parameter files of
+the design, which then varies only the remaining parameters. At a fixed random number seed, runs which differ only in such
+parameters build identical merger trees, so the likelihood is a smooth, exact function of them. (This holds only for
+parameters which really do not change the trees; it is up to the user to choose them.)
+
+The script ``scripts/emulation/emulatorProfile.py`` makes this fit. Its configuration names the parameters (each with a
+center, and a step, in the parameter or in its logarithm), and the *components* of the likelihood: each a base parameter
+file, and the analyses of its output (given as for training, with a likelihood form):
+
+.. code-block:: xml
+
+   <emulatorProfile>
+     <directory value="profile"/>
+     <rootVarianceTargetFractional value="profile"/>
+     <parameter name="progenitorMassFunctionParameters/errorAmplitude" center="0.16" step="0.15" scale="log"/>
+     <parameter name="progenitorMassFunctionParameters/errorExponent"  center="0.50" step="0.05"/>
+     <component name="MDPL2" baseParameters="progenitorMassFunctionBaseMDPL2.xml">
+       <observable label="progenitorMassFunction.*" pattern="true" likelihoodForm="poissonCounts"
+                   transform="log10" floor="-13.6" rootVarianceFloored="1.0" likelihoodRangeOnly="true"/>
+     </component>
+   </emulatorProfile>
+
+The log-likelihood of a run is that which the emulated likelihood would assign given an exact emulator: the same forms,
+evaluated in Python (``Galacticus.Emulation.likelihood``) on the training-set values collected from the run. It is summed over
+the components and their analyses. With ``rootVarianceTargetFractional`` set to ``profile``, the fractional root variance of
+counts of the ``poissonCounts`` form is maximized at each point, as for a parameter of the likelihood sampled in the
+calibration. Otherwise it is fixed at the given value.
+
+With ``<modelVariance value="true"/>``, the variance of each run's own prediction is also included in the likelihood. This
+variance comes from the covariance written by each analysis, and is that of the average when a point is run at several
+seeds. Its fractional variance :math:`v` enters the over-dispersion of the ``poissonCounts`` form as :math:`c^2 = C^2 + v +
+C^2 v`, as in the progenitor mass function analysis with ``covarianceTargetOnly`` false. This is available only when every
+observable uses that form and none sets ``rootVarianceZero`` (a regularization for training, which would be mistaken for the
+model's variance), and every analysis must write its covariance. It reduces the bias of the likelihood of a run from the noise of its finite number of merger
+trees, which otherwise inflates the fitted :math:`C`, and penalizes some points of the star more than others. The variance
+is an estimate (the Poisson estimate of each analysis's covariance model), so the correction is approximate. The line
+search below removes that bias by extrapolation, with or without this option.
+
+The fit has two stages. Each stage has the commands ``prepare``, ``run`` (or ``submit``), ``status`` and ``analyze``.
+Its runs are tracked as one campaign per component (see :ref:`manual-sec-EmulatorCampaign`).
+
+#. ``star``: the center, a step either side along each parameter, and the four sign combinations of each pair of
+   parameters, all at one seed. That is :math:`1+2n+2n(n-1)` points for :math:`n` parameters, enough to fit a full
+   quadratic. ``analyze`` fits the quadratic, and reports:
+
+   * its optimum, within ``offsetMaximum`` steps of the center;
+   * the gain in log-likelihood it predicts there;
+   * the uncertainties of the parameters, from its curvature, if that is negative definite.
+
+#. ``line``: points from the center toward that optimum (at the fractions ``lineFractions`` of the way there), at several
+   seeds (``lineSeeds``). The optimum of the star is fit to the noise of its one seed, and is often too far, so ``analyze``
+   takes the log-likelihood of the predictions averaged over :math:`N` seeds, for :math:`N=1, 2, 4, \ldots`, and
+   extrapolates it linearly in :math:`1/N` to infinitely many seeds. That is the noise-free model which an emulator
+   approximates. (The noise of a single run always lowers its log-likelihood, because the misfit is quadratic in it.) The
+   best point of the line, and its gain, are reported. Trust this gain, not the one predicted by the star.
+
+``fix`` then writes a change file setting the parameters to the optimum of a stage. With ``--baseDirectory``, it also writes
+copies of the base parameter files with that change applied. If the optimum lies at the bound of the star, center a new
+profile on it and repeat.
+
+.. _manual-sec-EmulatorSystematics:
+
+Measuring the systematic error of emulators, and pooling designs
+----------------------------------------------------------------
+
+Cross-validation measures how well an emulator predicts held-out runs. It does not show how far the posterior depends on the
+particular points of the design. A narrow posterior can still be limited by the emulators, for example along a ridge of
+degenerate parameters, where small emulation errors move the maximum a long way. To measure this, split the design into
+parts, train emulators on each, sample the posterior with each, and compare. The script
+``scripts/emulation/emulatorDesignTools.py`` writes the parts of a design whose runs are complete, reusing the outputs of
+its runs:
+
+.. code-block:: none
+
+   emulatorDesignTools.py split design.hdf5 --output half
+
+This writes ``half0.hdf5`` (the even points) and ``half1.hdf5`` (the odd points). A low-discrepancy design split this way
+gives parts which each still fill the space evenly. Train an emulator on each part, by naming it as the ``designFileName``
+of a training configuration, and sample the posterior with each. Then compare the posteriors with that from the emulators
+trained on the whole design:
+
+.. code-block:: none
+
+   emulatorChainCompare.py chainsFull chainsHalf0 chainsHalf1
+
+For each parameter, this reports the median and half-width (half the 16-84 percentile range) of the reference posterior,
+and the shift of the median of each other posterior. The largest shift is the systematic error of the emulators. If it is
+comparable to the half-width, the posterior is limited by the emulators. Quote the systematic with the result, or add
+design points.
+
+Points can be added without discarding any runs, by pooling a second design run with the same base parameter files and
+executable (for example, one centered on the posterior found from the first):
+
+.. code-block:: none
+
+   emulatorDesignTools.py pool pooled.hdf5 first/design.hdf5 second/design.hdf5 --directories first second --priors priors.xml
+
+The pooled design holds all the points and runs of the designs. The emulators work in prior quantiles, so the quantile
+of every point is recomputed under the priors given by ``--priors``. These are read from a design file, or from the
+``modelParameter`` blocks of a parameter file, such as that used to sample the posterior. They must contain every point:
+the union of the boxes of the designs, for example. Give each design its own ``seedBase``. Runs sharing a random number seed
+share their merger trees, so their noise is correlated, and ``pool`` warns if any do. Both commands make the run file
+names absolute, resolving relative names against the directory from which the runs were made (``--directory``, or
+``--directories``), so that the written designs can be used from anywhere.
+
+.. _manual-sec-EmulatorGalacticEmu:
+
+Importing a GalacticEmu campaign
+--------------------------------
+
+`GalacticEmu <https://github.com/Andrew-Robertson/Galacticus-emulation>`_ calibrates Galacticus with emulators trained on a
+Sobol design of model runs, as in :cite:t:`robertson_emulator_2026`. The script ``scripts/emulation/galacticEmu.py``
+imports such a campaign so that it can be emulated and sampled with Galacticus' own tools, and checks the results against
+GalacticEmu:
+
+.. code-block:: bash
+
+   # Import the design (samples.csv and campaign_design.json) as a Galacticus design file.
+   scripts/emulation/galacticEmu.py design campaign/ design.hdf5
+   # Write a training configuration reproducing GalacticEmu's treatment of each observable, and an MCMC parameter file.
+   scripts/emulation/galacticEmu.py configure campaign/ design.hdf5 --observables smf_z0,mzr_blanc2019 \
+       --emulator emulator.hdf5 --training train.xml --mcmc mcmc.xml
+   scripts/emulation/emulatorTrainReference.py train.xml
+   # Compare training sets, emulators, and the emulated likelihood with those of GalacticEmu.
+   scripts/emulation/galacticEmu.py parity-training  campaign/ design.hdf5 --observables smf_z0,mzr_blanc2019
+   scripts/emulation/galacticEmu.py parity-emulators bundle.joblib emulator.hdf5 --observables smf_z0,mzr_blanc2019
+   scripts/emulation/galacticEmu.py parity-likelihood bundle.joblib mcmc_inputs.joblib emulator.hdf5 --results mcmc_results.hdf5
+
+Importing the design needs only the campaign's files: the priors (uniform, and log-normal truncated in :math:`\ln x`) are
+converted to the equivalent Galacticus distributions, and the value of every parameter at every design point is checked
+against that implied by its quantile. Parameters with log-normal priors are sampled in their logarithm. The other
+subcommands require GalacticEmu itself. For the standard observables of :cite:t:`robertson_emulator_2026` (its reduced
+1024-run campaign), the training sets collected by Galacticus are identical to GalacticEmu's; the retrained emulators
+retain the same principal components, with Gaussian-process marginal likelihoods agreeing to 0.1 and predictions agreeing
+to a small fraction of the emulator uncertainty; and the emulated log-likelihoods agree to about 1 near the posterior
+(0.14 at the published maximum a posteriori point), with larger differences, of up to about 0.5%, only where the model
+fits the data very poorly. Sampling the posterior with the ``differentialEvolution`` simulation recovers the
+published posterior. GalacticEmu clips target data at its floor (:math:`10^{-7}` for functions emulated in their
+logarithm), whereas Galacticus keeps their true values, which matters only for targets below the floor.
+
 .. _manual-sec-EmulatorFileFormat:
 
 Emulator File Format
@@ -136,7 +473,8 @@ Attributes:
 ``created``
    The time at which the file was written (ISO 8601).
 
-Further attributes (for example ``creator`` and ``gitHash``) may record provenance.
+Further attributes (for example ``creator`` and ``gitHash``) may record provenance. The reference trainer also records the
+minimum length scale (``lengthScaleMinimum``) and whether noise was learned (``noiseLearned``).
 
 ``design``
 ~~~~~~~~~~
@@ -184,6 +522,11 @@ observable (normally the label of the ``outputAnalysis`` which produced it). Att
    The data to which the observable is compared, and its covariance.
 ``yRaw`` (:math:`N \times B`), ``covarianceRaw`` (:math:`N \times B \times B`)
    Optional. The model prediction and its covariance before any transform.
+``countTarget`` (:math:`B`), ``countPerValue`` (:math:`B`)
+   Optional, and present only for an observable compared to counts. The target count in each bin (not-a-number for bins
+   excluded from the likelihood), and the factor converting the untransformed model prediction in each bin to an expected
+   count. These are collected from the ``countTarget`` and ``countPerValue`` datasets of the analysis output, with bins
+   outside the range given by its ``xLikelihoodMinimum`` and ``xLikelihoodMaximum`` attributes excluded.
 
 ``emulators/{label}``
 ~~~~~~~~~~~~~~~~~~~~~
@@ -213,7 +556,8 @@ Datasets:
    The standardization of each principal component coefficient, :math:`\tilde{a}_k = (a_k - \bar{a}_k)/q_k`.
 
 Each ``component{k}`` group holds the Gaussian process for coefficient :math:`k`, with attributes ``logAmplitude``
-(:math:`\ln A`) and ``logMarginalLikelihood``, and datasets:
+(:math:`\ln A`) and ``logMarginalLikelihood`` (and, for an emulator trained with ``noiseLearned``, ``noiseVarianceLearned``:
+the part of ``noiseVariance``, the same at every point, which was learned in training), and datasets:
 
 ``logLengthScales`` (:math:`d_\mathrm{e}`)
    The length scale, :math:`\ln \ell_i`, for each input.

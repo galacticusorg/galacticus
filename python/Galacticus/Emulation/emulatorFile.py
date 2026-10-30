@@ -135,6 +135,10 @@ class TrainingSet:
     (``y_raw``, ``covariance_raw``) are optional. ``attributes`` records the transform
     (``transform``, ``floor``, ``rootVarianceFloored``, ``undefined``, ``rootVarianceUndefined``,
     ``xAxisIsLog``, ``yAxisIsLog``, ...).
+
+    For an observable compared to counts (the ``poissonCounts`` likelihood form), ``count_target`` (B)
+    gives the target count in each bin (not-a-number for bins excluded from the likelihood), and
+    ``count_per_value`` (B) the factor converting the untransformed model value in each bin to a count.
     """
 
     x: np.ndarray
@@ -146,6 +150,8 @@ class TrainingSet:
     covariance_target: np.ndarray
     y_raw: np.ndarray | None = None
     covariance_raw: np.ndarray | None = None
+    count_target: np.ndarray | None = None
+    count_per_value: np.ndarray | None = None
     attributes: dict = field(default_factory=dict)
 
     def validate(self, count_points):
@@ -164,6 +170,11 @@ class TrainingSet:
             raise ValueError('training set: yRaw has the wrong shape')
         if self.covariance_raw is not None and self.covariance_raw.shape != (count_used, count_bins, count_bins):
             raise ValueError('training set: covarianceRaw has the wrong shape')
+        if (self.count_target is None) != (self.count_per_value is None):
+            raise ValueError('training set: countTarget and countPerValue must be given together')
+        for name in ('count_target', 'count_per_value'):
+            if getattr(self, name) is not None and getattr(self, name).shape != (count_bins,):
+                raise ValueError(f'training set: {name} must have shape ({count_bins},)')
 
 
 @dataclass
@@ -174,7 +185,8 @@ class Component:
     (N) their variance (the heteroscedastic noise added to the diagonal of the covariance matrix),
     and ``alpha`` (N) the solution of ``K alpha = targets``. ``cholesky_factor`` (N, N), the lower
     triangular factor of K, is optional: it is fully determined by the other data, and costs 8 N^2
-    bytes, so a reader may recompute it instead.
+    bytes, so a reader may recompute it instead. ``noise_variance_learned``, if present, is the part of
+    ``noise_variance`` (the same for every point) learned in training, in excess of the stated noise of the runs.
     """
 
     log_amplitude: float
@@ -184,6 +196,7 @@ class Component:
     alpha: np.ndarray
     log_marginal_likelihood: float = float('nan')
     cholesky_factor: np.ndarray | None = None
+    noise_variance_learned: float | None = None
 
 
 @dataclass
@@ -423,8 +436,9 @@ def write(path, content, overwrite=False):
                 _write_attributes(component_group, {
                     'logAmplitude': component.log_amplitude,
                     'logMarginalLikelihood': component.log_marginal_likelihood,
+                    'noiseVarianceLearned': component.noise_variance_learned,
                 })
-                _write_datasets(component_group, component, exclude=('log_amplitude', 'log_marginal_likelihood'))
+                _write_datasets(component_group, component, exclude=('log_amplitude', 'log_marginal_likelihood', 'noise_variance_learned'))
         # Validation.
         if content.validation:
             group = file.create_group('validation')
@@ -471,7 +485,8 @@ def read(path):
                 components.append(Component(
                     log_amplitude=component_attributes['logAmplitude'],
                     log_marginal_likelihood=component_attributes['logMarginalLikelihood'],
-                    **_read_datasets(component_group, Component, exclude=('log_amplitude', 'log_marginal_likelihood')),
+                    noise_variance_learned=component_attributes.get('noiseVarianceLearned'),
+                    **_read_datasets(component_group, Component, exclude=('log_amplitude', 'log_marginal_likelihood', 'noise_variance_learned')),
                 ))
             emulators[label] = Emulator(
                 kernel=emulator_attributes['kernel'],

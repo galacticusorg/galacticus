@@ -97,3 +97,73 @@ function SatellitePresetNodeIndex(self)
   call nodeIndexHistory%destroy()
   return
 end function SatellitePresetNodeIndex
+
+function SatellitePresetPosition(self) result(position)
+  !!{RST
+  Return the position of the satellite relative to its host, computed from the position components of the node and its host.
+  !!}
+  use :: Error             , only : Component_List, Error_Report
+  use :: ISO_Varying_String, only : operator(//)
+  implicit none
+  double precision                              , allocatable  , dimension(:) :: position
+  class           (nodeComponentSatellitePreset), intent(inout)               :: self
+  type            (treeNode                    ), pointer                     :: selfNode    , nodeHost
+  class           (nodeComponentPosition       ), pointer                     :: selfPosition, hostPosition
+
+  selfNode => self%host()
+  if (selfNode%isSatellite()) then
+     if (.not.defaultPositionComponent%positionIsGettable())                                                                                       &
+          & call Error_Report                                                                                                                      &
+          &      (                                                                                                                                 &
+          &       'the satellite orbital position from the "preset" satellite component requires a position component that provides "position"'//  &
+          &       Component_List(                                                                                                                  &
+          &                      'position'                                                                                                      , &
+          &                      defaultPositionComponent%positionAttributeMatch(requireGettable=.true.)                                           &
+          &                     )                                                                                                              //  &
+          &       {introspection:location}                                                                                                         &
+          &      )
+     nodeHost     =>  selfNode    %hostContemporaneous()
+     selfPosition =>  selfNode    %position           ()
+     hostPosition =>  nodeHost    %position           ()
+     position     =  +selfPosition%position           () &
+          &          -hostPosition%position           ()
+  else
+     position     =  [0.0d0,0.0d0,0.0d0]
+  end if
+  return
+end function SatellitePresetPosition
+
+function SatellitePresetVelocity(self) result(velocity)
+  !!{RST
+  Return the velocity of the satellite relative to its host, computed from the position components of the node and its host.
+  !!}
+  use :: Error             , only : Component_List, Error_Report
+  use :: ISO_Varying_String, only : operator(//)
+  implicit none
+  double precision                              , allocatable  , dimension(:) :: velocity
+  class           (nodeComponentSatellitePreset), intent(inout)               :: self
+  type            (treeNode                    ), pointer                     :: selfNode    , nodeHost
+  class           (nodeComponentPosition       ), pointer                     :: selfPosition, hostPosition
+
+  selfNode => self%host()
+  if (selfNode%isSatellite()) then
+     if (.not.defaultPositionComponent%velocityIsGettable())                                                                                       &
+          & call Error_Report                                                                                                                      &
+          &      (                                                                                                                                 &
+          &       'the satellite orbital velocity from the "preset" satellite component requires a position component that provides "velocity"'//  &
+          &       Component_List(                                                                                                                  &
+          &                      'position'                                                                                                      , &
+          &                      defaultPositionComponent%velocityAttributeMatch(requireGettable=.true.)                                           &
+          &                     )                                                                                                              //  &
+          &       {introspection:location}                                                                                                         &
+          &      )
+     nodeHost     =>  selfNode    %hostContemporaneous()
+     selfPosition =>  selfNode    %position           ()
+     hostPosition =>  nodeHost    %position           ()
+     velocity     =  +selfPosition%velocity           () &
+          &          -hostPosition%velocity           ()
+  else
+     velocity     =  [0.0d0,0.0d0,0.0d0]
+  end if
+  return
+end function SatellitePresetVelocity

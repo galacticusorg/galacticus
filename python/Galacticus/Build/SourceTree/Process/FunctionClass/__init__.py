@@ -20,12 +20,12 @@ Andrew Benson (ported to Python 2026)
 
 import os
 import re
-import xml.etree.ElementTree as ET
 
 
 from List.ExtraUtils                                         import as_array
 from Sort.Topo                                               import sort as topo_sort
-from XML.Utils                                               import xml_to_dict, xml_escape
+from XML.Utils                                               import xml_escape
+from Galacticus.Build                                        import Catalogs
 from Galacticus.Build.StateStorables                         import (
     function_class_names    as _shared_function_class_names,
     function_class_instances as _shared_function_class_instances,
@@ -139,6 +139,16 @@ def _xml_escape(s):
     return xml_escape(s)
 
 
+# Patterns applied per line, or per declaration, while scanning implementations.
+_SUB_PARAMETERS_RE = re.compile(
+    r'^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)\s*%\s*subParameters\s*\(')
+_INTENT_RE         = re.compile(r'intent\s*\(\s*(in|out|inout)\s*\)', re.IGNORECASE)
+_EXTERNAL_RE       = re.compile(r'external', re.IGNORECASE)
+_KIND_PREFIX_RE    = re.compile(r'^.+=')
+_WHITESPACE_RE     = re.compile(r'\s')
+_DIGITS_RE         = re.compile(r'^\d+$')
+
+
 # Module-level caches.  The helpers take the state explicitly as
 # parameters, so these exist only to avoid repeat parses of the XML files
 # within a single `process_function_class` run.
@@ -158,7 +168,7 @@ def _load_xml(name, cache_attr):
     if not os.path.exists(path):
         cache_attr['value'] = {}
         return cache_attr['value']
-    cache_attr['value'] = xml_to_dict(ET.parse(path).getroot())
+    cache_attr['value'] = Catalogs.load(path)
     return cache_attr['value']
 
 
@@ -797,6 +807,13 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                 result_m = re.search(
                     r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
                 result = result_m.group(1) if result_m else name
+                # Compiled once per constructor, not once per line scanned.
+                parent_constructor_re = (
+                    re.compile(
+                        r'^\s*' + re.escape(result)
+                        + r'\s*%\s*' + re.escape(extension_of)
+                        + r'\s*=')
+                    if extension_of else None)
 
                 sub_iter = walk_tree(node)
                 next(sub_iter)
@@ -821,21 +838,15 @@ def _descriptor_discover_class(non_abstract_class, directive, classes,
                             if not raw_line and not processed_line:
                                 break
                             # Subparameter sources.
-                            sm = re.match(
-                                r'^\s*([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)'
-                                r'\s*%\s*subParameters\s*\(',
-                                processed_line)
+                            sm = _SUB_PARAMETERS_RE.match(processed_line)
                             if sm:
                                 sub_parameters[sm.group(1)] = {
                                     'parent': sm.group(2),
                                     'source': processed_line,
                                 }
                             # Parent constructor usage.
-                            if extension_of and re.match(
-                                    r'^\s*' + re.escape(result)
-                                    + r'\s*%\s*' + re.escape(extension_of)
-                                    + r'\s*=',
-                                    processed_line):
+                            if (parent_constructor_re
+                                    and parent_constructor_re.match(processed_line)):
                                 parent_constructor_used = True
                     elif ctype == 'inputParameter':
                         d = cnode.setdefault('directive', {})
@@ -1693,6 +1704,11 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                     result_m = re.search(
                         r'result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$', opener)
                     result = result_m.group(1) if result_m else name
+                    # Compiled once per constructor, not once per line scanned.
+                    parent_assignment_re = re.compile(
+                        r'^\s*' + re.escape(result)
+                        + r'%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)'
+                        + r'\(\s*parameters\s*\)')
 
                     # Walk the function subtree.
                     sub_iter = walk_tree(node)
@@ -1722,11 +1738,7 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                                 # not None.
                                 if not raw_line and not processed_line:
                                     break
-                                pm = re.match(
-                                    r'^\s*' + re.escape(result)
-                                    + r'%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)'
-                                    + r'\(\s*parameters\s*\)',
-                                    processed_line)
+                                pm = parent_assignment_re.match(processed_line)
                                 if pm:
                                     allowed_parameters[class_name][
                                         'classParent'] = pm.group(1)
@@ -1836,6 +1848,21 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
             # our parse `contains` has no children, so just walk siblings —
             # the post-contains procedures are siblings of the marker.
             node = node.get('sibling')
+
+        # Objects held as unlimited polymorphic (`class(*)`) pointers are built
+        # by global functions, not by `objectBuilder` directives, so the walk
+        # above cannot see them. The class directive declares them in an
+        # `<allowedParameters>` block instead: each one's parameter name is
+        # allowed, and its own allowed parameters are added by calling the
+        # named global function.
+        allowed_block = class_rec.get('allowedParameters')
+        if isinstance(allowed_block, dict):
+            for held in as_array(allowed_block.get('object')):
+                slot_src = (allowed_parameters[class_name]['parameters']
+                            .setdefault(held['source'], {}))
+                slot_src.setdefault('all',     []).append(held['name'])
+                slot_src.setdefault('classes', []).append(held['name'])
+                slot_src.setdefault('held',    []).append(held)
 
     # --- Emission pass. ---
     allowed_parameters_linked_list_variables = []
@@ -1982,6 +2009,15 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                             f"call self%{obj_name}%allowedParameters"
                             f"(allowedParameters,'{src}',.true.)\n"
                         )
+                    for held in slot.get('held') or []:
+                        parameters_present = True
+                        code += (
+                            f"  if (associated(self%{held['variable']})) "
+                            f"call {held['function']}(self%{held['variable']},"
+                            f"allowedParameters,'{src}',.true.)\n"
+                        )
+                        if held.get('module'):
+                            modules[held['module']] = True
                     linked_code, linked_module = (
                         allowed_parameters_linked_list(
                             class_rec,
@@ -3459,15 +3495,8 @@ def _emit_submodule_function_interface(class_node, code_content,
                     v.lower() for v in (declaration.get('variables') or [])
                 ]
                 attributes = declaration.get('attributes') or []
-                has_intent = any(
-                    re.match(r'intent\s*\(\s*(in|out|inout)\s*\)', a,
-                             re.IGNORECASE)
-                    for a in attributes
-                )
-                external = any(
-                    re.match(r'external', a, re.IGNORECASE)
-                    for a in attributes
-                )
+                has_intent = any(_INTENT_RE.match(a) for a in attributes)
+                external   = any(_EXTERNAL_RE.match(a) for a in attributes)
                 if ((return_name or '').lower() in variables_lc
                         or has_intent):
                     # Function-result + intent() declarations always go into
@@ -3539,9 +3568,9 @@ def _capture_declaration_type(declaration, module_symbols):
     t = declaration.get('type')
     if t is None:
         return
-    t = re.sub(r'^.+=', '', t)
-    t = re.sub(r'\s', '', t)
-    if re.match(r'^\d+$', t):
+    t = _KIND_PREFIX_RE.sub('', t)
+    t = _WHITESPACE_RE.sub('', t)
+    if _DIGITS_RE.match(t):
         return
     module_symbols.append(t)
 

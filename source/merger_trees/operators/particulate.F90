@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
+  !+    Contributions to this file made by: Xiaolong Du, Andrew Benson, Claude.
 
   !!{RST
   Implements a merger tree operator which creates particle representations of Galacticus halos.
@@ -377,6 +377,11 @@ contains
     self%parameters=inputParameters(parameters)
     ! Validate input.
     if (.not.enumerationSelectionIsValid(selection)) call Error_Report('invalid selection type'//{introspection:location})
+    if (satelliteOffset) then
+       !![
+       <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+       !!]
+    end if
    return
   end function particulateConstructorInternal
 

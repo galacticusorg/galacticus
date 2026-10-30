@@ -4,6 +4,7 @@
 *.swo
 *.swn
 *.exe
+*.exe_*
 galacticusConfig.xml
 galacticus.py
 /galacticus.hdf5

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -21,13 +21,16 @@
   </powerSpectrumWindowFunction>
   <cosmologicalMassVariance value="filteredPower">
     <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
-    <sigma_8                value="0.8228"/>
     <tolerance              value="4.0e-4"/>
     <toleranceTopHat        value="2.0e-4"/>
     <nonMonotonicIsFatal    value="false" />
     <monotonicInterpolation value="true"  />
   </cosmologicalMassVariance>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8228"/>
+    <tolerance value="2.0e-4"/>
+  </powerSpectrumNormalizer>
 
   <!-- Structure formation options -->
   <linearGrowth          value="collisionlessMatter"                      />

@@ -28,7 +28,7 @@
   <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>
-    <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+    <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
     <errorWaitTime value="0"/>
     <evolveForestsWorkShare value="cyclic"/>
     <mergerTreeConstructor value="build">
@@ -40,6 +40,7 @@
     </mergerTreeConstructor>
     <mergerTreeConstructor value="read">
       <fileNames value="testSuite/test-MergerTrees.hdf5"/>
+      <nodeOperatorTreeInitializor value="darkMatterProfileScaleSet"/>
       <presetOrbits value="true"/>
       <presetOrbitsBoundOnly value="true"/>
       <presetMergerTimes value="true"/>
@@ -56,6 +57,7 @@
       <componentSatellite value="preset" parameterLevel="top"/>
       <componentPosition value="cartesian" parameterLevel="top"/>
       <mergerTreeEvolver value="standard" parameterLevel="top">
+	<fractionTimestepSatelliteMinimum value="0.75"/>
 	<allTreesExistAtFinalTime value="false"/>
       </mergerTreeEvolver>
       <nodeOperator value="multi" parameterLevel="top">
@@ -133,9 +135,10 @@
       <wavenumberReference value="1.000"/>
       <running value="0.000"/>
     </powerSpectrumPrimordial>
-    <cosmologicalMassVariance value="filteredPower">
+    <cosmologicalMassVariance value="filteredPower"/>
+    <powerSpectrumNormalizer value="sigma8">
       <sigma_8 value="0.9"/>
-    </cosmologicalMassVariance>
+    </powerSpectrumNormalizer>
   </parameters>
   
 </parameterGrid>

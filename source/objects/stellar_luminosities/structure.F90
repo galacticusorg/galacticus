@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by:  Alex Merson, Claude.
+!+    Contributions to this file made by:  Alex Merson, Andrew Benson, Claude.
 
 !!{RST
 Contains a module which defines the stellar luminosities object.
@@ -85,6 +85,7 @@ module Stellar_Luminosities_Structure
        <method description="Add two ``stellarLuminosities``." method="operator(+)" />
        <method description="Subtract one abundance from another." method="operator(-)" />
        <method description="Increment a stellar luminosities object." method="increment" />
+       <method description="Add a stellar luminosities object directly into a serialized stellar luminosities vector (e.g. a slice of the ODE rate vector) in place, avoiding the deserialize/increment/serialize round-trip." method="incrementSerialized" />
        <method description="Return a count of the number of properties in a serialized stellar luminosities object." method="serializeCount" />
        <method description="Serialize a stellar luminosities object to an array." method="serialize" />
        <method description="Deserialize a stellar luminosities object from an array." method="deserialize" />
@@ -139,6 +140,7 @@ module Stellar_Luminosities_Structure
      procedure         :: serialize                                  => Stellar_Luminosities_Serialize
      procedure         :: deserialize                                => Stellar_Luminosities_Deserialize
      procedure         :: increment                                  => Stellar_Luminosities_Increment
+     procedure         :: incrementSerialized                        => Stellar_Luminosities_Increment_Serialized
      procedure         :: output                                     => Stellar_Luminosities_Output
      procedure         :: postOutput                                 => Stellar_Luminosities_Post_Output
      procedure, nopass :: luminosityOutputCount                      => Stellar_Luminosities_Output_Count_Get
@@ -773,6 +775,27 @@ contains
     end if
     return
   end subroutine Stellar_Luminosities_Increment
+
+  subroutine Stellar_Luminosities_Increment_Serialized(self,stellarLuminositiesArray,increment)
+    !!{RST
+    Accumulate ``increment`` directly into a *serialized* stellar luminosities object held in ``stellarLuminositiesArray`` (for
+    example, a slice of the ODE rate vector), using the same layout as ``serialize`` and ``deserialize``. This avoids the
+    deserialize/increment/serialize round-trip and its copies. As in ``increment``, only the luminosities present in both objects
+    are accumulated, and an unallocated ``increment`` is treated as zero.
+    !!}
+    implicit none
+    class           (stellarLuminosities), intent(in   )               :: self
+    double precision                     , intent(inout), dimension(:) :: stellarLuminositiesArray
+    class           (stellarLuminosities), intent(in   )               :: increment
+    integer                                                            :: luminosityCountActual
+    !$GLC attributes unused :: self
+
+    if (luminosityCount == 0 .or. .not.allocated(increment%luminosityValue)) return
+    luminosityCountActual=min(luminosityCount,size(stellarLuminositiesArray),size(increment%luminosityValue))
+    stellarLuminositiesArray(1:luminosityCountActual)=+stellarLuminositiesArray (1:luminosityCountActual) &
+         &                                            +increment%luminosityValue(1:luminosityCountActual)
+    return
+  end subroutine Stellar_Luminosities_Increment_Serialized
 
   function Stellar_Luminosities_Subtract(luminosities1,luminosities2)
     !!{RST

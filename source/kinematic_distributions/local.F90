@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a local kinematic distribution class.
   !!}
@@ -40,8 +42,9 @@
      !!}
      double precision :: alpha
    contains
-     procedure :: isCollisional        => localIsCollisional
-     procedure :: velocityDispersion1D => localVelocityDispersion1D
+     procedure :: isCollisional                           => localIsCollisional
+     procedure :: velocityDispersion1D                    => localVelocityDispersion1D
+     procedure :: velocityDispersion1DGradientLogarithmic => localVelocityDispersion1DGradientLogarithmic
   end type kinematicsDistributionLocal
 
   interface kinematicsDistributionLocal
@@ -120,3 +123,29 @@ contains
          &                    *massDistributionEmbedding%rotationCurve(coordinates%rSpherical())
     return
   end function localVelocityDispersion1D
+
+  double precision function localVelocityDispersion1DGradientLogarithmic(self,coordinates,massDistribution_,massDistributionEmbedding) result(velocityDispersionGradient)
+    !!{RST
+    Return the logarithmic gradient of the 1D velocity dispersion at the specified ``coordinates`` in a local kinematic
+    distribution. Since :math:`\sigma_\mathrm{1D} \propto V_\mathrm{c}`, this is :math:`\mathrm{d}\log V_\mathrm{c}/\mathrm{d}\log r =
+    (r/2V_\mathrm{c}^2) \mathrm{d}V_\mathrm{c}^2/\mathrm{d}r`.
+    !!}
+    implicit none
+    class           (kinematicsDistributionLocal), intent(inout)         :: self
+    class           (coordinate                 ), intent(in   )         :: coordinates
+    class           (massDistributionClass      ), intent(inout), target :: massDistribution_, massDistributionEmbedding
+    double precision                                                     :: radius           , velocityRotation
+    !$GLC attributes unused :: self, massDistribution_
+
+    radius          =+coordinates              %rSpherical   (      )
+    velocityRotation=+massDistributionEmbedding%rotationCurve(radius)
+    if (radius > 0.0d0 .and. velocityRotation > 0.0d0) then
+       velocityDispersionGradient=+0.5d0                                                      &
+            &                     *radius                                                     &
+            &                     *massDistributionEmbedding%rotationCurveGradient(radius)    &
+            &                     /velocityRotation                                       **2
+    else
+       velocityDispersionGradient=+0.0d0
+    end if
+    return
+  end function localVelocityDispersion1DGradientLogarithmic

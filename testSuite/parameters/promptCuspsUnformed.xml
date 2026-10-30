@@ -4,7 +4,7 @@
      https://github.com/galacticusorg/galacticus/issues/1362 -->
 
 <parameters>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -59,7 +59,6 @@
     <cosmologicalMassVariance value="filteredPower">
       <!-- Parameter value is from the Planck Collaboration (2020; A&A, 641, 10) -->
       <!--  specifically the "TT,TE,EE+lowE+lensing" results in Table 2          -->
-      <sigma_8 value="0.8111"/>
       <tolerance value="1.0e-3"/>
       <toleranceTopHat value="3.0e-4"/>
       <nonMonotonicIsFatal value="false"/>
@@ -87,6 +86,10 @@
     </transferFunction>
   </transferFunction>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8111"/>
+    <tolerance value="3.0e-4"/>
+  </powerSpectrumNormalizer>
 
   <!-- Structure growth -->
   <linearGrowth value="collisionlessMatter">
@@ -217,7 +220,6 @@
 	<cosmologicalMassVariance value="filteredPower">
 	  <!-- Parameter value is from the Planck Collaboration (2020; A&A, 641, 10) -->
 	  <!--  specifically the "TT,TE,EE+lowE+lensing" results in Table 2          -->
-	  <sigma_8 value="0.8111"/>
 	  <tolerance value="1.0e-3"/>
 	  
 	  <toleranceTopHat value="3.0e-4"/>
@@ -239,6 +241,11 @@
 	
 	<powerSpectrumPrimordialTransferred value="simple"/>
 	
+	<powerSpectrumNormalizer value="sigma8">
+	  <sigma_8 value="0.8111"/>
+	  <tolerance value="3.0e-4"/>
+	</powerSpectrumNormalizer>
+	
 	<powerSpectrumWindowFunction value="topHat"/>
 	
 	<transferFunction value="CAMB">
@@ -254,7 +261,6 @@
 	<cosmologicalMassVariance value="filteredPower">
 	  <!-- Parameter value is from the Planck Collaboration (2020; A&A, 641, 10) -->
 	  <!--  specifically the "TT,TE,EE+lowE+lensing" results in Table 2          -->
-	  <sigma_8 value="0.8111"/>
 	  <tolerance value="1.0e-3"/>
 	  <toleranceTopHat value="3.0e-4"/>
 	  <nonMonotonicIsFatal value="false"/>
@@ -269,6 +275,10 @@
 	<running value="0.0000"/>
       </powerSpectrumPrimordial>
       <powerSpectrumPrimordialTransferred value="simple"/>
+      <powerSpectrumNormalizer value="sigma8">
+        <sigma_8 value="0.8111"/>
+        <tolerance value="3.0e-4"/>
+      </powerSpectrumNormalizer>
       <powerSpectrumWindowFunction value="sharpKSpace">
 	<normalization value="2.5"/> <!-- Taken from Benson et al. (2013; https://ui.adsabs.harvard.edu/abs/2013MNRAS.428.1774B) - chosen to ensure a match to the location of the turnover in WDM mass functions. -->
       </powerSpectrumWindowFunction>
@@ -391,6 +401,7 @@
   
   <!-- Merger tree evolution -->
   <mergerTreeEvolver value="threaded">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <!-- Standard merger tree evolver with parameters chosen to (somewhat) optimize the evolution. -->
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>

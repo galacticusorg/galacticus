@@ -8,11 +8,10 @@ Andrew Benson (ported to Python 2026)
 
 import os
 import re
-import xml.etree.ElementTree as ET
 
 
 from List.ExtraUtils                                         import as_array
-from XML.Utils                                               import xml_to_dict
+from Galacticus.Build                                        import Catalogs
 from Galacticus.Build.StateStorables                         import (
     function_class_names as _shared_function_class_names,
 )
@@ -27,7 +26,7 @@ def _load_xml(build_path, name):
     if not os.path.exists(path):
         raise RuntimeError(
             f"process_meta_property_database: {name} not found at {path}")
-    return xml_to_dict(ET.parse(path).getroot())
+    return Catalogs.load(path)
 
 
 def _function_class_names(state_storables):

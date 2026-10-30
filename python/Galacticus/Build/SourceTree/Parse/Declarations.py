@@ -10,6 +10,16 @@ from Fortran.Utils import INTRINSIC_DECLARATIONS, extract_variables
 from Galacticus.Build.FortranUtils import extract_bracketed
 
 
+# Match: [!$] intrinsic-type [attributes/type-spec] :: variables
+_DECLARATION_RE = re.compile(
+    r'^\s*(!\$)?\s*'  # Optional OpenMP marker
+    r'(integer|real|double\s+precision|double\s+complex|logical|character|type|class|procedure|generic|final|complex)'  # intrinsic
+    r'(.*)$',  # Everything else
+    re.IGNORECASE
+)
+_WHITESPACE_RUN_RE = re.compile(r'\s+')
+
+
 def parse_declaration(line):
     """Parse a single Fortran variable declaration line.
 
@@ -34,14 +44,7 @@ def parse_declaration(line):
     """
     # Use a unified approach: match declaration pattern, then split manually
     # This avoids complex capture group indexing issues.
-    # Match: [!$] intrinsic-type [attributes/type-spec] :: variables
-    decl_pattern = re.compile(
-        r'^\s*(!\$)?\s*'  # Optional OpenMP marker
-        r'(integer|real|double\s+precision|double\s+complex|logical|character|type|class|procedure|generic|final|complex)'  # intrinsic
-        r'(.*)$',  # Everything else
-        re.IGNORECASE
-    )
-    m = decl_pattern.match(line)
+    m = _DECLARATION_RE.match(line)
     if not m or '::' not in line:
         return None
 
@@ -53,7 +56,7 @@ def parse_declaration(line):
     openmp_marker = m.group(1)
     intrinsic_raw = m.group(2).lower()
     # Normalize whitespace in intrinsic (e.g. double   precision -> double precision)
-    intrinsic_raw = re.sub(r'\s+', ' ', intrinsic_raw)
+    intrinsic_raw = _WHITESPACE_RUN_RE.sub(' ', intrinsic_raw)
 
     # Extract type/attributes from before :: delimiter
     type_attrs_raw = before_decl.split(m.group(2), 1)[1].strip() if m.group(2) else ''

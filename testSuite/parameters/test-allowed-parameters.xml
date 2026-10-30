@@ -3,7 +3,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
 
   <!-- Verbosity -->
@@ -42,12 +42,14 @@
     <running value="0.0"/>
   </powerSpectrumPrimordial>
   <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.817"/>
     <monotonicInterpolation value="false"/>
     <powerSpectrumWindowFunction value="sharpKSpace">
       <normalization value="2.5"/>
     </powerSpectrumWindowFunction>
   </cosmologicalMassVariance>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.817"/>
+  </powerSpectrumNormalizer>
   <transferFunction value="bode2001">
     <scaleCutOff value="0.08725"/>
     <!-- WARNING: This is expected to trigger a warning -->
@@ -75,11 +77,13 @@
   <darkMatterProfileConcentration value="schneider2015">
     <reference>
       <cosmologicalMassVariance value="filteredPower">
-        <sigma_8 value="0.817"/>
         <powerSpectrumWindowFunction value="sharpKSpace">
           <normalization value="2.5"/>
         </powerSpectrumWindowFunction>
         <powerSpectrumPrimordialTransferred value="simple"/>
+        <powerSpectrumNormalizer value="sigma8">
+          <sigma_8 value="0.817"/>
+        </powerSpectrumNormalizer>
         <transferFunction value="eisensteinHu1999">
           <neutrinoNumberEffective value="3.04"/>
           <neutrinoMassSummed value="0.000"/>
@@ -181,6 +185,7 @@
   </mergerTreeNodeEvolver>
 
   <mergerTreeEvolver value="standard">
+    <fractionTimestepSatelliteMinimum value="0.75"/>
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
   </mergerTreeEvolver>

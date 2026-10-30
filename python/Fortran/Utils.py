@@ -34,7 +34,7 @@ ARGUMENT_LIST = r'[a-zA-Z0-9_{}¦,\s]*'
 # `extends( parent )`.  The tree uses both freedoms: `type, bind(C) ::
 # unitType` and `type, extends(hdf5Group             ) :: hdf5File`.
 #
-# An opener that fails to match is *not* merely left unlabelled.  The unit
+# An opener that fails to match is *not* merely left unlabeled.  The unit
 # parser never opens a `type` node, so the type's components are absorbed into
 # the enclosing scope's declaration node as though they were ordinary
 # variables, and its `end type` is stranded as an orphan code node.  Nothing
@@ -440,6 +440,13 @@ INTRINSIC_DECLARATIONS = {
 # extract_variables
 # ---------------------------------------------------------------------------
 
+# Patterns applied by `extract_variables()` to every declaration.
+_STRING_LITERAL_RE = re.compile(r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"")
+_WHITESPACE_RE     = re.compile(r'\s')
+_OPEN_BRACKET_RE   = re.compile(r'[\(\[]')
+_INITIALIZATION_RE = re.compile(r'=[^,]*(,|$)')
+
+
 def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, remove_spaces=True):
     """Parse the post-'::' section of a Fortran declaration line into variable names.
 
@@ -490,14 +497,13 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
         # below can't find it.
         return f'%%strlit{idx}%%'
 
-    variable_list = re.sub(
-        r"'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", _stash, variable_list)
+    variable_list = _STRING_LITERAL_RE.sub(_stash, variable_list)
 
     if lower_case:
         variable_list = variable_list.lower()
 
     if remove_spaces:
-        variable_list = re.sub(r'\s', '', variable_list)
+        variable_list = _WHITESPACE_RE.sub('', variable_list)
     else:
         variable_list = variable_list.rstrip()
 
@@ -512,7 +518,7 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
     # We iterate because brackets can be nested.
     MAX_ITER = 10000
     for iteration in range(MAX_ITER):
-        m = re.search(r'[\(\[]', variable_list)
+        m = _OPEN_BRACKET_RE.search(variable_list)
         if not m:
             break
         # Find the matching closing bracket.
@@ -551,7 +557,7 @@ def extract_variables(variable_list, keep_qualifiers=False, lower_case=True, rem
 
     # Strip initialization/association suffixes (e.g. "x=1.0" → "x") unless keeping qualifiers.
     if not keep_qualifiers:
-        variable_list = re.sub(r'=[^,]*(,|$)', r'\1', variable_list)
+        variable_list = _INITIALIZATION_RE.sub(r'\1', variable_list)
 
     # Split on commas.
     variables = [v.strip() for v in variable_list.split(',') if v.strip()]

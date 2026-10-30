@@ -5,7 +5,10 @@ import os
 import re
 import glob
 import argparse
+import datetime
 import importlib.util
+import json
+import platform
 import h5py
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -21,7 +24,13 @@ parser.add_argument("--calibratePercentile", type=float, default=1.0)
 parser.add_argument("--instance",            type=str,   default="1:1")
 parser.add_argument("--launchMethod",        type=str,   default=None,
                     help="Override the queue manager from galacticusConfig.xml when calibrating.")
-args, _ = parser.parse_known_args()
+parser.add_argument("--randomSeed",          type=int,   default=None,
+                    help="Random seed for the first realization (realization i uses this plus i); chosen at random if not given.")
+parser.add_argument("--threadMaximum",       type=int,   default=None,
+                    help="Number of models to run concurrently when calibrating with the local launch method; overrides galacticusConfig.xml.")
+parser.add_argument("--ompThreads",          type=int,   default=None,
+                    help="Number of OpenMP threads for each model; overrides galacticusConfig.xml when calibrating.")
+args, argsUnrecognized = parser.parse_known_args()
 
 # Load the Galacticus launch helpers (provides queue-manager hooks for calibrate mode).
 _exec_path = os.environ.get("GALACTICUS_EXEC_PATH",
@@ -44,7 +53,7 @@ print(f" -> launching instance {instance} of {instanceCount}")
 result = subprocess.run("git rev-parse HEAD", shell=True, capture_output=True, text=True)
 gitRevision = result.stdout.strip() if result.returncode == 0 else "Unknown"
 
-randomSeed = np.random.randint(1000)
+randomSeed = args.randomSeed if args.randomSeed is not None else np.random.randint(1000)
 
 
 def weighted_histogram(bins, values, weights):
@@ -203,6 +212,45 @@ def build_launch_script(method, queue_config):
     }
 
 
+def write_calibration_settings(refDir, modelName, fileName, randomSeed, gitRevision, calibrateCount,
+                               calibratePercentile, method, queue_section, realizationCount):
+    """Record the settings with which a calibration was made, alongside its reference files, so that it can be repeated."""
+    status = subprocess.run("git status --porcelain --untracked-files=no", shell=True, capture_output=True, text=True)
+    settings = {
+        "model":                 modelName,
+        "parameterFile":         fileName,
+        "gitRevision":           gitRevision,
+        # True if the working tree had uncommitted changes to tracked files, so that the revision alone does not identify
+        # the code calibrated.
+        "gitUncommittedChanges": bool(status.stdout.strip()) if status.returncode == 0 else None,
+        "date":                  datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+        "host":                  platform.node(),
+        "calibrateCount":        calibrateCount,
+        "calibratePercentile":   calibratePercentile,
+        "randomSeed":            randomSeed,
+        "realizationsCompleted": realizationCount,
+        # Only the launch method and thread counts are recorded from the queue configuration - the remainder of the host's
+        # section of galacticusConfig.xml (accounts, e-mail addresses, etc.) does not affect the results, and should not be
+        # committed to the repository.
+        "launchMethod":          method,
+        "threadCount":           queue_section.get("threadCount"),
+        "ompThreads":            queue_section.get("ompThreads"),
+        "commandLine":           sys.argv[1:],
+        "argumentsIgnored":      argsUnrecognized,
+        "repeatWith":            (
+            f"./test-model-integration.py --calibrate yes --instance {args.instance} --calibrateCount {calibrateCount}"
+            f" --calibratePercentile {calibratePercentile} --launchMethod {method} --randomSeed {randomSeed}"
+            f" --ompThreads {queue_section.get('ompThreads')}"
+            + (f" --threadMaximum {queue_section.get('threadCount')}" if method == "local" else "")
+        ),
+    }
+    settingsFile = f"{refDir}/calibrationSettings_{modelName}.json"
+    with open(settingsFile, "w") as f:
+        json.dump(settings, f, indent=2)
+        f.write("\n")
+    print(f"   --> wrote calibration settings {settingsFile}")
+
+
 def calibrate_model(modelName, fileName, randomSeed, gitRevision, calibrateCount,
                     calibratePercentile, launchMethodOverride):
     """Run `calibrateCount` realizations of `modelName` and write the calibration reference file."""
@@ -217,6 +265,14 @@ def calibrate_model(modelName, fileName, randomSeed, gitRevision, calibrateCount
         method   = "local"
     queue_config = _launch.resolve_host_section(method, config)
     launch_script = build_launch_script(method, queue_config)
+    # Apply any thread counts given on the command line, which take precedence over galacticusConfig.xml.
+    if args.ompThreads is not None:
+        launch_script[method]["ompThreads"] = str(args.ompThreads)
+    if args.threadMaximum is not None:
+        if method == "local":
+            launch_script[method]["threadCount"] = str(args.threadMaximum)
+        else:
+            print(f"   --> note: --threadMaximum applies only to the local launch method, not '{method}', so is not used")
     launch_script["config"] = config
     _launch._MODULE_HOOKS[method]["validate"](launch_script)
 
@@ -259,6 +315,11 @@ def calibrate_model(modelName, fileName, randomSeed, gitRevision, calibrateCount
     percentiles = [calibratePercentile / 100.0, 0.5, 1.0 - calibratePercentile / 100.0]
     refDir = "data/model-integration"
     os.makedirs(refDir, exist_ok=True)
+    realizationCount = sum(
+        os.path.exists(f"outputs/test-model-integration/{modelName}{i}/galacticus.hdf5") for i in range(calibrateCount)
+    )
+    write_calibration_settings(refDir, modelName, fileName, randomSeed, gitRevision, calibrateCount,
+                               calibratePercentile, method, launch_script[method], realizationCount)
     for test in tests:
         per_realization = []
         for i in range(calibrateCount):
@@ -292,9 +353,14 @@ def evaluate_model(modelName, fileName, randomSeed, gitRevision, calibratePercen
     )
     print(f"--> Generating model '{modelName}' for model integration testing...")
     print("   --> Running model...")
+    # A single model is run here, so only the number of OpenMP threads applies.
+    environment = dict(os.environ)
+    if args.ompThreads is not None:
+        environment["OMP_NUM_THREADS"] = str(args.ompThreads)
     subprocess.run(
         f"cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/{modelName}/parameters.xml",
         shell=True,
+        env=environment,
     )
     print("   <-- ...done")
     print("<-- ...done")

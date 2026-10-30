@@ -34,7 +34,7 @@ models = [
         "fileName":        "outputs/mergerTreeBuilderCole2000_intervalStepTrue.hdf5",
         "parameterFile":   "parameters/mergerTreeBuilderCole2000_intervalStepTrue.xml",
         "reference":       "reference",
-        "toleranceSigma":       6.0,
+        "toleranceChiSquared":  6.0,
         "toleranceFractional":  1.0e-3,
     },
     {
@@ -42,7 +42,7 @@ models = [
         "fileName":        "outputs/mergerTreeBuilderCole2000_intervalStepFalse.hdf5",
         "parameterFile":   "parameters/mergerTreeBuilderCole2000_intervalStepFalse.xml",
         "reference":       "reference",
-        "toleranceSigma":       9.0,
+        "toleranceChiSquared":  9.0,
         "toleranceFractional":  1.0e-3,
     },
     {
@@ -50,7 +50,7 @@ models = [
         "fileName":        "outputs/mergerTreeBuilderGenericLinearBarrier.hdf5",
         "parameterFile":   "parameters/mergerTreeBuilderGenericLinearBarrier.xml",
         "reference":       "referenceGeneric",
-        "toleranceSigma":       6.0,
+        "toleranceChiSquared":  6.0,
         "toleranceFractional":  1.0e-3,
     },
     {
@@ -58,7 +58,7 @@ models = [
         "fileName":        "outputs/mergerTreeBuilderGenericSolver.hdf5",
         "parameterFile":   "parameters/mergerTreeBuilderGenericSolver.xml",
         "reference":       "referenceGeneric",
-        "toleranceSigma":       9.0,
+        "toleranceChiSquared":  9.0,
         "toleranceFractional":  1.0e-3,
     },
 ]
@@ -208,6 +208,6 @@ for model in models:
         continue
     matchMeasMax  = modelData[modType]["matchMeasureMaximum"]
     devFracMax    = modelData[modType]["deviationFractionalMaximum"]
-    status        = "FAILED" if (matchMeasMax > model["toleranceSigma"] and devFracMax > model["toleranceFractional"]) else "success"
+    status        = "FAILED" if (matchMeasMax > model["toleranceChiSquared"] and devFracMax > model["toleranceFractional"]) else "success"
     padding       = " " * (typeLength - len(modType))
-    print(f"{status}: {modType}{padding}: \u0394\u03c3\u2098\u2090\u2093 = {matchMeasMax:3.1f} {{limit: {model['toleranceSigma']:3.1f}}}; \u0394(log f)\u2098\u2090\u2093 = {devFracMax:7.1e} {{limit: {model['toleranceFractional']:7.1e}}}")
+    print(f"{status}: {modType}{padding}: (\u0394/\u03c3)\u00b2\u2098\u2090\u2093 = {matchMeasMax:3.1f} {{limit: {model['toleranceChiSquared']:3.1f}}}; \u0394f/f\u2098\u2090\u2093 = {devFracMax:7.1e} {{limit: {model['toleranceFractional']:7.1e}}}")

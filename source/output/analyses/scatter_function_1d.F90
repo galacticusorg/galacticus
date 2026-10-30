@@ -143,6 +143,8 @@ contains
          &                                                                                    propertyIsComoving                   , scatterIsComoving                     , &
          &                                                                                    likelihoodNormalize
 
+    unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
+    weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     !![
     <objectBuilder class="nodePropertyExtractor"    name="nodePropertyExtractor_"       source="parameters"          />
     <objectBuilder class="nodePropertyExtractor"    name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
@@ -154,8 +156,6 @@ contains
     <objectBuilder class="galacticFilter"                     name="galacticFilter_"                        source="parameters"          />
     <objectBuilder class="outputTimes"                        name="outputTimes_"                           source="parameters"          />
     !!]
-    unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
-    weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     allocate(binCenter   (int(parameters%count('binCenter'))                     ))
     allocate(outputWeight(int(parameters%count('binCenter'))*outputTimes_%count()))
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
@@ -368,6 +368,8 @@ contains
     !!]
     if (parameters%isPresent('scatterValueTarget')) then
        if (parameters%isPresent('scatterCovarianceTarget')) then
+          allocate(scatterValueTarget       (parameters%count('scatterValueTarget'     )))
+          allocate(scatterCovarianceTarget1D(parameters%count('scatterCovarianceTarget')))
           !![
           <inputParameter docformat="rst">
             <name>scatterValueTarget</name>

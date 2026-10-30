@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Yu Zhao, Andrew Benson, Claude.
+
   !!{RST
   Implementation of a satellite dynamical friction class which uses the model of :cite:t:`lancaster_dynamical_2020` for the Coulomb logarithm.
   !!}  
@@ -27,8 +29,9 @@
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionLancaster2020" docformat="rst">
    <description>
    A satellite dynamical friction class which computes the Coulomb logarithm following the prescription of :cite:t:`lancaster_dynamical_2020`.
-   The Coulomb logarithm is evaluated using :math:`\Lambda = r_\mathrm{orbital}/l_{90}`, where :math:`l_{90}=\mathrm{G}M_\mathrm{sat}/v_\mathrm{orbital}^2`
-   is the impact parameter for an encounter causing a 90-degree deflection.
+   The Coulomb logarithm is evaluated as :math:`\ln\Lambda`, with :math:`\Lambda = r_\mathrm{orbital}/l_{90}`, where :math:`l_{90}=\mathrm{G}M_\mathrm{sat}/v_\mathrm{orbital}^2`
+   is the impact parameter for an encounter causing a 90-degree deflection. Following :cite:t:`lancaster_dynamical_2020`, only
+   impact parameters greater than :math:`l_{90}` contribute, so :math:`\ln\Lambda` is set to zero for :math:`\Lambda &lt; 1`.
    </description>
   </satelliteDynamicalFriction>
   !!]
@@ -57,26 +60,39 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(satelliteDynamicalFrictionlancaster2020)                :: self
-    type(inputParameters                        ), intent(inout) :: parameters
-    
-    self=satelliteDynamicalFrictionLancaster2020()
+    type (satelliteDynamicalFrictionlancaster2020)                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(dynamicalFrictionGaseousClass          ), pointer       :: dynamicalFrictionGaseous_
+
+    !![
+    <objectBuilder class="dynamicalFrictionGaseous" name="dynamicalFrictionGaseous_" source="parameters"/>
+    !!]
+    self=satelliteDynamicalFrictionLancaster2020(dynamicalFrictionGaseous_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="dynamicalFrictionGaseous_"/>
     !!]
     return
   end function lancaster2020ConstructorParameters
 
-  function lancaster2020ConstructorInternal() result(self)
+  function lancaster2020ConstructorInternal(dynamicalFrictionGaseous_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionLancaster2020` satellite dynamical friction class.
     !!}
     implicit none
-    type(satelliteDynamicalFrictionLancaster2020) :: self
+    type (satelliteDynamicalFrictionLancaster2020)                        :: self
+    class(dynamicalFrictionGaseousClass          ), intent(in   ), target :: dynamicalFrictionGaseous_
+    !![
+    <constructorAssign variables="*dynamicalFrictionGaseous_"/>
+    !!]
 
     ! Set the fixed (and unused by this class) `logarithmCoulomb` of the parent class to an
     ! unphysical value.
     self%logarithmCoulomb=-huge(0.0d0)
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function lancaster2020ConstructorInternal
   
@@ -84,7 +100,7 @@ contains
     !!{RST
     Evaluate the Coulomb logarithm for the :cite:t:`lancaster_dynamical_2020` dynamical friction model.
     !!}
-    use :: Galacticus_Nodes                , only : nodeComponentSatellite, treeNode
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite        , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     use :: Vectors                         , only : Vector_Magnitude
     implicit none
@@ -104,7 +120,13 @@ contains
     impactParameter90Degree =  +gravitationalConstant_internal    &
          &                     *massSatellite                     &
          &                     /speedOrbital                  **2
-    coulombLogarithm        =  +radiusOrbital                     &
-         &                    /impactParameter90Degree
+    ! Only impact parameters greater than l₉₀ contribute, so the Coulomb logarithm is zero (not negative) if r_orbital<l₉₀.
+    coulombLogarithm        =  +log(                              &
+         &                          max(                          &
+         &                              +1.0d0                  , &
+         &                              +radiusOrbital            &
+         &                              /impactParameter90Degree  &
+         &                             )                          &
+         &                         )
     return
   end function lancaster2020CoulombLogarithm

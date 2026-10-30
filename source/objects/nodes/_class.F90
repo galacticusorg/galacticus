@@ -486,10 +486,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: event
 
-    !$omp critical (nodeEventIncrement)
+    !$omp atomic capture
     eventID       =  eventID+1
     newEvent%ID   =  eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     newEvent%next => null()
     if (associated(self%event)) then
        event => self%event
@@ -702,6 +702,47 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Get_Isolated_Parent
 
+  function Tree_Node_Get_Host_Contemporaneous(self) result (nodeHost)
+    !!{RST
+    Returns a pointer to the host of satellite node ``self`` at the time closest to that of ``self``. Satellites can evolve
+    ahead of their hosts, so the descendants of the immediate host (i.e. ``self%parent``) are searched to find that which
+    is closest in time to ``self``.
+    !!}
+    implicit none
+    class           (treeNode          ), intent(inout), target  :: self
+    type            (treeNode          )               , pointer :: nodeHost
+    type            (treeNode          )               , pointer :: nodeHostPrevious, nodeHostCurrent
+    class           (nodeComponentBasic)               , pointer :: basicPrevious   , basicCurrent
+    double precision                                             :: time
+
+    basicCurrent     => self            %basic ()
+    time             =  basicCurrent    %time  ()
+    nodeHostPrevious => self            %parent
+    nodeHostCurrent  => self            %parent
+    basicCurrent     => nodeHostCurrent %basic ()
+    basicPrevious    => basicCurrent
+    do while (associated(nodeHostCurrent))
+       if (basicCurrent%time() > time) exit
+       nodeHostPrevious    => nodeHostCurrent
+       nodeHostCurrent     => nodeHostCurrent%parent
+       basicPrevious       => basicCurrent
+       if (associated(nodeHostCurrent))                &
+            & basicCurrent => nodeHostCurrent%basic ()
+    end do
+    if     (                                  &
+         &    abs(basicPrevious%time()-time)  &
+         &   <                                &
+         &    abs(basicCurrent %time()-time)  &
+         &  .or.                              &
+         &   .not.associated(nodeHostCurrent) &
+         & ) then
+       nodeHost => nodeHostPrevious
+    else
+       nodeHost => nodeHostCurrent
+    end if
+    return
+  end function Tree_Node_Get_Host_Contemporaneous
+
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
     !!{RST
     Returns a pointer to the final satellite node associated with ``self``.
@@ -794,7 +835,7 @@ module Galacticus_Nodes
     !!{RST
     Remove ``self`` from the linked list of its host node's satellites.
     !!}
-    use :: Display           , only : displayMessage, verbosityLevelInfo
+    use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: ISO_Varying_String, only : assignment(=) , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -806,9 +847,11 @@ module Galacticus_Nodes
     ! Remove from the mergee list of any merge target.
     if (associated(self%mergeTarget)) then
        nodeHost => self%mergeTarget
-       message='Mergee node ['
-       message=message//self%index()//'] being removed from merge target ['//nodeHost%index()//']'
-       call displayMessage(message,verbosityLevelInfo)
+       if (displayVerbosity() >= verbosityLevelInfo) then
+          message='Mergee node ['
+          message=message//self%index()//'] being removed from merge target ['//nodeHost%index()//']'
+          call displayMessage(message,verbosityLevelInfo)
+       end if
        if (associated(nodeHost%firstMergee,self)) then
           ! This is the first mergee, unlink it, and link to any sibling.
           nodeHost%firstMergee => self%siblingMergee
@@ -1541,10 +1584,10 @@ module Galacticus_Nodes
 
     allocate(eventNew)
     nullify(eventNew%next)
-    !$omp critical (nodeEventIncrement)
-    eventID=eventID+1
+    !$omp atomic capture
+    eventID    =eventID+1
     eventNew%ID=eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1707,10 +1750,10 @@ module Galacticus_Nodes
 
     allocate(newEvent)
     nullify(newEvent%next)
-    !$omp critical (nodeEventIncrement)
-    eventID=eventID+1
+    !$omp atomic capture
+    eventID    =eventID+1
     newEvent%ID=eventID
-    !$omp end critical (nodeEventIncrement)
+    !$omp end atomic
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))

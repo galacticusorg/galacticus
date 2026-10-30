@@ -2,7 +2,7 @@
 <!-- Parameters for the Sobol posterior samples unit test (tests.posterior_sampling.samples_Sobol.exe). -->
 
 <parameters>
-  <lastModified revision="3a3cb2a91b024b65597526ce20b32dbe969815ce" time="2026-09-22T00:00:00"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <formatVersion>2</formatVersion>
 
   <!-- A grid simulation, as used to evaluate a design. It is not run: the test builds its model parameters and design. -->

@@ -23,8 +23,9 @@
   Implementation of a satellite dynamical friction class which uses the model of :cite:t:`chandrasekhar_dynamical_1943`.
   !!}
 
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO            , only : darkMatterProfileDMOClass
+  use :: Satellite_Dynamical_Friction_Gaseous, only : dynamicalFrictionGaseousClass
 
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943" docformat="rst">
@@ -37,6 +38,12 @@
       \Lambda\left[\mathrm{erf}(x)-\frac{2x}{\sqrt{\pi}}\exp(-x^2)\right]\mathbf{v}_\mathrm{sat},
 
    where :math:`M_\mathrm{sat}` and :math:`\mathbf{v}_\mathrm{sat}` are the satellite's mass and velocity, respectively, :math:`v_\mathrm{sat}=|\mathbf{v}_\mathrm{sat}|`, :math:`\rho_\mathrm{host}(r)` is the host's density profile, :math:`\ln\Lambda=`\ ``[logarithmCoulomb]`` is the Coulomb logarithm, and :math:`x\equiv v_\mathrm{sat}/\sqrt{2}\sigma(r)`, where :math:`\sigma(r)` is the velocity dispersion of the host halo at radius :math:`r`, approximated to be equal to the host virial velocity, :math:`v_\mathrm{vir}`.
+
+   The acceleration is summed over the components of the host. For collisional (gaseous) components, such as the hot halo,
+   the factor :math:`\ln\Lambda[\mathrm{erf}(x)-2x\exp(-x^2)/\sqrt{\pi}]` is replaced by the dimensionless drag force,
+   :math:`\mathcal{I}(\mathcal{M},\ln\Lambda)`, for a gaseous medium given by a
+   :galacticus-class:`dynamicalFrictionGaseousClass` object, where :math:`\mathcal{M}=v_\mathrm{sat}/c_\mathrm{s}` is the Mach
+   number of the satellite relative to the sound speed, :math:`c_\mathrm{s}`, of the gas.
    </description>
   </satelliteDynamicalFriction>
   !!]
@@ -45,9 +52,10 @@
      Implementation of a satellite dynamical friction class which uses the model of :cite:t:`chandrasekhar_dynamical_1943`.
      !!}
      private
-     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     double precision                                     :: logarithmCoulomb
+     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_      => null()
+     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_     => null()
+     class           (dynamicalFrictionGaseousClass), pointer :: dynamicalFrictionGaseous_ => null()
+     double precision                                         :: logarithmCoulomb
    contains
      !![
      <methods docformat="rst">
@@ -79,6 +87,7 @@ contains
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
+    class           (dynamicalFrictionGaseousClass              ), pointer       :: dynamicalFrictionGaseous_
     double precision                                                             :: logarithmCoulomb
 
     !![
@@ -90,19 +99,21 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
+    <objectBuilder class="dynamicalFrictionGaseous" name="dynamicalFrictionGaseous_" source="parameters"/>
     !!]
-    self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_,dynamicalFrictionGaseous_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_"     />
+    <objectDestructor name="darkMatterProfileDMO_"    />
+    <objectDestructor name="dynamicalFrictionGaseous_"/>
     !!]
     return
   end function chandrasekhar1943ConstructorParameters
 
-  function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function chandrasekhar1943ConstructorInternal(logarithmCoulomb,darkMatterHaloScale_,darkMatterProfileDMO_,dynamicalFrictionGaseous_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`satelliteDynamicalFrictionChandrasekhar1943` satellite dynamical friction class.
     !!}
@@ -110,24 +121,30 @@ contains
     type            (satelliteDynamicalFrictionChandrasekhar1943)                        :: self
     class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (dynamicalFrictionGaseousClass              ), intent(in   ), target :: dynamicalFrictionGaseous_
     double precision                                             , intent(in   )         :: logarithmCoulomb
     !![
-    <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="logarithmCoulomb, *darkMatterHaloScale_, *darkMatterProfileDMO_, *dynamicalFrictionGaseous_"/>
     !!]
 
+    ! Ensure that required methods are supported.
+    !![
+    <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
+    !!]
     return
   end function chandrasekhar1943ConstructorInternal
 
   subroutine chandrasekhar1943Destructor(self)
     !!{RST
-    Destructor for the simple cooling radius class.
+    Destructor for the :galacticus-class:`satelliteDynamicalFrictionChandrasekhar1943` satellite dynamical friction class.
     !!}
     implicit none
     type(satelliteDynamicalFrictionChandrasekhar1943), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_" />
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"     />
+    <objectDestructor name="self%darkMatterProfileDMO_"    />
+    <objectDestructor name="self%dynamicalFrictionGaseous_"/>
     !!]
     return
   end subroutine chandrasekhar1943Destructor
@@ -168,13 +185,14 @@ contains
     ! the satellite's bound mass - also a total mass. The default mass distribution is normalized to only the dark matter
     ! fraction of that mass, so the factor saturated at that fraction instead of at unity, suppressing the acceleration of every
     ! satellite by the baryon fraction regardless of how compact it was.
-    massDistribution_             =>  node                 %massDistribution     (componentTypeDarkMatterOnly,massTypeDark                               )
-    massDistributionHost_         =>  nodeHost             %massDistribution     (                                                                       )
-    chandrasekharIntegral         =   massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity)
+    massDistribution_             =>  node    %massDistribution(componentTypeDarkMatterOnly,massTypeDark)
+    massDistributionHost_         =>  nodeHost%massDistribution(                                        )
+    ! The Coulomb logarithm is passed into the Chandrasekhar integral since, for gaseous components, it does not appear as a
+    ! simple multiplicative factor.
+    chandrasekharIntegral         =   massDistributionHost_%chandrasekharIntegral(massDistributionHost_,massDistribution_,massSatellite,position,velocity,self%coulombLogarithm(node),self%dynamicalFrictionGaseous_)
     chandrasekhar1943Acceleration =  +4.0d0                             &
             &                        *Pi                                &
             &                        *chandrasekharIntegral             &
-            &                        *self%coulombLogarithm(node)       &
             &                        *gravitationalConstant_internal**2 &
             &                        *massSatellite                     &
             &                        *kilo                              &

@@ -10,12 +10,11 @@ Andrew Benson (ported to Python 2026)
 
 import os
 import re
-import xml.etree.ElementTree as ET
 
 
 from Fortran.Utils                       import TYPE_ATTRIBUTES_TAGGED, type_opener_regex
 from List.ExtraUtils                     import as_array
-from XML.Utils                           import xml_to_dict
+from Galacticus.Build                    import Catalogs
 from Galacticus.Build.SourceTree         import (
     walk_tree, parse_code, children, set_visibility, insert_post_contains,
 )
@@ -56,7 +55,7 @@ def _load_state_storables_xml():
     path = os.path.join(build_path, 'stateStorables.xml')
     if not os.path.exists(path):
         return {}
-    return xml_to_dict(ET.parse(path).getroot())
+    return Catalogs.load(path)
 
 
 def _storable_types(state_storables):

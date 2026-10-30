@@ -7,10 +7,9 @@ Andrew Benson (ported to Python 2026)
 
 import re
 import os
-import xml.etree.ElementTree as ET
 
 
-from XML.Utils                                    import xml_to_dict
+from Galacticus.Build                             import Catalogs
 from Galacticus.Build.SourceTree                  import walk_tree
 from Galacticus.Build.SourceTree.Process          import register_process
 from Galacticus.Build.SourceTree.Parse.ModuleUses import add_uses
@@ -33,10 +32,9 @@ def _load_critical_sections():
         raise RuntimeError(
             "process_profile_openmp: critical section enumeration file does not exist: "
             + path)
-    root = ET.parse(path).getroot()
     # `keyed_tags` groups `<critical name=…/>` children into a name-keyed
     # dict so `descriptor['critical']['my_section']` works.
-    descriptor = xml_to_dict(root, keyed_tags={'critical'})
+    descriptor = Catalogs.load(path, keyed_tags={'critical'})
     return descriptor.get('critical', {}) or {}
 
 

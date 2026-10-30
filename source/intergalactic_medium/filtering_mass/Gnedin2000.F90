@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the :cite:t:`gnedin_effect_2000` filtering mass calculation.
   !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
-  use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+  use :: Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass, intergalacticMediumStateInternal
   use :: Linear_Growth             , only : linearGrowth            , linearGrowthClass
   use :: Tables                    , only : table                   , table1D
 
@@ -60,16 +62,13 @@
        <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
      </methods>
      !!]
-     final     ::                                gnedin2000Destructor
-     procedure :: massFiltering               => gnedin2000MassFiltering
-     procedure :: massFilteringRateOfChange   => gnedin2000MassFilteringRateOfChange
-     procedure :: fractionBaryons             => gnedin2000FractionBaryons
-     procedure :: fractionBaryonsRateOfChange => gnedin2000FractionBaryonsRateOfChange
-     procedure :: fractionBaryonsGradientMass => gnedin2000FractionBaryonsGradientMass
-     procedure :: tabulate                    => gnedin2000Tabulate
-     procedure :: conditionsInitialODEs       => gnedin2000ConditionsInitialODEs
-     procedure :: coefficientsEarlyEpoch      => gnedin2000CoefficientsEarlyEpoch
-     procedure :: massFilteringEarlyEpoch     => gnedin2000MassFilteringEarlyEpoch
+     final     ::                              gnedin2000Destructor
+     procedure :: massFiltering             => gnedin2000MassFiltering
+     procedure :: massFilteringRateOfChange => gnedin2000MassFilteringRateOfChange
+     procedure :: tabulate                  => gnedin2000Tabulate
+     procedure :: conditionsInitialODEs     => gnedin2000ConditionsInitialODEs
+     procedure :: coefficientsEarlyEpoch    => gnedin2000CoefficientsEarlyEpoch
+     procedure :: massFilteringEarlyEpoch   => gnedin2000MassFilteringEarlyEpoch
   end type intergalacticMediumFilteringMassGnedin2000
 
   interface intergalacticMediumFilteringMassGnedin2000
@@ -199,53 +198,11 @@ contains
     return
   end function gnedin2000MassFilteringRateOfChange
 
-  double precision function gnedin2000FractionBaryons(self,mass,time)
-    !!{RST
-    Return the rate of change of the fraction of baryons accreted into a halo of the given ``mass`` at the ``time``.
-    !!}
-    implicit none
-    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
-    double precision                                            , intent(in   ) :: mass, time
-
-    gnedin2000FractionBaryons=1.0d0/(1.0d0+(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0*self%massFiltering(time)/mass)**3
-    return
-  end function gnedin2000FractionBaryons
-
-  double precision function gnedin2000FractionBaryonsRateOfChange(self,mass,time)
-    !!{RST
-    Return the rate of change of the fraction of baryons accreted into a halo of the given ``mass`` at the ``time``.
-    !!}
-    implicit none
-    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
-    double precision                                            , intent(in   ) :: mass, time
-
-    gnedin2000FractionBaryonsRateOfChange=-3.0d0                                                    &
-         &                                *(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0                       &
-         &                                *self%massFilteringRateOfChange(     time)                &
-         &                                /     mass                                                &
-         &                                *self%fractionBaryons          (mass,time)**(4.0d0/3.0d0)
-    return
-  end function gnedin2000FractionBaryonsRateOfChange
-
-  double precision function gnedin2000FractionBaryonsGradientMass(self,mass,time)
-    !!{RST
-    Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given ``mass`` at the ``time``.
-    !!}
-    implicit none
-    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
-    double precision                                            , intent(in   ) :: mass, time
-
-    gnedin2000FractionBaryonsGradientMass=-(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0             &
-         &                                *self%massFiltering  (     time)                &
-         &                                /     mass                      **2             &
-         &                                *self%fractionBaryons(mass,time)**(4.0d0/3.0d0)
-    return
-  end function gnedin2000FractionBaryonsGradientMass
-
   subroutine gnedin2000Tabulate(self,time)
     !!{RST
     Construct a table of filtering mass as a function of cosmological time.
     !!}
+    use :: Display                 , only : displayGreen            , displayReset
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_ODE_Solvers   , only : odeSolver
@@ -291,6 +248,20 @@ contains
          &               anchorEvery   =tableAnchorEvery           &
          &              )
     if (self%table%lattice%covers(lattice)) return
+    ! The filtering mass can not be computed consistently from an internally-solved IGM state. That state is solved for
+    ! incrementally as the universe evolves, so the ODE integration below would require the IGM temperature at times far beyond
+    ! those solved for. Furthermore, the tabulation is cached on disk under a name which does not reflect the solved state.
+    select type (intergalacticMediumState_ => self%intergalacticMediumState_)
+    type is (intergalacticMediumStateInternal)
+       call Error_Report(                                                                                                           &
+            &            '[intergalacticMediumFilteringMass]=gnedin2000 can not be used with [intergalacticMediumState]=internal'// &
+            &            char(10)                                                                                                // &
+            &            displayGreen()//'HELP:'//displayReset()                                                                 // &
+            &            ' set [intergalacticMediumFilteringMass]=internal, which uses the filtering mass solved for'            // &
+            &            ' self-consistently with the IGM state by [universeOperator]=intergalacticMediumStateEvolve'            // &
+            &            {introspection:location}                                                                                   &
+            &           )
+    end select
     ! Merge in any tabulation already cached on disk, then re-evaluate the range required in the light of it.
     call Table_Cache_Restore(self%table,self%fileName,status)
     lattice=Range_Pinned(                                          &

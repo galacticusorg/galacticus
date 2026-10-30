@@ -86,9 +86,8 @@
      A mass distribution implementing the "isothermal" approximation to the effects of SIDM based on the model of :cite:t:`jiang_semi-analytic_2023`.
      !!}
      private
-     double precision                                              :: velocityDispersionCentral     , radiusInteraction_      , &
-          &                                                           densityInteraction            , massInteraction         , &
-          &                                                           velocityDispersionInteraction
+     double precision                                              :: velocityDispersionCentral     , densityInteraction           , &
+          &                                                           massInteraction               , velocityDispersionInteraction
      type            (interpolator), allocatable                   :: interpolatorRadiiDimensionless
      ! The dimensionless profiles are held only for the two values of ξ which bracket that of this halo - the trailing dimension
      ! of each runs over just those two values. ξ is fixed once the solution has been computed, so no other part of the shared
@@ -691,8 +690,7 @@ contains
     ! Find the properties at the halo center.
     densityCentral               =densityCentralDimensionless           *densityInteraction
     velocityDispersionCentral    =velocityDispersionCentralDimensionless*velocityDispersionInteraction
-    ! Store properties of current profile.
-    self%radiusInteraction_           =radiusInteraction
+    ! Store properties of current profile. (The interaction radius itself is stored by the parent class.)
     self%densityInteraction           =densityInteraction
     self%massInteraction              =massInteraction
     self%velocityDispersionInteraction=velocityDispersionInteraction

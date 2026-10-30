@@ -17,6 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
   !!{RST
   Implements a gas-phase mass-metallicity relation analysis class using the observational results of :cite:t:`blanc_characteristic_2019`.
   !!}
@@ -250,8 +251,9 @@ contains
     binCount=size(masses,kind=c_size_t)
     allocate(functionCovarianceTarget(binCount,binCount))
     functionCovarianceTarget=0.0d0
+    ! The 16th and 84th percentiles are stored as offsets below and above the mean, so their mean is the root variance.
     do iBin=1,binCount
-       functionCovarianceTarget(iBin,iBin)=(0.5d0*(function84Target(iBin)-function16Target(iBin)))**2
+       functionCovarianceTarget(iBin,iBin)=(0.5d0*(function84Target(iBin)+function16Target(iBin)))**2
     end do
     allocate(outputWeight(binCount,outputTimes_%count()))
     do iBin=1,binCount

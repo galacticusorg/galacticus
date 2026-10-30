@@ -7,6 +7,7 @@
 <!-- from the radius at which they are sampled.                                                          -->
 
 <parameters>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <formatVersion>2</formatVersion>
 
   <!-- Component selection -->
@@ -38,6 +39,9 @@
   <linearGrowth                       value="collisionlessMatter"                      />
   <criticalOverdensity                value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <powerSpectrumPrimordialTransferred value="simple"                                   />
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8111"/>
+  </powerSpectrumNormalizer>
   <powerSpectrumWindowFunction        value="topHat"                                   />
   <powerSpectrumPrimordial            value="powerLaw">
     <index               value="0.9649"/>
@@ -48,8 +52,6 @@
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed      value="0.000"/>
   </transferFunction>
-  <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.8111"/>
-  </cosmologicalMassVariance>
+  <cosmologicalMassVariance value="filteredPower"/>
 
 </parameters>

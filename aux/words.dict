@@ -47,6 +47,7 @@
 6d
 ADAF
 ADAFs
+AGB
 AGN
 API
 Ahvazi
@@ -85,6 +86,7 @@ Cappellari
 Caputi
 Chandrasekhar
 Charlot
+Chieffi
 Cholesky
 Clopper
 Comptonized
@@ -121,6 +123,7 @@ Fq
 Frenk
 Friedmann
 GAMAnear
+GalacticEmu
 Galli
 Gan
 Gelman
@@ -129,6 +132,7 @@ Gnedin
 Granato
 Grubb
 Gunawardhana
+Hankel
 Harald
 hdf5Access
 Hearin
@@ -171,9 +175,11 @@ Latin
 Leitherer
 Levenshtein
 Linder
+Limongi
 Liyan
 Loeb
 Ludlow
+MCz
 M31
 MD5
 MNRAS
@@ -296,6 +302,7 @@ analytical
 angularly
 anisotropic
 anisotropies
+antiderivative
 apocenter
 apocenters
 apocentric
@@ -312,6 +319,7 @@ attenuator
 attenuators
 autocorrelation
 axion
+axisymmetric
 backtrace
 baldry
 baryonic
@@ -322,7 +330,9 @@ bilinear
 binomially
 bivar
 bivariate
+blackbodies
 blackbody
+blueshift
 blueshifted
 bolometer
 bolometric
@@ -529,6 +539,7 @@ isocurvature
 isodensity
 isoelectronic
 isotropically
+isotropy
 iteratively
 kde
 kdewallet
@@ -576,6 +587,7 @@ minima
 minimization
 minimizer
 minimizers
+mises
 misordering
 moduletype
 monotonicity
@@ -588,6 +600,8 @@ mpirun
 multi
 multilinear
 multinomial
+multipole
+multiplicatively
 multistream
 nanometers
 noncentral
@@ -622,6 +636,7 @@ overdensities
 overdensity
 overwritable
 parallelized
+parallelizes
 parametrization
 parameterization
 parameterization
@@ -654,6 +669,7 @@ polycyclic
 polygamma
 polylogarithm
 polylogarithms
+posteriori
 postprocess
 postprocesses
 postprocessing
@@ -678,6 +694,7 @@ profilers
 prograde
 prolate
 pwd
+quadrupole
 quantization
 quasistatically
 radians
@@ -801,6 +818,8 @@ timestepping
 timesteps
 tokenized
 triaxial
+truncations
+heatings
 ttfamily
 tuple
 unaccreted
@@ -850,6 +869,8 @@ unscaled
 unsplit
 unstripped
 untempered
+untransformed
+untruncated
 unweight
 unweighted
 username
@@ -867,6 +888,7 @@ vibrational
 virial
 virialized
 vitvitska
+von
 waitlist
 wavenumber
 wavenumbers
@@ -1175,6 +1197,7 @@ strided
 structurE
 Stéphane
 subcommand
+subcommands
 symlink
 templated
 tensorRank
@@ -1210,3 +1233,8 @@ fallbacks
 invariance
 smoothstep
 unregularized
+heteroscedastic
+hyperparameter
+hyperparameters
+scikit
+misalignments

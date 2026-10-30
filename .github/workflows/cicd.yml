@@ -47,9 +47,13 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: '3.x'
+          # Pinned rather than '3.x': h5py publishes no wheel for a new Python release until some time after it, and
+          # without one pip builds h5py from source, which fails here as the runner has no HDF5 library. Python 3.15.0
+          # did exactly this while it was rolling out to the runners, failing this job whenever a runner resolved '3.x'
+          # to 3.15. Raise this once h5py has wheels for the newer release.
+          python-version: '3.14'
       - name: Install pytest
         # platformdirs + requests are needed by the galacticus_launcher tests and
         # lxml by the parameter-resolver tests (the third-party deps in the
@@ -57,8 +61,9 @@ jobs:
         # zstandard supplies zstd where the standard library has none (before
         # Python 3.14), so the launcher's archive tests do not depend on which
         # interpreter this job happens to resolve `3.x` to. numpy and h5py are
-        # needed by the emulator file-format tests (python/Galacticus/Emulation).
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py
+        # needed by the emulator file-format tests, and scikit-learn by the emulator
+        # training tests (python/Galacticus/Emulation), which would otherwise be skipped.
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py scikit-learn
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
@@ -74,7 +79,7 @@ jobs:
       # generating its own, which costs tens of seconds of CPU on the user's first `galacticus run`. Built here from the very
       # commit being deployed, so it matches the source archive the launcher unpacks alongside it.
       - name: Upload artifacts (parameter catalog)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-parameter-catalog
           path: parameters.catalog.json
@@ -123,19 +128,19 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make GALACTICUS_BUILD_OPTION=compileprof -j2 Galacticus.exe 2>&1 | tee build.log
+          make BUILDPROFILE=yes -j2 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
           grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
           grep -vqzi warning:        build.log || (echo "FAIL: warnings found in build.log"        && false)
           grep -vqzi 'is up to date' build.log || (echo "FAIL: 'is up to date' found in build.log" && false)
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec
           path: 'Galacticus.exe'
       - name: Upload build profile
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: build-profile
           path: 'buildProfile.html'
@@ -178,18 +183,22 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) LTO=disabled preprocess
           make -j2 LTO=disabled all 2>&1 | tee build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
           ! grep -v 'is up to date' build.log | grep -n -C 5 make:
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-non-static
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs
           path: 'tests.*.exe'
@@ -215,15 +224,16 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          export GALACTICUS_FCFLAGS="$GALACTICUS_FCFLAGS -pg"
-          export GALACTICUS_CFLAGS="$GALACTICUS_CFLAGS -pg"
-          export GALACTICUS_CPPFLAGS="$GALACTICUS_CPPFLAGS -pg"
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make -j2 Galacticus.exe
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) PROFILER=gprof SUFFIX= preprocess
+          make -j2 PROFILER=gprof SUFFIX= Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-instrumented
           path: 'Galacticus.exe'
@@ -253,9 +263,13 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) preprocess
           make -j2 Galacticus.exe
       - name: Upload executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-dmo
           path: 'Galacticus.exe'
@@ -284,14 +298,18 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) MPI=yes SUFFIX= preprocess
+          make -j2 MPI=yes SUFFIX= Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-MPI
           path: 'Galacticus.exe'
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs-MPI
           path: 'tests.*.exe'
@@ -312,7 +330,6 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -DDEBUGGING" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
       - name: Build the code
         run: |
@@ -321,14 +338,18 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make -j2 Galacticus.exe tests.debugging.exe
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) DEBUGGING=yes SUFFIX= preprocess
+          make -j2 DEBUGGING=yes SUFFIX= Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs-debugging
           path: 'tests.*.exe'
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-debugging
           path: 'Galacticus.exe'
@@ -361,7 +382,29 @@ jobs:
           # does not bound the peak of a single oversized compile. LTO on the library is only a performance
           # optimization (the downstream Python-interface test just needs a working libgalacticus.so), so we
           # disable it here to cut peak memory, and cap parallelism at -j2 to limit concurrent compiles.
-          make -j2 LTO=disabled GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) LTO=disabled LIBRARY=yes preprocess
+          # Even at -j2, two of the largest compiles running together can exhaust memory: the largest peaks at
+          # ~14 GiB, and the next eight at 6-10 GiB each. So build each of those first as a make target of its own:
+          # make builds its dependencies two at a time, then compiles it with nothing running beside it.
+          # `hydrogen` comes first because several of the others depend on it. Every other compile peaks at
+          # under ~5.5 GiB, so any two of the rest fit together. (Peak memories were measured with
+          # gfortran 16.0.1 and LTO disabled.)
+          for object in                                                     \
+              chemical/reaction_rates/hydrogen                              \
+              merger_trees/construct/read/_class                            \
+              libgalacticus/mergerTreeImporter                              \
+              objects/nodes/components/spheroid/standard/_class             \
+              libgalacticus/nodeOperator                                    \
+              libgalacticus/starFormationHistory                            \
+              objects/nodes/components/hot_halo/standard/_class             \
+              objects/nodes/components/disk/standard/_class                 \
+              objects/nodes/components/nuclear_star_cluster/standard/_class; do
+            make -j2 LTO=disabled LIBRARY=yes ./work/buildLib/${object}.o
+          done
+          make -j2 LTO=disabled LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -375,7 +418,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           tar cvfj libgalacticus.tar.bz2 galacticus
       - name: Upload library
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-library
           path: 'libgalacticus.tar.bz2'
@@ -449,7 +492,7 @@ jobs:
         # is already present.
         run: apt-get install --yes zstd || { apt-get update && apt-get install --yes zstd ; }
       - name: Download executables
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec
       - name: Build tools
@@ -505,7 +548,7 @@ jobs:
             dynamic/mangle-${mangleVersion}/bin/harmonize \
             | zstd -12 -T0 -q -o tools.tar.zst
       - name: Upload tools
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-tools
           # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
@@ -547,7 +590,7 @@ jobs:
           tar cf - --exclude=./.git . | zstd -12 -T0 -q -o "${GITHUB_WORKSPACE}/datasets.tar.zst"
           ls -lh "${GITHUB_WORKSPACE}/datasets.tar.zst"
       - name: Upload datasets snapshot
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-datasets
           # Already compressed: re-zipping it in the artifact costs minutes and saves nothing.
@@ -601,19 +644,19 @@ jobs:
         run: |
           zip Galacticus_MacOS-M1.zip Galacticus_MacOS-M1.exe
       - name: Upload Galacticus executable
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-exec-MacOS-M1
           path: |
             Galacticus_MacOS-M1.exe
             Galacticus_MacOS-M1.zip
       - name: Upload test code executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-execs-MacOS-M1
           path: 'tests.*.exe'
       - name: Upload Galacticus debug symbols
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-debug-MacOS-M1
           path: 'debugSymbolsMacOS-M1.zip'
@@ -742,7 +785,7 @@ jobs:
           working_directory: ${{ env.GALACTICUS_DATA_PATH }}
           macos_certificate: ${{ secrets.MACOS_CERTIFICATE }}
       - name: Upload tool executables
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-tools-MacOS-M1
           # Already compressed: re-zipping them in the artifact costs minutes and saves nothing.
@@ -786,7 +829,7 @@ jobs:
           sudo port select --set python3 python312
       - name: Build Galacticus
         run: |
-          make -j`sysctl -n hw.activecpu` USEGIT2=no GALACTICUS_BUILD_OPTION=lib libgalacticus.so
+          make -j`sysctl -n hw.activecpu` USEGIT2=no LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -802,7 +845,7 @@ jobs:
           mv libgalacticus.so galacticus/lib/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Upload library
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: galacticus-library-MacOS
           path: 'libgalacticusMacOS.zip'
@@ -823,11 +866,11 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Submit macOS artifacts for notarization
@@ -837,7 +880,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.MACOS_APP_SPECIFIC_PASSWORD }}
         run: python3 ./scripts/aux/notarizationSubmit.py
       - name: Upload notarization request metadata
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: notarization-requests
           path: 'notarization-requests-${{ github.sha }}.json'
@@ -1065,6 +1108,19 @@ jobs:
       uploadFile: ./testSuite/outputs/*.json
       uploadName: validate-haloMassFunction${{ matrix.group }}
     secrets: inherit
+  Validate-Halo-Mass-Function-Fuzzy-Dark-Matter:
+    needs: Build-Executable-DMO-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      install: python3 python3-h5py python3-numpy
+      file: validate-haloMassFunction-fuzzyDarkMatter.py
+      artifact: galacticus-exec-dmo
+      runPath: ./testSuite
+      # The excursion set first crossing tabulation dominates the run time (about 14 minutes on four threads with a cold
+      # cache), and is written to file, so cache it.
+      cacheData: 1
+      ompNumThreads: 4
+    secrets: inherit
   Validate-Milky-Way-Model:
     needs: Build-Executable-Linux
     uses: ./.github/workflows/testModel.yml
@@ -1115,15 +1171,29 @@ jobs:
     secrets: inherit
   Validate-Decaying-Dark-Matter-Only-Subhalos:
     needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      # Each model is a separate job: run together, the six took between 3.5 and 6 hours (the job time limit) depending on
+      # the runner. The artifact is named for the model's metric suffix, which is where the benchmark action looks for it.
+      matrix:
+        model:
+          - { lifetime: "10.0", velocityKick: "20.0" }
+          - { lifetime: "20.0", velocityKick: "20.0" }
+          - { lifetime: "20.0", velocityKick: "40.0" }
+          - { lifetime: "40.0", velocityKick: "20.0" }
+          - { lifetime: "40.0", velocityKick: "40.0" }
+          - { lifetime: "80.0", velocityKick: "40.0" }
     uses: ./.github/workflows/testModel.yml
     with:
       install: python3 python3-h5py python3-numpy python3-git
       file: validate-darkMatterOnlySubhalos-decayingDarkMatter.py
+      options: "${{ matrix.model.lifetime }} ${{ matrix.model.velocityKick }}"
       artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
       uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalos-decayingDarkMatter
+      uploadName: validate-darkMatterOnlySubhalos_decayingDarkMatter_lifetime${{ matrix.model.lifetime }}_velocityKick${{ matrix.model.velocityKick }}
     secrets: inherit
   Validate-Fuzzy-Dark-Matter:
     needs: Build-Executable-Linux
@@ -1188,8 +1258,10 @@ jobs:
                       tests.SIDM_parametric_maps.exe,
                       tests.SIDM_Kummer_deceleration.exe,
                       tests.SIDM_Kummer_satellites.exe,
+                      tests.dynamical_friction_gaseous.exe,
                       tests.spin_distribution_nbody_errors.exe,
                       tests.differentiation.exe,
+                      tests.FFTlog.exe,
                       tests.tables.exe,
                       tests.table_caches.exe,
                       tests.history.exe,
@@ -1199,12 +1271,21 @@ jobs:
                       tests.dust.attenuation_descriptors.exe,
                       tests.dust.extinction_curves.exe,
                       tests.dust.emission_spectra.exe,
+                      tests.dust.attenuation_stellar_mass_redshift.exe,
+                      tests.dust.attenuation_AGN_torus.exe,
+                      tests.dust.attenuation_AGN_torus_misaligned.exe,
+                      tests.dust.attenuation_AGN_torus_SKIRTOR.exe,
+                      tests.dust.emission_AGN_torus_CLUMPY.exe,
+                      tests.output_analyses.attenuation_scatter.exe,
                       tests.make_ranges.exe,
                       tests.tabulations_inverse.exe,
                       tests.cosmology_functions.exe,
+                      tests.survey_geometry_martin2010_alfalfa.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
+                      tests.mass_distributions.exponential_disk_tidal.exe,
                       tests.kinematic_distributions.NFW.exe,
+                      tests.kinematic_distributions.velocity_dispersion_gradient.exe,
                       tests.prompt_cusps.exe,
                       tests.math_special_functions.exe,
                       tests.math_distributions.exe,
@@ -1294,6 +1375,7 @@ jobs:
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.mass_distributions.Zhao1996_limits.exe,
+                      tests.mass_distributions.Shi2016_self_similarity.exe,
                       tests.mass_distributions.Zhao1996_dispersion.exe,
                       tests.mass_distributions.Einasto_Burkert.exe,
                       tests.mass_distributions.cusp_soliton_NFW_limits.exe,
@@ -1303,6 +1385,7 @@ jobs:
                       tests.star_formation.molecular_fractions.exe,
                       tests.satellites.virial_orbits.exe,
                       tests.satellites.virial_orbit_samplers.exe,
+                      tests.satellites.virial_orbit_filamentary.exe,
                       tests.decaying_dark_matter.exe,
                       tests.decaying_dark_matter_spherical_collapse.exe,
                       tests.chemical.reaction_rates_hydrogen_network.exe,
@@ -1333,7 +1416,8 @@ jobs:
                       tests.orbits.exe,
                       tests.debugging.exe,
                       tests.hashes.cryptographic.exe,
-                      tests.accretion_halo_isocurvature.exe ]
+                      tests.accretion_halo_isocurvature.exe,
+                      tests.accretion_halo_cold_mode_chemicals.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
       executable: ${{ matrix.executable }}
@@ -1425,7 +1509,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py" ]
+        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py", "test-metal-conservation.py" ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1495,9 +1579,14 @@ jobs:
                 test-halo-mass-functions.py,
                 test-dust-attenuation-parity.py,
                 test-luminosity-function-Halpha.py,
+                test-luminosity-function-Halpha-Sobral.py,
                 test-dust-analyses-SDSS.py,
                 test-outputAnalysisLikelihoods.py,
+                test-progenitorMassFunctionLikelihood.py,
+                test-morphologicalFractionGAMAMoffett2016.py,
                 test-dust-emission-energy-balance.py,
+                test-AGN-torus-misalignment.py,
+                test-AGN-torus-spectrum-check.py,
                 test-inactive_luminosities.py,
                 test-interoutput-star-formation-rate.py,
                 test-mass-host-maximum.py,
@@ -1505,8 +1594,11 @@ jobs:
                 test-satellite-distance-minimum.py,
                 test-treeFilterLabels.py,
                 test-output.py,
+                test-output-references.py,
                 test-output-times.py,
                 test-output-tree-contiguousity.py,
+                test-output-variable-length-datasets.py,
+                test-output-list-extractor-top-level.py,
                 test-outputSelector.py,
                 test-parameter-validation.py,
                 test-python-modules.py,
@@ -1521,12 +1613,16 @@ jobs:
                 test-star-formation-histories-adaptive.py,
                 test-star-formation-histories-inSitu.py,
                 test-star-formation-histories-fixedAge.py,
+                test-luminosities-from-SED-lightcone.py,
+                test-luminosities-from-SFH-lightcone.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
+                test-merger-tree-prune-clones.py,
                 test-molecular-cooling.py,
                 test-lightcone-crossing.py,
                 test-massProfileSatelliteBoundMass.py,
                 test-UniverseMachine.py,
                 test-spheroid-power-law.py,
+                test-power-spectrum-normalizer-amplitude-scalar.py,
                 test-stateRestore.py,
                 test-checkpointing.py,
                 test-stellar-mass-weighted-ages.py,
@@ -1534,6 +1630,7 @@ jobs:
                 test-supernovae-type-Ia-yields-metallicity.py,
                 test-supernovae-type-Ia-rate-metallicity.py,
                 test-stellar-properties-LimongiChieffi2018.py,
+                test-stellar-properties-Karakas2010Doherty2014.py,
                 test-stellar-properties-Sukhbold2016.py,
                 test-tidalTracks.py,
                 test-satellite-orbit-evolution.py,
@@ -1551,12 +1648,15 @@ jobs:
                 test-decayingDM-shell-crossing-capture.py,
                 test-enforceNonNegativity.py,
                 test-pruneLightcone.py,
+                test-position-interpolated-orphan-decay.py,
                 test-soliton-coremass.py,
                 test-soliton-satellite-merging.py,
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
+                test-progenitor-mass-function-forests.py,
+                test-black-hole-jet-efficiency.py,
                 test-SIDM-parametric.py,
                 test-decaying-dark-matter-halo-mass-function.py,
                 test-objectBuilder-recursion.py,
@@ -1567,6 +1667,7 @@ jobs:
                 test-node-trajectory.py,
                 test-virial-orbit-loss-cone.py,
                 test-CGM-ram-pressure-outer-radius.py,
+                test-ram-pressure-history.py,
                 test-parameter-resolver.py,
                 test-prompt-cusps-unformed.py,
                 test-radius-specifiers-soliton.py,
@@ -1684,6 +1785,11 @@ jobs:
         file: [ testSuite/parameters/mergerTreeEvolverThreaded.xml,
                 testSuite/parameters/constrainedMilkyWay.xml,
                 testSuite/parameters/test-nuclear-star-cluster.xml,
+                testSuite/parameters/tidalStrippingGalacticComponents.xml,
+                testSuite/parameters/tidalStrippingGalacticComponentsTruncated.xml,
+                testSuite/parameters/tidalStrippingGalacticComponentsHeated.xml,
+                parameters/examples/tidalStrippingBaryonicSubhalo.xml,
+                testSuite/parameters/blackHoleBinarySeparationGrowthRateChandrasekharIntegral.xml,
                 testSuite/parameters/zeroVelocityDispersionDisruptingHalo.xml,
                 testSuite/parameters/subhaloOrbitOnZAxis.xml ]
     uses: ./.github/workflows/testModel.yml
@@ -1732,6 +1838,17 @@ jobs:
       artifact: galacticus-exec
       runPath: ./testSuite
       cacheData: 1
+    secrets: inherit
+  ### Emulator predictions
+  ## Builds an emulator file in Python and checks that the Galacticus Gaussian process emulator (via the `emulatorPredict`
+  ## task) reproduces the predictions of the reference implementation, with and without stored Cholesky factors.
+  Emulator-Predict:
+    needs: Build-Executable-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-predict.py
+      artifact: galacticus-exec
+      runPath: ./testSuite
     secrets: inherit
   ### Regressions
   Regressions:
@@ -1831,11 +1948,49 @@ jobs:
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
     secrets: inherit
+  MPI-Emulator-Likelihood:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-likelihood_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
+  MPI-Emulator-MCMC:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-mcmc_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+      # The emulator is trained with scikit-learn.
+      install: python3-sklearn
+    secrets: inherit
+  MPI-Emulator-Parity:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-emulator-parity_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
   MPI-Posterior-Sample-Proposal-Log:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
     with:
       file: test-posteriorSampleProposalLog_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
+  MPI-Posterior-Sample-Differential-Evolution:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-posteriorSampleDifferentialEvolution_MPI.py
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
@@ -1982,7 +2137,7 @@ jobs:
           apt -y update && apt -y upgrade
           apt -y install python3 python3-numpy
       - name: Download library
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-library
       - name: Test interface
@@ -2042,7 +2197,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'benchmark'
           suffix: 'milkyWayModel'
-          threshold: '140%'
+          threshold: '160%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation'
         uses: ./.github/actions/benchmark
@@ -2122,7 +2277,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 10keV resolutionX1)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1'
-          threshold: '450%'
+          threshold: '850%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 3keV resolutionX8)'
         uses: ./.github/actions/benchmark
@@ -2162,7 +2317,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX8)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8'
-          threshold: '800%'
+          threshold: '900%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (COZMIC Milky Way WDM 10keV resolutionX8)'
         uses: ./.github/actions/benchmark
@@ -2257,7 +2412,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0'
           threshold: '700%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2266,7 +2420,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0'
           threshold: '7500%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2275,7 +2428,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0'
           threshold: '500%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2284,7 +2436,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0'
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2293,7 +2444,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0'
           threshold: '3000%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2302,7 +2452,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0'
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2374,15 +2523,15 @@ jobs:
           threshold: '110%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts (validate-PonosV)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: validate-PonosV
       - name: Download artifacts (validate-baryonicSuppression)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: validate-baryonicSuppression
       - name: Download artifacts (build-profile)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: build-profile
       - name: Push validation results
@@ -2542,15 +2691,15 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Download artifacts (executable-linux)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec
       - name: Download artifacts (library-linux)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-library
       - name: Download artifacts (tools-linux)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-tools
       - name: Upload assets to release
@@ -2560,12 +2709,12 @@ jobs:
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst --clobber
           # Record the checksums of the assets the launcher downloads and executes, before the local copies are removed. These are
           # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it. The
-          # launcher also reads this file as the release's asset manifest -- an artefact listed here is one the release carries,
+          # launcher also reads this file as the release's asset manifest -- an artifact listed here is one the release carries,
           # which is how it chooses between the current and the legacy form of an archive without probing for a 404.
           sha256sum Galacticus.exe tools.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst
       - name: Download artifacts (datasets)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-datasets
       - name: Upload datasets snapshot to release
@@ -2576,23 +2725,23 @@ jobs:
           sha256sum datasets.tar.zst datasets.ref >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./datasets.tar.zst ./datasets.ref
       - name: Download artifacts (executable-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-exec-MacOS-M1
       - name: Download artifacts (debug-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-debug-MacOS-M1
       - name: Download artifacts (library-macos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-library-MacOS
       - name: Download artifacts (tools-macos-m1)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-tools-MacOS-M1
       - name: Download artifacts (notarization metadata)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: notarization-requests
       - name: Upload assets to release
@@ -2606,27 +2755,27 @@ jobs:
           sha256sum Galacticus_MacOS-M1.exe toolsMacOSM1.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm -f ./Galacticus_MacOS-M1.exe ./Galacticus_MacOS-M1.zip ./libgalacticusMacOS.zip ./toolsMacOSM1.zip ./toolsMacOSM1.tar.zst ./debugSymbolsMacOS-M1.zip ./notarization-requests-*.json
       - name: Download artifacts (perf-darkMatterOnlySubHalos)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-darkMatterOnlySubHalos
       - name: Download artifacts (perf-milkyWay)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay
       - name: Download artifacts (perf-milkyWay_SIDM)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay_SIDM
       - name: Download artifacts (perf-darkMatterOnlySubHalos-gprof)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-darkMatterOnlySubHalos-gprof
       - name: Download artifacts (perf-milkyWay-gprof)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay-gprof
       - name: Download artifacts (perf-milkyWay_SIDM-gprof)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: perf-milkyWay_SIDM-gprof
       - name: Upload assets to release
@@ -2636,7 +2785,7 @@ jobs:
           gh release upload bleeding-edge ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2 --clobber
           rm ./darkMatterOnlySubHalos.perf.bz2 ./milkyWay.perf.bz2 ./milkyWay_SIDM.perf.bz2 ./darkMatterOnlySubHalos.gprof.bz2 ./milkyWay.gprof.bz2 ./milkyWay_SIDM.gprof.bz2
       - name: Download artifacts (parameter catalog)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: galacticus-parameter-catalog
       - name: Upload assets to release
@@ -2671,7 +2820,7 @@ jobs:
     env:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
-      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:

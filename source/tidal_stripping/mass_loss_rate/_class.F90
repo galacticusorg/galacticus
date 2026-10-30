@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a class that implements tidal stripping.
 !!}
@@ -33,16 +35,17 @@ module Tidal_Stripping_Mass_Loss_Rate
    <name>tidalStripping</name>
    <descriptiveName>Tidal Stripping Mass Loss Rates</descriptiveName>
    <description>
-   Class providing models of tidal stripping of galactic components (disc gas and stars)---the removal of cold interstellar material from a satellite galaxy's disk as the galaxy orbits within its host halo's tidal field. Unlike dark matter tidal stripping (handled by :galacticus-class:`satelliteTidalStrippingClass`), this class operates on individual galaxy components and returns the mass loss rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for the given component, based on whether the component extends beyond the satellite's tidal radius.
+   Class providing models of tidal stripping of galactic components (the gas and stars of disks, spheroids, and nuclear star clusters)---the removal of material from a satellite galaxy as it orbits within its host halo's tidal field. Unlike dark matter tidal stripping (handled by :galacticus-class:`satelliteTidalStrippingClass`), this class operates on individual galaxy components and returns the mass loss rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) for the given component. Optionally, it also returns the specific angular momentum of the stripped material in units of the mean specific angular momentum of the component.
    </description>
    <default>simple</default>
    <method name="rateMassLoss" >
     <description>
-    Returns the rate of mass loss (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) due to tidal stripping of ``component``.
+    Returns the rate of mass loss (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) due to tidal stripping of ``component``. If present, ``ratioSpecificAngularMomentum`` is set to the specific angular momentum of the stripped material in units of the mean specific angular momentum of ``component``.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>class(nodeCOmponent), intent(inout) :: component</argument>
+    <argument>class           (nodeComponent), intent(inout)           :: component                   </argument>
+    <argument>double precision               , intent(  out), optional :: ratioSpecificAngularMomentum</argument>
    </method>
   </functionClass>
   !!]

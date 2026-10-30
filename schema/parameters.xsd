@@ -276,6 +276,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="chandrasekharIntegral"/>
           <xs:enumeration value="standard"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
@@ -310,6 +311,22 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="fixed"/>
           <xs:enumeration value="vergara2023"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="blackHoleTorusCoveringFraction">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="fixed"/>
+          <xs:enumeration value="recedingTorus"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -694,6 +711,21 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="darkMatterHaloFilaments">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="randomSequential"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="darkMatterHaloMassAccretionHistory">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -1003,6 +1035,8 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="AGNTorus"/>
+          <xs:enumeration value="AGNTorusSKIRTOR"/>
           <xs:enumeration value="atlasCompendium"/>
           <xs:enumeration value="atlasFerrara2000"/>
           <xs:enumeration value="birthCloud"/>
@@ -1013,6 +1047,7 @@
           <xs:enumeration value="screenFixed"/>
           <xs:enumeration value="screenSurfaceDensityMetals"/>
           <xs:enumeration value="sequence"/>
+          <xs:enumeration value="stellarMassRedshift"/>
           <xs:enumeration value="zero"/>
          </xs:restriction>
         </xs:simpleType>
@@ -1028,6 +1063,9 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="AGNTorus"/>
+          <xs:enumeration value="AGNTorusCLUMPY"/>
+          <xs:enumeration value="AGNTorusSKIRTOR"/>
           <xs:enumeration value="blackBodyModified"/>
           <xs:enumeration value="daleHelou2002"/>
           <xs:enumeration value="draineLi2007"/>
@@ -1070,6 +1108,37 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="simple"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="dynamicalFrictionGaseous">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="chandrasekhar1943"/>
+          <xs:enumeration value="kimKim2007"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="emulator">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="gaussianProcess"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -1157,6 +1226,38 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="haloFormation"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="galacticComponentHeating">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="none"/>
+          <xs:enumeration value="tracer"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="galacticComponentTruncation">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="exponential"/>
+          <xs:enumeration value="none"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -1252,6 +1353,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="fixed"/>
+          <xs:enumeration value="misaligned"/>
           <xs:enumeration value="null"/>
           <xs:enumeration value="random"/>
           <xs:enumeration value="spinVector"/>
@@ -1588,8 +1690,23 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="font2008"/>
           <xs:enumeration value="orbitalPosition"/>
-          <xs:enumeration value="relativePosition"/>
           <xs:enumeration value="zero"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="hotHaloRamPressureHistory">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="accumulated"/>
+          <xs:enumeration value="virialOrbit"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -1676,6 +1793,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="gnedin2000"/>
+          <xs:enumeration value="internal"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -1718,6 +1836,7 @@
           <xs:enumeration value="collisionless"/>
           <xs:enumeration value="collisionlessTabulated"/>
           <xs:enumeration value="cuspNFW"/>
+          <xs:enumeration value="effectiveSoundSpeed"/>
           <xs:enumeration value="enzoHydrostatic"/>
           <xs:enumeration value="finiteResolutionNFW"/>
           <xs:enumeration value="heated"/>
@@ -1780,6 +1899,7 @@
           <xs:enumeration value="einasto"/>
           <xs:enumeration value="enzoHydrostatic"/>
           <xs:enumeration value="exponentialDisk"/>
+          <xs:enumeration value="exponentialDiskTidal"/>
           <xs:enumeration value="gaussianEllipsoid"/>
           <xs:enumeration value="gaussianSlab"/>
           <xs:enumeration value="hernquist"/>
@@ -1801,6 +1921,7 @@
           <xs:enumeration value="sphericalFiniteResolutionNFW"/>
           <xs:enumeration value="sphericalHeated"/>
           <xs:enumeration value="sphericalHeatedMonotonic"/>
+          <xs:enumeration value="sphericalHeatedTracer"/>
           <xs:enumeration value="sphericalSIDM"/>
           <xs:enumeration value="sphericalSIDMCoreNFW"/>
           <xs:enumeration value="sphericalSIDMIsothermal"/>
@@ -2532,6 +2653,7 @@
           <xs:enumeration value="haloAngularMomentumVitvitska2002"/>
           <xs:enumeration value="haloAxisRatiosInterpolate"/>
           <xs:enumeration value="haloAxisRatiosMenkerBenson2022"/>
+          <xs:enumeration value="haloFilaments"/>
           <xs:enumeration value="hierarchy"/>
           <xs:enumeration value="impulsiveOutflowEnergy"/>
           <xs:enumeration value="inclinationRandom"/>
@@ -2544,6 +2666,7 @@
           <xs:enumeration value="massCooled"/>
           <xs:enumeration value="massHostMaximum"/>
           <xs:enumeration value="massProgenitorMaximum"/>
+          <xs:enumeration value="misalignmentRandom"/>
           <xs:enumeration value="multi"/>
           <xs:enumeration value="nodeFormationTimeCole2000"/>
           <xs:enumeration value="nodeFormationTimeMassFraction"/>
@@ -2559,6 +2682,7 @@
           <xs:enumeration value="positionTraceDarkMatter"/>
           <xs:enumeration value="presetNamedShift"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="ramPressureMassLossDisks"/>
           <xs:enumeration value="ramPressureMassLossSpheroids"/>
           <xs:enumeration value="satelliteDecelerationSIDM"/>
@@ -2589,6 +2713,7 @@
           <xs:enumeration value="testInactivePropertyRead"/>
           <xs:enumeration value="tidalHeatingSpheroids"/>
           <xs:enumeration value="tidalMassLossDisks"/>
+          <xs:enumeration value="tidalMassLossNuclearStarClusters"/>
           <xs:enumeration value="tidalMassLossSpheroids"/>
           <xs:enumeration value="timeFirstInfall"/>
           <xs:enumeration value="trackOutflowedMass"/>
@@ -2677,6 +2802,7 @@
           <xs:enumeration value="luminosityEmissionLinePanuzzo2003"/>
           <xs:enumeration value="luminosityStellar"/>
           <xs:enumeration value="luminosityStellarFromSED"/>
+          <xs:enumeration value="luminosityStellarFromStarFormationHistory"/>
           <xs:enumeration value="magnitudesAbsolute"/>
           <xs:enumeration value="magnitudesApparent"/>
           <xs:enumeration value="mainBranchStatus"/>
@@ -2732,6 +2858,7 @@
           <xs:enumeration value="radiusVelocityMaximum"/>
           <xs:enumeration value="radiusVirial"/>
           <xs:enumeration value="radiusVirialLastDefined"/>
+          <xs:enumeration value="ramPressureHistory"/>
           <xs:enumeration value="rateCooling"/>
           <xs:enumeration value="rateInfallColdMode"/>
           <xs:enumeration value="ratio"/>
@@ -2757,6 +2884,7 @@
           <xs:enumeration value="starFormationRateInterOutput"/>
           <xs:enumeration value="stellarFeedbackOutflowRate"/>
           <xs:enumeration value="tidalField"/>
+          <xs:enumeration value="tidalTruncation"/>
           <xs:enumeration value="tidallyTruncatedNFWFit"/>
           <xs:enumeration value="time"/>
           <xs:enumeration value="timeFirstInfall"/>
@@ -2884,6 +3012,7 @@
           <xs:enumeration value="subhaloRadialDistribution"/>
           <xs:enumeration value="subhaloVMaxVsMass"/>
           <xs:enumeration value="sunyaevZeldovichPlanck2013"/>
+          <xs:enumeration value="syntheticLinear"/>
           <xs:enumeration value="tidalTracksVelocityMaximum"/>
           <xs:enumeration value="volumeFunction1D"/>
          </xs:restriction>
@@ -2919,6 +3048,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="attenuationScatter"/>
           <xs:enumeration value="diskSizeInclntn"/>
           <xs:enumeration value="gravitationalLensing"/>
           <xs:enumeration value="identity"/>
@@ -3123,6 +3253,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="SEDFit"/>
           <xs:enumeration value="baseParameters"/>
+          <xs:enumeration value="emulated"/>
           <xs:enumeration value="galaxyPopulation"/>
           <xs:enumeration value="gaussianRegression"/>
           <xs:enumeration value="haloMassFunction"/>
@@ -3264,6 +3395,24 @@
           <xs:enumeration value="linear"/>
           <xs:enumeration value="peacockDodds1996"/>
           <xs:enumeration value="smith2003"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="powerSpectrumNormalizer">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="amplitudeScalar"/>
+          <xs:enumeration value="identity"/>
+          <xs:enumeration value="matchedWavenumber"/>
+          <xs:enumeration value="sigma8"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -4098,6 +4247,7 @@
           <xs:enumeration value="comovingDistances"/>
           <xs:enumeration value="conditionalMassFunction"/>
           <xs:enumeration value="emulatorDesign"/>
+          <xs:enumeration value="emulatorPredict"/>
           <xs:enumeration value="evolveForests"/>
           <xs:enumeration value="excursionSets"/>
           <xs:enumeration value="haloMassFunction"/>
@@ -4131,6 +4281,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="simple"/>
+          <xs:enumeration value="zentner2005"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -4252,6 +4403,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="benson2005"/>
+          <xs:enumeration value="filamentary"/>
           <xs:enumeration value="fixed"/>
           <xs:enumeration value="isotropic"/>
           <xs:enumeration value="jiang2014"/>
@@ -4770,6 +4922,24 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="likelihoodForms">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="gaussianCovariance"/>
+          <xs:enumeration value="gaussianDiagonal"/>
+          <xs:enumeration value="logNormalFloored"/>
+          <xs:enumeration value="poissonCounts"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="lineOfSight">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -4946,6 +5116,22 @@
           <xs:enumeration value="byRank"/>
           <xs:enumeration value="byRankOnNode"/>
           <xs:enumeration value="none"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="orphanTrajectory">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="decay"/>
+          <xs:enumeration value="host"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

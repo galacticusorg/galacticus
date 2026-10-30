@@ -2,6 +2,12 @@
 #
 # Andrew Benson (06-Feb-2010)
 
+# Disable make's built-in implicit rules. `.SUFFIXES:` (below) cancels only the suffix rules, not the built-in
+# pattern rules (`%: %,v`, `%: RCS/%,v`, `%: s.%`, ...), which make would otherwise try - across every `vpath`
+# directory - for each of the ~2000 prerequisites of the tree-scanning rules, on every invocation. Note that this adds
+# `r` to MAKEFLAGS, which LINK_METADATA's `-j` detection tolerates since it matches only space-delimited ` -j` words.
+MAKEFLAGS += --no-builtin-rules
+
 # Detect Operating System
 UNAME_S := $(shell uname -s)
 
@@ -11,37 +17,133 @@ ifeq ($(UNAME_S),Darwin)
     export LC_ALL=C
 endif
 
-# Build option.
-GALACTICUS_BUILD_OPTION ?= default
+# Build options. Each option controls a single aspect of the build, and options may be combined:
+#   MPI=yes             build with MPI (compilers default to the MPI wrappers - see below);
+#   LIBRARY=yes         build the shared library, libgalacticus.so, and its Python interface;
+#   PROFILER=gprof|perf instrument for a profiler: `-pg` for gprof, or frame pointers for perf;
+#   ODEPROFILE=yes      profile the ODE solver (`-DPROFILE`);
+#   DEBUGGING=yes       a debugging build (`-DDEBUGGING`);
+#   BUILDPROFILE=yes    profile the build itself - its time and memory use - rather than the code built;
+#   PGO=generate|use    the two phases of a profile-guided optimization build (see the PGO section below).
+# Further options, documented where they are used below, are LTO, OFDLOCKS, USEGIT2, and GALACTICUS_OBJECTS_DEBUG.
+#
+# Options which change the code built each add a tag (e.g. `MPI`, `Perf`) to the build directory and to the suffix of
+# executables, so that each combination is built separately and can coexist with the others: for example, `MPI=yes
+# PROFILER=perf` builds in ./work/buildMPIPerf and produces Galacticus.exe_MPIPerf. Set BUILDPATH or SUFFIX explicitly to
+# override these (e.g. `SUFFIX=` to produce plain Galacticus.exe). Options which do not get a tag (such as LTO), and any
+# other change in compilers or flags (including GALACTICUS_FCFLAGS etc.), are caught by the build configuration stamp
+# (see BUILDCONFIGURATIONSTAMP below), which forces the affected files to be rebuilt.
+MPI          ?= no
+LIBRARY      ?= no
+PROFILER     ?= none
+ODEPROFILE   ?= no
+DEBUGGING    ?= no
+BUILDPROFILE ?= no
+PGO          ?= no
+
+# GALACTICUS_BUILD_OPTION is deprecated - it selected one of a fixed set of combinations of the above. It is mapped onto
+# the individual options, and keeps its original executable suffixes so that existing command lines produce the same
+# files.
+ifneq ($(origin GALACTICUS_BUILD_OPTION),undefined)
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'default'
+BUILDOPTIONSUFFIX :=
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+override MPI := yes
+BUILDOPTIONSUFFIX :=
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+override LIBRARY := yes
+BUILDOPTIONSUFFIX := _lib
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
+override PROFILER := gprof
+BUILDOPTIONSUFFIX := _gprof
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'perf'
+override PROFILER := perf
+BUILDOPTIONSUFFIX := _perf
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
+override ODEPROFILE := yes
+BUILDOPTIONSUFFIX := _odeProf
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
+override BUILDPROFILE := yes
+BUILDOPTIONSUFFIX :=
+else
+$(error GALACTICUS_BUILD_OPTION='$(GALACTICUS_BUILD_OPTION)' is not recognized)
+endif
+# Warn once: not again when make restarts after remaking its included makefiles, nor in recursive makes.
+ifeq ($(MAKELEVEL)$(MAKE_RESTARTS),0)
+$(warning GALACTICUS_BUILD_OPTION is deprecated and will be removed - use the individual build options instead (MPI=yes, LIBRARY=yes, PROFILER=gprof|perf, ODEPROFILE=yes, BUILDPROFILE=yes; see the developer guide))
+endif
+ifeq ($(origin SUFFIX),undefined)
+SUFFIX := $(BUILDOPTIONSUFFIX)
+endif
+endif
+
+# Validate the options.
+ifeq ($(filter $(MPI),yes no),)
+$(error MPI must be 'yes' or 'no', not '$(MPI)')
+endif
+ifeq ($(filter $(LIBRARY),yes no),)
+$(error LIBRARY must be 'yes' or 'no', not '$(LIBRARY)')
+endif
+ifeq ($(filter $(PROFILER),none gprof perf),)
+$(error PROFILER must be 'none', 'gprof', or 'perf', not '$(PROFILER)')
+endif
+ifeq ($(filter $(ODEPROFILE),yes no),)
+$(error ODEPROFILE must be 'yes' or 'no', not '$(ODEPROFILE)')
+endif
+ifeq ($(filter $(DEBUGGING),yes no),)
+$(error DEBUGGING must be 'yes' or 'no', not '$(DEBUGGING)')
+endif
+ifeq ($(filter $(BUILDPROFILE),yes no),)
+$(error BUILDPROFILE must be 'yes' or 'no', not '$(BUILDPROFILE)')
+endif
+ifeq ($(filter $(PGO),no generate use),)
+$(error PGO must be 'no', 'generate', or 'use', not '$(PGO)')
+endif
+
+# Build directory and executable suffix, derived from the tags of the options which change the code built. With no such
+# option the build directory is ./work/build, and the suffix is empty.
+BUILDTAGS := $(if $(filter yes,$(MPI)),MPI)$(if $(filter yes,$(LIBRARY)),Lib)$(if $(filter yes,$(DEBUGGING)),Debug)$(if $(filter yes,$(ODEPROFILE)),ODEProf)$(if $(filter gprof,$(PROFILER)),GProf)$(if $(filter perf,$(PROFILER)),Perf)$(if $(filter generate use,$(PGO)),PGO)
 ifdef  BUILDPATH
  override BUILDPATH := $(patsubst %/,%,$(BUILDPATH))
 endif
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'default'
-export BUILDPATH ?= ./work/build
-export SUFFIX ?=
-else ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
-export BUILDPATH ?= ./work/buildMPI
-export SUFFIX ?=
-else ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
-export BUILDPATH ?= ./work/buildLib
-export SUFFIX ?=_lib
-else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
-export BUILDPATH ?= ./work/buildGProf
-export SUFFIX ?= _gprof
-else ifeq '$(GALACTICUS_BUILD_OPTION)' 'perf'
-export BUILDPATH ?= ./work/buildPerf
-export SUFFIX ?= _perf
-else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
-export BUILDPATH ?= ./work/buildODEProf
-export SUFFIX ?= _odeProf
-else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
-export BUILDPATH ?= ./work/build
-export SUFFIX ?=
+export BUILDPATH ?= ./work/build$(BUILDTAGS)
+# The two phases of a PGO build must share a build directory (profiles are located by object file path), so the
+# instrumented executable of the first is distinguished by its suffix alone.
+ifeq ($(origin SUFFIX),undefined)
+SUFFIX := $(if $(BUILDTAGS),_$(BUILDTAGS)$(if $(filter generate,$(PGO)),Instrumented))
 endif
+export SUFFIX
+
+# The build configuration stamp - see its rule below.
+BUILDCONFIGURATIONSTAMP := $(BUILDPATH)/buildConfiguration.stamp
 
 # Convenience flag: non-empty when this is a shared-library build. Use via `ifneq ($(IS_LIB_BUILD),)` to gate
 # library-only logic (PIC flags, library interface generation, dependency prereqs).
-IS_LIB_BUILD := $(filter lib,$(GALACTICUS_BUILD_OPTION))
+IS_LIB_BUILD := $(filter yes,$(LIBRARY))
+
+# Exported flags in recursive makes. This Makefile appends to CFLAGS and GALACTICUS_FCFLAGS, and exports them, because
+# recipes need them (the preprocessor's Constants hook compiles C code with CFLAGS; several code generators read
+# GALACTICUS_FCFLAGS). A recursive make - such as the `.mod` recovery recipes in Makefile_Module_Dependencies - inherits
+# their *final* values through its environment, and so would append to them again, doubling them. The build
+# configuration stamp records the flags, so it would be rewritten, and the next build would preprocess and recompile
+# everything. For CFLAGS, snapshot the value it had when the top-level make started (from the user's environment, or
+# empty), pass that down, and have every make, recursive or not, rebuild CFLAGS from it - see its first assignment, below.
+# (GALACTICUS_FCFLAGS is handled where `-DDEBUGGING` is appended to it.)
+ifeq ($(origin GALACTICUS_TOPLEVEL_CFLAGS),undefined)
+export GALACTICUS_TOPLEVEL_CFLAGS := $(CFLAGS)
+endif
+
+# Debugging builds. `-DDEBUGGING` is added to GALACTICUS_FCFLAGS (which is exported), rather than to FCFLAGS, because the
+# build's code generators (python/Galacticus/Build/Components/) and its dependency scanner (scripts/build/useDependencies.py)
+# read it from there. Adding `-DDEBUGGING` to GALACTICUS_FCFLAGS directly still works too, although without a separate build
+# directory.
+# Append it only if absent, as a recursive make inherits the value already appended to (see above).
+ifeq '$(DEBUGGING)' 'yes'
+ifeq ($(filter -DDEBUGGING,$(GALACTICUS_FCFLAGS)),)
+override GALACTICUS_FCFLAGS += -DDEBUGGING
+endif
+export GALACTICUS_FCFLAGS
+endif
 
 # Preprocessor:
 PREPROCESSOR ?= cpp
@@ -54,12 +156,12 @@ PREPROCESSOR ?= cpp
 export PYTHONPATH := $(CURDIR)/python$(if $(PYTHONPATH),:$(PYTHONPATH))
 
 # Profiling options.
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
+ifeq '$(BUILDPROFILE)' 'yes'
 SHELL = ./scripts/build/profiler.sh
 endif
 
 # Fortran compiler:
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifeq '$(MPI)' 'yes'
 ifdef MPIFCCOMPILER
 FCCOMPILER = $(MPIFCCOMPILER)
 else
@@ -70,7 +172,7 @@ FCCOMPILER ?= gfortran
 endif
 
 # C compiler:
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifeq '$(MPI)' 'yes'
 ifdef MPICCOMPILER
 CCOMPILER = $(MPICCOMPILER)
 else
@@ -82,7 +184,7 @@ endif
 export CCOMPILER
 
 # C++ compiler:
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifeq '$(MPI)' 'yes'
 ifdef MPICPPCOMPILER
 CPPCOMPILER = $(MPICPPCOMPILER)
 else
@@ -109,8 +211,16 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 # C, C++ and Fortran 77 sources (vendored GSL ODE stepper, GSL interface wrappers, ANN, FFTlog, Genz) need their own
 # optimization level - without one they are compiled at -O0. The finite-math flags are deliberately not applied here, as
 # these sources test for infinities and NaNs. These precede ${GALACTICUS_CFLAGS} and ${GALACTICUS_CPPFLAGS} (added below),
-# so an optimization level set there takes precedence.
-CFLAGS   += -O3
+# so an optimization level set there takes precedence. This is the first assignment to CFLAGS, so it also rebuilds CFLAGS
+# from the snapshot of its initial value (see the start of this file), discarding the final value that a recursive make
+# inherits. It is written to give exactly what `CFLAGS += -O3` would at the top level, where CFLAGS is otherwise undefined
+# (the build configuration stamp records the text, so even an extra space would force a rebuild), and must stay recursively
+# expanded (`=`, not `:=`), as later additions refer to SOURCEDIRS, which is defined only further down.
+ifeq ($(GALACTICUS_TOPLEVEL_CFLAGS),)
+CFLAGS    = -O3
+else
+CFLAGS    = $(GALACTICUS_TOPLEVEL_CFLAGS) -O3
+endif
 CPPFLAGS += -O3
 F77FLAGS += -O2
 # For OpenMP compilation.
@@ -137,6 +247,32 @@ ifeq '$(LTO)' 'enabled'
 FCFLAGS  += -flto=jobserver
 CFLAGS   += -flto=jobserver
 CPPFLAGS += -flto=jobserver
+endif
+# Profile-guided optimization (PGO). A two-phase build, both phases in the same build directory (e.g. ./work/buildPGO):
+#   1. `make PGO=generate Galacticus.exe` builds an instrumented executable, Galacticus.exe_PGOInstrumented. Each run of it
+#      adds execution counts to `*.gcda` profile files written next to the object files. The training models in
+#      testSuite/parameters/pgo/ are intended for this. Counters are updated atomically, so training runs may use multiple
+#      OpenMP threads.
+#   2. `make PGO=use Galacticus.exe` rebuilds using those profiles, producing Galacticus.exe_PGO.
+# Profiles match only the exact source and flags they were generated from. The build configuration stamp (see the end of
+# this file) makes switching phase recompile everything, deletes the profiles whenever the configuration of a `generate`
+# build changes, and in the `use` phase rebuilds if any profile is newer than the last build. `PGO=use` stops with an
+# error if there are no profiles. `-fprofile-partial-training` keeps code which training did not reach optimized as in a
+# normal build, rather than optimized for size as never-executed code.
+ifeq '$(PGO)' 'generate'
+FCFLAGS  += -fprofile-generate -fprofile-update=prefer-atomic
+CFLAGS   += -fprofile-generate -fprofile-update=prefer-atomic
+CPPFLAGS += -fprofile-generate -fprofile-update=prefer-atomic
+F77FLAGS += -fprofile-generate -fprofile-update=prefer-atomic
+else ifeq '$(PGO)' 'use'
+FCFLAGS  += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+CFLAGS   += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+CPPFLAGS += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+F77FLAGS += -fprofile-use -fprofile-partial-training -Wno-missing-profile
+# Profile-driven inlining exposes more false positives of the kind described for -Wstringop-overread below: the LTO
+# middle-end warns of a memcpy of ~2^64 bytes when concatenating a literal with `char(varying_string)`, as it cannot prove
+# the computed length non-negative. Like that flag, this applies only at the LTO link step.
+FCFLAGS_LINK += -Wno-stringop-overflow
 endif
 # Detect static compilation
 STATIC=$(findstring -static,${FCFLAGS})
@@ -199,7 +335,7 @@ CFLAGS        += -g
 CPPFLAGS      += -g
 
 # Detect GProf compile.
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
+ifeq '$(PROFILER)' 'gprof'
 FCFLAGS       += -pg
 FCFLAGS_NOOPT += -pg
 F77FLAGS      += -pg
@@ -208,7 +344,7 @@ CPPFLAGS      += -pg
 endif
 
 # Detect perf compile.
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'perf'
+ifeq '$(PROFILER)' 'perf'
 FCFLAGS       += -fno-omit-frame-pointer
 FCFLAGS_NOOPT += -fno-omit-frame-pointer
 F77FLAGS      += -fno-omit-frame-pointer
@@ -217,7 +353,7 @@ CPPFLAGS      += -fno-omit-frame-pointer
 endif
 
 # Detect ODE profiling compile.
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
+ifeq '$(ODEPROFILE)' 'yes'
 FCFLAGS       += -DPROFILE
 FCFLAGS_NOOPT += -DPROFILE
 CFLAGS        += -DPROFILE
@@ -225,7 +361,7 @@ CPPFLAGS      += -DPROFILE
 endif
 
 # Detect MPI compile.
-ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
+ifeq '$(MPI)' 'yes'
 FCFLAGS       += -DUSEMPI
 FCFLAGS_NOOPT += -DUSEMPI
 CFLAGS        += -DUSEMPI
@@ -330,7 +466,7 @@ vpath %.F90 $(SOURCEDIRS)
 # "change a generator, rebuild, diff the generated code" report a false "no change". The digest
 # is likewise written only-if-changed, and covers only the modules the preprocessor actually
 # imports, so unrelated Python edits do not trigger the sweep.
-$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDPATH)/directiveLocations.xml
+$(BUILDPATH)/%.p.F90.up : source/%.F90 $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDPATH)/directiveLocations.xml $(BUILDCONFIGURATIONSTAMP)
 	./scripts/build/preprocess.py source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.p.F90 : $(BUILDPATH)/%.p.F90.up
 	@true
@@ -366,7 +502,7 @@ endif
 # different random handful of targets each run, which reads exactly like a filesystem problem.
 # (libraryInterfacesDependencies.py emits a mirror of this recipe for the library wrapper units —
 # keep the two in sync.)
-$(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
+$(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	diag=$(BUILDPATH)/$*.o.diag.$$$$; \
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) > $$diag 2>&1; \
@@ -397,10 +533,10 @@ $(BUILDPATH)/os.inc:
 $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hdf5FCInteropC.exe
 	$(BUILDPATH)/hdf5FCInterop.exe  >  $(BUILDPATH)/hdf5FCInterop.dat
 	$(BUILDPATH)/hdf5FCInteropC.exe >> $(BUILDPATH)/hdf5FCInterop.dat
-$(BUILDPATH)/hdf5FCInterop.exe  : source/system/hdf5FCInterop.F90
+$(BUILDPATH)/hdf5FCInterop.exe  : source/system/hdf5FCInterop.F90 $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	+$(FCCOMPILER) source/system/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
-$(BUILDPATH)/hdf5FCInteropC.exe : source/system/hdf5FCInteropC.c
+$(BUILDPATH)/hdf5FCInteropC.exe : source/system/hdf5FCInteropC.c $(BUILDCONFIGURATIONSTAMP)
 	+$(CCOMPILER) source/system/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
 # Canned recipe for feature-availability probes:
@@ -513,12 +649,12 @@ endif
 
 # Object (*.o) files are built by compiling C (*.c) source files.
 vpath %.c $(SOURCEDIRS)
-$(BUILDPATH)/%.o : %.c $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
+$(BUILDPATH)/%.o : %.c $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile $(BUILDCONFIGURATIONSTAMP)
 	$(CCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CFLAGS)
 
 # Object (*.o) can also be built from C++ source files.
 vpath %.cpp $(SOURCEDIRS)
-$(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
+$(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile $(BUILDCONFIGURATIONSTAMP)
 	$(CPPCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(CPPFLAGS)
 
 # Rules for the QHull library. Use the C++17 standard for these files since they are not compatible with later C++ standards
@@ -526,7 +662,7 @@ $(BUILDPATH)/%.o : %.cpp $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
 # rules: qhull.cpp preprocesses to an empty translation unit under -DQHULLUNAVAIL, so a stale object compiled under a
 # different availability result must be rebuilt when the flags change — otherwise the link fails with an undefined
 # reference to `convexHullVolumeC` (or silently links a stub).
-$(BUILDPATH)/external/Qhull/qhull.o : source/external/Qhull/qhull.cpp Makefile
+$(BUILDPATH)/external/Qhull/qhull.o : source/external/Qhull/qhull.cpp Makefile $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/external/Qhull
 	$(CPPCOMPILER) -c source/external/Qhull/qhull.cpp -o $(BUILDPATH)/external/Qhull/qhull.o $(CPPFLAGS) -std=gnu++17
 
@@ -547,24 +683,24 @@ $(BUILDPATH)/external/FFTlog/%.d : ./source/external/FFTlog/%.f
 	 mv $(BUILDPATH)/external/FFTlog/$*.d~ $(BUILDPATH)/external/FFTlog/$*.d ; \
 	fi
 
-$(BUILDPATH)/external/FFTlog/%.o: ./source/external/FFTlog/%.f Makefile
+$(BUILDPATH)/external/FFTlog/%.o: ./source/external/FFTlog/%.f Makefile $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	@mkdir -p $(BUILDPATH)/external/FFTlog
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/external/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch -std=legacy
 
 # Object (*.o) files are built by compiling Fortran (*.[fF]) source files.
 vpath %.f $(SOURCEDIRS)
-$(BUILDPATH)/%.o : %.f $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
+$(BUILDPATH)/%.o : %.f $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
 vpath %.F $(SOURCEDIRS)
-$(BUILDPATH)/%.o : %.F $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
+$(BUILDPATH)/%.o : %.F $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # pfq.new.f
-$(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile
+$(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/external/pFq/pfq.new.o $(FCFLAGS)
 
@@ -576,7 +712,7 @@ $(BUILDPATH)/external/pFq/pfq.new.o : ./source/external/pFq/pfq.new.f Makefile
 # by case, so on case-insensitive filesystems (macOS APFS) the `mv` in the `%.inc` recipe below
 # overwrote the intermediate in place, and every incremental build re-preprocessed its own cpp
 # output under a perpetually-bumped timestamp.
-$(BUILDPATH)/%.p.Inc.up : ./source/%.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
+$(BUILDPATH)/%.p.Inc.up : ./source/%.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml $(BUILDCONFIGURATIONSTAMP)
 	./scripts/build/preprocess.py ./source/$*.Inc $(BUILDPATH)/$*.p.Inc
 $(BUILDPATH)/%.p.Inc : $(BUILDPATH)/%.p.Inc.up
 	@true
@@ -746,7 +882,13 @@ ifneq ($(IS_LIB_BUILD),)
 -include $(BUILDPATH)/Makefile_Library_Dependencies
 $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
-$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py
+# directiveLocations.xml and stateStorables.xml are byproducts of the Makefile_Directives recipe (see below), so have no rule
+# of their own. The order-only prerequisite on Makefile_Directives ensures that they are brought up to date before
+# libraryInterfaces.py reads them. Without it, when libgalacticus.Inc is out of date for some other reason (e.g. an edit to
+# libraryClasses.xml) make can run libraryInterfaces.py in parallel with codeDirectivesParse.py. libraryInterfaces.py then reads
+# the old catalogs, and its output (being newer than the regenerated catalogs) is never remade, silently omitting any new
+# classes from the library.
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py | $(BUILDPATH)/Makefile_Directives
 	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
@@ -783,7 +925,7 @@ $(BUILDPATH)/libgalacticus.preprocessed.inc :
 endif
 
 # Ensure that we don't delete object files which make considers to be intermediate
-.PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d
+.PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.p.Inc $(BUILDPATH)/%.p.Inc.up $(BUILDPATH)/%.d
 
 # Cancel all builtin rules.
 .SUFFIXES:
@@ -833,10 +975,19 @@ $(BUILDPATH)/preprocessorSources.digest: $(BUILDPATH)/preprocessorSources.digest
 # Dependency on dependencies.
 $(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
 
-# Rules for version routines.
-$(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)
-	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=40), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=40), parameter :: gitHash="unknown"\n' > $(BUILDPATH)/output.version.revision.inc; fi
-	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/output.version.revision.inc; fi
+# Rules for version routines. The git commit hash and branch are recorded in a stamp file, which is rewritten only when they
+# change, so that the revision include file is regenerated whenever (and only when) a different commit or branch is checked
+# out. They are found using git itself, rather than by reading files under .git/, as `.git` is a file (not a directory) in a
+# git worktree, and refs may be packed. The stamp is written here, at parse time, rather than by a rule with a FORCE
+# prerequisite, for the reasons given for BUILDCONFIGURATIONSTAMP below. Outside of a git checkout (e.g. a source archive) the
+# hash and branch are "unknown" and "(unknown)".
+GITREVISIONSTAMP := $(BUILDPATH)/gitRevision.stamp
+ifneq ($(if $(MAKECMDGOALS),$(filter-out clean tidy,$(MAKECMDGOALS)),build)$(if $(wildcard $(GITREVISIONSTAMP)),,missing),)
+GITREVISIONSTATUS := $(shell mkdir -p $(BUILDPATH) && { if [ -e .git ] && git rev-parse --verify -q HEAD > /dev/null 2>&1 ; then git rev-parse --verify -q HEAD; git symbolic-ref -q --short HEAD || echo '(detached)'; else echo unknown; echo '(unknown)'; fi; } > $(GITREVISIONSTAMP).new && { cmp -s $(GITREVISIONSTAMP).new $(GITREVISIONSTAMP) || mv $(GITREVISIONSTAMP).new $(GITREVISIONSTAMP); }; rm -f $(GITREVISIONSTAMP).new)
+endif
+$(BUILDPATH)/output.version.revision.inc: $(GITREVISIONSTAMP)
+	@sed -n 1p $(GITREVISIONSTAMP) | awk '{print "character(len=40), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc
+	@sed -n 2p $(GITREVISIONSTAMP) | awk '{print "character(len=128), parameter :: gitBranch=\""$$1"\""}' >> $(BUILDPATH)/output.version.revision.inc
 	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/output.version.revision.inc
 
 # Rules for build information routines.
@@ -854,8 +1005,8 @@ $(BUILDPATH)/output.build.environment.inc:
 	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
 	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/output.build.environment.inc
 
-# Rules for changeset creation.
-Galacticus.exe: $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bundle
+# Rules for changeset creation. (The target is the executable's actual file - see the rules generated by findExecutables.py.)
+Galacticus.exe$(SUFFIX): $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bundle
 $(BUILDPATH)/galacticus.git.patch:
 	git diff > $(BUILDPATH)/galacticus.git.patch 2>&1 || echo unknown > $(BUILDPATH)/galacticus.git.patch
 $(BUILDPATH)/galacticus.git.bundle:
@@ -871,6 +1022,13 @@ tidy:
 # Rule for making all executables.
 -include $(BUILDPATH)/Makefile_All_Execs
 all: deps $(all_exes)
+
+# Rule for preprocessing every Fortran source file without compiling anything. Preprocessing needs only ~100 MB per
+# process, so it can run at a much higher parallelism than compilation, whose large generated `_class` units can each
+# take gigabytes. A two-phase build exploits this - e.g. `make -j$(nproc) preprocess` followed by `make -j2
+# Galacticus.exe`, as CI does. Files that no executable uses are preprocessed too, at a small cost in CPU time.
+.PHONY: preprocess
+preprocess: $(patsubst source/%.F90,$(BUILDPATH)/%.p.F90,$(call rwildcard,source,*.F90))
 
 # Rules for building dependency Makefiles.
 $(BUILDPATH)/Makefile_Module_Dependencies: ./scripts/build/moduleDependencies.py $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/Makefile_Directives $(BUILDPATH)/Makefile_Include_Dependencies $(ALLSOURCESINC) $(SOURCEDIRS)
@@ -952,3 +1110,30 @@ parameters-schema:
 # from scripts/build/hooks/pre-commit).
 parameters-schema-check:
 	+./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd --check
+
+# Build configuration stamp. Nothing else records the compilers and flags with which a build directory was built, so
+# changing them (e.g. LTO, GALACTICUS_FCFLAGS, or a newly detected library) would otherwise leave objects, and code
+# generated according to them (e.g. for `-DDEBUGGING`), from the previous configuration in place, to be silently linked
+# with the new. This file records the configuration, and every preprocessed source and object depends on it. It is
+# written here, once the whole Makefile (including the library-probe results) has been read, but only if its contents
+# have changed, so that only then is everything rebuilt. It is an ordinary file with no rule of its own - deliberately so:
+# an earlier version written by a rule run on every build (via a FORCE prerequisite), on which thousands of targets
+# depended, hung the macOS CI builds, which use GNU make 3.81. Invocations which only run utility targets (cleaning, the
+# parameter schema and catalog) do not rewrite it, other than to create it if missing.
+BUILDCONFIGURATIONUTILITYGOALS := clean tidy parameters-catalog parameters-schema parameters-schema-check
+# For PGO builds (see the PGO section above): a changed configuration in the `generate` phase invalidates any existing
+# profiles, so delete them; in the `use` phase, profiles newer than the stamp (i.e. further training since the last build)
+# require a rebuild, so touch it. And the `use` phase requires profiles.
+BUILDCONFIGURATIONPGODELETE  := $(if $(filter generate,$(PGO)),; find $(BUILDPATH) -name '*.gcda' -exec rm -f {} +)
+BUILDCONFIGURATIONPGOTRAINED := $(if $(filter use,$(PGO)),; [ -z "$$(find $(BUILDPATH) -name '*.gcda' -newer $(BUILDCONFIGURATIONSTAMP) | head -n 1)" ] || touch $(BUILDCONFIGURATIONSTAMP))
+ifeq '$(PGO)' 'use'
+ifneq ($(if $(MAKECMDGOALS),$(filter-out $(BUILDCONFIGURATIONUTILITYGOALS),$(MAKECMDGOALS)),build),)
+ifeq ($(call rwildcard,$(BUILDPATH),*.gcda),)
+$(error PGO=use: no profiles (*.gcda) were found in $(BUILDPATH) - build with PGO=generate and run the training models first)
+endif
+endif
+endif
+BUILDCONFIGURATIONQUOTE         = '$(subst ','\'',$(1))'
+ifneq ($(if $(MAKECMDGOALS),$(filter-out $(BUILDCONFIGURATIONUTILITYGOALS),$(MAKECMDGOALS)),build)$(if $(wildcard $(BUILDCONFIGURATIONSTAMP)),,missing),)
+BUILDCONFIGURATIONSTATUS := $(shell mkdir -p $(BUILDPATH) && printf '%s\n' $(call BUILDCONFIGURATIONQUOTE,FCCOMPILER=$(FCCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CCOMPILER=$(CCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CPPCOMPILER=$(CPPCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS=$(FCFLAGS)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS_LINK=$(FCFLAGS_LINK)) $(call BUILDCONFIGURATIONQUOTE,F77FLAGS=$(F77FLAGS)) $(call BUILDCONFIGURATIONQUOTE,CFLAGS=$(CFLAGS)) $(call BUILDCONFIGURATIONQUOTE,CPPFLAGS=$(CPPFLAGS)) > $(BUILDCONFIGURATIONSTAMP).new && { cmp -s $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP) || { mv $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP)$(BUILDCONFIGURATIONPGODELETE); }; }; rm -f $(BUILDCONFIGURATIONSTAMP).new$(BUILDCONFIGURATIONPGOTRAINED))
+endif

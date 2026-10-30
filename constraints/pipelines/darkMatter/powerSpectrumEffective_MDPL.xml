@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -37,6 +37,10 @@
       <monotonicInterpolation    value="true"  />
       <integrationFailureIsFatal value="false" />
       <storeTabulations          value="false" />
+    </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="matchedWavenumber">
       <wavenumberReference       value="1.0e+2"/>
       <reference value="N/A">
 	<powerSpectrumPrimordial value="powerLaw">
@@ -46,28 +50,13 @@
 	  <running             value="0.000"/>
 	</powerSpectrumPrimordial>
 	<powerSpectrumPrimordialTransferred value="simple" />
-	<powerSpectrumWindowFunction value="ETHOSExtended">
-	  <cW0                         value="=[haloMassFunctionParameters/cW0]"                        />
-	  <cW1                         value="=[haloMassFunctionParameters/cW1]"                        />
-	  <beta0                       value="=[haloMassFunctionParameters/beta0]"                      />
-	  <beta1                       value="=[haloMassFunctionParameters/beta1]"                      />
-	  <wavenumberScaledMinimum     value="=[haloMassFunctionParameters/wavenumberScaledMinimum]"    />
-	  <powerSpectrumSmoothingWidth value="=[haloMassFunctionParameters/powerSpectrumSmoothingWidth]"/>
-	</powerSpectrumWindowFunction>
-	<cosmologicalMassVariance value="filteredPower">
-	  <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+      <powerSpectrumNormalizer value="sigma8">
 	  <sigma_8                   value="0.8228"/>
-	  <tolerance                 value="4.0e-6"/>
-	  <toleranceTopHat           value="2.0e-6"/>
-          <nonMonotonicIsFatal       value="false" />
-	  <monotonicInterpolation    value="true"  />
+        <tolerance value="2.0e-6"/>
 	  <integrationFailureIsFatal value="false" />
-	  <storeTabulations          value="false" />
-	</cosmologicalMassVariance>
+      </powerSpectrumNormalizer>
       </reference>
-    </cosmologicalMassVariance>
-  </cosmologicalMassVariance>
-  <powerSpectrumPrimordialTransferred value="simple"/>
+  </powerSpectrumNormalizer>
 
   <!-- Structure formation options -->
   <linearGrowth          value="collisionlessMatter"                      />

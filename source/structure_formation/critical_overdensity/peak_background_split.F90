@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an peak-background split critical overdensity class.
 !!}
@@ -140,10 +142,12 @@ contains
     peakBackgroundSplitValue=+self%criticalOverdensity_%value(time,expansionFactor,collapsing,mass,node)
     ! Offset the critical overdensity by the environmental overdensity. Note that the convention used with Galacticus is that the
     ! critical overdensity always applies to perturbations at the current epoch, and σ(M,t) grows with time. The environmental
-    ! overdensity function provides the overdensity at the current epoch.
-    if (present(node))                                                                &
-         & peakBackgroundSplitValue=+peakBackgroundSplitValue                         &
-         &                          -self%haloEnvironment_   %overdensityLinear(node)
+    ! overdensity is evaluated at the epoch for which the critical overdensity is requested (not at the cosmic time of the node,
+    ! which differs from it when, for example, solving for the time of collapse). An environment which depends on neither the
+    ! node nor its tree can be evaluated without a node.
+    if (present(node) .or. .not.(self%haloEnvironment_%isNodeDependent() .or. self%haloEnvironment_%isTreeDependent()))      &
+         & peakBackgroundSplitValue=+peakBackgroundSplitValue                                                                &
+         &                          -self%haloEnvironment_%overdensityLinear(node,time=time,expansionFactor=expansionFactor)
     return
   end function peakBackgroundSplitValue
 
@@ -158,8 +162,10 @@ contains
     double precision                                        , intent(in   ), optional :: mass
     type            (treeNode                              ), intent(inout), optional :: node
 
-    peakBackgroundSplitGradientTime=+self%criticalOverdensity_%gradientTime                 (time,expansionFactor,collapsing,mass,node) &
-         &                          -self%haloEnvironment_    %overdensityLinearGradientTime(                                     node)
+    peakBackgroundSplitGradientTime=+self%criticalOverdensity_%gradientTime(time,expansionFactor,collapsing,mass,node)
+    if (present(node) .or. .not.(self%haloEnvironment_%isNodeDependent() .or. self%haloEnvironment_%isTreeDependent()))                         &
+         & peakBackgroundSplitGradientTime=+peakBackgroundSplitGradientTime                                                                     &
+         &                                 -self%haloEnvironment_%overdensityLinearGradientTime(node,time=time,expansionFactor=expansionFactor)
     return
   end function peakBackgroundSplitGradientTime
 

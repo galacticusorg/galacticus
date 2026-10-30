@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameter file used by tests.bett2007_spin_distribution.exe, which validates the halo spin distribution of
-     Bett et al. (2007) against independently computed reference values (galacticusDevTools/bett2007SpinDistribution.py).
+     Bett et al. (2007) against independently computed reference values (galacticusDevTools/physicsReferences/bett2007SpinDistribution.py).
 
      The distribution itself depends only on its own two parameters, but evaluating it requires a node: the class divides the
      node's angular momentum by the halo's characteristic angular momentum scale to form the dimensionless spin. That scale, on
@@ -11,7 +11,7 @@
   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="75fe8b2def913b997756b92093f11415fbea05d7" time="2026-09-15T00:00:00"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <!-- Component selection. Basic, spin and dark matter profile components are needed to form the angular momentum scale. -->
   <componentBasic             value="standard"/>

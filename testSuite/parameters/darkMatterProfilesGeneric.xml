@@ -3,7 +3,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="3c57050dfc00cdbc7396b4210a9dc404b9fda859" time="2026-08-23T04:06:13"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <componentDarkMatterProfile value="scaleShape"/>
   <cosmologyFunctions value="matterLambda"/>
@@ -13,9 +13,10 @@
     <OmegaBaryon value="0.0465"/>
     <HubbleConstant value="69.3"/>
   </cosmologyParameters>
-  <cosmologicalMassVariance value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower"/>
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.82"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
   <transferFunction value="eisensteinHu1999"/>
   <powerSpectrumPrimordial value="powerLaw">
     <index value="0.971"/>

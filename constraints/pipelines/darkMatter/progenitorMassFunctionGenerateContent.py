@@ -34,6 +34,8 @@ def _parse_args():
                         help='Directory for generated output files')
     parser.add_argument('--countParticlesMinimum',       default=300, type=int,
                         help='Minimum particles per halo for constraints (default: 300)')
+    parser.add_argument('--countParticlesParentMinimum', default=0, type=int,
+                        help='Minimum particles per parent halo (at the parent mass bin center) for a parent mass bin to be included in the constraints (default: 0)')
     parser.add_argument('--convergeAfterCount',   default=-1, type=int,
                         help='Number of steps after which to declare convergence (-1 to never stop; default: 1000)')
     parser.add_argument('--correlationStopAfterCount',   default=1000, type=int,
@@ -49,8 +51,12 @@ def _parse_args():
                         help='Distribution model for the progenitor-to-parent mass ratio under N-body '
                              'mass errors: "hinkley" (exact ratio-of-normals) or "normal" (linearized '
                              'Gaussian approximation) (default: hinkley)')
+    parser.add_argument('--modelVariance', default='no', choices=['no', 'yes'],
+                        help='Include the variance of the model (from its finite number of merger trees) in the '
+                             'over-dispersion of the likelihood of each progenitor mass function, so that the noise of a '
+                             'single realization of the trees does not bias the likelihood low (default: no)')
     args = parser.parse_args()
-    # Normalise paths to end with '/'.
+    # Normalize paths to end with '/'.
     for key in ('pipelinePath', 'outputDirectory'):
         val = getattr(args, key)
         if val and not val.endswith('/'):
@@ -89,13 +95,14 @@ def _base_files(entry_groups,options):
 
     Returns config_likelihood.
     """
-    pipeline_path          = options['pipelinePath']
-    output_dir             = options['outputDirectory']
-    count_particles_min    = options['countParticlesMinimum']
-    fraction_mass_primary  = 5.0
-    data_path              = os.environ.get('GALACTICUS_DATA_PATH', '')
+    pipeline_path              = options['pipelinePath']
+    output_dir                 = options['outputDirectory']
+    count_particles_min        = options['countParticlesMinimum']
+    count_particles_parent_min = options['countParticlesParentMinimum']
+    fraction_mass_primary      = 5.0
+    data_path                  = os.environ.get('GALACTICUS_DATA_PATH', '')
 
-    config_likelihood      = ''
+    config_likelihood = ''
     for identifier in sorted(entry_groups):
         group   = entry_groups[identifier]
         entry   = group[0]
@@ -105,7 +112,7 @@ def _base_files(entry_groups,options):
         sim     = entry['simulation']
         real    = entry['realization']
         redshifts            = sorted([e['redshift'] for e in group],key=lambda x: float(x))
-        redshift_progenitors = redshifts
+        redshift_progenitors = list(redshifts)
         redshift_parent      = redshift_progenitors.pop(0)
         redshift_high        = np.ceil(float(redshift_progenitors[-1]))+1
 
@@ -128,15 +135,17 @@ def _base_files(entry_groups,options):
             })
 
         if sim['name'] != 'CDM' and 'matchedPhaseICs' in limits:
+            # Find the mass above which the halo mass functions of this simulation and its matched-phase reference agree, using the
+            # halo mass functions at the parent redshift.
             redshift = sorted(redshifts, key=float)[0]
             matched  = suite['matchedICs']
             data_path_static = data_path + '/static/darkMatter/'
             file_self = (data_path_static
                          + f"{suite['name']}/{grp['name']}/{res['name']}"
-                         + f"/{sim['name']}/{real}/progenitorMassFunction_z{redshift}.hdf5")
+                         + f"/{sim['name']}/{real}/haloMassFunction_z{redshift}.hdf5")
             file_ref  = (data_path_static
                          + f"{matched['suite']}/{grp['name']}/{res['name']}"
-                         + f"/{matched['simulation']}/{real}/progenitorMassFunction_z{redshift}.hdf5")
+                         + f"/{matched['simulation']}/{real}/haloMassFunction_z{redshift}.hdf5")
             with h5py.File(file_self, 'r') as hf:
                 count_self = hf['simulation0001/count'][:]
             with h5py.File(file_ref, 'r') as hf:
@@ -183,7 +192,9 @@ def _base_files(entry_groups,options):
                 f'  <change type="update" path="mergerTreeBranchingProbability/cdmAssumptions" value="false"/>\n'
                 f'</changes>\n'
                 )
-        
+            with open(changes_file_name, 'w') as fh:
+                fh.write(changes)
+
         # --- Accumulate config_likelihood ---
         mass_minimum_comment = (f'{count_particles_min} times'
                                 f" {suite['name']} {grp['name']} particle mass")
@@ -245,8 +256,6 @@ def _base_files(entry_groups,options):
             f'  <formatVersion>2</formatVersion>\n'
             f'\n'
             f'  <!-- Include cosmology and mass function parameters -->\n'
-            f'  <xi:include href="progenitorMassFunctionParameters.xml"'
-            f'                                                                       {xp} {xi}/>\n'
             f'  <xi:include href="{pipeline_path}simulation_{suite_n}_{grp_n}.xml"'
             f'            {xp} {xi}/>\n'
             f'  <xi:include href="{pipeline_path}cosmology_{suite_n}.xml"'
@@ -310,7 +319,12 @@ def _base_files(entry_groups,options):
             f'         sigma_t(M) = sigma_t * (M/1e12)^gamma_t * Delta^(beta_t/2),   with Delta = ln[(1+z_progenitor)/(1+z_parent)],\n'
             f'       where sigma_t (errorTreeNormalization), gamma_t (errorTreeExponentMass), and beta_t\n'
             f'       (errorTreeExponentTimeLag) are calibrated in the MCMC. This term is zero for parent halos, and for\n'
-            f'       the halo mass function. -->\n'
+            f'       the halo mass function. The tree construction model can also bias progenitor masses, such that\n'
+            f'       the mean measured mass is (1+delta) M, with\n'
+            f'         delta = delta_max * {{1 - exp[-(N/N_0)^alpha * Delta^beta_delta]}},   with N = M/m_p,\n'
+            f'       where delta_max (errorTreeBiasMaximum), N_0 (errorTreeBiasParticleNumber), alpha\n'
+            f'       (errorTreeBiasExponentParticleNumber), and beta_delta (errorTreeBiasExponentTimeLag) are\n'
+            f'       fixed parameters (the bias is off by default, delta_max=0). -->\n'
             f'  <nbodyHaloMassError value="summation">\n'
             f'    <nbodyHaloMassError value="powerLaw">\n'
             f'      <normalization               value="=[progenitorMassFunctionParameters/errorAmplitude]*(1.0e9/[massParticleAtResolution])^([progenitorMassFunctionParameters/errorExponent])"/>\n'
@@ -325,6 +339,11 @@ def _base_files(entry_groups,options):
             f'      <normalization               value="=[progenitorMassFunctionParameters/errorTreeNormalization]"  />\n'
             f'      <exponentMass                value="=[progenitorMassFunctionParameters/errorTreeExponentMass]"   />\n'
             f'      <exponentTimeLag             value="=[progenitorMassFunctionParameters/errorTreeExponentTimeLag]"/>\n'
+            f'      <biasMaximum                 value="=[progenitorMassFunctionParameters/errorTreeBiasMaximum]"/>\n'
+            f'      <biasParticleNumber          value="=[progenitorMassFunctionParameters/errorTreeBiasParticleNumber]"/>\n'
+            f'      <biasExponentParticleNumber  value="=[progenitorMassFunctionParameters/errorTreeBiasExponentParticleNumber]"/>\n'
+            f'      <biasExponentTimeLag         value="=[progenitorMassFunctionParameters/errorTreeBiasExponentTimeLag]"/>\n'
+            f'      <massParticle                value="=[massParticleAtResolution]"/>\n'
             f'    </nbodyHaloMassError>\n'
             f'  </nbodyHaloMassError>\n'
             f'\n'
@@ -396,6 +415,9 @@ def _base_files(entry_groups,options):
                 if np.count_nonzero(count_bins[i,in_range,j]) == 0:
                     # Skip bins (of progenitor mass, redshift) that have no useable target data.
                     continue
+                if mass_bins[j] < count_particles_parent_min * float(res['massParticle']):
+                    # Skip parent mass bins too poorly resolved to define the progenitor mass function.
+                    continue
                 base += (
                     f'    <outputAnalysis value="progenitorMassFunction">\n'
                     f'      <massRatioDistribution        value="{options["massRatioDistribution"]}"                                                             />\n'
@@ -405,7 +427,7 @@ def _base_files(entry_groups,options):
                     f'      <massRatioLikelihoodMinimum   value="{mass_ratio_min}"                                                                              />\n'
                     f'      <massRatioLikelihoodMaximum   value="1.00"                                                                                          />\n'
                     f'      <covarianceDiagonalize        value="true"                                                                                          />\n'
-                    f'      <covarianceTargetOnly         value="true"                                                                                          />\n'
+                    f'      <covarianceTargetOnly         value="{"false" if options["modelVariance"] == "yes" else "true"}"                                    />\n'
                     f'      <likelihoodInCounts           value="true"                                                                                          />\n'
                     f'      <likelihoodInLog              value="false"                                                                                         />\n'
                     f'      <fillInZeroBins               value="=[%s|progenitorMassFunctionParameters/fillInZeroBins]"                                         />\n'
@@ -819,6 +841,12 @@ def _config_strings(options):
         '     <errorTreeNormalization      value="0.05"      /> <!-- sigma_t  : fractional error at M=1e12 and Delta=1 -->\n'
         '     <errorTreeExponentMass       value="0.0"       /> <!-- gamma_t  : power-law slope with halo mass         -->\n'
         '     <errorTreeExponentTimeLag    value="1.0"       /> <!-- beta_t   : exponent of time lag in the variance   -->\n'
+        '     <!-- Merger tree construction N-body halo mass-bias parameters (fixed; off by default):\n'
+        '          delta = delta_max * {1 - exp[-(N/N_0)^alpha * Delta^beta_delta]}, with N = M/m_p. -->\n'
+        '     <errorTreeBiasMaximum                value="0.0"    /> <!-- delta_max : maximum fractional mass bias       -->\n'
+        '     <errorTreeBiasParticleNumber         value="1000.0" /> <!-- N_0       : particle number scale              -->\n'
+        '     <errorTreeBiasExponentParticleNumber value="-1.0"   /> <!-- alpha     : exponent of particle number        -->\n'
+        '     <errorTreeBiasExponentTimeLag        value="1.0"    /> <!-- beta_delta: exponent of time lag               -->\n'
     )
 
     # -------------------------------------------------------- parameters_closer

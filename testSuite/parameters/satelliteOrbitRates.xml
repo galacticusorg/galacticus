@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Parameter file used by tests.satellite_orbit_rates.exe, which validates the two rates driving satellite orbital evolution
-     against independently computed reference values (galacticusDevTools/satelliteOrbitRates.py).
+     against independently computed reference values (galacticusDevTools/physicsReferences/satelliteOrbitRates.py).
 
      Every class is declared here rather than constructed in the test program. The satellite classes reach the host and satellite
      mass distributions through the node, and the node builds its `darkMatterProfile` through an `<objectBuilder>` reading these
@@ -25,7 +25,7 @@
   -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="e967ff808b085316768b270d45d1950941bf5d49" time="2026-09-16T00:00:00"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <!-- Cosmology. Planck 2018 values, matching the reference calculation. -->
   <cosmologyParameters value="simple">

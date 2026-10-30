@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module for storing and reporting memory usage by the code.
 !!}
@@ -30,6 +32,7 @@ module Memory_Reporting
   !!}
   use            :: Error        , only : Error_Report
   use, intrinsic :: ISO_C_Binding, only : c_size_t    , c_int
+  use            :: Kind_Numbers , only : kind_int8
   use            :: Locks        , only : ompLock
   implicit none
   private
@@ -39,20 +42,26 @@ module Memory_Reporting
   logical           :: codeMemoryUsageInitialized =.false.
 
   ! Lock used to coordinate memory reporting.
-  type   (ompLock ) :: memoryUsageLock
-  logical           :: memoryUsageLockInitialized =.false.
+  type            (ompLock  )            :: memoryUsageLock
+  logical                                :: memoryUsageLockInitialized =.false.
 
   ! Count of number of successive decreases in memory usage.
-  integer           :: successiveDecreaseCount    =0
+  integer                                :: successiveDecreaseCount    =0
 
   ! Record of memory usage at the last time it was reported.
-  integer(c_size_t) :: memoryUsageAtPreviousReport=0
+  integer         (c_size_t )            :: memoryUsageAtPreviousReport=0
 
   ! Record of maximum memory usage.
-  integer(c_size_t) :: memoryUsageMaximum         =0
+  integer         (c_size_t )            :: memoryUsageMaximum         =0
+
+  ! Throttling of memory usage checks. Measuring memory usage (via mallinfo2()) locks and walks every malloc arena, stalling
+  ! other threads' allocations, so it is performed at most once per timeIntervalCheck seconds of wall-clock time.
+  double precision           , parameter :: timeIntervalCheck          =1.0d0
+  logical                                :: clockInitialized           =.false.
+  integer         (kind_int8)            :: clockLastCheck
 
   ! Record of code size and available memory.
-  integer(c_size_t) :: memoryUsageCode                    , memoryAvailable
+  integer         (c_size_t )            :: memoryUsageCode                    , memoryAvailable
 
   ! Interface to getpagesize() function.
   interface
@@ -92,6 +101,7 @@ contains
     logical                                     :: issueNewReport
     type            (varying_string)            :: usageText
     integer         (c_size_t      )            :: memoryUsage                , divisor
+    integer         (kind_int8     )            :: clockNow                   , clockRate
     character       (len =2        )            :: suffix
     character       (len =7        )            :: label
     double precision                            :: memoryFraction
@@ -107,6 +117,16 @@ contains
     ! Attempt to get a lock to coordinate memory usage reporting - if the lock is held by another thread, just return (no need for
     ! us to report memory also).
     if (.not.memoryUsageLock%setNonBlocking()) return
+    ! Skip this check if the previous one was too recent. The clock state is accessed only while holding the lock.
+    call System_Clock(clockNow,clockRate)
+    if (clockInitialized) then
+       if (dble(clockNow-clockLastCheck)/dble(clockRate) < timeIntervalCheck) then
+          call memoryUsageLock%unset()
+          return
+       end if
+    end if
+    clockInitialized=.true.
+    clockLastCheck  =clockNow
     ! Ensure that we have the code memory usage.
     call codeUsageGet()
     ! Get the current memory usage.
