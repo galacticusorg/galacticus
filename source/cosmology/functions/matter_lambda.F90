@@ -1065,9 +1065,9 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: comovingDistance
-    double precision                                                :: time                , distanceHorizon
-    logical                                                         :: remakeTable         , horizonChecked
-    character       (len=14                        )                :: distanceLabel       , distanceHorizonLabel
+    double precision                                                :: time            , distanceHorizon
+    logical                                                         :: remakeTable     , horizonChecked
+    character       (len=14                        )                :: distanceLabel   , distanceHorizonLabel
 
     ! Quit on invalid input.
     if (comovingDistance < 0.0d0) call Error_Report('comoving distance must be positive'//{introspection:location})
