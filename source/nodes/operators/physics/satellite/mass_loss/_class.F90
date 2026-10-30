@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a node operator class that triggers merging of satellites based on a merging time.
+  Implements a node operator class that evolves the bound mass of satellite halos due to mass loss.
   !!}
 
   use :: Dark_Matter_Halos_Mass_Loss_Rates, only : darkMatterHaloMassLossRateClass

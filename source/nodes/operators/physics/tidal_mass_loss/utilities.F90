@@ -26,7 +26,7 @@ Contains a module which applies tidal mass loss to galactic components.
 module Tidal_Mass_Loss_Utilities
   !!{RST
   Applies tidal mass loss to galactic components. Since the disk, spheroid, and nuclear star cluster components share no parent
-  type below :galacticus-type:`nodeComponent`, the procedure is written once as a template and instantiated for each component.
+  type below ``nodeComponent``, the procedure is written once as a template and instantiated for each component.
   !!}
   implicit none
   private

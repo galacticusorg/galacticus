@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which implements an N-body data operator which computes progenitor halo order statistics.
+Contains a module which implements an N-body data operator which computes the distribution of halo formation redshifts.
 !!}
 
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -27,13 +27,19 @@ Contains a module which implements an N-body data operator which computes progen
   !![
   <nbodyOperator name="nbodyOperatorTimeFormation" docformat="rst">
    <description>
-   An N-body data operator which computes progenitor halo order statistics.
+   An N-body data operator which computes the distribution of halo formation redshifts. Parent halos are those in snapshot
+   ``[snapshotParents]`` with ``massVirial`` between ``[massParentMinimum]`` and ``[massParentMaximum]``, binned in mass with
+   ``[massParentCountPerDecade]`` logarithmic bins per decade. The formation redshift of each parent is the highest redshift at
+   which any halo sharing its ``hostedRootID`` has a mass exceeding ``[fractionFormation]`` times the mass of the parent. The
+   resulting distribution of formation redshifts (binned with ``[redshiftFormationCountPerUnit]`` bins per unit redshift between
+   ``[redshiftFormationMinimum]`` and ``[redshiftFormationMaximum]``), normalized per unit redshift and per parent halo in each
+   mass bin, is written to the ``timeFormation`` group of the analysis, together with the raw counts.
    </description>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorTimeFormation
      !!{RST
-     An N-body data operator which computes progenitor halo order statistics.
+     An N-body data operator which computes the distribution of halo formation redshifts.
      !!}
      private
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_     => null()

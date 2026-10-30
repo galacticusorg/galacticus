@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly assigned positions.
+  An implementation of the orphan satellite distribution which assumes an isotropic distribution with orphans tracing the radial distribution of dark matter.
   !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
