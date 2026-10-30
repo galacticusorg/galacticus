@@ -11,6 +11,11 @@ A run is *complete* when its command exited with status zero, its log contains n
 test suite, and its output file exists. Every run's command appends an ``EXIT_STATUS=<n>`` line to its log, so that
 completion is judged from the exit status of Galacticus itself, not inferred from the output.
 
+A run that was started but can never record its exit status (its local runner was killed, or its Slurm job ended at its
+time limit) is detected as *interrupted* when the campaign is refreshed, and marked failed, so that it is run again. A
+local run records the host and process ID of its Galacticus process, and is interrupted once that process has ended; a
+Slurm run is interrupted once its job is no longer listed by Slurm.
+
 Andrew Benson, Claude (2026)
 """
 
@@ -18,8 +23,11 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shlex
+import socket
 import subprocess
+import threading
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
@@ -37,6 +45,7 @@ __all__ = [
     'ValidationResult',
     'run_status_from_log',
     'output_file_path',
+    'slurm_live_jobs',
 ]
 
 MANIFEST_FORMAT = 'galacticusCampaign'
@@ -285,26 +294,49 @@ class Campaign:
     # Running.
 
     def run_local(self, indices=None, parallel=1, threads=None):
-        """Run the given runs (by default all pending or failed runs) locally, ``parallel`` at a time."""
+        """Run the given runs (by default all pending or failed runs) locally, ``parallel`` at a time.
+
+        Each run is marked running only when its Galacticus process starts, and records that process (as
+        ``local:<host>:<process ID>``), so that if this runner is killed, the runs it had not started stay pending, and
+        those it had started are found to be interrupted by the next :meth:`refresh`. A run whose executable cannot be
+        launched (e.g. it is being relinked) fails, without stopping the other runs.
+        """
+        self.refresh()
         runs = self.select(indices=indices) if indices is not None else self.select(statuses=(PENDING, FAILED))
         environment = os.environ.copy()
         if threads is not None:
             environment['OMP_NUM_THREADS'] = str(threads)
+        lock = threading.Lock()
+        host = socket.gethostname()
 
         def execute(run):
             log_file = self.path(run.log_file)
             os.makedirs(os.path.dirname(log_file) or '.', exist_ok=True)
             with open(log_file, 'w') as log:
-                completed = subprocess.run(self.command(run), cwd=self.working_directory, env=environment,
-                                           stdout=log, stderr=subprocess.STDOUT)
+                try:
+                    process = subprocess.Popen(self.command(run), cwd=self.working_directory, env=environment,
+                                               stdout=log, stderr=subprocess.STDOUT)
+                except OSError as error:
+                    log.write(f'could not launch {self.executable}: {error}\n')
+                    with lock:
+                        run.attempts += 1
+                        run.status = FAILED
+                        run.job_id = None
+                        run.exit_status = None
+                        run.message = f'could not launch: {error}'
+                        self.save()
+                    return
+                with lock:
+                    run.attempts += 1
+                    run.status = RUNNING
+                    run.job_id = f'local:{host}:{process.pid}'
+                    run.exit_status = None
+                    run.message = ''
+                    self.save()
+                process.wait()
             with open(log_file, 'a') as log:
-                log.write(f'\n{EXIT_SENTINEL}{completed.returncode}\n')
+                log.write(f'\n{EXIT_SENTINEL}{process.returncode}\n')
 
-        for run in runs:
-            run.attempts += 1
-            run.status = SUBMITTED
-            run.job_id = 'local'
-        self.save()
         with ThreadPoolExecutor(max_workers=max(1, parallel)) as pool:
             list(pool.map(execute, runs))
         return self.refresh()
@@ -366,16 +398,86 @@ class Campaign:
         self.save()
         return job_id
 
-    def refresh(self):
-        """Update the status of every submitted or running run from its log and output files, and save the manifest."""
+    def refresh(self, live_jobs=None):
+        """Update the status of every submitted or running run from its log and output files, and save the manifest.
+
+        A run with no exit status whose process (for a local run) has ended, or whose Slurm job is not in ``live_jobs``
+        (the set returned by :func:`slurm_live_jobs`; if None, Slurm runs are not checked), is marked failed as
+        interrupted.
+        """
         for run in self.runs:
             if run.status in (SUBMITTED, RUNNING):
                 resolved = Run(**{**asdict(run), 'log_file': self.path(run.log_file), 'output_file': self.path(run.output_file)})
                 run.status, run.exit_status, run.message = run_status_from_log(resolved)
                 if run.status == RUNNING and not os.path.exists(resolved.log_file):
                     run.status = SUBMITTED
+                if run.status in (SUBMITTED, RUNNING) and _interrupted(run, live_jobs):
+                    run.status = FAILED
+                    run.message = 'interrupted: ended without recording an exit status'
         self.save()
         return self.summary()
+
+
+def slurm_live_jobs():
+    """Return the Slurm jobs of this user which are pending or running, or None if Slurm cannot be queried.
+
+    The result is a set of job IDs, holding for each array job both its ID and, for each of its tasks still pending or
+    running, ``<array job ID>_<task ID>``.
+    """
+    try:
+        completed = subprocess.run(['squeue', '--me', '--noheader', '--array-unique', '--format=%i'],
+                                   capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if completed.returncode != 0:
+        return None
+    return _parse_job_list(completed.stdout)
+
+
+def _parse_job_list(text):
+    """Parse a list of Slurm job IDs (as written by ``squeue --format=%i``), expanding pending array tasks."""
+    jobs = set()
+    for entry in text.split():
+        match = re.fullmatch(r'(\d+)(?:_(\d+|\[([^]]*)\]))?', entry)
+        if not match:
+            continue
+        job, task, tasks = match.groups()
+        jobs.add(job)
+        if tasks is not None:
+            for part in tasks.split('%')[0].split(','):
+                first, _, last = part.partition('-')
+                for index in range(int(first), int(last or first) + 1):
+                    jobs.add(f'{job}_{index}')
+        elif task is not None:
+            jobs.add(f'{job}_{task}')
+    return jobs
+
+
+def _interrupted(run, live_jobs):
+    """Whether a run without an exit status can no longer record one, because its process or job has ended."""
+    if run.job_id is None:
+        return False
+    if run.job_id.startswith('local'):
+        fields = run.job_id.split(':')
+        if len(fields) != 3:
+            # Written by an earlier version, which recorded no process: assume its runner has ended.
+            return True
+        _, host, pid = fields
+        if host != socket.gethostname():
+            return False
+        try:
+            os.kill(int(pid), 0)
+        except ProcessLookupError:
+            return True
+        except (PermissionError, ValueError):
+            return False
+        return False
+    if live_jobs is None:
+        return False
+    if f'{run.job_id}_{run.index}' in live_jobs:
+        return False
+    # The run's task is not listed. Its job is still live only if it is listed without any tasks (not an array job).
+    return run.job_id not in live_jobs or any(job.startswith(f'{run.job_id}_') for job in live_jobs)
 
 
 def _resolve(directory, path):
