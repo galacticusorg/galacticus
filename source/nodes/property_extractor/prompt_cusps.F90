@@ -27,7 +27,11 @@
   !![
   <nodePropertyExtractor name="nodePropertyExtractorPromptCusps" docformat="rst">
    <description>
-   A property extractor class for the properties of the nuclear star cluster at the moment of the black hole formation.
+   A property extractor class for the parameters of prompt cusps in the :cite:t:`delos_cusp-halo_2025` model. For each node it
+   outputs the amplitude, :math:`A`, and mass of the prompt cusp, and the :math:`y` parameter, scale radius, and density scale of
+   the cusp-NFW profile, all as stored in the dark matter profile component, together with the radius, :math:`r_{-2}`, at which
+   the logarithmic slope of the cusp-NFW profile equals :math:`-2`, computed from the scale radius (equation 19 of
+   :cite:t:`delos_cusp-halo_2025`). All are zero for a node which has no dark matter profile component.
    </description>
    <deepCopy>
     <functionClass variables="darkMatterProfileDMOCuspNFW"/>

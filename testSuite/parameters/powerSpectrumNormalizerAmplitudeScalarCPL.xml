@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Tests normalization of the power spectrum to a given amplitude of the primordial curvature power spectrum, A_s, by comparing  -->
+<!-- the resulting sigma_8 and P(k) to those computed by CLASS (v3.4.1) for the same A_s, spectral index, and cosmology. This     -->
+<!-- version uses a CPL dark energy equation of state, w(a)=w_0+w_a(1-a), with w_0=-0.9 and w_a=0.2.                              -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="56a765a76306e604490d257dc70ea5b31d455c88" time="2026-10-26T00:00:00"/>
+  <task value="powerSpectra">
+    <pointsPerDecade   value="20"   />
+    <wavenumberMinimum value="1.0e-3"/>
+    <wavenumberMaximum value="5.0e+0"/>
+  </task>
+  <cosmologyFunctions value="matterDarkEnergyCPL">
+    <darkEnergyEquationOfStateW0 value="-0.9"/>
+    <darkEnergyEquationOfStateWA value=" 0.2"/>
+  </cosmologyFunctions>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.0"   />
+    <OmegaMatter     value="0.30"   />
+    <OmegaDarkEnergy value="0.70"   />
+    <OmegaBaryon     value="0.045"  />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <darkMatterParticle value="CDM"/>
+  <transferFunction value="CLASSCDM">
+    <redshift value="0.0"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.900"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="amplitudeScalar">
+    <amplitudeScalar value="2.1e-9"/>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower">
+    <tolerance value="1.0e-4"/>
+  </cosmologicalMassVariance>
+  <linearGrowth value="collisionlessMatter"/>
+  <outputFileName value="testSuite/outputs/powerSpectrumNormalizerAmplitudeScalarCPL.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+</parameters>

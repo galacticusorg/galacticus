@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module of functions for root finding unit tests.
+Contains a module of functions for multidimensional minimizer unit tests.
 !!}
 
 module Test_Multidimensional_Minimizer_Functions
   !!{RST
-  Contains functions for root finding unit tests.
+  Contains functions for multidimensional minimizer unit tests.
   !!}
   implicit none
   private

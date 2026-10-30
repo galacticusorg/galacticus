@@ -106,7 +106,7 @@ def _add_implicit_directives(directive, per_file_entry, file_name, file_path):
 
 
 # ---------------------------------------------------------------------------
-# Per-file processing (parallelised across files)
+# Per-file processing (parallelized across files)
 # ---------------------------------------------------------------------------
 #
 # Each source file is scanned independently: it reads the file (and any
@@ -374,6 +374,48 @@ def main(argv):
                 non_include_directives.get(directive_name, {}).get('files', [])
             )
             mk.write(f"{preprocessed}.up: {' '.join(deps)}\n\n")
+
+        # Aggregating directives: the preprocessor expands each of these from
+        # the *content* of every file that carries some other directive (e.g.
+        # `functionsGlobal` generates a pointer for every `functionGlobal`).
+        # The generic `%.p.F90.up` rule depends on directiveLocations.xml,
+        # which changes only when a file gains or loses a directive, so adding
+        # another `functionGlobal` to a file which already has one would leave
+        # the consumer stale - the build then fails (or silently omits the
+        # addition). Make each consumer depend on the files it reads instead.
+        # The `.up` sentinel limits recompilation to consumers whose
+        # preprocessed output actually changes.
+        aggregators = {
+            'functionsGlobal':      lambda _: ['functionGlobal'],
+            'eventHookManager':     lambda _: ['eventHook'],
+            'metaPropertyDatabase': lambda _: ['addMetaProperty'],
+            # A static event hook calls every function attached to it by a
+            # directive named after the hook.
+            'eventHookStatic':      lambda consumer: [
+                d['name']
+                for d in extract_directives(consumer, 'eventHookStatic')
+                if 'name' in d
+            ],
+        }
+        for consumer_directive in sorted(aggregators):
+            consumers = sorted(
+                non_include_directives.get(consumer_directive, {}).get('files', [])
+            )
+            for consumer in consumers:
+                producers = sorted({
+                    producer
+                    for producer_directive in aggregators[consumer_directive](consumer)
+                    for producer in non_include_directives.get(
+                        producer_directive, {}).get('files', [])
+                    if producer != consumer
+                })
+                if not producers:
+                    continue
+                relative     = os.path.relpath(consumer, source_directory)
+                preprocessed = os.path.join(
+                    build_path, re.sub(r'\.F90$', '.p.F90', relative),
+                )
+                mk.write(f"{preprocessed}.up: {' '.join(producers)}\n\n")
 
         # The `componentBuilder` directive (in objects/nodes/_class.F90)
         # synthesizes the node-component class hierarchy at preprocess time (see

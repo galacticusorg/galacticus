@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
-  An implementation of dark matter halo virial density contrasts based on spherical collapse in a matter plus cosmological constant universe.
+  An implementation of dark matter halo virial density contrasts based on spherical collapse in a universe containing baryons, dark matter, and dark energy.
   !!}
 
   use :: Cosmology_Functions                  , only : cosmologyFunctions                          , cosmologyFunctionsClass

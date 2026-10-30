@@ -42,6 +42,7 @@ program Test_NFW96_Concentration_Dark_Energy
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: String_Handling                     , only : operator(//)                                                , String_Superscript
   use :: Transfer_Functions                  , only : transferFunctionBBKS
@@ -61,6 +62,7 @@ program Test_NFW96_Concentration_Dark_Energy
   type            (powerSpectrumPrimordialPowerLaw                             )                          :: powerSpectrumPrimordial_
   type            (transferFunctionBBKS                                        )                          :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple                    )                          :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                               )                          :: powerSpectrumNormalizer_
   type            (darkMatterParticleCDM                                       )                          :: darkMatterParticle_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: criticalOverdensity_
   type            (virialDensityContrastFixed                                  )                          :: virialDensityContrast_
@@ -143,12 +145,25 @@ program Test_NFW96_Concentration_Dark_Energy
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_">
+   <constructor>
+    powerSpectrumNormalizerSigma8                                (                                                                              &amp;
+     &amp;                                                        sigma8                                  =0.900d+0                           , &amp;
+     &amp;                                                        tolerance                               =1.000d-4                           , &amp;
+     &amp;                                                        integrationFailureIsFatal               =.true.                             , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
+     &amp;                                                        transferFunction_                       =transferFunction_                    &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple                     (                                                                              &amp;
      &amp;                                                        powerSpectrumPrimordial_                =powerSpectrumPrimordial_           , &amp;
      &amp;                                                        transferFunction_                       =transferFunction_                  , &amp;
-     &amp;                                                        linearGrowth_                           =linearGrowth_                        &amp;
+     &amp;                                                        linearGrowth_                           =linearGrowth_                      , &amp;
+     &amp;                                                        powerSpectrumNormalizer_                =powerSpectrumNormalizer_             &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -162,7 +177,6 @@ program Test_NFW96_Concentration_Dark_Energy
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower                        (                                                                              &amp;
-     &amp;                                                        sigma8                                  =0.900d+0                           , &amp;
      &amp;                                                        tolerance                               =1.000d-4                           , &amp;
      &amp;                                                        toleranceTopHat                         =1.000d-4                           , &amp;
      &amp;                                                        rootVarianceLogarithmicGradientTolerance=1.0d-9                             , &amp;

@@ -51,9 +51,13 @@ _XI_INCLUDE = f'{{{_XINCLUDE_NS}}}include'
 _XI_FALLBACK = f'{{{_XINCLUDE_NS}}}fallback'
 _MAX_INCLUDE_DEPTH = 64
 
-# Galacticus accepts only `xpointer(<root>/*)` (select the element children of the
-# referenced document's root) or no xpointer (the whole root element).
-_XPOINTER_CHILDREN_RE = re.compile(r'^xpointer\(\s*/?(\w+)/\*\s*\)$')
+# Galacticus accepts no xpointer (the whole root element), or `xpointer(<path>)`, a
+# `/`-separated path of element names from the referenced document's root
+# (`source/utility/IO/XML.F90`): the first element matching each segment is followed,
+# and every child of the last parent whose name is the last segment is included, or
+# every element child if the last segment is `*` (e.g. `xpointer(parameters/*)`, or
+# `xpointer(parameters/haloMassFunction)`).
+_XPOINTER_RE = re.compile(r'^xpointer\(\s*/?([\w*/]+)\s*\)$')
 
 
 class ResolveError(Exception):
@@ -139,15 +143,25 @@ def _xpointer_select(sub_root, xpointer, href):
     """Nodes a ``<xi:include>`` contributes, per its xpointer."""
     if xpointer is None:
         return [copy.deepcopy(sub_root)]            # whole referenced root
-    match = _XPOINTER_CHILDREN_RE.match(xpointer.strip())
-    if not match:
+    match = _XPOINTER_RE.match(xpointer.strip())
+    segments = match.group(1).split('/') if match else []
+    if len(segments) < 2 or any(segment == '' for segment in segments) or '*' in segments[:-1]:
         raise ResolveError(f"unsupported xi:include xpointer '{xpointer}' "
                            f"(href '{href}')")
-    if sub_root.tag != match.group(1):
+    if sub_root.tag != segments[0]:
         raise ResolveError(
             f"xi:include xpointer '{xpointer}' does not match referenced root "
             f"element '{sub_root.tag}' (href '{href}')")
-    return [copy.deepcopy(child) for child in sub_root]
+    parent = sub_root
+    for segment in segments[1:-1]:
+        parent = next((child for child in parent if _is_element(child) and child.tag == segment), None)
+        if parent is None:
+            raise ResolveError(f"xi:include xpointer '{xpointer}' not found (href '{href}')")
+    last = segments[-1]
+    nodes = [copy.deepcopy(child) for child in parent if _is_element(child) and (last == '*' or child.tag == last)]
+    if last != '*' and not nodes:
+        raise ResolveError(f"xi:include xpointer '{xpointer}' not found (href '{href}')")
+    return nodes
 
 
 def _resolve_include(include_element, base_dir, seen, depth):

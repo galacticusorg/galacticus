@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to test-luminosities-from-SFH-lightcone.xml for a model whose galaxies lie outside the tabulated range of redshift.
+     The galaxies of this lightcone lie close to z=0.44, so a grid spanning 0.1 to 0.2 excludes all of them. Extrapolating the
+     tabulation would silently misstate the postprocessing of the spectrum, so this must be reported as an error. -->
+<changes>
+
+  <change type="replace" path="nodePropertyExtractor">
+    <nodePropertyExtractor value="luminosityStellarFromStarFormationHistory">
+      <filterNames     value="SDSS_r" />
+      <component       value="disk"    />
+      <frame           value="observed"/>
+      <redshiftMinimum value="0.1"     />
+      <redshiftMaximum value="0.2"     />
+      <stellarPopulationSpectraPostprocessor value="identity"/>
+    </nodePropertyExtractor>
+  </change>
+
+  <change type="update" path="outputFileName" value="testSuite/outputs/test-luminosities-from-SFH-lightcone/galacticusRange.hdf5"/>
+
+</changes>
