@@ -25,12 +25,15 @@ if args.processesPerNode < countProcesses:
 
 allowRunAsRoot = " --allow-run-as-root" if args.allowRunAsRoot == "yes" else ""
 
-# Run each class on one process, and on several.
+# Run each class on one process, and on several. The first run, on a single process, is a warm-up whose results are discarded
+# (they are overwritten by the second run): it ensures that the cached tabulations (of sigma(M) and spherical collapse) exist on
+# file, so that every compared run reads the same tabulations. A run which builds those tabulations itself can differ from one
+# which reads them by ~1e-7, because the result depends on how the tabulations were extended during the run.
 classes       = [ "farahi", "farahiMidpoint" ]
 probabilities = {}
 for className in classes:
     probabilities[className] = {}
-    for count in [ 1, countProcesses ]:
+    for count in [ 1, 1, countProcesses ]:
         subprocess.run(f"rm -f outputs/excursionSetsFarahiMPI_{className}:MPI*.hdf5", shell=True)
         status = subprocess.run(
             f"export OMP_NUM_THREADS=1; cd ..; mpirun --oversubscribe -np {count}{allowRunAsRoot} Galacticus.exe testSuite/parameters/excursionSetsFarahiMPI/{className}.xml",
