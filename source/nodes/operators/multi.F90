@@ -62,7 +62,6 @@
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
      procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
      procedure :: differentialEvolutionPostStep       => multiDifferentialEvolutionPostStep
-     procedure :: galacticStructureSolverSet           => multiGalacticStructureSolverSet
      procedure :: isActive                            => multiIsActive
   end type nodeOperatorMulti
 
@@ -424,24 +423,6 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolutionPostStep
-
-  subroutine multiGalacticStructureSolverSet(self,galacticStructureSolver)
-    !!{RST
-    Provide the galactic structure solver to each child node operator.
-    !!}
-    use :: Galactic_Structure_Solvers, only : galacticStructureSolverClass
-    implicit none
-    class(nodeOperatorMulti          ), intent(inout)         :: self
-    class(galacticStructureSolverClass), intent(inout), target :: galacticStructureSolver
-    type (multiProcessList           ), pointer               :: process_
-
-    process_ => self%processes
-    do while (associated(process_))
-       call process_%process_%galacticStructureSolverSet(galacticStructureSolver)
-       process_ => process_%next
-    end do
-    return
-  end subroutine multiGalacticStructureSolverSet
 
   logical function multiIsActive(self,node) result(isActive)
     !!{RST

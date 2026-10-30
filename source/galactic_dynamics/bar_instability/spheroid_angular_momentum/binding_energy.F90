@@ -50,12 +50,6 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
    :math:`10^{-3.5}` and :math:`10^{-7}`. See :doc:`/manuals/user-guide/bar-instability-spheroid-sizes` for the method and its
    limitations.
    </description>
-   <deepCopy>
-    <ignore variables="galacticStructureSolver_"/>
-   </deepCopy>
-   <stateStorable>
-    <exclude variables="galacticStructureSolver_"/>
-   </stateStorable>
   </barInstabilitySpheroidAngularMomentum>
   !!]
   type, extends(barInstabilitySpheroidAngularMomentumClass) :: barInstabilitySpheroidAngularMomentumBindingEnergy
@@ -68,8 +62,8 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
           &                                                     formFactorSpheroid                                 , formFactorInteraction                    , &
           &                                                     fractionBaryonicSpheroidTransitionMaximum          , fractionBaryonicSpheroidTransitionMinimum
    contains
-     procedure :: galacticStructureSolverSet => bindingEnergyGalacticStructureSolverSet
-     procedure :: rate                       => bindingEnergyRate
+     final     ::         bindingEnergyDestructor
+     procedure :: rate => bindingEnergyRate
   end type barInstabilitySpheroidAngularMomentumBindingEnergy
 
   interface barInstabilitySpheroidAngularMomentumBindingEnergy
@@ -87,6 +81,7 @@ contains
     implicit none
     type            (barInstabilitySpheroidAngularMomentumBindingEnergy)                :: self
     type            (inputParameters                                   ), intent(inout) :: parameters
+    class           (galacticStructureSolverClass                      ), pointer       :: galacticStructureSolver_
     double precision                                                                    :: stepFiniteDifferenceRelative             , &
          &                                                                                 formFactorDisk                           , &
          &                                                                                 formFactorSpheroid                       , &
@@ -150,6 +145,7 @@ contains
       <minimum>0.0</minimum>
       <maximum>1.0</maximum>
     </inputParameter>
+    <objectBuilder class="galacticStructureSolver" name="galacticStructureSolver_" source="parameters"/>
     !!]
     self=barInstabilitySpheroidAngularMomentumBindingEnergy(                                           &
          &                                                  stepFiniteDifferenceRelative             , &
@@ -157,29 +153,33 @@ contains
          &                                                  formFactorSpheroid                       , &
          &                                                  formFactorInteraction                    , &
          &                                                  fractionBaryonicSpheroidTransitionMinimum, &
-         &                                                  fractionBaryonicSpheroidTransitionMaximum  &
+         &                                                  fractionBaryonicSpheroidTransitionMaximum, &
+         &                                                  galacticStructureSolver_                   &
          &                                                 )
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructureSolver_"/>
     !!]
     return
   end function bindingEnergyConstructorParameters
 
-  function bindingEnergyConstructorInternal(stepFiniteDifferenceRelative,formFactorDisk,formFactorSpheroid,formFactorInteraction,fractionBaryonicSpheroidTransitionMinimum,fractionBaryonicSpheroidTransitionMaximum) result(self)
+  function bindingEnergyConstructorInternal(stepFiniteDifferenceRelative,formFactorDisk,formFactorSpheroid,formFactorInteraction,fractionBaryonicSpheroidTransitionMinimum,fractionBaryonicSpheroidTransitionMaximum,galacticStructureSolver_) result(self)
     !!{RST
     Internal constructor for the binding-energy prescription.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error                     , only : Error_Report
+    use :: Galactic_Structure_Solvers, only : galacticStructureSolverFixed, galacticStructureSolverNull
     implicit none
-    type            (barInstabilitySpheroidAngularMomentumBindingEnergy)                :: self
-    double precision                                                    , intent(in   ) :: stepFiniteDifferenceRelative             , &
-         &                                                                                 formFactorDisk                           , &
-         &                                                                                 formFactorSpheroid                       , &
-         &                                                                                 formFactorInteraction                    , &
-         &                                                                                 fractionBaryonicSpheroidTransitionMaximum, &
-         &                                                                                 fractionBaryonicSpheroidTransitionMinimum
+    type            (barInstabilitySpheroidAngularMomentumBindingEnergy)                        :: self
+    double precision                                                    , intent(in   )         :: stepFiniteDifferenceRelative             , &
+         &                                                                                         formFactorDisk                           , &
+         &                                                                                         formFactorSpheroid                       , &
+         &                                                                                         formFactorInteraction                    , &
+         &                                                                                         fractionBaryonicSpheroidTransitionMaximum, &
+         &                                                                                         fractionBaryonicSpheroidTransitionMinimum
+    class           (galacticStructureSolverClass                      ), intent(in   ), target :: galacticStructureSolver_
     !![
-    <constructorAssign variables="stepFiniteDifferenceRelative, formFactorDisk, formFactorSpheroid, formFactorInteraction, fractionBaryonicSpheroidTransitionMinimum, fractionBaryonicSpheroidTransitionMaximum"/>
+    <constructorAssign variables="stepFiniteDifferenceRelative, formFactorDisk, formFactorSpheroid, formFactorInteraction, fractionBaryonicSpheroidTransitionMinimum, fractionBaryonicSpheroidTransitionMaximum, *galacticStructureSolver_"/>
     !!]
 
     if (self%fractionBaryonicSpheroidTransitionMaximum < self%fractionBaryonicSpheroidTransitionMinimum) &
@@ -189,6 +189,12 @@ contains
          & call Error_Report('[stepFiniteDifferenceRelative] must be positive'//{introspection:location})
     if (self%formFactorSpheroid <= 0.0d0 .and. self%formFactorInteraction <= 0.0d0) &
          & call Error_Report('at least one of [formFactorSpheroid] and [formFactorInteraction] must be positive - otherwise the binding energy depends on the spheroid angular momentum only weakly, through the disk radius, and its derivative is ill-conditioned'//{introspection:location})
+    select type (galacticStructureSolver_)
+    class is (galacticStructureSolverFixed)
+       call Error_Report('the binding-energy prescription requires a galactic structure solver whose radii depend on angular momentum - the "fixed" solver is not supported'//{introspection:location})
+    class is (galacticStructureSolverNull )
+       call Error_Report('the binding-energy prescription requires a galactic structure solver whose radii depend on angular momentum - the "null" solver is not supported' //{introspection:location})
+    end select
     !![
     <componentPropertyAssert class="disk"     properties="massGas massStellar angularMomentum" require="gettable settable"/>
     <componentPropertyAssert class="spheroid" properties="massGas massStellar angularMomentum" require="gettable settable"/>
@@ -198,26 +204,18 @@ contains
     return
   end function bindingEnergyConstructorInternal
 
-  subroutine bindingEnergyGalacticStructureSolverSet(self,galacticStructureSolver)
+  subroutine bindingEnergyDestructor(self)
     !!{RST
-    Store a non-owning pointer to the active galactic structure solver. Solvers whose radii do not respond to pseudo-angular
-    momentum are rejected, as the binding-energy derivative would then vanish.
+    Destructor for the binding-energy prescription.
     !!}
-    use :: Error                     , only : Error_Report
-    use :: Galactic_Structure_Solvers, only : galacticStructureSolverFixed, galacticStructureSolverNull
     implicit none
-    class(barInstabilitySpheroidAngularMomentumBindingEnergy), intent(inout)         :: self
-    class(galacticStructureSolverClass                      ), intent(inout), target :: galacticStructureSolver
+    type(barInstabilitySpheroidAngularMomentumBindingEnergy), intent(inout) :: self
 
-    select type (galacticStructureSolver)
-    class is (galacticStructureSolverFixed)
-       call Error_Report('the binding-energy prescription requires a galactic structure solver whose radii depend on angular momentum - the "fixed" solver is not supported'//{introspection:location})
-    class is (galacticStructureSolverNull )
-       call Error_Report('the binding-energy prescription requires a galactic structure solver whose radii depend on angular momentum - the "null" solver is not supported' //{introspection:location})
-    end select
-    self%galacticStructureSolver_ => galacticStructureSolver
+    !![
+    <objectDestructor name="self%galacticStructureSolver_"/>
+    !!]
     return
-  end subroutine bindingEnergyGalacticStructureSolverSet
+  end subroutine bindingEnergyDestructor
 
   double precision function bindingEnergyRate(self,node,rateMassGasTransfer,rateMassStellarTransfer,rateAngularMomentumDisk,rateAngularMomentumTransfer,fractionAngularMomentumRetainedSpheroid)
     !!{RST
@@ -225,7 +223,6 @@ contains
     !!}
     use, intrinsic :: IEEE_Arithmetic    , only : ieee_is_finite
     use            :: Calculations_Resets, only : Calculations_Reset
-    use            :: Error              , only : Error_Report
     use            :: Galacticus_Nodes   , only : nodeComponentDisk , nodeComponentSpheroid
     implicit none
     class           (barInstabilitySpheroidAngularMomentumBindingEnergy), intent(inout)         :: self
@@ -289,8 +286,6 @@ contains
        bindingEnergyRate=rateRetained
        return
     end if
-    if (.not.associated(self%galacticStructureSolver_)) &
-         & call Error_Report('the binding-energy bar-instability model has not been provided with a galactic structure solver'//{introspection:location})
 
     bindingEnergyInitial=bindingEnergyProxy(self,node)
     if (.not.ieee_is_finite(bindingEnergyInitial) .or. bindingEnergyInitial <= 0.0d0) then

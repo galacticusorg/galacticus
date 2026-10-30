@@ -49,17 +49,6 @@ module Bar_Instability_Spheroid_Angular_Momenta
     <argument>type            (treeNode), intent(inout), target :: node</argument>
     <argument>double precision          , intent(in   )         :: rateMassGasTransfer, rateMassStellarTransfer, rateAngularMomentumDisk, rateAngularMomentumTransfer, fractionAngularMomentumRetainedSpheroid</argument>
    </method>
-   <method name="galacticStructureSolverSet">
-    <description>
-    Provide the galactic structure solver used during node evolution.
-    </description>
-    <type>void</type>
-    <pass>yes</pass>
-    <argument>class(galacticStructureSolverClass), intent(inout), target :: galacticStructureSolver</argument>
-    <code>
-      !$GLC attributes unused :: self, galacticStructureSolver
-    </code>
-   </method>
   </functionClass>
   !!]
 

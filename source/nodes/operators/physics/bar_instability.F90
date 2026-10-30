@@ -45,7 +45,6 @@
      final     ::                                   barInstabilityDestructor
      procedure :: differentialEvolutionAnalytics => barInstabilityDifferentialEvolutionAnalytics
      procedure :: differentialEvolution          => barInstabilityDifferentialEvolution
-     procedure :: galacticStructureSolverSet     => barInstabilityGalacticStructureSolverSet
   end type nodeOperatorBarInstability
 
   interface nodeOperatorBarInstability
@@ -126,19 +125,6 @@ contains
     return
   end subroutine barInstabilityDestructor
 
-  subroutine barInstabilityGalacticStructureSolverSet(self,galacticStructureSolver)
-    !!{RST
-    Provide the active galactic structure solver to the spheroid pseudo-angular momentum model.
-    !!}
-    use :: Galactic_Structure_Solvers, only : galacticStructureSolverClass
-    implicit none
-    class(nodeOperatorBarInstability  ), intent(inout)         :: self
-    class(galacticStructureSolverClass), intent(inout), target :: galacticStructureSolver
-
-    call self%barInstabilitySpheroidAngularMomentum_%galacticStructureSolverSet(galacticStructureSolver)
-    return
-  end subroutine barInstabilityGalacticStructureSolverSet
-  
   subroutine barInstabilityDifferentialEvolutionAnalytics(self,node)
     !!{RST
     Initialize the mass transfer fraction.
