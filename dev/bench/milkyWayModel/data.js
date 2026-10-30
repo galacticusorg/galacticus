@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793270017537,
+  "lastUpdate": 1793349835132,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "7362ac5d86461b0509740066764812355dc1cee1",
-          "message": "Merge pull request #929 from galacticusorg/depup/lesgourg/class_public\n\nfix(deps): update lesgourg/class_public to 3.3.3",
-          "timestamp": "2025-09-26T17:20:45Z",
-          "tree_id": "e546fd083ca552709c3f85824a3c634d234104ff",
-          "url": "https://github.com/galacticusorg/galacticus/commit/7362ac5d86461b0509740066764812355dc1cee1"
-        },
-        "date": 1758955837032,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 78.944,
-            "range": "0.0850670323919038",
-            "unit": "seconds"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10918,6 +10888,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 9.25288490392686,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b7f4fd1e25a2dc392718435937a0b7171f27c69b",
+          "message": "Merge pull request #1700 from galacticusorg/fix/shi2016-expansion-factor\n\nfix(massDistributions): use the observation-epoch scaled expansion factor in the Shi (2016) accretion flow",
+          "timestamp": "2026-10-29T16:30:24Z",
+          "tree_id": "e6f4beeeee0c7d5d199c68ce953ad7f4bcbeb6a5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b7f4fd1e25a2dc392718435937a0b7171f27c69b"
+        },
+        "date": 1793349833864,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 40.014,
+            "range": "0.1685894421368075",
+            "unit": "seconds"
           }
         ]
       }
