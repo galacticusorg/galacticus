@@ -121,6 +121,62 @@ pipeline.py --outputDirectory /path/to/run/ --select '…' --detached yes
 
 ---
 
+## The emulated progenitor-mass-function stage
+
+Each step of a direct MCMC of the progenitor stage runs the model for every simulation component, so the stage is
+slow, and the noise of each run limits how well the chains mix. With `--progenitorMassFunctionEmulated yes` (detached
+driver only), the stage samples the posterior with
+[emulated likelihoods](https://galacticus.readthedocs.io/en/latest/manuals/user-guide/emulation.html) instead. The model
+is run at a fixed set of design points, Gaussian-process emulators of each progenitor mass function are trained from
+those runs, and the MCMC evaluates the emulators. It follows the procedure that worked for the 2026-10 calibration
+against 70 simulation components:
+
+- The six parameters of the N-body halo mass error model change the progenitor mass functions only through the
+  analysis, by about a percent per bin. That is too small for the emulators to resolve, but still worth tens in the
+  log-likelihood. They are therefore **fit by direct runs first** (a profile) and then fixed.
+- Only the four branching parameters are emulated. The fractional root variance of counts stays a parameter of the
+  likelihood.
+- Emulators are also trained on each **half of the design**. The spread between the posteriors they give is the
+  **systematic error of the emulators**, which is reported alongside the result.
+
+Each invocation of the detached driver takes one step of the emulated stage. Its state is in
+`progenitorMassFunctionEmulated/state.json`:
+
+| sub-state | action |
+|---|---|
+| `generate` | generate the direct stage's content; resolve each component's base file (with `mergerTreeSeeds` set to `random`, so that runs with nearby seeds build independent forests); write the profile configuration |
+| `profileStar`, `profileLine` | profile the error parameters by direct runs: a star design at one seed, then a line search toward its optimum at four seeds, judged free of seed noise |
+| `profileAccept` | **wait for you**: `--markProfiled progenitorMassFunction` to accept the profile, or `--reprofile progenitorMassFunction` to recenter it on its optimum and repeat it (do this if the optimum lies at the edge of the star) |
+| `fix` | write the base files with the profiled parameters fixed |
+| `design` | generate the design over the branching parameters, and a campaign per component |
+| `campaign` | run the campaigns and train the emulators (whole design, and each half) with stage workers |
+| `mcmc` | run three emulated MCMCs: whole design, and each half |
+| `systematic`, `ready` | report the posterior, and the systematic error of the emulators; **wait for you**: `--markConverged progenitorMassFunction` |
+
+Once you mark it converged, the best fit of the whole-design posterior, together with the profiled parameters, is
+handed on as for the direct stage. If the hand-off from upstream stages changes before then (the hash of the resolved
+base files differs), the emulated stage is moved aside and restarts from `generate`.
+
+Model runs and training are done by *stage workers*. These are `--progenitorMassFunctionWorkers` single-node jobs of
+`--progenitorMassFunctionWorkerCPUs` CPUs each, submitted as one array job. They share all the runs:
+- the slowest components run first;
+- each component's emulators are trained as soon as its runs end;
+- a worker takes over the work of workers that were killed or ran out of time.
+
+If the workers end before the work is done, the next invocation resubmits them (at most three times).
+
+Further options:
+
+| option | meaning |
+|---|---|
+| `--progenitorMassFunctionDesignPoints` | points in the design (default 256; the 2026-10 calibration found 512 pooled points were needed to pin down the G0–γ1 ridge) |
+| `--progenitorMassFunctionProfile no` | skip the profile, and keep the error parameters at their base-file values |
+| `--progenitorMassFunctionProfileModelVariance yes` | include the variance of each profile run (from its finite number of trees) in its likelihood, which reduces the bias of single-seed likelihoods (default no) |
+| `--progenitorMassFunctionProfileStepFraction`, `--progenitorMassFunctionProfileSteps` | profile steps, as a fraction of each prior's width (in the logarithm for log priors), or set per parameter |
+| `--progenitorMassFunctionChains`, `--progenitorMassFunctionSteps` | chains (MPI processes) and steps of each emulated MCMC |
+| `--progenitorMassFunctionEmulatedChanges` | a change file applied to every component's base file (e.g. fewer trees, for a test) |
+| `--progenitorMassFunctionLocal yes` | run the workers and MCMCs locally, blocking, instead of submitting them (for testing) |
+
 ## The cross-stage hand-off
 
 Both stages `xi:include` the same container file, `haloMassFunctionParameters.xml`
@@ -166,7 +222,19 @@ held only in memory.
 
 The last form is how per-stage generator options are set, e.g.
 `--progenitorMassFunction_massRatioDistribution normal` selects the Gaussian (rather
-than the default Hinkley) mass-ratio distribution for the progenitor stage.
+than the default Hinkley) mass-ratio distribution for the progenitor stage, and
+`--progenitorMassFunction_modelVariance yes` adds the variance of the model (from its
+finite number of merger trees) to the over-dispersion of the progenitor mass function
+likelihood. A model built from a single realization of its trees scores lower than the
+mean of many realizations would, since its noise adds to the misfit, and this inflates
+the fitted `rootVarianceTargetFractional`. Including the model's variance reduces that
+bias, but only approximately: the variance is the Poisson estimate from the analysis's
+covariance model, which treats progenitors as independent, and so only approximates the
+scatter between realizations of the trees. (In an offline test on the 2026 calibration,
+a similar correction, adding the model's fractional variance to C², moved the fitted values
+of `rootVarianceTargetFractional` for three groups of redshifts from 0.18, 0.21 and 0.56 to
+0.13, 0.16 and 0.50, against 0.14, 0.19 and 0.54 for the seed-averaged model: it removed
+the inflation, but overcorrected slightly.)
 
 ---
 

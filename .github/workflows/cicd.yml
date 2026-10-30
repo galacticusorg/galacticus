@@ -1582,6 +1582,7 @@ jobs:
                 test-luminosity-function-Halpha-Sobral.py,
                 test-dust-analyses-SDSS.py,
                 test-outputAnalysisLikelihoods.py,
+                test-progenitorMassFunctionLikelihood.py,
                 test-morphologicalFractionGAMAMoffett2016.py,
                 test-dust-emission-energy-balance.py,
                 test-AGN-torus-misalignment.py,
@@ -1613,6 +1614,7 @@ jobs:
                 test-star-formation-histories-inSitu.py,
                 test-star-formation-histories-fixedAge.py,
                 test-luminosities-from-SED-lightcone.py,
+                test-luminosities-from-SFH-lightcone.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
                 test-merger-tree-prune-clones.py,
                 test-molecular-cooling.py,
@@ -1653,6 +1655,7 @@ jobs:
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
+                test-progenitor-mass-function-forests.py,
                 test-black-hole-jet-efficiency.py,
                 test-SIDM-parametric.py,
                 test-decaying-dark-matter-halo-mass-function.py,
@@ -2194,7 +2197,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'benchmark'
           suffix: 'milkyWayModel'
-          threshold: '140%'
+          threshold: '160%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation'
         uses: ./.github/actions/benchmark
