@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.cooling_energy_radiated_cap.exe, which tests the limit applied to the energy radiated by the hot
+     halo in the Benson &amp; Bower (2010) cooling model.
+
+     The virial density contrast is pinned to a fixed value, so that the test does not also depend on the spherical collapse
+     solver. Each class is declared once, at the top level, so that the hot halo component, the node operator, and the cooling
+     classes share a single instance of each.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="445c6edb4a0939dea25cffc74bcd6c4e78b9564d" time="2026-10-30T19:39:44"/>
+
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <!-- Node components. Only the basic and hot halo components are needed. -->
+  <componentBasic   value="standard"/>
+  <componentHotHalo value="standard"/>
+
+  <!-- The hot halo. -->
+  <hotHaloMassDistribution value="betaProfile">
+    <beta value="0.666666666666666667"/>
+  </hotHaloMassDistribution>
+  <hotHaloMassDistributionCoreRadius value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadius>
+  <hotHaloTemperatureProfile value="virial"/>
+
+  <!-- Cooling, following Benson &amp; Bower (2010). -->
+  <coolingFunction value="atomicCIECloudy"/>
+  <chemicalState   value="atomicCIECloudy"/>
+  <coolingTime     value="simple">
+    <degreesOfFreedom value="3.0"/>
+  </coolingTime>
+  <coolingTimeAvailable value="bensonBower2010"/>
+  <nodeOperator         value="coolingEnergyRadiated"/>
+</parameters>
