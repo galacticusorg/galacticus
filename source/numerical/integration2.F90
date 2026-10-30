@@ -431,11 +431,11 @@ contains
     converged=.false.
     do while (.not.converged)
        iteration=iteration+1
-       if (iteration > self%iterationsMaximum)                             &
+       if (iteration > self%iterationsMaximum)                  &
             & call Error_Report(                                &
-            &                              'maximum iterations exceeded'// &
-            &                               {introspection:location}       &
-            &                             )
+            &                   'maximum iterations exceeded'// &
+            &                    {introspection:location}       &
+            &                  )
        n   =2**iteration
        step=(b-a)/dble(n)
        ! Evaluate only every second point, as the others were computed in previous iterations.
@@ -1313,11 +1313,11 @@ contains
          &                                                                         j                , n
     double precision                                                            :: step
 
-    if (iterationsMaximum < 3)                                                 &
+    if (iterationsMaximum < 3)                                      &
          & call Error_Report(                                       &
-         &                              'at least 3 iterations are required'// &
-         &                               {introspection:location}              &
-         &                             )
+         &                   'at least 3 iterations are required'// &
+         &                    {introspection:location}              &
+         &                  )
     self%iterationsMaximum=iterationsMaximum
     workspaceSize=2**iterationsMaximum
     allocate(self%d(workspaceSize))
@@ -1342,23 +1342,23 @@ contains
     use :: Error    , only : Error_Report
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
-    class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout)                        :: self
-    double precision                                            , intent(in   )                        :: a,b
-    integer                                                                                            :: iteration        , n
-    logical                                                                                            :: converged
-    double precision                                                                                   :: cumulant         , integrand, &
-         &                                                                                                integrandPrevious, step
+    class           (integratorVectorizedCompositeTrapezoidal1D), intent(inout) :: self
+    double precision                                            , intent(in   ) :: a                , b
+    integer                                                                     :: iteration        , n
+    logical                                                                     :: converged
+    double precision                                                            :: cumulant         , integrand, &
+         &                                                                         integrandPrevious, step
 
     cumulant =0.5d0*sum(self%integrand([b,a]))
     iteration=0
     converged=.false.
     do while (.not.converged)
        iteration=iteration+1
-       if (iteration > self%iterationsMaximum)                             &
+       if (iteration > self%iterationsMaximum)                  &
             & call Error_Report(                                &
-            &                              'maximum iterations exceeded'// &
-            &                               {introspection:location}       &
-            &                             )
+            &                   'maximum iterations exceeded'// &
+            &                    {introspection:location}       &
+            &                  )
        n   =2**iteration
        step=(b-a)/dble(n)
        ! Evaluate only every second point, as the others were computed in previous iterations.
