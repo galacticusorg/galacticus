@@ -2,7 +2,7 @@
 <!-- Low-resolution excursion set first crossing solutions from the "farahiMidpoint" class, for comparison of runs on different numbers of MPI processes (see testSuite/test-excursionSetsFarahi_MPI.py). -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="dd7a0edb77fb16d7366804c068a97c42e2f8c01b" time="2026-10-30T17:23:25"/>
 
   <!-- Specify tasks to perform. Spanning several epochs causes the first crossing tables to be extended in time, re-using the
        solutions already found. -->
@@ -36,9 +36,10 @@
     <running             value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
 
   <!-- Structure formation options -->
   <linearGrowth          value="collisionlessMatter"                       />
