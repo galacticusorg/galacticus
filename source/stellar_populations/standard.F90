@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a standard stellar population class.
   !!}
@@ -668,18 +670,22 @@ contains
     ! calling %interpolate four times.
     age=[ageMinimum,ageMaximum]
     do iAge=1,2
-       if (age(iAge) > 0.0d0) call property%interpolatorAge%linearFactors(age(iAge),ageIndex(iAge),ageFactors(:,iAge))
+       if (age(iAge) < property%age(1)) then
+          ! Below the tabulated range interpolate linearly between zero (at zero age) and the first tabulated value. Linear
+          ! extrapolation from the tabulated values would not, in general, go to zero at zero age, making the cumulative
+          ! property discontinuous there - the mean rate over a very short interval beginning at zero age would then diverge.
+          ageIndex  (  iAge)=1_c_size_t
+          ageFactors(:,iAge)=[max(age(iAge),0.0d0)/property%age(1),0.0d0]
+       else
+          call property%interpolatorAge%linearFactors(age(iAge),ageIndex(iAge),ageFactors(:,iAge))
+       end if
     end do
     do iMetallicity=0,1
        if (metallicityFactors(iMetallicity+1) /= 0.0d0) then
           ! Get average property between ageMinimum and ageMaximum.
           do iAge=1,2
-             if (age(iAge) > 0.0d0) then
-                propertyCumulative(iAge)=+ageFactors(0,iAge)*property%property(ageIndex(iAge)  ,metallicityIndex+iMetallicity) &
-                     &                   +ageFactors(1,iAge)*property%property(ageIndex(iAge)+1,metallicityIndex+iMetallicity)
-             else
-                propertyCumulative(iAge)=0.0d0
-             end if
+             propertyCumulative(iAge)=+ageFactors(0,iAge)*property%property(ageIndex(iAge)  ,metallicityIndex+iMetallicity) &
+                  &                   +ageFactors(1,iAge)*property%property(ageIndex(iAge)+1,metallicityIndex+iMetallicity)
           end do
           rate(iMetallicity+1)=+(+propertyCumulative(2)-propertyCumulative(1)) &
                &               /(+               age(2)-               age(1))
