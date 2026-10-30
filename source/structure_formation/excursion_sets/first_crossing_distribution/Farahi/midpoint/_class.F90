@@ -278,7 +278,7 @@ contains
                    ! all processes once solved, so only those epochs are carried over.
                    if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
-                   self%firstCrossingProbability        (0:countVariancePrevious-1,iTime                                )= &
+                   self  %firstCrossingProbability        (0:countVariancePrevious-1,iTime                              )= &
                         & firstCrossingProbabilityPrevious(0:countVariancePrevious-1,iTime-int(offsetTime,kind=c_size_t))
                 end do
              end if
