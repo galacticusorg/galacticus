@@ -116,7 +116,7 @@ contains
       The minimum velocity (in units of the host virial velocity) for which to compute velocity distributions.
       </description>
       <type>real</type>
-      <cardinality>0..1</cardinality>
+      <cardinality>1</cardinality>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>velocityMaximum</name>
@@ -125,7 +125,7 @@ contains
       The maximum velocity (in units of the host virial velocity) for which to compute velocity distributions.
       </description>
       <type>real</type>
-      <cardinality>0..1</cardinality>
+      <cardinality>1</cardinality>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>countVelocitiesPerUnit</name>
@@ -133,8 +133,8 @@ contains
       <description>
       The number of points per unit of velocity (in units of the host virial velocity) for which to compute velocity distributions.
       </description>
-      <type>real</type>
-      <cardinality>0..1</cardinality>
+      <type>integer</type>
+      <cardinality>1</cardinality>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>massMinimum</name>
@@ -143,7 +143,7 @@ contains
       The minimum mass halo for which to compute ``mergingHaloOrbitDistribution`` properties.
       </description>
       <type>real</type>
-      <cardinality>0..1</cardinality>
+      <cardinality>1</cardinality>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>massMaximum</name>
@@ -152,7 +152,7 @@ contains
       The maximum mass halo for which to compute ``mergingHaloOrbitDistribution`` properties.
       </description>
       <type>real</type>
-      <cardinality>0..1</cardinality>
+      <cardinality>1</cardinality>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>countMassesPerDecade</name>
@@ -160,8 +160,8 @@ contains
       <description>
       The number of points per decade of mass for which to compute ``mergingHaloOrbitDistribution`` properties.
       </description>
-      <type>real</type>
-      <cardinality>0..1</cardinality>
+      <type>integer</type>
+      <cardinality>1</cardinality>
     </inputParameter>
     <inputParameter docformat="rst">
       <name>redshift</name>
@@ -170,7 +170,7 @@ contains
       The redshift.
       </description>
       <type>real</type>
-      <cardinality>0..1</cardinality>
+      <cardinality>1</cardinality>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                  />
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                  />

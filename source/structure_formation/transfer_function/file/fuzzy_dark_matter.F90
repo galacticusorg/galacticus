@@ -287,7 +287,6 @@ contains
     logical                                              , intent(in   ), optional :: invalidateCache, lockCache
     double precision                                                               :: fuzzyDMMass    , fuzzyDMDensityFraction
     type            (lockDescriptor                     )                          :: fileLock
-    !$GLC attributes unused :: invalidateCache, lockCache
     
     ! Open and read the HDF5 data file.
     call File_Lock(self%fileName,fileLock)
@@ -312,8 +311,8 @@ contains
     end block hdf5ReadScope
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
-    ! Read the data file.
-    call self%transferFunctionFile%readFile(fileName)
+    ! Read the data file, passing on the cache options.
+    call self%transferFunctionFile%readFile(fileName,invalidateCache,lockCache)
     return
   end subroutine fileFuzzyDarkMatterReadFile
 

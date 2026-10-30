@@ -12,6 +12,14 @@ from git import Repo
 
 # Run models to validate a dark matter only subhalo evolution model for a decaying dark matter scenario.
 # Andrew Benson (13-January-2024)
+#
+# Usage: validate-darkMatterOnlySubhalos-decayingDarkMatter.py [<lifetime> <velocityKick>]
+# With no arguments, every model in the target dataset is run. Given a lifetime (Gyr) and kick velocity (km/s), only that
+# model is run - CI runs each model as a separate job, as together they come close to the GitHub job time limit.
+if len(sys.argv) not in (1, 3):
+    print("FAILED: usage: validate-darkMatterOnlySubhalos-decayingDarkMatter.py [<lifetime> <velocityKick>]")
+    sys.exit(0)
+modelSelected = (float(sys.argv[1]),float(sys.argv[2])) if len(sys.argv) == 3 else None
 
 # Create output path.
 try:
@@ -42,11 +50,15 @@ nodeFileName      = parameters.find('outputFileName'                  )
 
 # Open the target dataset file and iterate over models.
 dataTarget = h5py.File('data/decayingDarkMatterSubhalosMau2022.hdf5')
+modelsRun  = 0
 for model in dataTarget.keys():
     # Extract combination of lifetime and kick velocity.
     matched      = re.search("lifetime:(\d+)_velocityKick:(\d+)",model)
     lifetime     = float(matched.group(1))
     velocityKick = float(matched.group(2))
+    if modelSelected is not None and (lifetime,velocityKick) != modelSelected:
+        continue
+    modelsRun   += 1
     massSplit    = velocityKick/speedOfLight
     # Extract mass and radius CDFs.
     masses           = dataTarget[model]['mass'     ][:]
@@ -189,4 +201,7 @@ for model in dataTarget.keys():
     f.write(json.dumps(likelihoods,indent=4,ensure_ascii=False))
     f.close()
 
+if modelsRun == 0:
+    print(f"FAILED: no model with (lifetime, velocityKick) = {modelSelected} in the target dataset")
+    sys.exit(0)
 print("SUCCESS: decaying dark matter dark matter-only subhalos validation model")

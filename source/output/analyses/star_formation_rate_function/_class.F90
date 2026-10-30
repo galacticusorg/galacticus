@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Sachi Weerasooriya
 
   !!{RST
-  Implements a stellar mass function output analysis class.
+  Implements a star formation rate function output analysis class.
   !!}
 
   use :: Cosmology_Functions                       , only : cosmologyFunctionsClass

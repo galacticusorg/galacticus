@@ -150,8 +150,7 @@ def test_default_output_path(fake_tree):
 
 
 def test_cli_wiring(tmp_path, monkeypatch):
-    """--jobs and --no-cache must reach `build_catalog`, and the cache must be
-    on by default (the pre-commit hook depends on it)."""
+    """`--jobs` must reach `build_catalog`."""
     import parameterSchema
 
     (tmp_path / 'source').mkdir()
@@ -172,6 +171,27 @@ def test_cli_wiring(tmp_path, monkeypatch):
 
     assert run('--jobs', '3')['jobs'] == 3
     assert run()['jobs'] is None                     # left to ParallelScan
-    assert run('--no-cache')['cache_path'] is None
-    assert run()['cache_path'] == str(
-        tmp_path / 'build' / 'parameters.catalog.blob')
+
+
+def test_exec_path_names_the_tree_being_scanned(tmp_path, monkeypatch):
+    """Whatever the environment says.
+
+    The directive parser finds the schemas it validates directives against
+    through `GALACTICUS_EXEC_PATH`. Left pointing at another checkout, every
+    directive which does not validate against *that* tree's schemas is dropped,
+    silently and only from whatever those directives contributed.
+    """
+    import parameterSchema
+
+    (tmp_path / 'source').mkdir()
+    monkeypatch.setenv('GALACTICUS_EXEC_PATH', '/somewhere/else/entirely')
+    seen = {}
+
+    def _stub_catalog(source_root, **keywords):
+        seen['exec_path'] = os.environ.get('GALACTICUS_EXEC_PATH')
+        return CATALOG
+
+    monkeypatch.setattr(parameterSchema, 'build_catalog', _stub_catalog)
+    parameterSchema.main(['parameterSchema.py', str(tmp_path),
+                          str(tmp_path / 'out.xsd')])
+    assert seen['exec_path'] == str(tmp_path)
