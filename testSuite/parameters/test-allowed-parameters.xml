@@ -3,7 +3,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
 
   <!-- Verbosity -->
@@ -42,12 +42,14 @@
     <running value="0.0"/>
   </powerSpectrumPrimordial>
   <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.817"/>
     <monotonicInterpolation value="false"/>
     <powerSpectrumWindowFunction value="sharpKSpace">
       <normalization value="2.5"/>
     </powerSpectrumWindowFunction>
   </cosmologicalMassVariance>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.817"/>
+  </powerSpectrumNormalizer>
   <transferFunction value="bode2001">
     <scaleCutOff value="0.08725"/>
     <!-- WARNING: This is expected to trigger a warning -->
@@ -75,11 +77,13 @@
   <darkMatterProfileConcentration value="schneider2015">
     <reference>
       <cosmologicalMassVariance value="filteredPower">
-        <sigma_8 value="0.817"/>
         <powerSpectrumWindowFunction value="sharpKSpace">
           <normalization value="2.5"/>
         </powerSpectrumWindowFunction>
         <powerSpectrumPrimordialTransferred value="simple"/>
+        <powerSpectrumNormalizer value="sigma8">
+          <sigma_8 value="0.817"/>
+        </powerSpectrumNormalizer>
         <transferFunction value="eisensteinHu1999">
           <neutrinoNumberEffective value="3.04"/>
           <neutrinoMassSummed value="0.000"/>

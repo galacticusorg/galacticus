@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
+Contains a module which provides a class that implements modifiers for merger tree branching probabilities.
 !!}
 
 module Merger_Tree_Branching_Modifiers
   !!{RST
-  Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
+  Provides a class that implements modifiers for merger tree branching probabilities.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private

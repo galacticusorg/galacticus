@@ -81,6 +81,8 @@ Implements a nonlinear power spectrum class in which the nonlinear power spectru
 
   ! Wavenumber range used for testing the shape of the primordial power spectrum.
   double precision                , parameter :: wavenumberLong        =0.01d0, wavenumberShort=1.0d0
+  ! The pivot wavenumber (in Mpc¯¹) at which EuclidEmulator2 defines the amplitude of the primordial scalar power spectrum, A_s.
+  double precision                , parameter :: wavenumberPivot       =0.05d0
   ! Maximum redshift emulated by EuclidEmulator2, along with the number of redshifts, spaced uniformly in ln(1+z), at which the
   ! nonlinear correction factor is tabulated. EuclidEmulator2 emulates all redshifts in a single invocation, so a fine grid costs
   ! essentially nothing.
@@ -334,12 +336,21 @@ contains
     parameterValue(6)=self%cosmologyFunctions_  %equationOfStateDarkEnergy(expansionFactor=1.0d0)
     parameterValue(7)=euclidEmulator2EquationOfStateA(self)
     ! Determine the amplitude of the primordial scalar power spectrum. Unless it was specified explicitly, invert the ratio
-    ! σ₈²/A_s computed by CLASS - this is exact, as the linear power spectrum is directly proportional to A_s.
+    ! σ₈²/A_s computed by CLASS - this is exact, as the linear power spectrum is directly proportional to A_s. CLASS is given the
+    ! spectral index of the model (which has no running), with A_s defined at the pivot wavenumber used by EuclidEmulator2, and
+    ! the CPL dark energy equation of state passed to EuclidEmulator2.
     if (self%amplitudeScalarIsSet) then
        parameterValue(8)=self%amplitudeScalar
     else
-       parameterValue(8)=+self%cosmologicalMassVariance_%sigma8(                         )**2 &
-            &            /Interface_CLASS_Normalization        (self%cosmologyParameters_)
+       parameterValue(8)=+self%cosmologicalMassVariance_%sigma8(                                       )**2  &
+            &            /Interface_CLASS_Normalization        (                                             &
+            &                                                   self%cosmologyParameters_                  , &
+            &                                                   indexSpectral       =parameterValue (4)    , &
+            &                                                   indexSpectralRunning=0.0d0                 , &
+            &                                                   wavenumberPivot     =wavenumberPivot       , &
+            &                                                   equationOfState0    =parameterValue (6)    , &
+            &                                                   equationOfStateA    =parameterValue (7)      &
+            &                                                  )
     end if
     ! Validate that the cosmological parameters fall within the range over which EuclidEmulator2 is applicable. EuclidEmulator2
     ! itself simply aborts if they do not, so check here to be able to report a useful error.

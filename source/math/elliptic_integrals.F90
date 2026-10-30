@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which implements exponential integrals.
+Contains a module which implements elliptic integrals.
 !!}
 
 ! Add dependency on GSL library.
@@ -26,7 +26,7 @@ Contains a module which implements exponential integrals.
 
 module Elliptic_Integrals
   !!{RST
-  Implements exponential integrals.
+  Implements elliptic integrals.
   !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
   implicit none

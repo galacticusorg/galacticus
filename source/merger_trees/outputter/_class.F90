@@ -23,7 +23,7 @@ Contains a module which provides a class that implements outputting of node data
 
 module Merger_Tree_Outputters
   !!{RST
-  Provides a class that implements evolution of merger trees.
+  Provides a class that implements outputting of node data in merger trees.
   !!}
   use            :: Galacticus_Nodes, only : mergerTree
   use, intrinsic :: ISO_C_Binding   , only : c_size_t
