@@ -4,7 +4,7 @@
 <!-- Andrew Benson (23-October-2026)                                                                                          -->
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="433f96f86088e084bc1c78253a0bbb24aa77223d" time="2026-10-23T12:00:00"/>
+  <lastModified revision="ac0f5e1f433c3eb681b354deabdabf2cc030bbfb" time="2026-10-30T18:39:16"/>
   <verbosityLevel value="standard"/>
   <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
@@ -32,9 +32,10 @@
     <running value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.81"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
   <linearGrowth value="collisionlessMatter"/>
   <criticalOverdensity value="environmental">
     <a value="0.077"/>
