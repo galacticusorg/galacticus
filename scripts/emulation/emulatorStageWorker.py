@@ -55,6 +55,7 @@ def main(argv=None):
     commands['submit'].add_argument('--walltime', help='the walltime of each worker job, e.g. `24:00:00`')
     commands['submit'].add_argument('--memory', type=int, help='memory per worker job, in MB')
     commands['submit'].add_argument('--partition', help='the Slurm partition (default: from galacticusConfig.xml)')
+    commands['submit'].add_argument('--label', default='emulatorStageWorker', help='the Slurm job name of the workers')
     args = parser.parse_args(argv)
     stage = Stage.load(args.stage)
 
@@ -81,7 +82,7 @@ def main(argv=None):
     os.makedirs(root, exist_ok=True)
     script = os.path.abspath(__file__)
     job = {
-        'label': 'emulatorStageWorker',
+        'label': args.label,
         'launchFile': os.path.join(root, 'workers.slurm'),
         'command': f'{shlex.quote(stage.python)} {shlex.quote(script)} work {shlex.quote(stage.stage_file)} --slots {args.cpus}',
         'array': f'0-{args.workers - 1}',

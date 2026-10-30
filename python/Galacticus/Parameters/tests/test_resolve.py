@@ -68,6 +68,26 @@ def test_xinclude_children_of_parameters_root(tmp_path):
     assert _tags(root) == ['first', 'Hubble', 'Omega', 'last']
 
 
+def test_xinclude_named_children(tmp_path):
+    """An xpointer naming an element includes every child of that name (as Galacticus does), and a nested path the
+    children of the element it names."""
+    _write(tmp_path, 'included.xml',
+           '<parameters><a value="1"/><b value="2"/><a value="3"/>'
+           '<c value="x"><d value="4"/><e value="5"/></c></parameters>')
+    for xpointer, expected in (('parameters/a', [('a', '1'), ('a', '3')]), ('parameters/c/*', [('d', '4'), ('e', '5')])):
+        main = _write(tmp_path, 'main.xml',
+                      '<parameters xmlns:xi="http://www.w3.org/2001/XInclude">'
+                      f'<xi:include href="included.xml" xpointer="xpointer({xpointer})"/></parameters>')
+        root = resolve.resolve_file(main).getroot()
+        assert [(child.tag, child.get('value')) for child in root if isinstance(child.tag, str)] == expected
+    for xpointer in ('parameters/missing', 'parameters/missing/*', 'other/*', 'parameters/*/a', 'parameters'):
+        main = _write(tmp_path, 'main.xml',
+                      '<parameters xmlns:xi="http://www.w3.org/2001/XInclude">'
+                      f'<xi:include href="included.xml" xpointer="xpointer({xpointer})"/></parameters>')
+        with pytest.raises(ResolveError):
+            resolve.resolve_file(main)
+
+
 def test_xinclude_nested(tmp_path):
     _write(tmp_path, 'inner.xml', '<parameters><deep value="1"/></parameters>')
     _write(tmp_path, 'outer.xml',

@@ -282,7 +282,8 @@ class Profile:
     # Likelihoods.
 
     def _observables(self, component, design_file):
-        """The observables of a component, with any label patterns expanded against the first output found."""
+        """The observables of a component, with any label patterns expanded against the first output found which has
+        analyses (the output of a run which failed part way may have none)."""
         if not any(observable.pattern for observable in component.observables):
             return [(observable.observable, observable.form) for observable in component.observables]
         with h5py.File(design_file, 'r') as file:
@@ -291,12 +292,13 @@ class Profile:
         for output in outputs:
             try:
                 with h5py.File(output_file_path(output), 'r') as file:
-                    labels = sorted(file['analyses'].keys()) if 'analyses' in file else []
-                break
+                    if 'analyses' in file and len(file['analyses']) > 0:
+                        labels = sorted(file['analyses'].keys())
+                        break
             except OSError:
                 continue
         if labels is None:
-            raise RuntimeError(f"component '{component.name}': no output found in which to match observable labels")
+            raise RuntimeError(f"component '{component.name}': no output with analyses found in which to match observable labels")
         observables = []
         for observable in component.observables:
             if not observable.pattern:
