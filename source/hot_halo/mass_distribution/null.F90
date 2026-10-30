@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 A null implementation of the hot halo mass distribution class.
 !!}
@@ -62,7 +64,7 @@ contains
     return
   end function nullConstructorParameters
 
-  function nullGet(self,node,weightBy,weightIndex) result(massDistribution_)
+  function nullGet(self,node,weightBy,weightIndex,untruncated) result(massDistribution_)
     !!{RST
     Return a null hot halo mass distribution.
     !!}
@@ -72,6 +74,7 @@ contains
     type   (treeNode                   ), intent(inout)           :: node
     type   (enumerationWeightByType    ), intent(in   ), optional :: weightBy
     integer                             , intent(in   ), optional :: weightIndex
+    logical                             , intent(in   ), optional :: untruncated
 
     massDistribution_ => null()
     return

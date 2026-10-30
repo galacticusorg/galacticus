@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements the standard hot halo node component.
 !!}
@@ -698,7 +700,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
     !!{RST
-    Accept outflowing gas abundances from a galaxy and deposit it into the outflowed reservoir.
+    Accept outflowing gas abundances from a galaxy and deposit them into the outflowed and stripped reservoirs.
     !!}
     use :: Abundances_Structure, only : abundances
     use :: Galacticus_Nodes    , only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
@@ -716,7 +718,10 @@ contains
        ! Get the host node.
        node                    => self                    %host            (    )
        fractionOutflowStripped =  hotHaloOutflowStripping_%fractionStripped(node)
-       call self%outflowedAbundancesRate(rate*(1.0d0-fractionOutflowStripped))
+       ! Funnel the outflowing abundances into the outflowed and stripped reservoirs in the same proportions as the mass.
+       if (.not.hotHaloOutflowStripping_%neverStripped(node)) &
+            & call self% strippedAbundancesRate(rate*       fractionOutflowStripped )
+       call        self%outflowedAbundancesRate(rate*(1.0d0-fractionOutflowStripped))
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate

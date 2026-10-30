@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 An implementation of the hot halo mass distribution class which uses the model of :cite:t:`patej_simple_2015`.
 !!}
@@ -138,7 +140,7 @@ contains
     return
   end subroutine patejLoeb2015Destructor
 
-  function patejLoeb2015Get(self,node,weightBy,weightIndex) result(massDistribution_)
+  function patejLoeb2015Get(self,node,weightBy,weightIndex,untruncated) result(massDistribution_)
     !!{RST
     Return the :cite:t:`patej_simple_2015` hot halo mass distribution for the given ``node``.
     !!}
@@ -151,12 +153,14 @@ contains
     type            (treeNode                            ), intent(inout)           :: node
     type            (enumerationWeightByType             ), intent(in   ), optional :: weightBy
     integer                                               , intent(in   ), optional :: weightIndex
+    logical                                               , intent(in   ), optional :: untruncated
     class           (nodeComponentHotHalo                ), pointer                 :: hotHalo
     class           (massDistributionClass               ), pointer                 :: massDistributionDMO
     double precision                                                                :: radiusOuter        , mass, &
          &                                                                             radiusShock
     !![
-    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    <optionalArgument name="weightBy"    defaultsTo="weightByMass" />
+    <optionalArgument name="untruncated" defaultsTo=".false."      />
     !!]
 
     ! Assume a null distribution by default.
@@ -167,6 +171,8 @@ contains
     hotHalo     => node   %hotHalo    ()
     radiusOuter =  hotHalo%outerRadius()
     mass        =  hotHalo%mass       ()
+    ! For an untruncated profile only the shape is required, so normalize an empty hot halo to unit mass.
+    if (untruncated_ .and. mass <= 0.0d0) mass=1.0d0
     ! If outer radius is non-positive return a null profile.
     if (radiusOuter <= 0.0d0 .or. mass <= 0.0d0) return
     radiusShock         =  +self                      %radiusShock        &
