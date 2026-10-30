@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements an accelerator for spherical mass distributions.
   !!}
@@ -75,7 +77,7 @@ contains
       <defaultValue>1.0d-2</defaultValue>
       <source>parameters</source>
       <description>
-      The tolerance with which to accept accelerated estimates.
+      The relative tolerance in mass with which to accept accelerated estimates (two interpolations of the logarithm of the enclosed mass, from neighboring pairs of cached radii, must agree to within this tolerance).
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -226,9 +228,10 @@ contains
              if (associated(left2).and.associated(right2)) then
                 massEnclosed1=(radiusLogarithmic-left1%key)*(right1%value-left1%value)/(right1%key-left1%key)+left1%value
                 massEnclosed2=(radiusLogarithmic-left2%key)*(right2%value-left2%value)/(right2%key-left2%key)+left2%value
-                if (Values_Agree(massEnclosed1,massEnclosed2,relTol=self%toleranceRelative)) then
-                   mass=exp(massEnclosed1)
-                   found                  =.true.
+                ! The estimates are of the logarithm of the mass, so an absolute tolerance on them is a relative tolerance on the mass.
+                if (Values_Agree(massEnclosed1,massEnclosed2,absTol=self%toleranceRelative)) then
+                   mass =exp(massEnclosed1)
+                   found=.true.
                 end if
              end if
           end if

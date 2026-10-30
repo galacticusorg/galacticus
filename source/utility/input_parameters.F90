@@ -2424,38 +2424,39 @@ contains
     use            :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use            :: HDF5_Access       , only : hdf5Access
     implicit none
-    class           (inputParameters                         ), intent(inout), target   :: self
-    type            (inputParameter                          ), intent(inout), target   :: parameterNode
-    {Type¦intrinsic}                                          , intent(  out)           :: parameterValue
-    type            (enumerationInputParameterErrorStatusType), intent(  out), optional :: errorStatus
-    logical                                                   , intent(in   ), optional :: writeOutput        , evaluate
+    class           (inputParameters                         ), intent(inout), target    :: self
+    type            (inputParameter                          ), intent(inout), target    :: parameterNode
+    {Type¦intrinsic}                                          , intent(  out)            :: parameterValue
+    type            (enumerationInputParameterErrorStatusType), intent(  out), optional  :: errorStatus
+    logical                                                   , intent(in   ), optional  :: writeOutput        , evaluate
 #ifdef MATHEVALAVAIL
-    integer         (c_int64_t                               )                          :: evaluator
+    integer         (c_int64_t                               )                           :: evaluator
     ! Declarations of GNU libmatheval procedures used.
-    integer         (c_int64_t                               ), external                :: Evaluator_Create_
-    double precision                                          , external                :: Evaluator_Evaluate_
-    external                                                                            :: Evaluator_Destroy_
+    integer         (c_int64_t                               ), external                 :: Evaluator_Create_
+    double precision                                          , external                 :: Evaluator_Evaluate_
+    external                                                                             :: Evaluator_Destroy_
 #endif
-    type            (inputParameter                          )               , pointer  :: sibling
-    type            (node                                    )               , pointer  :: valueElement       , identifierNode
-    type            (inputParameters                         )               , pointer  :: parentParameters
-    type            (DOMException                            )                          :: exception
-    integer                                                                             :: copyInstance       , copyCount       , &
-         &                                                                                 status
-    logical                                                                             :: hasValueAttribute  , hasValueElement , &
-         &                                                                                 isException        , isPresent       , &
-         &                                                                                 isDouble           , isText          , &
-         &                                                                                 isInteger          , haveDefault
-    character       (len=parameterLengthMaximum              )                          :: expression         , parameterName   , &
-         &                                                                                 workText           , content         , &
-         &                                                                                 workValueText      , formatSpecifier , &
-         &                                                                                 parameterLeafName  , defaultValue
-    type            (varying_string                          )                          :: attributeName      , nodeName        , &
-         &                                                                                 siblingName
-    double precision                                                                    :: workValueDouble
-    integer         (c_size_t                                )                          :: workValueInteger
-    type            (enumerationInputParameterTypeType       )                          :: parameterType
-    {Type¦match¦^Long.*¦character(len=parameterLengthMaximum) :: parameterText¦}
+    type            (inputParameter                          )               , pointer   :: sibling
+    type            (node                                    )               , pointer   :: valueElement       , identifierNode
+    type            (inputParameters                         )               , pointer   :: parentParameters
+    type            (DOMException                            )                           :: exception
+    integer                                                                              :: copyInstance       , copyCount       , &
+         &                                                                                  status
+    logical                                                                              :: hasValueAttribute  , hasValueElement , &
+         &                                                                                  isException        , isPresent       , &
+         &                                                                                  isDouble           , isText          , &
+         &                                                                                  isInteger          , haveDefault
+    character       (len=parameterLengthMaximum              )                           :: expression         , parameterName   , &
+         &                                                                                  workText           , content         , &
+         &                                                                                  workValueText      , formatSpecifier , &
+         &                                                                                  parameterLeafName  , defaultValue
+    type            (varying_string                          )                           :: attributeName      , nodeName        , &
+         &                                                                                  siblingName
+    double precision                                                                     :: workValueDouble
+    double precision                                                         , parameter :: toleranceRoundingInteger=1.0d-9
+    integer         (c_size_t                                )                           :: workValueInteger
+    type            (enumerationInputParameterTypeType       )                           :: parameterType
+    {Type¦match¦^Long.*¦character(len=parameterLengthMaximum)  :: parameterText¦}
     {Type¦match¦^(Character|VarStr)Rank1$¦type(varying_string) :: parameterText¦}
     !![
     <optionalArgument name="writeOutput" defaultsTo=".true." />
@@ -2557,12 +2558,10 @@ contains
                          call parentParameters%value(trim(parameterLeafName),workValueText   )
                       end if
                       deallocate(parentParameters)
-                   else if (isInteger .and. haveDefault) then
-                      ! The parameter does not exist, but a default value is available - use that default.
-                      read (defaultValue,*) workValueInteger
-                      deallocate(parentParameters)
-                   else if (isDouble .and. haveDefault) then
-                      ! The parameter does not exist, but a default value is available - use that default.
+                   else if ((isDouble .or. isInteger) .and. haveDefault) then
+                      ! The parameter does not exist, but a default value is available - use that default. The expression is
+                      ! evaluated in double precision, so values substituted into integer expressions are handled in double
+                      ! precision also.
                       read (defaultValue,*) workValueDouble
                       deallocate(parentParameters)
                    else
@@ -2571,10 +2570,8 @@ contains
                       !$omp end critical (FoX_DOM_Access)
                       call Error_Report('parameter `'//trim(parameterName)//'` referenced in expression `'//trim(expression)//'` does not exist'//{introspection:location})
                    end if
-                   if (isDouble) then
+                   if (isDouble .or. isInteger) then
                       write (workText,'(e24.16)') workValueDouble
-                   else if (isInteger) then
-                      write (workText,'(i24)'   ) workValueInteger
                    else if (isText) then
                       if      (parameterType == inputParameterTypeDouble ) then
                          write (worktext,formatSpecifier) workValueDouble
@@ -2596,7 +2593,13 @@ contains
                    if (isDouble) then
                       call parameterNode%set(workValueDouble)
                    else if (isInteger) then
-                      write (workValueText,'(i24)') int(workValueDouble,kind=c_size_t)
+                      ! Round to the nearest integer if the result is an integer to within rounding error (e.g. 0.29*100, which
+                      ! evaluates to 28.999999999999996 in double precision). Otherwise, truncate toward zero.
+                      if (abs(workValueDouble-anint(workValueDouble)) <= toleranceRoundingInteger*max(1.0d0,abs(workValueDouble))) then
+                         write (workValueText,'(i24)') nint(workValueDouble,kind=c_size_t)
+                      else
+                         write (workValueText,'(i24)')  int(workValueDouble,kind=c_size_t)
+                      end if
                       call parameterNode%set(var_str(trim(workValueText)))
                    end if
                    !$omp critical (FoX_DOM_Access)

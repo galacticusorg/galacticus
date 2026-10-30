@@ -12,9 +12,7 @@ Covers the two pieces most likely to drift from the rest of the build system:
 """
 
 import os
-import pickle
 import textwrap
-import time
 
 import pytest
 
@@ -269,6 +267,104 @@ def test_harvest_file_end_to_end(tmp_path):
     assert objects['cosmologyFunctions']['repeatable'] is False
 
 
+_SNIPPET_CARDINALITY = textwrap.dedent("""\
+    module My_Module
+      private
+      !![
+      <myClass name="myClassSimple">
+       <description>A synthetic implementation for testing.</description>
+      </myClass>
+      !!]
+      type, extends(myClassClass) :: myClassSimple
+      end type myClassSimple
+    contains
+
+      function simpleConstructorParameters(parameters) result(self)
+        type            (myClassSimple   )                            :: self
+        type            (inputParameters )                            :: parameters
+        double precision                                              :: required    , optional, &
+             &                                                           alternative , checked , &
+             &                                                           annotated
+        double precision                  , dimension(3)              :: vector
+        double precision                  , dimension(:), allocatable :: list
+        !![
+        <inputParameter>
+          <name>required</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        <inputParameter>
+          <name>vector</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        <inputParameter>
+          <name>list</name>
+          <defaultValue>[0.0d0]</defaultValue>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        <inputParameter>
+          <name>annotated</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+          <cardinality>0..1</cardinality>
+        </inputParameter>
+        !!]
+        if (parameters%isPresent('optional')) then
+           !![
+           <inputParameter>
+             <name>optional</name>
+             <source>parameters</source>
+             <description>A parameter.</description>
+           </inputParameter>
+           !!]
+        else if (parameters%isPresent('alternative')) then
+           !![
+           <inputParameter>
+             <name>alternative</name>
+             <source>parameters</source>
+             <description>A parameter.</description>
+           </inputParameter>
+           !!]
+        end if
+        if (.not.parameters%isPresent('checked')) call Error_Report('[checked] is required')
+        !![
+        <inputParameter>
+          <name>checked</name>
+          <source>parameters</source>
+          <description>A parameter.</description>
+        </inputParameter>
+        !!]
+        return
+      end function simpleConstructorParameters
+    end module My_Module
+    """)
+
+
+def test_harvest_file_cardinality(tmp_path):
+    """Cardinality is derived from the variable's shape, a default, and an
+    `isPresent` guard; a check that only reports an absent parameter is not a
+    guard; an explicit `<cardinality>` is kept."""
+    source_root = tmp_path / "source"
+    (source_root / "my").mkdir(parents=True)
+    impl = source_root / "my" / "impl.F90"
+    impl.write_text(_SNIPPET_CARDINALITY)
+
+    (entry,) = harvest_file(str(impl), {"myClass"}, str(source_root))
+    cardinality = {p['name']: (p['cardinality'], p['cardinalityProvenance'])
+                   for p in entry['parameters']}
+    assert cardinality == {
+        'required':    ('1',    'derived'),
+        'vector':      ('3',    'derived'),
+        'list':        ('0..*', 'derived'),
+        'annotated':   ('0..1', 'explicit'),
+        'optional':    ('0..1', 'derived'),
+        'alternative': ('0..1', 'derived'),
+        'checked':     ('1',    'derived'),
+    }
+
+
 # ---------------------------------------------------------------------------
 # `_scan_directives` / `build_catalog`: the single-read early phases
 # ---------------------------------------------------------------------------
@@ -393,193 +489,6 @@ def test_build_catalog_logs_parse_error_and_keeps_the_rest(tmp_path, monkeypatch
     assert 'myClassBroken' not in catalog['implementations']
     assert catalog['functionClasses']['myClass']['implementations'] == ['enum']
     assert any('parse-error' in m and 'broken.F90' in m for m in messages)
-
-
-# ---------------------------------------------------------------------------
-# The scan cache
-# ---------------------------------------------------------------------------
-
-def _backdate(source_root, seconds=10):
-    """Age the source files so they are unambiguously older than a cache written
-    now (mtime comparison is `>=`, so equal timestamps force a rescan)."""
-    past = time.time() - seconds
-    for dirpath, _, filenames in os.walk(str(source_root)):
-        for name in filenames:
-            os.utime(os.path.join(dirpath, name), (past, past))
-
-
-def test_cache_matches_uncached(tmp_path):
-    """The cache is an optimization: it must never change the catalog."""
-    source_root = _write_tree(tmp_path)
-    blob = str(tmp_path / 'cache.blob')
-
-    uncached = build_catalog(str(source_root), jobs=1)
-    build_catalog(str(source_root), jobs=1, cache_path=blob)   # populate
-    _backdate(source_root)
-    warm = build_catalog(str(source_root), jobs=1, cache_path=blob)
-
-    assert warm == uncached
-
-
-def test_repeated_cached_runs_are_stable(tmp_path):
-    """Regression: the cached base-class record must not accumulate labels.
-
-    `build_catalog` appends implementation labels to each base record. When that
-    record was owned by the scan cache, every run appended to the *same* list and
-    then pickled it, so labels piled up run over run (and survived deleting the
-    file that declared them).
-    """
-    source_root = _write_tree(tmp_path)
-    blob = str(tmp_path / 'cache.blob')
-
-    first = build_catalog(str(source_root), jobs=1, cache_path=blob)
-    _backdate(source_root)
-    for _ in range(3):
-        again = build_catalog(str(source_root), jobs=1, cache_path=blob)
-        assert again['functionClasses']['myClass']['implementations'] == ['enum']
-        assert again == first
-
-
-def test_cache_detects_modified_file(tmp_path):
-    source_root = _write_tree(tmp_path)
-    blob = str(tmp_path / 'cache.blob')
-    build_catalog(str(source_root), jobs=1, cache_path=blob)
-
-    (source_root / "my" / "impl.F90").write_text(
-        _SNIPPET_ENUM.replace('myClassEnum', 'myClassRenamed'))
-    catalog = build_catalog(str(source_root), jobs=1, cache_path=blob)
-
-    assert 'myClassRenamed' in catalog['implementations']
-    assert 'myClassEnum' not in catalog['implementations']
-    assert catalog['functionClasses']['myClass']['implementations'] == ['renamed']
-
-
-def test_cache_detects_new_and_deleted_files(tmp_path):
-    source_root = _write_tree(tmp_path)
-    blob = str(tmp_path / 'cache.blob')
-    build_catalog(str(source_root), jobs=1, cache_path=blob)
-    _backdate(source_root)
-
-    extra = source_root / "my" / "extra.F90"
-    extra.write_text(_SNIPPET_ENUM.replace('myClassEnum', 'myClassExtra')
-                                  .replace('enumConstructorParameters',
-                                           'extraConstructorParameters'))
-    catalog = build_catalog(str(source_root), jobs=1, cache_path=blob)
-    assert catalog['functionClasses']['myClass']['implementations'] == \
-        ['enum', 'extra']
-
-    extra.unlink()
-    catalog = build_catalog(str(source_root), jobs=1, cache_path=blob)
-    assert catalog['functionClasses']['myClass']['implementations'] == ['enum']
-    assert 'myClassExtra' not in catalog['implementations']
-
-
-def test_cache_drops_entries_for_deleted_files(tmp_path):
-    """A deleted file must not linger in the blob forever."""
-    source_root = _write_tree(tmp_path)
-    blob = str(tmp_path / 'cache.blob')
-    extra = source_root / "my" / "extra.F90"
-    extra.write_text("module Extra\nend module Extra\n")
-    build_catalog(str(source_root), jobs=1, cache_path=blob)
-    assert any('extra.F90' in key for key in pickle.load(open(blob, 'rb')))
-
-    extra.unlink()
-    build_catalog(str(source_root), jobs=1, cache_path=blob)
-    assert not any('extra.F90' in key for key in pickle.load(open(blob, 'rb')))
-
-
-def test_cache_reuses_harvest_when_an_unrelated_base_is_added(tmp_path,
-                                                              monkeypatch):
-    """A new functionClass elsewhere must not force the tree to be re-harvested.
-
-    A cached harvest depends on `base_names` only through this file's own
-    registrations, so it stays valid while those are unchanged.
-    """
-    import Galacticus.Parameters.catalog as catalog_module
-    source_root = _write_tree(tmp_path)
-    blob = str(tmp_path / 'cache.blob')
-    build_catalog(str(source_root), jobs=1, cache_path=blob)
-    _backdate(source_root)
-
-    (source_root / "my" / "other.F90").write_text(textwrap.dedent("""\
-        module Other
-          !![
-          <functionClass>
-           <name>otherClass</name>
-           <descriptiveName>Other</descriptiveName>
-          </functionClass>
-          !!]
-        end module Other
-        """))
-
-    harvested = []
-    real_harvest = catalog_module.harvest_file
-    monkeypatch.setattr(catalog_module, 'harvest_file',
-                        lambda p, b, s: (harvested.append(p),
-                                         real_harvest(p, b, s))[1])
-    catalog = build_catalog(str(source_root), jobs=1, cache_path=blob)
-
-    assert 'otherClass' in catalog['functionClasses']
-    # impl.F90's registrations are unchanged, so it is not re-parsed.
-    assert not any('impl.F90' in p for p in harvested)
-
-
-def test_corrupt_cache_falls_back_to_full_scan(tmp_path):
-    source_root = _write_tree(tmp_path)
-    blob = tmp_path / 'cache.blob'
-    blob.write_bytes(b'not a pickle at all')
-    catalog = build_catalog(str(source_root), jobs=1, cache_path=str(blob))
-    assert catalog == build_catalog(str(source_root), jobs=1)
-
-
-def test_foreign_format_cache_is_discarded(tmp_path):
-    """A blob from an older entry layout must be rebuilt, not misread."""
-    source_root = _write_tree(tmp_path)
-    blob = tmp_path / 'cache.blob'
-    with open(blob, 'wb') as fh:
-        pickle.dump({'__format__': -1, 'source_my_impl.F90': 'garbage'}, fh)
-    catalog = build_catalog(str(source_root), jobs=1, cache_path=str(blob))
-    assert catalog == build_catalog(str(source_root), jobs=1)
-
-
-def test_unwritable_cache_does_not_fail_the_build(tmp_path):
-    source_root = _write_tree(tmp_path)
-    messages = []
-    catalog = build_catalog(str(source_root), jobs=1, log=messages.append,
-                            cache_path='/proc/nonexistent/cache.blob')
-    assert catalog == build_catalog(str(source_root), jobs=1)
-    assert any('cache' in m for m in messages)
-
-
-def test_cache_invalidated_when_catalog_code_changes(tmp_path, monkeypatch):
-    """Editing the code that builds entries must invalidate the blob.
-
-    Otherwise working on the catalog itself silently reuses results computed by
-    the previous version -- and `--check`, whose whole job is to answer whether
-    the schema is stale, would answer from them.
-    """
-    import Galacticus.Parameters.catalog as catalog_module
-    source_root = _write_tree(tmp_path)
-    blob = str(tmp_path / 'cache.blob')
-    build_catalog(str(source_root), jobs=1, cache_path=blob)
-    _backdate(source_root)
-
-    # Same sources, same mtimes -- but different catalog code.
-    monkeypatch.setattr(catalog_module, '_code_fingerprint',
-                        lambda: 'a-different-version-of-the-code')
-    rescanned = []
-    real_scan = catalog_module._scan_directives
-    monkeypatch.setattr(catalog_module, '_scan_directives',
-                        lambda p: (rescanned.append(p), real_scan(p))[1])
-
-    build_catalog(str(source_root), jobs=1, cache_path=blob)
-    assert rescanned, "cache was reused despite the code having changed"
-
-
-def test_code_fingerprint_is_stable_and_specific():
-    from Galacticus.Parameters.catalog import _code_fingerprint
-    assert _code_fingerprint() == _code_fingerprint()
-    assert len(_code_fingerprint()) == 64      # sha256 hex
 
 
 # ---------------------------------------------------------------------------

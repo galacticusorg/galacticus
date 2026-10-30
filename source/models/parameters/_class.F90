@@ -25,7 +25,7 @@ Contains a module that implements a class of parameter mapping functions.
 
 module Model_Parameters
   !!{RST
-  Implements a class of unary operators.
+  Implements a class of model parameters.
   !!}
   private
   public :: modelParameterList, modelParameterListLogPrior

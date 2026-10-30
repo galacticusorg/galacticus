@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which provides an object that implements concentrations of dark matter halo profiles.
+Contains a module which provides an object that implements scale radii of dark matter halo profiles.
 !!}
 
 module Dark_Matter_Profile_Scales
