@@ -11,6 +11,8 @@ The configuration is an XML file:
     <foldsCrossValidation value="5"   />      <!-- optional; 0 disables cross-validation -->
     <seed                 value="0"   />      <!-- optional -->
     <storeCholesky        value="true"/>      <!-- optional -->
+    <lengthScaleMinimum   value="0.1" />      <!-- optional; the lower bound on length scales, in prior quantiles -->
+    <noiseLearned         value="true"/>      <!-- optional; learn noise in excess of the runs' stated noise -->
     <collectOnly          value="false"/>     <!-- optional; write the training sets only -->
     <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
     <observable label="massMetallicityBlanc2019" transform="identity" undefined="median" rootVarianceUndefined="5.0"/>
@@ -64,6 +66,8 @@ def read_configuration(path):
         'foldsCrossValidation': _value(task, 'foldsCrossValidation', 5    , int  ),
         'seed':                 _value(task, 'seed'                , 0    , int  ),
         'storeCholesky':        _value(task, 'storeCholesky'       , True , bool ),
+        'lengthScaleMinimum':   _value(task, 'lengthScaleMinimum'  , 0.1  , float),
+        'noiseLearned':         _value(task, 'noiseLearned'        , True , bool ),
         'collectOnly':          _value(task, 'collectOnly'         , False, bool ),
     }
     observables = []
@@ -112,7 +116,8 @@ def main(argv=None):
     else:
         content = train(design, training_sets, pca_variance_retained=options['pcaVarianceRetained'],
                         restarts=options['restartsOptimizer'], folds=options['foldsCrossValidation'], seed=options['seed'],
-                        store_cholesky=options['storeCholesky'], processes=args.processes)
+                        store_cholesky=options['storeCholesky'], processes=args.processes,
+                        length_scale_minimum=options['lengthScaleMinimum'], learn_noise=options['noiseLearned'])
         for label, emulator in content.emulators.items():
             line = f'{label}: {len(emulator.components)} principal components'
             if label in content.validation:

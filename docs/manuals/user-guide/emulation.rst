@@ -143,10 +143,30 @@ fraction ``pcaVarianceRetained`` of the variance, by default 0.99), and fits a G
 principal component coefficient. The finite-sampling uncertainty of each run, propagated to the coefficients, is
 included as heteroscedastic noise, and the hyperparameters (an amplitude and one length scale per input, in units of
 prior quantiles) are found by maximizing the marginal likelihood, from ``restartsOptimizer`` (by default 4) random
-starts. With ``foldsCrossValidation`` greater than zero, each emulator is also cross-validated: it is refitted with each
-fold of the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator
-file, along with per-bin statistics. A well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2
-sigma coverage near 0.68 and 0.95. With ``collectOnly`` set to ``true``, only the training sets are written.
+starts.
+
+The stated finite-sampling uncertainty of a run may underestimate its true scatter: for example, if the model is noisy
+in ways its own error estimate does not capture, or if the uncertainty of a principal component coefficient, propagated
+from the bins while ignoring their covariance, is underestimated. A Gaussian process then fits the excess scatter as
+structure, with short length scales, so that its predictions are noisy and its emulated likelihood is rough in the
+parameters, with spurious local maxima which trap an MCMC. Two defaults guard against this, and are needed together.
+First (``noiseLearned`` set to ``true``), each Gaussian process also fits a noise variance, the same at every point, in
+addition to the stated noise. Second, the length scales are bounded below by ``lengthScaleMinimum`` (by default 0.1, in
+units of prior quantiles: finer than the spacing of the points of any practical design). For the progenitor mass
+function, either alone left ripples in the emulated likelihood on scales of 0.001-0.003 in a parameter; together they
+removed them. Cross-validation does not detect such ripples, since they barely change the predictions at the held-out
+points. The learned variance is added to the
+``noiseVariance`` of each component, so the emulator is evaluated exactly as it was fitted, and is recorded in the
+component's ``noiseVarianceLearned`` attribute. The predicted variance is that of the emulated function, and does not
+include the learned noise. With ``noiseLearned`` set to ``false`` and ``lengthScaleMinimum`` set to 0.01, emulators are
+trained as by GalacticEmu (so ``galacticEmu.py configure`` sets these).
+
+With ``foldsCrossValidation`` greater than zero, each emulator is also cross-validated: it is refitted with each fold of
+the training set held out, and the held-out predictions are written to the ``validation`` group of the emulator file,
+along with per-bin statistics. The standardized residuals use the variance of the emulator's prediction plus that of the
+held-out run, which is its stated variance plus any noise learned by the emulator, projected onto the bins. A
+well-calibrated emulator has an RMS standardized residual near 1, and 1 and 2 sigma coverage near 0.68 and 0.95 (for the
+progenitor mass function, typical values were 0.85-0.9, and 0.74-0.78 and 0.98: slightly conservative). With ``collectOnly`` set to ``true``, only the training sets are written.
 
 The fit of each emulator, and of each fold of its cross-validation, is independent of the others, so with many observables
 training parallelizes well: ``--processes N`` makes the fits in :math:`N` processes (each using a single thread, since
@@ -300,7 +320,8 @@ Attributes:
 ``created``
    The time at which the file was written (ISO 8601).
 
-Further attributes (for example ``creator`` and ``gitHash``) may record provenance.
+Further attributes (for example ``creator`` and ``gitHash``) may record provenance. The reference trainer also records the
+minimum length scale (``lengthScaleMinimum``) and whether noise was learned (``noiseLearned``).
 
 ``design``
 ~~~~~~~~~~
@@ -382,7 +403,8 @@ Datasets:
    The standardization of each principal component coefficient, :math:`\tilde{a}_k = (a_k - \bar{a}_k)/q_k`.
 
 Each ``component{k}`` group holds the Gaussian process for coefficient :math:`k`, with attributes ``logAmplitude``
-(:math:`\ln A`) and ``logMarginalLikelihood``, and datasets:
+(:math:`\ln A`) and ``logMarginalLikelihood`` (and, for an emulator trained with ``noiseLearned``, ``noiseVarianceLearned``:
+the part of ``noiseVariance``, the same at every point, which was learned in training), and datasets:
 
 ``logLengthScales`` (:math:`d_\mathrm{e}`)
    The length scale, :math:`\ln \ell_i`, for each input.
