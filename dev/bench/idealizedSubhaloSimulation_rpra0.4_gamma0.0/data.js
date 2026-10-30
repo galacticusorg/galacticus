@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793270066373,
+  "lastUpdate": 1793349974716,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abensonca@gmail.com"
-          },
-          "committer": {
-            "name": "GitHub",
-            "username": "web-flow",
-            "email": "noreply@github.com"
-          },
-          "id": "4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db",
-          "message": "Merge pull request #717 from galacticusorg/featSFHFixedAges\n\nImplement a star formation history class that provides a tabulation at fixed ages for lightcone output",
-          "timestamp": "2024-10-16T15:05:13Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/4df7c0ea3168be79d9cc4d7f1b07b1a5f71a69db"
-        },
-        "date": 1729124197409,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": "26.852654205320327",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "12.856529960953935",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "11.53561922700073",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9926,6 +9889,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/4c1327d5158ca93f2afe0f9439e51d8b1359a9a9"
         },
         "date": 1793270065157,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": -26.85204437080787,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -12.856479837926374,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -11.535714175376159,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b7f4fd1e25a2dc392718435937a0b7171f27c69b",
+          "message": "Merge pull request #1700 from galacticusorg/fix/shi2016-expansion-factor\n\nfix(massDistributions): use the observation-epoch scaled expansion factor in the Shi (2016) accretion flow",
+          "timestamp": "2026-10-29T16:30:24Z",
+          "tree_id": "e6f4beeeee0c7d5d199c68ce953ad7f4bcbeb6a5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b7f4fd1e25a2dc392718435937a0b7171f27c69b"
+        },
+        "date": 1793349973610,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
