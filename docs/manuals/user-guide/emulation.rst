@@ -320,6 +320,51 @@ Its runs are tracked as one campaign per component (see :ref:`manual-sec-Emulato
 copies of the base parameter files with that change applied. If the optimum lies at the bound of the star, center a new
 profile on it and repeat.
 
+.. _manual-sec-EmulatorSystematics:
+
+Measuring the systematic error of emulators, and pooling designs
+----------------------------------------------------------------
+
+Cross-validation measures how well an emulator predicts held-out runs. It does not show how far the posterior depends on the
+particular points of the design. A narrow posterior can still be limited by the emulators, for example along a ridge of
+degenerate parameters, where small emulation errors move the maximum a long way. To measure this, split the design into
+parts, train emulators on each, sample the posterior with each, and compare. The script
+``scripts/emulation/emulatorDesignTools.py`` writes the parts of a design whose runs are complete, reusing the outputs of
+its runs:
+
+.. code-block:: none
+
+   emulatorDesignTools.py split design.hdf5 --output half
+
+This writes ``half0.hdf5`` (the even points) and ``half1.hdf5`` (the odd points). A low-discrepancy design split this way
+gives parts which each still fill the space evenly. Train an emulator on each part, by naming it as the ``designFileName``
+of a training configuration, and sample the posterior with each. Then compare the posteriors with that from the emulators
+trained on the whole design:
+
+.. code-block:: none
+
+   emulatorChainCompare.py chainsFull chainsHalf0 chainsHalf1
+
+For each parameter, this reports the median and half-width (half the 16-84 percentile range) of the reference posterior,
+and the shift of the median of each other posterior. The largest shift is the systematic error of the emulators. If it is
+comparable to the half-width, the posterior is limited by the emulators. Quote the systematic with the result, or add
+design points.
+
+Points can be added without discarding any runs, by pooling a second design run with the same base parameter files and
+executable (for example, one centered on the posterior found from the first):
+
+.. code-block:: none
+
+   emulatorDesignTools.py pool pooled.hdf5 first/design.hdf5 second/design.hdf5 --directories first second --priors priors.xml
+
+The pooled design holds all the points and runs of the designs. The emulators work in prior quantiles, so the quantile
+of every point is recomputed under the priors given by ``--priors``. These are read from a design file, or from the
+``modelParameter`` blocks of a parameter file, such as that used to sample the posterior. They must contain every point:
+the union of the boxes of the designs, for example. Give each design its own ``seedBase``. Runs sharing a random number seed
+share their merger trees, so their noise is correlated, and ``pool`` warns if any do. Both commands make the run file
+names absolute, resolving relative names against the directory from which the runs were made (``--directory``, or
+``--directories``), so that the written designs can be used from anywhere.
+
 .. _manual-sec-EmulatorGalacticEmu:
 
 Importing a GalacticEmu campaign
