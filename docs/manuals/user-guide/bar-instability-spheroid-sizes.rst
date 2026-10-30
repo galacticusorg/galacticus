@@ -1,5 +1,5 @@
 Spheroid sizes during bar instabilities
-======================================
+=======================================
 
 Galacticus transfers mass from an unstable disk to a spheroid continuously.
 The optional ``barInstabilitySpheroidAngularMomentum`` model specifies the
@@ -88,7 +88,7 @@ with :math:`x=(\mu_\mathrm s-0.003)/(0.010-0.003)`, interpolate as
    \dot J_\mathrm s=(1-w)\dot J_\mathrm{s,transfer}+w\dot J_\mathrm{s,E},
    \qquad w=3x^2-2x^3.
 
-This regularization is a modelling choice, not a consequence of energy
+This regularization is a modeling choice, not a consequence of energy
 conservation. The blended rate does not in general conserve the proxy.
 Zero-mass or zero-angular-momentum spheroids, and invalid or numerically
 degenerate energy derivatives, fall back to the angular-momentum-transfer prescription.
@@ -121,7 +121,7 @@ of the spheroid factor; the value below is an example, not a calibration.
 The transition parameters shown explicitly are the defaults. Omitting
 ``barInstabilitySpheroidAngularMomentum`` altogether selects
 ``angularMomentumTransfer`` and preserves the previous prescription. Existing
-parameter files need no modification to retain that behaviour. Explicit
+parameter files need no modification to retain that behavior. Explicit
 ``value="retained"`` also remains accepted, and the existing disk and spheroid
 retention parameters keep their names and meanings.
 Changing this prescription changes the physical model and may require

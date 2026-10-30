@@ -8,12 +8,18 @@ import argparse
 import os
 from pathlib import Path
 import subprocess
+import sys
 from xml.etree import ElementTree as ET
 
 import h5py
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def fail(message):
+    print(f"FAILED: {message}")
+    sys.exit(0)
 
 
 def parameters(name, directory):
@@ -47,34 +53,43 @@ def main():
     names = ("legacy", "angular_momentum_transfer", "retained", "hybrid_default", "hybrid_explicit")
     paths = {name: parameters(name, directory) for name in names}
     if args.prepare_only:
-        print("Prepared test inputs only; no compiled-model tests have run.")
-        return
+        print("SKIPPED: prepared test inputs only; no compiled-model tests have run.")
+        sys.exit(0)
     fields = ("diskMassStellar", "diskMassGas", "spheroidMassStellar",
               "spheroidMassGas", "diskRadius", "spheroidRadius")
     results = {}
     for name, path in paths.items():
         print(f"Running {name}; log: {directory / (name + '.log')}", flush=True)
         with (directory / (name + ".log")).open("w") as log:
-            subprocess.run([str(args.executable.resolve()), str(path)], cwd=ROOT,
-                           env={**os.environ, "OMP_NUM_THREADS": "1"},
-                           stdout=log, stderr=subprocess.STDOUT, check=True)
-        with h5py.File(directory / (name + ".hdf5")) as output:
-            assert output.attrs["statusCompletion"] == 0, name
-            data = output["Outputs/Output1/nodeData"]
-            results[name] = {field: data[field][:] for field in fields}
-        for values in results[name].values():
-            assert np.all(np.isfinite(values)) and np.all(values >= 0), name
+            status = subprocess.run([str(args.executable.resolve()), str(path)], cwd=ROOT,
+                                    env={**os.environ, "OMP_NUM_THREADS": "1"},
+                                    stdout=log, stderr=subprocess.STDOUT)
+        if status.returncode != 0:
+            fail(f"{name}: model failed to run (exit status {status.returncode}); see {directory / (name + '.log')}")
+        try:
+            with h5py.File(directory / (name + ".hdf5"), "r") as output:
+                if output.attrs["statusCompletion"] != 0:
+                    fail(f"{name}: model did not complete")
+                data = output["Outputs/Output1/nodeData"]
+                results[name] = {field: data[field][:] for field in fields}
+        except (OSError, KeyError) as error:
+            fail(f"{name}: unable to read model output ({error})")
+        for field, values in results[name].items():
+            if not (np.all(np.isfinite(values)) and np.all(values >= 0)):
+                fail(f"{name}: {field} is not finite and non-negative")
         spheroid = results[name]["spheroidMassStellar"] + results[name]["spheroidMassGas"]
         disk = results[name]["diskMassStellar"] + results[name]["diskMassGas"]
         fraction = np.divide(spheroid, spheroid + disk, out=np.zeros_like(spheroid), where=(spheroid + disk) > 0)
         print(f"{name}: baryonic B/T = {fraction}", flush=True)
-        assert np.any(spheroid > 0.01 * (spheroid + disk)), f"{name}: test did not build an established spheroid; B/T={fraction}"
-        assert np.all(results[name]["spheroidRadius"][spheroid > 0] > 0), name
+        if not np.any(spheroid > 0.01 * (spheroid + disk)):
+            fail(f"{name}: test did not build an established spheroid; B/T={fraction}")
+        if not np.all(results[name]["spheroidRadius"][spheroid > 0] > 0):
+            fail(f"{name}: non-positive spheroid radius")
     for left, right in (("legacy", "angular_momentum_transfer"), ("legacy", "retained"),
                         ("hybrid_default", "hybrid_explicit")):
         for field in fields:
-            np.testing.assert_allclose(results[left][field], results[right][field], rtol=1e-9, atol=0,
-                                       err_msg=f"{left} vs {right}: {field}")
+            if not np.allclose(results[left][field], results[right][field], rtol=1e-9, atol=0):
+                fail(f"{left} vs {right}: {field} differs")
     print("SUCCESS: bar prescription defaults, angularMomentumTransfer/retained compatibility, and finite spheroid properties")
 
 
