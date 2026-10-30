@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests parameter input.
 !!}
@@ -33,6 +35,7 @@ program Test_Parameters
   use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
   use :: Input_Parameters          , only : inputParameters         , inputParameter
   use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: Kind_Numbers              , only : kind_int8
   use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5File                     )              :: outputFile
@@ -44,6 +47,8 @@ program Test_Parameters
   type            (inputParameters              ), allocatable :: wrapper1                 ,  wrapper2
   type            (inputParameter               ), pointer     :: testParameter
   double precision                                             :: valueNumerical
+  integer                                                      :: valueInteger
+  integer         (kind_int8                    )              :: valueLong
   
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -97,22 +102,32 @@ program Test_Parameters
   call Unit_Tests_End_Group()
   ! Test evaluation.
   call Unit_Tests_Begin_Group("Parameter evaluation")
-  call testParameters%value('fixedValue'    ,valueNumerical)
-  call Assert('fixed value'                 ,valueNumerical,+1.234000000d0,absTol=1.0d-6)
-  call testParameters%value('derivedValue1' ,valueNumerical)
-  call Assert('derived value'               ,valueNumerical,+1.234000000d1,absTol=1.0d-6)
-  call testParameters%value('derivedValue2' ,valueNumerical)
-  call Assert('derived value [recursive]'   ,valueNumerical,-8.264825587d0,absTol=1.0d-6)
-  call testParameters%value('derivedValue6' ,valueNumerical)
-  call Assert('derived value [min function]',valueNumerical,+1.000000000d0,absTol=1.0d-6)
-  call testParameters%value('derivedValue7' ,valueNumerical)
-  call Assert('derived value [max function]',valueNumerical,+2.000000000d0,absTol=1.0d-6)
-  call testParameters%value('derivedValue8' ,valueNumerical)
-  call Assert('derived value [default]'     ,valueNumerical,+1.234500000d3,absTol=1.0d-6)
-  call testParameters%value('derivedValue11',valueNumerical)
-  call Assert('derived value [deep]'        ,valueNumerical,-5.264825587d0,absTol=1.0d-6)
-  call testParameters%value('derivedText1'  ,parameterValue)
-  call Assert('derived value [text]'        ,parameterValue,var_str('mouse_filteredPower_1.00_0.200000E+01_0006'))
+  call testParameters%value('fixedValue'      ,valueNumerical)
+  call Assert('fixed value'                        ,valueNumerical,+1.234000000d0                                       ,absTol=1.0d-6)
+  call testParameters%value('derivedValue1'   ,valueNumerical)
+  call Assert('derived value'                      ,valueNumerical,+1.234000000d1                                       ,absTol=1.0d-6)
+  call testParameters%value('derivedValue2'   ,valueNumerical)
+  call Assert('derived value [recursive]'          ,valueNumerical,-8.264825587d0                                       ,absTol=1.0d-6)
+  call testParameters%value('derivedValue6'   ,valueNumerical)
+  call Assert('derived value [min function]'       ,valueNumerical,+1.000000000d0                                       ,absTol=1.0d-6)
+  call testParameters%value('derivedValue7'   ,valueNumerical)
+  call Assert('derived value [max function]'       ,valueNumerical,+2.000000000d0                                       ,absTol=1.0d-6)
+  call testParameters%value('derivedValue8'   ,valueNumerical)
+  call Assert('derived value [default]'            ,valueNumerical,+1.234500000d3                                       ,absTol=1.0d-6)
+  call testParameters%value('derivedValue11'  ,valueNumerical)
+  call Assert('derived value [deep]'               ,valueNumerical,-5.264825587d0                                       ,absTol=1.0d-6)
+  call testParameters%value('derivedInteger1' ,valueInteger)
+  call Assert('derived value [integer]'            ,valueInteger  ,13                                                                 )
+  call testParameters%value('derivedInteger2' ,valueInteger)
+  call Assert('derived value [integer; default]'   ,valueInteger  ,21                                                                 )
+  call testParameters%value('derivedLong1'    ,valueLong   )
+  call Assert('derived value [long integer]'       ,valueLong     ,6000000000000_kind_int8                                            )
+  call testParameters%value('derivedInteger3' ,valueInteger)
+  call Assert('derived value [integer; rounded]'   ,valueInteger  ,29                                                                 )
+  call testParameters%value('derivedInteger4',valueInteger)
+  call Assert('derived value [integer; truncated]',valueInteger   ,1                                                                  )
+  call testParameters%value('derivedText1'   ,parameterValue)
+  call Assert('derived value [text]'              ,parameterValue ,var_str('mouse_filteredPower_1.00_0.200000E+01_0006')              )
   allocate(wrapper1)
   allocate(wrapper2)
   wrapper1=testParameters%subParameters('wrapper1')
