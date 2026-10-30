@@ -60,7 +60,18 @@
 
       \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{H}\over \Sigma_0}\right)^q \right],
 
-   where :math:`\nu_\mathrm{SF,0}=`\ ``[starFormationFrequencyNormalization]``, :math:`q=`\ ``[surfaceDensityExponent]`` and :math:`\Sigma_0=`\ ``[surfaceDensityCritical]`` are parameters, and :math:`\Sigma_\mathrm{H}` is the surface density of hydrogen, atomic and molecular together - the density at which :cite:t:`bigiel_star_2008`, the source of the default :math:`\Sigma_0`, find the star formation law to steepen. Note that :cite:t:`bigiel_star_2008` quote surface densities of hydrogen only, while :cite:t:`leroy_star_2008`, the source of the default :math:`\nu_\mathrm{SF,0}`, quote surface densities which include helium - their star formation efficiency of molecular gas is the star formation rate per unit mass of molecular gas (including helium), as is :math:`\nu_\mathrm{SF,0}` here. The ratio of molecular to atomic hydrogen is :math:`R_\mathrm{mol} = \Sigma_\mathrm{H_2}/\Sigma_\mathrm{HI} = (P_\mathrm{ext}/P_0)^\alpha`, where :math:`\alpha=`\ ``[pressureExponent]`` and :math:`P_0=`\ ``[pressureCharacteristic]`` are parameters, so that the surface density of molecular gas is :math:`\Sigma_\mathrm{H_2} = f_\mathrm{H_2} \Sigma_\mathrm{H}`, with :math:`f_\mathrm{H_2} = R_\mathrm{mol}/(1+R_\mathrm{mol})` the molecular fraction of eqn. (21) of :cite:t:`blitz_role_2006`. The hydrostatic pressure in the disk plane assuming locally isothermal gas and stellar components is given by
+   where :math:`\nu_\mathrm{SF,0}=`\ ``[starFormationFrequencyNormalization]``, :math:`q=`\ ``[surfaceDensityExponent]`` and
+   :math:`\Sigma_0=`\ ``[surfaceDensityCritical]`` are parameters, and :math:`\Sigma_\mathrm{H}` is the surface density of
+   hydrogen, atomic and molecular together - the density at which :cite:t:`bigiel_star_2008`, the source of the default
+   :math:`\Sigma_0`, find the star formation law to steepen. Note that :cite:t:`bigiel_star_2008` quote surface densities of
+   hydrogen only, while :cite:t:`leroy_star_2008`, the source of the default :math:`\nu_\mathrm{SF,0}`, quote surface densities
+   which include helium - their star formation efficiency of molecular gas is the star formation rate per unit mass of molecular
+   gas (including helium), as is :math:`\nu_\mathrm{SF,0}` here. The ratio of molecular to atomic hydrogen is
+   :math:`R_\mathrm{mol} = \Sigma_\mathrm{H_2}/\Sigma_\mathrm{HI} = (P_\mathrm{ext}/P_0)^\alpha`, where :math:`\alpha=`\
+   ``[pressureExponent]`` and :math:`P_0=`\ ``[pressureCharacteristic]`` are parameters, so that the surface density of molecular
+   gas is :math:`\Sigma_\mathrm{H_2} = f_\mathrm{H_2} \Sigma_\mathrm{H}`, with :math:`f_\mathrm{H_2} =
+   R_\mathrm{mol}/(1+R_\mathrm{mol})` the molecular fraction of eqn. (21) of :cite:t:`blitz_role_2006`. The hydrostatic pressure
+   in the disk plane assuming locally isothermal gas and stellar components is given by
 
    .. math::
 
