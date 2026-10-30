@@ -37,7 +37,7 @@
    </description>
    <encodeFunction>yes</encodeFunction>
    <decodeFunction>yes</decodeFunction>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <entry label="table" description="Accumulate tables of n₁"                         />
    <entry label="jumps" description="Evaluate the jumps at splits using tables of n₁" />
   </enumeration>
@@ -240,7 +240,7 @@
    <entry label="sumDeltaSquaredMain"           description="The sum of Δ² over main-branch splits"                                                  />
    <entry label="sumDeltaSquaredSide"           description="The sum of Δ² over side-branch splits"                                                  />
    <entry label="sumDeltaSquaredAfterFormation" description="The sum of Δ² over splits after formation (ω below that of formation)"                  />
-   <entry label="telescopeResidual"             description="The residual of the identity N = n₁(root) + ΣΔ + Σdrift"                                />
+   <entry label="telescopeResidual"             description="The residual of the identity N = n₁(root) + ΣΔ + Σ(drift)"                              />
   </enumeration>
   !!]
 
