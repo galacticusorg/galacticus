@@ -37,15 +37,15 @@
      A node operator class that implements bar instabilities in disks.
      !!}
      private
-     class  (darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_            => null()
-     class  (galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_ => null()
+     class  (darkMatterHaloScaleClass                  ), pointer :: darkMatterHaloScale_                   => null()
+     class  (galacticDynamicsBarInstabilityClass       ), pointer :: galacticDynamicsBarInstability_        => null()
      class  (barInstabilitySpheroidAngularMomentumClass), pointer :: barInstabilitySpheroidAngularMomentum_ => null()
-     logical                                               :: luminositiesStellarInactive
+     logical                                                      :: luminositiesStellarInactive
    contains
      final     ::                                   barInstabilityDestructor
      procedure :: differentialEvolutionAnalytics => barInstabilityDifferentialEvolutionAnalytics
      procedure :: differentialEvolution          => barInstabilityDifferentialEvolution
-     procedure :: galacticStructureSolverSet      => barInstabilityGalacticStructureSolverSet
+     procedure :: galacticStructureSolverSet     => barInstabilityGalacticStructureSolverSet
   end type nodeOperatorBarInstability
 
   interface nodeOperatorBarInstability
@@ -64,12 +64,12 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type   (nodeOperatorBarInstability         )                :: self
-    type   (inputParameters                    ), intent(inout) :: parameters
-    class  (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class  (galacticDynamicsBarInstabilityClass), pointer       :: galacticDynamicsBarInstability_
-    class  (barInstabilitySpheroidAngularMomentumClass), pointer :: barInstabilitySpheroidAngularMomentum_
-    logical                                                     :: luminositiesStellarInactive
+    type   (nodeOperatorBarInstability                )                :: self
+    type   (inputParameters                           ), intent(inout) :: parameters
+    class  (darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
+    class  (galacticDynamicsBarInstabilityClass       ), pointer       :: galacticDynamicsBarInstability_
+    class  (barInstabilitySpheroidAngularMomentumClass), pointer       :: barInstabilitySpheroidAngularMomentum_
+    logical                                                            :: luminositiesStellarInactive
 
     !![
     <inputParameter docformat="rst">
@@ -80,16 +80,16 @@ contains
       If true, stellar luminosities will be treated as inactive properties.
       </description>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
-    <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"                   name="darkMatterHaloScale_"                   source="parameters"/>
+    <objectBuilder class="galacticDynamicsBarInstability"        name="galacticDynamicsBarInstability_"        source="parameters"/>
     <objectBuilder class="barInstabilitySpheroidAngularMomentum" name="barInstabilitySpheroidAngularMomentum_" source="parameters"/>
     !!]
     self=nodeOperatorBarInstability(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_,barInstabilitySpheroidAngularMomentum_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="galacticDynamicsBarInstability_"/>
+    <objectDestructor name="galacticDynamicsBarInstability_"       />
     <objectDestructor name="barInstabilitySpheroidAngularMomentum_"/>
-    <objectDestructor name="darkMatterHaloScale_"           />
+    <objectDestructor name="darkMatterHaloScale_"                  />
     !!]
     return
   end function barInstabilityConstructorParameters
@@ -99,11 +99,11 @@ contains
     Internal constructor for the :galacticus-class:`nodeOperatorBarInstability` node operator class.
     !!}
     implicit none
-    type   (nodeOperatorBarInstability         )                        :: self
-    class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class  (galacticDynamicsBarInstabilityClass), intent(in   ), target :: galacticDynamicsBarInstability_
+    type   (nodeOperatorBarInstability                )                        :: self
+    class  (darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
+    class  (galacticDynamicsBarInstabilityClass       ), intent(in   ), target :: galacticDynamicsBarInstability_
     class  (barInstabilitySpheroidAngularMomentumClass), intent(in   ), target :: barInstabilitySpheroidAngularMomentum_
-    logical                                     , intent(in   )         :: luminositiesStellarInactive
+    logical                                            , intent(in   )         :: luminositiesStellarInactive
     !![
     <constructorAssign variables="luminositiesStellarInactive, *darkMatterHaloScale_, *galacticDynamicsBarInstability_, *barInstabilitySpheroidAngularMomentum_"/>
     !!]
@@ -119,8 +119,8 @@ contains
     type(nodeOperatorBarInstability), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_"           />
-    <objectDestructor name="self%galacticDynamicsBarInstability_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"                  />
+    <objectDestructor name="self%galacticDynamicsBarInstability_"       />
     <objectDestructor name="self%barInstabilitySpheroidAngularMomentum_"/>
     !!]
     return
@@ -183,11 +183,11 @@ contains
     !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
     type            (stellarLuminosities       ), save                   :: luminositiesTransferRate
     !$omp threadprivate(luminositiesTransferRate)
-    double precision                                                     :: barInstabilityTimescale                  , barInstabilitySpecificTorque           , &
-         &                                                                  fractionAngularMomentumRetainedDisk      , fractionAngularMomentumRetainedSpheroid, &
-         &                                                                  rateAngularMomentumDisk                  , rateAngularMomentumSpheroid            , &
-         &                                                                  rateAngularMomentumTransfer              , rateMassGasTransfer                    , &
-         &                                                                  rateMassStellarTransfer                  , transferRate
+    double precision                                                     :: barInstabilityTimescale            , barInstabilitySpecificTorque           , &
+         &                                                                  fractionAngularMomentumRetainedDisk, fractionAngularMomentumRetainedSpheroid, &
+         &                                                                  rateAngularMomentumDisk            , rateAngularMomentumSpheroid            , &
+         &                                                                  rateAngularMomentumTransfer        , rateMassGasTransfer                    , &
+         &                                                                  rateMassStellarTransfer            , transferRate
     type            (history                   )                         :: historyTransferRate
 
     ! Do nothing during inactive property solving.
@@ -213,44 +213,44 @@ contains
     spheroid => node%spheroid()
     ! Gas mass.
     rateMassGasTransfer        =max(         0.0d0         ,disk    %massGas             ())/barInstabilityTimescale
-    call                                      disk    %massGasRate             (-                                                    rateMassGasTransfer                            )
-    call                                      spheroid%massGasRate             (+                                                    rateMassGasTransfer,interrupt,functionInterrupt)
+    call    disk    %massGasRate             (-rateMassGasTransfer                                    )
+    call    spheroid%massGasRate             (+rateMassGasTransfer        ,interrupt,functionInterrupt)
     ! Fraction of stellar mass transferred.
     if (self%luminositiesStellarInactive) then
        transferRate            =max(         0.0d0         ,disk    %fractionMassRetained())/barInstabilityTimescale
-       call                                   disk    %fractionMassRetainedRate(-                                                            transferRate                            )
+       call disk    %fractionMassRetainedRate(-transferRate                            )
     end if
     ! Stellar mass.
     rateMassStellarTransfer    =max(         0.0d0         ,disk    %massStellar         ())/barInstabilityTimescale
-    call                                      disk    %massStellarRate         (-                                                rateMassStellarTransfer                            )
-    call                                      spheroid%massStellarRate         (+                                                rateMassStellarTransfer,interrupt,functionInterrupt)
+    call    disk    %massStellarRate         (-rateMassStellarTransfer                                )
+    call    spheroid%massStellarRate         (+rateMassStellarTransfer    ,interrupt,functionInterrupt)
     ! Angular momentum. We remove from the disk only its non-retained fraction. The selected spheroid model determines its
     ! pseudo-angular-momentum rate; the default angularMomentumTransfer model reproduces the historical retained-fraction prescription.
     rateAngularMomentumTransfer=max(         0.0d0         ,disk    %angularMomentum     ())/barInstabilityTimescale
     rateAngularMomentumDisk    =-(1.0d0-fractionAngularMomentumRetainedDisk)*rateAngularMomentumTransfer
-    rateAngularMomentumSpheroid=self%barInstabilitySpheroidAngularMomentum_%rate(                  &
-         &                                                                       node            , &
-         &                                                                       rateMassGasTransfer, &
-         &                                                                       rateMassStellarTransfer, &
-         &                                                                       rateAngularMomentumDisk, &
-         &                                                                       rateAngularMomentumTransfer, &
-         &                                                                       fractionAngularMomentumRetainedSpheroid &
+    rateAngularMomentumSpheroid=self%barInstabilitySpheroidAngularMomentum_%rate(                                         &
+         &                                                                       node                                   , &
+         &                                                                       rateMassGasTransfer                    , &
+         &                                                                       rateMassStellarTransfer                , &
+         &                                                                       rateAngularMomentumDisk                , &
+         &                                                                       rateAngularMomentumTransfer            , &
+         &                                                                       fractionAngularMomentumRetainedSpheroid  &
          &                                                                      )
-    call                                      disk    %angularMomentumRate     (rateAngularMomentumDisk                                              )
-    call                                      spheroid%angularMomentumRate     (rateAngularMomentumSpheroid,interrupt,functionInterrupt)
+    call    disk    %angularMomentumRate     ( rateAngularMomentumDisk                                )
+    call    spheroid%angularMomentumRate     ( rateAngularMomentumSpheroid,interrupt,functionInterrupt)
     ! Gas abundances.
     fuelAbundancesRates        =max(zeroAbundances         ,disk    %abundancesGas       ())/barInstabilityTimescale
-    call                                      disk    %abundancesGasRate       (-                                                     fuelAbundancesRates                            )
-    call                                      spheroid%abundancesGasRate       (+                                                     fuelAbundancesRates,interrupt,functionInterrupt)
+    call    disk    %abundancesGasRate       (-fuelAbundancesRates                                    )
+    call    spheroid%abundancesGasRate       (+fuelAbundancesRates        ,interrupt,functionInterrupt)
     ! Stellar abundances.
     stellarAbundancesRates     =max(zeroAbundances         ,disk    %abundancesStellar   ())/barInstabilityTimescale
-    call                                      disk    %abundancesStellarRate   (-                                                  stellarAbundancesRates                            )
-    call                                      spheroid%abundancesStellarRate   (+                                                  stellarAbundancesRates,interrupt,functionInterrupt)
+    call    disk    %abundancesStellarRate   (-stellarAbundancesRates                                 )
+    call    spheroid%abundancesStellarRate   (+stellarAbundancesRates     ,interrupt,functionInterrupt)
     ! Stellar luminosities.
     if (.not.self%luminositiesStellarInactive) then
        luminositiesTransferRate=max(zeroStellarLuminosities,disk    %luminositiesStellar ())/barInstabilityTimescale
-       call                                   disk    %luminositiesStellarRate (-                                                luminositiesTransferRate                            )
-       call                                   spheroid%luminositiesStellarRate (+                                                luminositiesTransferRate,interrupt,functionInterrupt)
+       call disk    %luminositiesStellarRate (-luminositiesTransferRate                               )
+       call spheroid%luminositiesStellarRate (+luminositiesTransferRate   ,interrupt,functionInterrupt)
     end if
     ! Stellar properties history.
     historyTransferRate=disk%stellarPropertiesHistory()

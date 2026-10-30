@@ -6,7 +6,7 @@ The optional ``barInstabilitySpheroidAngularMomentum`` model specifies the
 associated rate of change of the spheroid's pseudo-angular momentum. It does
 not change the instability criterion or make the transfer a discrete event.
 The default model, ``angularMomentumTransfer``, preserves the historical
-prescription. The earlier selector ``retained`` remains accepted.
+prescription.
 
 Motivation
 ----------
@@ -27,7 +27,7 @@ momentum as the variable used by the equilibrium structure solver.
 Energy constraint
 -----------------
 
-Motivated by the energy-based remnant-size approach of Cole et al. (2000),
+Motivated by the energy-based remnant-size approach of :cite:t:`cole_hierarchical_2000`,
 define a positive binding-energy proxy
 
 .. math::
@@ -59,7 +59,7 @@ remain free to change :math:`\mathcal B`; it is not conserved over the entire
 galaxy history. The derivatives include the equilibrium radii's response.
 They are evaluated by finite perturbations of the component state and
 repeated structure solves, after which the original state is restored.
-``finiteDifferenceStepRelative`` defaults to 0.01 and controls two independent
+``stepFiniteDifferenceRelative`` defaults to 0.01 and controls two independent
 forward-difference probes. For the known bar-driven changes, the trial interval
 is chosen so that the largest fractional change among disk gas mass, disk
 stellar mass and disk angular momentum is 1%. The separate spheroid probe
@@ -68,6 +68,32 @@ properties fixed. These probes do not advance the galaxy in time. Transferring
 1% of the disk can change a small spheroid's mass by much more than 1%, so
 convergence should be checked together with the evolution tolerances,
 particularly near the transition described below.
+
+The derivatives can be no more accurate than the equilibrium radii, and the
+probe step must be small compared with the scales over which the derivatives
+change, so both ``stepFiniteDifferenceRelative`` and the structure solver's
+``solutionTolerance`` matter. On the isolated tree of
+``testSuite/test-bar-instability-binding-energy.py``, the bar changes
+:math:`\mathcal B` between the time the spheroid passes
+:math:`\mu_\mathrm s=0.01` (defined below) and the end of the run by:
+
+* -42% at the default settings (step 0.01, and the ``equilibrium`` solver's
+  default ``solutionTolerance`` of 0.01);
+* -11% with ``solutionTolerance`` reduced to :math:`10^{-4}` or
+  :math:`10^{-7}`;
+* -4% with the step at :math:`10^{-2.5}` and ``solutionTolerance`` at
+  :math:`10^{-6}` or :math:`10^{-7}`;
+* -41% and -13% with the step at :math:`10^{-3.5}` and ``solutionTolerance``
+  at 0.01 and :math:`10^{-4}` respectively;
+* -0.8% to -0.9% with the step at :math:`10^{-3.5}` and ``solutionTolerance``
+  between :math:`10^{-5}` and :math:`10^{-7}`.
+
+For comparison, the angular-momentum-transfer prescription changes it by -73%.
+The solver tolerance must be well below the step (here by a factor of about
+30 or more) for the probes to resolve the response. Set
+``stepFiniteDifferenceRelative`` to :math:`10^{-3.5}` and ``solutionTolerance``
+to :math:`10^{-7}` (as in the example below), and check convergence in both
+parameters for the model at hand.
 
 Nascent spheroids
 -----------------
@@ -106,24 +132,26 @@ of the spheroid factor; the value below is an example, not a calibration.
 
 .. code-block:: xml
 
-   <galacticStructureSolver value="equilibrium"/>
+   <galacticStructureSolver value="equilibrium">
+     <solutionTolerance value="1.0e-7"/>
+   </galacticStructureSolver>
    <nodeOperator value="barInstability">
      <galacticDynamicsBarInstability value="efstathiou1982">
        <fractionAngularMomentumRetainedSpheroid value="1.0"/>
        <fractionAngularMomentumRetainedDisk value="0.8"/>
      </galacticDynamicsBarInstability>
      <barInstabilitySpheroidAngularMomentum value="bindingEnergy">
-       <spheroidBaryonFractionTransitionMinimum value="0.003"/>
-       <spheroidBaryonFractionTransitionMaximum value="0.010"/>
+       <stepFiniteDifferenceRelative value="3.1622776601683794e-4"/>
+       <fractionBaryonicSpheroidTransitionMinimum value="0.003"/>
+       <fractionBaryonicSpheroidTransitionMaximum value="0.010"/>
      </barInstabilitySpheroidAngularMomentum>
    </nodeOperator>
 
 The transition parameters shown explicitly are the defaults. Omitting
 ``barInstabilitySpheroidAngularMomentum`` altogether selects
 ``angularMomentumTransfer`` and preserves the previous prescription. Existing
-parameter files need no modification to retain that behavior. Explicit
-``value="retained"`` also remains accepted, and the existing disk and spheroid
-retention parameters keep their names and meanings.
+parameter files need no modification to retain that behavior, and the
+existing disk and spheroid retention parameters keep their names and meanings.
 Changing this prescription changes the physical model and may require
 recalibration; agreement with observations is not guaranteed at parameters
 calibrated with another size model.

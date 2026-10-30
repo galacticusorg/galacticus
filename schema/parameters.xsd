@@ -198,7 +198,6 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="angularMomentumTransfer"/>
           <xs:enumeration value="bindingEnergy"/>
-          <xs:enumeration value="retained"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
