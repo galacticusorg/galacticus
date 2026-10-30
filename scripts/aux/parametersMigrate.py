@@ -139,32 +139,40 @@ def scale_values(parameter, xpath, scale):
     """Multiply the value(s) of a parameter by a constant factor.
 
     A parameter may hold a single value or a space-separated list of values, either in its `value` attribute or in `value`
-    child elements (as in parameter grids). Each value which is a plain number is multiplied by the factor. Any other value (an
-    expression, say) can not be rescaled here, and is left unchanged with a warning.
+    child elements (as in parameter grids). Values may use Fortran-style exponents (e.g. `5.25d-10`), as accepted by the
+    parameter reader. If every value is a plain number each is multiplied by the factor. Otherwise (e.g. for a derived parameter
+    expression, `=[...]`, which may itself contain spaces) the parameter can not be rescaled here, and is left entirely unchanged
+    with a warning. A parameter with no value (e.g. one which refers to another by `idRef`) is left unchanged.
     """
     value_children = parameter.findall("value")
-    all_values = value_children if value_children else [parameter]
+    if value_children:
+        all_values = value_children
+    elif parameter.get("value") is not None:
+        all_values = [parameter]
+    else:
+        return
     description = f" ({scale['description']})" if scale["description"] is not None else ""
+    # Parse all values first, so that nothing is changed unless every value can be rescaled.
+    parsed = []
     for value_elem in all_values:
-        if value_elem is parameter:
-            values_text = value_elem.get("value", "")
-        else:
-            values_text = value_elem.text or ""
-        values = values_text.split()
-        values_scaled = []
-        for value in values:
-            try:
-                value_scaled = repr(float(value) * scale["factor"])
-            except ValueError:
-                print(
-                    f"   WARNING: can not rescale value '{value}' of '{xpath}' by {scale['factor']}{description}"
-                    " - rescale it by hand"
-                )
-                values_scaled.append(value)
-                continue
+        values_text = value_elem.get("value", "") if value_elem is parameter else (value_elem.text or "")
+        try:
+            numbers = [
+                float(re.sub(r"(?<=[0-9.])[dD](?=[+-]?[0-9])", "e", value))
+                for value in values_text.split()
+            ]
+        except ValueError:
+            print(
+                f"   WARNING: can not rescale value '{values_text.strip()}' of '{xpath}' by {scale['factor']}{description}"
+                " - rescale it by hand"
+            )
+            return
+        parsed.append((value_elem, values_text.split(), numbers))
+    for value_elem, values, numbers in parsed:
+        values_scaled = [repr(number * scale["factor"]) for number in numbers]
+        for value, value_scaled in zip(values, values_scaled):
             print(f"   scale parameter value: {xpath}")
             print(f"                                 {value} --> {value_scaled}{description}")
-            values_scaled.append(value_scaled)
         if value_elem is parameter:
             value_elem.set("value", " ".join(values_scaled))
         else:
