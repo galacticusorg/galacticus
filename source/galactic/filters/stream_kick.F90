@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Paul Menker, Claude.
   
 !!{RST
-Implements a filter for subhalos that could impact a stream during the timestep.
+Implements a filter on the velocity kick imparted by subhalos to a stellar stream.
 !!}
 
   use :: Output_Times, only : outputTimesClass

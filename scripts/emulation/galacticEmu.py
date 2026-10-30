@@ -73,9 +73,11 @@ def _model_parameters(design):
 def command_configure(args):
     observables = ge.galacticemu_observables(args.campaign, _keys(args.observables), conventions=not args.no_conventions,
                                              root_variance_target_minimum=args.target_sigma_minimum)
-    # GalacticEmu's training: 99% of the variance retained by PCA, four restarts of the optimizer, no cross-validation.
+    # GalacticEmu's training: 99% of the variance retained by PCA, four restarts of the optimizer, no cross-validation, and
+    # only the stated noise of each run, with length scales bounded below at 0.01.
     lines = ['<emulatorTrain>', f'  <designFileName       value="{args.design}"/>', f'  <emulatorFileName     value="{args.emulator}"/>',
-             '  <pcaVarianceRetained  value="0.99"/>', '  <restartsOptimizer    value="4"/>', '  <foldsCrossValidation value="0"/>']
+             '  <pcaVarianceRetained  value="0.99"/>', '  <restartsOptimizer    value="4"/>', '  <foldsCrossValidation value="0"/>',
+             '  <noiseLearned         value="false"/>', '  <lengthScaleMinimum   value="0.01"/>']
     for observable in observables:
         attributes = {'label': observable.label}
         attributes.update({name: (f'{value!r}' if isinstance(value, float) else str(value)) for name, value in observable.attributes().items()})

@@ -17,8 +17,7 @@ per-implementation validation (a parameter must be accepted by the *selected*
 implementation) is provided separately by scripts/build/parameterValidate.py.
 
 Usage:
-    parameterSchema.py <sourceDirectory> [<outputFile>]
-                       [--check] [--jobs N] [--no-cache]
+    parameterSchema.py <sourceDirectory> [<outputFile>] [--check] [--jobs N]
 
 `<outputFile>` defaults to `<sourceDirectory>/schema/parameters.xsd`.
 
@@ -27,8 +26,7 @@ be generated -- for CI and for the pre-commit hook.
 
 The catalog scan runs over a process pool sized from `GALACTICUS_BUILD_JOBS`,
 make's `-j`, or make's jobserver when invoked from a `+`-marked recipe, and
-re-reads only those source files whose mtime has advanced past the scan cache
-under `$BUILDPATH` (`--no-cache` to rescan everything).
+reads every source file. A full scan costs under a second of wall time.
 
 Andrew Benson (2026).
 """
@@ -41,7 +39,8 @@ import sys
 sys.path.insert(0, os.path.join(
     os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, 'python'))
 
-from Galacticus.Parameters.catalog import build_catalog, default_cache_path
+
+from Galacticus.Parameters.catalog import build_catalog
 
 
 # Root elements of non-parameter files that live in the same directories as
@@ -202,9 +201,6 @@ def _parse_arguments(argv):
     parser.add_argument('--jobs', '-j', type=int, default=None, metavar='N',
                         help='Parallel workers for the source scan. Default: '
                              'GALACTICUS_BUILD_JOBS, else make\'s -j/jobserver.')
-    parser.add_argument('--no-cache', action='store_true',
-                        help='Ignore (and do not update) the per-file scan '
-                             'cache, rescanning every source file.')
     return parser.parse_args(argv[1:])
 
 
@@ -213,13 +209,14 @@ def main(argv):
     source_directory = arguments.sourceDirectory
     output_path = arguments.outputFile or os.path.join(
         source_directory, 'schema', 'parameters.xsd')
-    os.environ.setdefault('GALACTICUS_EXEC_PATH', source_directory)
+    # Name the tree we were asked to scan, overriding whatever the environment
+    # holds: the directive parser locates the schemas directives are validated
+    # against through this, and pointing it at another checkout silently drops
+    # every directive which does not validate there.
+    os.environ['GALACTICUS_EXEC_PATH'] = os.path.abspath(source_directory)
 
     source_root = os.path.join(source_directory, 'source')
-    catalog = build_catalog(
-        source_root,
-        jobs=arguments.jobs,
-        cache_path=None if arguments.no_cache else default_cache_path(source_root))
+    catalog = build_catalog(source_root, jobs=arguments.jobs)
     schema = build_schema(catalog)
 
     n_fc = sum(1 for b in catalog['functionClasses'].values()

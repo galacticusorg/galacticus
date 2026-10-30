@@ -88,7 +88,7 @@ def Hierarchy_Initialization(build):
             f"      <description>Specifies the implementation to be used "
             f"for the {class_name} component of nodes.</description>\n"
             f"      <type>string</type>\n"
-            f"      <cardinality>1</cardinality>\n"
+            f"      <cardinality>0..1</cardinality>\n"
             f"    </inputParameter>\n"
             f"    !!]\n"
         )
@@ -142,8 +142,8 @@ def Hierarchy_Initialization(build):
                     f"``{member['name']}`` implementation of the "
                     f"``{class_name}`` component class should be output."
                     f"</description>\n"
-                    f"      <type>string</type>\n"
-                    f"      <cardinality>1</cardinality>\n"
+                    f"      <type>boolean</type>\n"
+                    f"      <cardinality>0..1</cardinality>\n"
                     f"     </inputParameter>\n"
                     "     !!]\n"
                 )

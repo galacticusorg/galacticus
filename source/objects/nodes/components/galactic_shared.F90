@@ -26,7 +26,7 @@ Contains a module which provides procedures shared by the galactic (disk, sphero
 module Node_Components_Galactic_Shared
   !!{RST
   Provides procedures shared by the galactic (disk, spheroid, and nuclear star cluster) node components. Since these components
-  share no parent type below :galacticus-type:`nodeComponent`, each procedure is written once as a template and instantiated for
+  share no parent type below ``nodeComponent``, each procedure is written once as a template and instantiated for
   each component which uses it.
   !!}
   implicit none

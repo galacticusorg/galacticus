@@ -290,12 +290,13 @@ contains
        satellite =>  nodeWork %satellite()
        position  =  +          position    &
             &       +satellite%position ()
-       if (self%relativeTo == relativeToImmediateHost) then
+       if (self%relativeTo == relativeToImmediateHost .or. .not.nodeWork%isSatellite()) then
           nodeWork => null()
-       else if (nodeWork%isSatellite()) then
-          nodeWork => nodeWork%parent
        else
-          nodeWork => null()
+          ! Move to the host, but stop (before adding its position) if the host is the isolated host - an isolated host may
+          ! carry a position relative to its own future host (e.g. if pre-infall orbits are tracked), which must not be included.
+          nodeWork => nodeWork%parent
+          if (.not.nodeWork%isSatellite()) nodeWork => null()
        end if
     end do
     distance=Vector_Magnitude(position)
