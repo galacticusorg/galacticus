@@ -162,7 +162,9 @@ contains
       <name>covarianceTargetOnly</name>
       <source>parameters</source>
       <description>
-      If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added).
+      If true, only the covariance of the target dataset is accounted for (otherwise the model covariance is added). If
+      ``[likelihoodInCounts]`` is true, the target has no covariance, and this instead controls whether the fractional variance
+      of the model in each bin is added to the over-dispersion of the negative binomial likelihood.
       </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -170,7 +172,9 @@ contains
       <name>fillInZeroBins</name>
       <source>parameters</source>
       <description>
-      If true, fill in values of empty bins to avoid improbable likelihoods.
+      If true, fill in values of empty bins to avoid improbable likelihoods. If the variance of the model is included in a
+      counts likelihood (``[likelihoodInCounts]`` true, ``[covarianceTargetOnly]`` false), a filled-in bin is given the
+      fractional variance of the last non-empty bin before it.
       </description>
       <defaultValue>.false.</defaultValue>
     </inputParameter>
@@ -652,11 +656,10 @@ contains
     self%massRatioDistribution=massRatioDistribution_
 
     ! Validate.
-    !! Evaluating the likelihood in counts (using a negative binomial likelihood) requires that we ignore covariance in the model
-    !! (so covarianceTargetOnly must be true), and that the correlation between bins is ignored (so covarianceDiagonalize must be
-    !! true).
+    !! Evaluating the likelihood in counts (using a negative binomial likelihood) requires that the correlation between bins is
+    !! ignored (so covarianceDiagonalize must be true). The variance of the model may be included (in the over-dispersion of the
+    !! negative binomial distribution) or not (if covarianceTargetOnly is true).
     if (likelihoodInCounts.and.     likelihoodInLog      ) call Error_Report('[likelihoodInCounts] and [likelihoodInLog] can not both be true'//{introspection:location})
-    if (likelihoodInCounts.and..not.covarianceTargetOnly ) call Error_Report('[likelihoodInCounts] requires [covarianceTargetOnly]'           //{introspection:location})
     if (likelihoodInCounts.and..not.covarianceDiagonalize) call Error_Report('[likelihoodInCounts] requires [covarianceDiagonalize]'          //{introspection:location})
     ! Initialize state.
     self%weightsFinalized=.false.
@@ -1050,6 +1053,14 @@ contains
           ! Extrapolate a value to this bin from the last known non-zero bin.
           self%functionValue(i)=+self%functionValue  (  iLastNonZero) &
                &                /     factorDecline**(i-iLastNonZero)
+          ! If the variance of the model is included in the counts likelihood, give the extrapolated value the fractional
+          ! variance of the last known non-zero bin (it would otherwise have none, although it is the least certain).
+          if (self%likelihoodInCounts .and. .not.self%covarianceTargetOnly .and. self%functionValue(iLastNonZero) > 0.0d0) &
+               & self%functionCovariance(i,i)=+self%functionCovariance(iLastNonZero,iLastNonZero) &
+               &                              *(                                                  &
+               &                                +self%functionValue    (i                       ) &
+               &                                /self%functionValue    (iLastNonZero            ) &
+               &                               )**2
        end do
        if (warnFillIn) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' had to extrapolate to empty bin with potential non-neglible content')
     end if
@@ -1120,7 +1131,8 @@ contains
     integer                                                                               :: status
     double precision                                                                      :: covarianceTermTarget              , covarianceTerm            , &
          &                                                                                   ratioCovarianceMaximum            , countsModel               , &
-         &                                                                                   stoppingTimeParameter             , logLikelihood_
+         &                                                                                   stoppingTimeParameter             , logLikelihood_            , &
+         &                                                                                   dispersion
     
     ! Check for existence of a target distribution.
     if (allocated(self%functionValueTarget)) then
@@ -1159,22 +1171,34 @@ contains
                       exit
                    end if
                 end if
-                ! Compute the stopping time parameter.
-                if (self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional))) > 0.0d0) then
-                   stoppingTimeParameter=1.0d0/self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))**2
+                ! Compute the over-dispersion, c², the square of the fractional root variance of the expected count. This is
+                ! C², where C is the fractional root variance of the target, combined (unless only the target covariance is to be
+                ! included) with the fractional variance, v, of the model, as c² = C² + v + C² v (the fractional variance of the
+                ! product of two independent factors with unit means and fractional variances C² and v). This is the same
+                ! combination as used by the `poissonCounts` form of the emulated likelihood.
+                dispersion=self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))**2
+                if (.not.self%covarianceTargetOnly)                                      &
+                     & dispersion=+dispersion                                            &
+                     &            +self%functionCovariance(i,i)/self%functionValue(i)**2 &
+                     &            *(1.0d0+dispersion)
+                if (dispersion > 0.0d0) then
+                   ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial
+                   ! distribution (which is used in the alternative parameterization as given by, e.g.,
+                   ! https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution) represents an
+                   ! over-dispersed Poisson distribution, with stopping-time parameter r=1/c².
+                   stoppingTimeParameter=1.0d0/dispersion
+                   logLikelihood_=+dble(countsTarget         )*log                       (                                       countsModel  ) &
+                        &         -                            Logarithmic_Factorial     (                                 +int (countsTarget)) &
+                        &         +                            Gamma_Function_Logarithmic(            stoppingTimeParameter+dble(countsTarget)) &
+                        &         -                            Gamma_Function_Logarithmic(            stoppingTimeParameter                   ) &
+                        &         -dble(countsTarget         )*log                       (            stoppingTimeParameter+     countsModel  ) &
+                        &         -     stoppingTimeParameter *log                       (countsModel/stoppingTimeParameter+1.0d0             )
                 else
-                   stoppingTimeParameter=0.0d0
+                   ! Evaluate the Poisson likelihood (the limit of the negative binomial likelihood as c → 0).
+                   logLikelihood_=+dble(countsTarget)*log                  (      countsModel )  &
+                        &         -                   Logarithmic_Factorial(+int (countsTarget)) &
+                        &         -                                               countsModel
                 end if
-                ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial
-                ! distribution (which is used in the alternative parameterization as given by, e.g.,
-                ! https://en.wikipedia.org/wiki/Negative_binomial_distribution#Poisson_distribution) represents an
-                ! over-dispersed Poisson distribution.
-                logLikelihood_=+dble(countsTarget         )*log                       (                                       countsModel  ) &
-                     &         -                            Logarithmic_Factorial     (                                 +int (countsTarget)) &
-                     &         +                            Gamma_Function_Logarithmic(            stoppingTimeParameter+dble(countsTarget)) &
-                     &         -                            Gamma_Function_Logarithmic(            stoppingTimeParameter                   ) &
-                     &         -dble(countsTarget         )*log                       (            stoppingTimeParameter+     countsModel  ) &
-                     &         -     stoppingTimeParameter *log                       (countsModel/stoppingTimeParameter+1.0d0             )
                 ! Accumulate the likelihood.
                 progenitorMassFunctionLogLikelihood=+progenitorMassFunctionLogLikelihood &
                      &                              +logLikelihood_
