@@ -116,6 +116,35 @@ Each run is a single Galacticus process. An MPI build of Galacticus may be used:
 the name of its output file (``point0000.hdf5`` becomes ``point0000:MPI0000.hdf5``), and that file is then accepted as the
 run's output, both here and when training.
 
+.. _manual-sec-EmulatorStage:
+
+Running many campaigns as a stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A calibration against many simulations, such as the progenitor mass functions of tens of N-body simulations, is a set
+of campaigns, one per base parameter file. Together they can hold tens of thousands of single-threaded runs of very
+different costs. A *stage* (``Galacticus.Emulation.stage``) runs them from a shared work queue, together with the training
+of each campaign's emulators: for example, one on the whole design and one on each half
+(see :ref:`manual-sec-EmulatorSystematics`). A stage file, written with ``Stage.create``, lists the campaigns, the
+training configuration and emulator file of each emulator, and optionally the typical and maximum wall time of each
+campaign's runs. Then:
+
+.. code-block:: none
+
+   emulatorStageWorker.py submit stage.json --workers 8 --cpus 128 --walltime 24:00:00
+
+This submits eight *worker* jobs, which may start at any time and on any nodes. Each worker:
+
+* claims runs from the shared queue, from the slowest campaigns first, running ``--cpus`` of them at once;
+* trains a campaign's emulators as soon as all of its runs have ended, leaving out any runs that failed;
+* starts no run that could not finish before its job's time limit;
+* takes over the work of workers whose jobs have ended.
+
+A worker that starts after all the work is taken exits at once, so on a busy queue, ask for more, shorter jobs.
+``emulatorStageWorker.py work stage.json`` runs a worker locally. If the workers end before the work is done, run
+``submit`` again: it first brings the campaign manifests up to date, and frees the work of the ended workers.
+``plan --retryFailed`` runs failed runs again. ``check`` reports whether every emulator is trained.
+
 .. _manual-sec-EmulatorTraining:
 
 Training an emulator
