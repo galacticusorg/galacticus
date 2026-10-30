@@ -175,7 +175,9 @@
   ! from file) on first use.
   type            (exponentialDiskTidalTable), pointer   :: exponentialDiskTidalTables                  => null()
 
-  ! Grid of truncation radii (in units of the disk scale length) and degree of truncation.
+  ! Grid of truncation radii (in units of the disk scale length) and degree of truncation. (The smallest truncation radius is
+  ! duplicated in galacticComponentTruncationExponential, which must account for the shape of more strongly truncated disks being
+  ! held fixed.)
   double precision                           , parameter :: exponentialDiskTidalRadiusTruncateMinimum   =  1.0d-2
   integer                                    , parameter :: exponentialDiskTidalRadiusTruncatePerDecade =  20
   double precision                           , parameter :: exponentialDiskTidalTruncationNegligible    =  1.0d-6
