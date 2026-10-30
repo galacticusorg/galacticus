@@ -13,7 +13,6 @@ User Guide
    input-data
    data/index
    advanced
-   bar-instability-spheroid-sizes
    analysis
    emulation
    python-interface

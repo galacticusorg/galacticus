@@ -47,7 +47,7 @@ Implements a binding-energy-conserving pseudo-angular momentum prescription for 
    is not recommended for production runs because the derivative becomes poorly conditioned for nascent spheroids. The derivatives
    are only as accurate as the equilibrium radii: at the default settings the prescription does not conserve the proxy, so
    ``stepFiniteDifferenceRelative`` and the structure solver's ``solutionTolerance`` should both be reduced, for example to
-   :math:`10^{-3.5}` and :math:`10^{-7}`. See :doc:`/manuals/user-guide/bar-instability-spheroid-sizes` for the method and its
+   :math:`10^{-3.5}` and :math:`10^{-7}`. See :doc:`/manuals/physics/overview/bar-instability-spheroid-sizes` for the method and its
    limitations.
    </description>
   </barInstabilitySpheroidAngularMomentum>

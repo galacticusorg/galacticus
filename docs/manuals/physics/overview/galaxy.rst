@@ -29,3 +29,6 @@ Below is a flowchart indicating the physical components and processes that typic
        Disk -->|<a href='https://galacticus.readthedocs.io/en/latest/physics/galacticDynamicsBarInstability.html' style='text-decoration: none'>instability</a>| Spheroid
        DiskISM -->|<a href='outflows.html' style='text-decoration: none'>outflow</a>| Environment
        SpheroidISM -->|<a href='outflows.html' style='text-decoration: none'>outflow</a>| Environment
+
+The sizes of spheroids built by bar instabilities depend on the pseudo-angular momentum the spheroid receives as disk material
+is transferred to it; the available prescriptions are described in :doc:`bar-instability-spheroid-sizes`.
