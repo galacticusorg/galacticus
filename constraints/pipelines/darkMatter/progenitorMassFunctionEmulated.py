@@ -74,6 +74,9 @@ def add_arguments(parser):
                        help='sample the progenitor mass function stage with emulated likelihoods (detached driver only)')
     group.add_argument('--progenitorMassFunctionProfile', default='yes', choices=['no', 'yes'],
                        help='fit the parameters of the N-body halo mass error model by direct runs before emulating (default: yes)')
+    group.add_argument('--progenitorMassFunctionProfileModelVariance', default='no', choices=['no', 'yes'],
+                       help='include the variance of the model (from its finite number of trees) in the likelihoods of the profile, '
+                            'reducing their bias at few seeds (default: no)')
     group.add_argument('--progenitorMassFunctionProfileStepFraction', default=0.03, type=float,
                        help='the step of each profiled parameter, as a fraction of the width of its prior (in its mapped space)')
     group.add_argument('--progenitorMassFunctionProfileSteps', default=None,
@@ -232,7 +235,8 @@ class EmulatedStage:
         lines = ['<emulatorProfile>', f'  <directory value="{self.path("profile")}"/>',
                  f'  <executable value="{self.executable()}"/>',
                  f'  <rootVarianceTargetFractional value="profile" minimum="{_limits(active[NAME_ROOT_VARIANCE])[0]}" '
-                 f'maximum="{_limits(active[NAME_ROOT_VARIANCE])[1]}"/>']
+                 f'maximum="{_limits(active[NAME_ROOT_VARIANCE])[1]}"/>',
+                 f'  <modelVariance value="{"true" if self.options["progenitorMassFunctionProfileModelVariance"] == "yes" else "false"}"/>']
         for name in self.profiled_names():
             element = active[name]
             lower, upper = _limits(element)

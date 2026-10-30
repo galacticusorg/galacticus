@@ -327,6 +327,16 @@ the components and their analyses. With ``rootVarianceTargetFractional`` set to 
 counts of the ``poissonCounts`` form is maximized at each point, as for a parameter of the likelihood sampled in the
 calibration. Otherwise it is fixed at the given value.
 
+With ``<modelVariance value="true"/>``, the variance of each run's own prediction is also included in the likelihood. This
+variance comes from the covariance written by each analysis, and is that of the average when a point is run at several
+seeds. Its fractional variance :math:`v` enters the over-dispersion of the ``poissonCounts`` form as :math:`c^2 = C^2 + v +
+C^2 v`, as in the progenitor mass function analysis with ``covarianceTargetOnly`` false. This is available only when every
+observable uses that form and none sets ``rootVarianceZero`` (a regularization for training, which would be mistaken for the
+model's variance), and every analysis must write its covariance. It reduces the bias of the likelihood of a run from the noise of its finite number of merger
+trees, which otherwise inflates the fitted :math:`C`, and penalizes some points of the star more than others. The variance
+is an estimate (the Poisson estimate of each analysis's covariance model), so the correction is approximate. The line
+search below removes that bias by extrapolation, with or without this option.
+
 The fit has two stages. Each stage has the commands ``prepare``, ``run`` (or ``submit``), ``status`` and ``analyze``.
 Its runs are tracked as one campaign per component (see :ref:`manual-sec-EmulatorCampaign`).
 

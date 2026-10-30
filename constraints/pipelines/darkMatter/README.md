@@ -171,6 +171,7 @@ Further options:
 |---|---|
 | `--progenitorMassFunctionDesignPoints` | points in the design (default 256; the 2026-10 calibration found 512 pooled points were needed to pin down the G0–γ1 ridge) |
 | `--progenitorMassFunctionProfile no` | skip the profile, and keep the error parameters at their base-file values |
+| `--progenitorMassFunctionProfileModelVariance yes` | include the variance of each profile run (from its finite number of trees) in its likelihood, which reduces the bias of single-seed likelihoods (default no) |
 | `--progenitorMassFunctionProfileStepFraction`, `--progenitorMassFunctionProfileSteps` | profile steps, as a fraction of each prior's width (in the logarithm for log priors), or set per parameter |
 | `--progenitorMassFunctionChains`, `--progenitorMassFunctionSteps` | chains (MPI processes) and steps of each emulated MCMC |
 | `--progenitorMassFunctionEmulatedChanges` | a change file applied to every component's base file (e.g. fewer trees, for a test) |
