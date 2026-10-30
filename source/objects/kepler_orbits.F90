@@ -1127,8 +1127,8 @@ contains
     !!{RST
     Return the position of the orbit in Cartesian coordinates.
     !!}
-    use :: Coordinates, only : assignment(=) , coordinateCartesian
-    use :: Vectors    , only : Vector_Product
+    use :: Coordinates, only : assignment(=)   , coordinateCartesian
+    use :: Vectors    , only : Vector_Magnitude, Vector_Product
     implicit none
     type            (coordinateCartesian)                :: velocity
     class           (keplerOrbit        ), intent(inout) :: orbit
@@ -1141,9 +1141,14 @@ contains
          &        +cos(orbit%theta ())                   &
          &       ]
     velocityRadialVector     =orbit%velocityRadial()*radialVector
-    velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
-    velocityTangentialVector1=velocityTangentialVector1/sqrt(sum(velocityTangentialVector1**2))
-    velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
+    ! Construct the basis for the tangential velocity as defined for this class (and as used by the "propagate" method): the
+    ! direction r×ẑ, which is rotated by ε around r toward (r×ẑ)×r. If r is parallel to ẑ, r×ŷ is used instead.
+    velocityTangentialVector1=Vector_Product(radialVector,[0.0d0,0.0d0,1.0d0])
+    if (Vector_Magnitude(velocityTangentialVector1) <= 0.0d0) &
+         & velocityTangentialVector1=Vector_Product(radialVector,[0.0d0,1.0d0,0.0d0])
+    velocityTangentialVector1=velocityTangentialVector1/Vector_Magnitude(velocityTangentialVector1)
+    velocityTangentialVector2=Vector_Product(velocityTangentialVector1,radialVector)
+    velocityTangentialVector2=velocityTangentialVector2/Vector_Magnitude(velocityTangentialVector2)
     velocityTangentialVector1=velocityTangentialVector1*orbit%velocityTangential()*cos(orbit%epsilon())
     velocityTangentialVector2=velocityTangentialVector2*orbit%velocityTangential()*sin(orbit%epsilon())
     velocity                 =velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2
