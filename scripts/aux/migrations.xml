@@ -510,6 +510,32 @@
     </translation>
   </migration>
 
+  <migration commit="f88a96423e21da1fe340565b2036399633246e13">
+    <!-- Power spectrum normalization moved from cosmologicalMassVarianceFilteredPower into a new, top-level powerSpectrumNormalizer -->
+    <!-- (issue #145): move sigma_8/amplitudeScalar/wavenumberReference/reference into the appropriate normalizer.                  -->
+    <translation function="power_spectrum_normalizer"/>
+  </migration>
+
+  <migration commit="035477f5609c023b2fbd8cb59f38102188cc5b33">
+    <!-- The minimum initial mass for a Type II supernova is now a parameter of the stellar astrophysics class, shared by the  -->
+    <!-- stellar yields and the supernova feedback.                                                                           -->
+    <translation function="supernovae_type_ii_mass_stellar_astrophysics"/>
+  </migration>
+
+  <migration commit="518db11475a8e45e44085e4d5ff809afeaa2ee0e">
+    <!-- powerSpectrumNormalizerAmplitudeScalar now normalizes to A_s directly (issue #145, phase 3), so no longer performs a sigma_8 -->
+    <!-- integral, and no longer accepts the parameters controlling it.                                                         -->
+    <translation xpath="//powerSpectrumNormalizer[@value='amplitudeScalar']/tolerance[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//powerSpectrumNormalizer[@value='amplitudeScalar']/integrationFailureIsFatal[@value]">
+      <remove/>
+    </translation>
+    <translation xpath="//powerSpectrumNormalizer[@value='amplitudeScalar']/powerSpectrumWindowFunctionTopHat[@value]">
+      <remove/>
+    </translation>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

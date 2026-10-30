@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements an ISM mass output analysis property extractor class.
+Implements a halo bias property extractor class.
 !!}
 
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass

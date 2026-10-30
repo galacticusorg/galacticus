@@ -9,7 +9,7 @@ manages the campaign of model runs:
   run       run pending (or given) runs locally
   submit    submit pending and failed (or given) runs to Slurm as an array job
   status    update and report the status of every run
-  resubmit  submit the failed runs again
+  resubmit  submit the failed (including interrupted) runs again
 
 All commands take the manifest file as their first argument. See the "Emulator-Assisted Calibration" chapter of the
 user guide.
@@ -23,7 +23,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.environ.get('GALACTICUS_EXEC_PATH', '.'), 'python'))
 
-from Galacticus.Emulation.campaign import Campaign  # noqa: E402
+from Galacticus.Emulation.campaign import Campaign, slurm_live_jobs  # noqa: E402
 
 
 def _indices(text):
@@ -45,6 +45,16 @@ def _report(campaign):
     print('  '.join(f'{status}: {count}' for status, count in sorted(summary.items())))
     for run in campaign.select(statuses=('failed',)):
         print(f'  run {run.index} (point {run.point}, realization {run.realization}) failed: {run.message} [log: {run.log_file}]')
+
+
+def _refresh(campaign):
+    """Refresh the campaign's status, checking with Slurm for interrupted runs if any were submitted to it."""
+    submitted = any(run.status in ('submitted', 'running') and run.job_id is not None and not run.job_id.startswith('local')
+                    for run in campaign.runs)
+    live_jobs = slurm_live_jobs() if submitted else None
+    if submitted and live_jobs is None:
+        print('could not query Slurm: runs interrupted in Slurm jobs are not detected')
+    return campaign.refresh(live_jobs=live_jobs)
 
 
 def main(argv=None):
@@ -71,7 +81,7 @@ def main(argv=None):
     parser_run.add_argument('--parallel', type=int, default=1, help='the number of runs to make at once')
     parser_run.add_argument('--threads', type=int, help='OpenMP threads per run')
 
-    for name, help_text in (('submit', 'submit pending and failed (or given) runs to Slurm'), ('resubmit', 'submit the failed runs again')):
+    for name, help_text in (('submit', 'submit pending and failed (or given) runs to Slurm'), ('resubmit', 'submit the failed (including interrupted) runs again')):
         subparser = subparsers.add_parser(name, help=help_text)
         subparser.add_argument('manifest')
         if name == 'submit':
@@ -110,6 +120,7 @@ def main(argv=None):
 
     if args.command in ('submit', 'resubmit'):
         import queueManager
+        _refresh(campaign)
         options = {}
         if args.walltime is not None:
             options['walltime'] = args.walltime
@@ -130,7 +141,7 @@ def main(argv=None):
         return 0
 
     if args.command == 'status':
-        campaign.refresh()
+        _refresh(campaign)
         _report(campaign)
         return 0
 

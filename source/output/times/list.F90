@@ -24,12 +24,12 @@
     <description>
     An output times class which simply reads a list of output times specified via parameters. Times can be given as a (space-separated) list of actual cosmic times (in Gyr) via the ``[times]`` parameter, or as a (space-separated) list of redshifts via the ``[redshifts]`` parameter, or by a combination of the two. The ``[times]`` parameter allows negative values which are interpreted as lookback times. For example, in a cosmological model where the universe is currently 13.8 Gyr old the following:
 
-    .. code-block:: none
+    .. code-block:: xml
 
-             &lt;outputTimes value="list"&gt;
-       	&lt;redshifts value=" 0.0"/&gt;
-       	&lt;times     value="-1.0"/&gt;
-             &lt;/outtputTimes&gt;
+       &lt;outputTimes value="list"&gt;
+         &lt;redshifts value=" 0.0"/&gt;
+         &lt;times     value="-1.0"/&gt;
+       &lt;/outputTimes&gt;
 
     will result in output at 12.8 and 13.8 Gyr.
     </description>

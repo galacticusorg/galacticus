@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters formatVersion="2" version="0.9.4">
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <lastModified/>
 
@@ -39,9 +39,10 @@
     <neutrinoNumberEffective value="3.046"/>
   </transferFunction>
   <powerSpectrumPrimordialTransferred value="simple"/>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.9"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
 
   <!-- Structure formation -->
   <haloEnvironment value="normal">
@@ -57,9 +58,7 @@
       <normalization value="0.31033528914211"/>
       <p value="0.125711028294346"/>
       <cosmologicalMassVariance value="peakBackgroundSplit">
-        <cosmologicalMassVariance value="filteredPower">
-          <sigma_8 value="0.9"/>
-        </cosmologicalMassVariance>
+        <cosmologicalMassVariance value="filteredPower"/>
       </cosmologicalMassVariance>
       <criticalOverdensity value="peakBackgroundSplit">
         <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>

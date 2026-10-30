@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a stellar mass output analysis property extractor class.
+Implements a stellar luminosity property extractor class.
 !!}
 
   use :: Galactic_Structure_Options, only : enumerationComponentTypeType

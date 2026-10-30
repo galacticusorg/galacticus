@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a node branch tip index property extractor.
+Implements a node branch tip unique ID property extractor.
 !!}
 
   !![

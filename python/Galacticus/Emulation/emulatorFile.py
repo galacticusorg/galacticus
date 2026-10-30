@@ -187,7 +187,8 @@ class Component:
     (N) their variance (the heteroscedastic noise added to the diagonal of the covariance matrix),
     and ``alpha`` (N) the solution of ``K alpha = targets``. ``cholesky_factor`` (N, N), the lower
     triangular factor of K, is optional: it is fully determined by the other data, and costs 8 N^2
-    bytes, so a reader may recompute it instead.
+    bytes, so a reader may recompute it instead. ``noise_variance_learned``, if present, is the part of
+    ``noise_variance`` (the same for every point) learned in training, in excess of the stated noise of the runs.
     """
 
     log_amplitude: float
@@ -197,6 +198,7 @@ class Component:
     alpha: np.ndarray
     log_marginal_likelihood: float = float('nan')
     cholesky_factor: np.ndarray | None = None
+    noise_variance_learned: float | None = None
 
 
 @dataclass
@@ -464,8 +466,11 @@ def _write(path, content):
                 _write_attributes(component_group, {
                     'logAmplitude': component.log_amplitude,
                     'logMarginalLikelihood': _nan_if_none(component.log_marginal_likelihood),
+                    # None (not learned) is meaningful here, so it is not replaced by NaN: the attribute is omitted, and read back
+                    # as None.
+                    'noiseVarianceLearned': component.noise_variance_learned,
                 })
-                _write_datasets(component_group, component, exclude=('log_amplitude', 'log_marginal_likelihood'))
+                _write_datasets(component_group, component, exclude=('log_amplitude', 'log_marginal_likelihood', 'noise_variance_learned'))
         # Validation.
         if content.validation:
             group = file.create_group('validation')
@@ -512,7 +517,8 @@ def read(path):
                 components.append(Component(
                     log_amplitude=component_attributes['logAmplitude'],
                     log_marginal_likelihood=component_attributes.get('logMarginalLikelihood', float('nan')),
-                    **_read_datasets(component_group, Component, exclude=('log_amplitude', 'log_marginal_likelihood')),
+                    noise_variance_learned=component_attributes.get('noiseVarianceLearned'),
+                    **_read_datasets(component_group, Component, exclude=('log_amplitude', 'log_marginal_likelihood', 'noise_variance_learned')),
                 ))
             emulators[label] = Emulator(
                 kernel=emulator_attributes['kernel'],
