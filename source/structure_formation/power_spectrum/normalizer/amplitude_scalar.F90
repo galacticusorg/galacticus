@@ -51,8 +51,8 @@
    found by matching the above expression to it at :math:`k_*`. Only the relative growth of perturbations,
    :math:`D(t)/D(t_0)`, is taken from the model's linear growth factor.
 
-   CLASS is run for a cosmological constant, so this normalizer can be used only with cosmologies in which the dark energy
-   equation of state is :math:`w=-1` (an error is reported otherwise).
+   The dark energy equation of state of the cosmology is passed to CLASS, which requires it to be of the CPL form,
+   :math:`w(a)=w_0+w_a(1-a)` (an error is reported otherwise).
 
    If the unnormalized power spectrum is not the product of the primordial power spectrum and :math:`T^2(k)` (for example, a
    tabulated power spectrum from :galacticus-class:`powerSpectrumPrimordialTransferredFile`), ``[transferFunction]`` must be
@@ -164,27 +164,18 @@ contains
     Return the factor by which the given power spectrum must be multiplied to normalize it to the specified amplitude of the
     primordial scalar power spectrum.
     !!}
-    use :: Error                   , only : Error_Report
-    use :: Interfaces_CLASS        , only : Interface_CLASS_Transfer_Function_Amplitude
+    use :: Interfaces_CLASS        , only : Interface_CLASS_Dark_Energy, Interface_CLASS_Transfer_Function_Amplitude
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Comparison    , only : Values_Differ
     implicit none
-    class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target       :: self
-    procedure       (powerSpectrumNormalizerPowerUnnormalized)                              :: powerUnnormalized
-    double precision                                          , parameter    , dimension(3) :: expansionFactorTest=[1.0d0,0.5d0,0.1d0]
-    double precision                                                                        :: amplitudeTransfer                      , timePresent
-    integer                                                                                 :: i
+    class           (powerSpectrumNormalizerAmplitudeScalar  ), intent(inout), target :: self
+    procedure       (powerSpectrumNormalizerPowerUnnormalized)                        :: powerUnnormalized
+    double precision                                                                  :: amplitudeTransfer, timePresent     , &
+         &                                                                               equationOfState0 , equationOfStateA
 
-    ! CLASS is run for a cosmological constant, so its large-scale transfer amplitude (which includes the growth of perturbations to
-    ! the present day) is valid only if the dark energy in the model is also a cosmological constant.
-    do i=1,size(expansionFactorTest)
-       if (Values_Differ(self%cosmologyFunctions_%equationOfStateDarkEnergy(expansionFactor=expansionFactorTest(i)),-1.0d0,absTol=1.0d-6))  &
-            & call Error_Report(                                                                                                            &
-            &                   'normalization to A_s is supported only for a cosmological constant (w=-1) as CLASS is run for that case'// &
-            &                   {introspection:location}                                                                                    &
-            &                  )
-    end do
-    amplitudeTransfer=Interface_CLASS_Transfer_Function_Amplitude(self%cosmologyParameters_)
+    ! Find the large-scale transfer amplitude from CLASS. This includes the growth of perturbations to the present day, so CLASS is
+    ! given the dark energy equation of state of the model.
+    call Interface_CLASS_Dark_Energy(self%cosmologyFunctions_,equationOfState0,equationOfStateA)
+    amplitudeTransfer=Interface_CLASS_Transfer_Function_Amplitude(self%cosmologyParameters_,equationOfState0,equationOfStateA)
     timePresent      =self%cosmologyFunctions_%cosmicTime(1.0d0)
     normalization    =+2.0d0                                                 &
          &            *Pi                                                **2 &
