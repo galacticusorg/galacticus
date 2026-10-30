@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793270137901,
+  "lastUpdate": 1793350040215,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=4)": [
@@ -1299,6 +1299,35 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/4c1327d5158ca93f2afe0f9439e51d8b1359a9a9"
         },
         "date": 1793270136802,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
+            "value": 2739.9045576947383,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b7f4fd1e25a2dc392718435937a0b7171f27c69b",
+          "message": "Merge pull request #1700 from galacticusorg/fix/shi2016-expansion-factor\n\nfix(massDistributions): use the observation-epoch scaled expansion factor in the Shi (2016) accretion flow",
+          "timestamp": "2026-10-29T16:30:24Z",
+          "tree_id": "e6f4beeeee0c7d5d199c68ce953ad7f4bcbeb6a5",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b7f4fd1e25a2dc392718435937a0b7171f27c69b"
+        },
+        "date": 1793350039022,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
