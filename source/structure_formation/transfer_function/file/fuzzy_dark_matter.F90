@@ -16,7 +16,9 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du, Claude.
+
   !!{RST
   Implements a file-based transfer function class for fuzzy dark matter.
   !!}
@@ -147,10 +149,10 @@
      private
      class(darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
    contains
+     final     ::                    fileFuzzyDarkMatterDestructor
      procedure :: readFile        => fileFuzzyDarkMatterReadFile
      procedure :: halfModeMass    => fileFuzzyDarkMatterHalfModeMass
      procedure :: quarterModeMass => fileFuzzyDarkMatterQuarterModeMass
-     final     ::                    fileFuzzyDarkMatterDestructor
   end type transferFunctionFileFuzzyDarkMatter
 
   interface transferFunctionFileFuzzyDarkMatter
