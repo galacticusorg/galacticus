@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "4c1327d5158ca93f2afe0f9439e51d8b1359a9a9",
-        "message": "Merge pull request #1694 from galacticusorg/fix/atomic-rt-electron-numbers\n\nfix(radiativeTransfer): pass electron numbers to the excitation, Gaunt factor, and dielectronic rate methods in atomic matter\n",
-        "timestamp": "2026-10-28 15:51:16+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4c1327d5158ca93f2afe0f9439e51d8b1359a9a9"
+        "id": "b7f4fd1e25a2dc392718435937a0b7171f27c69b",
+        "message": "Merge pull request #1700 from galacticusorg/fix/shi2016-expansion-factor\n\nfix(massDistributions): use the observation-epoch scaled expansion factor in the Shi (2016) accretion flow\n",
+        "timestamp": "2026-10-29 16:30:24+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b7f4fd1e25a2dc392718435937a0b7171f27c69b"
     },
     "surfaceDensity": {
         "percentageBelow": 28.57142857142857,

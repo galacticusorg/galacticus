@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "4c1327d5158ca93f2afe0f9439e51d8b1359a9a9",
-        "message": "Merge pull request #1694 from galacticusorg/fix/atomic-rt-electron-numbers\n\nfix(radiativeTransfer): pass electron numbers to the excitation, Gaunt factor, and dielectronic rate methods in atomic matter\n",
-        "timestamp": "2026-10-28 15:51:16+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4c1327d5158ca93f2afe0f9439e51d8b1359a9a9"
+        "id": "b7f4fd1e25a2dc392718435937a0b7171f27c69b",
+        "message": "Merge pull request #1700 from galacticusorg/fix/shi2016-expansion-factor\n\nfix(massDistributions): use the observation-epoch scaled expansion factor in the Shi (2016) accretion flow\n",
+        "timestamp": "2026-10-29 16:30:24+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b7f4fd1e25a2dc392718435937a0b7171f27c69b"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=80.0 Gyr; vₖ=40.0 km/s)",
-                "logLikelihood": "-142.4585720063901",
+                "logLikelihood": "-142.52670290593792",
                 "type": "function1D"
             },
             "data": {
@@ -39,7 +39,7 @@ window.ANALYSES_DATA = {
                 ],
                 "yDataset": [
                     125.27220403672727,
-                    50.85031558139875,
+                    50.93364891473209,
                     26.30927370811719,
                     21.902844801471627,
                     13.02988016366487,
