@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793350023437,
+  "lastUpdate": 1793455040357,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Group)": [
@@ -1333,6 +1333,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony Group CDM resolutionX1 z=0.000 (49 realizations)",
             "value": 5817.052381073718,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "445c6edb4a0939dea25cffc74bcd6c4e78b9564d",
+          "message": "Merge pull request #1710 from galacticusorg/feat/emulation-profile-model-variance\n\nfeat(emulation): optionally include the model variance in the direct likelihoods of a profile",
+          "timestamp": "2026-10-30T16:39:17Z",
+          "tree_id": "072c70b09a67b4fed38bb37785f31fa77826f743",
+          "url": "https://github.com/galacticusorg/galacticus/commit/445c6edb4a0939dea25cffc74bcd6c4e78b9564d"
+        },
+        "date": 1793455039841,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony Group CDM resolutionX1 z=0.000 (49 realizations)",
+            "value": 5817.052438821738,
             "unit": "-logℒ"
           }
         ]
