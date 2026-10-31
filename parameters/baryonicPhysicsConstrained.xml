@@ -483,9 +483,6 @@
       <systematicErrorPolynomialCoefficient value="-0.000290999740052957 0.001719822220954"/>
     </outputAnalysis>
 
-    <!-- Local Group stellar mass function -->
-    <outputAnalysis value="localGroupStellarMassFunction"/> <!-- Analysis #19 -->
-
   </outputAnalysis>
 
   <!-- Systematics nuisance parameters. These are only a record of the fitted values: no class reads them. The values are
