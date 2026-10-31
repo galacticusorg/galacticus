@@ -163,11 +163,11 @@ contains
     <inputParameter docformat="rst">
       <name>velocityDispersionDiskGas</name>
       <defaultSource>
-      :cite:p:`leroy_star_2008`
+      :cite:p:`blitz_role_2006`
       </defaultSource>
-      <defaultValue>10.0d0</defaultValue>
+      <defaultValue>8.0d0</defaultValue>
       <description>
-      The velocity dispersion of gas in galactic disks (in km/s), used to compute the hydrostatic midplane pressure that determines the molecular-to-atomic gas ratio in the :cite:t:`blitz_role_2006` star formation model.
+      The velocity dispersion of gas in galactic disks (in km/s), used to compute the hydrostatic midplane pressure that determines the molecular-to-atomic gas ratio in the :cite:t:`blitz_role_2006` star formation model. The default is the value assumed by :cite:t:`blitz_role_2006` in determining the characteristic pressure, :math:`P_0`, of the default ``[pressureCharacteristic]``. Since, where stars dominate, the midplane pressure is proportional to the gas velocity dispersion, this should be changed together with ``[pressureCharacteristic]`` (e.g. :cite:t:`leroy_star_2008` adopt :math:`\sigma_\mathrm{gas}=11` km/s, and find the transition from atomic to molecular gas at :math:`\log_{10} P/k_\mathrm{B} \approx 4.36` [K cm\ :math:`^{-3}`]).
       </description>
       <source>parameters</source>
     </inputParameter>
