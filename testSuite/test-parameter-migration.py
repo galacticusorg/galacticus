@@ -75,6 +75,16 @@ if len(gaseous) != 1 or gaseous[0].get("value") != "chandrasekhar1943":
     print("FAILED: missing 'dynamicalFrictionGaseous' set to 'chandrasekhar1943'")
     failures += 1
 
+# An explicitly given blitz2006 star formation frequency must have been rescaled by 1/1.36, as it now applies to all molecular gas
+# (including helium) rather than to molecular hydrogen alone.
+frequency = root.find(".//starFormationRateSurfaceDensityDisks[@value='blitz2006']/starFormationFrequencyNormalization")
+if frequency is None:
+    print("FAILED: missing parameter 'starFormationFrequencyNormalization' of blitz2006")
+    failures += 1
+elif abs(float(frequency.get("value")) / 1.0e-9 - 1.0) > 1.0e-12:
+    print(f"FAILED: blitz2006 'starFormationFrequencyNormalization' is {frequency.get('value')}, expected 1.0e-9")
+    failures += 1
+
 # The standard merger tree evolver must retain the absence of satellite deferral that predates the change of the default
 # of `fractionTimestepSatelliteMinimum` from 0 to 0.75.
 fraction = root.findall("mergerTreeEvolver[@value='standard']/fractionTimestepSatelliteMinimum")
