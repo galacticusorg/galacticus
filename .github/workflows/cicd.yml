@@ -1654,6 +1654,7 @@ jobs:
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
+                test-IGM-thermal-evolution.py,
                 test-progenitor-mass-function-forests.py,
                 test-black-hole-jet-efficiency.py,
                 test-SIDM-parametric.py,

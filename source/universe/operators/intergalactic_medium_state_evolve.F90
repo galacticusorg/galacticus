@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+ Contributions to this file made by: Daniel McAndrew.
+  !+ Contributions to this file made by: Daniel McAndrew, Claude.
 
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhoto      , atomicCrossSectionIonizationPhotoClass
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotential              , atomicIonizationPotentialClass
@@ -670,7 +670,7 @@ contains
                    &                      *densityThisIon                                                                               &
                    &                      *densityElectron
               heatingRate                =+heatingRate                                                                                  &
-                   &                      -self_%atomicIonizationPotential_      %potential(atomicNumber,electronNumber +1            ) &
+                   &                      +self_%atomicIonizationPotential_      %potential(atomicNumber,electronNumber               ) &
                    &                      *electronVolt                                                                                 &
                    &                      *collisionIonizationRateFrom                                                                  &
                    &                      *gigaYear                                                                                     &
@@ -702,12 +702,11 @@ contains
                    &                      *densityElectron
               heatingRate                =+heatingRate                                                                                                      &
                    &                      -self_%atomicRecombinationRateRadiativeCooling_%rate(atomicNumber,ionizationState,temperature,recombinationCaseB) &
-                   &                      *densityThisIon                                                                                                   &
+                   &                      *densityUpperIon                                                                                                  &
                    &                      *densityElectron                                                                                                  &
                    &                      *gigaYear                                                                                                         &
                    &                      *centi**3                                                                                                         &
                    &                      *clumpingFactor                                                                                                   &
-                   &                      *0.75d0                                                                                                           &
                    &                      *boltzmannsConstant                                                                                               &
                    &                      *temperature
            else
@@ -727,7 +726,7 @@ contains
                    &                            *densityUpperIon                                                                            &
                    &                            *densityElectron
               heatingRate                      =+heatingRate                                                                                &
-                   &                            -dielectronicRecombinationRateHeIEnergyLoss                                                 &
+                   &                            +dielectronicRecombinationRateHeIEnergyLoss                                                 &
                    &                            *electronVolt                                                                               &
                    &                            *recombinationDielectronicRateFrom                                                          &
                    &                            *gigaYear                                                                                   &
@@ -814,6 +813,9 @@ contains
                 &                                                          electronNumber, &
                 &                                                          temperature     &
                 &                                                         )                &
+                &      *densityThisIon                                                     &
+                &      *densityElectron                                                    &
+                &      *gigaYear                                                           &
                 &      *clumpingFactor
            ! Compute net rate of change of density.
            propertiesRateOfChange(iProperty)=                                                   &
@@ -842,9 +844,10 @@ contains
         end do
      end do
      ! Compute the rate of change of electron density.
-     electronDensityRateOfChange=+propertiesRateOfChange(3) &
-          &                      +propertiesRateOfChange(5) &
-          &                      +propertiesRateOfChange(6)
+     ! Each HeIII ion contributes two electrons.
+     electronDensityRateOfChange=+      propertiesRateOfChange(3) &
+          &                      +      propertiesRateOfChange(5) &
+          &                      +2.0d0*propertiesRateOfChange(6)
      ! Compute rate of change of temperature due to cosmological expansion.
      propertiesRateOfChange(1)=-2.0d0                                           &
           &                    *self_%cosmologyFunctions_%expansionRate  (      &
@@ -878,15 +881,20 @@ contains
           &                   /1.5d0                                                      &
           &                   /densityTotal                                               &
           &                   *gigaYear                                                   &
-          ! Particle number rate of change.
-          &    +electronDensityRateOfChange                                               &
-          &    /densityTotal                                                              &
-          &    +3.0d0                                                                     &
-          &    *self_%cosmologyFunctions_%expansionRate  (                                &
-          &     self_%cosmologyFunctions_%expansionFactor (                               &
-          &                                                time                           &
-          &                                               )                               &
-          &                                              )
+          ! Particle number rate of change. Only the number of electrons per comoving volume changes, by (dn_e/dt+3Hn_e)a³,
+          ! and the first law then gives a contribution -T (dN/dt)/N to dT/dt.
+          &                   -temperature                                                &
+          &                   *(                                                          &
+          &                     +electronDensityRateOfChange                              &
+          &                     +3.0d0                                                    &
+          &                     *self_%cosmologyFunctions_%expansionRate  (               &
+          &                      self_%cosmologyFunctions_%expansionFactor (              &
+          &                                                                 time          &
+          &                                                                )              &
+          &                                                               )               &
+          &                     *densityElectron                                          &
+          &                    )                                                          &
+          &                   /densityTotal
      ! Transfer rates of change to contiguous array.
      propertiesRateOfChange( 7: 8)=massFilteringCompositeRateOfChange
      propertiesRateOfChange( 9   )=opticalDepthRateOfChange
