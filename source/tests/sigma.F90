@@ -53,11 +53,13 @@ program Tests_Sigma
   double precision                                          , dimension(massCountExtension), parameter :: massExtension(massCountExtension)      =[1.0d11,1.0d12,1.0d13]
   double precision                                          , dimension(massCountExtension)            :: sigmaNarrow                                                   , sigmaExtended
   ! Masses at which σ(M) is tested for invariance under extension of the tabulation with the (local) monotonic interpolator. These
-  ! lie close to the lower end of the seed range (10⁶ M☉) of the tabulation, the first two within its lowest tabulated interval,
-  ! and none on the lattice.
+  ! lie close to the lower end of the seed range (10⁶ M☉) of the tabulation, the first three within its lowest three tabulated
+  ! intervals (which are excluded from the usable range, so that requesting them extends the tabulation), and none on the
+  ! lattice.
   integer                                                                                  , parameter :: massCountEdge                          =5
   double precision                                          , dimension(massCountEdge     ), parameter :: massEdge(massCountEdge)                =[1.02d6,1.12d6,1.3d6,2.2d6,3.5d6]
-  double precision                                          , dimension(massCountEdge     )            :: sigmaEdgeNarrow                                               , sigmaEdgeExtended
+  double precision                                          , dimension(massCountEdge     )            :: sigmaEdgeNarrow                                               , sigmaEdgeExtended                              , &
+       &                                                                                                  alphaEdgeNarrow                                               , alphaEdgeExtended
   type            (darkMatterParticleCDM                   )                                           :: darkMatterParticleCDM_
   type            (cosmologyParametersSimple               )                                           :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda          )                                           :: cosmologyFunctions_
@@ -345,18 +347,22 @@ program Tests_Sigma
        &                                                                         powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredEdge_, &
        &                                                                         powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionLCDM_        &
        &                                                                        )
-  ! Tabulate over the seed range only, and record σ(M) near its lower end.
+  ! Tabulate over the seed range, and record σ(M), and its logarithmic gradient, near its lower end. (Requesting the lowest of
+  ! these masses itself extends the tabulation down to 10⁵ M☉.)
   sigmaForce=cosmologicalMassVarianceEdge_%rootVariance(1.0d11,cosmologyFunctions_%cosmicTime(1.0d0))
   do iMass=1,massCountEdge
-     sigmaEdgeNarrow  (iMass)=cosmologicalMassVarianceEdge_%rootVariance(massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     sigmaEdgeNarrow  (iMass)=cosmologicalMassVarianceEdge_%rootVariance                   (massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     alphaEdgeNarrow  (iMass)=cosmologicalMassVarianceEdge_%rootVarianceLogarithmicGradient(massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
   end do
   ! Force the tabulation to be extended, upward in mass and then downward, beyond the seed range.
   sigmaForce=cosmologicalMassVarianceEdge_%rootVariance(1.0d20,cosmologyFunctions_%cosmicTime(1.0d0))
   sigmaForce=cosmologicalMassVarianceEdge_%rootVariance(1.0d03,cosmologyFunctions_%cosmicTime(1.0d0))
   do iMass=1,massCountEdge
-     sigmaEdgeExtended(iMass)=cosmologicalMassVarianceEdge_%rootVariance(massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     sigmaEdgeExtended(iMass)=cosmologicalMassVarianceEdge_%rootVariance                   (massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     alphaEdgeExtended(iMass)=cosmologicalMassVarianceEdge_%rootVarianceLogarithmicGradient(massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
   end do
-  call Assert('σ(M) near the end of the tabulation is unchanged by extension of the tabulation',sigmaEdgeNarrow,sigmaEdgeExtended,relTol=1.0d-15)
+  call Assert('σ(M) near the end of the tabulation is unchanged by extension of the tabulation'         ,all(sigmaEdgeNarrow == sigmaEdgeExtended),.true.)
+  call Assert('dlogσ/dlogM near the end of the tabulation is unchanged by extension of the tabulation',all(alphaEdgeNarrow == alphaEdgeExtended),.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
