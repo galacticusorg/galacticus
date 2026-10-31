@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793350012550,
+  "lastUpdate": 1793455031573,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (MDPL)": [
@@ -3148,6 +3148,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=3.037",
             "value": 44.423425520806944,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.000",
+            "value": 340.2645882833343,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.987",
+            "value": 283.87239655599836,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=3.127",
+            "value": 172.5961183240133,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL SMDPL CDM resolutionX1 z=0.000",
+            "value": 383.16106881796964,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL VSMDPL CDM resolutionX1 z=0.000",
+            "value": 399.10939685622844,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "445c6edb4a0939dea25cffc74bcd6c4e78b9564d",
+          "message": "Merge pull request #1710 from galacticusorg/feat/emulation-profile-model-variance\n\nfeat(emulation): optionally include the model variance in the direct likelihoods of a profile",
+          "timestamp": "2026-10-30T16:39:17Z",
+          "tree_id": "072c70b09a67b4fed38bb37785f31fa77826f743",
+          "url": "https://github.com/galacticusorg/galacticus/commit/445c6edb4a0939dea25cffc74bcd6c4e78b9564d"
+        },
+        "date": 1793455030967,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - MDPL BigMDPL CDM resolutionX1 z=0.000",
+            "value": 265.8413043689582,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.000",
+            "value": 232.03585701208152,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.987",
+            "value": 155.14008626687286,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=3.037",
+            "value": 44.42368860488228,
             "unit": "-logℒ"
           },
           {
