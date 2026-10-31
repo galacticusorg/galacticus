@@ -47,9 +47,9 @@ program Test_Star_Formation_Molecular_Fractions
   density are compared with the reference also.
 
   For :cite:t:`krumholz_star_2009` the rate surface density is compared with the reference at five radii, for both the full
-  fitting function of their eqn. (2) and the faster :cite:p:`mckee_atomic--molecular_2010` form, and the limits of zero
-  metallicity, of vanishing molecular fraction at low surface density, and of unit molecular fraction at high surface density are
-  checked. Their eqn. (10) uses the *total* gas surface density, including helium, so the test also confirms that the star
+  fitting function of their eqn. (2) and the faster :cite:p:`mckee_atomic--molecular_2010` form (each with its own definition of
+  :math:`s`), and the limits of zero metallicity, of vanishing molecular fraction at low surface density, and of unit molecular
+  fraction at high surface density are checked. Their eqn. (10) uses the *total* gas surface density, including helium, so the test also confirms that the star
   formation rate reduces to :math:`\nu_\mathrm{SF} f_\mathrm{H_2} \Sigma_\mathrm{gas}` precisely where the *total* gas surface
   density equals the transition surface density of 85 :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`.
   !!}
@@ -103,9 +103,9 @@ program Test_Star_Formation_Molecular_Fractions
   double precision                                                  , dimension(6)   :: rateBlitzReference        =[6.2973793711964d+13,3.3051869160264d+13,7.3823495252989d+12,1.0325201952966d+12,1.0125935377225d+11,7.7738260031637d+08]
   !! Krumholz et al. (2009) molecular fractions, for the full and fast fitting functions, and rate surface densities
   !! [M☉/Gyr/Mpc²].
-  double precision                                                  , dimension(5)   :: fractionMolecularKrumholzReference    =[9.6184243210179d-01,9.5198615456030d-01,9.3757069811107d-01,8.3682408513234d-01,5.8319551403055d-01], &
-       &                                                                                fractionMolecularKrumholzFastReference=[9.6214522812381d-01,9.5238986128348d-01,9.3809477201003d-01,8.3748636933749d-01,5.9586006438119d-01], &
-       &                                                                                rateKrumholzReference                 =[4.2887311608501d+13,3.1153746907986d+13,2.5649133906021d+13,1.1714548304555d+13,4.1776134042290d+12]
+  double precision                                                  , dimension(5)   :: fractionMolecularKrumholzReference    =[9.6300948599592d-01,9.5344771899717d-01,9.3945732447888d-01,8.4158910617354d-01,5.9520213541592d-01], &
+       &                                                                                fractionMolecularKrumholzFastReference=[9.6220476564152d-01,9.5246449570048d-01,9.3819134649858d-01,8.3773122833461d-01,5.9641720042959d-01], &
+       &                                                                                rateKrumholzReference                 =[4.2939349034124d+13,3.1201576604182d+13,2.5700746368352d+13,1.1781252968237d+13,4.2636206200465d+12]
   ! Tolerances.
   !! The pressure is compared in physical units, so this comparison is sensitive to the values of the physical constants - GSL,
   !! and therefore Galacticus, has used both 6.673×10⁻¹¹ and 6.6743×10⁻¹¹ N m² kg⁻² for the gravitational constant. Since
