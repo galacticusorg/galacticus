@@ -1655,6 +1655,7 @@ jobs:
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
                 test-progenitor-mass-function-forests.py,
+                test-single-epoch-survey-volume.py,
                 test-black-hole-jet-efficiency.py,
                 test-SIDM-parametric.py,
                 test-decaying-dark-matter-halo-mass-function.py,

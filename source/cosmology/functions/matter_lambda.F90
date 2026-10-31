@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the cosmological functions class for cosmologies consisting of collisionless matter plus a cosmological constant.
   !!}
@@ -1063,13 +1065,15 @@ contains
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: comovingDistance
-    double precision                                                :: time
-    logical                                                         :: remakeTable
+    double precision                                                :: time            , distanceHorizon
+    logical                                                         :: remakeTable     , horizonChecked
+    character       (len=14                        )                :: distanceLabel   , distanceHorizonLabel
 
     ! Quit on invalid input.
     if (comovingDistance < 0.0d0) call Error_Report('comoving distance must be positive'//{introspection:location})
     ! Check if we need to recompute our table.
-    remakeTable=.true.
+    remakeTable   =.true.
+    horizonChecked=.false.
     do while (remakeTable)
        if (self%distanceTableInitialized) then
           remakeTable=self%distanceTableComovingDistance(1) < comovingDistance
@@ -1079,7 +1083,20 @@ contains
           time       =self%distanceTableTimeMinimum
        end if
        ! Remake table if necessary.
-       if (remakeTable) call self%distanceTabulate(time)
+       if (remakeTable) then
+          ! Check first that the distance lies within the particle horizon - otherwise the table would be extended to ever earlier
+          ! times without ever reaching it.
+          if (.not.horizonChecked) then
+             distanceHorizon=self%distanceParticleHorizonComoving(self%cosmicTime(1.0d0))
+             if (comovingDistance >= distanceHorizon) then
+                write (distanceLabel       ,'(e14.6e3)') comovingDistance
+                write (distanceHorizonLabel,'(e14.6e3)') distanceHorizon
+                call Error_Report('comoving distance ['//trim(distanceLabel)//' Mpc] lies beyond the particle horizon ['//trim(distanceHorizonLabel)//' Mpc]'//{introspection:location})
+             end if
+             horizonChecked=.true.
+          end if
+          call self%distanceTabulate(time)
+       end if
     end do
     ! Interpolate to get the comoving distance.
     matterLambdaTimeAtDistanceComoving=self%interpolatorDistanceInverse%interpolate(-comovingDistance)
