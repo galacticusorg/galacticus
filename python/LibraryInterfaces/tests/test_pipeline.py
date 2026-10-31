@@ -693,6 +693,33 @@ def test_fortran_reassignments_logical_array_emits_kind_narrowing_copy():
     assert 'allocate(mask_F_(mask_count))' in out[0].fort_reassignment
 
 
+def test_assign_c_types_unlimited_polymorphic_with_function_class_override():
+    """class(*) with a libraryClasses.xml override naming a registered
+    functionClass type is treated as that functionClass: an `_ID` companion
+    is inserted, so that the wrapper can recover the object's dynamic type."""
+    raw = [{'name': 'engine', 'intrinsic': 'class', 'type': '*',
+            'attributes': ['intent(in)']}]
+    overrides = [{'name': 'engine', 'type': 'fooClass', 'module': 'Foo'}]
+    out = assign_c_types(raw, lib_function_classes={'foo': {'module': 'Foo'}},
+                         constructor_overrides=overrides)
+    assert [a.name for a in out] == ['engine', 'engine_ID']
+    assert out[0].is_function_class is True
+    assert out[0].type_spec         == 'fooClass'
+
+
+def test_assign_c_types_unlimited_polymorphic_with_other_override_unchanged():
+    """class(*) with an override naming a type that is not a registered
+    functionClass stays a plain pointer, with no `_ID` companion."""
+    raw = [{'name': 'engine', 'intrinsic': 'class', 'type': '*',
+            'attributes': ['intent(in)']}]
+    overrides = [{'name': 'engine', 'type': 'engineObjects', 'module': 'Foo'}]
+    out = assign_c_types(raw, lib_function_classes={'foo': {'module': 'Foo'}},
+                         constructor_overrides=overrides)
+    assert [a.name for a in out] == ['engine']
+    assert out[0].is_function_class is False
+    assert out[0].type_spec         == '*'
+
+
 def test_assign_c_types_value_absent_drops_optional_arg_entirely():
     """`<argument name="..." value="absent"/>` drops an *optional* arg
     entirely — from Python, from bind(c), and from the inner call.

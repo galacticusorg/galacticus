@@ -2,7 +2,7 @@
 <!-- Tests tidal stripping of galactic components (disks, spheroids, and nuclear star clusters) using the tidal radius of the satellite, with truncation of the mass distributions of tidally-stripped spheroids and nuclear star clusters, and tidal heating of spheroids and nuclear star clusters along with the dark matter of their host halos. -->
 
 <parameters>
-  <lastModified revision="1552152936a0731c6ff57cf57d3e259e66d9848d" time="2026-10-20T21:06:20"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <formatVersion>2</formatVersion>
   <!-- Specify tasks to perform -->
@@ -49,9 +49,10 @@
     <running value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>

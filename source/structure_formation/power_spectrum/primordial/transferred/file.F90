@@ -119,7 +119,22 @@
         }
 
     The `power` dataset should tabulate the transferred power spectrum as a function of :math:`(z,k)` where :math:`z` is redshift and :math:`k` is wavenumber.
+
+    The tabulated power spectrum is multiplied by a normalization determined by a :galacticus-class:`powerSpectrumNormalizerClass`
+    object. If the tabulated power spectrum is already normalized use a :galacticus-class:`powerSpectrumNormalizerIdentity`. If a
+    :galacticus-class:`powerSpectrumNormalizerAmplitudeScalar` is used, its ``[transferFunction]`` must be the transfer function
+    underlying the tabulated power spectrum, as that normalizer matches the tabulated power spectrum to the product of the
+    primordial power spectrum and the square of that transfer function at its pivot wavenumber.
     </description>
+    <deepCopy>
+      <ignore variables="powerSpectrumNormalizer_"/>
+    </deepCopy>
+    <assignment>
+      <functionClass variables="powerSpectrumNormalizer_"/>
+    </assignment>
+    <allowedParameters>
+      <object variable="powerSpectrumNormalizer_" name="powerSpectrumNormalizer" source="parameters" function="Power_Spectrum_Normalizer_Allowed_Parameters_" module="Functions_Global"/>
+    </allowedParameters>
     <runTimeFileDependencies paths="fileName"/>
   </powerSpectrumPrimordialTransferred>
   !!]
@@ -128,23 +143,35 @@
      Implements a file transferred primordial power spectrum.
      !!}
      private
-     class           (cosmologyParametersClass), pointer                     :: cosmologyParameters_   => null()
-     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_    => null()
+     class           (cosmologyParametersClass), pointer                     :: cosmologyParameters_     => null()
+     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_      => null()
+     ! The normalizer is held as an unlimited polymorphic object, and operated on through global functions, to avoid a circular
+     ! module dependency (see Power_Spectrum_Normalizer_Utilities).
+     class           (*                       ), pointer                     :: powerSpectrumNormalizer_ => null()
+     double precision                                                        :: normalization_
      type            (varying_string          )                              :: fileName
-     double precision                          , allocatable, dimension(:  ) :: timeLogarithmic                 , wavenumberLogarithmic
+     double precision                          , allocatable, dimension(:  ) :: timeLogarithmic                   , wavenumberLogarithmic
      double precision                          , allocatable, dimension(:,:) :: powerLogarithmic
-     type            (interpolator            )                              :: interpolatorWavenumber          , interpolatorTime
+     type            (interpolator            )                              :: interpolatorWavenumber            , interpolatorTime
    contains
      !![
      <methods docformat="rst">
-       <method description="Read the named power spectrum file." method="readFile" />
+       <method description="Read the named power spectrum file."                                                                     method="readFile"         />
+       <method description="Return the unnormalized transferred primordial power spectrum at the given ``wavenumber`` and ``time``." method="powerUnnormalized"/>
+       <method description="Return the normalization of the power spectrum, computing it if necessary."                              method="normalization"    />
      </methods>
      !!]
      final     ::                                fileDestructor
      procedure :: readFile                    => fileReadFile
      procedure :: power                       => filePower
+     procedure :: powerUnnormalized           => filePowerUnnormalized
+     procedure :: normalization               => fileNormalization
      procedure :: logarithmicDerivative       => fileLogarithmicDerivative
      procedure :: growthIsWavenumberDependent => fileGrowthIsWavenumberDependent
+     procedure :: descriptor                  => fileDescriptor
+     procedure :: deepCopy                    => fileDeepCopy
+     procedure :: deepCopyReset               => fileDeepCopyReset
+     procedure :: deepCopyFinalize            => fileDeepCopyFinalize
   end type powerSpectrumPrimordialTransferredFile
 
   interface powerSpectrumPrimordialTransferredFile
@@ -164,12 +191,14 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`powerSpectrumPrimordialTransferredFile` transferred primordial power spectrum class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    use :: Functions_Global, only : Power_Spectrum_Normalizer_Construct_, Power_Spectrum_Normalizer_Release_
+    use :: Input_Parameters, only : inputParameter                      , inputParameters
     implicit none
     type (powerSpectrumPrimordialTransferredFile)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
     class(cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class(*                                     ), pointer       :: powerSpectrumNormalizer_
     type (varying_string                        )                :: fileName
     
     !![
@@ -183,27 +212,34 @@ contains
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !!]
-    self=powerSpectrumPrimordialTransferredFile(fileName,cosmologyParameters_,cosmologyFunctions_)
+    powerSpectrumNormalizer_ => Power_Spectrum_Normalizer_Construct_(parameters)
+    self=powerSpectrumPrimordialTransferredFile(fileName,cosmologyParameters_,cosmologyFunctions_,powerSpectrumNormalizer_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
     !!]
+    call Power_Spectrum_Normalizer_Release_(powerSpectrumNormalizer_)
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function fileConstructorInternal(fileName,cosmologyParameters_,cosmologyFunctions_,powerSpectrumNormalizer_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialTransferredFile` transferred primordial power spectrum class.
+    Internal constructor for the :galacticus-class:`powerSpectrumPrimordialTransferredFile` transferred primordial power
+    spectrum class. The ``powerSpectrumNormalizer_`` argument must be of :galacticus-class:`powerSpectrumNormalizerClass` class.
     !!}
     implicit none
     type (powerSpectrumPrimordialTransferredFile)                        :: self
     type (varying_string                        ), intent(in   )         :: fileName
     class(cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
     class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    class(*                                     ), intent(in   ), target :: powerSpectrumNormalizer_
     !![
-    <constructorAssign variables="fileName, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="fileName, *cosmologyParameters_, *cosmologyFunctions_, *powerSpectrumNormalizer_"/>
     !!]
 
     call self%readFile(fileName)
+    self%normalization_=-1.0d0
     return
   end function fileConstructorInternal
 
@@ -211,6 +247,7 @@ contains
     !!{RST
     Destructor for the file transfer function class.
     !!}
+    use :: Functions_Global, only : Power_Spectrum_Normalizer_Release_
     implicit none
     type(powerSpectrumPrimordialTransferredFile), intent(inout) :: self
 
@@ -218,6 +255,7 @@ contains
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
+    if (associated(self%powerSpectrumNormalizer_)) call Power_Spectrum_Normalizer_Release_(self%powerSpectrumNormalizer_)
     return
   end subroutine fileDestructor
 
@@ -332,6 +370,60 @@ contains
     Return the transferred primordial power spectrum at the given ``wavenumber``.
     !!}
     implicit none
+    class           (powerSpectrumPrimordialTransferredFile), intent(inout) :: self
+    double precision                                        , intent(in   ) :: wavenumber, time
+
+    filePower=+self%normalization    (                ) &
+         &    *self%powerUnnormalized(wavenumber,time)
+    return
+  end function filePower
+
+  double precision function fileNormalization(self)
+    !!{RST
+    Return the normalization of the power spectrum, computing it (using the normalizer) on the first call.
+    !!}
+    implicit none
+    class(powerSpectrumPrimordialTransferredFile), intent(inout) :: self
+
+    ! The computation is kept in a separate procedure, as the internal procedure which it passes to the normalizer requires
+    ! a trampoline, which would otherwise be set up on every call to this function (and so on every evaluation of the power
+    ! spectrum), not only when the normalization must be computed.
+    if (self%normalization_ < 0.0d0) call fileNormalizationCompute(self)
+    fileNormalization=self%normalization_
+    return
+  end function fileNormalization
+
+  subroutine fileNormalizationCompute(self)
+    !!{RST
+    Compute the normalization of the power spectrum using the normalizer.
+    !!}
+    use :: Functions_Global, only : Power_Spectrum_Normalizer_Normalization_
+    implicit none
+    class(powerSpectrumPrimordialTransferredFile), intent(inout), target :: self
+
+    self%normalization_=Power_Spectrum_Normalizer_Normalization_(self%powerSpectrumNormalizer_,powerUnnormalized)
+    return
+
+  contains
+
+    double precision function powerUnnormalized(wavenumber,time)
+      !!{RST
+      Return the unnormalized transferred primordial power spectrum, for use by the normalizer.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumber, time
+
+      powerUnnormalized=self%powerUnnormalized(wavenumber,time)
+      return
+    end function powerUnnormalized
+
+  end subroutine fileNormalizationCompute
+
+  double precision function filePowerUnnormalized(self,wavenumber,time) result(power)
+    !!{RST
+    Return the unnormalized (i.e. as tabulated) transferred primordial power spectrum at the given ``wavenumber``.
+    !!}
+    implicit none
     class           (powerSpectrumPrimordialTransferredFile), intent(inout)  :: self
     double precision                                        , intent(in   )  :: wavenumber , time
     integer         (c_size_t                              )                 :: iWavenumber, iTime, &
@@ -340,18 +432,18 @@ contains
 
     call self%interpolatorWavenumber%linearFactors(log(wavenumber),iWavenumber,hWavenumber) 
     call self%interpolatorTime      %linearFactors(log(time      ),iTime      ,hTime      )
-    filePower=0.0d0
+    power=0.0d0
     do jWavenumber=0,1
        do jTime   =0,1
-          filePower=+     filePower                                             &
-               &    +self%powerLogarithmic(iWavenumber+jWavenumber,iTime+jTime) &
-               &    *     hWavenumber     (            jWavenumber            ) &
-               &    *     hTime           (                              jTime)
+          power  =+     power                                                 &
+               &  +self%powerLogarithmic(iWavenumber+jWavenumber,iTime+jTime) &
+               &  *     hWavenumber     (            jWavenumber            ) &
+               &  *     hTime           (                              jTime)
        end do
     end do
-    filePower=exp(filePower)
+    power=exp(power)
     return
-  end function filePower
+  end function filePowerUnnormalized
 
   double precision function fileLogarithmicDerivative(self,wavenumber,time)
     !!{RST
@@ -392,3 +484,100 @@ contains
     fileGrowthIsWavenumberDependent=.true.
     return
   end function fileGrowthIsWavenumberDependent
+
+  subroutine fileDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
+    !!{RST
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Error             , only : Error_Report                         , errorStatusSuccess     , errorStatusNotExist
+    use :: File_Utilities    , only : File_Modification_Time
+    use :: Functions_Global  , only : Power_Spectrum_Normalizer_Descriptor_
+    use :: Input_Parameters  , only : inputParameters                      , descriptorParameterName
+    use :: ISO_Varying_String, only : char                                 , operator(//)
+    implicit none
+    class    (powerSpectrumPrimordialTransferredFile), intent(inout)           :: self
+    type     (inputParameters                       ), intent(inout)           :: descriptor
+    logical                                          , intent(in   ), optional :: includeClass    , includeFileModificationTimes
+    character(len=*                                 ), intent(in   ), optional :: parameterName
+    type     (inputParameters                       )                          :: parameters
+    character(len=30                                )                          :: timeModification
+    integer                                                                    :: status
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter(descriptorParameterName('powerSpectrumPrimordialTransferred',parameterName),'file')
+    parameters=descriptor%subparameters(descriptorParameterName('powerSpectrumPrimordialTransferred',parameterName))
+    call parameters%addParameter('fileName',char(self%fileName))
+    call self%cosmologyParameters_%descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    call self%cosmologyFunctions_ %descriptor(parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    call Power_Spectrum_Normalizer_Descriptor_(self%powerSpectrumNormalizer_,parameters,includeClass=.true.,includeFileModificationTimes=includeFileModificationTimes)
+    if (present(includeFileModificationTimes)) then
+       if (includeFileModificationTimes) then
+          timeModification=File_Modification_Time(self%fileName,status)
+          if      (status == errorStatusSuccess ) then
+             call descriptor%addParameter('runTimeFileDependency1',char(self%fileName//": "//trim(timeModification)))
+          else if (status /= errorStatusNotExist) then
+             call Error_Report('unable to get file modification time'//{introspection:location})
+          end if
+       end if
+    end if
+    return
+  end subroutine fileDescriptor
+
+  subroutine fileDeepCopyReset(self)
+    !!{RST
+    Perform a deep copy reset of the object.
+    !!}
+    use :: Functions_Global, only : Power_Spectrum_Normalizer_Deep_Copy_Reset_
+    implicit none
+    class(powerSpectrumPrimordialTransferredFile), intent(inout) :: self
+
+    self%copiedSelf => null()
+    if (associated(self%cosmologyParameters_    )) call self%cosmologyParameters_%deepCopyReset()
+    if (associated(self%cosmologyFunctions_     )) call self%cosmologyFunctions_ %deepCopyReset()
+    if (associated(self%powerSpectrumNormalizer_)) call Power_Spectrum_Normalizer_Deep_Copy_Reset_(self%powerSpectrumNormalizer_)
+    return
+  end subroutine fileDeepCopyReset
+
+  subroutine fileDeepCopyFinalize(self)
+    !!{RST
+    Finalize a deep copy of the object.
+    !!}
+    use :: Functions_Global, only : Power_Spectrum_Normalizer_Deep_Copy_Finalize_
+    implicit none
+    class(powerSpectrumPrimordialTransferredFile), intent(inout) :: self
+
+    if (associated(self%cosmologyParameters_    )) call self%cosmologyParameters_%deepCopyFinalize()
+    if (associated(self%cosmologyFunctions_     )) call self%cosmologyFunctions_ %deepCopyFinalize()
+    if (associated(self%powerSpectrumNormalizer_)) call Power_Spectrum_Normalizer_Deep_Copy_Finalize_(self%powerSpectrumNormalizer_)
+    return
+  end subroutine fileDeepCopyFinalize
+
+  subroutine fileDeepCopy(self,destination)
+    !!{RST
+    Perform a deep copy of the object.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Function_Classes, only : functionClass
+    use :: Functions_Global, only : Power_Spectrum_Normalizer_Deep_Copy_
+    implicit none
+    class  (powerSpectrumPrimordialTransferredFile ), intent(inout), target :: self
+    class  (powerSpectrumPrimordialTransferredClass), intent(inout)         :: destination
+    integer                                                                 :: referenceCount
+
+    call self%deepCopy_(destination)
+    select type (destination)
+    type is (powerSpectrumPrimordialTransferredFile)
+       ! The (shallow) assignment of self to destination in deepCopy_() acquired a reference to our normalizer. Release that
+       ! reference, as the destination is given its own (deep) copy of the normalizer.
+       if (associated(destination%powerSpectrumNormalizer_)) then
+          select type (powerSpectrumNormalizer_ => destination%powerSpectrumNormalizer_)
+          class is (functionClass)
+             referenceCount=powerSpectrumNormalizer_%referenceCountDecrement()
+          end select
+       end if
+       nullify(destination%powerSpectrumNormalizer_)
+       if (associated(self%powerSpectrumNormalizer_)) call Power_Spectrum_Normalizer_Deep_Copy_(self%powerSpectrumNormalizer_,destination%powerSpectrumNormalizer_)
+    class default
+       call Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine fileDeepCopy

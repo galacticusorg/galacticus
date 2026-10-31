@@ -268,7 +268,7 @@ def check_urls(urls, api_token, failures):
         options = [
             '--max-time', '60', '--insecure', '--location',
             '--output', '/dev/null', '--fail-with-body',
-            '--cipher', 'DEFAULT:!DH',
+            '--ciphers', 'DEFAULT:!DH',
         ]
         no_range = (
             re.search(r'^https://www\.drdobbs\.com/', url) or
@@ -350,9 +350,16 @@ def check_urls(urls, api_token, failures):
         }
         post_data = 'bibcode\n' + '\n'.join(sorted(bib_codes))
 
+        # A 429 means ADS has throttled us, which says nothing about whether the
+        # bibcodes exist - so warn, and leave their failure counts untouched.
+        ads_throttled = False
         try:
             response = requests.post(ads_url, headers=headers, data=post_data, timeout=60)
-            if response.status_code == 200:
+            if response.status_code == 429:
+                ads_throttled = True
+                print(f"Warning: NASA ADS rate-limited the request (HTTP 429); "
+                      f"{count_records} bibcodes were not checked: {response.text}")
+            elif response.status_code == 200:
                 records = response.json()
                 for entry in records.get('response', {}).get('docs', []):
                     found = False
@@ -374,7 +381,7 @@ def check_urls(urls, api_token, failures):
             status = 1
             print(f"Failed to retrieve record identifiers: {e}")
 
-        for bib_code, data in bib_codes.items():
+        for bib_code, data in ([] if ads_throttled else bib_codes.items()):
             if data.get('found'):
                 record_success(bib_code, failures)
             else:

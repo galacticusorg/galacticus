@@ -51,7 +51,6 @@
      !!]
      final     ::                                       variancePeakBackgroundSplitDestructor
      procedure :: sigma8                             => variancePeakBackgroundSplitSigma8
-     procedure :: powerNormalization                 => variancePeakBackgroundSplitPowerNormalization
      procedure :: rootVariance                       => variancePeakBackgroundSplitRootVariance
      procedure :: rootVarianceLogarithmicGradient    => variancePeakBackgroundSplitRootVarianceLogarithmicGradient
      procedure :: rootVarianceAndLogarithmicGradient => variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient
@@ -148,20 +147,6 @@ contains
     !!]
     return
   end subroutine variancePeakBackgroundSplitDestructor
-
-  double precision function variancePeakBackgroundSplitPowerNormalization(self)
-    !!{RST
-    Return the normalization of the power spectrum.
-    !!}
-    use :: Error, only : Error_Report
-    implicit none
-    class(cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    variancePeakBackgroundSplitPowerNormalization=0.0d0
-    call Error_Report('power spectrum normalization is not well-defined in peak-background split model'//{introspection:location})
-    return
-  end function variancePeakBackgroundSplitPowerNormalization
 
   double precision function variancePeakBackgroundSplitSigma8(self)
     !!{RST
