@@ -135,6 +135,50 @@ def restore_multiline_attributes(input_filename, output_filename):
             fout.write(line.replace("%%NEWLINE%%", "\n"))
 
 
+def scale_values(parameter, xpath, scale):
+    """Multiply the value(s) of a parameter by a constant factor.
+
+    A parameter may hold a single value or a space-separated list of values, either in its `value` attribute or in `value`
+    child elements (as in parameter grids). Values may use Fortran-style exponents (e.g. `5.25d-10`), as accepted by the
+    parameter reader. If every value is a plain number each is multiplied by the factor. Otherwise (e.g. for a derived parameter
+    expression, `=[...]`, which may itself contain spaces) the parameter can not be rescaled here, and is left entirely unchanged
+    with a warning. A parameter with no value (e.g. one which refers to another by `idRef`) is left unchanged.
+    """
+    value_children = parameter.findall("value")
+    if value_children:
+        all_values = value_children
+    elif parameter.get("value") is not None:
+        all_values = [parameter]
+    else:
+        return
+    description = f" ({scale['description']})" if scale["description"] is not None else ""
+    # Parse all values first, so that nothing is changed unless every value can be rescaled.
+    parsed = []
+    for value_elem in all_values:
+        values_text = value_elem.get("value", "") if value_elem is parameter else (value_elem.text or "")
+        try:
+            numbers = [
+                float(re.sub(r"(?<=[0-9.])[dD](?=[+-]?[0-9])", "e", value))
+                for value in values_text.split()
+            ]
+        except ValueError:
+            print(
+                f"   WARNING: can not rescale value '{values_text.strip()}' of '{xpath}' by {scale['factor']}{description}"
+                " - rescale it by hand"
+            )
+            return
+        parsed.append((value_elem, values_text.split(), numbers))
+    for value_elem, values, numbers in parsed:
+        values_scaled = [repr(number * scale["factor"]) for number in numbers]
+        for value, value_scaled in zip(values, values_scaled):
+            print(f"   scale parameter value: {xpath}")
+            print(f"                                 {value} --> {value_scaled}{description}")
+        if value_elem is parameter:
+            value_elem.set("value", " ".join(values_scaled))
+        else:
+            value_elem.text = " ".join(values_scaled)
+
+
 def parse_migrations(path):
     """Parse migrations.xml into a structured dict.
 
@@ -168,6 +212,12 @@ def parse_migrations(path):
             remove_elem = trans_elem.find("remove")
             if remove_elem is not None:
                 translation["remove"] = True
+            scale_elem = trans_elem.find("scale")
+            if scale_elem is not None:
+                translation["scale"] = {
+                    "factor":      float(scale_elem.get("factor")),
+                    "description": scale_elem.get("description"),
+                }
             migration["translation"].append(translation)
         migrations["migration"].append(migration)
     for default_elem in root.findall("default"):
@@ -405,6 +455,11 @@ def migrate(input_doc, parameters, root_level, is_grid, input_filename, options,
                             value_elem.set("value", " ".join(values))
                         else:
                             value_elem.text = " ".join(values)
+
+            # Scale values.
+            if "scale" in translation:
+                for parameter in parameters.xpath(translation["xpath"]):
+                    scale_values(parameter, translation["xpath"], translation["scale"])
 
     # Put subparameters into their host parameter.
     # We need to iterate over a snapshot since we're modifying the tree.

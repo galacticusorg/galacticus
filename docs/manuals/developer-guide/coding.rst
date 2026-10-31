@@ -969,7 +969,27 @@ Each migration is keyed by the **full 40-character hash of the commit that intro
      <translation function="chandrasekhar_suppress_extended_mass"/>
    </migration>
 
-A translation may either rewrite the parameter file declaratively, via an ``xpath`` attribute naming the elements to act on together with an action element (for example ``<remove/>``), or dispatch to a named Python function in ``parametersMigrate.py`` (registered in that script's ``SPECIAL_FUNCTIONS`` table) when the transformation is too involved to express as an XPath rewrite.
+A translation may either rewrite the parameter file declaratively, via an ``xpath`` attribute naming the elements to act on together with an action element, or dispatch to a named Python function in ``parametersMigrate.py`` (registered in that script's ``SPECIAL_FUNCTIONS`` table) when the transformation is too involved to express as an XPath rewrite. The available action elements are:
+
+``<remove/>``
+   Remove the matched parameters.
+
+``<name new="..."/>``
+   Rename the matched parameters.
+
+``<value old="..." new="..."/>``
+   Replace any value of the matched parameters equal to ``old`` with ``new``.
+
+``<scale factor="..." description="..."/>``
+   Multiply every numerical value of the matched parameters by ``factor`` (for example, when the units or the meaning of a parameter change). Values given in ``<value>`` children (as in parameter grids) and space-separated lists of values are scaled also, and Fortran-style exponents (e.g. ``5.25d-10``) are accepted. A parameter any of whose values is not a plain number (e.g. a derived parameter expression) is left entirely unchanged, with a warning, as are parameters with no value. The optional ``description`` is included in the report of each change. (Do not end the ``xpath`` with a predicate on the ``value`` attribute, such as ``name[@value]``, as that would exclude parameters whose values are given in ``<value>`` children.)
+
+For example, the following rescales an explicitly given star formation frequency:
+
+.. code-block:: xml
+
+   <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']/starFormationFrequencyNormalization">
+     <scale factor="0.73529411764705882" description="now per unit molecular gas mass including helium"/>
+   </translation>
 
 .. warning::
 

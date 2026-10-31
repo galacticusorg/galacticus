@@ -7,7 +7,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
+  <lastModified revision="ea6b55717d89e3ac2234e42c78fca7eebcf9e2fc" time="2026-10-30T23:06:36"/>
 
 
   <verbosityLevel value="working"/>
@@ -261,7 +261,7 @@
     <heightToRadialScaleDisk value="0.137"/>
     <surfaceDensityCritical value="200.0"/>
     <surfaceDensityExponent value="0.4"/>
-    <starFormationFrequencyNormalization value="5.25e-10"/>
+    <starFormationFrequencyNormalization value="3.860294117647059e-10"/>
     <pressureCharacteristic value="3.5e4"/>
     <pressureExponent value="0.92"/>
     

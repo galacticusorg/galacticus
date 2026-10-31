@@ -52,15 +52,26 @@
 
    .. math::
 
-      \dot{\Sigma}_\star(R) = \nu_\mathrm{SF}(R) \Sigma_\mathrm{H_2, disk}(R),
+      \dot{\Sigma}_\star(R) = \nu_\mathrm{SF}(R) f_\mathrm{H_2}(R) \Sigma_\mathrm{gas}(R),
 
-   where :math:`\nu_\mathrm{SF}` is a frequency given by
+   where :math:`\Sigma_\mathrm{gas}` is the surface density of all gas (hydrogen, helium, and metals) in the disk, so that :math:`f_\mathrm{H_2} \Sigma_\mathrm{gas}` is the surface density of molecular gas (including its helium and metals), and :math:`\nu_\mathrm{SF}` is a frequency given by
 
    .. math::
 
       \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{H}\over \Sigma_0}\right)^q \right],
 
-   where :math:`q=`\ ``[surfaceDensityExponent]`` and :math:`\Sigma_0=`\ ``[surfaceDensityCritical]`` are parameters, and :math:`\Sigma_\mathrm{H}` is the surface density of hydrogen, atomic and molecular together - the density at which :cite:t:`bigiel_star_2008`, the source of the default :math:`\Sigma_0`, find the star formation law to steepen. The ratio of molecular to atomic hydrogen is :math:`R_\mathrm{mol} = \Sigma_\mathrm{H_2}/\Sigma_\mathrm{HI} = (P_\mathrm{ext}/P_0)^\alpha`, where :math:`\alpha=`\ ``[pressureExponent]`` and :math:`P_0=`\ ``[pressureCharacteristic]`` are parameters, so that the surface density of molecular gas is :math:`\Sigma_\mathrm{H_2} = f_\mathrm{H_2} \Sigma_\mathrm{H}`, with :math:`f_\mathrm{H_2} = R_\mathrm{mol}/(1+R_\mathrm{mol})` the molecular fraction of eqn. (21) of :cite:t:`blitz_role_2006`. The hydrostatic pressure in the disk plane assuming locally isothermal gas and stellar components is given by
+   where :math:`\nu_\mathrm{SF,0}=`\ ``[starFormationFrequencyNormalization]``, :math:`q=`\ ``[surfaceDensityExponent]`` and
+   :math:`\Sigma_0=`\ ``[surfaceDensityCritical]`` are parameters, and :math:`\Sigma_\mathrm{H}` is the surface density of
+   hydrogen, atomic and molecular together - the density at which :cite:t:`bigiel_star_2008`, the source of the default
+   :math:`\Sigma_0`, find the star formation law to steepen. Note that :cite:t:`bigiel_star_2008` quote surface densities of
+   hydrogen only, while :cite:t:`leroy_star_2008`, the source of the default :math:`\nu_\mathrm{SF,0}`, quote surface densities
+   which include helium - their star formation efficiency of molecular gas is the star formation rate per unit mass of molecular
+   gas (including helium), as is :math:`\nu_\mathrm{SF,0}` here. The ratio of molecular to atomic hydrogen is
+   :math:`R_\mathrm{mol} = \Sigma_\mathrm{H_2}/\Sigma_\mathrm{HI} = (P_\mathrm{ext}/P_0)^\alpha`, where :math:`\alpha=`\
+   ``[pressureExponent]`` and :math:`P_0=`\ ``[pressureCharacteristic]`` are parameters, so that the surface density of molecular
+   gas is :math:`\Sigma_\mathrm{H_2} = f_\mathrm{H_2} \Sigma_\mathrm{H}`, with :math:`f_\mathrm{H_2} =
+   R_\mathrm{mol}/(1+R_\mathrm{mol})` the molecular fraction of eqn. (21) of :cite:t:`blitz_role_2006`. The hydrostatic pressure
+   in the disk plane assuming locally isothermal gas and stellar components is given by
 
    .. math::
 
@@ -178,7 +189,7 @@ contains
       </defaultSource>
       <defaultValue>200.0d0</defaultValue>
       <description>
-      The surface density (in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`) in the :cite:t:`blitz_role_2006` star formation timescale calculation at which low-density truncation begins.
+      The surface density of hydrogen (in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`, excluding helium, as for the surface densities of :cite:t:`bigiel_star_2008`) in the :cite:t:`blitz_role_2006` star formation timescale calculation above which the star formation frequency is boosted.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -200,7 +211,7 @@ contains
       </defaultSource>
       <defaultValue>5.25d-10</defaultValue>
       <description>
-      The star formation frequency (in the low-density limit and in units of yr\ :math:`^{-1}`) in the :cite:t:`blitz_role_2006` star formation timescale calculation.
+      The star formation frequency (in the low-density limit and in units of yr\ :math:`^{-1}`) in the :cite:t:`blitz_role_2006` star formation timescale calculation. This is the star formation rate per unit mass of molecular gas, including helium (as for the star formation efficiency of molecular gas of :cite:t:`leroy_star_2008`).
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -372,12 +383,14 @@ contains
     end if
     molecularFraction   =+       ratioMolecular  &
          &               /(1.0d0+ratioMolecular)
-    ! Compute the star formation rate surface density.
+    ! Compute the star formation rate surface density. The frequency, following Leroy et al. (2008), is per unit mass of molecular
+    ! gas including helium (and metals), so is applied to the molecular fraction of the total gas surface density. The surface
+    ! density at which the boost begins, following Bigiel et al. (2008), refers to hydrogen only, so is compared to the hydrogen
+    ! surface density.
     factorBoost  =+self%hydrogenMassFraction                  &
          &        *surfaceDensityGas                          &
          &        /self%surfaceDensityCritical
     blitz2006Rate=+surfaceDensityGas                          &
-         &        *self%hydrogenMassFraction                  &
          &        *molecularFraction                          &
          &        *self%starFormationFrequencyNormalization   &
          &        *(                                          &
