@@ -11,9 +11,7 @@
 
 
   <!-- Task and work control -->
-  <task value="evolveForests">
-    <walltimeMaximum value="7200"/>
-  </task>
+  <task value="evolveForests"/>
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Output file -->
