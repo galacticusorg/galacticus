@@ -1565,6 +1565,7 @@ jobs:
       fail-fast: false
       matrix:
         file: [ test-bar-instability.py,
+                test-bar-instability-binding-energy.py,
                 test-transfer-functions-axion.py,
                 test-mass-definitions.py,
                 test-branchlessTrees.py,

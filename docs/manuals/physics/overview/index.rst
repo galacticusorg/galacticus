@@ -63,6 +63,7 @@ Galacticus' evolver engine works by applying a set of `nodeOperatorClass <https:
    cgm-cooling
    star-formation
    galactic-structure
+   bar-instability-spheroid-sizes
    outflows
    black-holes
    subhalo-evolution
