@@ -264,11 +264,24 @@ contains
           self%time        =latticeTime    %values()
           self%variance    =latticeVariance%values()
           self%varianceStep=latticeVariance%step  ()
+          ! Under coordinated MPI the table is summed over all processes once solved, so must first be zeroed. (This must precede
+          ! carrying over the solutions already found.)
+#ifdef USEMPI
+          if (self%coordinatedMPI_) self%firstCrossingProbability=0.0d0
+#endif
           ! Carry over the solutions already found.
           if (reuseSolutions) then
-             if (countVariancePrevious >= 1)                                                                                    &
-                  & self%firstCrossingProbability        (0:countVariancePrevious-1,offsetTime+1:offsetTime+countTimePrevious)= &
-                  &      firstCrossingProbabilityPrevious(0:countVariancePrevious-1,           1:           countTimePrevious)
+             if (countVariancePrevious >= 1) then
+                do iTime=int(offsetTime+1,kind=c_size_t),int(offsetTime+countTimePrevious,kind=c_size_t)
+#ifdef USEMPI
+                   ! Under coordinated MPI each process holds only the epochs which it solves for, as the table is summed over
+                   ! all processes once solved, so only those epochs are carried over.
+                   if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
+                   self  %firstCrossingProbability        (0:countVariancePrevious-1,iTime                              )= &
+                        & firstCrossingProbabilityPrevious(0:countVariancePrevious-1,iTime-int(offsetTime,kind=c_size_t))
+                end do
+             end if
              deallocate(firstCrossingProbabilityPrevious)
           end if
           ! Compute the variance at the mid-points.
@@ -304,9 +317,6 @@ contains
           end if
 #endif
           loopCount=0
-#ifdef USEMPI
-          if (self%coordinatedMPI_) self%firstCrossingProbability=0.0d0
-#endif
           ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
           ! is initialized and covers the whole range in which we are interested.
           barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
