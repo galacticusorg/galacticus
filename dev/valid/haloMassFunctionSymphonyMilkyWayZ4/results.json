@@ -6,16 +6,16 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "b7f4fd1e25a2dc392718435937a0b7171f27c69b",
-        "message": "Merge pull request #1700 from galacticusorg/fix/shi2016-expansion-factor\n\nfix(massDistributions): use the observation-epoch scaled expansion factor in the Shi (2016) accretion flow\n",
-        "timestamp": "2026-10-29 16:30:24+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b7f4fd1e25a2dc392718435937a0b7171f27c69b"
+        "id": "445c6edb4a0939dea25cffc74bcd6c4e78b9564d",
+        "message": "Merge pull request #1710 from galacticusorg/feat/emulation-profile-model-variance\n\nfeat(emulation): optionally include the model variance in the direct likelihoods of a profile\n",
+        "timestamp": "2026-10-30 16:39:17+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/445c6edb4a0939dea25cffc74bcd6c4e78b9564d"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2739.9045576947383",
+                "logLikelihood": "-2739.904548415725",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,14 +39,14 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.163554053794874,
-                    3.354872590586433,
-                    2.167440630081674,
-                    1.3926938443899417,
-                    0.9885788883477108,
-                    0.7882033950227623,
-                    0.5649709626597553,
-                    0.35267352836099475,
+                    5.163553816890629,
+                    3.354872421810734,
+                    2.1674407053790357,
+                    1.3926939488339782,
+                    0.9885789953465189,
+                    0.788203493242323,
+                    0.5649710274959012,
+                    0.352673552401306,
                     0.21850378797720318,
                     0.13297855858528548,
                     0.08192696232916079,
@@ -54,14 +54,14 @@ window.ANALYSES_DATA = {
                     0.03991925662675977
                 ],
                 "yError": [
-                    0.08045875808023198,
-                    0.054440644832415716,
-                    0.037228810154112446,
-                    0.02623626927373515,
-                    0.028791270083597543,
-                    0.0245633868426407,
-                    0.01398491012462432,
-                    0.011021927510681,
+                    0.08045875246730666,
+                    0.05444064075054492,
+                    0.03722881176658075,
+                    0.026236271698935366,
+                    0.028791273613828723,
+                    0.02456339009647007,
+                    0.013984911701047022,
+                    0.011021928195214635,
                     0.008948561268476958,
                     0.00721715300434557,
                     0.007047344168914017,

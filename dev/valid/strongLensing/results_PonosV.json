@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "b7f4fd1e25a2dc392718435937a0b7171f27c69b",
-        "message": "Merge pull request #1700 from galacticusorg/fix/shi2016-expansion-factor\n\nfix(massDistributions): use the observation-epoch scaled expansion factor in the Shi (2016) accretion flow\n",
-        "timestamp": "2026-10-29 16:30:24+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/b7f4fd1e25a2dc392718435937a0b7171f27c69b"
+        "id": "445c6edb4a0939dea25cffc74bcd6c4e78b9564d",
+        "message": "Merge pull request #1710 from galacticusorg/feat/emulation-profile-model-variance\n\nfeat(emulation): optionally include the model variance in the direct likelihoods of a profile\n",
+        "timestamp": "2026-10-30 16:39:17+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/445c6edb4a0939dea25cffc74bcd6c4e78b9564d"
     },
     "surfaceDensity": {
         "percentageBelow": 28.57142857142857,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 53.333333333333336,
-        "percentageAbove": 46.666666666666664,
+        "percentageBelow": 92.85714285714286,
+        "percentageAbove": 7.142857142857143,
         "target": 0.85
     }
 }
