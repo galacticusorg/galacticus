@@ -260,9 +260,14 @@ def test_train_parallel_matches_serial(campaign):
     """Training in several processes gives the same emulators, and the same cross-validation, as training serially; and
     the serial cross-validation within ``train`` matches ``cross_validate``."""
     pytest.importorskip('sklearn')
+    from threadpoolctl import threadpool_limits
     path, quantiles, observables = campaign
     design, training_sets, _ = collect(path / 'design.hdf5', observables, directory=path)
-    serial = train(design, training_sets, restarts=1, folds=3)
+    # The worker processes are limited to a single BLAS thread. The rounding of BLAS operations (such as the triangular
+    # solves in predictions) can depend on the number of threads, so the serial training is limited likewise, for the
+    # comparison to be exact.
+    with threadpool_limits(limits=1):
+        serial = train(design, training_sets, restarts=1, folds=3)
     parallel = train(design, training_sets, restarts=1, folds=3, processes=2)
     assert sorted(serial.emulators) == sorted(parallel.emulators) == sorted(training_sets)
     for label in training_sets:
@@ -272,8 +277,9 @@ def test_train_parallel_matches_serial(campaign):
         np.testing.assert_array_equal(serial.validation[label].held_out_prediction, parallel.validation[label].held_out_prediction)
         np.testing.assert_array_equal(serial.validation[label].held_out_variance, parallel.validation[label].held_out_variance)
         training_set = training_sets[label]
-        direct = cross_validate(quantiles[training_set.point_index], design.names, training_set.y, training_set.root_variance,
-                                folds=3, restarts=1)
+        with threadpool_limits(limits=1):
+            direct = cross_validate(quantiles[training_set.point_index], design.names, training_set.y, training_set.root_variance,
+                                    folds=3, restarts=1)
         np.testing.assert_array_equal(serial.validation[label].held_out_prediction, direct.held_out_prediction)
 
 

@@ -253,3 +253,40 @@ def test_write_refuses_to_overwrite(tmp_path):
     with pytest.raises(FileExistsError):
         ef.write(path, content)
     ef.write(path, content, overwrite=True)
+
+
+def test_round_trip_unknown_optional_quantities(tmp_path):
+    """Optional quantities given as None are written as NaN, so that the file can be read back."""
+    content, label = _content()
+    content.emulators[label].pca_variance_retained = None
+    content.emulators[label].components[0].log_marginal_likelihood = None
+    path = tmp_path / 'emulator.hdf5'
+    ef.write(path, content)
+    restored = ef.read(path)
+    assert np.isnan(restored.emulators[label].pca_variance_retained)
+    assert np.isnan(restored.emulators[label].components[0].log_marginal_likelihood)
+
+
+def test_failed_write_leaves_no_file(tmp_path):
+    """A write which fails part way (here on a string which can not be encoded) leaves no file, so a retry can succeed."""
+    content, _ = _content()
+    content.design.attributes['creator'] = 'José'
+    path = tmp_path / 'emulator.hdf5'
+    with pytest.raises(UnicodeEncodeError):
+        ef.write(path, content)
+    assert list(tmp_path.iterdir()) == []
+    content.design.attributes['creator'] = 'Jose'
+    ef.write(path, content)
+    assert ef.read(path).design.attributes['creator'] == 'Jose'
+
+
+def test_rewrite_updates_creation_time(tmp_path):
+    """Rewriting a file which was read back records the time of the rewrite, not of the original write."""
+    content, _ = _content()
+    content.attributes['created'] = '2000-01-01T00:00:00+00:00'
+    path = tmp_path / 'emulator.hdf5'
+    ef.write(path, content)
+    restored = ef.read(path)
+    assert restored.attributes['created'] != '2000-01-01T00:00:00+00:00'
+    ef.write(path, restored, overwrite=True)
+    assert ef.read(path).attributes['created'] != '2000-01-01T00:00:00+00:00'
