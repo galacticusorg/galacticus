@@ -1180,12 +1180,16 @@ contains
     character(len=2                     )                             :: operator_
     logical                                                           :: operatorEquals  , matches          , &
          &                                                               allEvaluated    , didEvaluate      , &
-         &                                                               isActive
-    integer                                                           :: countNames      , i
+         &                                                               isActive        , activeNew
+    integer                                                           :: countNames      , i                , &
+         &                                                               countPass       , countConditional
 
     ! Iterate until all parameters are evaluated.
-    didEvaluate=.true.
+    didEvaluate     =.true.
+    countPass       =0
+    countConditional=0
     do while (didEvaluate)
+       countPass   =countPass+1
        allEvaluated=.true.
        didEvaluate =.false.
        ! Begin walking the parameter tree.
@@ -1198,6 +1202,7 @@ contains
                &    hasAttribute(currentParameter%content,'active')
           !$omp end critical (FoX_DOM_Access)
           if (isActive) then
+             if (countPass == 1) countConditional=countConditional+1
              ! Extract the condition.
              !$omp critical (FoX_DOM_Access)
              conditionNode => getAttributeNode(currentParameter%content,   'active' )
@@ -1274,23 +1279,30 @@ contains
              end do
              if (parameterTest%activeEvaluated) then
                 valueParameter=parameterTest%get()
-                ! Perform the test and set parameter active state.
-                currentParameter%active         =(trim(valueParameter) == trim(valueTest)) .eqv. operatorEquals
+                ! Perform the test and set parameter active state. Conditionals are re-evaluated on every pass, as the parameter
+                ! found by a path may change as the active states of parameters along that path are established. Only a first
+                ! evaluation, or a change in active state, counts as progress - otherwise circular conditionals (which can never be
+                ! evaluated) would loop forever.
+                activeNew=(trim(valueParameter) == trim(valueTest)) .eqv. operatorEquals
+                if (.not.currentParameter%activeEvaluated .or. (activeNew .neqv. currentParameter%active)) didEvaluate=.true.
+                currentParameter%active         =activeNew
                 currentParameter%activeEvaluated=.true.
-                didEvaluate                     =.true.
              else
                 allEvaluated                    =.false.
              end if
              deallocate(parameterNames)
           else
+             if (.not.currentParameter%activeEvaluated) didEvaluate=.true.
              currentParameter%activeEvaluated=.true.
-             didEvaluate                     =.true.
           end if
           ! Walk to next node.
           currentParameter => inputParametersWalkTree(currentParameter)
        end do
-       if (.not.didEvaluate) call Error_Report('failed to evaluate parameter active statuses'//{introspection:location})
        if (allEvaluated) exit
+       ! Each pass which makes progress must settle the state of at least one more conditional, so more passes than there are
+       ! conditionals indicates conditionals whose states never settle (e.g. a parameter active only if another is not, and vice
+       ! versa).
+       if (.not.didEvaluate .or. countPass > countConditional+1) call Error_Report('failed to evaluate parameter active statuses - check for circular conditionals'//{introspection:location})
     end do
     return
   end subroutine inputParametersEvaluateConditionals
