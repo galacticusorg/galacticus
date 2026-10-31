@@ -27,16 +27,17 @@ module Galactic_Component_Truncations
   !!{RST
   Provides a class that implements truncation of the mass distributions of galactic components.
   !!}
-  use :: Mass_Distributions, only : massDistributionSpherical
+  use :: Mass_Distributions, only : massDistributionSpherical, massDistributionCylindrical
   private
+  public :: Galactic_Component_Truncation_Disk_Tidal
 
   !![
   <functionClass docformat="rst">
    <name>galacticComponentTruncation</name>
    <descriptiveName>Galactic Component Truncations</descriptiveName>
    <description>
-   Class providing models of the truncation of the mass distributions of spherical galactic components (spheroids and nuclear
-   star clusters) by tidal stripping.
+   Class providing models of the truncation of the mass distributions of galactic components (spheroids, nuclear star clusters,
+   and disks) by tidal stripping.
 
    The degree of truncation of a component is described by the fraction, :math:`f`, of the mass of its original, untruncated,
    mass distribution which it retains. This is tracked by the ``tidalTruncation`` meta-property of the component,
@@ -66,7 +67,71 @@ module Galactic_Component_Truncations
     <argument>class           (massDistributionSpherical), intent(inout), target :: massDistribution_   </argument>
     <argument>double precision                           , intent(in   )         :: fractionMassRetained</argument>
    </method>
+   <method name="massDistributionCylindrical" >
+    <description>
+    Returns the dimensionless, cylindrically-symmetric mass distribution ``massDistribution_`` truncated such that it retains a
+    fraction ``fractionMassRetained`` of its total mass, and heated with heating parameter ``heating`` (see
+    :galacticus-class:`galacticDiskHeatingClass`).
+    </description>
+    <type>class(massDistributionCylindrical)</type>
+    <pass>yes</pass>
+    <argument>class           (massDistributionCylindrical), intent(inout), target :: massDistribution_   </argument>
+    <argument>double precision                             , intent(in   )         :: fractionMassRetained, heating</argument>
+   </method>
+   <method name="ratioAngularMomentumCylindrical" >
+    <description>
+    Returns the mean specific angular momentum of the material removed by a further, infinitesimal, truncation of a
+    cylindrically-symmetric mass distribution which retains a fraction ``fractionMassRetained`` of its total mass, in units of
+    the mean specific angular momentum of the truncated distribution. The rotation curve is assumed to be flat, such that
+    specific angular momentum is proportional to radius. Tidal stripping which removes angular momentum at this rate keeps the
+    specific angular momentum of the component consistent with its truncated mass distribution (see
+    :galacticus-class:`nodeOperatorTidalMassLossDisks`).
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: fractionMassRetained</argument>
+   </method>
   </functionClass>
   !!]
+
+contains
+
+  function Galactic_Component_Truncation_Disk_Tidal(massDistribution_,truncation,heating,radiusDecayOverRadiusTruncate) result(massDistributionTidal)
+    !!{RST
+    Return the dimensionless disk mass distribution ``massDistribution_`` truncated to a degree :math:`x=`\ ``truncation`` and
+    heated with heating parameter ``heating`` (see :galacticus-class:`massDistributionExponentialDiskTidal`), with the
+    ratio of the decay length of the truncation to the truncation radius given by ``radiusDecayOverRadiusTruncate``. If neither
+    truncation nor heating is required the given distribution is returned unchanged.
+    !!}
+    use :: Error             , only : Error_Report
+    use :: Mass_Distributions, only : massDistributionExponentialDisk, massDistributionExponentialDiskTidal
+    implicit none
+    class           (massDistributionCylindrical         ), pointer               :: massDistributionTidal
+    class           (massDistributionCylindrical         ), intent(inout), target :: massDistribution_
+    double precision                                      , intent(in   )         :: truncation                , heating, &
+         &                                                                           radiusDecayOverRadiusTruncate
+    type            (massDistributionExponentialDiskTidal), pointer               :: massDistributionExponentialDiskTidal_
+
+    if (truncation <= 0.0d0 .and. heating <= 0.0d0) then
+       ! Neither truncation nor heating is required - return the unmodified distribution.
+       massDistributionTidal => massDistribution_
+       !![
+       <referenceCountIncrement object="massDistributionTidal"/>
+       !!]
+    else
+       select type (massDistribution_)
+       class is (massDistributionExponentialDisk)
+          allocate(massDistributionExponentialDiskTidal_)
+          !![
+          <referenceConstruct object="massDistributionExponentialDiskTidal_" constructor="massDistributionExponentialDiskTidal(truncation=truncation,heating=heating,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=massDistribution_)"/>
+          !!]
+          massDistributionTidal => massDistributionExponentialDiskTidal_
+       class default
+          massDistributionTidal => null()
+          call Error_Report('truncation and heating of disks require an exponential disk mass distribution'//{introspection:location})
+       end select
+    end if
+    return
+  end function Galactic_Component_Truncation_Disk_Tidal
 
 end module Galactic_Component_Truncations

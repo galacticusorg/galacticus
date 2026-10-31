@@ -23,6 +23,7 @@
   Implements a node operator class that performs tidal mass loss in disks.
   !!}
 
+  use :: Galactic_Component_Truncations, only : galacticComponentTruncationClass
   use :: Tidal_Stripping_Mass_Loss_Rate, only : tidalStrippingClass
   
   !![
@@ -30,6 +31,8 @@
    <description>
    Computes and applies gravitational tidal stripping of stellar and gaseous mass from satellite galaxy disks as they orbit within the host halo tidal field, removing material outside the satellite's tidal radius at each pericentric passage.
    The degree of tidal truncation of the disk, :math:`x=-\log f` where :math:`f` is the fraction of the mass of its untruncated mass distribution which it retains, is tracked in its ``tidalTruncation`` meta-property (see :galacticus-class:`galacticComponentTruncation`).
+
+   If the mass distribution of the disk is truncated (i.e. if ``[galacticComponentTruncation]`` is not ``none``), the stripped material carries the specific angular momentum implied by the change in the truncated mass distribution of the disk (see :galacticus-class:`galacticComponentTruncationExponential`), rather than that given by ``[tidalStripping]``. The specific angular momentum of the disk then remains consistent with its truncated mass distribution. (Otherwise, removing material from across the region beyond the tidal radius, while truncating the mass distribution from its edge, leaves the disk with more angular momentum than its mass distribution implies.) The ``[galacticComponentTruncation]`` used here must be the same as that used by the disk component, which is ensured by specifying it at the top level of the parameter file. (A fatal error occurs if one, but not the other, truncates the disk.)
    </description>
   </nodeOperator>
   !!]
@@ -38,8 +41,9 @@
      A node operator class that performs tidal mass loss in disks.
      !!}
      private
-     class  (tidalStrippingClass), pointer :: tidalStripping_   => null()
-     integer                             :: tidalTruncationID
+     class  (tidalStrippingClass             ), pointer :: tidalStripping_              => null()
+     class  (galacticComponentTruncationClass), pointer :: galacticComponentTruncation_ => null()
+     integer                                            :: tidalTruncationID
    contains
      final     ::                                tidalMassLossDisksDestructor
      procedure :: differentialEvolution       => tidalMassLossDisksDifferentialEvolution
@@ -62,30 +66,34 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorTidalMassLossDisks)                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(tidalStrippingClass           ), pointer       :: tidalStripping_
+    type (nodeOperatorTidalMassLossDisks  )                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    class(tidalStrippingClass             ), pointer       :: tidalStripping_
+    class(galacticComponentTruncationClass), pointer       :: galacticComponentTruncation_
     
     !![
-    <objectBuilder class="tidalStripping" name="tidalStripping_" source="parameters"/>
+    <objectBuilder class="tidalStripping"              name="tidalStripping_"              source="parameters"/>
+    <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation_" source="parameters"/>
     !!]
-    self=nodeOperatorTidalMassLossDisks(tidalStripping_)
+    self=nodeOperatorTidalMassLossDisks(tidalStripping_,galacticComponentTruncation_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="tidalStripping_"/>
+    <objectDestructor name="tidalStripping_"             />
+    <objectDestructor name="galacticComponentTruncation_"/>
     !!]
     return
   end function tidalMassLossDisksConstructorParameters
 
-  function tidalMassLossDisksConstructorInternal(tidalStripping_) result(self)
+  function tidalMassLossDisksConstructorInternal(tidalStripping_,galacticComponentTruncation_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorTidalMassLossDisks` node operator class.
     !!}
     implicit none
-    type (nodeOperatorTidalMassLossDisks)                        :: self
-    class(tidalStrippingClass           ), intent(in   ), target :: tidalStripping_
+    type (nodeOperatorTidalMassLossDisks  )                        :: self
+    class(tidalStrippingClass             ), intent(in   ), target :: tidalStripping_
+    class(galacticComponentTruncationClass), intent(in   ), target :: galacticComponentTruncation_
     !![
-    <constructorAssign variables="*tidalStripping_"/>
+    <constructorAssign variables="*tidalStripping_, *galacticComponentTruncation_"/>
     <addMetaProperty component="disk" name="tidalTruncation" id="self%tidalTruncationID" isEvolvable="yes" isCreator="yes"/>
     !!]
 
@@ -100,7 +108,8 @@ contains
     type(nodeOperatorTidalMassLossDisks), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%tidalStripping_"/>
+    <objectDestructor name="self%tidalStripping_"             />
+    <objectDestructor name="self%galacticComponentTruncation_"/>
     !!]
     return
   end subroutine tidalMassLossDisksDestructor
@@ -114,7 +123,7 @@ contains
     class           (nodeOperatorTidalMassLossDisks), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDisk             ), pointer       :: component
-    double precision                                 , parameter     :: scaleTruncation=1.0d-2
+    double precision                                , parameter     :: scaleTruncation=1.0d-2
 
     component => node%disk()
     select type (component)
@@ -128,21 +137,45 @@ contains
 
   subroutine tidalMassLossDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{RST
-    Apply tidal mass loss to the disk.
+    Apply tidal mass loss to the disk. If the mass distribution of the disk is truncated, the stripped material carries the
+    specific angular momentum implied by the change in the truncated mass distribution.
     !!}
-    use :: Galacticus_Nodes         , only : propertyInactive
-    use :: Tidal_Mass_Loss_Utilities, only : Tidal_Mass_Loss_Apply_Disk
+    use :: Error                                    , only : Error_Report
+    use :: Galactic_Component_Truncation_Disk_Status, only : diskTruncationIsActive
+    use :: Galacticus_Nodes                         , only : propertyInactive          , nodeComponentDisk
+    use :: Tidal_Mass_Loss_Utilities                , only : Tidal_Mass_Loss_Apply_Disk
     implicit none
-    class    (nodeOperatorTidalMassLossDisks), intent(inout), target  :: self
-    type     (treeNode                      ), intent(inout), target  :: node
-    logical                                  , intent(inout)          :: interrupt
-    procedure(interruptTask                 ), intent(inout), pointer :: functionInterrupt
-    integer                                  , intent(in   )          :: propertyType
+    class           (nodeOperatorTidalMassLossDisks), intent(inout), target  :: self
+    type            (treeNode                      ), intent(inout), target  :: node
+    logical                                         , intent(inout)          :: interrupt
+    procedure       (interruptTask                 ), intent(inout), pointer :: functionInterrupt
+    integer                                         , intent(in   )          :: propertyType
+    class           (nodeComponentDisk             )               , pointer :: disk
+    double precision                                                         :: ratioSpecificAngularMomentum
     !$GLC attributes unused :: interrupt, functionInterrupt
 
     ! Do nothing during inactive property solving.
     if (propertyInactive(propertyType)) return
-    call Tidal_Mass_Loss_Apply_Disk(node,self%tidalStripping_,self%tidalTruncationID)
+    ! The truncation used here must match that of the disk, as otherwise the angular momentum of the disk becomes inconsistent with
+    ! its mass distribution.
+    if (self%galacticComponentTruncation_%isActive() .neqv. diskTruncationIsActive)                                       &
+         & call Error_Report(                                                                                             &
+         &                   'the disk is truncated by the [galacticComponentTruncation] used by only one of the disk '// &
+         &                   'component and this operator - declare it at the top level of the parameter file'         // &
+         &                   {introspection:location}                                                                     &
+         &                  )
+    if (self%galacticComponentTruncation_%isActive()) then
+       disk => node%disk()
+       select type (disk)
+       type is (nodeComponentDisk)
+          ! Disk does not yet exist - nothing to do here.
+          return
+       end select
+       ratioSpecificAngularMomentum=self%galacticComponentTruncation_%ratioAngularMomentumCylindrical(exp(-disk%floatRank0MetaPropertyGet(self%tidalTruncationID)))
+       call Tidal_Mass_Loss_Apply_Disk(node,self%tidalStripping_,self%tidalTruncationID,ratioSpecificAngularMomentum)
+    else
+       call Tidal_Mass_Loss_Apply_Disk(node,self%tidalStripping_,self%tidalTruncationID                             )
+    end if
     return
   end subroutine tidalMassLossDisksDifferentialEvolution
 

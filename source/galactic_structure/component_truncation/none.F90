@@ -29,6 +29,8 @@
     A galactic component truncation class which applies no truncation: the mass distributions of galactic components are
     always their untruncated mass distributions, scaled to the current mass of the component, irrespective of any tidal mass
     loss.
+    Disks may still be heated (see :galacticus-class:`galacticDiskHeatingClass`), in which case the ratio of the decay length of
+    the truncation to the truncation radius (which then has a negligible effect) is taken to be :math:`0.1`.
     </description>
   </galacticComponentTruncation>
   !!]
@@ -38,8 +40,10 @@
      !!}
      private
    contains
-     procedure :: isActive         => noneIsActive
-     procedure :: massDistribution => noneMassDistribution
+     procedure :: isActive                        => noneIsActive
+     procedure :: massDistribution                => noneMassDistribution
+     procedure :: massDistributionCylindrical     => noneMassDistributionCylindrical
+     procedure :: ratioAngularMomentumCylindrical => noneRatioAngularMomentumCylindrical
   end type galacticComponentTruncationNone
 
   interface galacticComponentTruncationNone
@@ -97,3 +101,33 @@ contains
     !!]
     return
   end function noneMassDistribution
+
+  function noneMassDistributionCylindrical(self,massDistribution_,fractionMassRetained,heating) result(massDistributionTruncated)
+    !!{RST
+    Return the untruncated, but possibly heated, cylindrical mass distribution.
+    !!}
+    implicit none
+    class           (massDistributionCylindrical    ), pointer               :: massDistributionTruncated
+    class           (galacticComponentTruncationNone), intent(inout)         :: self
+    class           (massDistributionCylindrical    ), intent(inout), target :: massDistribution_
+    double precision                                 , intent(in   )         :: fractionMassRetained               , heating
+    double precision                                 , parameter             :: radiusDecayOverRadiusTruncate=0.1d0
+    !$GLC attributes unused :: self, fractionMassRetained
+
+    massDistributionTruncated => Galactic_Component_Truncation_Disk_Tidal(massDistribution_,0.0d0,heating,radiusDecayOverRadiusTruncate)
+    return
+  end function noneMassDistributionCylindrical
+
+  double precision function noneRatioAngularMomentumCylindrical(self,fractionMassRetained) result(ratio)
+    !!{RST
+    Return unity, as this class applies no truncation, such that the shape of the mass distribution is unchanged by the removal
+    of mass.
+    !!}
+    implicit none
+    class           (galacticComponentTruncationNone), intent(inout) :: self
+    double precision                                 , intent(in   ) :: fractionMassRetained
+    !$GLC attributes unused :: self, fractionMassRetained
+
+    ratio=1.0d0
+    return
+  end function noneRatioAngularMomentumCylindrical
