@@ -40,7 +40,7 @@
 
    The value of :math:`\sigma_8` (the linear theory root-variance of the density field at the present day in spheres of radius :math:`8h^{-1}`\ Mpc) is computed from the power spectrum using a real-space top-hat window function (as per the definition of :math:`\sigma_8`), unless a different window function is explicitly defined via the ``[powerSpectrumWindowFunctionTopHat]`` parameter. For this integration the tolerance can be set via the ``[toleranceTopHat]`` parameter.
 
-   Cubic spline interpolation is then used to interpolate in this table to give :math:`\sigma(M)` at any required value of :math:`M`. The tabulation is always forced to be monotonically decreasing with :math:`M`. However, the interpolation is not necessarily monotonic---for example in cases where :math:`\sigma(M)` becomes constant or close to constant as a function of :math:`M` the interpolation can become non-monotonic over some ranges of :math:`M`. If strict monotonicity is required set ``[monotonicInterpolation]``\ =\ ``true``. This causes a monotonic spline interpolator to be used instead which guarantees monotonicity.
+   Cubic spline interpolation is then used to interpolate in this table to give :math:`\sigma(M)` at any required value of :math:`M`. The tabulation is always forced to be monotonically decreasing with :math:`M`. By default (``[monotonicInterpolation]``\ =\ ``true``) a monotonic cubic spline is used, which guarantees that the interpolation is monotonic also, and which is *local*: its value in any interval depends only on the tabulated values nearby. The first and last intervals of the tabulation (whose interpolation depends on the end conditions of the spline) are never used---a mass falling in them causes the tabulation to be extended. Together these make :math:`\sigma(M)` at any mass independent of the range over which, and the sequence of requests by which, the tabulation was built. If ``[monotonicInterpolation]``\ =\ ``false`` a standard cubic spline is used instead. Its interpolation need not be monotonic---for example in cases where :math:`\sigma(M)` becomes constant or close to constant as a function of :math:`M` the interpolation can become non-monotonic over some ranges of :math:`M`---and, as every one of its coefficients depends on every tabulated value, extending the tabulation changes :math:`\sigma(M)` near its former ends (by up to a few parts in :math:`10^6` within a tabulated interval of the former end), so that results can then depend on the order in which masses were requested, and on whether the tabulation was built during the run or read from file.
    </description>
   </cosmologicalMassVariance>
   !!]
@@ -159,12 +159,14 @@
 
   ! Seed range of masses to tabulate. Every tabulation contains this range, so any two which are never asked for a mass outside
   ! it span *exactly* the same range - which matters here beyond the usual guarantee that two ranges overlap and so can be
-  ! merged. σ(M) is interpolated with a cubic spline, every coefficient of which depends on every tabulated value, so σ at a
-  ! given mass is not a function of that mass alone: it depends on the range over which the tabulation was built. Since
-  ! tabulations are cached to file and merged across runs and across models sharing the same parameters, a model which extended
-  ! the range would otherwise obtain a different σ(M) from one which ran before it and did not - making results depend on what
-  ! else had run, which is the dependence this pinning exists to remove. The range spans the halo masses which models
-  ! plausibly reach; a mass outside it still extends the tabulation, and the dependence returns for models which straddle it.
+  ! merged. With the standard cubic spline interpolator (monotonicInterpolation=false) every coefficient depends on every
+  ! tabulated value, so σ at a given mass is not a function of that mass alone: near the ends of the tabulation it depends on the
+  ! range over which the tabulation was built. Since tabulations are cached to file and merged across runs and across models
+  ! sharing the same parameters, a model which extended the range would otherwise obtain a different σ(M) from one which ran
+  ! before it and did not - making results depend on what else had run. The range spans the halo masses which models plausibly
+  ! reach; a mass outside it still extends the tabulation, and with the standard interpolator the dependence returns for models
+  ! which straddle it. The (default) monotonic interpolator is local, and the first and last intervals of the tabulation are never
+  ! used (see `filteredPowerRemakeTable`), so with it σ(M) is independent of the range in any case.
   double precision                , parameter :: massTableSeedMinimum=1.0d6     , massTableSeedMaximum=1.0d18
 
   ! Cached copies of tabulated solutions. These are used to avoid re-reading from file if the same variance is requested multiple times.
@@ -254,9 +256,9 @@ contains
     <inputParameter docformat="rst">
       <name>monotonicInterpolation</name>
       <source>parameters</source>
-      <defaultValue>.false.</defaultValue>
+      <defaultValue>.true.</defaultValue>
       <description>
-      If true use a monotonic cubic spline interpolator to interpolate in the :math:`\sigma(M)` table. Otherwise use a standard cubic spline interpolator. Use of the monotonic interpolator can be helpful is :math:`\sigma(M)` must be strictly monotonic but becomes a very weak function of :math:`M` at low masses.
+      If true use a monotonic cubic spline interpolator to interpolate in the :math:`\sigma(M)` table. Otherwise use a standard cubic spline interpolator. The monotonic interpolator guarantees that :math:`\sigma(M)` is strictly monotonic (which matters where it becomes a very weak function of :math:`M` at low masses), and, being local, makes :math:`\sigma(M)` independent of the history of the tabulation; the standard interpolator does neither.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -1005,9 +1007,13 @@ contains
           ! the lattice: the abscissae of a logarithmically-spaced table are the exponentials of its internal, logarithmic
           ! abscissae, and 10**(k/N) is not bit-identical to exp((k/N)ln10). Taking the limits from the lattice could therefore
           ! place them a fraction of an ulp outside the table, so that a mass which passes the test in `remakeTable` still lies
-          ! beyond the range which the table actually spans.
-          self%massMinimum=self%rootVarianceTable(1)%x(+1)
-          self%massMaximum=self%rootVarianceTable(1)%x(-1)
+          ! beyond the range which the table actually spans. The limits are the second and penultimate tabulated masses, not the
+          ! first and last: interpolation in the end intervals depends on the end conditions of the spline, so differs from that
+          ! in the same interval of a wider tabulation. A mass falling in an end interval therefore extends the tabulation (the
+          ! safety margin of the extension then leaves it well inside the new limits), so that, with the local, monotonic
+          ! interpolator, σ(M) at any mass is the same however the tabulation came to be built.
+          self%massMinimum=self%rootVarianceTable(1)%x(+2)
+          self%massMaximum=self%rootVarianceTable(1)%x(-2)
           ! Table is now initialized.
           self%initialized=.true.
           ! Store file.
@@ -1322,8 +1328,9 @@ contains
     ! Recover the derived descriptions of the two axes. None of these is read from the file: each is a function of the lattices
     ! and of the epochs, so recomputing them here - exactly as `filteredPowerRetabulate` does - guarantees that a restored
     ! tabulation is described identically to a freshly built one.
-    self%massMinimum=self%rootVarianceTable(1)%x( 1)
-    self%massMaximum=self%rootVarianceTable(1)%x(-1)
+    ! As in `filteredPowerRetabulate`, the end intervals of the tabulation are excluded from its usable range.
+    self%massMinimum=self%rootVarianceTable(1)%x( 2)
+    self%massMaximum=self%rootVarianceTable(1)%x(-2)
     if (self%growthIsMassDependent_) then
        self%timeMinimum                =self%times(                 1)
        self%timeMaximum                =self%times(size(self%times)  )
