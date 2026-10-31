@@ -981,7 +981,7 @@ A translation may either rewrite the parameter file declaratively, via an ``xpat
    Replace any value of the matched parameters equal to ``old`` with ``new``.
 
 ``<scale factor="..." description="..."/>``
-   Multiply every numerical value of the matched parameters by ``factor`` (for example, when the units or the meaning of a parameter change). Values given in ``<value>`` children (as in parameter grids) and space-separated lists of values are scaled also, and Fortran-style exponents (e.g. ``5.25d-10``) are accepted. A parameter any of whose values is not a plain number (e.g. a derived parameter expression) is left entirely unchanged, with a warning, as are parameters with no value. The optional ``description`` is included in the report of each change. (Do not end the ``xpath`` with ``[@value]``, as that would exclude parameters whose values are given in ``<value>`` children.)
+   Multiply every numerical value of the matched parameters by ``factor`` (for example, when the units or the meaning of a parameter change). Values given in ``<value>`` children (as in parameter grids) and space-separated lists of values are scaled also, and Fortran-style exponents (e.g. ``5.25d-10``) are accepted. A parameter any of whose values is not a plain number (e.g. a derived parameter expression) is left entirely unchanged, with a warning, as are parameters with no value. The optional ``description`` is included in the report of each change. (Do not end the ``xpath`` with a predicate on the ``value`` attribute, such as ``name[@value]``, as that would exclude parameters whose values are given in ``<value>`` children.)
 
 For example, the following rescales an explicitly given star formation frequency:
 
