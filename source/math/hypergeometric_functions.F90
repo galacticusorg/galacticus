@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !: $(BUILDPATH)/external/pFq/pfq.new.o
 !: $(BUILDPATH)/external/gslSpecFuncApprox/hyperg_2F1.o
 
@@ -133,7 +135,13 @@ contains
        toleranceActual=gsl_dbl_epsilon
     end if
     ! GSL only evaluates this function for |x|<1.
-    if (abs(x) <= 1.0d0) then
+    if (abs(x) <= 1.0d0 .and. any(a == 0.0d0)) then
+       ! A numerator parameter is zero, so the series is exactly 1. This is handled explicitly as GSL's approximate evaluation can
+       ! fail in this case (for x ≥ 0.995 it evaluates log Γ(0)).
+       Hypergeometric_2F1=1.0d0
+       statusActual      =GSL_Success
+       if (present(error)) error=0.0d0
+    else if (abs(x) <= 1.0d0) then
        ! |x|<1 so simply call the GSL function to compute the function (special cases are treated separately).
        if (.not.present(toleranceRelative) .and. abs(b(1)-a(1)-a(2)-dnint(b(1)-a(1)-a(2))) >= 1000.0d0*gsl_dbl_epsilon) then
           statusActual=GSL_SF_Hyperg_2F1_E(a(1),a(2),b(1),x,gslResult)
