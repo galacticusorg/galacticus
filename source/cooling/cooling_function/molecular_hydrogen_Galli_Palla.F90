@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+ Contributions to this file made by: Sachi Weerasooriya
+  !+ Contributions to this file made by: Sachi Weerasooriya, Claude.
 
   !!{RST
   Implements a cooling function class which implements cooling from molecular hydrogen using the cooling function of :cite:t:`galli_chemistry_1998`.
@@ -29,7 +29,7 @@
   !![
   <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla" docformat="rst">
    <description>
-   A cooling function class that computes the cooling function due to molecular hydrogen using the results of :cite:t:`galli_chemistry_1998`. For the H--H\ :math:`_2` cooling function, the fitting functions from :cite:t:`galli_chemistry_1998` are used. For the H\ :math:`_2^+`--e\ :math:`^-` and H--H\ :math:`_2^+` cooling functions fitting functions to the results plotted in :cite:t:`suchkov_cooling_1978` are used:
+   A cooling function class that computes the cooling function due to molecular hydrogen using the results of :cite:t:`galli_chemistry_1998`. For the H--H\ :math:`_2` cooling function, the fitting functions from :cite:t:`galli_chemistry_1998` are used, in the form of :cite:t:`hollenbach_molecule_1979`: the cooling rate per unit volume is :math:`n(\mathrm{H}) n(\mathrm{H}_2) \Lambda(\mathrm{LTE})/[1+n^\mathrm{cr}/n(\mathrm{H})]`, with :math:`n^\mathrm{cr}/n(\mathrm{H}) = \Lambda(\mathrm{LTE})/\Lambda[n(\mathrm{H})\rightarrow 0]`, where :math:`n(\mathrm{H})` is the density of *atomic* hydrogen (the collision partner of H\ :math:`_2`) and :math:`n(\mathrm{H}) \Lambda(\mathrm{LTE})` is the LTE cooling per H\ :math:`_2` molecule of :cite:t:`hollenbach_molecule_1979`. For the H\ :math:`_2^+`--e\ :math:`^-` and H--H\ :math:`_2^+` cooling functions fitting functions to the results plotted in :cite:t:`suchkov_cooling_1978` are used:
 
    .. math::
       :label: eq-H2CoolingFunction
@@ -201,7 +201,7 @@ contains
 
     ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
     if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
-       molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (numberDensityHydrogen,temperature,chemicalDensities) & ! H   - H₂ cooling function.
+       molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (                      temperature,chemicalDensities) & ! H   - H₂ cooling function.
             &                                     +self%coolingFunctionH2Plus_Electron(                      temperature,chemicalDensities) & ! H₂⁺ - e⁻ cooling function.
             &                                     +self%coolingFunctionH_H2Plus       (                      temperature,chemicalDensities)   ! H₂⁺ - H  cooling function.
     else
@@ -258,27 +258,34 @@ contains
        ! Initialize cumulative cooling function to zero.
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
-       coolingFunction          =+self%coolingFunctionH_H2 (numberDensityHydrogen,temperature,chemicalDensities)
+       coolingFunction          =+self%coolingFunctionH_H2 (temperature,chemicalDensities)
        coolingFunctionCumulative=+coolingFunctionCumulative                                                      &
             &                    +coolingFunction
-       call self%commonFactors(numberDensityHydrogen,temperature &
-            &,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium &
-            &,coolingFunctionLowDensityLimit)
-       if (coolingFunctionLowDensityLimit > 0.0d0) then
-          molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+coolingFunction                                    &
-               &                                                    /numberDensityHydrogen                              &
-               &                                                    *(                                                  &
-               &                                                      +  1.0d0                                          &
-               &                                                      +  numberDensityCriticalOverNumberDensityHydrogen &
-               &                                                      /(                                                &
-               &                                                        +1.0d0                                          &
-               &                                                        +numberDensityCriticalOverNumberDensityHydrogen &
-               &                                                       )                                                &
-               &                                                     )
+       if (coolingFunction <= 0.0d0) then
+          ! No H - H₂ cooling (e.g. no atomic or molecular hydrogen is present).
+          molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+0.0d0
        else
-          molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+2.0d0                 &
-               &                                                    *coolingFunction       &
-               &                                                    /numberDensityHydrogen
+          ! The critical density is defined relative to the density of atomic hydrogen, the collision partner (Galli & Palla
+          ! 1998). At fixed composition it scales with the hydrogen density, so the ratio n_cr/n(H) varies as 1/n_H.
+          call self%commonFactors(chemicalDensities%abundance(self%atomicHydrogenIndex),temperature &
+               &,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium &
+               &,coolingFunctionLowDensityLimit)
+          if (coolingFunctionLowDensityLimit > 0.0d0) then
+             molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+coolingFunction                                    &
+                  &                                                    /numberDensityHydrogen                              &
+                  &                                                    *(                                                  &
+                  &                                                      +  1.0d0                                          &
+                  &                                                      +  numberDensityCriticalOverNumberDensityHydrogen &
+                  &                                                      /(                                                &
+                  &                                                        +1.0d0                                          &
+                  &                                                        +numberDensityCriticalOverNumberDensityHydrogen &
+                  &                                                       )                                                &
+                  &                                                     )
+          else
+             molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+2.0d0                 &
+                  &                                                    *coolingFunction       &
+                  &                                                    /numberDensityHydrogen
+          end if
        end if
        ! H₂⁺ - e⁻ cooling function.
        coolingFunction                                          =+self%coolingFunctionH2Plus_Electron(temperature,chemicalDensities)
@@ -327,18 +334,25 @@ contains
          &                                                                         coolingFunctionLocalThermodynamicEquilibriumTemperatureGradient, coolingFunctionLowDensityLimit                 , &
          &                                                                         coolingFunctionLowDensityLimitTemperatureGradient              , logarithmic10Temperature                       , &
          &                                                                         numberDensityCriticalOverNumberDensityHydrogen                 , temperatureThousand                            , &
-         &                                                                         coolingFunctionCumulative
+         &                                                                         coolingFunctionCumulative                                      , numberDensityAtomicHydrogen
     !$GLC attributes unused :: node, gasAbundances, radiation
 
     ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
     if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
-       coolingFunction          =+self%coolingFunctionH_H2(numberDensityHydrogen,temperature,chemicalDensities)
+       coolingFunction          =+self%coolingFunctionH_H2(temperature,chemicalDensities)
        coolingFunctionCumulative=+coolingFunctionCumulative &
             &                    +coolingFunction
+       ! The critical density is defined relative to the density of atomic hydrogen, the collision partner (Galli & Palla 1998).
+       if (coolingFunction > 0.0d0) then
+          numberDensityAtomicHydrogen=chemicalDensities%abundance(self%atomicHydrogenIndex)
+       else
+          ! No H - H₂ cooling. Any positive density serves to evaluate the (unused) factors below.
+          numberDensityAtomicHydrogen=numberDensityHydrogen
+       end if
        call self%commonFactors(                                                &
-            &                  numberDensityHydrogen                         , &
+            &                  numberDensityAtomicHydrogen                   , &
             &                  temperature                                   , &
             &                  numberDensityCriticalOverNumberDensityHydrogen, &
             &                  coolingFunctionLocalThermodynamicEquilibrium  , &
@@ -430,7 +444,7 @@ contains
                &   +self%coolingFunctionRotationalTemperatureGradient                 &
                &   +self%coolingFunctionVibrationalTemperatureGradient                &
                &  )                                                                   &
-               & /numberDensityHydrogen
+               & /numberDensityAtomicHydrogen
           ! Get the temperature gradient of the cooling function.
           molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope  =            &
                & +coolingFunction                                                     &
@@ -510,15 +524,19 @@ contains
     return
   end function molecularHydrogenGalliPallaCoolingFunctionTemperatureLogSlope
 
-  subroutine molecularHydrogenGalliPallaCommonFactors(self,numberDensityHydrogen,temperature,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium,coolingFunctionLowDensityLimit)
+  subroutine molecularHydrogenGalliPallaCommonFactors(self,numberDensityAtomicHydrogen,temperature,numberDensityCriticalOverNumberDensityHydrogen,coolingFunctionLocalThermodynamicEquilibrium,coolingFunctionLowDensityLimit)
     !!{RST
-    Compute the ratio of critical number density to the hydrogen number density for use in molecular hydrogen cooling functions.
+    Compute the ratio of critical number density to the atomic hydrogen number density, :math:`n^\mathrm{cr}/n(\mathrm{H})`, for
+    use in the H--H\ :math:`_2` cooling function. Following :cite:t:`galli_chemistry_1998` (their eqns. for the H\ :math:`_2`
+    cooling function in the form of :cite:t:`hollenbach_molecule_1979`), the densities are those of *atomic* hydrogen,
+    :math:`n(\mathrm{H})`, the collision partner of H\ :math:`_2`, and the LTE cooling function returned is per unit :math:`n(\mathrm{H})
+    n(\mathrm{H}_2)`.
     !!}
     use :: Numerical_Constants_Prefixes, only : milli
     use :: Numerical_Ranges            , only : Range_Pinned, gridSchemePerUnit
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout)             :: self
-    double precision                                            , intent(in   )             :: numberDensityHydrogen                                  , temperature
+    double precision                                            , intent(in   )             :: numberDensityAtomicHydrogen                            , temperature
     double precision                                            , intent(  out)             :: coolingFunctionLocalThermodynamicEquilibrium           , coolingFunctionLowDensityLimit, &
          &                                                                                     numberDensityCriticalOverNumberDensityHydrogen
     integer                                                     , parameter                 :: temperaturePointsPerDecade                    =100
@@ -631,7 +649,7 @@ contains
          &                                         +self%coolingFunctionRotationalTemperaturePart  &
          &                                         +self%coolingFunctionVibrationalTemperaturePart &
          &                                        )                                                &
-         &                                       /numberDensityHydrogen
+         &                                       /numberDensityAtomicHydrogen
     ! Compute the number density ratio.
     if (coolingFunctionLowDensityLimit > 0.0d0) then
        numberDensityCriticalOverNumberDensityHydrogen=+coolingFunctionLocalThermodynamicEquilibrium &
@@ -738,14 +756,14 @@ contains
     return
   end function molecularHydrogenGalliPallaCoolingFunctionH_H2Plus
 
-  double precision function molecularHydrogenGalliPallaCoolingFunctionH_H2(self,numberDensityHydrogen,temperature,chemicalDensities)
+  double precision function molecularHydrogenGalliPallaCoolingFunctionH_H2(self,temperature,chemicalDensities)
     !!{RST
     Compute the cooling function due to H--H\ :math:`_2` interactions.
     !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
-    double precision                                            , intent(in   ) :: numberDensityHydrogen                         , temperature
+    double precision                                            , intent(in   ) :: temperature
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
     double precision                                                            :: atomicHydrogenDensity                         , coolingFunctionLocalThermodynamicEquilibrium, &
          &                                                                         coolingFunctionLowDensityLimit                , molecularHydrogenDensity                    , &
@@ -763,9 +781,14 @@ contains
     ! Get the relevant densities.
     atomicHydrogenDensity   =chemicalDensities%abundance(self%atomicHydrogenIndex   )
     molecularHydrogenDensity=chemicalDensities%abundance(self%molecularHydrogenIndex)
-    ! Compute the cooling function.
+    ! With no atomic or molecular hydrogen there is no H - H₂ cooling (and the critical density ratio below is undefined).
+    if (atomicHydrogenDensity <= 0.0d0 .or. molecularHydrogenDensity <= 0.0d0) then
+       molecularHydrogenGalliPallaCoolingFunctionH_H2=0.0d0
+       return
+    end if
+    ! Compute the cooling function. The critical density is defined relative to the density of atomic hydrogen.
     call self%commonFactors(                                                &
-         &                  numberDensityHydrogen                         , &
+         &                  atomicHydrogenDensity                         , &
          &                  temperature                                   , &
          &                  numberDensityCriticalOverNumberDensityHydrogen, &
          &                  coolingFunctionLocalThermodynamicEquilibrium  , &
