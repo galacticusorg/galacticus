@@ -177,6 +177,7 @@ module Cosmological_Density_Field
    <data>type            (table1DLinearLinear          )              :: collapseThreshold                                                                    </data>
    <data>double precision                                             :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
    <data>logical                                                      :: collapseThresholdInitialized=.false.                                                 </data>
+   <data>integer         (kind_int8                    )              :: collapseThresholdTreeID     =  -1_kind_int8                                          </data>
    <data>type            (treeNode                     ), pointer     :: node                                                                                 </data>
    <data>logical                                                      :: massPresent                                , nodePresent                             </data>
    <data>logical                                                      :: treePresent                                                                          </data>
@@ -482,6 +483,11 @@ contains
        else
           self%lastUniqueID=-1_kind_int8
        end if
+       if (self%treePresent) then
+          self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
+       else
+          self%lastTreeID  =-1_kind_int8
+       end if
        self%criticalOverdensityPrevious=criticalOverdensity
        if (self%timeNow < 0.0d0) self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
        timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
@@ -497,7 +503,9 @@ contains
                &   *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow      ,mass=mass          ) &
                &   /self%cosmologicalMassVariance_%rootVariance(time=     timeBigCrunch,mass=mass          ) &
                & ) then
-             ! Return a collapse time close to the Big Crunch in this case.
+             ! Return a collapse time close to the Big Crunch in this case (and memoize it, as the memo keys have already been
+             ! updated).
+             self%timeOfCollapsePrevious      =timeBigCrunch
              criticalOverdensityTimeOfCollapse=timeBigCrunch
              return
           end if
@@ -531,16 +539,13 @@ contains
        if (self%timeOfCollapsePrevious < 0.0d0) self%timeOfCollapsePrevious=self%cosmologyFunctions_%cosmicTime(1.0d0)
        if (.not.self%massPresent.and..not.self%nodePresent) then
           ! There is no dependency on mass, or the node. If there is dependency on the tree, then, if the tree differs from the
-          ! previously seen case we must destroy the previously made table, as our tree has changed.
-          if (self%treePresent) then
-             if (node%hostTree%nodeBase%uniqueID() /= self%lastTreeID) then
-                self%collapseThresholdInitialized=.false.
-                call self%collapseThreshold%destroy()
-             end if
-             self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
-          else
-             self%lastTreeID  =-1_kind_int8
+          ! tree for which the table was built we must destroy the previously made table, as our tree has changed. The table is
+          ! valid only for the tree (or for the tree-independent case, with ID -1) for which it was built.
+          if (self%collapseThresholdInitialized .and. self%lastTreeID /= self%collapseThresholdTreeID) then
+             self%collapseThresholdInitialized=.false.
+             call self%collapseThreshold%destroy()
           end if
+          self%collapseThresholdTreeID=self%lastTreeID
           ! Neither the mass or the node are provided, so we can use a simple tabulation of collapse thresholds for rapid
           ! inversion. Note that we do not tabulate lower than the requested threshold as in some cosmologies (e.g. with dark
           ! energy or a cosmological constant) this can require tabulating to extremely large cosmic times).
@@ -694,13 +699,12 @@ contains
     class(  criticalOverdensityClass), intent(inout) :: self
     type   (treeNode                ), intent(inout) :: node
     integer(kind_int8               ), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
+    !$GLC attributes unused :: node, uniqueID
 
-    self%lastUniqueID=uniqueID
-    self%lastTreeID  =-1_kind_int8
-    if (associated(node%hostTree)) then
-       if (associated(node%hostTree%nodeBase)) self%lastTreeID=node%hostTree%nodeBase%uniqueID()
-    end if
+    ! Invalidate the memoized time of collapse. The value -2 matches neither a valid ID nor the value (-1) used when no node or
+    ! tree is present. The tabulated collapse thresholds are left in place, as they are keyed on their own tree ID.
+    self%lastUniqueID=-2_kind_int8
+    self%lastTreeID  =-2_kind_int8
     return
   end subroutine criticalOverdensityCalculationReset
 
