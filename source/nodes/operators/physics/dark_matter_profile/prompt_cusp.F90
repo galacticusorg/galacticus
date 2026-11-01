@@ -105,9 +105,10 @@
   double precision                                                      :: sigma0Collapse          , time_                    , &
        &                                                                   expansionFactor_        , concentrationFactorTarget, &
        &                                                                   massHalo_               , amplitudeCusp_           , &
-       &                                                                   concentration_          , radiusScale_
+       &                                                                   concentration_          , radiusScale_             , &
+       &                                                                   radiusMinus2_           , radiusVirial_
   integer                                                               :: j_ 
-  !$omp threadprivate(self_,sigma0Collapse,time_,expansionFactor_,concentrationFactorTarget,massHalo_,concentration_,radiusScale_,amplitudeCusp_,j_)
+  !$omp threadprivate(self_,sigma0Collapse,time_,expansionFactor_,concentrationFactorTarget,massHalo_,concentration_,radiusScale_,amplitudeCusp_,radiusMinus2_,radiusVirial_,j_)
 
   ! Maximum allowed value of the y-parameter in the cusp-NFW profile. Values of 1 or greater are not valid. We limit here to a
   ! value close to 1.
@@ -352,16 +353,23 @@ contains
     class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfile
     integer                                                   , parameter              :: iterationCountMaximum    =10000
     double precision                                          , parameter              :: toleranceRelative        =1.0d-6
-    type            (rootFinder                              )               , save    :: finderCollapse                   , finderRadius
-    logical                                                                  , save    :: finderCollapseInitialized=.false., finderRadiusInitialized=.false.
-    !$omp threadprivate(finderCollapse,finderRadius,finderCollapseInitialized,finderRadiusInitialized)
+    type            (rootFinder                              )               , save    :: finderCollapse                   , finderRadius                   , &
+         &                                                                                finderGamma
+    logical                                                                  , save    :: finderCollapseInitialized=.false., finderRadiusInitialized=.false., &
+         &                                                                                finderGammaInitialized   =.false.
+    double precision                                                         , save    :: gammaYMaximum
+    !$omp threadprivate(finderCollapse,finderRadius,finderGamma,finderCollapseInitialized,finderRadiusInitialized,finderGammaInitialized,gammaYMaximum)
     ! Factor by which the collapse time is allowed to exceed the present age of the Universe before the search is abandoned. σ₀(t)
     ! grows only until the Universe becomes Λ-dominated and is then constant to far better than double precision by this epoch, so
     ! no root can exist beyond it.
     double precision                                          , parameter              :: factorTimeCollapseMaximum=1.0d1
     double precision                                                                   :: timeCollapseMaximum
     double precision                                                         , save    :: errorFractionalMaximum   =0.0d+0
-    logical                                                                            :: computeCusp                      , cuspCanForm
+    logical                                                                            :: computeCusp                      , cuspCanForm                    , &
+         &                                                                                bracketLower                     , bracketUpper
+    integer                                                                            :: bracketSideLast
+    integer                                                   , parameter              :: bracketSideNone          =0     , bracketSideLower=1, &
+         &                                                                                bracketSideUpper         =2
     integer                                                                            :: iterationCount                   , statusCollapse
     double precision                                                                   :: sigma0                           , sigma2                         , &
          &                                                                                densityMean                      , densityMeanCollapse            , &
@@ -370,8 +378,12 @@ contains
          &                                                                                y                                , radiusScale                    , &
          &                                                                                concentration                    , densityScale                   , &
          &                                                                                radiusScalePrevious              , mass200Critical                , &
-         &                                                                                gamma                            , zeta                           , &
+         &                                                                                gamma                            , gammaNFW                       , &
          &                                                                                radiusMinus2                     , densityContrast                , &
+         &                                                                                radiusMinus2Original             , amplitudeTrial                 , &
+         &                                                                                amplitudeLower                   , amplitudeUpper                 , &
+         &                                                                                residualAmplitude                , residualAmplitudeLower         , &
+         &                                                                                residualAmplitudeUpper                                            , &
          &                                                                                scatterRandom                    , errorFractional                , &
          &                                                                                densityScalePrevious             , massPrevious
     
@@ -409,6 +421,30 @@ contains
             &                   )
       finderCollapseInitialized=.true.
     end if
+    if (.not.finderGammaInitialized) then
+       ! Find the value of γ at which y reaches its maximum allowed value.
+       block
+         type(rootFinder) :: finderYMaximum
+         finderYMaximum=rootFinder(                                                             &
+              &                    rootFunction                 =yMaximumRoot                 , &
+              &                    toleranceRelative            =1.0d-12                      , &
+              &                    rangeExpandUpward            =2.0d+0                       , &
+              &                    rangeExpandDownward          =0.5d+0                       , &
+              &                    rangeExpandType              =rangeExpandMultiplicative    , &
+              &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+              &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
+              &                   )
+         gammaYMaximum=finderYMaximum%find(rootGuess=1.0d0)
+       end block
+       finderGamma  =rootFinder(                                                             &
+            &                   rootFunction                 =gammaRoot                    , &
+            &                   toleranceRelative            =1.0d-9                       , &
+            &                   rangeExpandDownward          =0.5d+0                       , &
+            &                   rangeExpandType              =rangeExpandMultiplicative    , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
+            &                  )
+       finderGammaInitialized=.true.
+    end if
     ! Evaluate the required integrals over the power spectrum at the time of this node.
     self_             =>  self
     basic             =>  node                                  %basic               (                   )
@@ -434,13 +470,17 @@ contains
     densityMean       =   self             %cosmologyFunctions_ %matterDensityEpochal(  time=basic%time())
     ! We assume (following Delos 2025) that the "scale radius" that has been set is actually r₋₂. We must iteratively solve for
     ! the actual scale radius. We use rₛ=r₋₂ as our initial guess.
-    radiusMinus2        =darkMatterProfile%scale()
+    radiusMinus2Original=darkMatterProfile%scale()
+    radiusMinus2        =radiusMinus2Original
     radiusScale         =radiusMinus2
     radiusScalePrevious =huge(0.0d0)
     densityScale        =     0.0d0
     densityScalePrevious=huge(0.0d0)
     massPrevious        =huge(0.0d0)
     iterationCount      =0
+    bracketLower        =.false.
+    bracketUpper        =.false.
+    bracketSideLast     =bracketSideNone
     cuspCanForm         =.true.
     ! Draw the deviate used to scatter the cusp amplitude. This is drawn here, prior to any test of whether a prompt cusp can form
     ! in this halo, so that the sequence of random numbers consumed from the tree's generator does not depend on the outcome of
@@ -532,12 +572,44 @@ contains
                   &              *scatterRandom           &
                   &             )
           end if
+          ! The cusp amplitude depends on the profile (through the mass M₂₀₀ computed above), and the profile on the amplitude,
+          ! so they must be found self-consistently - we seek a root of A-G(A), where G(A) is the amplitude computed (above) from
+          ! the profile for amplitude A. Simply iterating A ← G(A) can fail: as the concentration approaches its minimum allowed
+          ! value (tested below) the profile varies as the square root of the distance from that limit, so G has an unbounded
+          ! slope there and the iteration can enter a cycle in which the limit is alternately crossed in each direction. We
+          ! therefore iterate A ← G(A) only until the root has been bracketed, and thereafter use the Illinois variant of the
+          ! method of false position, which converges for any continuous G.
+          if (iterationCount > 1) then
+             residualAmplitude=+amplitude-amplitudeTrial
+             if (residualAmplitude > 0.0d0) then
+                amplitudeLower       =amplitudeTrial
+                residualAmplitudeLower=residualAmplitude
+                if (bracketUpper .and. bracketSideLast == bracketSideLower) residualAmplitudeUpper=0.5d0*residualAmplitudeUpper
+                bracketSideLast      =bracketSideLower
+                bracketLower         =.true.
+             else
+                amplitudeUpper       =amplitudeTrial
+                residualAmplitudeUpper=residualAmplitude
+                if (bracketLower .and. bracketSideLast == bracketSideUpper) residualAmplitudeLower=0.5d0*residualAmplitudeLower
+                bracketSideLast      =bracketSideUpper
+                bracketUpper         =.true.
+             end if
+             if (bracketLower .and. bracketUpper .and. residualAmplitude /= 0.0d0)                                    &
+                  & amplitude=+(+amplitudeLower*residualAmplitudeUpper-amplitudeUpper*residualAmplitudeLower) &
+                  &           /(                residualAmplitudeUpper-               residualAmplitudeLower)
+          end if
+          amplitudeTrial=amplitude
        end if
        ! Adjust the initial concentration (and r₋₂ radius) if necessary. The equation in footnote 9 of Delos (2025;
        ! https://ui.adsabs.harvard.edu/abs/2025arXiv250603240D) gives a condition that must be satisfied by the concentration
-       ! c=rᵥ/r₋₂. If that is not satisfied, adjust r₋₂ to satisfy that relation.
+       ! c=rᵥ/r₋₂. If that is not satisfied, adjust r₋₂ to satisfy that relation. The condition is tested using the original r₋₂ on
+       ! every iteration, since the cusp amplitude (on which it depends) may change from one iteration to the next.
+       radiusMinus2             =+radiusMinus2Original
        concentration            =+self %darkMatterHaloScale_%radiusVirial(node)    &
             &                    /                           radiusMinus2
+       massHalo_                =+basic%mass()
+       amplitudeCusp_           =+amplitude
+       radiusVirial_            =+self%darkMatterHaloScale_%radiusVirial(node)
        concentrationFactorTarget=+self %darkMatterHaloScale_%densityMean (node)    &
             &                    *basic                     %mass        (    )    &
             &                    /                           amplitude         **2
@@ -545,7 +617,7 @@ contains
           if (.not.finderRadiusInitialized) then
              finderRadius=rootFinder(                                                             &
                   &                  rootFunction                 =concentrationTargetRoot      , &
-                  &                  toleranceRelative            =1.0d-6                       , &
+                  &                  toleranceRelative            =1.0d-10                      , &
                   &                  rangeExpandUpward            =2.0d+0                       , &
                   &                  rangeExpandDownward          =0.5d+0                       , &
                   &                  rangeExpandType              =rangeExpandMultiplicative    , &
@@ -554,57 +626,82 @@ contains
                   &                 )
              finderRadiusInitialized=.true.
           end if
-          ! Find a new concentration and use it to update r₋₂ (including some small tolerance to avoid being exactly at the
-          ! limit).
+          ! Find the minimum concentration and use it to update r₋₂. Then take the limiting solution of the equations solved
+          ! below - that with y at its maximum allowed value. This is identical to the solution found below as the condition is
+          ! approached from the other side, so the profile (and so the cusp amplitude computed from it on the next iteration) is
+          ! continuous across the condition, and the iteration on the cusp amplitude can converge whichever side of the
+          ! condition the solution lies.
           concentration= finderRadius                     %find         (concentration)
           radiusMinus2 =+self        %darkMatterHaloScale_%radiusVirial (node         ) &
-               &        /                                  concentration                &
-               &        *                                  yMaximum     **(2.0d0/3.0d0)
+               &        /                                  concentration
+          gamma        =+gammaYMaximum
           y            =+yMaximum
-          radiusScale  =+2.0d0        &
+          radiusScale  =+radiusScaleRatio(gamma)       &
                &        *radiusMinus2
-          densityScale =+amplitude          &
-               &        /radiusScale**1.5d0
-          ! Force convergence in this case.
-          radiusScalePrevious =      radiusScale
-          densityScalePrevious=      densityScale
-          massPrevious        =basic%mass        ()
-       else
-          ! Compute the normalization of the cusp-NFW profile. The y=0 case (which is assumed on the first iteration) is handled
-          ! by `factorMassCuspNFW()`, which takes the NFW limit for negligible y.
+          densityScale =+amplitude                     &
+               &        /gamma                         &
+               &        /radiusMinus2**1.5d0
+          ! Evaluate the mass to use in convergence checks.
           concentration=+self%darkMatterHaloScale_%radiusVirial(node) &
                &        /                          radiusScale
-          densityScale =+basic            %mass(               ) &
-               &        /radiusScale**3                          &
-               &        /4.0d0                                   &
-               &        /Pi                                      &
-               &        /factorMassCuspNFW     (concentration,y)
-          ! Compute a new scale radius to obtain the target r₋₂, using equations (23) from Delos (2025).
-          gamma      =+amplitude           &
-               &      /densityScale        &
-               &      /radiusMinus2**1.5d0
-          zeta       =+(                         &
-               &        +        1.00d0          &
-               &        +       18.00d0*gamma**2 &
-               &        +        0.75d0*gamma    &
-               &        *sqrt(                   &
-               &              + 72.00d0          &
-               &              +564.00d0*gamma**2 &
-               &              +  6.00d0*gamma**4 &
-               &             )                   &
-               &       )**(1.0d0/3.0d0)
-          radiusScale=+(                                     &
-               &        +(+1.0d0/3.0d0-gamma**2/2.0d0)/zeta  &
-               &        +(+1.0d0      +zeta          )/3.0d0 &
-               &       )                                     &
-               &      *radiusMinus2
-          ! Enforce a maximum scale radius (minimum concentration) as required to ensure that y<1 in the cusp-NFW profile.
-          radiusScale=max(radiusScale,(amplitude/densityScale/yMaximum)**(2.0d0/3.0d0))
-          ! Evaluate the prompt cusp y-parameter. Values below `yMinimum` are indistinguishable from a cuspless (i.e. NFW) profile
-          ! and are set to zero, so that no negligible - but non-zero - y is stored for use by the cusp-NFW mass distribution.
-          y          =+amplitude           &
-               &      /densityScale        &
-               &      /radiusScale **1.5d0
+          massPrevious =+4.0d0                              &
+               &        *Pi                                 &
+               &        *radiusScale**3                     &
+               &        *densityScale                       &
+               &        *factorMassCuspNFW(concentration,y)
+       else
+          ! Solve for the parameters of the cusp-NFW profile. Writing γ=A/ρₛr₋₂^{3/2}, equation (23) of Delos (2025) gives rₛ/r₋₂
+          ! as an explicit function of γ, from which y=γ(r₋₂/rₛ)^{3/2} and ρₛ=A/γr₋₂^{3/2} follow - so the profile is determined
+          ! by γ alone. We find γ by requiring that the profile enclose the mass of the halo within its virial radius.
+          !
+          ! (Iterating these relations directly - evaluating ρₛ from the mass of the halo given the current rₛ and y, then a new
+          ! rₛ from equation 23 - converges ever more slowly as the concentration approaches the minimum allowed by the condition
+          ! tested above, needing thousands of iterations within a few percent of that limit, and can fail to converge at all.)
+          !
+          ! The enclosed mass decreases from infinity as γ→0, and the condition tested above is exactly that the enclosed mass at
+          ! the γ for which y=1 does not exceed the mass of the halo. So, when that condition is met, a root always exists below
+          ! the γ for which y reaches its maximum allowed value.
+          radiusMinus2_=radiusMinus2
+          if (amplitude > 0.0d0) then
+             if (gammaRoot(gammaYMaximum) >= 0.0d0) then
+                ! The condition tested above holds only to within rounding - take the limiting solution.
+                gamma=gammaYMaximum
+             else
+                ! Begin the search from the value of γ for an NFW profile, which is accurate for small y.
+                gammaNFW=+amplitude                                                       &
+                     &   /radiusMinus2**1.5d0                                             &
+                     &   /(                                                               &
+                     &     +basic%mass()                                                  &
+                     &     /radiusMinus2**3                                               &
+                     &     /4.0d0                                                         &
+                     &     /Pi                                                            &
+                     &     /factorMassCuspNFW(self%darkMatterHaloScale_%radiusVirial(node) &
+                     &                        /radiusMinus2,0.0d0)                        &
+                     &    )
+                gamma=finderGamma%find(rootRange=[0.5d0*min(gammaNFW,gammaYMaximum),gammaYMaximum])
+             end if
+             radiusScale =+radiusScaleRatio(gamma)       &
+                  &       *radiusMinus2
+             densityScale=+amplitude                     &
+                  &       /gamma                         &
+                  &       /radiusMinus2**1.5d0
+             y           =+gamma                         &
+                  &       /radiusScaleRatio(gamma)**1.5d0
+          else
+             ! No cusp - the profile is NFW, with rₛ=r₋₂.
+             radiusScale =+radiusMinus2
+             densityScale=+basic%mass()                                                 &
+                  &       /radiusScale**3                                               &
+                  &       /4.0d0                                                        &
+                  &       /Pi                                                           &
+                  &       /factorMassCuspNFW(self%darkMatterHaloScale_%radiusVirial(node) &
+                  &                          /radiusScale,0.0d0)
+             y           =+0.0d0
+          end if
+          concentration=+self%darkMatterHaloScale_%radiusVirial(node) &
+               &        /                          radiusScale
+          ! Values of y below `yMinimum` are indistinguishable from a cuspless (i.e. NFW) profile and are set to zero, so that no
+          ! negligible - but non-zero - y is stored for use by the cusp-NFW mass distribution.
           if (y < yMinimum) y=0.0d0
           ! Evaluate the mass to use in convergence checks.
           massPrevious=+4.0d0                              &
@@ -748,6 +845,74 @@ contains
     end if
     return
   end function factorMassCuspNFW
+
+  double precision function radiusScaleRatio(gamma)
+    !!{RST
+    Evaluate the ratio :math:`r_\mathrm{s}/r_{-2}` of the scale radius to the radius :math:`r_{-2}` at which the logarithmic slope
+    of the density is :math:`-2` in a cusp-NFW density profile, as a function of :math:`\gamma=A/\rho_\mathrm{s}r_{-2}^{3/2}`,
+    using equation (23) of :cite:t:`delos_cusp-halo_2025`.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: gamma
+    double precision                :: zeta
+
+    zeta            =+(                         &
+         &             +        1.00d0          &
+         &             +       18.00d0*gamma**2 &
+         &             +        0.75d0*gamma    &
+         &             *sqrt(                   &
+         &                   + 72.00d0          &
+         &                   +564.00d0*gamma**2 &
+         &                   +  6.00d0*gamma**4 &
+         &                  )                   &
+         &            )**(1.0d0/3.0d0)
+    radiusScaleRatio=+(+1.0d0/3.0d0-gamma**2/2.0d0)/zeta &
+         &           +(+1.0d0      +zeta          )/3.0d0
+    return
+  end function radiusScaleRatio
+
+  double precision function yMaximumRoot(gamma)
+    !!{RST
+    Root function used to find the value of :math:`\gamma` at which the cusp-NFW :math:`y` parameter reaches its maximum allowed
+    value.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: gamma
+
+    yMaximumRoot=+gamma                         &
+         &       /radiusScaleRatio(gamma)**1.5d0 &
+         &       -yMaximum
+    return
+  end function yMaximumRoot
+
+  double precision function gammaRoot(gamma)
+    !!{RST
+    Root function used to find the value of :math:`\gamma=A/\rho_\mathrm{s}r_{-2}^{3/2}` for which a cusp-NFW density profile
+    with the given cusp amplitude and :math:`r_{-2}` encloses the mass of the halo within its virial radius. The fractional
+    excess of the enclosed mass over the mass of the halo is returned.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    double precision, intent(in   ) :: gamma
+    double precision                :: radiusScale, densityScale, &
+         &                             y
+
+    radiusScale =+radiusScaleRatio(gamma)       &
+         &       *radiusMinus2_
+    densityScale=+amplitudeCusp_                &
+         &       /gamma                         &
+         &       /radiusMinus2_**1.5d0
+    y           =+gamma                         &
+         &       /radiusScaleRatio(gamma)**1.5d0
+    gammaRoot   =+4.0d0                                                   &
+         &       *Pi                                                      &
+         &       *radiusScale**3                                          &
+         &       *densityScale                                            &
+         &       *factorMassCuspNFW(radiusVirial_/radiusScale,y)          &
+         &       /massHalo_                                               &
+         &       -1.0d0
+    return
+  end function gammaRoot
 
   double precision function timeCollapseRoot(timeCollapse)
     !!{RST
