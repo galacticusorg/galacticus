@@ -1658,6 +1658,7 @@ jobs:
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
+                test-IGM-thermal-evolution.py,
                 test-disk-size-inclination-table.py,
                 test-progenitor-mass-function-forests.py,
                 test-single-epoch-survey-volume.py,
