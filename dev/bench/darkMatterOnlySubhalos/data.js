@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793454892328,
+  "lastUpdate": 1793521748767,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2",
-          "message": "Merge pull request #937 from galacticusorg/fixAxionCAMBTempFiles\n\nWhen running `AxionCAMB` use the dynamic datasets path for all temporary files",
-          "timestamp": "2025-09-30T23:30:07Z",
-          "tree_id": "e39ff3b5c75398a4f1d4ecacf725da91d3283dd5",
-          "url": "https://github.com/galacticusorg/galacticus/commit/861f495db06c4dbcfa556ba1e0fad9f2d1ac4fd2"
-        },
-        "date": 1759297812388,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 49.893,
-            "range": "0.0482503885997041",
-            "unit": "seconds"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8808,6 +8778,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 13700.922676276341,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0931377814c891cd250a9622635b67ff432cf59d",
+          "message": "Merge pull request #1723 from galacticusorg/fix/link-checker-curl-ciphers-ads-429\n\nfix(ci): spell curl's --ciphers in full, and treat an ADS 429 as a warning",
+          "timestamp": "2026-10-31T16:38:53Z",
+          "tree_id": "cec183b569e6ff3745e8f3dca7dffbeb42e82e0f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0931377814c891cd250a9622635b67ff432cf59d"
+        },
+        "date": 1793521743855,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 36.30800000000001,
+            "range": "0.05881836447913161",
+            "unit": "seconds"
           }
         ]
       }
