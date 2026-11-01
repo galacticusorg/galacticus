@@ -74,9 +74,13 @@ for (outputName, output) in outputs.items():
 # default requires. This model uses that default, so its disk star formation rate rose by 1/X_H. The masses rose by 0.5%, 1.9%
 # and 2.7% at z = 12, 10 and 8, and the cooling functions by 0.06%, 1.3% and 2.8%.
 #
+# They were updated once more when the default gas velocity dispersion of that law was changed from 10 to 8 km/s, the value
+# assumed by Blitz & Rosolowsky (2006) in deriving its default characteristic pressure. The masses fell by 0.15%, 0.32% and
+# 0.39% at z = 12, 10 and 8, and the cooling functions by 0.02%, 0.13% and 0.12%.
+#
 # Repeated builds of the same source give these to about one part in 10^5, so the 1% tolerance below is not tight.
-massesHydrogenMolecularTarget   = np.array([94678.51982864, 225968.31583008, 345865.14912652, 0.            ])
-coolingFunctionsMolecularTarget = np.array([2.76023446e-24, 5.41387125e-24 , 2.39004007e-24 , 0.00000000e+00])
+massesHydrogenMolecularTarget   = np.array([94540.86340945, 225237.12345925, 344518.22364204, 0.            ])
+coolingFunctionsMolecularTarget = np.array([2.75959645e-24, 5.40674288e-24 , 2.38717373e-24 , 0.00000000e+00])
 
 # Report on status.
 massesAgree  = np.isclose(massesHydrogenMolecular  ,massesHydrogenMolecularTarget  ,rtol=1.0e-2,atol=1.0e3 )
