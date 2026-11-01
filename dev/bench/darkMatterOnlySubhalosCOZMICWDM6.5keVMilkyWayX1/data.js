@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793454929500,
+  "lastUpdate": 1793521803449,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX1)": [
@@ -4706,6 +4706,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 16.658660902923696,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0931377814c891cd250a9622635b67ff432cf59d",
+          "message": "Merge pull request #1723 from galacticusorg/fix/link-checker-curl-ciphers-ads-429\n\nfix(ci): spell curl's --ciphers in full, and treat an ADS 429 as a warning",
+          "timestamp": "2026-10-31T16:38:53Z",
+          "tree_id": "cec183b569e6ff3745e8f3dca7dffbeb42e82e0f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0931377814c891cd250a9622635b67ff432cf59d"
+        },
+        "date": 1793521802471,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.6802639570344102,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -2.642735563296303,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 17.013340125960433,
             "unit": "-logℒ"
           }
         ]
