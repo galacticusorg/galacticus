@@ -364,9 +364,10 @@ contains
     ! no root can exist beyond it.
     double precision                                          , parameter              :: factorTimeCollapseMaximum=1.0d1
     double precision                                                                   :: timeCollapseMaximum
-    double precision                                                         , save    :: errorFractionalMaximum   =0.0d+0
+    double precision                                                         , save    :: errorFractionalMaximum   =0.0d+0, errorFractionalAmplitudeMaximum=0.0d+0
     logical                                                                            :: computeCusp                      , cuspCanForm                    , &
-         &                                                                                bracketLower                     , bracketUpper
+         &                                                                                bracketLower                     , bracketUpper                   , &
+         &                                                                                amplitudeConverged               , amplitudeLimitJump
     integer                                                                            :: bracketSideLast
     integer                                                   , parameter              :: bracketSideNone          =0     , bracketSideLower=1, &
          &                                                                                bracketSideUpper         =2
@@ -412,7 +413,7 @@ contains
     if (.not.finderCollapseInitialized) then
        finderCollapse=rootFinder(                                                             &
             &                    rootFunction                 =timeCollapseRoot             , &
-            &                    toleranceRelative            =1.0d-6                       , &
+            &                    toleranceRelative            =1.0d-9                       , &
             &                    rangeExpandUpward            =2.0d+0                       , &
             &                    rangeExpandDownward          =0.5d+0                       , &
             &                    rangeExpandType              =rangeExpandMultiplicative    , &
@@ -481,6 +482,8 @@ contains
     bracketLower        =.false.
     bracketUpper        =.false.
     bracketSideLast     =bracketSideNone
+    amplitudeConverged  =.not.computeCusp
+    amplitudeLimitJump  =.false.
     cuspCanForm         =.true.
     ! Draw the deviate used to scatter the cusp amplitude. This is drawn here, prior to any test of whether a prompt cusp can form
     ! in this halo, so that the sequence of random numbers consumed from the tree's generator does not depend on the outcome of
@@ -498,6 +501,8 @@ contains
          &       .not.Values_Agree(densityScale,densityScalePrevious,relTol=toleranceRelative) &
          &      .or.                                                                           &
          &       .not.Values_Agree(basic%mass(),massPrevious        ,relTol=toleranceRelative) &
+         &      .or.                                                                           &
+         &       .not.amplitudeConverged                                                       &
          &     )                                                                               &
          &    .and.                                                                            &
          &     iterationCount < iterationCountMaximum                                          &
@@ -574,11 +579,13 @@ contains
           end if
           ! The cusp amplitude depends on the profile (through the mass M₂₀₀ computed above), and the profile on the amplitude,
           ! so they must be found self-consistently - we seek a root of A-G(A), where G(A) is the amplitude computed (above) from
-          ! the profile for amplitude A. Simply iterating A ← G(A) can fail: as the concentration approaches its minimum allowed
-          ! value (tested below) the profile varies as the square root of the distance from that limit, so G has an unbounded
-          ! slope there and the iteration can enter a cycle in which the limit is alternately crossed in each direction. We
-          ! therefore iterate A ← G(A) only until the root has been bracketed, and thereafter use the Illinois variant of the
-          ! method of false position, which converges for any continuous G.
+          ! the profile for amplitude A. Simply iterating A ← G(A) can fail near the minimum allowed concentration (tested
+          ! below), where the profile varies rapidly with A: for c=rᵥ/r₋₂≲10 it varies as the square root of the distance from
+          ! that limit, so G has an unbounded slope there, and for larger c it jumps at the limit (see below). The iteration can
+          ! then enter a cycle in which the limit is alternately crossed in each direction. We therefore iterate A ← G(A) only
+          ! until the root has been bracketed, and thereafter use the Illinois variant of the method of false position. Where G
+          ! jumps at the limit, no self-consistent amplitude may exist - the iteration then converges to the amplitude at which
+          ! the limit is reached.
           if (iterationCount > 1) then
              residualAmplitude=+amplitude-amplitudeTrial
              if (residualAmplitude > 0.0d0) then
@@ -594,6 +601,16 @@ contains
                 bracketSideLast      =bracketSideUpper
                 bracketUpper         =.true.
              end if
+             ! The amplitude has converged when it is consistent with the profile computed from it. The profile alone is not a
+             ! sufficient test, as it depends only weakly on the amplitude when y is small. If instead the bracket has shrunk to
+             ! within the tolerance while the residual has not, G jumps within the bracket - no self-consistent amplitude exists,
+             ! and we accept the amplitude at the jump.
+             amplitudeConverged=abs(residualAmplitude) <= toleranceRelative*amplitudeTrial
+             amplitudeLimitJump=        .not.amplitudeConverged                                                          &
+                  &             .and.        bracketLower                                                                &
+                  &             .and.        bracketUpper                                                                &
+                  &             .and.    abs(amplitudeUpper-amplitudeLower) <= toleranceRelative*amplitudeTrial
+             if (amplitudeLimitJump) amplitudeConverged=.true.
              if (bracketLower .and. bracketUpper .and. residualAmplitude /= 0.0d0)                                    &
                   & amplitude=+(+amplitudeLower*residualAmplitudeUpper-amplitudeUpper*residualAmplitudeLower) &
                   &           /(                residualAmplitudeUpper-               residualAmplitudeLower)
@@ -627,10 +644,12 @@ contains
              finderRadiusInitialized=.true.
           end if
           ! Find the minimum concentration and use it to update r₋₂. Then take the limiting solution of the equations solved
-          ! below - that with y at its maximum allowed value. This is identical to the solution found below as the condition is
-          ! approached from the other side, so the profile (and so the cusp amplitude computed from it on the next iteration) is
-          ! continuous across the condition, and the iteration on the cusp amplitude can converge whichever side of the
-          ! condition the solution lies.
+          ! below - that with y at its maximum allowed value. For c≲10 this is the limit of the solution found below as the
+          ! condition is approached from the other side, so the profile (and so the cusp amplitude computed from it on the next
+          ! iteration) is continuous across the condition. For larger c the mass enclosed (at fixed amplitude and r₋₂) has a
+          ! minimum at y<1, below its value at y=1, so as the condition is approached the solution found below tends to a value
+          ! of y well below 1 (y≈0.87 at c=15), and the profile jumps at the limit, as it does in the reference implementation
+          ! of Delos (2025; https://github.com/galacticusorg/cusp-halo-relation).
           concentration= finderRadius                     %find         (concentration)
           radiusMinus2 =+self        %darkMatterHaloScale_%radiusVirial (node         ) &
                &        /                                  concentration
@@ -717,6 +736,20 @@ contains
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWScaleID  ,radiusScale )
        call darkMatterProfile%floatRank0MetaPropertySet(self%promptCuspNFWDensityID,densityScale)
     end do
+    ! Where the profile jumps at the minimum concentration limit no self-consistent cusp amplitude may exist, and the iteration
+    ! then converges to the amplitude at which the limit is reached. Warn if this happens.
+    if (cuspCanForm .and. amplitudeLimitJump) then
+       errorFractional=+abs(residualAmplitude) &
+            &          /    amplitudeTrial
+       if (errorFractional > errorFractionalAmplitudeMaximum) then
+          block
+            character(len=12) :: label
+            write (label,'(e12.6)') errorFractional
+            call Warn('no self-consistent prompt cusp amplitude exists at the minimum concentration limit - the amplitude at which the limit is reached is used (fractional inconsistency = '//trim(adjustl(label))//')')
+          end block
+          errorFractionalAmplitudeMaximum=errorFractional
+       end if
+    end if
     ! Handle halos in which no prompt cusp can form, and which therefore can not themselves have formed. Such nodes are given a
     ! cusp-free (i.e. NFW) profile - for which r₋₂ is simply the scale radius - and are labeled so that they may be pruned from
     ! the tree prior to evolution.
@@ -760,6 +793,8 @@ contains
          &   .not.Values_Agree(densityScale,densityScalePrevious,relTol=toleranceRelative) &
          &  .or.                                                                           &
          &   .not.Values_Agree(basic%mass(),massPrevious        ,relTol=toleranceRelative) &
+         &  .or.                                                                           &
+         &   .not.amplitudeConverged                                                       &
          & ) then
        if (self%nonConvergenceIsFatal) then
           block
@@ -782,6 +817,10 @@ contains
                  &          /0.5d0
             write (label,'(e12.6)') errorFractional
             message=message//char(10)//'  ΔM /M  = '//label
+            if (.not.amplitudeConverged) then
+               write (label,'(e12.6)') abs(residualAmplitude)/amplitudeTrial
+               message=message//char(10)//'  ΔA /A  = '//label
+            end if
             call Error_Report(message//{introspection:location})
          end block
        else
