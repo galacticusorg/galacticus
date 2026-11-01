@@ -1230,6 +1230,10 @@ astrodust
 HII
 Balmer
 Helou
+fallbacks
+invariance
+smoothstep
+unregularized
 heteroscedastic
 hyperparameter
 hyperparameters
