@@ -46,7 +46,31 @@ module Node_Component_Disk_Standard
    <class>disk</class>
    <name>standard</name>
    <description>
-   A galactic disk with cylindrical symmetry and a flattened profile in which stars trace gas. In addition to gas and stellar masses and abundances it tracks angular momentum, a radial scale length and circular velocity, stellar luminosities, the total mass of stars ever formed, and a star formation history. ``fractionMassRetained`` records the fraction of mass retained in the disk under transfer to the spheroid by bar instabilities, and is used when solving for stellar luminosities as inactive properties. The density profile is supplied by a dimensionless :galacticus-class:`massDistributionClass` object, which must be cylindrically symmetric.
+   A galactic disk with cylindrical symmetry and a flattened profile in which stars trace gas. In addition to gas and stellar
+   masses and abundances it tracks angular momentum, a radial scale length and circular velocity, stellar luminosities, the total
+   mass of stars ever formed, and a star formation history. ``fractionMassRetained`` records the fraction of mass retained in the
+   disk under transfer to the spheroid by bar instabilities, and is used when solving for stellar luminosities as inactive
+   properties. The density profile is supplied by a dimensionless :galacticus-class:`massDistributionClass` object, which must be
+   cylindrically symmetric. If a :galacticus-class:`galacticComponentTruncationClass` which truncates mass distributions is
+   selected the disk is truncated to retain a fraction :math:`\exp(-x)` of its untruncated mass, where :math:`x` is the
+   ``tidalTruncation`` meta-property of the disk (see :galacticus-class:`nodeOperatorTidalMassLossDisks`), and if a
+   :galacticus-class:`galacticDiskHeatingClass` which heats disks is selected the disks of satellites are heated (see
+   :galacticus-class:`massDistributionExponentialDiskTidal`). Both require that the disk mass distribution is an exponential disk.
+
+   A truncated disk has a smaller mean radius, :math:`\langle R \rangle_f`, than an untruncated disk of the same scale length,
+   :math:`\langle R \rangle_1` (where :math:`\langle R \rangle = I_2/I_1` and :math:`I_n=\int_0^\infty \Sigma(R) R^n
+   \mathrm{d}R`), so has a larger scale length at fixed mean specific angular momentum. To account for this, the radius at which
+   the structure solver matches the specific angular momentum of the disk to that of a circular orbit is multiplied by
+   :math:`\langle R \rangle_f/\langle R \rangle_1`, such that it tracks the material of the truncated disk. (Simply increasing
+   the specific angular momentum by the inverse of this ratio, while retaining the solver radius, evaluates the rotation curve far
+   beyond the material of a strongly truncated disk, where it is Keplerian, and leads to runaway growth of the scale length.) The
+   circular velocity (``velocity``) of the disk is then that at this radius, which characterizes the material remaining in the
+   disk, while its ``radius`` remains the scale length of the untruncated disk. Classes which use these (e.g. in feedback rates,
+   or dynamical times, :math:`R_\mathrm{d}/V_\mathrm{d}`) see this pair. Heating of the disk conserves its mean radius, so has
+   no effect on this ratio. Since material stripped from a truncated disk carries the specific angular momentum implied by the change in its
+   truncated mass distribution (see :galacticus-class:`nodeOperatorTidalMassLossDisks`), the mean specific angular momentum of a
+   disk changed only by tidal stripping is proportional to :math:`\langle R \rangle_f`. Its scale length is then unchanged by
+   stripping (aside from changes in its rotation curve), such that the remaining disk is the inner part of the original disk.
    </description>
    <isDefault>true</isDefault>
    <properties>
@@ -195,19 +219,40 @@ contains
     !!{RST
     Initializes the tree node standard disk methods module.
     !!}
-    use :: Abundances_Structure, only : Abundances_Property_Count
-    use :: Error               , only : Error_Report
-    use :: Galacticus_Nodes    , only : defaultDiskComponent     , nodeComponentDiskStandard
-    use :: Input_Parameters    , only : inputParameter           , inputParameters
+    use :: Abundances_Structure                     , only : Abundances_Property_Count
+    use :: Error                                    , only : Error_Report
+    use :: Galactic_Component_Truncations           , only : galacticComponentTruncationClass
+    use :: Galactic_Component_Truncation_Disk_Status, only : diskTruncationIsActive
+    use :: Galacticus_Nodes                         , only : defaultDiskComponent            , nodeComponentDiskStandard
+    use :: Input_Parameters                         , only : inputParameter                  , inputParameters
+    use :: Node_Component_Disk_Standard_Data        , only : tidalTruncationID
     implicit none
-    type(inputParameters), intent(inout) :: parameters
-    type(inputParameters)                :: subParameters
+    type (inputParameters                 ), intent(inout) :: parameters
+    type (inputParameters                 )                :: subParameters
+    class(galacticComponentTruncationClass), pointer       :: galacticComponentTruncation__
 
     if (defaultDiskComponent%standardIsActive()) then
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
+       ! Find the meta-property giving the degree of tidal truncation of the disk, which exists only if some class (e.g. a tidal
+       ! mass loss node operator) creates it. This is needed only if the disk is truncated. It is not registered otherwise since
+       ! every registered evolvable meta-property adds a variable to the ODE system of every node, whether or not it is created.
+       !![
+       <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation__" source="subParameters"/>
+       !!]
+       diskTruncationIsActive=galacticComponentTruncation__%isActive()
+       if (diskTruncationIsActive) then
+          !![
+          <addMetaProperty component="disk" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
+          !!]
+       else
+          tidalTruncationID=-1
+       end if
+       !![
+       <objectDestructor name="galacticComponentTruncation__"/>
+       !!]
        ! Read parameters controlling the physical implementation.
        !![
        <inputParameter docformat="rst">
@@ -293,9 +338,11 @@ contains
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
     use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_    , kinematicDistributionGas_
-    use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_    , kinematicDistributionGas_, &
+         &                                           galacticComponentTruncation_, galacticDiskHeating_
+    use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal      , massDistributionExponentialDisk
     use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
+    use :: ISO_Varying_String               , only : operator(//)
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     type            (dependencyRegEx), dimension(2)  :: dependencies
@@ -318,6 +365,8 @@ contains
        <objectBuilder class="stellarPopulationProperties"                                      name="stellarPopulationProperties_" source="subParameters"                    />
        <objectBuilder class="starFormationHistory"                                             name="starFormationHistory_"        source="subParameters"                    />
        <objectBuilder class="mergerMassMovements"                                              name="mergerMassMovements_"         source="subParameters"                    />
+       <objectBuilder class="galacticComponentTruncation"                                      name="galacticComponentTruncation_" source="subParameters" threadPrivate="yes"/>
+       <objectBuilder class="galacticDiskHeating"                                              name="galacticDiskHeating_"         source="subParameters" threadPrivate="yes"/>
        <objectBuilder class="massDistribution"            parameterName="massDistributionDisk" name="massDistributionStellar_"     source="subParameters" threadPrivate="yes" >
         <default>
          <massDistributionDisk value="exponentialDisk">
@@ -334,6 +383,21 @@ contains
           call Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
        if (.not.massDistributionStellar_%isDimensionless()) call Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
+       ! Truncation and heating of the disk require an exponential disk mass distribution, and heating requires the tidal heating
+       ! of satellites.
+       if (galacticComponentTruncation_%isActive() .or. galacticDiskHeating_%isActive()) then
+          select type (massDistributionStellar_)
+          class is (massDistributionExponentialDisk)
+             ! An exponential disk can be truncated and heated.
+          class default
+             call Error_Report('truncation and heating of disks require an exponential disk mass distribution'//{introspection:location})
+          end select
+       end if
+       if (galacticDiskHeating_%isActive()) then
+          !![
+          <componentPropertyAssert class="satellite" properties="tidalHeatingNormalized" require="gettable"/>
+          !!]
+       end if
        ! Duplicate the dimensionless mass distribution to use for the gas component, and set component and mass types in both.
        !$omp critical(diskStandardDeepCopy)
        allocate(massDistributionGas_,mold=massDistributionStellar_)
@@ -406,10 +470,10 @@ contains
     !!{RST
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent     , mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent        , mergerTreeOutputStateAdvanceEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_     , kinematicDistribution_           , scalerStellarPool, &
-         &                                           scalerGasPool           , kinematicDistributionGas_
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_        , kinematicDistribution_           , scalerStellarPool, &
+         &                                           scalerGasPool           , kinematicDistributionGas_   , galacticComponentTruncation_     , galacticDiskHeating_
     implicit none
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -424,6 +488,8 @@ contains
        <objectDestructor name="stellarPopulationProperties_"/>
        <objectDestructor name="starFormationHistory_"       />
        <objectDestructor name="mergerMassMovements_"        />
+       <objectDestructor name="galacticComponentTruncation_"/>
+       <objectDestructor name="galacticDiskHeating_"        />
        <objectDestructor name="massDistributionStellar_"    />
        <objectDestructor name="massDistributionGas_"        />
        <objectDestructor name="kinematicDistribution_"      />
@@ -1048,7 +1114,9 @@ contains
     class(nodeComponentDisk), pointer       :: disk
 
     disk => node%disk()
-    Node_Component_Disk_Standard_Radius_Solve=disk%radius()*radiusStructureSolver
+    Node_Component_Disk_Standard_Radius_Solve=+disk%radius                                   (    ) &
+         &                                    *radiusStructureSolver                                &
+         &                                    *Node_Component_Disk_Standard_Truncation_Factor(disk)
     return
   end function Node_Component_Disk_Standard_Radius_Solve
 
@@ -1063,7 +1131,7 @@ contains
     class           (nodeComponentDisk), pointer       :: disk
 
     disk => node%disk()
-    call disk%radiusSet(max(radius,0.0d0)/radiusStructureSolver)
+    call disk%radiusSet(max(radius,0.0d0)/radiusStructureSolver/Node_Component_Disk_Standard_Truncation_Factor(disk))
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solve_Set
 
@@ -1170,6 +1238,38 @@ contains
     end select
     return
   end subroutine Node_Component_Disk_Standard_Radius_Solver
+
+  double precision function Node_Component_Disk_Standard_Truncation_Factor(disk) result(factor)
+    !!{RST
+    Return the ratio of the mean radius, :math:`\langle R \rangle = I_2/I_1`, of the disk after any tidal truncation to that of
+    the untruncated disk.
+    !!}
+    use :: Galacticus_Nodes                 , only : nodeComponentDisk
+    use :: Mass_Distributions               , only : massDistributionCylindrical
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , galacticComponentTruncation_, tidalTruncationID
+    implicit none
+    class           (nodeComponentDisk          ), intent(inout) :: disk
+    class           (massDistributionCylindrical), pointer       :: massDistributionTruncated
+    double precision                                             :: fractionMassRetained
+
+    factor=1.0d0
+    if (.not.galacticComponentTruncation_%isActive()                     ) return
+    if (.not.disk%floatRank0MetaPropertyIsCreated(tidalTruncationID)) return
+    fractionMassRetained=exp(-disk%floatRank0MetaPropertyGet(tidalTruncationID))
+    if (fractionMassRetained >= 1.0d0) return
+    select type (massDistributionStellar_)
+    class is (massDistributionCylindrical)
+       massDistributionTruncated => galacticComponentTruncation_%massDistributionCylindrical(massDistributionStellar_,fractionMassRetained,0.0d0)
+       factor=+massDistributionTruncated%surfaceDensityRadialMoment(2.0d0) &
+            & /massDistributionTruncated%surfaceDensityRadialMoment(1.0d0) &
+            & /massDistributionStellar_ %surfaceDensityRadialMoment(2.0d0) &
+            & *massDistributionStellar_ %surfaceDensityRadialMoment(1.0d0)
+       !![
+       <objectDestructor name="massDistributionTruncated"/>
+       !!]
+    end select
+    return
+  end function Node_Component_Disk_Standard_Truncation_Factor
 
   subroutine mergerTreeOutputStateAdvance(self,node,iOutput)
     !!{RST

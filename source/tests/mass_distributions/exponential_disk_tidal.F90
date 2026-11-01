@@ -27,37 +27,43 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
   !!{RST
   Tests the :galacticus-class:`massDistributionExponentialDiskTidal` mass distribution.
   !!}
-  use :: Coordinates                          , only : coordinateCylindrical          , coordinateCartesian                 , assignment(=)
-  use :: Display                              , only : displayVerbositySet            , verbosityLevelStandard
+  use :: Coordinates                          , only : coordinateCylindrical                 , coordinateCartesian                 , assignment(=)
+  use :: Display                              , only : displayVerbositySet                   , verbosityLevelStandard
   use :: Events_Hooks                         , only : eventsHooksInitialize
+  use :: Galactic_Component_Truncations       , only : galacticComponentTruncationExponential
   use :: IO_HDF5                              , only : ioHDF5AccessInitialize
-  use :: Mass_Distributions                   , only : massDistributionExponentialDisk, massDistributionExponentialDiskTidal
+  use :: Mass_Distributions                   , only : massDistributionExponentialDisk       , massDistributionExponentialDiskTidal
   use :: Numerical_Constants_Math             , only : Pi
   use :: Tensors                              , only : assignment(=)
-  use :: Test_Exponential_Disk_Tidal_Reference, only : referenceRotationCurveSquared  , referencePotential                  , referenceRadiusTruncate
-  use :: Unit_Tests                           , only : Assert                         , Unit_Tests_Begin_Group              , Unit_Tests_End_Group   , Unit_Tests_Finish
+  use :: Test_Exponential_Disk_Tidal_Reference, only : referenceRotationCurveSquared         , referencePotential                  , referenceRadiusTruncate
+  use :: Unit_Tests                           , only : Assert                                , Unit_Tests_Begin_Group              , Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
-  double precision                                      , parameter      :: scaleHeight      =0.137d0                        , radiusDecayOverRadiusTruncate=0.1d0, &
+  double precision                                      , parameter      :: scaleHeight      =0.137d0                         , radiusDecayOverRadiusTruncate=0.1d0, &
        &                                                                    stepFractional   =1.0d-4
   double precision                                      , dimension(5  ) :: radii            =[0.1d0,0.5d0,1.0d0,2.0d0,5.0d0]
   double precision                                      , dimension(3  ) :: radiiTruncated   =[0.5d0,1.0d0,2.0d0]
   double precision                                      , dimension(3  ) :: anglesOffPlane   =[0.0d0,45.0d0,80.0d0]
   double precision                                      , dimension(2  ) :: radiiBlend       =[1.5d0,0.4d0]
   character       (len=2)                               , dimension(3  ) :: labelsOffPlane   =['0 ','45','80']
-  double precision                                      , dimension(5  ) :: valuesTidal                                      , valuesParent
-  double precision                                      , dimension(3  ) :: valuesReference                                  , valuesTest                         , &
-       &                                                                    accelerationPlus                                 , accelerationMinus
-  double precision                                      , dimension(3,3) :: tidalTensor                                      , tidalTensorDifference
-  double precision                                      , dimension(3  ) :: position                                         , positionPlus                       , &
+  double precision                                      , dimension(5  ) :: valuesTidal                                       , valuesParent
+  double precision                                      , dimension(3  ) :: valuesReference                                   , valuesTest                         , &
+       &                                                                    accelerationPlus                                  , accelerationMinus
+  double precision                                      , dimension(3,3) :: tidalTensor                                       , tidalTensorDifference
+  double precision                                      , dimension(3  ) :: position                                          , positionPlus                       , &
        &                                                                    positionMinus
   type            (massDistributionExponentialDisk     )                 :: parent
-  type            (massDistributionExponentialDiskTidal)                 :: disk
-  double precision                                                       :: radiusTruncate                                   , radius                             , &
-       &                                                                    jumpMaximum                                      , massMaximum                        , &
-       &                                                                    quadrupole                                       , angle                              , &
-       &                                                                    potentialPrevious                                , accelerationPrevious               , &
-       &                                                                    potentialCurrent                                 , accelerationCurrent
-  integer                                                                :: i                                                , j
+  type            (massDistributionExponentialDiskTidal)                 :: disk                                              , diskPlus                           , &
+       &                                                                    diskMinus
+  type            (galacticComponentTruncationExponential)               :: truncation
+  double precision                                      , dimension(5  ) :: truncations      =[0.01d0,0.1d0,0.5d0,2.0d0,8.0d0]
+  integer                                               , parameter      :: countIntegration =400
+  double precision                                                       :: weight                                            , truncationIntegration
+  double precision                                                       :: radiusTruncate                                    , radius                             , &
+       &                                                                    jumpMaximum                                       , massMaximum                        , &
+       &                                                                    quadrupole                                        , angle                              , &
+       &                                                                    potentialPrevious                                 , accelerationPrevious               , &
+       &                                                                    potentialCurrent                                  , accelerationCurrent
+  integer                                                                :: i                                                 , j
 
   call displayVerbositySet   (verbosityLevelStandard)
   call eventsHooksInitialize ()
@@ -313,6 +319,56 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
           &          /2.0d0/stepFractional/radii(i)
   end do
   call Assert('rotation curve gradient vs. finite difference',valuesTidal,valuesParent,relTol=1.0d-4)
+  call Unit_Tests_End_Group()
+  ! The specific angular momentum of material removed by further truncation, j/⟨j⟩ = 1 - d log⟨R⟩/dx.
+  call Unit_Tests_Begin_Group("Specific angular momentum of stripped material")
+  truncation=galacticComponentTruncationExponential(radiusDecayOverRadiusTruncate)
+  ! Compare with values computed independently (using incomplete gamma functions in Python's scipy.special) for truncation radii
+  ! of 1 and 0.1 scale lengths.
+  call Assert('ratio vs. reference, R_t = 1.0',truncation%ratioAngularMomentumCylindrical(exp(-8.520917d-1)),1.710221d0,relTol=1.0d-5)
+  call Assert('ratio vs. reference, R_t = 0.1',truncation%ratioAngularMomentumCylindrical(exp(-4.602535d+0)),1.517677d0,relTol=1.0d-5)
+  ! Compare with the change in the mean radius of the tabulated truncated disk between successive degrees of truncation. Since
+  ! j/⟨j⟩ = 1 - d log⟨R⟩/dx, the integral of j/⟨j⟩-1 over x between two truncations should equal the change in log⟨R⟩. (The
+  ! derivative of the mean radius of the tabulated disk is not compared directly, as it has small discontinuities at the
+  ! tabulated truncation radii.) The integral is evaluated using Simpson's rule in log x.
+  do i=1,size(truncations)-1
+     diskPlus       =massDistributionExponentialDiskTidal(truncation=truncations(i+1),heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+     diskMinus      =massDistributionExponentialDiskTidal(truncation=truncations(i  ),heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+     valuesParent(i)=+log(diskMinus%surfaceDensityRadialMoment(2.0d0)/diskMinus%surfaceDensityRadialMoment(1.0d0)) &
+          &          -log(diskPlus %surfaceDensityRadialMoment(2.0d0)/diskPlus %surfaceDensityRadialMoment(1.0d0))
+     valuesTidal (i)=0.0d0
+     do j=0,countIntegration
+        truncationIntegration=exp(log(truncations(i))+log(truncations(i+1)/truncations(i))*dble(j)/dble(countIntegration))
+        if      (j == 0 .or. j == countIntegration) then
+           weight=1.0d0
+        else if (mod(j,2) == 1                    ) then
+           weight=4.0d0
+        else
+           weight=2.0d0
+        end if
+        valuesTidal(i)=+valuesTidal(i)                                                                  &
+             &         +weight                                                                          &
+             &         *truncationIntegration                                                           &
+             &         *(truncation%ratioAngularMomentumCylindrical(exp(-truncationIntegration))-1.0d0) &
+             &         *log(truncations(i+1)/truncations(i))                                            &
+             &         /dble(countIntegration)                                                          &
+             &         /3.0d0
+     end do
+  end do
+  call Assert('integrated ratio vs. change in mean radius of the truncated disk',valuesTidal(1:size(truncations)-1),valuesParent(1:size(truncations)-1),relTol=1.0d-3)
+  ! The shape of the disk is unchanged for negligible truncations, and for truncations beyond the tabulated range.
+  call Assert('ratio for negligible truncation' ,truncation%ratioAngularMomentumCylindrical(exp(-1.0d-5)),1.0d0,relTol=1.0d-12)
+  call Assert('ratio beyond the tabulated range',truncation%ratioAngularMomentumCylindrical(exp(-12.0d0)),1.0d0,relTol=1.0d-12)
+  ! The shape of the disk is held fixed for truncations beyond that of the smallest tabulated truncation radius, 0.01 scale lengths,
+  ! for which x = 9.114112 (computed using Python's scipy.special). Check that the ratio becomes unity at this point, and not before.
+  diskPlus =massDistributionExponentialDiskTidal(truncation=9.10d0,heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+  diskMinus=massDistributionExponentialDiskTidal(truncation=9.05d0,heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+  call Assert('disk shape changes below the limit',diskPlus%surfaceDensityRadialMoment(2.0d0)/diskPlus%surfaceDensityRadialMoment(1.0d0) < 0.9999d0*diskMinus%surfaceDensityRadialMoment(2.0d0)/diskMinus%surfaceDensityRadialMoment(1.0d0),.true.)
+  diskPlus =massDistributionExponentialDiskTidal(truncation=9.20d0,heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+  diskMinus=massDistributionExponentialDiskTidal(truncation=9.13d0,heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+  call Assert('disk shape is fixed beyond the limit',diskPlus%surfaceDensityRadialMoment(2.0d0)/diskPlus%surfaceDensityRadialMoment(1.0d0),diskMinus%surfaceDensityRadialMoment(2.0d0)/diskMinus%surfaceDensityRadialMoment(1.0d0),relTol=1.0d-12)
+  call Assert('ratio is not unity below the limit',truncation%ratioAngularMomentumCylindrical(exp(-9.10d0)) > 1.4d0,.true.               )
+  call Assert('ratio is unity beyond the limit'   ,truncation%ratioAngularMomentumCylindrical(exp(-9.13d0))         ,1.0d0,relTol=1.0d-12)
   call Unit_Tests_End_Group()
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
