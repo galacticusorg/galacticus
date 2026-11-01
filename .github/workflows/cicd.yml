@@ -1658,6 +1658,7 @@ jobs:
                 test-AGNSED.py,
                 test-disk-size-inclination-table.py,
                 test-progenitor-mass-function-forests.py,
+                test-single-epoch-survey-volume.py,
                 test-black-hole-jet-efficiency.py,
                 test-critical-overdensity-tree-dependent.py,
                 test-SIDM-parametric.py,
