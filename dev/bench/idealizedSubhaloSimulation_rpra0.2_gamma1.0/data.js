@@ -1,45 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793454994585,
+  "lastUpdate": 1793521885040,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "committer": {
-            "name": "Andrew Benson",
-            "username": "abensonca",
-            "email": "abenson@carnegiescience.edu"
-          },
-          "id": "aaf545c06c3c182c6fda4607d4c01214658408e0",
-          "message": "fix: Remove obsoleted parameters from test parameter file",
-          "timestamp": "2024-10-17T21:12:10Z",
-          "url": "https://github.com/galacticusorg/galacticus/commit/aaf545c06c3c182c6fda4607d4c01214658408e0"
-        },
-        "date": 1729214827482,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": "30.59213834512038",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "16.757775546264547",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "17.51631864004522",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9930,6 +9893,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/445c6edb4a0939dea25cffc74bcd6c4e78b9564d"
         },
         "date": 1793454993975,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": -30.5921383172611,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -16.757775564493173,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -17.516318652451297,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0931377814c891cd250a9622635b67ff432cf59d",
+          "message": "Merge pull request #1723 from galacticusorg/fix/link-checker-curl-ciphers-ads-429\n\nfix(ci): spell curl's --ciphers in full, and treat an ADS 429 as a warning",
+          "timestamp": "2026-10-31T16:38:53Z",
+          "tree_id": "cec183b569e6ff3745e8f3dca7dffbeb42e82e0f",
+          "url": "https://github.com/galacticusorg/galacticus/commit/0931377814c891cd250a9622635b67ff432cf59d"
+        },
+        "date": 1793521884267,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
