@@ -69,9 +69,14 @@ for (outputName, output) in outputs.items():
 # integral still removed - reproduces the previous values exactly, which is what identifies the star formation law rather than
 # the removal of that tabulation as the cause.
 #
+# They were updated again when the Blitz & Rosolowsky (2006) law was made to apply its star formation frequency to the total
+# molecular gas, including helium, rather than to molecular hydrogen alone, as the Leroy et al. (2008) efficiency which is its
+# default requires. This model uses that default, so its disk star formation rate rose by 1/X_H. The masses rose by 0.5%, 1.9%
+# and 2.7% at z = 12, 10 and 8, and the cooling functions by 0.06%, 1.3% and 2.8%.
+#
 # Repeated builds of the same source give these to about one part in 10^5, so the 1% tolerance below is not tight.
-massesHydrogenMolecularTarget   = np.array([94177.45499300, 221804.24175394, 336649.62031359, 0.            ])
-coolingFunctionsMolecularTarget = np.array([2.75853507e-24, 5.34553994e-24 , 2.32584862e-24 , 0.00000000e+00])
+massesHydrogenMolecularTarget   = np.array([94678.51982864, 225968.31583008, 345865.14912652, 0.            ])
+coolingFunctionsMolecularTarget = np.array([2.76023446e-24, 5.41387125e-24 , 2.39004007e-24 , 0.00000000e+00])
 
 # Report on status.
 massesAgree  = np.isclose(massesHydrogenMolecular  ,massesHydrogenMolecularTarget  ,rtol=1.0e-2,atol=1.0e3 )
