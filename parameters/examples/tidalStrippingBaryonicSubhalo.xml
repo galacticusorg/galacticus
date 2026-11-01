@@ -1,12 +1,13 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Example model: a single subhalo, containing a stellar disk and spheroid, orbiting in a fixed (isothermal) host potential. The -->
 <!-- dark matter of the subhalo is tidally stripped and heated. Its disk and spheroid are tidally stripped (see the                 -->
-<!-- tidalStrippingZentner2005 class), with the mass distribution of the spheroid being truncated as it is stripped (see the       -->
-<!-- galacticComponentTruncationExponential class), and heated along with the dark matter (see the galacticComponentHeatingTracer -->
-<!-- class). Gas, star formation, and feedback are omitted, so that all evolution of the disk and spheroid is due to tidal         -->
-<!-- effects. Plot the results with scripts/analysis/tidalStrippingBaryonicSubhalo.py. To see the effects of heating of the        -->
-<!-- spheroid, also run the model with the changes in tidalStrippingBaryonicSubhaloUnheated.xml, which switch off that heating,    -->
-<!-- and compare the two runs with scripts/analysis/tidalHeatingBaryonicSubhalo.py.                                                -->
+<!-- tidalStrippingZentner2005 class), with their mass distributions being truncated as they are stripped (see the                 -->
+<!-- galacticComponentTruncationExponential class). The spheroid is heated along with the dark matter (see the                     -->
+<!-- galacticComponentHeatingTracer class), and the disk is heated by tidal shocks (see the galacticDiskHeatingImpulsive class).   -->
+<!-- Gas, star formation, and feedback are omitted, so that all evolution of the disk and spheroid is due to tidal effects. Plot   -->
+<!-- the results with scripts/analysis/tidalStrippingBaryonicSubhalo.py. To see the effects of heating, also run the model with    -->
+<!-- the changes in tidalStrippingBaryonicSubhaloUnheated.xml, which switch off heating of both the disk and the spheroid, and     -->
+<!-- compare the two runs with scripts/analysis/tidalHeatingBaryonicSubhalo.py.                                                    -->
 
 <parameters>
   <formatVersion>2</formatVersion>
@@ -105,10 +106,11 @@
     <efficiency value="3.00"/>
   </satelliteTidalStripping>
 
-  <!-- Tidal stripping of the disk and spheroid, with truncation and heating of the spheroid -->
+  <!-- Tidal stripping of the disk and spheroid, with truncation and heating of both -->
   <tidalStripping              value="zentner2005"/>
   <galacticComponentTruncation value="exponential"/>
   <galacticComponentHeating    value="tracer"     />
+  <galacticDiskHeating         value="impulsive"  />
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
@@ -177,10 +179,11 @@
     <nodePropertyExtractor value="radiusOrbital"  />
     <nodePropertyExtractor value="radiusTidal"    />
     <nodePropertyExtractor value="tidalTruncation"/>
-    <!-- The half-mass radius of the spheroid -->
+    <nodePropertyExtractor value="diskHeating"    />
+    <!-- The half-mass radii of the spheroid and disk -->
     <nodePropertyExtractor value="massProfile">
       <includeRadii     value="true"/>
-      <radiusSpecifiers value="spheroidHalfMassRadius:spheroid:stellar:1.0"/>
+      <radiusSpecifiers value="spheroidHalfMassRadius:spheroid:stellar:1.0 diskHalfMassRadius:disk:stellar:1.0"/>
     </nodePropertyExtractor>
     <!-- Density profiles of the spheroid stars, and of the dark matter, at radii from 0.1 to 30 kpc -->
     <nodePropertyExtractor value="densityProfile">
