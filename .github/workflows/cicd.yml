@@ -441,7 +441,7 @@ jobs:
              echo "doPush=true"  >> "$GITHUB_OUTPUT"
           fi
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -1354,6 +1354,7 @@ jobs:
                       tests.mergers_instabilities_physics.exe,
                       tests.mass_definitions_output_times.exe,
                       tests.cooling_chain.exe,
+                      tests.hot_halo_outflow_stripping.exe,
                       tests.bett2007_spin_distribution.exe,
                       tests.bug745815.exe,
                       tests.gaunt_factors.exe,
@@ -1565,6 +1566,7 @@ jobs:
       fail-fast: false
       matrix:
         file: [ test-bar-instability.py,
+                test-bar-instability-binding-energy.py,
                 test-transfer-functions-axion.py,
                 test-mass-definitions.py,
                 test-branchlessTrees.py,
@@ -1655,6 +1657,7 @@ jobs:
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
                 test-IGM-thermal-evolution.py,
+                test-disk-size-inclination-table.py,
                 test-progenitor-mass-function-forests.py,
                 test-black-hole-jet-efficiency.py,
                 test-SIDM-parametric.py,
