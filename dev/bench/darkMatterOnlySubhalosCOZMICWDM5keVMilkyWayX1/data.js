@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793521792603,
+  "lastUpdate": 1793609657580,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 5keV resolutionX1)": [
@@ -4745,6 +4745,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 3.9730077677491793,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d4c4a69daf305ab6206246cf782babbc6dc0e0aa",
+          "message": "Merge pull request #1728 from galacticusorg/fix/p11-velocity-dispersion-gas\n\nfix(starFormation): pair disk gas velocity dispersion defaults with their sources",
+          "timestamp": "2026-11-02T02:27:47Z",
+          "tree_id": "7e42fbf3e1d7d71b061025792bcac5069d15f723",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d4c4a69daf305ab6206246cf782babbc6dc0e0aa"
+        },
+        "date": 1793609657004,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.449447568630976,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 0.3399012509275492,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:5keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 4.354453786247143,
             "unit": "-logℒ"
           }
         ]
