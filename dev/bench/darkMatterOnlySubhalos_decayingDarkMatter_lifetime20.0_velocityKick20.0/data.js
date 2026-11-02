@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793521899728,
+  "lastUpdate": 1793609764571,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)": [
@@ -7553,6 +7553,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
             "value": 11.105516169261183,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d4c4a69daf305ab6206246cf782babbc6dc0e0aa",
+          "message": "Merge pull request #1728 from galacticusorg/fix/p11-velocity-dispersion-gas\n\nfix(starFormation): pair disk gas velocity dispersion defaults with their sources",
+          "timestamp": "2026-11-02T02:27:47Z",
+          "tree_id": "7e42fbf3e1d7d71b061025792bcac5069d15f723",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d4c4a69daf305ab6206246cf782babbc6dc0e0aa"
+        },
+        "date": 1793609763566,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 14.834275831516623,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=20.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 11.126138927916084,
             "unit": "-logℒ"
           }
         ]
