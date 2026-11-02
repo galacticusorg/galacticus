@@ -536,6 +536,15 @@
     </translation>
   </migration>
 
+  <migration commit="ea6b55717d89e3ac2234e42c78fca7eebcf9e2fc">
+    <!-- The blitz2006 star formation frequency now applies to all molecular gas (including helium), as for the star formation    -->
+    <!-- efficiency of molecular gas of Leroy et al. (2008), rather than to molecular hydrogen only. Rescale explicitly given values -->
+    <!-- by Leroy et al.'s hydrogen mass fraction, 1/1.36, so that existing models are unchanged.                                -->
+    <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']/starFormationFrequencyNormalization">
+      <scale factor="0.73529411764705882" description="now per unit molecular gas mass including helium"/>
+    </translation>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />
