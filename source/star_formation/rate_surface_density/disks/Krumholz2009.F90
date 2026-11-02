@@ -352,17 +352,17 @@ contains
           ! Each fitting function for the molecular fraction is paired with the definition of s used in deriving it.
           if (self%molecularFractionFast) then
              ! McKee & Krumholz (2010), section on molecular mass fractions in atomic-molecular complexes.
-             self%chi           =+3.1d0                                                      &
-                  &              *(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)     &
+             self%chi           =+3.1d0                                                  &
+                  &              *(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0) &
                   &              /4.1d0
-             self%sNormalization=+log(1.0d0+0.6d0*self%chi+0.01d0*self%chi**2)               &
+             self%sNormalization=+log(1.0d0+0.6d0*self%chi+0.01d0*self%chi**2)           &
                   &              /(0.6d0*0.066d0*self%metallicityRelativeToSolar)
           else
              ! Krumholz, McKee & Tumlinson (2009; eqn. 2).
-             self%chi           =+0.77d0                                                     &
+             self%chi           =+0.77d0                                                 &
                   &              *(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)
-             self%sNormalization=+log(1.0d0+0.6d0*self%chi                 )                 &
-                  &              /(0.04d0            *self%metallicityRelativeToSolar)
+             self%sNormalization=+log(1.0d0+0.6d0*self%chi                 )             &
+                  &              /(0.04d0       *self%metallicityRelativeToSolar)
           end if
           ! Find the gas surface density below which the molecular fraction is negligible. Since s ∝ 1/Σ_gas, the molecular
           ! fraction falls below `molecularFractionTiny` wherever the gas surface density falls below this value.

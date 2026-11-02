@@ -288,10 +288,10 @@ program Test_Star_Formation_Molecular_Fractions
   call krumholz2009_ %calculationReset(node,node%uniqueID()    )
   ! In the high surface density limit the gas is fully molecular, and the rate reduces to ν Σ_gas (Σ_gas/85 M☉ pc⁻²)^0.33. Here
   ! the disk is compressed by a factor of twenty, leaving a molecular fraction of 1-9.3×10⁻⁵.
-  surfaceDensityGas_=+massGas                                                                                 &
-       &             /2.0d0                                                                                   &
-       &             /Pi                                                                                      &
-       &             /(radiusScale/20.0d0)     **2                                                            &
+  surfaceDensityGas_=+massGas                   &
+       &             /2.0d0                     &
+       &             /Pi                        &
+       &             /(radiusScale/20.0d0)  **2 &
        &             *exp(-radiiKrumholz(1))
   call Assert('fully molecular at high surface density',krumholz2009_%rate(nodeCompressedTwenty,radiiKrumholz(1)*radiusScale/20.0d0),frequencyStarFormation*surfaceDensityGas_*(surfaceDensityGas_/surfaceDensityTransition)**0.33d0,relTol=toleranceLimit)
   ! In the low surface density limit the molecular fraction, and so the rate, vanishes.
