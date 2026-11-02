@@ -32,7 +32,7 @@
    Computes and applies gravitational tidal stripping of stellar and gaseous mass from satellite galaxy disks as they orbit within the host halo tidal field, removing material outside the satellite's tidal radius at each pericentric passage.
    The degree of tidal truncation of the disk, :math:`x=-\log f` where :math:`f` is the fraction of the mass of its untruncated mass distribution which it retains, is tracked in its ``tidalTruncation`` meta-property (see :galacticus-class:`galacticComponentTruncation`).
 
-   If the mass distribution of the disk is truncated (i.e. if ``[galacticComponentTruncation]`` is not ``none``), the stripped material carries the specific angular momentum implied by the change in the truncated mass distribution of the disk (see :galacticus-class:`galacticComponentTruncationExponential`), rather than that given by ``[tidalStripping]``. The specific angular momentum of the disk then remains consistent with its truncated mass distribution. (Otherwise, removing material from across the region beyond the tidal radius, while truncating the mass distribution from its edge, leaves the disk with more angular momentum than its mass distribution implies.) The ``[galacticComponentTruncation]`` used here must be the same as that used by the disk component, which is ensured by specifying it at the top level of the parameter file. (A fatal error occurs if one, but not the other, truncates the disk.)
+   If the mass distribution of the disk is truncated (i.e. if ``[galacticComponentTruncation]`` is not ``none``), the stripped material carries the specific angular momentum implied by the change in the truncated mass distribution of the disk (see :galacticus-class:`galacticComponentTruncationExponential`), rather than that given by ``[tidalStripping]``. The specific angular momentum of the disk then remains consistent with its truncated mass distribution. (Otherwise, removing material from across the region beyond the tidal radius, while truncating the mass distribution from its edge, leaves the disk with more angular momentum than its mass distribution implies.) The ``[galacticComponentTruncation]`` used here must be the same as that used by the disk component, which is ensured by specifying it at the top level of the parameter file. (A fatal error occurs if one, but not the other, truncates the disk.) The disk component must track the angular momentum of the disk (e.g. the standard disk).
    </description>
   </nodeOperator>
   !!]
@@ -95,6 +95,7 @@ contains
     !![
     <constructorAssign variables="*tidalStripping_, *galacticComponentTruncation_"/>
     <addMetaProperty component="disk" name="tidalTruncation" id="self%tidalTruncationID" isEvolvable="yes" isCreator="yes"/>
+    <componentPropertyAssert class="disk" properties="massStellar massGas angularMomentum" require="gettable"/>
     !!]
 
     return
