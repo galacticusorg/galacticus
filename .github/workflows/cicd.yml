@@ -1636,6 +1636,7 @@ jobs:
                 test-stellar-properties-Karakas2010Doherty2014.py,
                 test-stellar-properties-Sukhbold2016.py,
                 test-tidalTracks.py,
+                test-tidal-stripping-disk-angular-momentum.py,
                 test-satellite-orbit-evolution.py,
                 test-satellite-tidal-heating-evolution.py,
                 test-transferFunctionHalfModeSlope.py,
