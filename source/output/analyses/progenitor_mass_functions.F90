@@ -694,16 +694,22 @@ contains
     ! Initialize accumulated weight of parent nodes.
     self%weightParents       =0.0d0
     self%uniqueIDTreePrevious=-huge(0_kind_int8)
-    ! Compute conversion from progenitor mass function to counts.
-    valueSum     =     sum  (self%massRatios*dble(functionCountTarget)/functionValueTarget,mask=functionValueTarget > 0.0d0)
-    valueSumTotal=dble(count(                                                              mask=functionValueTarget > 0.0d0))
-    if (valueSumTotal <= 0.0d0) then
-       message='no non-zero bins present in target data'
-       if (present(targetLabel)) message=message//' ['//targetLabel//']'
-       call Error_Report(message//{introspection:location})
+    ! Compute conversion from progenitor mass function to counts. This requires target values and counts, which are optional.
+    if (present(functionValueTarget) .and. present(functionCountTarget)) then
+       valueSum     =     sum  (self%massRatios*dble(functionCountTarget)/functionValueTarget,mask=functionValueTarget > 0.0d0)
+       valueSumTotal=dble(count(                                                              mask=functionValueTarget > 0.0d0))
+       if (valueSumTotal <= 0.0d0) then
+          message='no non-zero bins present in target data'
+          if (present(targetLabel)) message=message//' ['//targetLabel//']'
+          call Error_Report(message//{introspection:location})
+       end if
+       self%countConversionFactor=+valueSum      &
+            &                     /valueSumTotal
+    else
+       if (likelihoodInCounts) call Error_Report('[likelihoodInCounts] requires target values and counts'//{introspection:location})
+       if (fillInZeroBins    ) call Error_Report('[fillInZeroBins] requires target values and counts'    //{introspection:location})
+       self%countConversionFactor=0.0d0
     end if
-    self%countConversionFactor=+valueSum      &
-         &                     /valueSumTotal
     ! Build a filter which selects isolated halos, above a suitable lower mass, and with parents in the correct mass range.
     allocate(     galacticFilter_                           )
     allocate(     galacticFilterHaloIsolated_               )

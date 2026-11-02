@@ -175,7 +175,9 @@
   ! from file) on first use.
   type            (exponentialDiskTidalTable), pointer   :: exponentialDiskTidalTables                  => null()
 
-  ! Grid of truncation radii (in units of the disk scale length) and degree of truncation.
+  ! Grid of truncation radii (in units of the disk scale length) and degree of truncation. (The smallest truncation radius is
+  ! duplicated in galacticComponentTruncationExponential, which must account for the shape of more strongly truncated disks being
+  ! held fixed.)
   double precision                           , parameter :: exponentialDiskTidalRadiusTruncateMinimum   =  1.0d-2
   integer                                    , parameter :: exponentialDiskTidalRadiusTruncatePerDecade =  20
   double precision                           , parameter :: exponentialDiskTidalTruncationNegligible    =  1.0d-6
@@ -1749,6 +1751,7 @@ contains
     numerical integration.
     !!}
     use :: Coordinates          , only : coordinateCylindrical
+    use :: Error                , only : Error_Report         , errorStatusSuccess, errorStatusRound
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (massDistributionExponentialDiskTidal), intent(inout)           :: self
@@ -1760,7 +1763,8 @@ contains
          &                                                                             radiusLogarithmicInner  , radiusLogarithmicUpper  , &
          &                                                                             radiusInnerMinimum
     logical                                                                         :: includeInner
-    integer                                                                         :: i                       , j
+    integer                                                                         :: i                       , j                       , &
+         &                                                                             status
 
     if (present(isInfinite)) isInfinite=.false.
     if (.not.present(radiusMinimum) .and. .not.present(radiusMaximum) .and. (moment == 1.0d0 .or. moment == 2.0d0)) then
@@ -1786,7 +1790,11 @@ contains
           exponentialDiskTidalSurfaceDensityRadialMoment=0.0d0
        else
           integrator_                                   =integrator(momentIntegrand,toleranceRelative=1.0d-6)
-          exponentialDiskTidalSurfaceDensityRadialMoment=integrator_%integrate(radiusLogarithmicMinimum,radiusLogarithmicMaximum)
+          exponentialDiskTidalSurfaceDensityRadialMoment=integrator_%integrate(radiusLogarithmicMinimum,radiusLogarithmicMaximum,status=status)
+          ! The interpolated surface density has discontinuous derivatives at the tabulated radii, so the integration can be limited
+          ! by round-off error before the required tolerance is reached. The result is then as accurate as round-off allows, so is
+          ! accepted.
+          if (status /= errorStatusSuccess .and. status /= errorStatusRound) call Error_Report('integration of the radial moment failed'//{introspection:location})
        end if
        ! Below the tabulated range the ratio of surface densities is constant. Add the contribution from that region if it is
        ! included in the requested range.

@@ -11,9 +11,7 @@
 
 
   <!-- Task and work control -->
-  <task value="evolveForests">
-    <walltimeMaximum value="7200"/>
-  </task>
+  <task value="evolveForests"/>
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Output file -->
@@ -485,24 +483,23 @@
       <systematicErrorPolynomialCoefficient value="-0.000290999740052957 0.001719822220954"/>
     </outputAnalysis>
 
-    <!-- Local Group stellar mass function -->
-    <outputAnalysis value="localGroupStellarMassFunction"/> <!-- Analysis #19 -->
-
   </outputAnalysis>
 
-  <!-- Systematics nuisance parameters -->
-  <sdssStellarMassSystematics0 value="0.0582454381888318"/>
-  <sdssStellarMassSystematics1 value="-0.058115287792454"/>
-  <gamaStellarMassSystematics0 value="-0.155872721559837"/>
-  <gamaStellarMassSystematics1 value="0.0077688225143428"/>
-  <ultravistaStellarMassSystematics0 value="-0.251426271063426"/>
-  <ultravistaStellarMassSystematics1 value="-0.0124830824977516"/>
-  <alfalfaMassSystematics0 value="-0.126745570595433"/>
-  <alfalfaMassSystematics1 value="0.00149220388187935"/>
-  <sdssMagnitudeSystematics0 value="0.0021761064660743"/>
-  <sdssMagnitudeSystematics1 value="0.00711985285823365"/>
-  <emissionLineLuminositySystematics0 value="-0.00668698203006482"/>
-  <emissionLineLuminositySystematics1 value="-0.00098878419875252"/>
+  <!-- Systematics nuisance parameters. These are only a record of the fitted values: no class reads them. The values are
+       applied through the systematicErrorPolynomialCoefficient parameters of the analyses above (with a fixed offset in some
+       cases, such as the IMF shift applied to ULTRAVISTA). -->
+  <sdssStellarMassSystematics0 value="0.0582454381888318" ignoreWarnings="true"/>
+  <sdssStellarMassSystematics1 value="-0.058115287792454" ignoreWarnings="true"/>
+  <gamaStellarMassSystematics0 value="-0.155872721559837" ignoreWarnings="true"/>
+  <gamaStellarMassSystematics1 value="0.0077688225143428" ignoreWarnings="true"/>
+  <ultravistaStellarMassSystematics0 value="-0.251426271063426" ignoreWarnings="true"/>
+  <ultravistaStellarMassSystematics1 value="-0.0124830824977516" ignoreWarnings="true"/>
+  <alfalfaMassSystematics0 value="-0.126745570595433" ignoreWarnings="true"/>
+  <alfalfaMassSystematics1 value="0.00149220388187935" ignoreWarnings="true"/>
+  <sdssMagnitudeSystematics0 value="0.0021761064660743" ignoreWarnings="true"/>
+  <sdssMagnitudeSystematics1 value="0.00711985285823365" ignoreWarnings="true"/>
+  <emissionLineLuminositySystematics0 value="-0.00668698203006482" ignoreWarnings="true"/>
+  <emissionLineLuminositySystematics1 value="-0.00098878419875252" ignoreWarnings="true"/>
   <ratioEarlyType value="0.719247501103713"/>
 
   <!-- Emission line calculations. The Halpha luminosity function analyses compute line luminosities by convolving

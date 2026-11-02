@@ -441,7 +441,7 @@ jobs:
              echo "doPush=true"  >> "$GITHUB_OUTPUT"
           fi
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -1354,6 +1354,8 @@ jobs:
                       tests.mergers_instabilities_physics.exe,
                       tests.mass_definitions_output_times.exe,
                       tests.cooling_chain.exe,
+                      tests.cooling_energy_radiated_cap.exe,
+                      tests.hot_halo_outflow_stripping.exe,
                       tests.bett2007_spin_distribution.exe,
                       tests.bug745815.exe,
                       tests.gaunt_factors.exe,
@@ -1565,6 +1567,7 @@ jobs:
       fail-fast: false
       matrix:
         file: [ test-bar-instability.py,
+                test-bar-instability-binding-energy.py,
                 test-transfer-functions-axion.py,
                 test-mass-definitions.py,
                 test-branchlessTrees.py,
@@ -1606,6 +1609,7 @@ jobs:
                 test-parameters-extract.py,
                 test-parameters-changes.py,
                 test-parameters-default-reporting.py,
+                test-parameters-circular-conditionals.py,
                 test-temporary-parameter-file.py,
                 test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
@@ -1654,8 +1658,12 @@ jobs:
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
+                test-IGM-thermal-evolution.py,
+                test-disk-size-inclination-table.py,
                 test-progenitor-mass-function-forests.py,
+                test-single-epoch-survey-volume.py,
                 test-black-hole-jet-efficiency.py,
+                test-critical-overdensity-tree-dependent.py,
                 test-SIDM-parametric.py,
                 test-decaying-dark-matter-halo-mass-function.py,
                 test-objectBuilder-recursion.py,
@@ -1943,6 +1951,15 @@ jobs:
     uses: ./.github/workflows/testModel.yml
     with:
       file: test-radiativeTransfer-StromgrenSphere_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
+  MPI-Excursion-Sets-Farahi:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-excursionSetsFarahi_MPI.py
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
@@ -2682,6 +2699,7 @@ jobs:
              Methods-MPI,
              MPI-State-Restore,
              MPI-Radiative-Transfer-Stromgren-Sphere,
+             MPI-Excursion-Sets-Farahi,
              MPI-MCMC,
              Python-Interface,
              Codes-MacOS,
