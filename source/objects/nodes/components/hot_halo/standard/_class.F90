@@ -487,11 +487,11 @@ contains
           ! removed in proportion (negative accretion removes it at the specific angular momentum of accreted gas, for example),
           ! but is reset also, as any left in a hot halo containing no gas would be given to the next gas to arrive, with a
           ! spurious specific angular momentum.
-          call hotHalo%           massSet(                 0.0d0)
-          call hotHalo%     abundancesSet(        zeroAbundances)
-          call hotHalo%angularMomentumSet(                 0.0d0)
+          call        hotHalo%           massSet(                 0.0d0)
+          call        hotHalo%     abundancesSet(        zeroAbundances)
+          call        hotHalo%angularMomentumSet(                 0.0d0)
           if (chemicalsCount > 0) &
-               & call hotHalo% chemicalsSet(zeroChemicalAbundances)
+               & call hotHalo%chemicalsSet      (zeroChemicalAbundances)
           ! Mark ODE failure here to force derivatives to be recomputed, as rates may depend on the metals, chemicals, or angular
           ! momentum which were reset.
           status=GSL_Failure
