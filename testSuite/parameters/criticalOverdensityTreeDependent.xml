@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Collapse times from a tree-dependent critical overdensity must belong to the tree being evolved, not to the first tree a -->
+<!-- thread tabulated. Used by testSuite/test-critical-overdensity-tree-dependent.py.                                         -->
+<!-- Andrew Benson (23-October-2026)                                                                                          -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="ac0f5e1f433c3eb681b354deabdabf2cc030bbfb" time="2026-10-30T18:39:16"/>
+  <verbosityLevel value="standard"/>
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="null"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.400000"/>
+    <OmegaMatter     value=" 0.272000"/>
+    <OmegaDarkEnergy value=" 0.728000"/>
+    <OmegaBaryon     value=" 0.044550"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.04"/>
+    <neutrinoMassSummed value="0.0"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.967"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.81"/>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
+  <linearGrowth value="collisionlessMatter"/>
+  <criticalOverdensity value="environmental">
+    <a value="0.077"/>
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  </criticalOverdensity>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <haloEnvironment value="normal">
+    <radiusEnvironment value="7.102"/>
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  </haloEnvironment>
+  <mergerTreeConstructor value="build">
+    <processDescending value="false"/>
+  </mergerTreeConstructor>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+  </mergerTreeBuilder>
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0     value="+0.57"/>
+    <gamma1 value="+0.38"/>
+    <gamma2 value="-0.01"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree value="1.0e12"/>
+    <treeCount value="4"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e11"/>
+  </mergerTreeMassResolution>
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+  <darkMatterProfileDMO value="isothermal"/>
+  <nodeOperator value="multi">
+    <nodeOperator value="cosmicTime"/>
+    <nodeOperator value="DMOInterpolate"/>
+  </nodeOperator>
+  <accretionHalo value="zero"/>
+  <hotHaloMassDistribution value="null"/>
+  <outputFileName value="testSuite/outputs/criticalOverdensityTreeDependent.hdf5"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="haloEnvironment"/>
+    <nodePropertyExtractor value="haloCollapseEpoch">
+      <massFractionFormation value="0.5"/>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+</parameters>
