@@ -100,7 +100,7 @@ program Test_Star_Formation_Molecular_Fractions
   !! Molecular fractions.
   double precision                                                  , dimension(6)   :: fractionMolecularReference=[9.4240651254240d-01,8.7997335645664d-01,6.0556724446457d-01,2.5284645579126d-01,7.2155830553603d-02,4.4439150381712d-03]
   !! Star formation rate surface densities [M☉/Gyr/Mpc²].
-  double precision                                                  , dimension(6)   :: rateBlitzReference        =[6.2973793711964d+13,3.3051869160264d+13,7.3823495252989d+12,1.0325201952966d+12,1.0125935377225d+11,7.7738260031637d+08]
+  double precision                                                  , dimension(6)   :: rateBlitzReference        =[8.9071844005607d+13,4.6749461329935d+13,1.0441795651059d+13,1.4604246043799d+12,1.4322397987588d+11,1.0995510612679d+09]
   !! Krumholz et al. (2009) molecular fractions, for the full and fast fitting functions, and rate surface densities
   !! [M☉/Gyr/Mpc²].
   double precision                                                  , dimension(5)   :: fractionMolecularKrumholzReference    =[9.6184243210179d-01,9.5198615456030d-01,9.3757069811107d-01,8.3682408513234d-01,5.8319551403055d-01], &
@@ -179,11 +179,12 @@ program Test_Star_Formation_Molecular_Fractions
      ! The pressure ratio, P_ext/P₀, is available directly from the class, along with the gas surface density.
      pressureRatio    (i)  = blitz2006_%pressureRatio(node,radius,surfaceDensityGas=surfaceDensityGas_)
      surfaceDensityGas(i)  = surfaceDensityGas_
-     ! Recover the molecular fraction from the rate surface density.
+     ! Recover the molecular fraction from the rate surface density. The frequency applies to the total (not just hydrogen) gas
+     ! surface density, while the boost depends on the hydrogen surface density.
      surfaceDensityHydrogen=+hydrogenByMassSolar                                            &
           &                 *surfaceDensityGas(i)
      fractionMolecular(i)  =+rateBlitz        (i)                                           &
-          &                 /surfaceDensityHydrogen                                         &
+          &                 /surfaceDensityGas(i)                                           &
           &                 /frequencyNormalizationBlitz                                    &
           &                 /(                                                              &
           &                   +1.0d0                                                        &
@@ -230,7 +231,7 @@ program Test_Star_Formation_Molecular_Fractions
   pressureRatio     (1) = blitz2006_%pressureRatio(nodeCompressedTen,radius,surfaceDensityGas=surfaceDensityGas_)
   surfaceDensityHydrogen=+hydrogenByMassSolar                                                &
        &                 *surfaceDensityGas_
-  rateFullyMolecular    =+surfaceDensityHydrogen                                             &
+  rateFullyMolecular    =+surfaceDensityGas_                                                 &
        &                 *frequencyNormalizationBlitz                                        &
        &                 *(                                                                  &
        &                   +1.0d0                                                            &
