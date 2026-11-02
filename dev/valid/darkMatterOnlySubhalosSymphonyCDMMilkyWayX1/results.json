@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0931377814c891cd250a9622635b67ff432cf59d",
-        "message": "Merge pull request #1723 from galacticusorg/fix/link-checker-curl-ciphers-ads-429\n\nfix(ci): spell curl's --ciphers in full, and treat an ADS 429 as a warning\n",
-        "timestamp": "2026-10-31 16:38:53+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0931377814c891cd250a9622635b67ff432cf59d"
+        "id": "d4c4a69daf305ab6206246cf782babbc6dc0e0aa",
+        "message": "Merge pull request #1728 from galacticusorg/fix/p11-velocity-dispersion-gas\n\nfix(starFormation): pair disk gas velocity dispersion defaults with their sources\n",
+        "timestamp": "2026-11-02 02:27:47+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d4c4a69daf305ab6206246cf782babbc6dc0e0aa"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-49.68989068365404",
+                "logLikelihood": "-49.68989068365406",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -223,7 +223,7 @@ window.ANALYSES_DATA = {
                     28.322615166066633,
                     32.49653528740018,
                     37.794347926164775,
-                    42.797404747404975,
+                    42.79740474740498,
                     50.964295165200944,
                     54.25047246691417,
                     65.62170220338851,
@@ -264,8 +264,8 @@ window.ANALYSES_DATA = {
                 "yError": [
                     0.20645236307349912,
                     0.30323103798715406,
-                    0.4384032181295767,
-                    0.48332694223750067,
+                    0.438403218129579,
+                    0.48332694223749584,
                     0.783463391069666,
                     0.9422353301709242,
                     1.8327729191346633,

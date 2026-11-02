@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "0931377814c891cd250a9622635b67ff432cf59d",
-        "message": "Merge pull request #1723 from galacticusorg/fix/link-checker-curl-ciphers-ads-429\n\nfix(ci): spell curl's --ciphers in full, and treat an ADS 429 as a warning\n",
-        "timestamp": "2026-10-31 16:38:53+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/0931377814c891cd250a9622635b67ff432cf59d"
+        "id": "d4c4a69daf305ab6206246cf782babbc6dc0e0aa",
+        "message": "Merge pull request #1728 from galacticusorg/fix/p11-velocity-dispersion-gas\n\nfix(starFormation): pair disk gas velocity dispersion defaults with their sources\n",
+        "timestamp": "2026-11-02 02:27:47+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d4c4a69daf305ab6206246cf782babbc6dc0e0aa"
     },
     "results": [
         {
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=20.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "-11.105516169261183",
+                "logLikelihood": "-11.126138927916084",
                 "type": "function1D"
             },
             "data": {
@@ -102,7 +102,7 @@ window.ANALYSES_DATA = {
                     0.10287571951418152,
                     0.10287571951418152,
                     6.7572093198083065,
-                    23.660322306650954,
+                    23.743655639984286,
                     42.536453761401695,
                     48.93273283129665,
                     48.93273283129665,
