@@ -368,10 +368,10 @@ program Test_Concentrations
               !![
 	      <referenceConstruct object="darkMatterProfileConcentration_">
 		<constructor>
-		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                          &amp;
-		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWVirial                              , &amp;
-	 	   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
-	 	   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                                 &amp;
+		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                       &amp;
+		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWVirial                           , &amp;
+	 	   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                 , &amp;
+	 	   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                              &amp;
 	 	   &amp;                                          )
 		</constructor>
 	      </referenceConstruct>
@@ -380,10 +380,10 @@ program Test_Concentrations
               !![
 	      <referenceConstruct object="darkMatterProfileConcentration_">
 		<constructor>
-		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                          &amp;
-		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWCritical200                         , &amp;
-		   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
-		   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                                 &amp;
+		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                       &amp;
+		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWCritical200                      , &amp;
+		   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                 , &amp;
+		   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                              &amp;
 		   &amp;                                          )
 		</constructor>
 	      </referenceConstruct>
@@ -392,17 +392,17 @@ program Test_Concentrations
               !![
 	      <referenceConstruct object="darkMatterProfileConcentration_">
 		<constructor>
-		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                          &amp;
-		   &amp;                                           a1                       =+0.520d0                                                      , &amp;
-		   &amp;                                           a2                       =+0.905d0                                                      , &amp;
-		   &amp;                                           a3                       =-0.617d0                                                      , &amp;
-		   &amp;                                           a4                       =+1.210d0                                                      , &amp;
-		   &amp;                                           b1                       =-0.101d0                                                      , &amp;
-		   &amp;                                           b2                       =+0.026d0                                                      , &amp;
-		   &amp;                                           densityContrastMethod    =duttonMaccio2014DensityContrastMethodCritical200              , &amp;
-		   &amp;                                           densityProfileMethod     =duttonMaccio2014DensityProfileMethodNFW                       , &amp;
-		   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
-		   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                                 &amp;
+		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                       &amp;
+		   &amp;                                           a1                       =+0.520d0                                                   , &amp;
+		   &amp;                                           a2                       =+0.905d0                                                   , &amp;
+		   &amp;                                           a3                       =-0.617d0                                                   , &amp;
+		   &amp;                                           a4                       =+1.210d0                                                   , &amp;
+		   &amp;                                           b1                       =-0.101d0                                                   , &amp;
+		   &amp;                                           b2                       =+0.026d0                                                   , &amp;
+		   &amp;                                           densityContrastMethod    =duttonMaccio2014DensityContrastMethodCritical200           , &amp;
+		   &amp;                                           densityProfileMethod     =duttonMaccio2014DensityProfileMethodNFW                    , &amp;
+		   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                 , &amp;
+		   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                              &amp;
 		   &amp;                                          )
 		</constructor>
 	      </referenceConstruct>

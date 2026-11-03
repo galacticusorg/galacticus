@@ -326,8 +326,8 @@ contains
     !!}
     implicit none
     type            (darkMatterProfileConcentrationDuttonMaccio2014      )                        :: self
-    double precision                                                      , intent(in   )         :: a1                   , a2                  , &
-         &                                                                                           a3                   , a4                  , &
+    double precision                                                      , intent(in   )         :: a1                   , a2, &
+         &                                                                                           a3                   , a4, &
          &                                                                                           b1                   , b2
     type            (enumerationDuttonMaccio2014DensityContrastMethodType), intent(in   )         :: densityContrastMethod
     type            (enumerationDuttonMaccio2014DensityProfileMethodType ), intent(in   )         :: densityProfileMethod
