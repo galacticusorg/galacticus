@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
+  <lastModified revision="ea6b55717d89e3ac2234e42c78fca7eebcf9e2fc" time="2026-10-30T23:06:59"/>
 
   <accretionDisks value="switched">
     <accretionDisksADAF value="ADAF">
@@ -503,7 +503,7 @@
     <heightToRadialScaleDisk value="0.137"/>
     <pressureCharacteristic value="3.5e4"/>
     <pressureExponent value="0.92"/>
-    <starFormationFrequencyNormalization value="1.432e-09"/>
+    <starFormationFrequencyNormalization value="1.0529411764705882e-09"/>
     <surfaceDensityCritical value="200.0"/>
     <surfaceDensityExponent value="0.4"/>
     <velocityDispersionDiskGas value="10.0"/>

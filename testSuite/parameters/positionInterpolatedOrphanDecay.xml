@@ -4,7 +4,7 @@
 <!-- with a subresolution merging timescale (so that orphans survive for several snapshots before merging), output at -->
 <!-- every snapshot, and the orbital position, velocity, and satellite status of each node output.                    -->
 <parameters>
-  <lastModified revision="255964b1351336044b381634e10bb9cbdc9cdbfd" time="2026-10-26T15:25:04"/>
+  <lastModified revision="ea6b55717d89e3ac2234e42c78fca7eebcf9e2fc" time="2026-10-30T23:06:59"/>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
 
@@ -213,7 +213,7 @@
   <!-- Star formation rate options -->
   <starFormationRateDisks value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisks value="blitz2006">
-    <starFormationFrequencyNormalization value="1.432e-9"/>
+    <starFormationFrequencyNormalization value="1.0529411764705882e-09"/>
   </starFormationRateSurfaceDensityDisks>
   <starFormationRateSpheroids value="timescale">
     <starFormationTimescale value="dynamicalTime">
