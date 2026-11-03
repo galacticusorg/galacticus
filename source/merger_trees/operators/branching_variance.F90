@@ -121,6 +121,44 @@
    for nodes created by accretion alone). In both modes the relation between redshift and :math:`\omega` used is written to
    the datasets ``redshift`` and ``omega``.
 
+   A ``jumps`` run also writes, for each statistic and threshold:
+
+   binned sums of :math:`\Delta^2`
+     in the subgroup ``binned``, the sum of :math:`\Delta^2` over splits in bins of :math:`\omega` (of width
+     ``[binWidthOmegaBinned]``, spanning the tables) and of each of :math:`x=M^\prime/M` (dataset ``massRatio``),
+     :math:`M/m` (``massRelativeThreshold``), and :math:`M/M_0` (``massRelativeRoot``), where :math:`M` is the total mass of
+     the progenitors created by the split, :math:`M^\prime` that of its non-primary progenitors, and :math:`M_0` the root
+     mass. Mass bins are logarithmic, ``[countBinsPerDecadeBinned]`` per decade, spanning the mass range of the tables (for
+     :math:`M/m`, over all thresholds); values beyond the bins are placed in the first or last bin. Each dataset is indexed
+     by (:math:`\omega` bin, mass bin, class), where the classes are main-branch terminal, main-branch structural,
+     side-branch terminal, and side-branch structural splits. Each tree's sum in each bin is added weighted by the volume
+     weight of the tree, and the datasets with the suffix ``Squared`` sum the square of that weighted sum, from which errors
+     that account for the correlation of splits within a tree follow. The bin edges (in :math:`\log_{10}` for masses) are
+     written to datasets of the same names in the subgroup ``binned`` of ``[outputGroupName]``;
+   the cumulative variance
+     at each redshift in ``[redshiftsCumulative]`` (whose :math:`\omega` are written to the dataset ``omegaCumulative``),
+     the expectation of :math:`N` given the tree built to that :math:`\omega`, :math:`\mathrm{E}[N|\omega]`, in the dataset
+     ``cumulativeExpectation``, and the sum of :math:`\Delta^2` over the splits already made (those at :math:`\omega` no
+     greater than that of the grid point, i.e. at redshifts up to it), in ``cumulativeSumDeltaSquared``, each indexed by (redshift, tree). :math:`\mathrm{E}[N|\omega]` is the count added by
+     the splits already made plus :math:`n_1` summed over the branches alive at :math:`\omega`, whose masses are
+     interpolated in :math:`\log M` linearly in :math:`\omega` along each segment. It is evaluated with the tables of each
+     of the two folds other than the tree's own (``cumulativeExpectation`` and ``cumulativeExpectationAlternate``). The
+     cumulative variance, :math:`V(\omega)=\mathrm{Var}(\mathrm{E}[N|\omega])`, which should equal the mean of the sum of
+     :math:`\Delta^2`, is estimated by the covariance of the two over trees: the variance of either one alone includes the
+     noise of its table. The covariance must be taken separately within each fold (trees grouped by ``treeSeed`` modulo 3)
+     and the folds then combined: across folds, each table is paired with another fold's, and the mean error of each table
+     biases the covariance (negatively, so that it is nonzero even at :math:`z=0`). The covariance removes only the
+     second-order table noise. The first-order terms, through the correlation of the tables' errors with the tree's
+     quantities and the tables' mean errors, average to zero only over realizations of the tables, so errors estimated by
+     resampling trees with the tables fixed are too small; the scatter of the estimates between folds, each made with a
+     different pair of tables, measures this noise (as ``mergerTreeVariance.py`` does);
+   per-split values
+     if ``[treeStrideSplits]`` is positive, for trees whose index is a multiple of it, in the subgroup ``splits``: for each
+     split, the tree index, :math:`\Delta`, the estimate of :math:`\Delta^2`, :math:`\omega` and redshift,
+     :math:`M`, the masses of the primary and non-primary progenitors, the root mass, :math:`n_1` of the branch before the
+     split, the count added by the split, whether it is on the main branch, and its hierarchy depth (the number of
+     non-primary links between it and the root).
+
    The operator must act on unevolved, unpruned trees, so it should precede any pruning operator.
    </description>
   </mergerTreeOperator>
@@ -134,19 +172,19 @@
      class           (criticalOverdensityClass     ), pointer                           :: criticalOverdensity_      => null()
      class           (cosmologicalMassVarianceClass), pointer                           :: cosmologicalMassVariance_ => null()
      type            (enumerationBranchingVarianceModeType)                             :: mode
-     integer                                                                            ::                                      countStatistics      , &
-          &                                                                                countThresholds                    , countCases           , &
-          &                                                                                countBinsMass                      , countBinsOmega       , &
+     integer                                                                            ::                                      countStatistics          , &
+          &                                                                                countThresholds                    , countCases               , &
+          &                                                                                countBinsMass                      , countBinsOmega           , &
           &                                                                                nodePositionID
-     type            (varying_string               )                                    :: statistics                         , outputGroupName      , &
+     type            (varying_string               )                                    :: statistics                         , outputGroupName          , &
           &                                                                                tableFileName
-     double precision                                                                   :: binWidthMass                       , binWidthOmega        , &
-          &                                                                                logMassEdgeMinimum                 , omegaEdgeMinimum     , &
-          &                                                                                timeNow                            , massTableMinimum     , &
-          &                                                                                massTableMaximum                   , redshiftTableMinimum , &
+     double precision                                                                   :: binWidthMass                       , binWidthOmega            , &
+          &                                                                                logMassEdgeMinimum                 , omegaEdgeMinimum         , &
+          &                                                                                timeNow                            , massTableMinimum         , &
+          &                                                                                massTableMaximum                   , redshiftTableMinimum     , &
           &                                                                                redshiftTableMaximum               , omegaSpreadMaximum
-     double precision                               , allocatable, dimension(:        ) :: massThresholds                     , logMassEdges         , &
-          &                                                                                omegaEdges                         , logMassCenters       , &
+     double precision                               , allocatable, dimension(:        ) :: massThresholds                     , logMassEdges             , &
+          &                                                                                omegaEdges                         , logMassCenters           , &
           &                                                                                omegaCenters
      ! Table sums, indexed by (sum, ω bin, mass bin, fold, case), accumulated in "table" mode.
      double precision                               , allocatable, dimension(:,:,:,:,:) :: tableSums
@@ -156,13 +194,29 @@
      ! Per-tree quantities accumulated in "jumps" mode.
      integer         (c_size_t                     )                                    :: countTrees
      integer         (kind_int8                    ), allocatable, dimension(:        ) :: treeIndex                          , treeSeed
-     double precision                               , allocatable, dimension(:        ) :: treeWeight                         , massRoot             , &
+     double precision                               , allocatable, dimension(:        ) :: treeWeight                         , massRoot                 , &
           &                                                                                omegaFormation                     , redshiftFormation
      double precision                               , allocatable, dimension(:,:,:    ) :: treeQuantities
      ! Markov check sums, indexed by (count/sum/sum of squares, node type, case).
      double precision                               , allocatable, dimension(:,:,:    ) :: markovSums
+     ! Binned sums of Δ², indexed by (ω bin, mass bin, split class, binned quantity, case), and the bins, used in "jumps" mode.
+     integer                                                                            :: countBinsPerDecadeBinned           , countBinsOmegaBinned     , &
+          &                                                                                treeStrideSplits                   , countCumulative
+     double precision                                                                   :: binWidthOmegaBinned
+     integer                                        , allocatable, dimension(:        ) :: countBinsBinned
+     double precision                               , allocatable, dimension(:        ) :: logMassBinnedMinimum               , redshiftsCumulative      , &
+          &                                                                                omegasCumulative
+     double precision                               , allocatable, dimension(:,:,:,:,:) :: binnedSums                         , binnedSumsSquared
+     ! Per-tree expectations of N conditioned on the tree built to each ω of the cumulative grid (evaluated with the tables of each
+     ! of the two other folds), and sums of Δ² over splits up to that ω, indexed by (ω, case, tree).
+     double precision                               , allocatable, dimension(:,:,:    ) :: cumulativeExpectation              , cumulativeSumDeltaSquared, &
+          &                                                                                cumulativeExpectationAlternate
+     ! Per-split values, indexed by (property, split, case).
+     integer         (c_size_t                     ), allocatable, dimension(:        ) :: countSplitsStored
+     double precision                               , allocatable, dimension(:,:,:    ) :: splitsReal
+     integer         (kind_int8                    ), allocatable, dimension(:,:,:    ) :: splitsInteger
      integer         (kind_int8                    ), allocatable, dimension(:        ) :: evaluationsEmpty                   , evaluationsOutside
-     integer         (kind_int8                    )                                    :: countSplits                        , countMultiple        , &
+     integer         (kind_int8                    )                                    :: countSplits                        , countMultiple            , &
           &                                                                                countPrimaryMismatch               , countNodesOutside
    contains
      !![
@@ -261,6 +315,81 @@
   </enumeration>
   !!]
 
+  !![
+  <enumeration docformat="rst">
+   <name>splitClass</name>
+   <description>
+   Classes of split for the binned sums of :math:`\Delta^2`: on the main branch or a side branch, and terminal (non-primary
+   progenitor mass at least the threshold) or structural.
+   </description>
+   <validator>yes</validator>
+   <visibility>private</visibility>
+   <indexing>1</indexing>
+   <entry label="mainTerminal"  />
+   <entry label="mainStructural"/>
+   <entry label="sideTerminal"  />
+   <entry label="sideStructural"/>
+  </enumeration>
+  !!]
+
+  !![
+  <enumeration docformat="rst">
+   <name>binnedQuantity</name>
+   <description>
+   Mass quantities in whose bins (together with :math:`\omega`) sums of :math:`\Delta^2` are accumulated. The labels are the
+   names of the datasets to which they are written, and the descriptions are the descriptions of those datasets.
+   </description>
+   <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <visibility>private</visibility>
+   <indexing>1</indexing>
+   <entry label="massRatio"             description="Sums of Δ² in bins of ω and of the mass ratio, x=M′/M, indexed by (ω bin, mass bin, class)"/>
+   <entry label="massRelativeThreshold" description="Sums of Δ² in bins of ω and of M/m, indexed by (ω bin, mass bin, class)"                   />
+   <entry label="massRelativeRoot"      description="Sums of Δ² in bins of ω and of M/M₀, indexed by (ω bin, mass bin, class)"                  />
+  </enumeration>
+  !!]
+
+  !![
+  <enumeration docformat="rst">
+   <name>splitPropertyReal</name>
+   <description>
+   Real-valued per-split properties. The labels are the names of the datasets to which they are written, and the descriptions
+   are the descriptions of those datasets.
+   </description>
+   <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <visibility>private</visibility>
+   <indexing>1</indexing>
+   <entry label="delta"         description="The jump, Δ"                                        />
+   <entry label="deltaSquared"  description="The estimate of Δ²"                                 />
+   <entry label="omega"         description="ω at the split"                                     />
+   <entry label="redshift"      description="Redshift of the split"                              />
+   <entry label="mass"          description="Total mass of the progenitors, M [M☉]"              />
+   <entry label="massPrimary"   description="Mass of the primary progenitor [M☉]"                />
+   <entry label="massSecondary" description="Total mass of the non-primary progenitors, M′ [M☉]" />
+   <entry label="massRoot"      description="Mass of the root of the tree, M₀ [M☉]"              />
+   <entry label="n1Parent"      description="n₁ of the branch before the split"                  />
+   <entry label="countAdded"    description="The count added by the split"                       />
+  </enumeration>
+  !!]
+
+  !![
+  <enumeration docformat="rst">
+   <name>splitPropertyInteger</name>
+   <description>
+   Integer-valued per-split properties. The labels are the names of the datasets to which they are written, and the
+   descriptions are the descriptions of those datasets.
+   </description>
+   <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <visibility>private</visibility>
+   <indexing>1</indexing>
+   <entry label="treeIndex"      description="Index of the tree"                                                     />
+   <entry label="isMainBranch"   description="1 if the split is on the main branch, 0 otherwise"                    />
+   <entry label="hierarchyDepth" description="Number of non-primary links between the split and the root of the tree"/>
+  </enumeration>
+  !!]
+
   ! Number of folds into which trees are divided.
   integer         , parameter :: countFolds          =3
 
@@ -283,13 +412,15 @@ contains
     class           (cosmologyFunctionsClass            ), pointer                     :: cosmologyFunctions_
     class           (criticalOverdensityClass           ), pointer                     :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), pointer                     :: cosmologicalMassVariance_
-    double precision                                     , allocatable  , dimension(:) :: massThresholds
+    double precision                                     , allocatable  , dimension(:) :: massThresholds           , redshiftsCumulative
     type            (enumerationBranchingVarianceModeType)                             :: mode_
     type            (varying_string                     )                              :: mode                     , statistics          , &
          &                                                                                outputGroupName          , tableFileName
     double precision                                                                   :: massTableMinimum         , massTableMaximum    , &
          &                                                                                redshiftTableMinimum     , redshiftTableMaximum, &
-         &                                                                                binWidthMass             , binWidthOmega
+         &                                                                                binWidthMass             , binWidthOmega       , &
+         &                                                                                binWidthOmegaBinned
+    integer                                                                            :: countBinsPerDecadeBinned , treeStrideSplits
 
     !![
     <inputParameter docformat="rst">
@@ -384,7 +515,11 @@ contains
          </description>
        </inputParameter>
        !!]
-       tableFileName=''
+       tableFileName           =''
+       binWidthOmegaBinned     =0.0d0
+       countBinsPerDecadeBinned=0
+       treeStrideSplits        =0
+       allocate(redshiftsCumulative(0))
     case (branchingVarianceModeJumps%ID)
        !![
        <inputParameter docformat="rst">
@@ -393,6 +528,47 @@ contains
          <description>
          The name of the file (the output of a ``table`` run) from which tables of :math:`n_1` are read. Used in ``jumps`` mode
          only.
+         </description>
+       </inputParameter>
+       <inputParameter docformat="rst">
+         <name>binWidthOmegaBinned</name>
+         <source>parameters</source>
+         <defaultValue>0.1d0</defaultValue>
+         <description>
+         The width of the :math:`\omega` bins of the binned sums of :math:`\Delta^2`. Used in ``jumps`` mode only.
+         </description>
+       </inputParameter>
+       <inputParameter docformat="rst">
+         <name>countBinsPerDecadeBinned</name>
+         <source>parameters</source>
+         <defaultValue>10</defaultValue>
+         <description>
+         The number of bins per decade of the mass bins of the binned sums of :math:`\Delta^2`. Used in ``jumps`` mode only.
+         </description>
+       </inputParameter>
+       !!]
+       if (parameters%isPresent('redshiftsCumulative')) then
+          allocate(redshiftsCumulative(parameters%count('redshiftsCumulative')))
+       else
+          allocate(redshiftsCumulative(12                                     ))
+       end if
+       !![
+       <inputParameter docformat="rst">
+         <name>redshiftsCumulative</name>
+         <source>parameters</source>
+         <defaultValue>[0.0d0,0.1d0,0.2d0,0.35d0,0.5d0,0.75d0,1.0d0,1.5d0,2.0d0,3.0d0,4.0d0,6.0d0]</defaultValue>
+         <description>
+         The redshifts at which the expectation of the count conditioned on the tree built to that epoch is evaluated, for the
+         cumulative variance. Used in ``jumps`` mode only.
+         </description>
+       </inputParameter>
+       <inputParameter docformat="rst">
+         <name>treeStrideSplits</name>
+         <source>parameters</source>
+         <defaultValue>0</defaultValue>
+         <description>
+         If positive, per-split values are written for trees whose index is a multiple of this value (per-split output is large
+         for high-resolution trees). If zero, no per-split values are written. Used in ``jumps`` mode only.
          </description>
        </inputParameter>
        !!]
@@ -411,7 +587,7 @@ contains
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    self=mergerTreeOperatorBranchingVariance(mode_,char(statistics),massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,binWidthMass,binWidthOmega,char(tableFileName),char(outputGroupName),cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=mergerTreeOperatorBranchingVariance(mode_,char(statistics),massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,binWidthMass,binWidthOmega,binWidthOmegaBinned,countBinsPerDecadeBinned,redshiftsCumulative,treeStrideSplits,char(tableFileName),char(outputGroupName),cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -421,10 +597,12 @@ contains
     return
   end function branchingVarianceConstructorParameters
 
-  function branchingVarianceConstructorInternal(mode,statistics,massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,binWidthMass,binWidthOmega,tableFileName,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function branchingVarianceConstructorInternal(mode,statistics,massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,binWidthMass,binWidthOmega,binWidthOmegaBinned,countBinsPerDecadeBinned,redshiftsCumulative,treeStrideSplits,tableFileName,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
     Internal constructor for the branching variance merger tree operator class. In ``jumps`` mode the statistics, thresholds
-    and binning are read from the table file, and the arguments giving them are ignored.
+    and binning of the tables are read from the table file, and the arguments giving them are ignored. In ``table`` mode the
+    arguments ``binWidthOmegaBinned``, ``countBinsPerDecadeBinned``, ``redshiftsCumulative``, and ``treeStrideSplits`` are
+    ignored.
     !!}
     use :: Error             , only : Error_Report
     use :: HDF5_Access       , only : hdf5Access
@@ -435,10 +613,12 @@ contains
     type            (enumerationBranchingVarianceModeType), intent(in   )                       :: mode
     character       (len=*                               ), intent(in   )                       ::                            statistics          , &
          &                                                                                         tableFileName            , outputGroupName
-    double precision                                      , intent(in   ), dimension(:        ) :: massThresholds
+    double precision                                      , intent(in   ), dimension(:        ) :: massThresholds           , redshiftsCumulative
     double precision                                      , intent(in   )                       :: massTableMinimum         , massTableMaximum    , &
          &                                                                                         redshiftTableMinimum     , redshiftTableMaximum, &
-         &                                                                                         binWidthMass             , binWidthOmega
+         &                                                                                         binWidthMass             , binWidthOmega       , &
+         &                                                                                         binWidthOmegaBinned
+    integer                                               , intent(in   )                       :: countBinsPerDecadeBinned , treeStrideSplits
     class           (cosmologyFunctionsClass             ), intent(in   ), target               :: cosmologyFunctions_
     class           (criticalOverdensityClass            ), intent(in   ), target               :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass       ), intent(in   ), target               :: cosmologicalMassVariance_
@@ -470,6 +650,12 @@ contains
        if (    redshiftTableMaximum <= redshiftTableMinimum                             ) call Error_Report('[redshiftTableMaximum] must exceed [redshiftTableMinimum]'//{introspection:location})
        if (    binWidthMass         <= 0.0d0                 .or. binWidthOmega <= 0.0d0) call Error_Report('[binWidthMass] and [binWidthOmega] must be positive'      //{introspection:location})
        call self%binsConstruct()
+       ! Binned sums, the cumulative variance, and per-split values are not used in this mode.
+       self%binWidthOmegaBinned     =0.0d0
+       self%countBinsPerDecadeBinned=0
+       self%countBinsOmegaBinned    =0
+       self%treeStrideSplits        =0
+       self%countCumulative         =0
     case (branchingVarianceModeJumps%ID)
        ! Read the statistics, thresholds, and binning from the table file. HDF5 objects are scoped within blocks so that they
        ! are closed (by finalization) while the HDF5 lock is held.
@@ -551,6 +737,38 @@ contains
           call self%tablesFinalize(sumsAll(:,:,:,:,i),i)
        end do
        deallocate(sumsAll)
+       ! Construct the bins of the binned sums of Δ²: in ω, spanning the tables, and in the logarithm of each mass quantity,
+       ! spanning the mass range of the tables (for M/m, over all thresholds).
+       if (    binWidthOmegaBinned      <= 0.0d0 ) call Error_Report('[binWidthOmegaBinned] must be positive'     //{introspection:location})
+       if (    countBinsPerDecadeBinned <= 0     ) call Error_Report('[countBinsPerDecadeBinned] must be positive'//{introspection:location})
+       if (    treeStrideSplits         <  0     ) call Error_Report('[treeStrideSplits] must be non-negative'    //{introspection:location})
+       if (any(redshiftsCumulative      <  0.0d0)) call Error_Report('[redshiftsCumulative] must be non-negative' //{introspection:location})
+       self%binWidthOmegaBinned     =binWidthOmegaBinned
+       self%countBinsPerDecadeBinned=countBinsPerDecadeBinned
+       self%treeStrideSplits        =treeStrideSplits
+       self%countBinsOmegaBinned    =max(ceiling((self%omegaEdges(self%countBinsOmega+1)-self%omegaEdges(1))/binWidthOmegaBinned-toleranceBins),1)
+       allocate(self%countBinsBinned     (binnedQuantityCount))
+       allocate(self%logMassBinnedMinimum(binnedQuantityCount))
+       self%logMassBinnedMinimum(binnedQuantityMassRatio            %ID)=log10(self%massTableMinimum/       self%massTableMaximum )
+       self%logMassBinnedMinimum(binnedQuantityMassRelativeThreshold%ID)=log10(self%massTableMinimum/maxval(self%massThresholds  ))
+       self%logMassBinnedMinimum(binnedQuantityMassRelativeRoot     %ID)=log10(self%massTableMinimum/       self%massTableMaximum )
+       self%countBinsBinned     (binnedQuantityMassRatio            %ID)=max(ceiling((log10(1.0d0                                            )-self%logMassBinnedMinimum(binnedQuantityMassRatio            %ID))*dble(countBinsPerDecadeBinned)-toleranceBins),1)
+       self%countBinsBinned     (binnedQuantityMassRelativeThreshold%ID)=max(ceiling((log10(self%massTableMaximum/minval(self%massThresholds))-self%logMassBinnedMinimum(binnedQuantityMassRelativeThreshold%ID))*dble(countBinsPerDecadeBinned)-toleranceBins),1)
+       self%countBinsBinned     (binnedQuantityMassRelativeRoot     %ID)=max(ceiling((log10(1.0d0                                            )-self%logMassBinnedMinimum(binnedQuantityMassRelativeRoot     %ID))*dble(countBinsPerDecadeBinned)-toleranceBins),1)
+       allocate(self%binnedSums       (self%countBinsOmegaBinned,maxval(self%countBinsBinned),splitClassCount,binnedQuantityCount,self%countCases))
+       allocate(self%binnedSumsSquared(self%countBinsOmegaBinned,maxval(self%countBinsBinned),splitClassCount,binnedQuantityCount,self%countCases))
+       self%binnedSums       =0.0d0
+       self%binnedSumsSquared=0.0d0
+       ! Find ω at each redshift of the cumulative grid.
+       self%countCumulative    =size(redshiftsCumulative)
+       self%redshiftsCumulative=redshiftsCumulative
+       allocate(self%omegasCumulative(self%countCumulative))
+       do i=1,self%countCumulative
+          self%omegasCumulative(i)=self%omega(self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsCumulative(i))),self%massTableMaximum)
+       end do
+       ! Initialize per-split storage.
+       allocate(self%countSplitsStored(self%countCases))
+       self%countSplitsStored=0_c_size_t
     end select
     ! Validate statistics.
     if (self%countStatistics == 0) call Error_Report('no statistics given'//{introspection:location})
@@ -610,6 +828,20 @@ contains
     name=name//(indexThreshold-1)
     return
   end function thresholdGroupName
+
+  integer function binIndexClamped(value,minimum,width,countBins)
+    !!{RST
+    Return the index of the bin of the given ``width``, starting from ``minimum``, that contains ``value``. Values beyond the
+    ``countBins`` bins are placed in the first or last bin.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: value    , minimum, &
+         &                             width
+    integer         , intent(in   ) :: countBins
+
+    binIndexClamped=max(1,min(countBins,int(floor((value-minimum)/width))+1))
+    return
+  end function binIndexClamped
 
   integer function branchingVarianceCaseIndex(self,indexStatistic,indexThreshold)
     !!{RST
@@ -849,35 +1081,43 @@ contains
     class           (nodeComponentBasic                 ), pointer                                   :: basic
     type            (mergerTreeWalkerIsolatedNodes      )                                            :: treeWalker
     type            (treeNodeList                       ), allocatable  , dimension(:              ) :: nodes
-    integer                                              , allocatable  , dimension(:              ) :: parent                          , primaryChild        , &
-         &                                                                                              countChildren
-    double precision                                     , allocatable  , dimension(:              ) :: mass                            , logMass             , &
-         &                                                                                              omega                           , massChildren        , &
-         &                                                                                              massSecondary                   , omegaEnd            , &
-         &                                                                                              countAdded                      , countNode           , &
-         &                                                                                              nodeMeanNode                    , nodeMeanEnd         , &
-         &                                                                                              delta                           , deltaSquared        , &
+    integer                                              , allocatable  , dimension(:              ) :: parent                          , primaryChild                     , &
+         &                                                                                              countChildren                   , hierarchyDepth
+    double precision                                     , allocatable  , dimension(:              ) :: mass                            , logMass                          , &
+         &                                                                                              omega                           , massChildren                     , &
+         &                                                                                              massSecondary                   , omegaEnd                         , &
+         &                                                                                              countAdded                      , countNode                        , &
+         &                                                                                              delta                           , deltaSquared                     , &
          &                                                                                              drift                           , omegaSplit
-    logical                                              , allocatable  , dimension(:              ) :: isPrimary                       , isMain
-    double precision                                     , allocatable  , dimension(:,:            ) :: deltaVariant
-    double precision                                     , allocatable  , dimension(:,:,:          ) :: treeQuantitiesTmp
+    logical                                              , allocatable  , dimension(:              ) :: isPrimary                       , isMain                           , &
+         &                                                                                              isActive
+    double precision                                     , allocatable  , dimension(:,:            ) :: deltaVariant                    , nodeMeanNode                     , &
+         &                                                                                              nodeMeanEnd
+    double precision                                     , allocatable  , dimension(:,:,:          ) :: treeQuantitiesTmp               , cumulativeExpectationTmp         , &
+         &                                                                                              cumulativeSumDeltaSquaredTmp    , cumulativeExpectationAlternateTmp
+    double precision                                     , allocatable  , dimension(:,:,:,:        ) :: binnedTree
+    double precision                                     , dimension   (binnedQuantityCount         ) :: logMassBinned
     integer         (kind_int8                          ), allocatable  , dimension(:              ) :: treeIndexTmp                    , treeSeedTmp
-    double precision                                     , allocatable  , dimension(:              ) :: treeWeightTmp                   , massRootTmp         , &
+    double precision                                     , allocatable  , dimension(:              ) :: treeWeightTmp                   , massRootTmp                      , &
          &                                                                                              omegaFormationTmp               , redshiftFormationTmp
     integer         (c_size_t                           ), parameter                                 :: treeCountIncrement=1000_c_size_t
-    integer                                                                                          :: countNodes                      , i                   , &
-         &                                                                                              p                               , iStatistic          , &
-         &                                                                                              iThreshold                      , iCase               , &
-         &                                                                                              fold                            , variant             , &
-         &                                                                                              foldTable                       , iBinMass            , &
-         &                                                                                              iBinOmega                       , nodeType
+    integer                                                                                          :: countNodes                      , i                                , &
+         &                                                                                              p                               , iStatistic                       , &
+         &                                                                                              iThreshold                      , iCase                            , &
+         &                                                                                              fold                            , variant                          , &
+         &                                                                                              foldTable                       , iBinMass                         , &
+         &                                                                                              iBinOmega                       , nodeType                         , &
+         &                                                                                              j                               , k                                , &
+         &                                                                                              iBin                            , splitClass_
     character       (len=1                              )                                            :: statistic
-    double precision                                                                                 :: massThreshold                   , dx                  , &
-         &                                                                                              dy                              , omegaFormation_     , &
-         &                                                                                              redshiftFormation_              , factor              , &
-         &                                                                                              massMaximum                     , residual
-    logical                                                                                          :: emptyTouched                    , activeSplit         , &
-         &                                                                                              formationFound                  , outside
+    double precision                                                                                 :: massThreshold                   , dx                               , &
+         &                                                                                              dy                              , omegaFormation_                  , &
+         &                                                                                              redshiftFormation_              , factor                           , &
+         &                                                                                              massMaximum                     , residual                         , &
+         &                                                                                              expectation                     , sumBefore                        , &
+         &                                                                                              expectationAlternate            , logMassAlive
+    logical                                                                                          :: emptyTouched                    , formationFound                   , &
+         &                                                                                              outside                         , storeSplits
     integer         (kind_int8                          )                                            :: seed
 
     treeCurrent => tree
@@ -898,19 +1138,21 @@ contains
           basic      => node%basic()
           call basic%integerRank0MetaPropertySet(self%nodePositionID,countNodes)
        end do
-       allocate(nodes        (countNodes))
-       allocate(parent       (countNodes))
-       allocate(primaryChild (countNodes))
-       allocate(countChildren(countNodes))
-       allocate(mass         (countNodes))
-       allocate(logMass      (countNodes))
-       allocate(omega        (countNodes))
-       allocate(massChildren (countNodes))
-       allocate(massSecondary(countNodes))
-       allocate(omegaSplit   (countNodes))
-       allocate(omegaEnd     (countNodes))
-       allocate(isPrimary    (countNodes))
-       allocate(isMain       (countNodes))
+       allocate(nodes         (countNodes))
+       allocate(parent        (countNodes))
+       allocate(primaryChild  (countNodes))
+       allocate(countChildren (countNodes))
+       allocate(mass          (countNodes))
+       allocate(logMass       (countNodes))
+       allocate(omega         (countNodes))
+       allocate(massChildren  (countNodes))
+       allocate(massSecondary (countNodes))
+       allocate(omegaSplit    (countNodes))
+       allocate(omegaEnd      (countNodes))
+       allocate(isPrimary     (countNodes))
+       allocate(isMain        (countNodes))
+       allocate(isActive      (countNodes))
+       allocate(hierarchyDepth(countNodes))
        ! Gather node properties.
        i=0
        treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
@@ -981,10 +1223,13 @@ contains
           if (parent(i) > 0) self%omegaSpreadMaximum=max(self%omegaSpreadMaximum,abs(omega(i)-omegaSplit(parent(i))))
        end do
        ! Main-branch membership: walk from the root (the last node of the walk) toward the leaves.
-       isMain            =.false.
-       isMain(countNodes)=.true.
+       ! Hierarchy depth (the number of non-primary links between a node and the root) is found in the same walk.
+       isMain                    =.false.
+       isMain        (countNodes)=.true.
+       hierarchyDepth(countNodes)=0
        do i=countNodes-1,1,-1
-          isMain(i)=isMain(parent(i)) .and. isPrimary(i)
+          isMain        (i)=isMain        (parent(i)) .and.     isPrimary(i)
+          hierarchyDepth(i)=hierarchyDepth(parent(i))+merge(0,1,isPrimary(i))
        end do
        ! Formation epoch: when the main branch first falls below half of the root mass, interpolating ω linearly in the logarithm
        ! of mass.
@@ -1009,56 +1254,74 @@ contains
        ! Store per-tree quantities.
        if (self%mode == branchingVarianceModeJumps) then
           if (.not.allocated(self%treeIndex)) then
-             allocate(self%treeIndex        (                                    treeCountIncrement))
-             allocate(self%treeSeed         (                                    treeCountIncrement))
-             allocate(self%treeWeight       (                                    treeCountIncrement))
-             allocate(self%massRoot         (                                    treeCountIncrement))
-             allocate(self%omegaFormation   (                                    treeCountIncrement))
-             allocate(self%redshiftFormation(                                    treeCountIncrement))
-             allocate(self%treeQuantities   (treeQuantityCount,self%countCases,treeCountIncrement))
+             allocate(self%treeIndex                     (                                       treeCountIncrement))
+             allocate(self%treeSeed                      (                                       treeCountIncrement))
+             allocate(self%treeWeight                    (                                       treeCountIncrement))
+             allocate(self%massRoot                      (                                       treeCountIncrement))
+             allocate(self%omegaFormation                (                                       treeCountIncrement))
+             allocate(self%redshiftFormation             (                                       treeCountIncrement))
+             allocate(self%treeQuantities                (     treeQuantityCount,self%countCases,treeCountIncrement))
+             allocate(self%cumulativeExpectation         (self%countCumulative  ,self%countCases,treeCountIncrement))
+             allocate(self%cumulativeSumDeltaSquared     (self%countCumulative  ,self%countCases,treeCountIncrement))
+             allocate(self%cumulativeExpectationAlternate(self%countCumulative  ,self%countCases,treeCountIncrement))
           else if (self%countTrees >= size(self%treeIndex,kind=c_size_t)) then
-             call move_alloc(self%treeIndex        ,treeIndexTmp        )
-             call move_alloc(self%treeSeed         ,treeSeedTmp         )
-             call move_alloc(self%treeWeight       ,treeWeightTmp       )
-             call move_alloc(self%massRoot         ,massRootTmp         )
-             call move_alloc(self%omegaFormation   ,omegaFormationTmp   )
-             call move_alloc(self%redshiftFormation,redshiftFormationTmp)
-             call move_alloc(self%treeQuantities   ,treeQuantitiesTmp   )
-             allocate(self%treeIndex        (size(treeIndexTmp)+treeCountIncrement))
-             allocate(self%treeSeed         (size(treeIndexTmp)+treeCountIncrement))
-             allocate(self%treeWeight       (size(treeIndexTmp)+treeCountIncrement))
-             allocate(self%massRoot         (size(treeIndexTmp)+treeCountIncrement))
-             allocate(self%omegaFormation   (size(treeIndexTmp)+treeCountIncrement))
-             allocate(self%redshiftFormation(size(treeIndexTmp)+treeCountIncrement))
-             allocate(self%treeQuantities   (treeQuantityCount,self%countCases,size(treeIndexTmp)+treeCountIncrement))
-             self%treeIndex        (    1:size(treeIndexTmp))=treeIndexTmp
-             self%treeSeed         (    1:size(treeIndexTmp))=treeSeedTmp
-             self%treeWeight       (    1:size(treeIndexTmp))=treeWeightTmp
-             self%massRoot         (    1:size(treeIndexTmp))=massRootTmp
-             self%omegaFormation   (    1:size(treeIndexTmp))=omegaFormationTmp
-             self%redshiftFormation(    1:size(treeIndexTmp))=redshiftFormationTmp
-             self%treeQuantities   (:,:,1:size(treeIndexTmp))=treeQuantitiesTmp
-             deallocate(treeIndexTmp        )
-             deallocate(treeSeedTmp         )
-             deallocate(treeWeightTmp       )
-             deallocate(massRootTmp         )
-             deallocate(omegaFormationTmp   )
-             deallocate(redshiftFormationTmp)
-             deallocate(treeQuantitiesTmp   )
+             call move_alloc(self%treeIndex                ,treeIndexTmp                )
+             call move_alloc(self%treeSeed                 ,treeSeedTmp                 )
+             call move_alloc(self%treeWeight               ,treeWeightTmp               )
+             call move_alloc(self%massRoot                 ,massRootTmp                 )
+             call move_alloc(self%omegaFormation           ,omegaFormationTmp           )
+             call move_alloc(self%redshiftFormation        ,redshiftFormationTmp        )
+             call move_alloc(self%treeQuantities           ,treeQuantitiesTmp           )
+             call move_alloc(self%cumulativeExpectation    ,cumulativeExpectationTmp    )
+             call move_alloc(self%cumulativeSumDeltaSquared,cumulativeSumDeltaSquaredTmp)
+             call move_alloc(self%cumulativeExpectationAlternate,cumulativeExpectationAlternateTmp)
+             allocate(self%treeIndex                     (                                     size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%treeSeed                      (                                     size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%treeWeight                    (                                     size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%massRoot                      (                                     size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%omegaFormation                (                                     size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%redshiftFormation             (                                     size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%treeQuantities                (treeQuantityCount   ,self%countCases,size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%cumulativeExpectation         (self%countCumulative,self%countCases,size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%cumulativeSumDeltaSquared     (self%countCumulative,self%countCases,size(treeIndexTmp)+treeCountIncrement))
+             allocate(self%cumulativeExpectationAlternate(self%countCumulative,self%countCases,size(treeIndexTmp)+treeCountIncrement))
+             self%treeIndex                     (    1:size(treeIndexTmp))=treeIndexTmp
+             self%treeSeed                      (    1:size(treeIndexTmp))=treeSeedTmp
+             self%treeWeight                    (    1:size(treeIndexTmp))=treeWeightTmp
+             self%massRoot                      (    1:size(treeIndexTmp))=massRootTmp
+             self%omegaFormation                (    1:size(treeIndexTmp))=omegaFormationTmp
+             self%redshiftFormation             (    1:size(treeIndexTmp))=redshiftFormationTmp
+             self%treeQuantities                (:,:,1:size(treeIndexTmp))=treeQuantitiesTmp
+             self%cumulativeExpectation         (:,:,1:size(treeIndexTmp))=cumulativeExpectationTmp
+             self%cumulativeSumDeltaSquared     (:,:,1:size(treeIndexTmp))=cumulativeSumDeltaSquaredTmp
+             self%cumulativeExpectationAlternate(:,:,1:size(treeIndexTmp))=cumulativeExpectationAlternateTmp
+             deallocate(treeIndexTmp                     )
+             deallocate(treeSeedTmp                      )
+             deallocate(treeWeightTmp                    )
+             deallocate(massRootTmp                      )
+             deallocate(omegaFormationTmp                )
+             deallocate(redshiftFormationTmp             )
+             deallocate(treeQuantitiesTmp                )
+             deallocate(cumulativeExpectationTmp         )
+             deallocate(cumulativeSumDeltaSquaredTmp     )
+             deallocate(cumulativeExpectationAlternateTmp)
           end if
-          self%countTrees                         =self%countTrees+1_c_size_t
+          self%countTrees                        =self%countTrees+1_c_size_t
           self%treeIndex        (self%countTrees)=treeCurrent%index
           self%treeSeed         (self%countTrees)=seed
           self%treeWeight       (self%countTrees)=treeCurrent%volumeWeight
           self%massRoot         (self%countTrees)=mass(countNodes)
           self%omegaFormation   (self%countTrees)=omegaFormation_
           self%redshiftFormation(self%countTrees)=redshiftFormation_
-          allocate(nodeMeanNode(countNodes  ))
-          allocate(nodeMeanEnd (countNodes  ))
+          allocate(nodeMeanNode(countNodes,2))
+          allocate(nodeMeanEnd (countNodes,2))
           allocate(delta       (countNodes  ))
           allocate(deltaSquared(countNodes  ))
           allocate(drift       (countNodes  ))
           allocate(deltaVariant(countNodes,2))
+          allocate(binnedTree  (self%countBinsOmegaBinned,maxval(self%countBinsBinned),splitClassCount,binnedQuantityCount))
+          storeSplits=self%treeStrideSplits > 0
+          if (storeSplits) storeSplits=modulo(treeCurrent%index,int(self%treeStrideSplits,kind_int8)) == 0_kind_int8
        end if
        allocate(countAdded(countNodes))
        allocate(countNode (countNodes))
@@ -1103,38 +1366,39 @@ contains
                         &                                           ]
                 end do
              case (branchingVarianceModeJumps%ID)
+                ! Splits contributing jumps: all splits for statistic B, and those of the main branch for statistic C.
+                isActive=countChildren >= 2 .and. (statistic == 'B' .or. isMain)
                 ! Evaluate the jumps with the tables of each of the two other folds. The first variant also gives n₁ for the
-                ! drift, the per-tree sums, and the Markov check.
+                ! drift, the per-tree sums, the Markov check, and the cumulative variance.
                 do variant=1,2
                    foldTable=modulo(fold+variant-1,countFolds)+1
                    do i=1,countNodes
-                      nodeMeanNode(i)=self%nodeMean(logMass(i),omega(i),foldTable,iCase,emptyTouched,outside)
+                      nodeMeanNode(i,variant)=self%nodeMean(logMass(i),omega(i),foldTable,iCase,emptyTouched,outside)
                       if (variant == 1 .and. emptyTouched) self%evaluationsEmpty  (iCase)=self%evaluationsEmpty  (iCase)+1_kind_int8
                       if (variant == 1 .and. outside     ) self%evaluationsOutside(iCase)=self%evaluationsOutside(iCase)+1_kind_int8
                    end do
-                   nodeMeanEnd=0.0d0
+                   nodeMeanEnd(:,variant)=0.0d0
                    do i=1,countNodes
                       if (countChildren(i) == 0) cycle
-                      nodeMeanEnd(i)=self%nodeMean(log10(massChildren(i)),omegaEnd(i),foldTable,iCase,emptyTouched,outside)
+                      nodeMeanEnd(i,variant)=self%nodeMean(log10(massChildren(i)),omegaEnd(i),foldTable,iCase,emptyTouched,outside)
                       if (variant == 1 .and. emptyTouched) self%evaluationsEmpty  (iCase)=self%evaluationsEmpty  (iCase)+1_kind_int8
                       if (variant == 1 .and. outside     ) self%evaluationsOutside(iCase)=self%evaluationsOutside(iCase)+1_kind_int8
                    end do
                    deltaVariant(:,variant)=0.0d0
                    do i=1,countNodes
-                      activeSplit=countChildren(i) >= 2 .and. (statistic == 'B' .or. isMain(i))
-                      if (.not.activeSplit) cycle
+                      if (.not.isActive(i)) cycle
                       if (statistic == 'C') then
                          ! Role-dependent n₁: only the primary progenitor carries the main branch forward.
-                         deltaVariant(i,variant)=nodeMeanNode(primaryChild(i))
+                         deltaVariant(i,variant)=nodeMeanNode(primaryChild(i),variant)
                       else
                          nodeChild => nodes(i)%node%firstChild
                          do while (associated(nodeChild))
                             basic                  => nodeChild%basic()
-                            deltaVariant(i,variant)=  deltaVariant(i,variant)+nodeMeanNode(basic%integerRank0MetaPropertyGet(self%nodePositionID))
+                            deltaVariant(i,variant)=  deltaVariant(i,variant)+nodeMeanNode(basic%integerRank0MetaPropertyGet(self%nodePositionID),variant)
                             nodeChild              => nodeChild%sibling
                          end do
                       end if
-                      deltaVariant(i,variant)=deltaVariant(i,variant)+countAdded(i)-nodeMeanEnd(i)
+                      deltaVariant(i,variant)=deltaVariant(i,variant)+countAdded(i)-nodeMeanEnd(i,variant)
                    end do
                    if (variant == 1) then
                       ! Deterministic drift of n₁ along each segment, from the node to the end of the segment.
@@ -1142,14 +1406,14 @@ contains
                          if (statistic == 'C' .and. .not.isMain(i)) then
                             drift(i)=0.0d0
                          else if (countChildren(i) > 0) then
-                            drift(i)=nodeMeanEnd(i)-nodeMeanNode(i)
+                            drift(i)=nodeMeanEnd(i,1)-nodeMeanNode(i,1)
                          else
-                            drift(i)=              -nodeMeanNode(i)
+                            drift(i)=                -nodeMeanNode(i,1)
                          end if
                       end do
                       ! Markov check: by the Markov property the mean of (count - n₁) must vanish for every type of node.
                       do i=1,countNodes
-                         if (nodeMeanNode(i) <= 0.0d0) cycle
+                         if (nodeMeanNode(i,1) <= 0.0d0) cycle
                          if (parent(i) == 0) then
                             nodeType=markovNodeTypeRoot%ID
                          else if (.not.isPrimary(i)) then
@@ -1159,11 +1423,11 @@ contains
                          else
                             nodeType=markovNodeTypeAccretion%ID
                          end if
-                         residual=countNode(i)-nodeMeanNode(i)
+                         residual=countNode(i)-nodeMeanNode(i,1)
                          self%markovSums(:,nodeType,iCase)=self%markovSums(:,nodeType,iCase)+[1.0d0,residual,residual**2]
                       end do
                       ! Store n₁ at the root.
-                      self%treeQuantities(treeQuantityN1Root%ID,iCase,self%countTrees)=nodeMeanNode(countNodes)
+                      self%treeQuantities(treeQuantityN1Root%ID,iCase,self%countTrees)=nodeMeanNode(countNodes,1)
                    end if
                 end do
                 delta       =deltaVariant(:,1)
@@ -1186,23 +1450,107 @@ contains
                      &                                                                                     -self%treeQuantities(treeQuantityN1Root    %ID,iCase,self%countTrees) &
                      &                                                                                     -self%treeQuantities(treeQuantitySumDelta  %ID,iCase,self%countTrees) &
                      &                                                                                     -self%treeQuantities(treeQuantitySumDrift  %ID,iCase,self%countTrees)
+                ! Binned sums of Δ². The sums of this tree are added weighted by its volume weight, and their squares are accumulated
+                ! for errors (splits within a tree are correlated, so errors are found from the scatter between trees).
+                binnedTree=0.0d0
+                do i=1,countNodes
+                   if (.not.isActive(i)) cycle
+                   if (isMain(i)) then
+                      if (massSecondary(i) >= massThreshold) then
+                         splitClass_=splitClassMainTerminal%ID
+                      else
+                         splitClass_=splitClassMainStructural%ID
+                      end if
+                   else
+                      if (massSecondary(i) >= massThreshold) then
+                         splitClass_=splitClassSideTerminal%ID
+                      else
+                         splitClass_=splitClassSideStructural%ID
+                      end if
+                   end if
+                   iBinOmega=binIndexClamped(omegaSplit(i),self%omegaEdges(1),self%binWidthOmegaBinned,self%countBinsOmegaBinned)
+                   logMassBinned(binnedQuantityMassRatio            %ID)=log10(massSecondary(i)/massChildren(i)  )
+                   logMassBinned(binnedQuantityMassRelativeThreshold%ID)=log10(massChildren (i)/massThreshold    )
+                   logMassBinned(binnedQuantityMassRelativeRoot     %ID)=log10(massChildren (i)/mass(countNodes))
+                   do j=1,binnedQuantityCount
+                      iBin                                    =binIndexClamped(logMassBinned(j),self%logMassBinnedMinimum(j),1.0d0/dble(self%countBinsPerDecadeBinned),self%countBinsBinned(j))
+                      binnedTree(iBinOmega,iBin,splitClass_,j)=binnedTree(iBinOmega,iBin,splitClass_,j)+deltaSquared(i)
+                   end do
+                end do
+                self%binnedSums       (:,:,:,:,iCase)=+self%binnedSums       (:,:,:,:,iCase) &
+                     &                                + treeCurrent%volumeWeight*binnedTree
+                self%binnedSumsSquared(:,:,:,:,iCase)=+self%binnedSumsSquared(:,:,:,:,iCase) &
+                     &                                +(treeCurrent%volumeWeight*binnedTree)**2
+                ! Cumulative variance: at each ω of the grid, the expectation of N conditioned on the tree built to that ω is the
+                ! count added by splits already made plus n₁ summed over the branches alive at ω (with masses interpolated in log M
+                ! linearly in ω along each segment). It is evaluated with the tables of each of the two other folds: as for Δ², the
+                ! covariance of the two over trees estimates the variance without the noise of the tables. Also record the sum of
+                ! Δ² over splits already made.
+                do k=1,self%countCumulative
+                   expectation         =0.0d0
+                   expectationAlternate=0.0d0
+                   sumBefore           =0.0d0
+                   do i=1,countNodes
+                      if (isActive(i) .and. omegaSplit(i) <= self%omegasCumulative(k)) then
+                         expectation         =expectation         +countAdded  (i)
+                         expectationAlternate=expectationAlternate+countAdded  (i)
+                         sumBefore           =sumBefore           +deltaSquared(i)
+                      end if
+                      if (countChildren(i) == 0 .or. omega(i) > self%omegasCumulative(k) .or. omegaSplit(i) <= self%omegasCumulative(k)) cycle
+                      if (statistic == 'C' .and. .not.isMain(i)) cycle
+                      logMassAlive=+logMass(i)                          &
+                           &       +(log10(massChildren(i))-logMass(i)) &
+                           &       *(self%omegasCumulative(k)-omega(i)) &
+                           &       /(omegaSplit           (i)-omega(i))
+                      expectation         =+expectation                                                                                                 &
+                           &               +self%nodeMean(logMassAlive,self%omegasCumulative(k),modulo(fold  ,countFolds)+1,iCase,emptyTouched,outside)
+                      expectationAlternate=+expectationAlternate                                                                                        &
+                           &               +self%nodeMean(logMassAlive,self%omegasCumulative(k),modulo(fold+1,countFolds)+1,iCase,emptyTouched,outside)
+                   end do
+                   self%cumulativeExpectation         (k,iCase,self%countTrees)=expectation
+                   self%cumulativeExpectationAlternate(k,iCase,self%countTrees)=expectationAlternate
+                   self%cumulativeSumDeltaSquared     (k,iCase,self%countTrees)=sumBefore
+                end do
+                ! Per-split values.
+                if (storeSplits) then
+                   call splitsReserve(self%countSplitsStored(iCase)+count(isActive,kind=c_size_t))
+                   do i=1,countNodes
+                      if (.not.isActive(i)) cycle
+                      self%countSplitsStored(iCase)=self%countSplitsStored(iCase)+1_c_size_t
+                      self%splitsReal   (splitPropertyRealDelta            %ID,self%countSplitsStored(iCase),iCase)=delta         (i)
+                      self%splitsReal   (splitPropertyRealDeltaSquared     %ID,self%countSplitsStored(iCase),iCase)=deltaSquared  (i)
+                      self%splitsReal   (splitPropertyRealOmega            %ID,self%countSplitsStored(iCase),iCase)=omegaSplit    (i)
+                      self%splitsReal   (splitPropertyRealRedshift         %ID,self%countSplitsStored(iCase),iCase)=redshiftOfNode(nodes(primaryChild(i))%node)
+                      self%splitsReal   (splitPropertyRealMass             %ID,self%countSplitsStored(iCase),iCase)=massChildren  (i)
+                      self%splitsReal   (splitPropertyRealMassPrimary      %ID,self%countSplitsStored(iCase),iCase)=mass          (primaryChild(i))
+                      self%splitsReal   (splitPropertyRealMassSecondary    %ID,self%countSplitsStored(iCase),iCase)=massSecondary (i)
+                      self%splitsReal   (splitPropertyRealMassRoot         %ID,self%countSplitsStored(iCase),iCase)=mass          (countNodes)
+                      self%splitsReal   (splitPropertyRealN1Parent         %ID,self%countSplitsStored(iCase),iCase)=nodeMeanEnd   (i,1)
+                      self%splitsReal   (splitPropertyRealCountAdded       %ID,self%countSplitsStored(iCase),iCase)=countAdded    (i)
+                      self%splitsInteger(splitPropertyIntegerTreeIndex     %ID,self%countSplitsStored(iCase),iCase)=treeCurrent%index
+                      self%splitsInteger(splitPropertyIntegerIsMainBranch  %ID,self%countSplitsStored(iCase),iCase)=merge(1_kind_int8,0_kind_int8,isMain(i))
+                      self%splitsInteger(splitPropertyIntegerHierarchyDepth%ID,self%countSplitsStored(iCase),iCase)=hierarchyDepth(i)
+                   end do
+                end if
              end select
           end do
        end do
-       deallocate(nodes        )
-       deallocate(parent       )
-       deallocate(primaryChild )
-       deallocate(countChildren)
-       deallocate(mass         )
-       deallocate(logMass      )
-       deallocate(omega        )
-       deallocate(massChildren )
-       deallocate(massSecondary)
-       deallocate(omegaSplit   )
-       deallocate(omegaEnd     )
-       deallocate(isPrimary    )
-       deallocate(isMain       )
-       deallocate(countAdded   )
+       deallocate(nodes         )
+       deallocate(parent        )
+       deallocate(primaryChild  )
+       deallocate(countChildren )
+       deallocate(mass          )
+       deallocate(logMass       )
+       deallocate(omega         )
+       deallocate(massChildren  )
+       deallocate(massSecondary )
+       deallocate(omegaSplit    )
+       deallocate(omegaEnd      )
+       deallocate(isPrimary     )
+       deallocate(isMain        )
+       deallocate(isActive      )
+       deallocate(hierarchyDepth)
+       deallocate(countAdded     )
        deallocate(countNode    )
        if (self%mode == branchingVarianceModeJumps) then
           deallocate(nodeMeanNode)
@@ -1211,6 +1559,7 @@ contains
           deallocate(deltaSquared)
           deallocate(drift       )
           deallocate(deltaVariant)
+          deallocate(binnedTree  )
        end if
        treeCurrent => treeCurrent%nextTree
     end do
@@ -1231,6 +1580,34 @@ contains
       return
     end function redshiftOfNode
 
+    subroutine splitsReserve(countRequired)
+      !!{RST
+      Ensure that the per-split storage can hold at least ``countRequired`` splits for every case, growing it geometrically.
+      !!}
+      implicit none
+      integer         (c_size_t ), intent(in   )                 :: countRequired
+      double precision           , allocatable, dimension(:,:,:) :: splitsRealTmp
+      integer         (kind_int8), allocatable, dimension(:,:,:) :: splitsIntegerTmp
+      integer         (c_size_t )                                :: countAllocated
+
+      if (.not.allocated(self%splitsReal)) then
+         countAllocated=max(countRequired,treeCountIncrement)
+         allocate(self%splitsReal   (splitPropertyRealCount   ,countAllocated,self%countCases))
+         allocate(self%splitsInteger(splitPropertyIntegerCount,countAllocated,self%countCases))
+      else if (countRequired > size(self%splitsReal,dim=2,kind=c_size_t)) then
+         countAllocated=max(countRequired,2_c_size_t*size(self%splitsReal,dim=2,kind=c_size_t))
+         call move_alloc(self%splitsReal   ,splitsRealTmp   )
+         call move_alloc(self%splitsInteger,splitsIntegerTmp)
+         allocate(self%splitsReal   (splitPropertyRealCount   ,countAllocated,self%countCases))
+         allocate(self%splitsInteger(splitPropertyIntegerCount,countAllocated,self%countCases))
+         self%splitsReal   (:,1:size(splitsRealTmp   ,dim=2),:)=splitsRealTmp
+         self%splitsInteger(:,1:size(splitsIntegerTmp,dim=2),:)=splitsIntegerTmp
+         deallocate(splitsRealTmp   )
+         deallocate(splitsIntegerTmp)
+      end if
+      return
+    end subroutine splitsReserve
+
   end subroutine branchingVarianceOperatePreEvolution
 
   subroutine branchingVarianceFinalize(self)
@@ -1247,11 +1624,14 @@ contains
     class           (mergerTreeOperatorBranchingVariance), intent(inout)                       :: self
     integer         (hsize_t                            ), parameter                           :: chunkSize  =1024_hsize_t
     double precision                                     , allocatable  , dimension(:,:,:,:  ) :: sums
+    double precision                                     , allocatable  , dimension(:,:,:    ) :: binnedRead
     double precision                                     , allocatable  , dimension(:,:      ) :: markovSums
-    double precision                                     , allocatable  , dimension(:        ) :: redshifts               , omegas
+    double precision                                     , allocatable  , dimension(:        ) :: redshifts               , omegas    , &
+         &                                                                                        edges
     integer         (kind_int8                          )                                      :: countRead
-    integer                                                                                    :: iStatistic              , iThreshold , &
-         &                                                                                        iCase                   , i
+    integer                                                                                    :: iStatistic              , iThreshold, &
+         &                                                                                        iCase                   , i         , &
+         &                                                                                        j
     logical                                                                                    :: preexisting
 
     ! Tabulate ω as a function of redshift, outside of the HDF5 lock (evaluating ω may itself require HDF5 access).
@@ -1264,26 +1644,27 @@ contains
     ! HDF5 objects are scoped within a block so that they are closed (by finalization) while the HDF5 lock is held.
     !$ call hdf5Access%set()
     block
-       type(hdf5Group) :: outputGroup, caseGroup, treesGroup, statisticGroup
+       type(hdf5Group) :: outputGroup, caseGroup  , treesGroup, statisticGroup, &
+            &             binnedGroup, splitsGroup
        outputGroup=outputFile%openGroup(char(self%outputGroupName),'Decomposition of the variance of counts in merger trees into contributions from splits.',objectsOverwritable=.true.,overwriteOverride=.true.)
        preexisting=outputGroup%hasAttribute('statistics')
        if (.not.preexisting) then
           ! Record the statistics, thresholds, and binning, and the relation between redshift and ω.
-          call                             outputGroup%writeAttribute(char(self%statistics          ),'statistics'          )
-          call                             outputGroup%writeAttribute(     self%massThresholds       ,'massThresholds'      )
-          call                             outputGroup%writeAttribute(     self%massTableMinimum     ,'massTableMinimum'    )
-          call                             outputGroup%writeAttribute(     self%massTableMaximum     ,'massTableMaximum'    )
-          call                             outputGroup%writeAttribute(     self%redshiftTableMinimum ,'redshiftTableMinimum')
-          call                             outputGroup%writeAttribute(     self%redshiftTableMaximum ,'redshiftTableMaximum')
-          call                             outputGroup%writeAttribute(     self%binWidthMass         ,'binWidthMass'        )
-          call                             outputGroup%writeAttribute(     self%binWidthOmega        ,'binWidthOmega'       )
-          call                             outputGroup%writeAttribute(          countFolds           ,'countFolds'          )
-          call                             outputGroup%writeAttribute(     self%logMassEdgeMinimum   ,'logMassEdgeMinimum'  )
-          call                             outputGroup%writeAttribute(     self%omegaEdgeMinimum     ,'omegaEdgeMinimum'    )
-          call                             outputGroup%writeAttribute(     self%countBinsMass        ,'countBinsMass'       )
-          call                             outputGroup%writeAttribute(     self%countBinsOmega       ,'countBinsOmega'      )
-          call                                              outputGroup%writeAttribute(char(enumerationBranchingVarianceModeDecode(self%mode,includePrefix=.false.)),'mode'         )
-          if (self%mode == branchingVarianceModeJumps) call outputGroup%writeAttribute(char(self%tableFileName                                                     ),'tableFileName')
+          call                                              outputGroup%writeAttribute(char(self%statistics                                                        ),'statistics'          )
+          call                                              outputGroup%writeAttribute(     self%massThresholds                                                     ,'massThresholds'      )
+          call                                              outputGroup%writeAttribute(     self%massTableMinimum                                                   ,'massTableMinimum'    )
+          call                                              outputGroup%writeAttribute(     self%massTableMaximum                                                   ,'massTableMaximum'    )
+          call                                              outputGroup%writeAttribute(     self%redshiftTableMinimum                                               ,'redshiftTableMinimum')
+          call                                              outputGroup%writeAttribute(     self%redshiftTableMaximum                                               ,'redshiftTableMaximum')
+          call                                              outputGroup%writeAttribute(     self%binWidthMass                                                       ,'binWidthMass'        )
+          call                                              outputGroup%writeAttribute(     self%binWidthOmega                                                      ,'binWidthOmega'       )
+          call                                              outputGroup%writeAttribute(          countFolds                                                         ,'countFolds'          )
+          call                                              outputGroup%writeAttribute(     self%logMassEdgeMinimum                                                 ,'logMassEdgeMinimum'  )
+          call                                              outputGroup%writeAttribute(     self%omegaEdgeMinimum                                                   ,'omegaEdgeMinimum'    )
+          call                                              outputGroup%writeAttribute(     self%countBinsMass                                                      ,'countBinsMass'       )
+          call                                              outputGroup%writeAttribute(     self%countBinsOmega                                                     ,'countBinsOmega'      )
+          call                                              outputGroup%writeAttribute(char(enumerationBranchingVarianceModeDecode(self%mode,includePrefix=.false.)),'mode'                )
+          if (self%mode == branchingVarianceModeJumps) call outputGroup%writeAttribute(char(self%tableFileName                                                     ),'tableFileName'       )
           call outputGroup%writeDataset  (redshifts  ,'redshift'            ,'Redshifts at which ω is tabulated.'                           )
           call outputGroup%writeDataset  (omegas     ,'omega'               ,'ω at the tabulated redshifts (evaluated at massTableMaximum).')
           call outputGroup%writeAttribute(0_kind_int8,'countSplits'                                                                         )
@@ -1291,6 +1672,27 @@ contains
           call outputGroup%writeAttribute(0_kind_int8,'countPrimaryMismatch'                                                                )
           call outputGroup%writeAttribute(0_kind_int8,'countNodesOutside'                                                                   )
           call outputGroup%writeAttribute(0.0d0      ,'omegaSpreadMaximum'                                                                  )
+          if (self%mode == branchingVarianceModeJumps) then
+             ! Record the bins of the binned sums of Δ², the cumulative grid, and the tree stride for per-split values.
+             binnedGroup=outputGroup%openGroup('binned','Bin edges of the binned sums of Δ².')
+             allocate(edges(self%countBinsOmegaBinned+1))
+             do i=1,self%countBinsOmegaBinned+1
+                edges(i)=self%omegaEdges(1)+self%binWidthOmegaBinned*dble(i-1)
+             end do
+             call binnedGroup%writeDataset(edges,'omega','Edges of the ω bins.')
+             deallocate(edges)
+             do j=1,binnedQuantityCount
+                allocate(edges(self%countBinsBinned(j)+1))
+                do i=1,self%countBinsBinned(j)+1
+                   edges(i)=self%logMassBinnedMinimum(j)+dble(i-1)/dble(self%countBinsPerDecadeBinned)
+                end do
+                call binnedGroup%writeDataset(edges,char(enumerationBinnedQuantityDecode(j,includePrefix=.false.)),'Edges of the bins in the logarithm (base 10) of this mass quantity.')
+                deallocate(edges)
+             end do
+             call outputGroup%writeDataset  (self%redshiftsCumulative,'redshiftCumulative','Redshifts of the grid of the cumulative variance.')
+             call outputGroup%writeDataset  (self%omegasCumulative   ,'omegaCumulative'   ,'ω of the grid of the cumulative variance.'        )
+             call outputGroup%writeAttribute(self%treeStrideSplits   ,'treeStrideSplits'                                                      )
+          end if
        end if
        ! Accumulate counters.
        call outputGroup%readAttribute ('countSplits'         ,countRead)
@@ -1347,6 +1749,35 @@ contains
                 if (self%countTrees > 0) then
                    do i=1,treeQuantityCount
                       call caseGroup%writeDataset(self%treeQuantities(i,iCase,1:self%countTrees),char(enumerationTreeQuantityDecode(i,includePrefix=.false.)),char(enumerationTreeQuantityDescription(i)),appendTo=.true.,chunkSize=chunkSize)
+                   end do
+                   if (self%countCumulative > 0) then
+                      call caseGroup%writeDataset(self%cumulativeExpectation         (:,iCase,1:self%countTrees),'cumulativeExpectation'         ,'Expectation of N conditioned on the tree built to each ω of the cumulative grid, indexed by (redshift, tree).'                   ,appendTo=.true.,appendDimension=2)
+                      call caseGroup%writeDataset(self%cumulativeExpectationAlternate(:,iCase,1:self%countTrees),'cumulativeExpectationAlternate','As cumulativeExpectation, but evaluated with the n₁ table of the second other fold.'                                             ,appendTo=.true.,appendDimension=2)
+                      call caseGroup%writeDataset(self%cumulativeSumDeltaSquared     (:,iCase,1:self%countTrees),'cumulativeSumDeltaSquared'     ,'Sum of Δ² over splits at ω no greater than (i.e. at redshifts up to) each ω of the cumulative grid, indexed by (redshift, tree).',appendTo=.true.,appendDimension=2)
+                   end if
+                end if
+                ! Binned sums of Δ², added to any already present.
+                binnedGroup=caseGroup%openGroup('binned','Sums of Δ² in bins.',objectsOverwritable=.true.,overwriteOverride=.true.)
+                do j=1,binnedQuantityCount
+                   if (binnedGroup%hasDataset(char(enumerationBinnedQuantityDecode(j,includePrefix=.false.)))) then
+                      call binnedGroup%readDataset(char(enumerationBinnedQuantityDecode(j,includePrefix=.false.))          ,binnedRead)
+                      self%binnedSums       (:,1:self%countBinsBinned(j),:,j,iCase)=self%binnedSums       (:,1:self%countBinsBinned(j),:,j,iCase)+binnedRead
+                      deallocate(binnedRead)
+                      call binnedGroup%readDataset(char(enumerationBinnedQuantityDecode(j,includePrefix=.false.))//'Squared',binnedRead)
+                      self%binnedSumsSquared(:,1:self%countBinsBinned(j),:,j,iCase)=self%binnedSumsSquared(:,1:self%countBinsBinned(j),:,j,iCase)+binnedRead
+                      deallocate(binnedRead)
+                   end if
+                   call binnedGroup%writeDataset(self%binnedSums       (:,1:self%countBinsBinned(j),:,j,iCase),char(enumerationBinnedQuantityDecode(j,includePrefix=.false.))           ,char(enumerationBinnedQuantityDescription(j))                                                             )
+                   call binnedGroup%writeDataset(self%binnedSumsSquared(:,1:self%countBinsBinned(j),:,j,iCase),char(enumerationBinnedQuantityDecode(j,includePrefix=.false.))//'Squared','Sums over trees of the square of the weighted sum of each tree in each bin of the corresponding dataset.')
+                end do
+                ! Per-split values.
+                if (self%countSplitsStored(iCase) > 0) then
+                   splitsGroup=caseGroup%openGroup('splits','Per-split values.')
+                   do i=1,splitPropertyRealCount
+                      call splitsGroup%writeDataset(self%splitsReal   (i,1:self%countSplitsStored(iCase),iCase),char(enumerationSplitPropertyRealDecode   (i,includePrefix=.false.)),char(enumerationSplitPropertyRealDescription   (i)),appendTo=.true.,chunkSize=chunkSize)
+                   end do
+                   do i=1,splitPropertyIntegerCount
+                      call splitsGroup%writeDataset(self%splitsInteger(i,1:self%countSplitsStored(iCase),iCase),char(enumerationSplitPropertyIntegerDecode(i,includePrefix=.false.)),char(enumerationSplitPropertyIntegerDescription(i)),appendTo=.true.,chunkSize=chunkSize)
                    end do
                 end if
              end select
