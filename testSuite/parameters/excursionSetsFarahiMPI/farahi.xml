@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Low-resolution excursion set first crossing solutions from the "farahi" class, for comparison of runs on different numbers of MPI processes (see testSuite/test-excursionSetsFarahi_MPI.py). -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="dd7a0edb77fb16d7366804c068a97c42e2f8c01b" time="2026-10-30T17:23:25"/>
+
+  <!-- Specify tasks to perform. Spanning several epochs causes the first crossing tables to be extended in time, re-using the
+       solutions already found. -->
+  <task value="excursionSets">
+    <massMinimum      value="1.0e12"/>
+    <massMaximum      value="1.0e14"/>
+    <massesPerDecade  value="4"     />
+    <redshiftMinimum  value="0.0"   />
+    <redshiftMaximum  value="2.0"   />
+    <timesPerDecade   value="4"     />
+  </task>
+
+  <!-- Cosmological parameters -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.20000"/>
+    <OmegaMatter     value=" 0.27250"/>
+    <OmegaDarkEnergy value=" 0.72750"/>
+    <OmegaBaryon     value=" 0.04550"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.807"/>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                       />
+  <criticalOverdensity   value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Excursion set options. A coarse resolution is used to keep the run time short, and no tables are stored in files so that
+       every run solves for them. -->
+  <excursionSetBarrier value="criticalOverdensity"/>
+  <excursionSetFirstCrossing value="farahi">
+    <fileName                         value="none"/>
+    <varianceNumberPerUnitProbability value="100" />
+    <varianceNumberPerUnit            value="8"   />
+    <varianceNumberPerDecade          value="40"  />
+    <timeNumberPerDecade              value="4"   />
+    <fractionalTimeStep               value="0.05"/>
+  </excursionSetFirstCrossing>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/excursionSetsFarahiMPI_farahi.hdf5"/>
+
+</parameters>
