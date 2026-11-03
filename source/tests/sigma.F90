@@ -52,12 +52,14 @@ program Tests_Sigma
   integer                                                                                  , parameter :: massCountExtension                     =3
   double precision                                          , dimension(massCountExtension), parameter :: massExtension(massCountExtension)      =[1.0d11,1.0d12,1.0d13]
   double precision                                          , dimension(massCountExtension)            :: sigmaNarrow                                                   , sigmaExtended
-  ! Masses at which σ(M) is tested for invariance under extension of the tabulation with the (local) monotonic interpolator. These
-  ! lie close to the lower end of the seed range (10⁶ M☉) of the tabulation, the first three within its lowest three tabulated
-  ! intervals (which are excluded from the usable range, so that requesting them extends the tabulation), and none on the
-  ! lattice.
-  integer                                                                                  , parameter :: massCountEdge                          =5
-  double precision                                          , dimension(massCountEdge     ), parameter :: massEdge(massCountEdge)                =[1.02d6,1.12d6,1.3d6,2.2d6,3.5d6]
+  ! Masses at which σ(M) is tested for invariance under extension of the tabulation with the (local) monotonic interpolator. The
+  ! seed tabulation (10⁶-10¹⁸ M☉, at 10 points per decade) has usable range x₄=10⁶·³ M☉ to x₋₄=10¹⁷·⁷ M☉. The first four masses
+  ! lie in its fourth and fourth-from-last intervals, the closest to its ends which are used without extension. The fifth lies in
+  ! its third-from-last interval, which is excluded, so requesting it must extend the tabulation upward. The sixth lies below the
+  ! usable range, and extends the tabulation down to the lattice point 10⁵ M☉ just below half of it - the narrowest extension the
+  ! safety margin allows - leaving it in the fourth interval of the extended tabulation. None is on the lattice.
+  integer                                                                                  , parameter :: massCountEdge                          =6
+  double precision                                          , dimension(massCountEdge     ), parameter :: massEdge(massCountEdge)                =[2.0d6,2.3d6,4.0d17,5.0d17,5.5d17,2.02d5]
   double precision                                          , dimension(massCountEdge     )            :: sigmaEdgeNarrow                                               , sigmaEdgeExtended                              , &
        &                                                                                                  alphaEdgeNarrow                                               , alphaEdgeExtended
   type            (darkMatterParticleCDM                   )                                           :: darkMatterParticleCDM_
@@ -311,44 +313,43 @@ program Tests_Sigma
      sigmaExtended(iMass)=cosmologicalMassVarianceExtension_%rootVariance(massExtension(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
   end do
   call Assert('σ(M) at tabulated masses is unchanged by extension of the tabulation',sigmaNarrow,sigmaExtended,relTol=1.0d-6)
-  ! Check that σ(M) at untabulated masses near the end of the tabulation is unchanged when the tabulation is extended beyond them,
-  ! with the (default) monotonic interpolator. That interpolator is local, so σ(M) in an interval depends only on nearby tabulated
-  ! values - except in the end intervals, whose interpolation depends on the end conditions of the spline. Those intervals are
-  ! never used: a mass falling in one extends the tabulation. With the standard cubic spline these values change by up to
-  ! 3×10⁻⁶ on extension (because it is not local); with the monotonic interpolator but without the end intervals excluded, the
-  ! first two change by about 2×10⁻⁶. As for the test above, this object differs from the others in σ₈ so that it builds its own
-  ! tabulation.
-  powerSpectrumNormalizerEdge_          =powerSpectrumNormalizerSigma8            (                                                                                 &
-       &                                                                         sigma8                                  =0.8500d+0                             , &
-       &                                                                         tolerance                               =1.0000d-4                             , &
-       &                                                                         integrationFailureIsFatal               =.true.                                , &
-       &                                                                         cosmologyParameters_                    =cosmologyParameters_                  , &
-       &                                                                         cosmologyFunctions_                     =cosmologyFunctions_                   , &
-       &                                                                         transferFunction_                       =transferFunctionLCDM_                   &
-       &                                                                        )
-  powerSpectrumPrimordialTransferredEdge_=powerSpectrumPrimordialTransferredSimple(                                                                                 &
-       &                                                                         powerSpectrumPrimordial_                =powerSpectrumPrimordialLCDM_          , &
-       &                                                                         transferFunction_                       =transferFunctionLCDM_                 , &
-       &                                                                         linearGrowth_                           =linearGrowth_                         , &
-       &                                                                         powerSpectrumNormalizer_                =powerSpectrumNormalizerEdge_            &
-       &                                                                        )
-  cosmologicalMassVarianceEdge_          =cosmologicalMassVarianceFilteredPower   (                                                                                 &
-       &                                                                         tolerance                               =1.0000d-4                             , &
-       &                                                                         toleranceTopHat                         =1.0000d-4                             , &
-       &                                                                         rootVarianceLogarithmicGradientTolerance=1.0000d-9                             , &
-       &                                                                         integrationFailureIsFatal               =.true.                                , &
-       &                                                                         storeTabulations                        =.false.                               , &
-       &                                                                         nonMonotonicIsFatal                     =.true.                                , &
-       &                                                                         monotonicInterpolation                  =.true.                                , &
-       &                                                                         truncateAtParticleHorizon               =.false.                               , &
-       &                                                                         cosmologyParameters_                    =cosmologyParameters_                  , &
-       &                                                                         cosmologyFunctions_                     =cosmologyFunctions_                   , &
-       &                                                                         linearGrowth_                           =linearGrowth_                         , &
-       &                                                                         powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredEdge_, &
-       &                                                                         powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionLCDM_        &
-       &                                                                        )
-  ! Tabulate over the seed range, and record σ(M), and its logarithmic gradient, near its lower end. (Requesting the lowest of
-  ! these masses itself extends the tabulation down to 10⁵ M☉.)
+  ! Check that σ(M) at untabulated masses near the ends of the usable range of the tabulation is unchanged when the tabulation is
+  ! extended beyond them, with the (default) monotonic interpolator. That interpolator is local, so σ(M) in an interval depends
+  ! only on nearby tabulated values - except in the three end intervals, in which the derivatives at the tabulated points can not
+  ! be estimated from the full stencil. Those intervals are never used: a mass falling in one extends the tabulation. The test
+  ! would therefore fail if the usable range included an end interval, or if the safety margin of an extension left the requested
+  ! mass in one. As for the test above, this object differs from the others in σ₈ so that it builds its own tabulation.
+  powerSpectrumNormalizerEdge_          =powerSpectrumNormalizerSigma8            (                                                                                  &
+       &                                                                           sigma8                                  =0.8500d+0                              , &
+       &                                                                           tolerance                               =1.0000d-4                              , &
+       &                                                                           integrationFailureIsFatal               =.true.                                 , &
+       &                                                                           cosmologyParameters_                    =cosmologyParameters_                   , &
+       &                                                                           cosmologyFunctions_                     =cosmologyFunctions_                    , &
+       &                                                                           transferFunction_                       =transferFunctionLCDM_                    &
+       &                                                                          )
+  powerSpectrumPrimordialTransferredEdge_=powerSpectrumPrimordialTransferredSimple(                                                                                  &
+       &                                                                           powerSpectrumPrimordial_                =powerSpectrumPrimordialLCDM_           , &
+       &                                                                           transferFunction_                       =transferFunctionLCDM_                  , &
+       &                                                                           linearGrowth_                           =linearGrowth_                          , &
+       &                                                                           powerSpectrumNormalizer_                =powerSpectrumNormalizerEdge_             &
+       &                                                                          )
+  cosmologicalMassVarianceEdge_          =cosmologicalMassVarianceFilteredPower   (                                                                                  &
+       &                                                                           tolerance                               =1.0000d-4                              , &
+       &                                                                           toleranceTopHat                         =1.0000d-4                              , &
+       &                                                                           rootVarianceLogarithmicGradientTolerance=1.0000d-9                              , &
+       &                                                                           integrationFailureIsFatal               =.true.                                 , &
+       &                                                                           storeTabulations                        =.false.                                , &
+       &                                                                           nonMonotonicIsFatal                     =.true.                                 , &
+       &                                                                           monotonicInterpolation                  =.true.                                 , &
+       &                                                                           truncateAtParticleHorizon               =.false.                                , &
+       &                                                                           cosmologyParameters_                    =cosmologyParameters_                   , &
+       &                                                                           cosmologyFunctions_                     =cosmologyFunctions_                    , &
+       &                                                                           linearGrowth_                           =linearGrowth_                          , &
+       &                                                                           powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredEdge_, &
+       &                                                                           powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionLCDM_         &
+       &                                                                          )
+  ! Tabulate over the seed range, and record σ(M), and its logarithmic gradient, near the ends of its usable range. (Requesting
+  ! the last two of these masses extends the tabulation, as described above.)
   sigmaForce=cosmologicalMassVarianceEdge_%rootVariance(1.0d11,cosmologyFunctions_%cosmicTime(1.0d0))
   do iMass=1,massCountEdge
      sigmaEdgeNarrow  (iMass)=cosmologicalMassVarianceEdge_%rootVariance                   (massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
@@ -361,8 +362,8 @@ program Tests_Sigma
      sigmaEdgeExtended(iMass)=cosmologicalMassVarianceEdge_%rootVariance                   (massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
      alphaEdgeExtended(iMass)=cosmologicalMassVarianceEdge_%rootVarianceLogarithmicGradient(massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
   end do
-  call Assert('σ(M) near the end of the tabulation is unchanged by extension of the tabulation'         ,all(sigmaEdgeNarrow == sigmaEdgeExtended),.true.)
-  call Assert('dlogσ/dlogM near the end of the tabulation is unchanged by extension of the tabulation',all(alphaEdgeNarrow == alphaEdgeExtended),.true.)
+  call Assert('σ(M) near the ends of the usable range is unchanged by extension of the tabulation'       ,all(sigmaEdgeNarrow == sigmaEdgeExtended),.true.)
+  call Assert('dlogσ/dlogM near the ends of the usable range is unchanged by extension of the tabulation',all(alphaEdgeNarrow == alphaEdgeExtended),.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
