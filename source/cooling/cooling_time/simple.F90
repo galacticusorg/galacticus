@@ -192,7 +192,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
-    numberDensityHydrogen=Hydrogen_Number_Density(density,gasAbundances)
+    numberDensityHydrogen           =Hydrogen_Number_Density                              (           density                    ,gasAbundances                            )
     simpleGradientDensityLogarithmic=+1.0d0                                                                                                                                  &
          &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
@@ -216,7 +216,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
-    numberDensityHydrogen=Hydrogen_Number_Density(density,gasAbundances)
+    numberDensityHydrogen               =Hydrogen_Number_Density                                  (           density                    ,gasAbundances                            )
     ! The thermal energy density is proportional to temperature, contributing +1 to the logarithmic gradient.
     simpleGradientTemperatureLogarithmic=+1.0d0                                                                                                                                      &
          &                               -self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
