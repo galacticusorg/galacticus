@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793609805414,
+  "lastUpdate": 1793704523186,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Group)": [
@@ -1420,6 +1420,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony Group CDM resolutionX1 z=0.000 (49 realizations)",
             "value": 5817.052381073718,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f1fab6ba2b505dccf771da40f6acdc60ba758929",
+          "message": "Merge pull request #1732 from galacticusorg/fix/disk-truncation-followups\n\nfix(nodeOperators): require an angular-momentum disk in tidalMassLossDisks; test disk angular momentum under truncation",
+          "timestamp": "2026-11-02T23:46:33Z",
+          "tree_id": "9a0aeecf95da447e85d6f66b763c3a74a9a7e462",
+          "url": "https://github.com/galacticusorg/galacticus/commit/f1fab6ba2b505dccf771da40f6acdc60ba758929"
+        },
+        "date": 1793704521925,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony Group CDM resolutionX1 z=0.000 (49 realizations)",
+            "value": 5817.052418522692,
             "unit": "-logℒ"
           }
         ]
