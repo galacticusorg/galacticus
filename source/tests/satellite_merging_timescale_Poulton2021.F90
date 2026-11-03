@@ -29,7 +29,8 @@ program Test_Satellite_Merging_Timescale_Poulton2021
   for an NFW host. The reference evaluation takes the host mass enclosed within the orbital radius from the analytic NFW
   enclosed mass, capped at the virial mass beyond the virial radius (their equation 2), and computes from it, and the reduced
   mass of the satellite, the orbital energy, angular momentum, eccentricity, pericentric distance, and dynamical time. Orbits
-  both inside and outside of the virial radius are tested, so that the cap is exercised.
+  both inside and outside of the virial radius are tested, so that the cap is exercised, as are unbound orbits, which receive
+  the same fitted, finite, merging time.
   !!}
   use :: Display                         , only : displayVerbositySet                   , verbosityLevelStandard
   use :: Error                           , only : Error_Handler_Register
@@ -45,7 +46,8 @@ program Test_Satellite_Merging_Timescale_Poulton2021
   use :: Node_Components                 , only : Node_Components_Initialize            , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal        , MpcPerKmPerSToGyr
   use :: Satellite_Merging_Timescales    , only : satelliteMergingTimescalesPoulton2021
-  use :: Unit_Tests                      , only : Assert                                , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Unit_Tests                      , only : Assert                                , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish, &
+       &                                          compareGreaterThan
   implicit none
   ! The host halo, and the parameters of the Poulton et al. (2021) fit (their favored values).
   double precision                                       , parameter    :: massHost              =1.0d12, concentrationHost  =10.0d0, &
@@ -53,12 +55,12 @@ program Test_Satellite_Merging_Timescale_Poulton2021
   double precision                                       , parameter    :: A                     =5.5d0 , c                  = 0.2d0, &
        &                                                                   bInterior             =-0.5d0, bExterior          =-1.0d0
   ! Orbital configurations: radius (in units of the virial radius), radial and tangential velocities (in units of the virial
-  ! velocity), and satellite mass.
-  integer                                                , parameter    :: countRadii            =4     , countVelocities    =2     , &
+  ! velocity), and satellite mass. The third set of velocities gives an unbound orbit at every radius.
+  integer                                                , parameter    :: countRadii            =4     , countVelocities    =3     , &
        &                                                                   countMasses           =2
   double precision, dimension(countRadii     )           , parameter    :: radiusFractional      =[0.3d0,0.7d0,1.5d0,2.0d0]
-  double precision, dimension(countVelocities)           , parameter    :: velocityRadialFractional    =[-0.5d0,-0.9d0], &
-       &                                                                   velocityTangentialFractional=[+0.6d0,+0.3d0]
+  double precision, dimension(countVelocities)           , parameter    :: velocityRadialFractional    =[-0.5d0,-0.9d0,-1.6d0], &
+       &                                                                   velocityTangentialFractional=[+0.6d0,+0.3d0,+1.2d0]
   double precision, dimension(countMasses    )           , parameter    :: massSatellite         =[1.0d10,1.0d11]
   class           (darkMatterHaloScaleClass             ), pointer      :: darkMatterHaloScale_
   class           (darkMatterProfileDMOClass            ), pointer      :: darkMatterProfileDMO_
@@ -140,6 +142,8 @@ program Test_Satellite_Merging_Timescale_Poulton2021
            end if
            write (message,'(a,f3.1,a,i1,a,e7.1)') 'r/R_vir=',radiusFractional(iRadius),', velocity ',iVelocity,', M_sat=',massSatellite(iMass)
            call Assert(trim(message),timeMerging,timeMergingReference,relTol=1.0d-6)
+           ! Confirm that the third set of velocities does give an unbound orbit, so that the unbound case is tested.
+           if (iVelocity == 3) call Assert(trim(message)//' (unbound)',eccentricity,1.0d0,compare=compareGreaterThan)
         end do
      end do
      ! Detach before destroying, so that the host does not attempt to destroy the satellite a second time.

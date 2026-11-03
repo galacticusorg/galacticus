@@ -35,7 +35,7 @@
 
       T_\mathrm{merge} = A \, T_\mathrm{dyn}(r) \left(\frac{r}{R_\mathrm{vir}}\right)^b \left(\frac{R_\mathrm{peri}}{R_\mathrm{vir}}\right)^c,
 
-   where :math:`T_\mathrm{dyn}(r) = r/v_\mathrm{circ}(r)` is the local dynamical time, :math:`R_\mathrm{peri}` is the pericentric distance computed using the locally Keplerian approximation with the enclosed host mass, and
+   where :math:`T_\mathrm{dyn}(r) = r/v_\mathrm{circ}(r)` is the local dynamical time, :math:`R_\mathrm{peri}` is the pericentric distance computed using the locally Keplerian approximation with the enclosed host mass (for unbound as well as bound orbits, so that unbound satellites also receive a finite merging time), and
 
    .. math::
 
@@ -165,7 +165,8 @@ contains
     (energy, angular momentum, eccentricity, pericentric distance, and dynamical time) are computed, as in
     :cite:t:`poulton_extracting_2021` (their eqns. 2--7), from the host mass enclosed within the current orbital radius,
     :math:`M_\mathrm{encl}(r)`, which is taken to be the virial mass for :math:`r \ge R_\mathrm{vir}`, and the reduced mass
-    :math:`\mu=M_\mathrm{sat}M_\mathrm{encl}/(M_\mathrm{sat}+M_\mathrm{encl})`.
+    :math:`\mu=M_\mathrm{sat}M_\mathrm{encl}/(M_\mathrm{sat}+M_\mathrm{encl})`. Unbound orbits (:math:`e \ge 1`) receive the
+    same fitted, finite, merging time.
     !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic            , treeNode
     use :: Kepler_Orbits                   , only : keplerOrbit
@@ -233,12 +234,8 @@ contains
          &                        +2.0d0*energyOrbital*angularMomentum**2/(gravitationalConstant_internal*massEnclosed*massSatellite)**2/massReduced &
          &                       )                                                                                             &
          &                   )
-    ! Return infinite timescale for unbound orbits.
-    if (eccentricity >= 1.0d0) then
-       timeUntilMerging=satelliteMergeTimeInfinite
-       return
-    end if
-    ! Pericentric radius via the locally-Keplerian approximation (Poulton et al. 2021, eqn. 6).
+    ! Pericentric radius via the locally-Keplerian approximation (Poulton et al. 2021, eqn. 6). This holds for unbound
+    ! (e ≥ 1) as well as bound orbits, so the fitting formula is applied to both.
     radiusPericenter =  +angularMomentum**2                         &
          &              /(1.0d0+eccentricity)                       &
          &              /gravitationalConstant_internal             &
