@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
   !!}
@@ -26,11 +28,25 @@
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Chemical_States        , only : chemicalStateClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Cooling_Times          , only : coolingTimeClass
 
   !![
   <nodeOperator name="nodeOperatorCoolingEnergyRadiated" docformat="rst">
    <description>
-   A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
+   A node operator class that accumulates an estimate of the energy radiated from the hot halo due to cooling following the model
+   of :cite:t:`benson_galaxy_2010-1`, :math:`\mathcal{E} = \int \Lambda n_\mathrm{H} N \mathrm{d}t`, where the cooling function,
+   :math:`\Lambda`, and hydrogen number density, :math:`n_\mathrm{H}`, are evaluated at the mean density of the notional hot halo
+   profile, and :math:`N` is the number of particles in that profile. The time available for cooling (see
+   :galacticus-class:`coolingTimeAvailableBensonBower2010`) is then :math:`\mathcal{E}/\dot{\mathcal{E}}`.
+
+   :cite:t:`benson_galaxy_2010-1` limit :math:`\mathcal{E}` such that the radiated energy can not exceed the thermal energy of the
+   notional profile (scaled by the ratio of its mean density to its density at the virial radius), i.e. such that the time
+   available for cooling can not exceed the time required for the entire halo to cool. A limit motivated by the same reasoning is
+   applied here, but formulated to be consistent with the cooling radius classes, which find the cooling radius in the actual hot
+   halo profile: after each step :math:`\mathcal{E}` is limited to :math:`t_\mathrm{cool}(r_\mathrm{outer}) \dot{\mathcal{E}}`,
+   where :math:`t_\mathrm{cool}(r_\mathrm{outer})` is the cooling time (see :galacticus-class:`coolingTime`) of the hot halo gas
+   at the outer radius of the hot halo. Once the entire hot halo is able to cool, therefore, no excess radiated energy accumulates
+   which would allow the halo to continue cooling should its cooling time subsequently increase.
    </description>
    <deepCopy>
     <functionClass variables="radiation"/>
@@ -50,14 +66,16 @@
      class  (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_ => null()
      class  (chemicalStateClass                     ), pointer :: chemicalState_       => null()
      type   (radiationFieldCosmicMicrowaveBackground), pointer :: radiation            => null()
+     class  (coolingTimeClass                       ), pointer :: coolingTime_         => null()
      integer                                                   :: energyRadiatedID
    contains
-     final     ::                                coolingEnergyRadiatedDestructor
-     procedure :: differentialEvolutionScales => coolingEnergyRadiatedDifferentialEvolutionScales
-     procedure :: differentialEvolution       => coolingEnergyRadiatedDifferentialEvolution
-     procedure :: galaxiesMerge               => coolingEnergyRadiatedGalaxiesMerge
-     procedure :: nodePromote                 => coolingEnergyRadiatedNodePromote
-     procedure :: autoHook                    => coolingEnergyRadiatedAutoHook
+     final     ::                                  coolingEnergyRadiatedDestructor
+     procedure :: differentialEvolutionScales   => coolingEnergyRadiatedDifferentialEvolutionScales
+     procedure :: differentialEvolution         => coolingEnergyRadiatedDifferentialEvolution
+     procedure :: differentialEvolutionPostStep => coolingEnergyRadiatedDifferentialEvolutionPostStep
+     procedure :: galaxiesMerge                 => coolingEnergyRadiatedGalaxiesMerge
+     procedure :: nodePromote                   => coolingEnergyRadiatedNodePromote
+     procedure :: autoHook                      => coolingEnergyRadiatedAutoHook
   end type nodeOperatorCoolingEnergyRadiated
   
   interface nodeOperatorCoolingEnergyRadiated
@@ -77,6 +95,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                :: self
+    class(coolingTimeClass                 ), pointer       :: coolingTime_
     type (inputParameters                  ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
     class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
@@ -88,19 +107,21 @@ contains
     <objectBuilder class="coolingFunction"     name="coolingFunction_"     source="parameters"/>
     <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     <objectBuilder class="chemicalState"       name="chemicalState_"       source="parameters"/>
+    <objectBuilder class="coolingTime"         name="coolingTime_"         source="parameters"/>
     !!]
-     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_)
+     self=nodeOperatorCoolingEnergyRadiated(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_,coolingTime_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"/>
     <objectDestructor name="coolingFunction_"    />
     <objectDestructor name="cosmologyFunctions_" />
     <objectDestructor name="chemicalState_"      />
+    <objectDestructor name="coolingTime_"        />
     !!]
     return
   end function coolingEnergyRadiatedConstructorParameters
 
-  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_) result(self)
+  function coolingEnergyRadiatedConstructorInternal(cosmologyFunctions_,coolingFunction_,chemicalState_,darkMatterHaloScale_,coolingTime_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorCoolingEnergyRadiated` node operator class.
     !!}
@@ -110,8 +131,9 @@ contains
     class(coolingFunctionClass             ), intent(in   ), target :: coolingFunction_
     class(darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
     class(chemicalStateClass               ), intent(in   ), target :: chemicalState_
+    class(coolingTimeClass                 ), intent(in   ), target :: coolingTime_
     !![
-    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *coolingFunction_, *chemicalState_, *darkMatterHaloScale_, *coolingTime_"/>
     !!]
 
     allocate(self%radiation)
@@ -148,6 +170,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%chemicalState_"      />
     <objectDestructor name="self%radiation"           />
+    <objectDestructor name="self%coolingTime_"        />
     !!]
     if (hotHaloMassEjectionEvent%isAttached(self,coolingEnergyRadiatedHotHaloMassEjection)) call hotHaloMassEjectionEvent%detach(self,coolingEnergyRadiatedHotHaloMassEjection)
     return
@@ -192,6 +215,116 @@ contains
     !!{RST
     Accumulates an estimate of the energy radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1`.
     !!}
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo
+    implicit none
+    class    (nodeOperatorCoolingEnergyRadiated), intent(inout), target  :: self
+    type     (treeNode                         ), intent(inout), target  :: node
+    logical                                     , intent(inout)          :: interrupt
+    procedure(interruptTask                    ), intent(inout), pointer :: functionInterrupt
+    integer                                     , intent(in   )          :: propertyType
+    class    (nodeComponentHotHalo             )               , pointer :: hotHalo
+    !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
+
+    hotHalo => node%hotHalo()
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Hot halo does not exist - nothing to do here.
+    class default
+       call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,coolingEnergyRadiatedRate(self,node))
+    end select
+    return
+  end subroutine coolingEnergyRadiatedDifferentialEvolution
+
+  subroutine coolingEnergyRadiatedDifferentialEvolutionPostStep(self,node,status)
+    !!{RST
+    Limit the energy radiated from the hot halo such that the time available for cooling does not exceed the cooling time of the hot
+    halo gas at the outer radius of the hot halo.
+    !!}
+    use :: Galacticus_Nodes                 , only : nodeComponentHotHalo                 , nodeComponentBasic
+    use :: Abundances_Structure             , only : abundances
+    use :: Chemical_Abundances_Structure    , only : chemicalAbundances                   , Chemicals_Property_Count
+    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
+    use :: Mass_Distributions               , only : massDistributionClass                , kinematicsDistributionClass, massDistributionZero
+    use :: Coordinates                      , only : coordinateSpherical                  , assignment(=)
+    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                 , massTypeGaseous
+    use :: Interface_GSL                    , only : GSL_Failure
+    implicit none
+    class           (nodeOperatorCoolingEnergyRadiated), intent(inout) :: self
+    type            (treeNode                         ), intent(inout) :: node
+    integer                                            , intent(inout) :: status
+    class           (nodeComponentHotHalo             ), pointer       :: hotHalo
+    class           (nodeComponentBasic               ), pointer       :: basic
+    class           (massDistributionClass            ), pointer       :: massDistribution_
+    class           (kinematicsDistributionClass      ), pointer       :: kinematicsDistribution_
+    type            (coordinateSpherical              )                :: coordinates
+    type            (abundances                       )                :: abundances_
+    type            (chemicalAbundances               )                :: chemicalMasses_        , densityChemicals_
+    double precision                                                   :: rate                   , density          , &
+         &                                                                temperature            , energyMaximum
+
+    ! Benson & Bower (2010) limit the radiated energy such that it can not exceed the thermal energy of the (notional) hot halo
+    ! profile, scaled by the ratio of mean density to that at the virial radius, such that the time available for cooling can not
+    ! exceed the time required for the entire halo to cool. Here we apply the same reasoning, but in a form consistent with the
+    ! cooling radius classes, which solve for the cooling radius in the actual hot halo profile: since the time available for
+    ! cooling is the radiated energy divided by its rate of increase, we limit the radiated energy to the cooling time of the hot
+    ! halo gas at the outer radius of the hot halo multiplied by the current rate of increase of the radiated energy. Once the entire
+    ! hot halo is able to cool, the radiated energy therefore no longer accumulates an excess which would allow the halo to continue
+    ! cooling should its cooling time subsequently increase.
+    hotHalo => node%hotHalo()
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Hot halo does not exist - nothing to do here.
+    class default
+       if (hotHalo%mass() <= 0.0d0 .or. hotHalo%outerRadius() <= 0.0d0) return
+       rate=coolingEnergyRadiatedRate(self,node)
+       if (rate <= 0.0d0) return
+       ! Find the density and temperature of the hot halo gas at the outer radius.
+       massDistribution_       => node             %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)
+       kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                                           )
+       select type (massDistribution_)
+       type is (massDistributionZero)
+          ! No mass distribution exists for the hot halo (most likely it is in an unphysical state).
+          !![
+          <objectDestructor name="massDistribution_"      />
+          <objectDestructor name="kinematicsDistribution_"/>
+          !!]
+          return
+       end select
+       coordinates=[hotHalo%outerRadius(),0.0d0,0.0d0]
+       density    =massDistribution_      %density    (coordinates)
+       temperature=kinematicsDistribution_%temperature(coordinates)
+       !![
+       <objectDestructor name="massDistribution_"      />
+       <objectDestructor name="kinematicsDistribution_"/>
+       !!]
+       if (density <= 0.0d0 .or. temperature <= 0.0d0) return
+       ! Get the composition of the hot halo gas, as is used by the cooling radius classes.
+       abundances_=hotHalo%abundances()
+       call abundances_%massToMassFraction(hotHalo%mass())
+       if (Chemicals_Property_Count() > 0) then
+          chemicalMasses_=hotHalo%chemicals()
+          call chemicalMasses_  %massToNumber(densityChemicals_                                            )
+          call densityChemicals_%scale       (Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())*density)
+       end if
+       ! Find the maximum allowed radiated energy, and limit the radiated energy to this value.
+       basic => node%basic()
+       call self%radiation%timeSet(basic%time())
+       energyMaximum=+self%coolingTime_%time(node,temperature,density,abundances_,densityChemicals_,self%radiation) &
+            &        *rate
+       if (hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID) > energyMaximum) then
+          call hotHalo%floatRank0MetaPropertySet(self%energyRadiatedID,energyMaximum)
+          ! The radiated energy determines the time available for cooling, and therefore the cooling rate. Mark ODE failure here
+          ! to force derivatives to be recomputed.
+          status=GSL_Failure
+       end if
+    end select
+    return
+  end subroutine coolingEnergyRadiatedDifferentialEvolutionPostStep
+
+  double precision function coolingEnergyRadiatedRate(self,node) result(rate)
+    !!{RST
+    Return the rate at which energy is radiated from the hot halo due to cooling following the model of :cite:t:`benson_galaxy_2010-1` (in units of ergs s⁻¹).
+    !!}
     use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
     use :: Abundances_Structure             , only : abundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
@@ -208,9 +341,6 @@ contains
     implicit none
     class           (nodeOperatorCoolingEnergyRadiated), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), target  :: node
-    logical                                            , intent(inout)          :: interrupt
-    procedure       (interruptTask                    ), intent(inout), pointer :: functionInterrupt
-    integer                                            , intent(in   )          :: propertyType
     class           (nodeComponentBasic               )               , pointer :: basic
     class           (nodeComponentHotHalo             )               , pointer :: hotHalo
     class           (massDistributionClass            )               , pointer :: massDistribution_
@@ -222,10 +352,10 @@ contains
          &                                                                         countParticles         , massNotional
     type            (abundances                       )                         :: abundances_
     type            (chemicalAbundances               )                         :: chemicalDensities_     , chemicalMasses_
-    !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
+    rate=0.0d0
     ! Compute the mass in the notional hot halo.
-    hotHalo      =>  node   %hotHalo      ()
+    hotHalo =>  node%hotHalo()
     select type (hotHalo)
     type is (nodeComponentHotHalo)
        ! Hot halo does not exist - nothing to do here.
@@ -307,15 +437,12 @@ contains
        ! Set the rate. Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and
        ! nₕ is the number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
        ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
-       call hotHalo%floatRank0MetaPropertyRate(                        &
-            &                                   self%energyradiatedID, &
-            &                                  +coolingFunction        &
-            &                                  /numberDensityHydrogen  &
-            &                                  *countParticles         &
-            &                                 )
+       rate=+coolingFunction       &
+            &   /numberDensityHydrogen &
+            &   *countParticles
     end select
     return
-  end subroutine coolingEnergyRadiatedDifferentialEvolution
+  end function coolingEnergyRadiatedRate
 
   subroutine coolingEnergyRadiatedNodePromote(self,node)
     !!{RST

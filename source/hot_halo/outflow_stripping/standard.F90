@@ -17,22 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`.
 !!}
 
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales      , only : darkMatterHaloScaleClass
+  use :: Hot_Halo_Mass_Distributions  , only : hotHaloMassDistributionClass
+  use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfileClass
 
   !![
   <hotHaloOutflowStripping name="hotHaloOutflowStrippingStandard" docformat="rst">
    <description>
-   An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`, following the approach of :cite:t:`font_colours_2008`. For satellite nodes the fraction of outflowing material which is stripped from the halo is
+   An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`,
+   following the approach of :cite:t:`font_colours_2008`. For satellite nodes the fraction of outflowing material which is
+   stripped from the halo is
 
    .. math::
 
-      f_\mathrm{outflow, stripped} = \epsilon_\mathrm{strip} \left( 1 - {M_\mathrm{hot, outer} \over M_\mathrm{hot, virial}} \right),
+      f_\mathrm{outflow, stripped} = \epsilon_\mathrm{strip} \left( 1 - {M_\mathrm{hot}(&lt;r_\mathrm{outer}) \over M_\mathrm{hot}(&lt;r_\mathrm{virial})} \right),
 
-   where :math:`\epsilon_\mathrm{strip}=`\ ``[efficiency]``, :math:`M_\mathrm{hot, outer}` is the mass of hot gas contained within the current outer radius of the :term:`CGM`, and :math:`M_\mathrm{hot, virial}` is the mass of hot gas that would be contained within the virial radius (i.e. that which would be present had no stripping occurred). The stripped fraction therefore grows from zero for an unstripped halo toward :math:`\epsilon_\mathrm{strip}` as the halo is stripped down. If :math:`M_\mathrm{hot, virial}` is non-positive the fraction is taken to be :math:`\epsilon_\mathrm{strip}`. For nodes which are not satellites no stripping occurs.
+   where :math:`\epsilon_\mathrm{strip}=`\ ``[efficiency]``, :math:`r_\mathrm{outer}` is the current outer radius of the
+   :term:`CGM` (limited to be no larger than the virial radius, :math:`r_\mathrm{virial}`), and :math:`M_\mathrm{hot}(&lt;r)` is
+   the mass enclosed within radius :math:`r` in the *untruncated* hot halo mass distribution (see
+   :galacticus-class:`hotHaloMassDistribution`), i.e. the distribution, with its current shape, that would be present had no
+   stripping occurred. Following :cite:t:`font_colours_2008`, the stripped fraction is therefore :math:`\epsilon_\mathrm{strip}`
+   times the fraction of that unstripped hot halo lying beyond the stripping radius, growing from zero for an unstripped halo
+   toward :math:`\epsilon_\mathrm{strip}` as the halo is stripped down. Only the shape of the distribution matters, so this is
+   well-defined even if the hot halo is empty. Note that the shape is computed using the current properties of the node, so for
+   hot halo mass distributions whose shape depends on the current hot halo mass (e.g. through the
+   :galacticus-class:`hotHaloMassDistributionCoreRadiusGrowing` core radius) it may differ from that of the halo prior to
+   stripping. If no hot halo mass distribution is available no stripping occurs. For nodes which are not satellites no stripping
+   occurs.
    </description>
   </hotHaloOutflowStripping>
   !!]
@@ -41,8 +58,10 @@ An implementation of the hot halo outflow stripping class using a simple estimat
      An implementation of the hot halo outflow stripping class using a simple estimate based on the outer radius of the :term:`CGM`.
      !!}
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: efficiency
+     class           (darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
+     class           (hotHaloMassDistributionClass  ), pointer :: hotHaloMassDistribution_   => null()
+     class           (hotHaloTemperatureProfileClass), pointer :: hotHaloTemperatureProfile_ => null()
+     double precision                                          :: efficiency
    contains
      final     ::                     standardDestructor
      procedure :: neverStripped    => standardNeverStripped
@@ -68,6 +87,8 @@ contains
     type            (hotHaloOutflowStrippingStandard)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
+    class           (hotHaloMassDistributionClass   ), pointer       :: hotHaloMassDistribution_
+    class           (hotHaloTemperatureProfileClass ), pointer       :: hotHaloTemperatureProfile_
     double precision                                                 :: efficiency
     
     !![
@@ -79,26 +100,32 @@ contains
       Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of :cite:author:`font_colours_2008` (:cite:year:`font_colours_2008`; i.e. this is the parameter :math:`\epsilon_\mathrm{strip}` in their eqn. 6).
       </description>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"       name="darkMatterHaloScale_"       source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
+    <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
     !!]
-    self=hotHaloOutflowStrippingStandard(efficiency,darkMatterHaloScale_)
+    self=hotHaloOutflowStrippingStandard(efficiency,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="darkMatterHaloScale_"      />
+    <objectDestructor name="hotHaloMassDistribution_"  />
+    <objectDestructor name="hotHaloTemperatureProfile_"/>
     !!]
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(efficiency,darkMatterHaloScale_) result(self)
+  function standardConstructorInternal(efficiency,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`hotHaloOutflowStrippingStandard` hot halo outflow stripping class.
     !!}
     implicit none
     type            (hotHaloOutflowStrippingStandard)                        :: self
     class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
+    class           (hotHaloMassDistributionClass   ), intent(in   ), target :: hotHaloMassDistribution_
+    class           (hotHaloTemperatureProfileClass ), intent(in   ), target :: hotHaloTemperatureProfile_
     double precision                                 , intent(in   )         :: efficiency
     !![
-    <constructorAssign variables="efficiency, *darkMatterHaloScale_"/>
+    <constructorAssign variables="efficiency, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_"/>
     !!]
     
     return
@@ -112,7 +139,9 @@ contains
     type(hotHaloOutflowStrippingStandard), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%hotHaloMassDistribution_"  />
+    <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !!]
     return
   end subroutine standardDestructor
@@ -134,40 +163,44 @@ contains
     !!{RST
     Return the fraction of outflowing mass stripped in the hot halo.
     !!}
-    use :: Mass_Distributions        , only : massDistributionClass
-    use :: Galactic_Structure_Options, only : componentTypeHotHalo , massTypeGaseous
-    use :: Galacticus_Nodes          , only : nodeComponentHotHalo
+    use :: Mass_Distributions, only : massDistributionClass, kinematicsDistributionClass
+    use :: Galacticus_Nodes  , only : nodeComponentHotHalo
     implicit none
     class           (hotHaloOutflowStrippingStandard), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
     class           (massDistributionClass          ), pointer       :: massDistribution_
+    class           (kinematicsDistributionClass    ), pointer       :: kinematicsDistribution_
     class           (nodeComponentHotHalo           ), pointer       :: hotHalo
-    double precision                                                 :: massOuter        , massVirial  , &
-         &                                                              radiusOuter      , radiusVirial
-    
-    if (node%isSatellite()) then
-       hotHalo           => node                                  %hotHalo             (                                    )
-       massDistribution_ => node                                  %massDistribution    (componentTypeHotHalo,massTypeGaseous)
-       radiusOuter       =  hotHalo                               %outerRadius         (                                    )
-       radiusVirial      =  self             %darkMatterHaloScale_%radiusVirial        (node                                )
-       massOuter         =  massDistribution_                     %massEnclosedBySphere(radiusOuter                         )
-       massVirial        =  massDistribution_                     %massEnclosedBySphere(radiusVirial                        )
-       !![
-       <objectDestructor name="massDistribution_"/>
-       !!]
-       if (massVirial > 0.0d0) then
-          fractionStripped=+self%efficiency &
-               &           *(               &
-               &             +1.0d0         &
-               &             -massOuter     &
-               &             /massVirial    &
-               &           )
-       else
-          fractionStripped=+self%efficiency
-       end if
-    else
-       ! For non-satellite galaxies, no stripping occurs.
-       fractionStripped   =+0.0d0
-    end if
+    double precision                                                 :: massOuter              , massVirial  , &
+         &                                                              radiusOuter            , radiusVirial
+
+    ! For non-satellite galaxies, no stripping occurs.
+    fractionStripped=+0.0d0
+    if (.not.node%isSatellite()) return
+    ! If the outer radius is at or beyond the virial radius, no stripping has occurred.
+    hotHalo      => node                     %hotHalo     (    )
+    radiusOuter  =  hotHalo                  %outerRadius (    )
+    radiusVirial =  self%darkMatterHaloScale_%radiusVirial(node)
+    if (radiusOuter >= radiusVirial) return
+    ! Get the untruncated hot halo mass distribution - i.e. the distribution as it would be had no stripping occurred. This is
+    ! obtained directly from the hot halo mass distribution class (rather than from the node) as it is not the distribution that
+    ! is physically present in the node.
+    massDistribution_ => self%hotHaloMassDistribution_%get(node,untruncated=.true.)
+    if (.not.associated(massDistribution_)) return
+    kinematicsDistribution_ => self%hotHaloTemperatureProfile_%get(node)
+    call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+    massOuter =massDistribution_%massEnclosedBySphere(radiusOuter )
+    massVirial=massDistribution_%massEnclosedBySphere(radiusVirial)
+    !![
+    <objectDestructor name="kinematicsDistribution_"/>
+    <objectDestructor name="massDistribution_"      />
+    !!]
+    if (massVirial > 0.0d0)                  &
+         & fractionStripped=+self%efficiency &
+         &                  *(               &
+         &                    +1.0d0         &
+         &                    -massOuter     &
+         &                    /massVirial    &
+         &                   )
     return
   end function standardFractionStripped
