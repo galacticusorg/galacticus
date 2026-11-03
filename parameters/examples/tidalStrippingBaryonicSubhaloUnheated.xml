@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Changes to parameters/examples/tidalStrippingBaryonicSubhalo.xml which switch off heating of the spheroid, so that the effects -->
-<!-- of that heating can be seen by comparing the two runs (see scripts/analysis/tidalHeatingBaryonicSubhalo.py). Run with:          -->
+<!-- Changes to parameters/examples/tidalStrippingBaryonicSubhalo.xml which switch off heating of the disk and spheroid, so that   -->
+<!-- the effects of that heating can be seen by comparing the two runs (see scripts/analysis/tidalHeatingBaryonicSubhalo.py). Run   -->
+<!-- with:                                                                                                                           -->
 <!--   ./Galacticus.exe parameters/examples/tidalStrippingBaryonicSubhalo.xml parameters/examples/tidalStrippingBaryonicSubhaloUnheated.xml -->
 <changes>
 
-  <!-- Switch off heating of the spheroid -->
+  <!-- Switch off heating of the disk and spheroid -->
   <change type="update" path="galacticComponentHeating" value="none"/>
+  <change type="update" path="galacticDiskHeating"      value="none"/>
 
   <!-- Write the output to a different file -->
   <change type="update" path="outputFileName" value="tidalStrippingBaryonicSubhaloUnheated.hdf5"/>

@@ -76,7 +76,7 @@ Implements a excursion set first crossing statistics class for linear barriers w
 
    .. math::
 
-      f_{W}(\tau_{W}) = B(0) \exp\left( - \frac{B(\tau_{W})^2}{2\ tau_{W}} \right) / \sqrt{2 pi \tau_{W}^3}.
+      f_{W}(\tau_{W}) = B(0) \exp\left( - \frac{B(\tau_{W})^2}{2 \tau_{W}} \right) / \sqrt{2 \pi \tau_{W}^3}.
 
    We then have that
 

@@ -43,6 +43,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   use :: Numerical_Ranges                    , only : Make_Range, rangeTypeLogarithmic
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                  , only : transferFunctionCAMB                                        , transferFunctionTypeDarkMatter
   use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -62,6 +63,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   type            (powerSpectrumPrimordialPowerLaw                             ), pointer              :: powerSpectrumPrimordial_
   type            (transferFunctionCAMB                                        ), pointer              :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple                    ), pointer              :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                               ), pointer              :: powerSpectrumNormalizer_
   type            (darkMatterParticleCDM                                       ), pointer              :: darkMatterParticle_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer              :: criticalOverdensity_
   type            (criticalOverdensityPeakBackgroundSplit                      ), pointer              :: criticalOverdensityConditioned_
@@ -95,6 +97,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   allocate(powerSpectrumWindowFunction_         )
   allocate(powerSpectrumPrimordial_             )
   allocate(transferFunction_                    )
+  allocate(powerSpectrumNormalizer_             )
   allocate(powerSpectrumPrimordialTransferred_  )
   allocate(darkMatterParticle_                  )
   allocate(criticalOverdensity_                 )
@@ -166,12 +169,25 @@ program Tests_Halo_Mass_Function_Environmental_Average
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_">
+   <constructor>
+    powerSpectrumNormalizerSigma8                               (                                                                                &amp;
+     &amp;                                                       sigma8                                  =0.74d+0                              , &amp;
+     &amp;                                                       tolerance                               =1.00d-4                              , &amp;
+     &amp;                                                       integrationFailureIsFatal               =.true.                               , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                 , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                  , &amp;
+     &amp;                                                       transferFunction_                       =transferFunction_                      &amp;
+     &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_" >
    <constructor>
     powerSpectrumPrimordialTransferredSimple                    (                                                                                &amp;
      &amp;                                                       powerSpectrumPrimordial_                =powerSpectrumPrimordial_             , &amp;
      &amp;                                                       transferFunction_                       =transferFunction_                    , &amp;
-     &amp;                                                       linearGrowth_                           =linearGrowth_                          &amp;
+     &amp;                                                       linearGrowth_                           =linearGrowth_                        , &amp;
+     &amp;                                                       powerSpectrumNormalizer_                =powerSpectrumNormalizer_               &amp;
      &amp;                                                      )
    </constructor>
   </referenceConstruct>
@@ -185,7 +201,6 @@ program Tests_Halo_Mass_Function_Environmental_Average
   <referenceConstruct object="cosmologicalMassVariance_"           >
    <constructor>
     cosmologicalMassVarianceFilteredPower                       (                                                                                &amp;
-     &amp;                                                       sigma8                                  =0.74d+0                              , &amp;
      &amp;                                                       tolerance                               =1.00d-4                              , &amp;
      &amp;                                                       toleranceTopHat                         =1.00d-4                              , &amp;
      &amp;                                                       rootVarianceLogarithmicGradientTolerance=1.0d-9                               , &amp;
@@ -338,6 +353,7 @@ program Tests_Halo_Mass_Function_Environmental_Average
   <objectDestructor name="powerSpectrumPrimordial_"             />
   <objectDestructor name="transferFunction_"                    />
   <objectDestructor name="powerSpectrumPrimordialTransferred_"  />
+  <objectDestructor name="powerSpectrumNormalizer_"             />
   <objectDestructor name="darkMatterParticle_"                  />
   <objectDestructor name="criticalOverdensity_"                 />
   <objectDestructor name="criticalOverdensityConditioned_"      />
