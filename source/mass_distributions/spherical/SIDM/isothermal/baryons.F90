@@ -62,7 +62,7 @@
      double precision                                                                 :: velocityDispersionCentral
      class           (massDistributionClass                    ), pointer             :: massDistributionBaryonic  => null()
      type            (interpolator                             ), allocatable         :: densityProfile                     , massProfile           , &
-          &                                                                                potentialProfile
+          &                                                                              potentialProfile
      ! Call-back function and arguments used for as-needed initialization of the baryonic component.
      logical                                                                          :: initialized
      procedure       (sphericalSIDMIsothermalBaryonsInitializor), pointer    , nopass :: initializationFunction

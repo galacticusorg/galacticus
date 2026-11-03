@@ -1740,11 +1740,11 @@ program Test_Dark_Matter_Profiles
              &                          -massDistribution_%potential(coordinates           )
         potentialDifferenceNumerical(i)=integrator_%integrate(fractionRadiusInteraction(i)*radiusInteraction,radiusInteraction)
      end do
-     call Assert(                                                    &
-          &      'potential inside interaction radius'             , &
-          &      potentialDifference                               , &
-          &      potentialDifferenceNumerical                      , &
-          &      relTol=1.0d-3                                       &
+     call Assert(                                       &
+          &      'potential inside interaction radius', &
+          &      potentialDifference                  , &
+          &      potentialDifferenceNumerical         , &
+          &      relTol=1.0d-3                          &
           &     )
   end select
   call Unit_Tests_End_Group()
@@ -1797,7 +1797,7 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    integrandPotentialDifference=+gravitationalConstant_internal                  &
+    integrandPotentialDifference=+gravitationalConstant_internal                 &
          &                       *massDistribution_%massEnclosedBySphere(radius) &
          &                       /radius**2
     return
