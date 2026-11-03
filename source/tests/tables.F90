@@ -29,52 +29,51 @@ program Test_Tables
   !!}
   use :: Array_Utilities , only : directionDecreasing             , directionIncreasing
   use :: Display         , only : displayVerbositySet             , verbosityLevelStandard
-  use :: Numerical_Ranges, only : Range_Pinned                    , rangeLattice                     , gridSchemePerOctave               , gridSchemePerDecade, &
+  use :: Numerical_Ranges, only : Range_Pinned                    , rangeLattice                     , gridSchemePerOctave                , gridSchemePerDecade                     , &
           &                       gridSchemePerUnit               , Make_Range                       , rangeTypeLinear
-  use :: Tables          , only : table                           , table1D                          , table1DNonUniformLinearLogarithmic, table1DLinearLinear, &
-          &                       table1DLinearMonotoneCSpline    , table1DLogarithmicLinear         , table1DLinearCSpline              , table2DLogLogLin   , &
-          &                       table1DLogarithmicCSpline       , table1DLogarithmicMonotoneCSpline, table2D                           , table2DLinLinLin   , &
-          &                       table1DGeneric                  , table1DMonotoneCSpline           , table1DLinearMonotoneQuinticHermite, &
-          &                       table1DLogarithmicMonotoneQuinticHermite
+  use :: Tables          , only : table                           , table1D                          , table1DNonUniformLinearLogarithmic , table1DLinearLinear                     , &
+          &                       table1DLinearMonotoneCSpline    , table1DLogarithmicLinear         , table1DLinearCSpline               , table2DLogLogLin                        , &
+          &                       table1DLogarithmicCSpline       , table1DLogarithmicMonotoneCSpline, table2D                            , table2DLinLinLin                        , &
+          &                       table1DGeneric                  , table1DMonotoneCSpline           , table1DLinearMonotoneQuinticHermite, table1DLogarithmicMonotoneQuinticHermite
   use :: Table_Labels    , only : enumerationExtrapolationTypeType, extrapolationTypeFix             , extrapolationTypeZero
-  use :: Unit_Tests      , only : Assert                          , Unit_Tests_Begin_Group           , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Unit_Tests      , only : Assert                          , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  class           (table                           ), allocatable                 :: myTable
-  class           (table1D                         ), allocatable                 :: myReversedTable
-  type            (table2DLogLogLin                )                              :: myTable2D
-  type            (rangeLattice                    )                              :: latticeNarrow        , latticeWide
-  integer                                                                         :: i                    , j                   , &
-       &                                                                             offset
-  double precision                                                                :: x                    , y                   , &
-       &                                                                             yPrevious
-  logical                                                                         :: isMonotonic
-  logical                                           , allocatable, dimension(:  ) :: isComputed
-  double precision                                  , allocatable, dimension(:  ) :: xValuesNarrow        , xValuesWide         , &
-       &                                                                             xValuesDirect
-  double precision                                  , allocatable, dimension(:,:) :: yValuesNarrow        , yValuesWide         , &
-       &                                                                             yValuesDirect
-  type            (table2DLogLogLin                )                              :: myTable2DExtend
-  type            (rangeLattice                    )                              :: latticeX2D           , latticeY2D
-  logical                                           , allocatable, dimension(:,:) :: isComputed2D
-  double precision                                  , allocatable, dimension(:,:) :: zValuesNarrow2D      , zValuesWide2D
-  double precision                                  , allocatable, dimension(:  ) :: xValuesSpline        , interpolatedExtended, &
-       &                                                                             interpolatedDirect
-  double precision                                  , allocatable, dimension(:,:) :: yValuesSpline
-  class           (table2D                         ), allocatable                 :: myTable2DGeneric
-  class           (table1D                         ), allocatable                 :: myRangeTable
-  type            (enumerationExtrapolationTypeType)              :: extrapolationRange
-  character       (len=32                          )                              :: labelExtrapolation
-  logical                                                                         :: logarithmic
-  type            (table2DLinLinLin                )                              :: myTable2DLinearExtend
-  type            (table1DLinearMonotoneQuinticHermite     )                      :: quinticLinear
-  type            (table1DLogarithmicMonotoneQuinticHermite)                      :: quinticNarrow        , quinticWide
-  double precision                                  , allocatable, dimension(:  ) :: xTest                , interpolatedNarrow  , &
-       &                                                                             gradientNarrow
-  double precision                                                                :: errorValue           , errorGradient       , &
-       &                                                                             gradientPrevious     , gradientMinimum     , &
-       &                                                                             jumpValue            , jumpGradient
-  logical                                                                         :: identical
-  double precision                                  , allocatable, dimension(:,:) :: zValuesNarrowLinear2D, zValuesWideLinear2D
+  class           (table                                   ), allocatable                 :: myTable
+  class           (table1D                                 ), allocatable                 :: myReversedTable
+  type            (table2DLogLogLin                        )                              :: myTable2D
+  type            (rangeLattice                            )                              :: latticeNarrow        , latticeWide
+  integer                                                                                 :: i                    , j                   , &
+       &                                                                                     offset
+  double precision                                                                        :: x                    , y                   , &
+       &                                                                                     yPrevious
+  logical                                                                                 :: isMonotonic
+  logical                                                   , allocatable, dimension(:  ) :: isComputed
+  double precision                                          , allocatable, dimension(:  ) :: xValuesNarrow        , xValuesWide         , &
+       &                                                                                     xValuesDirect
+  double precision                                          , allocatable, dimension(:,:) :: yValuesNarrow        , yValuesWide         , &
+       &                                                                                     yValuesDirect
+  type            (table2DLogLogLin                        )                              :: myTable2DExtend
+  type            (rangeLattice                            )                              :: latticeX2D           , latticeY2D
+  logical                                                   , allocatable, dimension(:,:) :: isComputed2D
+  double precision                                          , allocatable, dimension(:,:) :: zValuesNarrow2D      , zValuesWide2D
+  double precision                                          , allocatable, dimension(:  ) :: xValuesSpline        , interpolatedExtended, &
+       &                                                                                     interpolatedDirect
+  double precision                                          , allocatable, dimension(:,:) :: yValuesSpline
+  class           (table2D                                 ), allocatable                 :: myTable2DGeneric
+  class           (table1D                                 ), allocatable                 :: myRangeTable
+  type            (enumerationExtrapolationTypeType        )                              :: extrapolationRange
+  character       (len=32                                  )                              :: labelExtrapolation
+  logical                                                                                 :: logarithmic
+  type            (table2DLinLinLin                        )                              :: myTable2DLinearExtend
+  type            (table1DLinearMonotoneQuinticHermite     )                              :: quinticLinear
+  type            (table1DLogarithmicMonotoneQuinticHermite)                              :: quinticNarrow        , quinticWide
+  double precision                                          , allocatable, dimension(:  ) :: xTest                , interpolatedNarrow  , &
+       &                                                                                     gradientNarrow
+  double precision                                                                        :: errorValue           , errorGradient       , &
+       &                                                                                     gradientPrevious     , gradientMinimum     , &
+       &                                                                                     jumpValue            , jumpGradient
+  logical                                                                                 :: identical
+  double precision                                          , allocatable, dimension(:,:) :: zValuesNarrowLinear2D, zValuesWideLinear2D
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -445,30 +444,30 @@ program Test_Tables
      logarithmic       =.false.
      select case (i)
      case ( 1)
-        allocate(table1DGeneric                    :: myRangeTable)
+        allocate(table1DGeneric                           :: myRangeTable)
      case ( 2)
-        allocate(table1DLinearLinear               :: myRangeTable)
+        allocate(table1DLinearLinear                      :: myRangeTable)
      case ( 3)
-        allocate(table1DLinearLinear               :: myRangeTable)
+        allocate(table1DLinearLinear                      :: myRangeTable)
         extrapolationRange=extrapolationTypeZero
      case ( 4)
-        allocate(table1DLinearCSpline              :: myRangeTable)
+        allocate(table1DLinearCSpline                     :: myRangeTable)
      case ( 5)
-        allocate(table1DMonotoneCSpline            :: myRangeTable)
+        allocate(table1DMonotoneCSpline                   :: myRangeTable)
      case ( 6)
-        allocate(table1DLinearMonotoneCSpline      :: myRangeTable)
+        allocate(table1DLinearMonotoneCSpline             :: myRangeTable)
      case ( 7)
-        allocate(table1DLogarithmicLinear          :: myRangeTable)
+        allocate(table1DLogarithmicLinear                 :: myRangeTable)
         logarithmic       =.true.
      case ( 8)
-        allocate(table1DLogarithmicLinear          :: myRangeTable)
+        allocate(table1DLogarithmicLinear                 :: myRangeTable)
         logarithmic       =.true.
         extrapolationRange=extrapolationTypeZero
      case ( 9)
-        allocate(table1DLogarithmicCSpline         :: myRangeTable)
+        allocate(table1DLogarithmicCSpline                :: myRangeTable)
         logarithmic       =.true.
      case (10)
-        allocate(table1DLogarithmicMonotoneCSpline :: myRangeTable)
+        allocate(table1DLogarithmicMonotoneCSpline        :: myRangeTable)
         logarithmic       =.true.
      case (11)
         allocate(table1DLinearMonotoneQuinticHermite      :: myRangeTable)
@@ -787,14 +786,14 @@ program Test_Tables
         if (i > 1 .and. y < yPrevious) isMonotonic=.false.
         yPrevious=y
      end do
-     call Assert('monotone quintic Hermite interpolator is monotonic'                    ,isMonotonic          ,.true.)
-     call Assert('monotone quintic Hermite interpolator has non-negative gradient'       ,gradientMinimum >= 0.0d0,.true.)
+     call Assert('monotone quintic Hermite interpolator is monotonic'             ,isMonotonic             ,.true.)
+     call Assert('monotone quintic Hermite interpolator has non-negative gradient',gradientMinimum >= 0.0d0,.true.)
      call quinticLinear%destroy()
   end do
   ! In a flat interval the interpolant is exactly constant.
   call quinticLinear%create(1.0d0,11.0d0,11)
   call quinticLinear%populate([2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0,9.0d0,11.0d0,12.0d0])
-  call Assert('monotone quintic Hermite interpolator is flat in a flat interval'          ,[quinticLinear%interpolate(8.5d0),quinticLinear%interpolateGradient(8.5d0)],[9.0d0,0.0d0])
+  call Assert('monotone quintic Hermite interpolator is flat in a flat interval',[quinticLinear%interpolate(8.5d0),quinticLinear%interpolateGradient(8.5d0)],[9.0d0,0.0d0])
   call quinticLinear%destroy()
   ! Accuracy, and continuity of the gradient, for a smooth function, y=tanh(x). The limiter is inactive for such data, so the
   ! interpolation has the accuracy of the sixth-order derivative estimates.
@@ -804,10 +803,10 @@ program Test_Tables
   errorGradient=0.0d0
   do i=1,2001
      x            =0.4d0+2.2d0*dble(i-1)/dble(2000)
-     errorValue   =max(errorValue   ,abs(quinticLinear%interpolate        (x)-tanh(x)    ))
+     errorValue   =max(errorValue   ,abs(quinticLinear%interpolate        (x)-      tanh(x)   ))
      errorGradient=max(errorGradient,abs(quinticLinear%interpolateGradient(x)-1.0d0/cosh(x)**2))
   end do
-  call Assert('monotone quintic Hermite interpolator is accurate for smooth data (value)'   ,errorValue   < 1.0d-9,.true.)
+  call Assert('monotone quintic Hermite interpolator is accurate for smooth data (value)'   ,errorValue    < 1.0d-9,.true.)
   call Assert('monotone quintic Hermite interpolator is accurate for smooth data (gradient)',errorGradient < 1.0d-7,.true.)
   jumpValue   =0.0d0
   jumpGradient=0.0d0
@@ -818,8 +817,8 @@ program Test_Tables
      jumpValue       =max(jumpValue   ,abs(quinticLinear%interpolate        (x*(1.0d0+1.0d-12))-y               ))
      jumpGradient    =max(jumpGradient,abs(quinticLinear%interpolateGradient(x*(1.0d0+1.0d-12))-gradientPrevious))
   end do
-  call Assert('monotone quintic Hermite interpolant is continuous'                        ,jumpValue    < 1.0d-10,.true.)
-  call Assert('monotone quintic Hermite interpolant has continuous gradient'              ,jumpGradient < 1.0d-10,.true.)
+  call Assert('monotone quintic Hermite interpolant is continuous'          ,jumpValue    < 1.0d-10,.true.)
+  call Assert('monotone quintic Hermite interpolant has continuous gradient',jumpGradient < 1.0d-10,.true.)
   call quinticLinear%destroy()
   ! Locality: extending a table must leave interpolation unchanged, bit-for-bit, in every interval which lies at least three
   ! intervals from the ends of the original table, both at and between the tabulated points.
@@ -851,7 +850,7 @@ program Test_Tables
   do i=1,size(xTest)
      identical=identical .and. quinticNarrow%interpolate(xTest(i)) == interpolatedNarrow(i) .and. quinticNarrow%interpolateGradient(xTest(i)) == gradientNarrow(i)
   end do
-  call Assert('monotone quintic Hermite interpolation is unchanged by extension'          ,identical,.true.)
+  call Assert('monotone quintic Hermite interpolation is unchanged by extension',identical,.true.)
   ! A table built directly on the wide lattice interpolates identically to the extended one.
   call quinticWide%extend(latticeWide,isComputed)
   do i=1,quinticWide%size()
@@ -861,7 +860,7 @@ program Test_Tables
   do i=1,size(xTest)
      identical=identical .and. quinticWide%interpolate(xTest(i)) == interpolatedNarrow(i) .and. quinticWide%interpolateGradient(xTest(i)) == gradientNarrow(i)
   end do
-  call Assert('monotone quintic Hermite table built directly interpolates identically'    ,identical,.true.)
+  call Assert('monotone quintic Hermite table built directly interpolates identically',identical,.true.)
   call quinticNarrow%destroy()
   call quinticWide  %destroy()
   call Unit_Tests_End_Group()
@@ -876,7 +875,7 @@ contains
     Return a label for the ``i``\ :math:`^\mathrm{th}` table type tested in the "Table range" group.
     !!}
     implicit none
-    character(len=32)                :: Table_Type_Label
+    character(len=36)                :: Table_Type_Label
     integer          , intent(in   ) :: i
 
     select case (i)

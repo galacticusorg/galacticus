@@ -31,11 +31,11 @@ module Tables
   use :: Numerical_Ranges       , only : rangeLattice
   use :: Table_Labels           , only : enumerationExtrapolationTypeType
   private
-  public :: table                          , table1D                          , table1DGeneric                    , &
-       &    table1DLinearLinear            , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
-       &    table1DLinearCSpline           , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
-       &    table1DLinearMonotoneCSpline   , table1DLogarithmicMonotoneCSpline, table2DLinLinLin                  , &
-       &    tablesIntegrationWeightFunction, table1DMonotoneCSpline           , table2D                           , &
+  public :: table                              , table1D                                 , table1DGeneric                    , &
+       &    table1DLinearLinear                , table1DLogarithmicLinear                , table1DNonUniformLinearLogarithmic, &
+       &    table1DLinearCSpline               , table1DLogarithmicCSpline               , table2DLogLogLin                  , &
+       &    table1DLinearMonotoneCSpline       , table1DLogarithmicMonotoneCSpline       , table2DLinLinLin                  , &
+       &    tablesIntegrationWeightFunction    , table1DMonotoneCSpline                  , table2D                           , &
        &    table1DLinearMonotoneQuinticHermite, table1DLogarithmicMonotoneQuinticHermite
 
   !![
@@ -1120,8 +1120,8 @@ contains
     class(table1DLinearMonotoneQuinticHermite), intent(inout) :: to
     class(table1DLinearMonotoneQuinticHermite), intent(in   ) :: from
 
-    if (allocated(to  %qv)) deallocate(to%qv)
-    if (allocated(from%qv)) allocate(to%qv,source=from%qv)
+    if (allocated(to  %qv)) deallocate(to%qv               )
+    if (allocated(from%qv)) allocate  (to%qv,source=from%qv)
     to%latticeAnchored    =from%latticeAnchored
     to%latticeIndexMinimum=from%latticeIndexMinimum
     to%dTablePrevious     =from%dTablePrevious
@@ -3845,8 +3845,8 @@ contains
     if (present(tableCount)) tableCountActual=tableCount
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
-    allocate(self%xv(       xCount                   ))
-    allocate(self%yv(       xCount  ,tableCountActual))
+    allocate(self%xv(    xCount                   ))
+    allocate(self%yv(    xCount  ,tableCountActual))
     allocate(self%qv(0:5,xCount-1,tableCountActual))
     self%xv             =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
     self%       deltaX  =self%xv(2)-self%xv(1)
@@ -4013,15 +4013,15 @@ contains
     :math:`h^2 y^{\prime\prime}_{i,i+1}`, derivatives at its two ends.
     !!}
     implicit none
-    class           (table1DLinearMonotoneQuinticHermite), intent(inout)                 :: self
-    integer                                              , intent(in   )                 :: table
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)                  :: self
+    integer                                              , intent(in   )                  :: table
     ! Limits on the first and second derivatives which guarantee monotonicity - see `table1DLinearMonotoneQuinticHermite`.
-    double precision                                     , parameter                     :: slopeRatioMaximum    =1.75d0, curvatureRatioMaximum=3.0d0
-    double precision                                     , dimension(size(self%yv,dim=1)) :: derivativeFirst            , derivativeSecond
-    integer                                                                              :: i                           , n
-    double precision                                                                     :: secantLeft                  , secantRight          , &
-         &                                                                                  secantMinimum               , signData             , &
-         &                                                                                  changeY
+    double precision                                     , parameter                      :: slopeRatioMaximum=1.75d0, curvatureRatioMaximum=3.0d0
+    double precision                                     , dimension(size(self%yv,dim=1)) :: derivativeFirst         , derivativeSecond
+    integer                                                                               :: i                       , n
+    double precision                                                                      :: secantLeft              , secantRight                , &
+         &                                                                                   secantMinimum           , signData                   , &
+         &                                                                                   changeY
 
     n=size(self%yv,dim=1)
     ! Estimate derivatives - working with derivatives scaled by the spacing, h, throughout: `derivativeFirst` holds h y′,
@@ -4029,23 +4029,23 @@ contains
     associate (y => self%yv(:,table))
       do i=1,n
          if      (i >= 4 .and. i <= n-3) then
-            derivativeFirst (i)=(-       y(i-3)+  9.0d0*y(i-2)-  45.0d0*y(i-1)                  +  45.0d0*y(i+1)-  9.0d0*y(i+2)+       y(i+3))/ 60.0d0
-            derivativeSecond(i)=(+ 2.0d0*y(i-3)- 27.0d0*y(i-2)+ 270.0d0*y(i-1)-490.0d0*y(i)+ 270.0d0*y(i+1)- 27.0d0*y(i+2)+ 2.0d0*y(i+3))/180.0d0
+            derivativeFirst (i)=(-      y(i-3)+ 9.0d0*y(i-2)- 45.0d0*y(i-1)             + 45.0d0*y(i+1)- 9.0d0*y(i+2)+      y(i+3))/ 60.0d0
+            derivativeSecond(i)=(+2.0d0*y(i-3)-27.0d0*y(i-2)+270.0d0*y(i-1)-490.0d0*y(i)+270.0d0*y(i+1)-27.0d0*y(i+2)+2.0d0*y(i+3))/180.0d0
          else if (i >= 3 .and. i <= n-2) then
-            derivativeFirst (i)=(+       y(i-2)-  8.0d0*y(i-1)                  +   8.0d0*y(i+1)-       y(i+2))/ 12.0d0
-            derivativeSecond(i)=(-       y(i-2)+ 16.0d0*y(i-1)- 30.0d0*y(i)+  16.0d0*y(i+1)-       y(i+2))/ 12.0d0
+            derivativeFirst (i)=(             +       y(i-2)-  8.0d0*y(i-1)             +  8.0d0*y(i+1)-       y(i+2)             )/ 12.0d0
+            derivativeSecond(i)=(             -       y(i-2)+ 16.0d0*y(i-1)- 30.0d0*y(i)+ 16.0d0*y(i+1)-       y(i+2)             )/ 12.0d0
          else if (i >= 2 .and. i <= n-1) then
-            derivativeFirst (i)=(-       y(i-1)                  +       y(i+1))/  2.0d0
-            derivativeSecond(i)=(+       y(i-1)-  2.0d0*y(i)+       y(i+1))
+            derivativeFirst (i)=(                           -        y(i-1)             +        y(i+1)                           )/  2.0d0
+            derivativeSecond(i)=(                           +        y(i-1)-  2.0d0*y(i)+        y(i+1)                           )
          else if (n == 2) then
             derivativeFirst (i)=y(2)-y(1)
             derivativeSecond(i)=0.0d0
          else if (i == 1) then
-            derivativeFirst (i)=(- 3.0d0*y(1)+  4.0d0*y(2)-       y(3))/  2.0d0
-            derivativeSecond(i)=(+       y(1)-  2.0d0*y(2)+       y(3))
+            derivativeFirst (i)=(-3.0d0*y(1)+4.0d0*y(  2)-y(  3))/2.0d0
+            derivativeSecond(i)=(+      y(1)-2.0d0*y(  2)+y(  3))
          else
-            derivativeFirst (i)=(+ 3.0d0*y(n)-  4.0d0*y(n-1)+     y(n-2))/  2.0d0
-            derivativeSecond(i)=(+       y(n)-  2.0d0*y(n-1)+     y(n-2))
+            derivativeFirst (i)=(+3.0d0*y(n)-4.0d0*y(n-1)+y(n-2))/2.0d0
+            derivativeSecond(i)=(+      y(n)-2.0d0*y(n-1)+y(n-2))
          end if
       end do
       ! Limit the derivatives to guarantee monotonicity.
@@ -4073,10 +4073,10 @@ contains
       end do
       ! Compute the coefficients of the quintic in each interval.
       do i=1,n-1
-         changeY             =y(i+1)-y(i)
-         self%qv(0,i,table)=+        y               (i  )
-         self%qv(1,i,table)=+        derivativeFirst (i  )
-         self%qv(2,i,table)=+0.5d0  *derivativeSecond(i  )
+         changeY           =y(i+1)-y(i)
+         self%qv(0,i,table)=+      y(i)
+         self%qv(1,i,table)=               +      derivativeFirst(i)
+         self%qv(2,i,table)=                                                                   +0.5d0*derivativeSecond(i)
          self%qv(3,i,table)=+10.0d0*changeY-6.0d0*derivativeFirst(i)-4.0d0*derivativeFirst(i+1)-1.5d0*derivativeSecond(i)+0.5d0*derivativeSecond(i+1)
          self%qv(4,i,table)=-15.0d0*changeY+8.0d0*derivativeFirst(i)+7.0d0*derivativeFirst(i+1)+1.5d0*derivativeSecond(i)-      derivativeSecond(i+1)
          self%qv(5,i,table)=+ 6.0d0*changeY-3.0d0*derivativeFirst(i)-3.0d0*derivativeFirst(i+1)-0.5d0*derivativeSecond(i)+0.5d0*derivativeSecond(i+1)
@@ -4135,7 +4135,7 @@ contains
     double precision                                     , intent(in   )           :: x
     integer                                              , intent(in   ), optional :: table
     integer                                              , intent(  out), optional :: status
-    integer                                                                        :: i         , tableActual
+    integer                                                                        :: i     , tableActual
     double precision                                                               :: t
     double precision                                     , dimension(0:5)          :: q
 
@@ -4162,7 +4162,7 @@ contains
     double precision                                     , intent(in   )           :: x
     integer                                              , intent(in   ), optional :: table
     integer                                              , intent(  out), optional :: status
-    integer                                                                        :: i         , tableActual
+    integer                                                                        :: i     , tableActual
     double precision                                                               :: t
     double precision                                     , dimension(0:5)          :: q
 
@@ -4192,7 +4192,7 @@ contains
     use :: Error, only : Error_Report
     implicit none
     class           (table1DLinearMonotoneQuinticHermite), intent(inout)                               :: self
-    double precision                                     , intent(in   )                               :: x0, x1
+    double precision                                     , intent(in   )                               :: x0                                                , x1
     procedure       (tablesIntegrationWeightFunction    ), intent(in   )           , pointer, optional :: integrand
     double precision                                     , dimension(size(self%xv))                    :: Table_Linear_Monotone_QHermite_Integration_Weights
     !$GLC attributes unused :: self, x0, x1, integrand
@@ -4230,7 +4230,7 @@ contains
     type   (rangeLattice                            ), intent(in   )                            :: lattice
     logical                                          , intent(  out), allocatable, dimension(:) :: isComputed
     integer                                          , intent(in   ), optional                  :: tableCount
-    type   (enumerationExtrapolationTypeType        ), intent(in   ), optional  , dimension(2)  :: extrapolationType
+    type   (enumerationExtrapolationTypeType        ), intent(in   ), optional   , dimension(2) :: extrapolationType
 
     if     (                                       &
          &   lattice%scheme /= gridSchemePerDecade &
