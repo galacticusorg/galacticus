@@ -48,6 +48,12 @@ module Galactic_Component_Truncations
    mass distribution unchanged. The mass distribution of a truncated component is its dimensionless, untruncated mass
    distribution, truncated such that it retains a fraction :math:`f` of its mass, and then scaled to the current mass of the
    component.
+
+   The gas of a disk is truncated separately, by its ``truncationGas`` meta-property, :math:`x_\mathrm{gas}`, since it may also
+   be removed by ram pressure stripping, which does not affect the stars. Tidal stripping increases :math:`x` and
+   :math:`x_\mathrm{gas}` equally, while ram pressure stripping (see :galacticus-class:`nodeOperatorRamPressureMassLossDisks`)
+   increases only :math:`x_\mathrm{gas}`. Gas arriving in the disk (e.g. by cooling, or in mergers) is assumed to have the
+   untruncated distribution, so reduces the truncation of the gas (see :galacticus-class:`nodeComponentDiskStandard`).
    </description>
    <default>none</default>
    <method name="isActive" >
@@ -90,6 +96,29 @@ module Galactic_Component_Truncations
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: fractionMassRetained</argument>
+   </method>
+   <method name="ratioRadiusMeanCylindrical" >
+    <description>
+    Returns the mean radius, :math:`\langle R \rangle = I_2/I_1` (where :math:`I_n=\int_0^\infty \Sigma(R) R^n \mathrm{d}R`), of
+    a cylindrically-symmetric mass distribution which retains a fraction ``fractionMassRetained`` of its total mass, in units of
+    the mean radius of the untruncated distribution. Since heating conserves the mean radius (see
+    :galacticus-class:`massDistributionExponentialDiskTidal`) this is independent of any heating. Assuming a flat rotation
+    curve, the mean specific angular momenta of truncated distributions of the same scale length are in the same ratio.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: fractionMassRetained</argument>
+   </method>
+   <method name="fractionMassRetainedCylindrical" >
+    <description>
+    Returns the fraction of its total mass retained by a cylindrically-symmetric mass distribution truncated at radius
+    ``radiusTruncation`` (in units of the scale length of the distribution). Zero is returned for truncation radii smaller than
+    the smallest which is modeled (within which the distribution is regarded as completely truncated), and unity for truncation
+    radii beyond which the truncation is negligible.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: radiusTruncation</argument>
    </method>
   </functionClass>
   !!]

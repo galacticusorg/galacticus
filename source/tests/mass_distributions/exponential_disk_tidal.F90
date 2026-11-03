@@ -370,6 +370,32 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
   call Assert('ratio is not unity below the limit',truncation%ratioAngularMomentumCylindrical(exp(-9.10d0)) > 1.4d0,.true.               )
   call Assert('ratio is unity beyond the limit'   ,truncation%ratioAngularMomentumCylindrical(exp(-9.13d0))         ,1.0d0,relTol=1.0d-12)
   call Unit_Tests_End_Group()
+  ! The mean radius of the truncated disk, and the relation between truncation radius and the fraction of mass retained.
+  call Unit_Tests_Begin_Group("Mean radius and truncation radius")
+  ! Compare with values computed independently (using incomplete gamma functions and numerical integration in Python's scipy) for
+  ! truncation radii of 3, 1, 0.1, and 0.02 scale lengths.
+  call Assert('mean radius vs. reference, R_t = 3.0' ,truncation%ratioRadiusMeanCylindrical     (exp(-8.2510504329d-2)),8.6293985693d-1,relTol=1.0d-5)
+  call Assert('mean radius vs. reference, R_t = 1.0' ,truncation%ratioRadiusMeanCylindrical     (exp(-8.5209171170d-1)),4.3500690895d-1,relTol=1.0d-5)
+  call Assert('mean radius vs. reference, R_t = 0.1' ,truncation%ratioRadiusMeanCylindrical     (exp(-4.6025345784d+0)),5.1576214022d-2,relTol=1.0d-5)
+  call Assert('mean radius vs. reference, R_t = 0.02',truncation%ratioRadiusMeanCylindrical     (exp(-7.7382916764d+0)),1.0464576998d-2,relTol=1.0d-5)
+  call Assert('fraction retained, R_t = 3.0'         ,truncation%fractionMassRetainedCylindrical(     3.0000000000d+0 ),9.2080176540d-1,relTol=1.0d-5)
+  call Assert('fraction retained, R_t = 1.0'         ,truncation%fractionMassRetainedCylindrical(     1.0000000000d+0 ),4.2652183751d-1,relTol=1.0d-5)
+  call Assert('fraction retained, R_t = 0.1'         ,truncation%fractionMassRetainedCylindrical(     1.0000000000d-1 ),1.0026390838d-2,relTol=1.0d-5)
+  call Assert('fraction retained, R_t = 0.02'        ,truncation%fractionMassRetainedCylindrical(     2.0000000000d-2 ),4.3581545332d-4,relTol=1.0d-5)
+  ! Compare the mean radius with that of the tabulated truncated disk.
+  do i=1,size(truncations)
+     diskPlus       =massDistributionExponentialDiskTidal(truncation=truncations(i),heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+     valuesParent(i)=+diskPlus%surfaceDensityRadialMoment(2.0d0)/diskPlus%surfaceDensityRadialMoment(1.0d0) &
+          &          /(parent %surfaceDensityRadialMoment(2.0d0)/parent  %surfaceDensityRadialMoment(1.0d0))
+     valuesTidal (i)=truncation%ratioRadiusMeanCylindrical(exp(-truncations(i)))
+  end do
+  call Assert('mean radius vs. tabulated truncated disk',valuesTidal(1:size(truncations)),valuesParent(1:size(truncations)),relTol=1.0d-3)
+  ! Limits: negligible truncation, truncation radii beyond which truncation is negligible, and within the smallest modeled.
+  call Assert('mean radius for negligible truncation'     ,truncation%ratioRadiusMeanCylindrical     (exp( -1.0d-5)),1.0d0                                              ,relTol=1.0d-12)
+  call Assert('mean radius fixed beyond the limit'        ,truncation%ratioRadiusMeanCylindrical     (exp(-12.0d+0)),truncation%ratioRadiusMeanCylindrical(exp(-9.13d0)),relTol=1.0d-12)
+  call Assert('fraction retained for large R_t'           ,truncation%fractionMassRetainedCylindrical(      1.0d+2 ),1.0d0                                              ,relTol=1.0d-12)
+  call Assert('fraction retained within the smallest R_t' ,truncation%fractionMassRetainedCylindrical(      5.0d-3 ),0.0d0                                              ,absTol=1.0d-30)
+  call Unit_Tests_End_Group()
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 

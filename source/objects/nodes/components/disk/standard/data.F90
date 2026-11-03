@@ -35,15 +35,16 @@ module Node_Component_Disk_Standard_Data
   public
 
   ! The mass distribution objects.
-  class(massDistributionClass      ), pointer :: massDistributionStellar_ , massDistributionGas_
-  type (kinematicsDistributionLocal), pointer :: kinematicDistribution_
-  class(kinematicsDistributionClass), pointer :: kinematicDistributionGas_
+  class  (massDistributionClass           ), pointer :: massDistributionStellar_    , massDistributionGas_
+  type   (kinematicsDistributionLocal     ), pointer :: kinematicDistribution_
+  class  (kinematicsDistributionClass     ), pointer :: kinematicDistributionGas_
   !$omp threadprivate(massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_)
 
-  ! The model of truncation of the mass distribution, and the ID of the meta-property giving the degree of tidal truncation.
+  ! The model of truncation of the mass distribution, and the IDs of the meta-properties giving the degree of tidal truncation (of
+  ! the stars) and the degree of truncation of the gas.
   class  (galacticComponentTruncationClass), pointer :: galacticComponentTruncation_
   !$omp threadprivate(galacticComponentTruncation_)
-  integer                                            :: tidalTruncationID
+  integer                                            :: tidalTruncationID           , truncationGasID
   ! The model of heating of the mass distribution.
   class  (galacticDiskHeatingClass        ), pointer :: galacticDiskHeating_
   !$omp threadprivate(galacticDiskHeating_)
@@ -52,7 +53,32 @@ module Node_Component_Disk_Standard_Data
   ! stellar and gas distributions above, re-used across nodes to avoid allocating and destroying a
   ! scaler on every call. A separate pool is used per wrapped distribution so the wrapped pointer
   ! never changes on re-use. Released in the component's thread uninitialization task.
-  type (objectPool                 )          :: scalerStellarPool        , scalerGasPool
+  type   (objectPool                      )          :: scalerStellarPool          , scalerGasPool
   !$omp threadprivate(scalerStellarPool,scalerGasPool)
+
+contains
+
+  double precision function Node_Component_Disk_Standard_Truncation_Gas_Arrive(truncationGas,massGas,massGasArriving) result(truncationGasNew)
+    !!{RST
+    Return the truncation of the gas of a disk, given its current truncation, ``truncationGas``, and gas mass, ``massGas``, after
+    a mass ``massGasArriving`` of gas (assumed to have the untruncated distribution) arrives in it, such that the untruncated mass,
+    :math:`M_\mathrm{gas}/f_\mathrm{gas}`, grows by the mass of the arriving gas.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: truncationGas       , massGas       , &
+         &                             massGasArriving
+    double precision                :: fractionMassRetained, massGasCurrent
+
+    truncationGasNew=truncationGas
+    if (massGasArriving <= 0.0d0) return
+    fractionMassRetained=exp(-max(0.0d0,truncationGas))
+    if (fractionMassRetained >= 1.0d0) return
+    massGasCurrent  =+max(0.0d0,massGas)
+    truncationGasNew=-log(                                                        &
+         &                 +(massGasCurrent                     +massGasArriving) &
+         &                 /(massGasCurrent/fractionMassRetained+massGasArriving) &
+         &               )
+    return
+  end function Node_Component_Disk_Standard_Truncation_Gas_Arrive
 
 end module Node_Component_Disk_Standard_Data

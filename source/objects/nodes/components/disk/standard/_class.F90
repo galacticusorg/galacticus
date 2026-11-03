@@ -31,7 +31,7 @@ module Node_Component_Disk_Standard
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Star_Formation_Histories        , only : starFormationHistory                    , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Node_Components_Galactic_Shared , only : Node_Component_Disk_Standard_Post_Evolve
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Disk_Standard_Post_Evolve, Node_Component_Disk_Gas_Arrive
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                 , Node_Component_Disk_Standard_Pre_Evolve         , &
@@ -52,8 +52,17 @@ module Node_Component_Disk_Standard
    disk under transfer to the spheroid by bar instabilities, and is used when solving for stellar luminosities as inactive
    properties. The density profile is supplied by a dimensionless :galacticus-class:`massDistributionClass` object, which must be
    cylindrically symmetric. If a :galacticus-class:`galacticComponentTruncationClass` which truncates mass distributions is
-   selected the disk is truncated to retain a fraction :math:`\exp(-x)` of its untruncated mass, where :math:`x` is the
-   ``tidalTruncation`` meta-property of the disk (see :galacticus-class:`nodeOperatorTidalMassLossDisks`), and if a
+   selected the stars of the disk are truncated to retain a fraction :math:`\exp(-x)` of their untruncated mass, where
+   :math:`x` is the ``tidalTruncation`` meta-property of the disk (see :galacticus-class:`nodeOperatorTidalMassLossDisks`), and
+   its gas to retain a fraction :math:`\exp(-x_\mathrm{gas})`, where :math:`x_\mathrm{gas}` is its ``truncationGas``
+   meta-property (which is increased equally by tidal stripping, and also by ram pressure stripping, see
+   :galacticus-class:`nodeOperatorRamPressureMassLossDisks`). Gas arriving in the disk (by cooling, inflow, or in a merger) is
+   assumed to have the untruncated mass distribution, and so reduces :math:`x_\mathrm{gas}`: the untruncated mass of the gas,
+   :math:`M_\mathrm{gas}/f_\mathrm{gas}`, grows by the mass of the arriving gas, such that :math:`\dot{x}_\mathrm{gas} =
+   -(\dot{M}_\mathrm{in}/M_\mathrm{gas})(1-f_\mathrm{gas})`. (Gas which arrives in a disk with negligible gas mass, below
+   ``[toleranceAbsoluteMass]``, is treated as arriving in a disk of that mass, such that the rate remains finite.) Since this is
+   applied to the net rate of change of the gas mass reported by each process, gas returned by stars is treated as arriving gas
+   only when it exceeds the gas consumed by star formation (i.e. when the net rate reported by star formation is positive). And if a
    :galacticus-class:`galacticDiskHeatingClass` which heats disks is selected the disks of satellites are heated (see
    :galacticus-class:`massDistributionExponentialDiskTidal`). Both require that the disk mass distribution is an exponential disk.
 
@@ -61,13 +70,14 @@ module Node_Component_Disk_Standard
    :math:`\langle R \rangle_1` (where :math:`\langle R \rangle = I_2/I_1` and :math:`I_n=\int_0^\infty \Sigma(R) R^n
    \mathrm{d}R`), so has a larger scale length at fixed mean specific angular momentum. To account for this, the radius at which
    the structure solver matches the specific angular momentum of the disk to that of a circular orbit is multiplied by
-   :math:`\langle R \rangle_f/\langle R \rangle_1`, such that it tracks the material of the truncated disk. (Simply increasing
-   the specific angular momentum by the inverse of this ratio, while retaining the solver radius, evaluates the rotation curve far
-   beyond the material of a strongly truncated disk, where it is Keplerian, and leads to runaway growth of the scale length.) The
-   circular velocity (``velocity``) of the disk is then that at this radius, which characterizes the material remaining in the
-   disk, while its ``radius`` remains the scale length of the untruncated disk. Classes which use these (e.g. in feedback rates,
-   or dynamical times, :math:`R_\mathrm{d}/V_\mathrm{d}`) see this pair. Heating of the disk conserves its mean radius, so has
-   no effect on this ratio. Since material stripped from a truncated disk carries the specific angular momentum implied by the change in its
+   :math:`\langle R \rangle_f/\langle R \rangle_1` (the mass-weighted mean of this ratio for the stars and gas, if they are
+   truncated differently), such that it tracks the material of the truncated disk. (Simply increasing the specific angular
+   momentum by the inverse of this ratio, while retaining the solver radius, evaluates the rotation curve far beyond the material
+   of a strongly truncated disk, where it is Keplerian, and leads to runaway growth of the scale length.) The circular velocity
+   (``velocity``) of the disk is then that at this radius, which characterizes the material remaining in the disk, while its
+   ``radius`` remains the scale length of the untruncated disk. Classes which use these (e.g. in feedback rates, or dynamical
+   times, :math:`R_\mathrm{d}/V_\mathrm{d}`) see this pair. Heating of the disk conserves its mean radius, so has no effect on
+   this ratio. Since material stripped from a truncated disk carries the specific angular momentum implied by the change in its
    truncated mass distribution (see :galacticus-class:`nodeOperatorTidalMassLossDisks`), the mean specific angular momentum of a
    disk changed only by tidal stripping is proportional to :math:`\langle R \rangle_f`. Its scale length is then unchanged by
    stripping (aside from changes in its rotation curve), such that the remaining disk is the inner part of the original disk.
@@ -110,7 +120,7 @@ module Node_Component_Disk_Standard
       <name>massGas</name>
       <type>double</type>
       <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" isNonNegative="true" />
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="rate" createIfNeeded="true" isNonNegative="true" />
       <output unitsInSI="massSolar" unitsDescription="Solar masses" unitsQuantity="solMass" comment="Mass of gas in the standard disk."/>
     </property>
     <property>
@@ -225,20 +235,24 @@ contains
     use :: Galactic_Component_Truncation_Disk_Status, only : diskTruncationIsActive
     use :: Galacticus_Nodes                         , only : defaultDiskComponent            , nodeComponentDiskStandard
     use :: Input_Parameters                         , only : inputParameter                  , inputParameters
-    use :: Node_Component_Disk_Standard_Data        , only : tidalTruncationID
+    use :: Node_Component_Disk_Standard_Data        , only : tidalTruncationID               , truncationGasID
     implicit none
     type (inputParameters                 ), intent(inout) :: parameters
+    type (nodeComponentDiskStandard       )                :: diskStandardComponent
     type (inputParameters                 )                :: subParameters
     class(galacticComponentTruncationClass), pointer       :: galacticComponentTruncation__
 
     if (defaultDiskComponent%standardIsActive()) then
        ! Get number of abundance properties.
-       abundancesCount  =Abundances_Property_Count            ()
+       abundancesCount=Abundances_Property_Count()
+       ! Bind deferred functions.
+       call diskStandardComponent%massGasRateFunction(Node_Component_Disk_Standard_Mass_Gas_Rate)
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
-       ! Find the meta-property giving the degree of tidal truncation of the disk, which exists only if some class (e.g. a tidal
-       ! mass loss node operator) creates it. This is needed only if the disk is truncated. It is not registered otherwise since
-       ! every registered evolvable meta-property adds a variable to the ODE system of every node, whether or not it is created.
+       ! Find the meta-properties giving the degree of tidal truncation of the disk, and the degree of truncation of its gas, which
+       ! exist only if some class (e.g. a tidal or ram pressure mass loss node operator) creates them. These are needed only if
+       ! the disk is truncated. They are not registered otherwise since every registered evolvable meta-property adds a variable
+       ! to the ODE system of every node, whether or not it is created.
        !![
        <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation__" source="subParameters"/>
        !!]
@@ -246,9 +260,11 @@ contains
        if (diskTruncationIsActive) then
           !![
           <addMetaProperty component="disk" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
+          <addMetaProperty component="disk" name="truncationGas"   id="truncationGasID"   isEvolvable="yes"/>
           !!]
        else
           tidalTruncationID=-1
+          truncationGasID  =-1
        end if
        !![
        <objectDestructor name="galacticComponentTruncation__"/>
@@ -333,15 +349,15 @@ contains
     !!{RST
     Initializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : dependencyDirectionAfter   , dependencyRegEx                  , openMPThreadBindingAtLevel, postEvolveEvent          , &
-          &                                          satelliteMergerEvent       , mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                     , only : dependencyDirectionAfter    , dependencyRegEx                  , openMPThreadBindingAtLevel     , postEvolveEvent          , &
+          &                                          satelliteMergerEvent        , mergerTreeOutputStateAdvanceEvent, diskGasArriveEvent
     use :: Error                            , only : Error_Report
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Input_Parameters                 , only : inputParameter             , inputParameters
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , massDistributionGas_             , kinematicDistribution_    , kinematicDistributionGas_, &
+    use :: Input_Parameters                 , only : inputParameter              , inputParameters
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_    , massDistributionGas_             , kinematicDistribution_         , kinematicDistributionGas_, &
          &                                           galacticComponentTruncation_, galacticDiskHeating_
-    use :: Mass_Distributions               , only : massDistributionCylindrical, kinematicsDistributionLocal      , massDistributionExponentialDisk
-    use :: Galactic_Structure_Options       , only : componentTypeDisk          , massTypeStellar                  , massTypeGaseous
+    use :: Mass_Distributions               , only : massDistributionCylindrical , kinematicsDistributionLocal      , massDistributionExponentialDisk
+    use :: Galactic_Structure_Options       , only : componentTypeDisk           , massTypeStellar                  , massTypeGaseous
     use :: ISO_Varying_String               , only : operator(//)
     implicit none
     type            (inputParameters), intent(inout) :: parameters
@@ -358,6 +374,7 @@ contains
        call satelliteMergerEvent             %attach(thread,satelliteMerger                         ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard',dependencies=dependencies)
        call postEvolveEvent                  %attach(thread,Node_Component_Disk_Standard_Post_Evolve,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        call mergerTreeOutputStateAdvanceEvent%attach(thread,mergerTreeOutputStateAdvance            ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
+       call diskGasArriveEvent               %attach(thread,diskGasArrive                           ,openMPThreadBindingAtLevel,label='nodeComponentDiskStandard'                          )
        ! Find our parameters.
        subParameters=parameters%subParameters('componentDisk')
        !![
@@ -470,9 +487,9 @@ contains
     !!{RST
     Uninitializes the standard disk component module for each thread.
     !!}
-    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent        , mergerTreeOutputStateAdvanceEvent
+    use :: Events_Hooks                     , only : postEvolveEvent         , satelliteMergerEvent        , mergerTreeOutputStateAdvanceEvent, diskGasArriveEvent
     use :: Galacticus_Nodes                 , only : defaultDiskComponent
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_        , kinematicDistribution_           , scalerStellarPool, &
+    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_, massDistributionGas_        , kinematicDistribution_           , scalerStellarPool   , &
          &                                           scalerGasPool           , kinematicDistributionGas_   , galacticComponentTruncation_     , galacticDiskHeating_
     implicit none
 
@@ -480,6 +497,7 @@ contains
        if (satelliteMergerEvent             %isAttached(thread,satelliteMerger                         )) call satelliteMergerEvent             %detach(thread,satelliteMerger                         )
        if (postEvolveEvent                  %isAttached(thread,Node_Component_Disk_Standard_Post_Evolve)) call postEvolveEvent                  %detach(thread,Node_Component_Disk_Standard_Post_Evolve)
        if (mergerTreeOutputStateAdvanceEvent%isAttached(thread,mergerTreeOutputStateAdvance            )) call mergerTreeOutputStateAdvanceEvent%detach(thread,mergerTreeOutputStateAdvance            )
+       if (diskGasArriveEvent               %isAttached(thread,diskGasArrive                           )) call diskGasArriveEvent               %detach(thread,diskGasArrive                           )
        ! Release the pooled scaler mass distributions before the dimensionless distributions they wrap.
        call scalerStellarPool%destroy()
        call scalerGasPool    %destroy()
@@ -953,6 +971,9 @@ contains
        ! Move the gas component of the standard disk to the host.
        select case (destinationGasSatellite%ID)
        case (destinationMergerDisk%ID)
+          ! If the gas of the host disk is truncated, the arriving gas (assumed to have the untruncated distribution) reduces its
+          ! truncation, such that its untruncated mass, M/f, grows by the mass of the arriving gas.
+          call Node_Component_Disk_Gas_Arrive(diskHost,disk%massGas())
           call diskHost    %massGasSet            (                                                                     &
                &                                             diskHost    %massGas            ()                         &
                &                                            +disk        %massGas            ()                         &
@@ -1241,35 +1262,114 @@ contains
 
   double precision function Node_Component_Disk_Standard_Truncation_Factor(disk) result(factor)
     !!{RST
-    Return the ratio of the mean radius, :math:`\langle R \rangle = I_2/I_1`, of the disk after any tidal truncation to that of
-    the untruncated disk.
+    Return the ratio of the mean radius, :math:`\langle R \rangle = I_2/I_1`, of the disk after any truncation to that of the
+    untruncated disk. Since the stars and gas may be truncated differently, this is the mass-weighted mean of the ratios for the
+    stars and gas (such that, assuming a flat rotation curve, it is the ratio of the mean specific angular momenta).
     !!}
     use :: Galacticus_Nodes                 , only : nodeComponentDisk
-    use :: Mass_Distributions               , only : massDistributionCylindrical
-    use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , galacticComponentTruncation_, tidalTruncationID
+    use :: Node_Component_Disk_Standard_Data, only : galacticComponentTruncation_, tidalTruncationID, truncationGasID
     implicit none
-    class           (nodeComponentDisk          ), intent(inout) :: disk
-    class           (massDistributionCylindrical), pointer       :: massDistributionTruncated
-    double precision                                             :: fractionMassRetained
+    class           (nodeComponentDisk), intent(inout) :: disk
+    double precision                                   :: fractionMassRetainedStellar, fractionMassRetainedGas, &
+         &                                                massStellar                , massGas
 
     factor=1.0d0
-    if (.not.galacticComponentTruncation_%isActive()                     ) return
-    if (.not.disk%floatRank0MetaPropertyIsCreated(tidalTruncationID)) return
-    fractionMassRetained=exp(-disk%floatRank0MetaPropertyGet(tidalTruncationID))
-    if (fractionMassRetained >= 1.0d0) return
-    select type (massDistributionStellar_)
-    class is (massDistributionCylindrical)
-       massDistributionTruncated => galacticComponentTruncation_%massDistributionCylindrical(massDistributionStellar_,fractionMassRetained,0.0d0)
-       factor=+massDistributionTruncated%surfaceDensityRadialMoment(2.0d0) &
-            & /massDistributionTruncated%surfaceDensityRadialMoment(1.0d0) &
-            & /massDistributionStellar_ %surfaceDensityRadialMoment(2.0d0) &
-            & *massDistributionStellar_ %surfaceDensityRadialMoment(1.0d0)
-       !![
-       <objectDestructor name="massDistributionTruncated"/>
-       !!]
-    end select
+    if (.not.galacticComponentTruncation_%isActive()) return
+    fractionMassRetainedStellar=1.0d0
+    fractionMassRetainedGas    =1.0d0
+    if (disk%floatRank0MetaPropertyIsCreated(tidalTruncationID)) fractionMassRetainedStellar=exp(-          disk%floatRank0MetaPropertyGet(tidalTruncationID) )
+    if (disk%floatRank0MetaPropertyIsCreated(truncationGasID  )) fractionMassRetainedGas    =exp(-max(0.0d0,disk%floatRank0MetaPropertyGet(truncationGasID  )))
+    if (fractionMassRetainedStellar >= 1.0d0 .and. fractionMassRetainedGas >= 1.0d0) return
+    massStellar=max(0.0d0,disk%massStellar())
+    massGas    =max(0.0d0,disk%massGas    ())
+    if (massStellar+massGas > 0.0d0) then
+       factor=+(                                                                                                  &
+            &   +massStellar*galacticComponentTruncation_%ratioRadiusMeanCylindrical(fractionMassRetainedStellar) &
+            &   +massGas    *galacticComponentTruncation_%ratioRadiusMeanCylindrical(fractionMassRetainedGas    ) &
+            &  )                                                                                                  &
+            & /(                                                                                                  &
+            &   +massStellar                                                                                      &
+            &   +massGas                                                                                          &
+            &  )
+    else
+       factor=+galacticComponentTruncation_%ratioRadiusMeanCylindrical(fractionMassRetainedStellar)
+    end if
     return
   end function Node_Component_Disk_Standard_Truncation_Factor
+
+  subroutine Node_Component_Disk_Standard_Mass_Gas_Rate(self,rate,interrupt,interruptProcedure)
+    !!{RST
+    Accumulate to the rate of change of the gas mass of the standard disk. Gas arriving in the disk (i.e. a positive rate) is
+    assumed to have the untruncated mass distribution, and so reduces the degree of truncation of the gas, :math:`x_\mathrm{gas}`
+    (if the gas is truncated). The untruncated mass of the gas, :math:`M/f`, where :math:`f=\exp(-x_\mathrm{gas})`, then grows at
+    the rate :math:`\dot{M}`, such that
+
+    .. math::
+
+       \dot{x}_\mathrm{gas} = -\frac{\dot{M}}{M} (1-f).
+
+    Removal of gas (a negative rate) is assumed to leave the shape of the mass distribution unchanged, unless it is accounted for
+    explicitly (e.g. by stripping). Since the ODE solver may overshoot :math:`x_\mathrm{gas}=0` (at which this rate vanishes),
+    negative values of :math:`x_\mathrm{gas}` are treated as zero wherever it is used.
+    !!}
+    use :: Galacticus_Nodes                 , only : interruptTask               , nodeComponentDisk, nodeComponentDiskStandard
+    use :: Node_Component_Disk_Standard_Data, only : galacticComponentTruncation_, truncationGasID
+    implicit none
+    class           (nodeComponentDisk), intent(inout)                    :: self
+    double precision                   , intent(in   )                    :: rate
+    logical                            , intent(inout), optional          :: interrupt
+    procedure       (interruptTask    ), intent(inout), optional, pointer :: interruptProcedure
+    double precision                                                      :: fractionMassRetained
+    !$GLC attributes unused :: interrupt, interruptProcedure
+
+    select type (self)
+    class is (nodeComponentDiskStandard)
+       call self%massGasRateIntrinsic(rate)
+       if (rate > 0.0d0 .and. galacticComponentTruncation_%isActive()) then
+          if (self%floatRank0MetaPropertyIsCreated(truncationGasID)) then
+             fractionMassRetained=exp(-max(0.0d0,self%floatRank0MetaPropertyGet(truncationGasID)))
+             ! The gas mass is limited to the absolute tolerance, such that gas arriving in a disk with no gas restores the
+             ! untruncated distribution rapidly, but at a finite rate.
+             if (fractionMassRetained < 1.0d0)                                                                                         &
+                  & call self%floatRank0MetaPropertyRate(                                                                              &
+                  &                                      truncationGasID                                                             , &
+                  &                                      -rate*(1.0d0-fractionMassRetained)/max(self%massGas(),toleranceAbsoluteMass)  &
+                  &                                     )
+          end if
+       end if
+    end select
+    return
+  end subroutine Node_Component_Disk_Standard_Mass_Gas_Rate
+
+  subroutine diskGasArrive(self,disk,massGasArriving)
+    !!{RST
+    Respond to the arrival (e.g. in a merger) of a mass ``massGasArriving`` of gas (assumed to have the untruncated distribution)
+    in a disk, ``disk``, which is about to be added to its gas. If the gas of the disk is truncated, its untruncated mass,
+    :math:`M_\mathrm{gas}/f_\mathrm{gas}`, grows by the mass of the arriving gas, reducing its truncation.
+    !!}
+    use :: Galacticus_Nodes                 , only : nodeComponentDisk                           , nodeComponentDiskStandard
+    use :: Node_Component_Disk_Standard_Data, only : Node_Component_Disk_Standard_Truncation_Gas_Arrive, truncationGasID
+    implicit none
+    class           (*                ), intent(inout) :: self
+    class           (nodeComponentDisk), intent(inout) :: disk
+    double precision                   , intent(in   ) :: massGasArriving
+    !$GLC attributes unused :: self
+
+    if (truncationGasID == -1) return
+    select type (disk)
+    class is (nodeComponentDiskStandard)
+       if (.not.disk%floatRank0MetaPropertyIsCreated(truncationGasID)) return
+       call disk%floatRank0MetaPropertySet(                                                                                                    &
+            &                              truncationGasID                                                                                   , &
+            &                              Node_Component_Disk_Standard_Truncation_Gas_Arrive(                                                 &
+            &                                                                                 disk%floatRank0MetaPropertyGet(truncationGasID), &
+            &                                                                                 disk%massGas                  (               ), &
+            &                                                                                 massGasArriving                                  &
+            &                                                                                )                                                 &
+            &                             )
+    end select
+    return
+  end subroutine diskGasArrive
 
   subroutine mergerTreeOutputStateAdvance(self,node,iOutput)
     !!{RST

@@ -44,6 +44,8 @@
      procedure :: massDistribution                => noneMassDistribution
      procedure :: massDistributionCylindrical     => noneMassDistributionCylindrical
      procedure :: ratioAngularMomentumCylindrical => noneRatioAngularMomentumCylindrical
+     procedure :: ratioRadiusMeanCylindrical      => noneRatioRadiusMeanCylindrical
+     procedure :: fractionMassRetainedCylindrical => noneFractionMassRetainedCylindrical
   end type galacticComponentTruncationNone
 
   interface galacticComponentTruncationNone
@@ -131,3 +133,29 @@ contains
     ratio=1.0d0
     return
   end function noneRatioAngularMomentumCylindrical
+
+  double precision function noneRatioRadiusMeanCylindrical(self,fractionMassRetained) result(ratio)
+    !!{RST
+    Return unity, as this class applies no truncation, such that the mean radius of the mass distribution is unchanged.
+    !!}
+    implicit none
+    class           (galacticComponentTruncationNone), intent(inout) :: self
+    double precision                                 , intent(in   ) :: fractionMassRetained
+    !$GLC attributes unused :: self, fractionMassRetained
+
+    ratio=1.0d0
+    return
+  end function noneRatioRadiusMeanCylindrical
+
+  double precision function noneFractionMassRetainedCylindrical(self,radiusTruncation) result(fractionMassRetained)
+    !!{RST
+    Return unity, as this class applies no truncation.
+    !!}
+    implicit none
+    class           (galacticComponentTruncationNone), intent(inout) :: self
+    double precision                                 , intent(in   ) :: radiusTruncation
+    !$GLC attributes unused :: self, radiusTruncation
+
+    fractionMassRetained=1.0d0
+    return
+  end function noneFractionMassRetainedCylindrical
