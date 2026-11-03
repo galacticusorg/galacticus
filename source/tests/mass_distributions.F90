@@ -1591,11 +1591,6 @@ program Test_Mass_Distributions
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
-  ! Optional `logarithmic` argument in radial density gradients.
-  ! The `<optionalArgument>` directive generates a guarded local copy (`logarithmic_`) of the optional
-  ! `logarithmic` dummy argument. Several classes read the dummy argument itself instead, which is
-  ! invalid when the argument is not supplied by the caller. Check that omitting the argument gives
-  ! the same answer as passing `.false.` explicitly (its documented default).
   ! Radius enclosing a mean density just below the central density of a soliton profile, where a series solution is used.
   ! Target radii were found by numerical quadrature and root finding (mpmath).
   call Unit_Tests_Begin_Group("Soliton profile")
@@ -1609,6 +1604,11 @@ program Test_Mass_Distributions
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
+  ! Optional `logarithmic` argument in radial density gradients.
+  ! The `<optionalArgument>` directive generates a guarded local copy (`logarithmic_`) of the optional
+  ! `logarithmic` dummy argument. Several classes read the dummy argument itself instead, which is
+  ! invalid when the argument is not supplied by the caller. Check that omitting the argument gives
+  ! the same answer as passing `.false.` explicitly (its documented default).
   call Unit_Tests_Begin_Group("Optional `logarithmic` argument in radial density gradients")
   position=[1.0d0,0.0d0,0.0d0]
   allocate(massDistributionSoliton :: massDistribution_)

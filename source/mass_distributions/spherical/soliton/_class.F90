@@ -336,7 +336,7 @@
         radius=0.0d0
      else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
         ! For densities close to, but below the central density, use a series solution.
-        radius=+self%radiusCore                                                            &
+        radius=+self%radiusCore                                                                     &
              & *sqrt(solitonRadiusCoreFreeSquaredSeries(+1.0d0-density/self%densitySolitonCentral))
      else
         radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
@@ -358,7 +358,7 @@
         radius=0.0d0
      else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
         ! For densities close to, but below the central density, use a series solution.
-        radius=+self%radiusCore                                                            &
+        radius=+self%radiusCore                                                                     &
              & *sqrt(solitonRadiusCoreFreeSquaredSeries(+1.0d0-density/self%densitySolitonCentral))
      else
         radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
@@ -379,20 +379,20 @@
      implicit none
      double precision, intent(in   ) :: deltaDensityFractional
 
-     radiusCoreFreeSquared=+deltaDensityFractional                                    &
-          &                *(                                                         &
-          &                  +       5.0d0/                24.0d0                     &
-          &                  +deltaDensityFractional                                  &
-          &                  *(                                                       &
-          &                    +     125.0d0/               896.0d0                   &
-          &                    +deltaDensityFractional                                &
-          &                    *(                                                     &
-          &                      +  453125.0d0/           4064256.0d0                 &
-          &                      +deltaDensityFractional                              &
-          &                      *  29078125.0d0/       303464448.0d0                 &
-          &                     )                                                     &
-          &                   )                                                       &
-          &                 )                                                         &
+     radiusCoreFreeSquared=+      deltaDensityFractional     &
+          &                *(                                &
+          &                  +           5.0d0/       24.0d0 &
+          &                  +    deltaDensityFractional     &
+          &                  *(                              &
+          &                    +       125.0d0/      896.0d0 &
+          &                    +  deltaDensityFractional     &
+          &                    *(                            &
+          &                      +  453125.0d0/  4064256.0d0 &
+          &                      +deltaDensityFractional     &
+          &                      *29078125.0d0/303464448.0d0 &
+          &                     )                            &
+          &                   )                              &
+          &                 )                                &
           &                /coefficientCore
      return
    end function solitonRadiusCoreFreeSquaredSeries
