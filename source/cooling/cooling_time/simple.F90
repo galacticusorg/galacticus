@@ -180,9 +180,7 @@ contains
 
     The thermal energy density is assumed to scale as :math:`\rho T`, i.e. the total number density of particles (including electrons) is taken to be proportional to density and independent of temperature, as in fully ionized gas. Any dependence of the electron density on density or temperature (as computed by the ``chemicalState`` object) is ignored, so the result is approximate for partially ionized gas (e.g. near :math:`10^4` K).
     !!}
-    use :: Numerical_Constants_Astronomical, only : massSolar       , megaParsec
-    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-    use :: Numerical_Constants_Prefixes    , only : hecto
+    use :: Hot_Halo_Composition, only : Hydrogen_Number_Density
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -194,12 +192,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
-    numberDensityHydrogen=+density                                 &
-         &                *gasAbundances%hydrogenMassFraction()    &
-         &                *massSolar                               &
-         &                /massHydrogenAtom                        &
-         &                /hecto                               **3 &
-         &                /megaParsec                          **3
+    numberDensityHydrogen=Hydrogen_Number_Density(density,gasAbundances)
     simpleGradientDensityLogarithmic=+1.0d0                                                                                                                                  &
          &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
@@ -211,9 +204,7 @@ contains
 
     The thermal energy density is assumed to scale as :math:`\rho T`, i.e. the total number density of particles (including electrons) is taken to be proportional to density and independent of temperature, as in fully ionized gas. Any dependence of the electron density on density or temperature (as computed by the ``chemicalState`` object) is ignored, so the result is approximate for partially ionized gas (e.g. near :math:`10^4` K).
     !!}
-    use :: Numerical_Constants_Astronomical, only : massSolar       , megaParsec
-    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
-    use :: Numerical_Constants_Prefixes    , only : hecto
+    use :: Hot_Halo_Composition, only : Hydrogen_Number_Density
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -225,12 +216,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
-    numberDensityHydrogen=+density                                 &
-         &                *gasAbundances%hydrogenMassFraction()    &
-         &                *massSolar                               &
-         &                /massHydrogenAtom                        &
-         &                /hecto                               **3 &
-         &                /megaParsec                          **3
+    numberDensityHydrogen=Hydrogen_Number_Density(density,gasAbundances)
     ! The thermal energy density is proportional to temperature, contributing +1 to the logarithmic gradient.
     simpleGradientTemperatureLogarithmic=+1.0d0                                                                                                                                      &
          &                               -self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
