@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements a class for calculations of stellar astrophysics.
 !!}
@@ -67,6 +69,13 @@ module Stellar_Astrophysics
     <type>double precision</type>
     <pass>yes</pass>
     <argument>double precision, intent(in   ) :: massInitial, metallicity</argument>
+   </method>
+   <method name="massInitialSupernovaeTypeII" >
+    <description>
+    Returns the minimum initial mass (in :math:`\mathrm{M}_\odot`) of a star which ends its life as a Type II supernova.
+    </description>
+    <type>double precision</type>
+    <pass>yes</pass>
    </method>
   </functionClass>
   !!]

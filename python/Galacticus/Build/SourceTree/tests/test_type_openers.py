@@ -5,7 +5,7 @@ alternation and admitted no whitespace inside `extends(...)`, so
 `type, bind(c) :: unitType` and `type, extends(hdf5Group             ) ::
 hdf5File` both failed to match.
 
-A missed opener is not merely an unlabelled node.  The unit parser never opens
+A missed opener is not merely an unlabeled node.  The unit parser never opens
 a `type` node, so the type's components are absorbed into the enclosing
 scope's declaration node as though they were ordinary variables, and the
 `end type` is stranded as an orphan code node — silently, with nothing

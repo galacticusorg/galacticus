@@ -23,7 +23,7 @@ Contains a module which filters merger trees.
 
 module Merger_Tree_Filters
   !!{RST
-  Constructs/destructs merger trees.
+  Provides a class that implements filters on merger trees.
   !!}
   use :: Galacticus_Nodes, only : mergerTree
   private

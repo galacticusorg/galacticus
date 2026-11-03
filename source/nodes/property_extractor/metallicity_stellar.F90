@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements an ISM metallicity output analysis property extractor class.
+Implements a stellar metallicity output analysis property extractor class.
 !!}
 
   !![

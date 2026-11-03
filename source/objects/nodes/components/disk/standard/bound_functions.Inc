@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains custom functions for the standard disk component.
 !!}
@@ -26,11 +28,11 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   Return the mass distribution for the standard disk component.
   !!}
   use :: Mass_Distributions                         , only : massDistributionClass                              , massDistributionMatches_
-  use :: Node_Component_Disk_Standard_Data          , only : massDistributionStellar_                           , massDistributionGas_    , kinematicDistribution_      , scalerStellarPool      , &
-       &                                                     scalerGasPool                                      , kinematicDistributionGas_
-  use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Cylindrical
-  use :: Galactic_Structure_Options                 , only : componentTypeDisk                                  , massTypeStellar         , massTypeGaseous             , enumerationWeightByType, &
-       &                                                     weightByMass                                       , weightByLuminosity      , enumerationComponentTypeType, enumerationMassTypeType
+  use :: Node_Component_Disk_Standard_Data          , only : massDistributionStellar_                           , massDistributionGas_                                  , kinematicDistribution_      , scalerStellarPool      , &
+       &                                                     scalerGasPool                                      , kinematicDistributionGas_                             , galacticComponentTruncation_
+  use :: Node_Components_Galactic_Mass_Distributions, only : Node_Component_Mass_Distribution_Scaled_Cylindrical, Node_Component_Mass_Distribution_Truncated_Cylindrical
+  use :: Galactic_Structure_Options                 , only : componentTypeDisk                                  , massTypeStellar                                       , massTypeGaseous             , enumerationWeightByType, &
+       &                                                     weightByMass                                       , weightByLuminosity                                    , enumerationComponentTypeType, enumerationMassTypeType
   implicit none
   class          (massDistributionClass       ), pointer                 :: massDistribution_
   class          (nodeComponentDiskStandard   ), intent(inout)           :: self
@@ -40,8 +42,9 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   integer                                      , intent(in   ), optional :: weightIndex
   type           (stellarLuminosities         ), save                    :: luminosities
   !$omp threadprivate(luminosities)
-  double precision                                                       :: massStellar      , massGas     , &
-       &                                                                    radiusScale
+  double precision                                                       :: massStellar      , massGas             , &
+       &                                                                    radiusScale      , fractionMassRetained, &
+       &                                                                    heating
   logical                                                                :: includeGas       , includeStars
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
@@ -62,11 +65,41 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
      massDistribution_ => null()
      return
   end if
-  ! Build the disk mass distribution.
-  radiusScale       =  self%radius()
-  massDistribution_ => Node_Component_Mass_Distribution_Scaled_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool)
+  ! Build the disk mass distribution, truncated if the disk has been tidally stripped, and heated if it has been tidally heated.
+  radiusScale=self%radius()
+  call Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetained,heating)
+  if (fractionMassRetained < 1.0d0 .or. heating > 0.0d0) then
+     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained,heating)
+  else
+     massDistribution_ => Node_Component_Mass_Distribution_Scaled_Cylindrical   (includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool                     )
+  end if
   return
 end function Node_Component_Disk_Standard_Mass_Distribution
+
+subroutine Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetained,heating)
+  !!{RST
+  Return the fraction of the mass of its untruncated mass distribution retained by the standard disk, and its heating parameter
+  (see :galacticus-class:`galacticDiskHeatingClass`). Heating is applied only to satellites.
+  !!}
+  use :: Node_Component_Disk_Standard_Data, only : galacticComponentTruncation_, tidalTruncationID, galacticDiskHeating_
+  implicit none
+  class           (nodeComponentDiskStandard), intent(inout) :: self
+  double precision                           , intent(  out) :: fractionMassRetained, heating
+  class           (nodeComponentSatellite   ), pointer       :: satellite
+
+  fractionMassRetained=1.0d0
+  heating             =0.0d0
+  if (galacticComponentTruncation_%isActive()) then
+     if (self%floatRank0MetaPropertyIsCreated(tidalTruncationID)) fractionMassRetained=exp(-self%floatRank0MetaPropertyGet(tidalTruncationID))
+  end if
+  if (galacticDiskHeating_%isActive()) then
+     if (self%hostNode%isSatellite()) then
+        satellite => self%hostNode%satellite()
+        heating   =  galacticDiskHeating_%heating(satellite%tidalHeatingNormalized(),self%radius(),self%velocity())
+     end if
+  end if
+  return
+end subroutine Node_Component_Disk_Standard_Tidal_Modification
 
 double precision function Node_Component_Disk_Standard_Mass_Baryonic(self) result(massBaryonic)
   !!{RST
@@ -82,18 +115,30 @@ end function Node_Component_Disk_Standard_Mass_Baryonic
 
 double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self) result(radiusHalfMass)
   !!{RST
-  Return the half-mass radius of the standard disk.
+  Return the half-mass radius of the standard disk, accounting for any tidal truncation and heating of its mass distribution.
   !!}
   use :: Error                            , only : Error_Report
   use :: Mass_Distributions               , only : massDistributionCylindrical
-  use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_
+  use :: Node_Component_Disk_Standard_Data, only : massDistributionStellar_   , galacticComponentTruncation_
   implicit none
-  class(nodeComponentDiskStandard), intent(inout) :: self
+  class           (nodeComponentDiskStandard  ), intent(inout) :: self
+  class           (massDistributionCylindrical), pointer       :: massDistributionTruncated
+  double precision                                             :: fractionMassRetained     , heating
 
   select type (massDistributionStellar_)
   class is (massDistributionCylindrical)
-     radiusHalfMass=+massDistributionStellar_%radiusHalfMass() &
-          &         *self                    %radius        ()
+     call Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetained,heating)
+     if (fractionMassRetained < 1.0d0 .or. heating > 0.0d0) then
+        massDistributionTruncated => galacticComponentTruncation_%massDistributionCylindrical(massDistributionStellar_,fractionMassRetained,heating)
+        radiusHalfMass=+massDistributionTruncated%radiusHalfMass() &
+             &         *self                     %radius        ()
+        !![
+        <objectDestructor name="massDistributionTruncated"/>
+        !!]
+     else
+        radiusHalfMass=+massDistributionStellar_ %radiusHalfMass() &
+             &         *self                     %radius        ()
+     end if
   class default
      radiusHalfMass=0.0d0
      call Error_Report('disk mass distribution is not cylindrically-symmetric'//{introspection:location})

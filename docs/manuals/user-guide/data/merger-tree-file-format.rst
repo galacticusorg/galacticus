@@ -700,7 +700,7 @@ group (others may be added as desired).
    * - ``velocitiesIncludeHubbleFlow``
      - Indicates whether or not velocities include the Hubble flow. A value
        of 0 indicates that they do not, while a value of 1 indicates that
-       they do. See `here <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ for important
+       they do. See :ref:`manual-sec-GalacticusVelocityDefinitions` for important
        notes on velocity definitions in Galacticus.
    * - ``positionsArePeriodic``
      - Indicates whether or not positions are periodic (as in a
@@ -767,7 +767,7 @@ group.
        related, but multiple *can* be present);
    * - ``velocity``
      - The three dimensional velocity of the node. See
-       `here <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ for important notes on
+       :ref:`manual-sec-GalacticusVelocityDefinitions` for important notes on
        velocity definitions in Galacticus;
    * - ``particleIndexStart``
      - If the ``particles`` group is included, this dataset should
@@ -978,7 +978,7 @@ Standard Datasets
      - The spatial position of the particle;
    * - ``velocity``
      - The velocity of the particle. See
-       `here <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ for important notes on
+       :ref:`manual-sec-GalacticusVelocityDefinitions` for important notes on
        velocity definitions in Galacticus.
 
 Note that only one of the ``expansionFactor``,

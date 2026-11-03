@@ -31,10 +31,12 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                                      , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Numerical_Constants_Math            , only : Pi
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Spherical_Collapse_Solvers          , only : collisionlessMatterDarkEnergyFixedAtTurnaround
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
@@ -52,6 +54,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
   type            (powerSpectrumPrimordialPowerLaw                          )               :: powerSpectrumPrimordial_
   type            (transferFunctionEisensteinHu1999                         )               :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple                 )               :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                            )               :: powerSpectrumNormalizer_
   type            (darkMatterParticleCDM                                    )               :: darkMatterParticle_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy)               :: virialDensityContrast_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrDrkEnrgy  )               :: criticalOverdensity_
@@ -65,6 +68,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (lambda cosmology)")
   ! Test spherical collapse in a flat universe.
@@ -125,12 +129,25 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
      &amp;                                                   )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_">
+   <constructor>
+    powerSpectrumNormalizerSigma8                            (                                                                                  &amp;
+     &amp;                                                    sigma8                                  =0.8d0                                  , &amp;
+     &amp;                                                    tolerance                               =1.0d-4                                 , &amp;
+     &amp;                                                    integrationFailureIsFatal               =.true.                                 , &amp;
+     &amp;                                                    cosmologyParameters_                    =cosmologyParameters_                   , &amp;
+     &amp;                                                    cosmologyFunctions_                     =cosmologyFunctions_                    , &amp;
+     &amp;                                                    transferFunction_                       =transferFunction_                        &amp;
+     &amp;                                                   )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple                 (                                                                                  &amp;
      &amp;                                                    powerSpectrumPrimordial_                =powerSpectrumPrimordial_               , &amp;
      &amp;                                                    transferFunction_                       =transferFunction_                      , &amp;
-     &amp;                                                    linearGrowth_                           =linearGrowth_                            &amp;
+     &amp;                                                    linearGrowth_                           =linearGrowth_                          , &amp;
+     &amp;                                                    powerSpectrumNormalizer_                =powerSpectrumNormalizer_                 &amp;
      &amp;                                                   )
    </constructor>
   </referenceConstruct>
@@ -144,7 +161,6 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower                    (                                                                                  &amp;
-     &amp;                                                    sigma8                                  =0.8d0                                  , &amp;
      &amp;                                                    tolerance                               =1.0d-4                                 , &amp;
      &amp;                                                    toleranceTopHat                         =1.0d-4                                 , &amp;
      &amp;                                                    rootVarianceLogarithmicGradientTolerance=1.0d-9                                 , &amp;

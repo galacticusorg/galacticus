@@ -40,8 +40,10 @@ An extremely simple parameter file (taken from the `power spectrum tutorial <htt
        <running value="0.000"/>
      </powerSpectrumPrimordial>
      <powerSpectrumPrimordialTransferred value="simple"/>
-     <cosmologicalMassVariance value="filteredPower">
+     <powerSpectrumNormalizer value="sigma8">
        <sigma_8 value="0.807"/>
+     </powerSpectrumNormalizer>
+     <cosmologicalMassVariance value="filteredPower">
        <tolerance value="1.0e-3"/>
      </cosmologicalMassVariance>
 
@@ -105,9 +107,9 @@ The actual parameters in the file all follow the same structure, for example:
 .. code-block:: xml
 
    <cosmologyFunctions value="matterLambda"/>
-   <countTrees         value="100"         />
+   <outputFileName     value="myModel.hdf5"/>
 
-defines a parameter named "``cosmologyFunctions``" to have a value of "``matterLambda``", and a parameter named "``countTrees``" to have a value of "``100``".
+defines a parameter named "``cosmologyFunctions``" to have a value of "``matterLambda``", and a parameter named "``outputFileName``" to have a value of "``myModel.hdf5``".
 
 Checking your parameter file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -178,21 +180,21 @@ Warnings of the type:
 
 .. code-block:: text
 
-   ambiguous value for parameter [countTrees]
+   ambiguous value for parameter [outputFileName]
 
 indicate that you have mixed the new and old-styles of parameters, for example:
 
 .. code-block:: xml
 
-   <countTrees value="10"> <!-- New-style is to define the value via the value attribute here. -->
-     <value>20</value>    <!-- Old-style is to define the value in a separate value element.  -->
-   </countTrees>
+   <outputFileName value="myModel.hdf5">    <!-- New-style is to define the value via the value attribute here. -->
+     <value>otherModel.hdf5</value>         <!-- Old-style is to define the value in a separate value element.  -->
+   </outputFileName>
 
-which leads to an ambiguous choice of value for this parameter. The old-style, while still supported, is deprecated and should not be used, so replace the above with:
+which leads to an ambiguous choice of value for this parameter. If Galacticus goes on to read this parameter it stops with a fatal error (``ambiguous value attribute and element``). The old-style, while still supported, is deprecated and should not be used, so replace the above with:
 
 .. code-block:: xml
 
-   <countTrees value="10"/>
+   <outputFileName value="myModel.hdf5"/>
 
 Unrecognized parameter
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -222,26 +224,24 @@ The value must have the correct "type" for each parameter. For example, you can 
 * Reals, e.g. "``5.432e-8``";
 * Booleans, e.g. "``true``", "``false``".
 
-In the `Functions <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ section of the documentation a parameter description defines the cardinality, for example, the `haloMassFunctionShethTormen <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ class details the following parameters:
+In the `Functions <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ section of the documentation each parameter description gives the type of the parameter, for example, the `haloMassFunctionShethTormen <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ class details the following parameters:
 
    *Parameters*
 
-   ``[a]`` (real; 0,1) {``0.707e0``} The parameter :math:`a` in the Sheth et al. [2001] halo mass function fit.
+   * ``[a]`` (real; ``0..1``; default ``0.707d0``) — The parameter :math:`a` in the Sheth et al. [2001] halo mass function fit.
+   * ``[p]`` (real; ``0..1``; default ``0.3d0``) — The parameter :math:`p` in the Sheth et al. [2001] halo mass function fit.
+   * ``[normalization]`` (real; ``0..1``; default ``0.3221836349d0``) — The normalization parameter :math:`A` in the Sheth et al. [2001] halo mass function fit.
 
-   ``[p]`` (real; 0,1) {``0.3e0``} The parameter :math:`p` in the Sheth et al. [2001] halo mass function fit.
-
-   ``[normalization]`` (real; 0,1) {``0.3221836349e0``} The normalization parameter :math:`A` in the Sheth et al. [2001] halo mass function fit.
-
-The word "real" (in the "``(real; 0,1)``") in each of the above parameters indicates that a real type value is expected.
+The word "real" (in the "``(real; 0..1; ...)``") in each of the above parameters indicates that a real type value is expected.
 
 .. _parameter-files-cardinality:
 
 Cardinality
 ~~~~~~~~~~~
 
-The cardinality of a parameter (i.e. how many values you are allowed to put in the "``value``" attribute) is typically 1 - i.e. you must provide a single value for the parameter.
+The cardinality of a parameter is the number of values you are allowed to put in its "``value``" attribute. A cardinality of ``1`` means that you must provide a single value for the parameter.
 
-Many parameters also allow a cardinality of 0 - corresponding to the case where the parameter simply is not present in the parameter file. In such cases the parameter will be assigned a default value.
+Many parameters also allow a cardinality of 0---corresponding to the case where the parameter simply is not present in the parameter file. In such cases the parameter will be assigned its default value or, for a parameter with no default, the class will do without it (for example, because an alternative parameter has been given instead).
 
 Some parameters allow multiple values. For example, in defining a set of output redshifts you might have a parameter:
 
@@ -249,19 +249,33 @@ Some parameters allow multiple values. For example, in defining a set of output 
 
    <redshifts value="0.0 1.0 2.0"/>
 
-which has a cardinality of 3, and so defines three output redshifts.
+which has three values, and so defines three output redshifts.
 
-In the `Functions <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ section of the documentation a parameter description defines the cardinality, for example, the `outputTimesList <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ class details the following parameters:
+The cardinality is given in the parentheses after the parameter name, following the type. It takes one of the following forms:
+
+``1``
+   The parameter must be given, with a single value.
+``0..1``
+   The parameter may be omitted; if given, it has a single value.
+``N`` (e.g. ``3``)
+   The parameter must be given, with exactly :math:`N` values.
+``0,N`` (e.g. ``0,3``)
+   The parameter may be omitted; if given, it has exactly :math:`N` values.
+``1..*``
+   The parameter must be given, with one or more values.
+``0..*``
+   The parameter may be omitted; if given, it may have any number of values.
+
+For example, the `outputTimesList <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ class details the following parameters:
 
    *Parameters*
 
-   ``[times]`` (real; 1..\*) A list of (space-separated) times at which Galacticus results should be output. Times need not be in any particular order.
+   * ``[redshifts]`` (real; ``0..*``; default ``[0.0d0]``) — A list of (space-separated) redshifts at which Galacticus results should be output. Redshifts need not be in any particular order.
+   * ``[times]`` (real; ``0..*``) — A list of (space-separated) times at which Galacticus results should be output. Times need not be in any particular order. Negative times are interpreted as look-back times.
 
-   ``[redshifts]`` (real; 0..\*) {``[0.0e0]``} A list of (space-separated) redshifts at which Galacticus results should be output. Redshifts need not be in any particular order.
+Both parameters accept any number of values, and both may be omitted. Outputs are made at all of the times and redshifts given. If neither parameter is present, the default value of ``redshifts`` (given after "``default``" in the above) of ``[0.0d0]``---a single output at :math:`z=0`---is used.
 
-The cardinality information is given in the parentheses after the parameter name. For the ``times`` parameter, the cardinality is ``1..\*`` - indicating that at least one value is required (if the parameter is present at all), and that there is no upper limit to the number of values that can appear.
-
-For the ``redshifts`` parameter the cardinality is ``0..*`` - indicating that zero, one, or any number of values can be given. If the ``redshifts`` parameter is not present (i.e. there are zero values provided for it) then the default value (given in curly braces in the above) of ``[0.0e0]`` will be used instead.
+The cardinality of most parameters is not written by hand, but is inferred from the source code: from the shape of the variable that the parameter is read into, and from whether the parameter has a default value or is read only if it is present. The inference can occasionally be wrong (for example, for a parameter that is read only under some other condition). If the description of a parameter, or an error message from Galacticus, contradicts the cardinality shown, trust the description or the error message, and please `report the discrepancy <https://github.com/galacticusorg/galacticus/issues>`_.
 
 Correspondence with classes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -495,29 +509,29 @@ Sometimes it can be useful to "reuse" an entire section of parameters elsewhere 
 
    <cosmologicalMassVariance value="peakBackgroundSplit">
      <cosmologicalMassVariance value="filteredPower" id="myCMV">
-       <sigma_8 value="0.812"/>
+       <tolerance value="1.0e-4"/>
      </cosmologicalMassVariance>
    </cosmologicalMassVariance>
 
    <mergerTreeBuildController value="constrained">
 
-     <mergerTreeBranchingProbabilityUnconstrained value="PCH">
+     <mergerTreeBranchingProbabilityUnconstrained value="parkinsonColeHelly">
        <cosmologicalMassVariance idRef="myCMV"/>
-     <mergerTreeBranchingProbabilityUnconstrained/>
+     </mergerTreeBranchingProbabilityUnconstrained>
 
      <mergerTreeBranchingProbabilityConstrained value="generalizedPressSchechter">
        <cosmologicalMassVariance idRef="myCMV"/>
-     <mergerTreeBranchingProbabilityConstrained/>
+     </mergerTreeBranchingProbabilityConstrained>
 
    </mergerTreeBuildController>
 
-In this example, we want to use a peak-background split model for :math:`\sigma(M)` in the main part of our parameter file, but need the regular :math:`\sigma(M)` for calculations related to merger tree construction. To avoid having to copy the definition of ``cosmologicalMassVariance`` and its parameter ``sigma_8`` three times, we add an attribute ``id="myCMV"`` to the first instance of the ``cosmologicalMassVariance`` parameter. Then, in subsequent cases we can reference it using this ID:
+In this example, we want to use a peak-background split model for :math:`\sigma(M)` in the main part of our parameter file, but need the regular :math:`\sigma(M)` for calculations related to merger tree construction. To avoid having to copy the definition of ``cosmologicalMassVariance`` and its parameter ``tolerance`` three times, we add an attribute ``id="myCMV"`` to the first instance of the ``cosmologicalMassVariance`` parameter. Then, in subsequent cases we can reference it using this ID:
 
 .. code-block:: xml
 
    <cosmologicalMassVariance idRef="myCMV"/>
 
-This means that, should we decide to change the value of :math:`\sigma_8` we need change it in only one location.
+This means that, should we decide to change the value of the tolerance we need change it in only one location.
 
 Note that, internally in Galacticus, these three instances of the ``cosmologicalMassVariance`` object are *not* copies of each other - instead they are *the exact same object*, reused in these three separate instances.
 

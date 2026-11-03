@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which implements an N-body data operator which computes progenitor halo order statistics.
+Contains a module which implements an N-body data operator which computes the time of the last major merger.
 !!}
 
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
