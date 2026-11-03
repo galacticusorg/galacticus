@@ -147,7 +147,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³).
-    numberDensityHydrogen  =  Hydrogen_Number_Density(density,gasAbundances)
+    numberDensityHydrogen  =  Hydrogen_Number_Density                  (           density                    ,gasAbundances                            )
     ! Get the number density of all species, including electrons.
     numberDensityAllSpecies=+                                                numberDensityHydrogen                                                        &
          &                  /     gasAbundances %hydrogenNumberFraction(                                                                                ) &

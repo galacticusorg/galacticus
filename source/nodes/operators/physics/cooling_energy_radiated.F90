@@ -282,7 +282,7 @@ contains
        ! Set epoch for radiation field.
        call self%radiation%timeSet(basic%time())
        ! Compute number density of hydrogen (in cm⁻³).
-       numberDensityHydrogen  =  Hydrogen_Number_Density(density,abundances_)
+       numberDensityHydrogen  =  Hydrogen_Number_Density                  (           density                    ,abundances_                                  )
        ! Get the number density of all species, including electrons.
        numberDensityAllSpecies=+                                                numberDensityHydrogen                                                            &
             &                  /     abundances_   %hydrogenNumberFraction(                                                                                    ) &
