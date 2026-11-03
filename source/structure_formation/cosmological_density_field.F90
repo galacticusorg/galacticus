@@ -177,6 +177,7 @@ module Cosmological_Density_Field
    <data>type            (table1DLinearLinear          )              :: collapseThreshold                                                                    </data>
    <data>double precision                                             :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
    <data>logical                                                      :: collapseThresholdInitialized=.false.                                                 </data>
+   <data>integer         (kind_int8                    )              :: collapseThresholdTreeID     =  -1_kind_int8                                          </data>
    <data>type            (treeNode                     ), pointer     :: node                                                                                 </data>
    <data>logical                                                      :: massPresent                                , nodePresent                             </data>
    <data>logical                                                      :: treePresent                                                                          </data>
@@ -352,33 +353,12 @@ module Cosmological_Density_Field
    <name>cosmologicalMassVariance</name>
    <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
    <description>
-   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g. top-hat in real space) and integrate over wavenumber, with normalization set by :math:`\sigma_8`.
+   Class providing the rms mass variance :math:`\sigma(M,t)` of the cosmological density field---the standard deviation of the linear density contrast when smoothed on the scale enclosing mass :math:`M` at cosmic time :math:`t`. The variance is the fundamental ingredient of the Press-Schechter and excursion-set formalisms: the halo mass function, merger tree branching rates, and bias all depend on :math:`\sigma(M)` and its logarithmic gradient :math:`\mathrm{d}\ln\sigma/\mathrm{d}\ln M`. Implementations typically filter the linear matter power spectrum through a window function (e.g. top-hat in real space) and integrate over wavenumber, with normalization set by that of the power spectrum (see :galacticus-class:`powerSpectrumNormalizer`).
    </description>
    <default>filteredPower</default>
-   <method name="descriptorNormalizationOnly" >
-    <description>
-    Return a descriptor for this object suitable for normalization-only usage.
-    </description>
-    <type>void</type>
-    <pass>yes</pass>
-    <modules>Input_Parameters</modules>
-    <argument>type     (inputParameters), intent(inout)           :: descriptor                                </argument>
-    <argument>logical                   , intent(in   ), optional :: includeClass, includeFileModificationTimes</argument>
-    <argument>character(len=*          ), intent(in   ), optional :: parameterName                             </argument>
-    <code>
-      call self%descriptor(descriptor,includeClass,includeFileModificationTimes,parameterName)
-    </code>
-   </method>
-   <method name="powerNormalization" >
-    <description>
-    Return the overall amplitude normalization of the linear matter power spectrum, used to scale the dimensionless power :math:`\Delta^2(k)` so that the integrated variance matches the observed :math:`\sigma_8`.
-    </description>
-    <type>double precision</type>
-    <pass>yes</pass>
-   </method>
    <method name="sigma8" >
     <description>
-    Return :math:`\sigma_8`, the rms linear density fluctuation smoothed with a top-hat filter of radius :math:`8\,h^{-1}\,\mathrm{Mpc}`, which sets the overall normalization of the matter power spectrum.
+    Return :math:`\sigma_8`, the rms linear density fluctuation at the present day smoothed with a top-hat filter of radius :math:`8\,h^{-1}\,\mathrm{Mpc}`, as computed from the (normalized) power spectrum.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -503,6 +483,11 @@ contains
        else
           self%lastUniqueID=-1_kind_int8
        end if
+       if (self%treePresent) then
+          self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
+       else
+          self%lastTreeID  =-1_kind_int8
+       end if
        self%criticalOverdensityPrevious=criticalOverdensity
        if (self%timeNow < 0.0d0) self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
        timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
@@ -518,7 +503,9 @@ contains
                &   *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow      ,mass=mass          ) &
                &   /self%cosmologicalMassVariance_%rootVariance(time=     timeBigCrunch,mass=mass          ) &
                & ) then
-             ! Return a collapse time close to the Big Crunch in this case.
+             ! Return a collapse time close to the Big Crunch in this case (and memoize it, as the memo keys have already been
+             ! updated).
+             self%timeOfCollapsePrevious      =timeBigCrunch
              criticalOverdensityTimeOfCollapse=timeBigCrunch
              return
           end if
@@ -552,16 +539,13 @@ contains
        if (self%timeOfCollapsePrevious < 0.0d0) self%timeOfCollapsePrevious=self%cosmologyFunctions_%cosmicTime(1.0d0)
        if (.not.self%massPresent.and..not.self%nodePresent) then
           ! There is no dependency on mass, or the node. If there is dependency on the tree, then, if the tree differs from the
-          ! previously seen case we must destroy the previously made table, as our tree has changed.
-          if (self%treePresent) then
-             if (node%hostTree%nodeBase%uniqueID() /= self%lastTreeID) then
-                self%collapseThresholdInitialized=.false.
-                call self%collapseThreshold%destroy()
-             end if
-             self%lastTreeID  =node%hostTree%nodeBase%uniqueID()
-          else
-             self%lastTreeID  =-1_kind_int8
+          ! tree for which the table was built we must destroy the previously made table, as our tree has changed. The table is
+          ! valid only for the tree (or for the tree-independent case, with ID -1) for which it was built.
+          if (self%collapseThresholdInitialized .and. self%lastTreeID /= self%collapseThresholdTreeID) then
+             self%collapseThresholdInitialized=.false.
+             call self%collapseThreshold%destroy()
           end if
+          self%collapseThresholdTreeID=self%lastTreeID
           ! Neither the mass or the node are provided, so we can use a simple tabulation of collapse thresholds for rapid
           ! inversion. Note that we do not tabulate lower than the requested threshold as in some cosmologies (e.g. with dark
           ! energy or a cosmological constant) this can require tabulating to extremely large cosmic times).
@@ -715,13 +699,12 @@ contains
     class(  criticalOverdensityClass), intent(inout) :: self
     type   (treeNode                ), intent(inout) :: node
     integer(kind_int8               ), intent(in   ) :: uniqueID
-    !$GLC attributes unused :: node
+    !$GLC attributes unused :: node, uniqueID
 
-    self%lastUniqueID=uniqueID
-    self%lastTreeID  =-1_kind_int8
-    if (associated(node%hostTree)) then
-       if (associated(node%hostTree%nodeBase)) self%lastTreeID=node%hostTree%nodeBase%uniqueID()
-    end if
+    ! Invalidate the memoized time of collapse. The value -2 matches neither a valid ID nor the value (-1) used when no node or
+    ! tree is present. The tabulated collapse thresholds are left in place, as they are keyed on their own tree ID.
+    self%lastUniqueID=-2_kind_int8
+    self%lastTreeID  =-2_kind_int8
     return
   end subroutine criticalOverdensityCalculationReset
 

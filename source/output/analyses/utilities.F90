@@ -101,8 +101,10 @@ contains
           timeMaximumFound=-huge(0.0d0)
           do iField=1,surveyGeometry_%fieldCount()
              ! Test whether the output epoch lies within the range of comoving distances for this field.
-             timeMinimum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(field=iField))
-             timeMaximum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(field=iField))
+             ! The limits must be given here as in the case above: without them the maximum distance of a survey with no redshift
+             ! limit is that of the particle horizon, at which no time can be found.
+             timeMinimum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMaximum(mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
+             timeMaximum     =cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_%distanceMinimum(mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
              timeMinimumFound=min(timeMinimumFound,timeMinimum)
              timeMaximumFound=max(timeMaximumFound,timeMaximum)
           end do
