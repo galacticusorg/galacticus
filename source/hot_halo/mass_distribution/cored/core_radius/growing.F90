@@ -178,9 +178,10 @@ contains
          &         /     basic               %mass       () &
          &         *self%cosmologyParameters_%OmegaMatter() &
          &         /self%cosmologyParameters_%OmegaBaryon()
-    ! Return an arbitrary value for empty halos.
+    ! For empty halos return the limiting core radius as the hot gas fraction tends to zero, which is the maximum core radius.
     if (hotGasFraction <= 0.0d0) then
-       growingRadius=self%coreRadiusOverScaleRadius
+       growingRadius=+self                     %coreRadiusOverVirialRadiusMaximum       &
+            &        *self%darkMatterHaloScale_%radiusVirial                     (node)
        return
     end if
     ! Compute the desired core radius (in units of the virial radius) for a fully populated halo.

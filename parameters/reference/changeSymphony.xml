@@ -28,7 +28,7 @@
   
   <!-- Replace power spectrum parameters with those for the Symphony simulations (Nadler et al., 2023;
        https://ui.adsabs.harvard.edu/abs/2023ApJ...945..159N). -->
-  <change type="update" path="cosmologicalMassVariance/sigma_8" value="0.82"/>
+  <change type="update" path="powerSpectrumNormalizer/sigma_8" value="0.82"/>
   <change type="update" path="powerSpectrumPrimordial/index"    value="0.96"/>
 
 </changes>

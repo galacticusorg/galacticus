@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`ludlow_mass-concentration-redshift_2016` algorithm.
   !!}
@@ -357,7 +359,10 @@ contains
                      &                                     rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                      &                                     rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
                      &                                    )
-                if (iterationCount == 1) then
+                if (iterationCount == 1 .or. timeFormationPrevious <= 0.0d0) then
+                   ! On the first iteration, or if no formation time was found on the previous iteration (because the fall-back
+                   ! scale radius was used), search the full range of formation times. Otherwise, begin from the previous formation
+                   ! time.
                    timeFormation=states(stateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest],status=status)
                 else
                    timeFormation=states(stateCount)%finder%find(rootGuess= timeFormationPrevious                     ,status=status)

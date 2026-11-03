@@ -10,9 +10,9 @@ import pytest
 
 from Galacticus.Parameters.inference import (
     classify_literal, canonical_from_declaration, normalize_explicit_type,
-    infer_parameter_type,
+    infer_parameter_type, infer_parameter_cardinality, maximum_count_from_declaration,
     TYPE_BOOLEAN, TYPE_INTEGER, TYPE_REAL, TYPE_STRING, TYPE_OBJECT, TYPE_UNKNOWN,
-    PROV_EXPLICIT, PROV_DEFAULT, PROV_DECLARATION, PROV_UNKNOWN,
+    PROV_EXPLICIT, PROV_DEFAULT, PROV_DECLARATION, PROV_UNKNOWN, PROV_DERIVED,
 )
 
 
@@ -129,3 +129,73 @@ def test_infer_skips_declaration_lookup_for_array_element_variable():
         declaration_lookup=lambda v: called.append(v))
     assert called == []
     assert result['provenance'] == PROV_UNKNOWN
+
+
+# ---------------------------------------------------------------------------
+# Cardinality
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("attributes, expected", [
+    ([],                                  1),    # scalar
+    (['intent(in)'],                      1),
+    (['dimension(3)'],                    3),    # fixed size
+    (['dimension(1:3)'],                  3),
+    (['dimension(2,3)'],                  6),
+    (['allocatable', 'dimension(:)'],     '*'),  # deferred shape
+    (['dimension(countValues)'],          '*'),  # non-literal shape
+    (['dimension(3,:)'],                  '*'),
+])
+def test_maximum_count_from_declaration(attributes, expected):
+    assert maximum_count_from_declaration({'attributes': attributes}) == expected
+
+
+@pytest.mark.parametrize("attributes, default, guarded, expected", [
+    ([],                              None,     False, '1'),     # required scalar
+    ([],                              '1.0d0',  False, '0..1'),  # default -> may be omitted
+    ([],                              None,     True,  '0..1'),  # isPresent guard -> may be omitted
+    (['dimension(3)'],                None,     False, '3'),
+    (['dimension(3)'],                '[1,2,3]', False, '0,3'),
+    (['allocatable', 'dimension(:)'], None,     False, '1..*'),
+    (['allocatable', 'dimension(:)'], '[0.0d0]', False, '0..*'),
+    (['allocatable', 'dimension(:)'], None,     True,  '0..*'),
+])
+def test_infer_cardinality_derived(attributes, default, guarded, expected):
+    directive = {'name': 'x'}
+    if default is not None:
+        directive['defaultValue'] = default
+    result = infer_parameter_cardinality(
+        directive, lambda variable: {'attributes': attributes}, guarded=guarded)
+    assert result == {'cardinality': expected, 'cardinalityProvenance': PROV_DERIVED}
+
+
+def test_infer_cardinality_explicit_wins():
+    """An explicit `<cardinality>` overrides the derivation (that is how wrong
+    derivations are corrected)."""
+    result = infer_parameter_cardinality(
+        {'name': 'x', 'cardinality': '0..*'}, lambda variable: {'attributes': []})
+    assert result == {'cardinality': '0..*', 'cardinalityProvenance': PROV_EXPLICIT}
+
+
+@pytest.mark.parametrize("variable, expected", [
+    ('values(1)',                        '1'),     # an array element: one value
+    ('values(1:size(values)-1)',         '1..*'),  # an array section
+])
+def test_infer_cardinality_subscripted_variable(variable, expected):
+    called = []
+    result = infer_parameter_cardinality(
+        {'name': 'x', 'variable': variable},
+        declaration_lookup=lambda v: called.append(v))
+    assert called == []
+    assert result['cardinality'] == expected
+
+
+def test_infer_cardinality_unknown_when_unresolved():
+    """A derived-type component, or a variable with no declaration, has no
+    known shape."""
+    assert infer_parameter_cardinality(
+        {'name': 'x', 'variable': 'self%x', 'defaultValue': '1.0d0'},
+        lambda variable: {'attributes': []}) \
+        == {'cardinality': None, 'cardinalityProvenance': PROV_UNKNOWN}
+    assert infer_parameter_cardinality(
+        {'name': 'x'}, lambda variable: None) \
+        == {'cardinality': None, 'cardinalityProvenance': PROV_UNKNOWN}

@@ -163,6 +163,28 @@ def main():
                 failures += 1
                 print(f"  FAILED: {name} :: {detail}")
 
+    # XPointers selecting named children (as the dark-matter pipeline's base files use, e.g.
+    # `xpointer(parameters/haloMassFunction)`), and the children of a nested element.
+    print("XPointer forms vs oracle:")
+    with tempfile.TemporaryDirectory() as work:
+        open(os.path.join(work, "included.xml"), "w").write(
+            '<parameters><haloMassFunction value="tinker2008"/><task value="evolveForests"/>'
+            '<nodeOperator value="multi"><nodeOperator value="null"/><nodeOperator value="null"/></nodeOperator>'
+            '<haloMassFunction value="press1974"/></parameters>')
+        for xpointer, expected in (("parameters/haloMassFunction", ["haloMassFunction", "haloMassFunction"]),
+                                   ("parameters/nodeOperator/*", ["nodeOperator", "nodeOperator"])):
+            main_file = os.path.join(work, "main.xml")
+            open(main_file, "w").write(
+                '<parameters xmlns:xi="http://www.w3.org/2001/XInclude"><first value="1"/>'
+                f'<xi:include href="included.xml" xpointer="xpointer({xpointer})"/><last value="9"/></parameters>')
+            tags = [c.tag for c in resolve.resolve_file(main_file).getroot() if isinstance(c.tag, str)]
+            ok, detail = _compare(main_file, [], f"xpointer({xpointer})", out_path)
+            if ok and tags == ["first"] + expected + ["last"]:
+                print(f"  ok: xpointer({xpointer})")
+            else:
+                failures += 1
+                print(f"  FAILED: xpointer({xpointer}) :: {detail or tags}")
+
     print(f"XInclude parity vs oracle (first {XINCLUDE_SAMPLE} corpus files):")
     candidates = []
     for pattern in ("parameters/**/*.xml", "testSuite/parameters/**/*.xml"):

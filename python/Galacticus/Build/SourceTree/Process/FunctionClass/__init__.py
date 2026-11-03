@@ -1849,6 +1849,21 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
             # the post-contains procedures are siblings of the marker.
             node = node.get('sibling')
 
+        # Objects held as unlimited polymorphic (`class(*)`) pointers are built
+        # by global functions, not by `objectBuilder` directives, so the walk
+        # above cannot see them. The class directive declares them in an
+        # `<allowedParameters>` block instead: each one's parameter name is
+        # allowed, and its own allowed parameters are added by calling the
+        # named global function.
+        allowed_block = class_rec.get('allowedParameters')
+        if isinstance(allowed_block, dict):
+            for held in as_array(allowed_block.get('object')):
+                slot_src = (allowed_parameters[class_name]['parameters']
+                            .setdefault(held['source'], {}))
+                slot_src.setdefault('all',     []).append(held['name'])
+                slot_src.setdefault('classes', []).append(held['name'])
+                slot_src.setdefault('held',    []).append(held)
+
     # --- Emission pass. ---
     allowed_parameters_linked_list_variables = []
     code = "select type (self)\n"
@@ -1994,6 +2009,15 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                             f"call self%{obj_name}%allowedParameters"
                             f"(allowedParameters,'{src}',.true.)\n"
                         )
+                    for held in slot.get('held') or []:
+                        parameters_present = True
+                        code += (
+                            f"  if (associated(self%{held['variable']})) "
+                            f"call {held['function']}(self%{held['variable']},"
+                            f"allowedParameters,'{src}',.true.)\n"
+                        )
+                        if held.get('module'):
+                            modules[held['module']] = True
                     linked_code, linked_module = (
                         allowed_parameters_linked_list(
                             class_rec,

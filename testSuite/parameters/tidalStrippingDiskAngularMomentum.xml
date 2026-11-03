@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to parameters/examples/tidalStrippingBaryonicSubhalo.xml used by testSuite/test-tidal-stripping-disk-angular-momentum.py, -->
+<!-- which checks that the specific angular momentum of the tidally stripped disk remains consistent with its truncated mass          -->
+<!-- distribution.                                                                                                                      -->
+<changes>
+
+  <!-- Write the output to the test suite outputs directory -->
+  <change type="update" path="outputFileName" value="testSuite/outputs/tidalStrippingDiskAngularMomentum.hdf5"/>
+
+</changes>

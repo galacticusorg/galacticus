@@ -61,54 +61,64 @@
 
   ! The tabulations are in microns, while parcels, and the trimming parameters, are in Angstroms.
   double precision                               , parameter                                  :: angstromsPerMicron  =1.0d+4
-  integer                                        , parameter                                  :: compendiumFilesCount=21
-  character       (len=82                       ), parameter, dimension(compendiumFilesCount) :: compendiumFileName  =   &
+  integer                                        , parameter                                  :: compendiumFilesCount=26
+  character       (len=85                       ), parameter, dimension(compendiumFilesCount) :: compendiumFileName  =   &
        & [                                                                                                               &
-       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
-       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
-       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
-       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5    ',                          &
-       &  'Ferrara1999_MW_hz0.4_Attenuations.hdf5                                            ',                          &
-       &  'Ferrara1999_MW_hz0.4_highRes_Attenuations.hdf5                                    ',                          &
-       &  'Ferrara1999_MW_hz1.0_Attenuations.hdf5                                            ',                          &
-       &  'Ferrara1999_MW_hz1.0_highRes_Attenuations.hdf5                                    ',                          &
-       &  'Ferrara1999_MW_hz2.5_Attenuations.hdf5                                            ',                          &
-       &  'Ferrara1999_MW_hz2.5_highRes_Attenuations.hdf5                                    ',                          &
-       &  'Ferrara1999_SMC_hz0.4_Attenuations.hdf5                                           ',                          &
-       &  'Ferrara1999_SMC_hz0.4_highRes_Attenuations.hdf5                                   ',                          &
-       &  'Ferrara1999_SMC_hz1.0_Attenuations.hdf5                                           ',                          &
-       &  'Ferrara1999_SMC_hz1.0_highRes_Attenuations.hdf5                                   ',                          &
-       &  'Ferrara1999_SMC_hz2.5_Attenuations.hdf5                                           ',                          &
-       &  'Ferrara1999_SMC_hz2.5_highRes_Attenuations.hdf5                                   ',                          &
-       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv3.1_Attenuations.hdf5      ',                          &
-       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv4.0_Attenuations.hdf5      ',                          &
-       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv5.5_Attenuations.hdf5      ',                          &
-       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94FullRv3.1_Attenuations.hdf5',                          &
-       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94HGRv3.1_Attenuations.hdf5  '                           &
+       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5       ',                       &
+       &  'Ferrara1999_GRASIL_dustD03Rv3.1_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5       ',                       &
+       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.1_hzDust1.0_highRes_Attenuations.hdf5       ',                       &
+       &  'Ferrara1999_GRASIL_dustD03Rv5.5_hzStars0.5_hzDust1.0_highRes_Attenuations.hdf5       ',                       &
+       &  'Ferrara1999_MW_hz0.4_Attenuations.hdf5                                               ',                       &
+       &  'Ferrara1999_MW_hz0.4_highRes_Attenuations.hdf5                                       ',                       &
+       &  'Ferrara1999_MW_hz1.0_Attenuations.hdf5                                               ',                       &
+       &  'Ferrara1999_MW_hz1.0_highRes_Attenuations.hdf5                                       ',                       &
+       &  'Ferrara1999_MW_hz2.5_Attenuations.hdf5                                               ',                       &
+       &  'Ferrara1999_MW_hz2.5_highRes_Attenuations.hdf5                                       ',                       &
+       &  'Ferrara1999_SMC_hz0.4_Attenuations.hdf5                                              ',                       &
+       &  'Ferrara1999_SMC_hz0.4_highRes_Attenuations.hdf5                                      ',                       &
+       &  'Ferrara1999_SMC_hz1.0_Attenuations.hdf5                                              ',                       &
+       &  'Ferrara1999_SMC_hz1.0_highRes_Attenuations.hdf5                                      ',                       &
+       &  'Ferrara1999_SMC_hz2.5_Attenuations.hdf5                                              ',                       &
+       &  'Ferrara1999_SMC_hz2.5_highRes_Attenuations.hdf5                                      ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv3.1_Attenuations.hdf5         ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv4.0_Attenuations.hdf5         ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv5.5_Attenuations.hdf5         ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94FullRv3.1_Attenuations.hdf5   ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94HGRv3.1_Attenuations.hdf5     ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv3.1_Attenuations_v2.hdf5      ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv4.0_Attenuations_v2.hdf5      ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustD03Rv5.5_Attenuations_v2.hdf5      ',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94FullRv3.1_Attenuations_v2.hdf5',                       &
+       &  'compendium_exp_sech_Hernquist_hd0.137_hz0.137_dustKMH94HGRv3.1_Attenuations_v2.hdf5  '                        &
        & ]
-  character       (len=7                        ), parameter, dimension(compendiumFilesCount) :: compendiumRecord    =   &
+  character       (len=8                        ), parameter, dimension(compendiumFilesCount) :: compendiumRecord    =   &
        & [                                                                                                               &
-       &  '6335951',                                                                                                     &
-       &  '6335951',                                                                                                     &
-       &  '6335951',                                                                                                     &
-       &  '6335951',                                                                                                     &
-       &  '6336095',                                                                                                     &
-       &  '6336097',                                                                                                     &
-       &  '6336095',                                                                                                     &
-       &  '6336097',                                                                                                     &
-       &  '6336095',                                                                                                     &
-       &  '6336097',                                                                                                     &
-       &  '6336095',                                                                                                     &
-       &  '6336097',                                                                                                     &
-       &  '6336095',                                                                                                     &
-       &  '6336097',                                                                                                     &
-       &  '6336095',                                                                                                     &
-       &  '6336097',                                                                                                     &
-       &  '6335021',                                                                                                     &
-       &  '6335545',                                                                                                     &
-       &  '6335642',                                                                                                     &
-       &  '6335668',                                                                                                     &
-       &  '6335670'                                                                                                      &
+       &  '6335951 ',                                                                                                    &
+       &  '6335951 ',                                                                                                    &
+       &  '6335951 ',                                                                                                    &
+       &  '6335951 ',                                                                                                    &
+       &  '6336095 ',                                                                                                    &
+       &  '6336097 ',                                                                                                    &
+       &  '6336095 ',                                                                                                    &
+       &  '6336097 ',                                                                                                    &
+       &  '6336095 ',                                                                                                    &
+       &  '6336097 ',                                                                                                    &
+       &  '6336095 ',                                                                                                    &
+       &  '6336097 ',                                                                                                    &
+       &  '6336095 ',                                                                                                    &
+       &  '6336097 ',                                                                                                    &
+       &  '6336095 ',                                                                                                    &
+       &  '6336097 ',                                                                                                    &
+       &  '6335021 ',                                                                                                    &
+       &  '6335545 ',                                                                                                    &
+       &  '6335642 ',                                                                                                    &
+       &  '6335668 ',                                                                                                    &
+       &  '6335670 ',                                                                                                    &
+       &  '23670754',                                                                                                    &
+       &  '23670776',                                                                                                    &
+       &  '23670779',                                                                                                    &
+       &  '23670788',                                                                                                    &
+       &  '23670786'                                                                                                     &
        & ]
   logical                                       , parameter, dimension(compendiumFilesCount) :: compendiumJaffe     =    &
        & [                                                                                                               &
@@ -128,6 +138,11 @@
        & .true. ,                                                                                                        &
        & .true. ,                                                                                                        &
        & .true. ,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
+       & .false.,                                                                                                        &
        & .false.,                                                                                                        &
        & .false.,                                                                                                        &
        & .false.,                                                                                                        &
@@ -169,11 +184,12 @@
    known to this class, so naming one is enough; ``url`` is needed only for a tabulation which is not among them,
    such as one the user has produced themselves.
 
-   Be aware of the size of these files, which is the reason for the trimming parameters below. All but the six
-   original-resolution :cite:t:`ferrara_atlas_1999` tabulations are 584 MB apiece, on a grid of 250 wavelengths, 46
-   inclinations, 60 optical depths, and 51 spheroid sizes. Half of each file is Monte Carlo uncertainties, which are
-   not read; the attenuations and their extrapolation coefficients come to 297 MB, almost all of it the spheroid
-   table.
+   Be aware of the size of these files, which is the reason for the trimming parameters below. Half of each file is
+   Monte Carlo uncertainties, which are not read. The version 2 compendium tabulations are 299 MB apiece, on a grid
+   of 250 wavelengths, 23 inclinations, 61 optical depths, and 51 spheroid sizes, of which 151 MB is read. All but
+   the six original-resolution :cite:t:`ferrara_atlas_1999` tabulations among the rest are 584 MB apiece, on a grid
+   of 250 wavelengths, 46 inclinations, 60 optical depths, and 51 spheroid sizes, of which 297 MB is read. Almost
+   all of either figure is the spheroid table.
 
    The tables themselves are held once and shared, rather than being duplicated by the deep copy which gives each
    OpenMP thread its own attenuator, so that figure is paid once per distinct tabulation rather than once per thread

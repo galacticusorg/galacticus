@@ -35,7 +35,7 @@ As described above, Galacticus requires a file of parameters to be given as a co
          .
          .
          .
-      </parameter3Name>
+      </parameter4Name>
       .
       .
       .
@@ -80,7 +80,7 @@ It is possible to make a parameter conditional upon the value of another paramet
 
 which will result in the ``assemblyHistoryHeuristics`` ``nodeOperator`` being active only if the ``mergerTreeConstructor`` is set to ``read``. The content of the ``active`` element must be a parameter name enclosed in ``[]``, followed by an operator (``==`` or ``!=``), followed by the text to match. The parameter name can include a full path as described below. Note that, while numerical parameters can be used in ``active`` elements, the comparison is always textual, not numerical.
 
-A parameter value can be given by a math expression\ [#]_. In the above example ``parameter5Name`` has a value of "``=10.0*[parameter4Name:subParameter1Name]``". The initial "``=``" indicates that this is a math expression which should be evaluated. In this case, the expression is ten times value value of "``[parameter4Name:subParameter1Name]``", which refers to the value of the sub-parameter ``subParameter1Name`` of parameter ``parameter4Name``. In this way the values of parameters can be derived from those of other parameters.
+A parameter value can be given by a math expression\ [#]_. In the above example ``parameter6Name`` has a value of "``=10.0*[parameter4Name/subParameter1Name]``". The initial "``=``" indicates that this is a math expression which should be evaluated. In this case, the expression is ten times the value of the sub-parameter ``subParameter1Name`` of parameter ``parameter4Name``, referenced by the path ``parameter4Name/subParameter1Name`` enclosed in ``[]``. In this way the values of parameters can be derived from those of other parameters. A default value can be given for a referenced parameter which may not exist, as in "``[parameter4Name|1.5]``", which takes the value 1.5 if ``parameter4Name`` is not present. Expressions can be used for both floating point and integer parameters. Expressions are evaluated in double precision, and, for an integer parameter, the result is rounded to the nearest integer if it is an integer to within rounding error, and otherwise truncated toward zero (so "``=7/2``" gives 3).
 
 Lastly, a text parameter can also be evaluated by starting it with an initial "``=``". For text parameters, other parameters can be referenced and their values are simply inserted. So, for example:
 
@@ -209,7 +209,7 @@ Generating Parameter Files
 Some scripts are provided which assist in the generation of parameter files. These are located in the ``scripts/parameters/`` folder and are detailed below:
 
 ``cosmologicalParametersMonteCarlo.py``
-   This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints :cite:p:`hinshaw_nine-year_2012`. It uses the covariance matrix (currently defined in ``data/Cosmological_Parameters_WMAP-9.xml``) to produce correlated random variables\ [#]_. The generated parameters are printed to standard output as Galacticus-compatible XML.
+   This script will generate a set of cosmological parameters drawn at random from the WMAP-9 constraints :cite:p:`hinshaw_nine-year_2012`. It uses the covariance matrix (currently defined in ``static/cosmology/Cosmological_Parameters_WMAP-9.xml`` in the Galacticus datasets) to produce correlated random variables\ [#]_. The generated parameters are printed to standard output as Galacticus-compatible XML.
 
 Changing Parameter Files
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -224,7 +224,7 @@ Change files are simple XML files with a syntax described below. They can be inc
 
 which will cause Galacticus to first read the ``parameters.xml`` file, then apply changes from ``changes1.xml`` to it, and then to apply changes from ``changes2.xml``.
 
-An example change file can be found `here <https://raw.githubusercontent.com/galacticusorg/galacticus/master/testSuite/parameters/changes.xml>`_, and looks as follows:
+An example change file can be found `here <https://raw.githubusercontent.com/galacticusorg/galacticus/master/testSuite/parameters/changes.xml>`__, and looks as follows:
 
 .. code-block:: none
 
@@ -987,4 +987,4 @@ Setting ``[evolveForestsInParallel]``\ :math:`=`\ ``false`` in the :galacticus-c
 .. [#] This approach allows a direct connection to be made between the structure of the input parameter XML file and the internal object hierarchy used by Galacticus, allowing very fine-grained control over the composition of Galacticus functionality. In particular it permits easy construction of objects which work by modifying results from other objects, such as the :galacticus-class:`darkMatterProfileConcentrationSchneider2015` model for dark matter halo concentrations.
 .. [#] This functionality requires that ``libmatheval`` is installed.
 .. [#] Note that this does not capture the full details of the correlations between parameters, since it uses just the covariance matrix. For a more accurate calculation the full Monte Carlo Markov Chains used in the WMAP-9 parameter fitting should be used instead.
-.. [#] As described `here <https://www-auth.cs.wisc.edu/lists/htcondor-users/2009-January/msg00086.shtml>`_ for example.
+.. [#] As described `here <https://www-auth.cs.wisc.edu/lists/htcondor-users/2009-January/msg00086.shtml>`__ for example.
