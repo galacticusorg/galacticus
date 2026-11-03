@@ -697,9 +697,12 @@ contains
        k    =1
        hTime=0.0d0
     end if
-    ! If σ exceeds the highest value tabulated, simply return the lowest tabulated mass.
-    if (rootVarianceActual > self%rootVarianceTable(k)%y(1)) then
-       filteredPowerMass=self%rootVarianceTable(k)%x(1)
+    ! If σ exceeds the value at the lowest mass of the usable range of the tabulation, simply return that mass. The tabulated
+    ! points below that mass are not used: returning one of them would cause any subsequent request for σ at that mass to
+    ! extend the tabulation, and, where σ(M) becomes constant at low masses (e.g. for warm dark matter), the requested σ is
+    ! never reached, so that a caller could extend the tabulation downward indefinitely.
+    if (rootVarianceActual > self%rootVarianceTable(k)%y(4)) then
+       filteredPowerMass=self%rootVarianceTable(k)%x(4)
     else
        ! Iterate over times.
        filteredPowerMass=0.0d0
