@@ -1360,6 +1360,7 @@ jobs:
                       tests.bug745815.exe,
                       tests.gaunt_factors.exe,
                       tests.cooling_functions.exe,
+                      tests.cooling_function_molecular_hydrogen_Galli_Palla.exe,
                       tests.accretion_disks.exe,
                       tests.mass_accretion_history.Hearin2021.exe,
                       tests.mass_accretion_history.Hearin2021_stochastic.exe,
