@@ -458,7 +458,8 @@ contains
     !!{RST
     Do processing of the node required after evolution.
     !!}
-    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Abundances_Structure         , only : zeroAbundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances  , zeroChemicalAbundances
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode   , defaultHotHaloComponent
     use :: Interface_GSL                , only : GSL_Success         , GSL_Continue                , GSL_Failure
     implicit none
@@ -476,12 +477,24 @@ contains
     hotHalo => node%hotHalo()
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
-       ! Note that "status" is not set to failure as these changes in state of the hot halo should not change any calculation of
-       ! differential evolution rates as a negative mass/outer radius was unphysical anyway.
+       ! Note that "status" is not set to failure for the outer radius as this change in state of the hot halo should not change
+       ! any calculation of differential evolution rates as a negative outer radius was unphysical anyway.
        if (hotHalo%       mass() < 0.0d0) then
-          call hotHalo%       massSet(0.0d0)
-          ! Indicate that ODE evolution should continue after this state change.
-          if (status == GSL_Success) status=GSL_Continue
+          ! A negative mass is an overshoot by some process removing gas from the hot halo. That process removes metals and
+          ! chemicals along with the gas, in proportion to their content, so these overshoot together. Reset them to zero
+          ! together - the overshoot is then replaced by gas of the composition of the gas which was removed, rather than by
+          ! metal-free gas, and no metals are left in a hot halo which contains no gas. Angular momentum is not necessarily
+          ! removed in proportion (negative accretion removes it at the specific angular momentum of accreted gas, for example),
+          ! but is reset also, as any left in a hot halo containing no gas would be given to the next gas to arrive, with a
+          ! spurious specific angular momentum.
+          call        hotHalo%           massSet(                 0.0d0)
+          call        hotHalo%     abundancesSet(        zeroAbundances)
+          call        hotHalo%angularMomentumSet(                 0.0d0)
+          if (chemicalsCount > 0) &
+               & call hotHalo%chemicalsSet      (zeroChemicalAbundances)
+          ! Mark ODE failure here to force derivatives to be recomputed, as rates may depend on the metals, chemicals, or angular
+          ! momentum which were reset.
+          status=GSL_Failure
        end if
        if (hotHalo%outerRadius() < 0.0d0) then
           call hotHalo%outerRadiusSet(0.0d0)
