@@ -102,11 +102,11 @@
 
   ! Submodule-scope variables used in root-finding.
   class           (nodeOperatorDarkMatterProfilePromptCusps), pointer   :: self_
-  double precision                                                      :: sigma0Collapse          , time_                    , &
-       &                                                                   expansionFactor_        , concentrationFactorTarget, &
-       &                                                                   massHalo_               , amplitudeCusp_           , &
-       &                                                                   concentration_          , radiusScale_             , &
-       &                                                                   radiusMinus2_           , radiusVirial_
+  double precision                                                      :: sigma0Collapse            , time_                    , &
+       &                                                                   expansionFactor_          , concentrationFactorTarget, &
+       &                                                                   massHalo_                 , amplitudeCusp_           , &
+       &                                                                   concentration_            , radiusScale_             , &
+       &                                                                   radiusMinus2_             , radiusVirial_
   integer                                                               :: j_ 
   !$omp threadprivate(self_,sigma0Collapse,time_,expansionFactor_,concentrationFactorTarget,massHalo_,concentration_,radiusScale_,amplitudeCusp_,radiusMinus2_,radiusVirial_,j_)
 
@@ -353,9 +353,9 @@ contains
     class           (nodeComponentDarkMatterProfile          )               , pointer :: darkMatterProfile
     integer                                                   , parameter              :: iterationCountMaximum    =10000
     double precision                                          , parameter              :: toleranceRelative        =1.0d-6
-    type            (rootFinder                              )               , save    :: finderCollapse                   , finderRadius                   , &
+    type            (rootFinder                              )               , save    :: finderCollapse                   , finderRadius                           , &
          &                                                                                finderGamma
-    logical                                                                  , save    :: finderCollapseInitialized=.false., finderRadiusInitialized=.false., &
+    logical                                                                  , save    :: finderCollapseInitialized=.false., finderRadiusInitialized        =.false., &
          &                                                                                finderGammaInitialized   =.false.
     double precision                                                         , save    :: gammaYMaximum
     !$omp threadprivate(finderCollapse,finderRadius,finderGamma,finderCollapseInitialized,finderRadiusInitialized,finderGammaInitialized,gammaYMaximum)
@@ -364,28 +364,28 @@ contains
     ! no root can exist beyond it.
     double precision                                          , parameter              :: factorTimeCollapseMaximum=1.0d1
     double precision                                                                   :: timeCollapseMaximum
-    double precision                                                         , save    :: errorFractionalMaximum   =0.0d+0, errorFractionalAmplitudeMaximum=0.0d+0
-    logical                                                                            :: computeCusp                      , cuspCanForm                    , &
-         &                                                                                bracketLower                     , bracketUpper                   , &
+    double precision                                                         , save    :: errorFractionalMaximum   =0.0d0  , errorFractionalAmplitudeMaximum=0.0d+0
+    logical                                                                            :: computeCusp                      , cuspCanForm                            , &
+         &                                                                                bracketLower                     , bracketUpper                           , &
          &                                                                                amplitudeConverged               , amplitudeLimitJump
     integer                                                                            :: bracketSideLast
-    integer                                                   , parameter              :: bracketSideNone          =0     , bracketSideLower=1, &
+    integer                                                   , parameter              :: bracketSideNone          =0     , bracketSideLower                =1      , &
          &                                                                                bracketSideUpper         =2
     integer                                                                            :: iterationCount                   , statusCollapse
-    double precision                                                                   :: sigma0                           , sigma2                         , &
-         &                                                                                densityMean                      , densityMeanCollapse            , &
-         &                                                                                sigma2Collapse                   , timeCollapse                   , &
-         &                                                                                amplitude                        , mass                           , &
-         &                                                                                y                                , radiusScale                    , &
-         &                                                                                concentration                    , densityScale                   , &
-         &                                                                                radiusScalePrevious              , mass200Critical                , &
-         &                                                                                gamma                            , gammaNFW                       , &
-         &                                                                                radiusMinus2                     , densityContrast                , &
-         &                                                                                radiusMinus2Original             , amplitudeTrial                 , &
-         &                                                                                amplitudeLower                   , amplitudeUpper                 , &
-         &                                                                                residualAmplitude                , residualAmplitudeLower         , &
-         &                                                                                residualAmplitudeUpper                                            , &
-         &                                                                                scatterRandom                    , errorFractional                , &
+    double precision                                                                   :: sigma0                           , sigma2                                 , &
+         &                                                                                densityMean                      , densityMeanCollapse                    , &
+         &                                                                                sigma2Collapse                   , timeCollapse                           , &
+         &                                                                                amplitude                        , mass                                   , &
+         &                                                                                y                                , radiusScale                            , &
+         &                                                                                concentration                    , densityScale                           , &
+         &                                                                                radiusScalePrevious              , mass200Critical                        , &
+         &                                                                                gamma                            , gammaNFW                               , &
+         &                                                                                radiusMinus2                     , densityContrast                        , &
+         &                                                                                radiusMinus2Original             , amplitudeTrial                         , &
+         &                                                                                amplitudeLower                   , amplitudeUpper                         , &
+         &                                                                                residualAmplitude                , residualAmplitudeLower                 , &
+         &                                                                                residualAmplitudeUpper                                                    , &
+         &                                                                                scatterRandom                    , errorFractional                        , &
          &                                                                                densityScalePrevious             , massPrevious
     
     ! Compute cusp properties for branch tip nodes. Note that "branch tip" here means a node with no progenitors *which remain
@@ -589,30 +589,30 @@ contains
           if (iterationCount > 1) then
              residualAmplitude=+amplitude-amplitudeTrial
              if (residualAmplitude > 0.0d0) then
-                amplitudeLower       =amplitudeTrial
+                amplitudeLower        =amplitudeTrial
                 residualAmplitudeLower=residualAmplitude
                 if (bracketUpper .and. bracketSideLast == bracketSideLower) residualAmplitudeUpper=0.5d0*residualAmplitudeUpper
-                bracketSideLast      =bracketSideLower
-                bracketLower         =.true.
+                bracketSideLast       =bracketSideLower
+                bracketLower          =.true.
              else
-                amplitudeUpper       =amplitudeTrial
+                amplitudeUpper        =amplitudeTrial
                 residualAmplitudeUpper=residualAmplitude
                 if (bracketLower .and. bracketSideLast == bracketSideUpper) residualAmplitudeLower=0.5d0*residualAmplitudeLower
-                bracketSideLast      =bracketSideUpper
-                bracketUpper         =.true.
+                bracketSideLast       =bracketSideUpper
+                bracketUpper          =.true.
              end if
              ! The amplitude has converged when it is consistent with the profile computed from it. The profile alone is not a
              ! sufficient test, as it depends only weakly on the amplitude when y is small. If instead the bracket has shrunk to
              ! within the tolerance while the residual has not, G jumps within the bracket - no self-consistent amplitude exists,
              ! and we accept the amplitude at the jump.
              amplitudeConverged=abs(residualAmplitude) <= toleranceRelative*amplitudeTrial
-             amplitudeLimitJump=        .not.amplitudeConverged                                                          &
-                  &             .and.        bracketLower                                                                &
-                  &             .and.        bracketUpper                                                                &
+             amplitudeLimitJump=        .not.amplitudeConverged                                                 &
+                  &             .and.        bracketLower                                                       &
+                  &             .and.        bracketUpper                                                       &
                   &             .and.    abs(amplitudeUpper-amplitudeLower) <= toleranceRelative*amplitudeTrial
              if (amplitudeLimitJump) amplitudeConverged=.true.
-             if (bracketLower .and. bracketUpper .and. residualAmplitude /= 0.0d0)                                    &
-                  & amplitude=+(+amplitudeLower*residualAmplitudeUpper-amplitudeUpper*residualAmplitudeLower) &
+             if (bracketLower .and. bracketUpper .and. residualAmplitude /= 0.0d0)                              &
+                  & amplitude=+(+amplitudeLower*residualAmplitudeUpper-amplitudeUpper*residualAmplitudeLower)   &
                   &           /(                residualAmplitudeUpper-               residualAmplitudeLower)
           end if
           amplitudeTrial=amplitude
@@ -626,7 +626,7 @@ contains
             &                    /                           radiusMinus2
        massHalo_                =+basic%mass()
        amplitudeCusp_           =+amplitude
-       radiusVirial_            =+self%darkMatterHaloScale_%radiusVirial(node)
+       radiusVirial_            =+self %darkMatterHaloScale_%radiusVirial(node)
        concentrationFactorTarget=+self %darkMatterHaloScale_%densityMean (node)    &
             &                    *basic                     %mass        (    )    &
             &                    /                           amplitude         **2
@@ -655,10 +655,10 @@ contains
                &        /                                  concentration
           gamma        =+gammaYMaximum
           y            =+yMaximum
-          radiusScale  =+radiusScaleRatio(gamma)       &
+          radiusScale  =+radiusScaleRatio(gamma) &
                &        *radiusMinus2
-          densityScale =+amplitude                     &
-               &        /gamma                         &
+          densityScale =+amplitude               &
+               &        /gamma                   &
                &        /radiusMinus2**1.5d0
           ! Evaluate the mass to use in convergence checks.
           concentration=+self%darkMatterHaloScale_%radiusVirial(node) &
@@ -687,32 +687,32 @@ contains
                 gamma=gammaYMaximum
              else
                 ! Begin the search from the value of γ for an NFW profile, which is accurate for small y.
-                gammaNFW=+amplitude                                                       &
-                     &   /radiusMinus2**1.5d0                                             &
-                     &   /(                                                               &
-                     &     +basic%mass()                                                  &
-                     &     /radiusMinus2**3                                               &
-                     &     /4.0d0                                                         &
-                     &     /Pi                                                            &
-                     &     /factorMassCuspNFW(self%darkMatterHaloScale_%radiusVirial(node) &
-                     &                        /radiusMinus2,0.0d0)                        &
+                gammaNFW=+amplitude                                                         &
+                     &   /radiusMinus2**1.5d0                                               &
+                     &   /(                                                                 &
+                     &     +basic%mass()                                                    &
+                     &     /radiusMinus2**3                                                 &
+                     &     /4.0d0                                                           &
+                     &     /Pi                                                              &
+                     &     /factorMassCuspNFW( self%darkMatterHaloScale_%radiusVirial(node) &
+                     &                        /radiusMinus2,0.0d0)                          &
                      &    )
                 gamma=finderGamma%find(rootRange=[0.5d0*min(gammaNFW,gammaYMaximum),gammaYMaximum])
              end if
-             radiusScale =+radiusScaleRatio(gamma)       &
+             radiusScale =+radiusScaleRatio(gamma)        &
                   &       *radiusMinus2
-             densityScale=+amplitude                     &
-                  &       /gamma                         &
+             densityScale=+amplitude                      &
+                  &       /gamma                          &
                   &       /radiusMinus2**1.5d0
-             y           =+gamma                         &
+             y           =+gamma                          &
                   &       /radiusScaleRatio(gamma)**1.5d0
           else
              ! No cusp - the profile is NFW, with rₛ=r₋₂.
              radiusScale =+radiusMinus2
-             densityScale=+basic%mass()                                                 &
-                  &       /radiusScale**3                                               &
-                  &       /4.0d0                                                        &
-                  &       /Pi                                                           &
+             densityScale=+basic%mass()                                                   &
+                  &       /radiusScale**3                                                 &
+                  &       /4.0d0                                                          &
+                  &       /Pi                                                             &
                   &       /factorMassCuspNFW(self%darkMatterHaloScale_%radiusVirial(node) &
                   &                          /radiusScale,0.0d0)
              y           =+0.0d0
@@ -918,7 +918,7 @@ contains
     implicit none
     double precision, intent(in   ) :: gamma
 
-    yMaximumRoot=+gamma                         &
+    yMaximumRoot=+gamma                          &
          &       /radiusScaleRatio(gamma)**1.5d0 &
          &       -yMaximum
     return
@@ -936,19 +936,19 @@ contains
     double precision                :: radiusScale, densityScale, &
          &                             y
 
-    radiusScale =+radiusScaleRatio(gamma)       &
+    radiusScale =+radiusScaleRatio(gamma)                        &
          &       *radiusMinus2_
-    densityScale=+amplitudeCusp_                &
-         &       /gamma                         &
+    densityScale=+amplitudeCusp_                                 &
+         &       /gamma                                          &
          &       /radiusMinus2_**1.5d0
-    y           =+gamma                         &
+    y           =+gamma                                          &
          &       /radiusScaleRatio(gamma)**1.5d0
-    gammaRoot   =+4.0d0                                                   &
-         &       *Pi                                                      &
-         &       *radiusScale**3                                          &
-         &       *densityScale                                            &
-         &       *factorMassCuspNFW(radiusVirial_/radiusScale,y)          &
-         &       /massHalo_                                               &
+    gammaRoot   =+4.0d0                                          &
+         &       *Pi                                             &
+         &       *radiusScale**3                                 &
+         &       *densityScale                                   &
+         &       *factorMassCuspNFW(radiusVirial_/radiusScale,y) &
+         &       /massHalo_                                      &
          &       -1.0d0
     return
   end function gammaRoot
