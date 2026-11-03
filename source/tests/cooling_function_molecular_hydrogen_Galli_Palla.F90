@@ -44,51 +44,51 @@ program Test_Cooling_Function_Molecular_Hydrogen_Galli_Palla
   gradient of the low-density limit (which this test does not cover) contributes less than :math:`10^{-4}` of it.
   !!}
   use :: Abundances_Structure         , only : abundances
-  use :: Chemical_Abundances_Structure, only : chemicalAbundances             , Chemicals_Index
+  use :: Chemical_Abundances_Structure, only : chemicalAbundances                        , Chemicals_Index
   use :: Cooling_Functions            , only : coolingFunctionMolecularHydrogenGalliPalla
-  use :: Display                      , only : displayVerbositySet            , verbosityLevelStandard
+  use :: Display                      , only : displayVerbositySet                       , verbosityLevelStandard
   use :: Events_Hooks                 , only : eventsHooksInitialize
   use :: Functions_Global_Utilities   , only : Functions_Global_Set
-  use :: Galacticus_Nodes             , only : nodeClassHierarchyInitialize   , nodeComponentBasic               , treeNode                           , nodeClassHierarchyFinalize
-  use :: Input_Paths                  , only : inputPath                      , pathTypeExec
+  use :: Galacticus_Nodes             , only : nodeClassHierarchyInitialize              , nodeComponentBasic               , treeNode                           , nodeClassHierarchyFinalize
+  use :: Input_Paths                  , only : inputPath                                 , pathTypeExec
   use :: Input_Parameters             , only : inputParameters
-  use :: ISO_Varying_String           , only : assignment(=)                  , operator(//)                     , varying_string
-  use :: Node_Components              , only : Node_Components_Initialize     , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: ISO_Varying_String           , only : assignment(=)                             , operator(//)                     , varying_string
+  use :: Node_Components              , only : Node_Components_Initialize                , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Radiation_Fields             , only : radiationFieldNull
-  use :: Unit_Tests                   , only : Assert                         , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Unit_Tests                   , only : Assert                                    , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  type            (treeNode                                  ), pointer        :: node
-  class           (nodeComponentBasic                        ), pointer        :: basic
-  type            (coolingFunctionMolecularHydrogenGalliPalla)                 :: coolingFunction_
-  type            (radiationFieldNull                        )                 :: radiation
-  type            (abundances                                )                 :: gasAbundances
-  type            (chemicalAbundances                        )                 :: chemicalDensities
-  type            (inputParameters                           )                 :: parameters
-  type            (varying_string                            )                 :: parameterFile
+  type            (treeNode                                  ), pointer      :: node
+  class           (nodeComponentBasic                        ), pointer      :: basic
+  type            (coolingFunctionMolecularHydrogenGalliPalla)               :: coolingFunction_
+  type            (radiationFieldNull                        )               :: radiation
+  type            (abundances                                )               :: gasAbundances
+  type            (chemicalAbundances                        )               :: chemicalDensities
+  type            (inputParameters                           )               :: parameters
+  type            (varying_string                            )               :: parameterFile
   ! Composition of the gas, as fractions of the hydrogen density.
-  double precision                                            , parameter      :: fractionAtomic           =0.5d0 , fractionMolecular=1.0d-3
+  double precision                                            , parameter    :: fractionAtomic           =0.5d0               , fractionMolecular=1.0d-3
   ! Densities [cm⁻³] and temperatures [K] at which the cooling function is tested.
-  integer                                                     , parameter      :: countDensities           =3     , countTemperatures=3
-  double precision                                            , dimension(3)   :: numberDensitiesHydrogen  =[1.0d0,1.0d4,1.0d10], temperatures=[3.0d2,1.0d3,3.0d3]
+  integer                                                     , parameter    :: countDensities           =3                   , countTemperatures=3
+  double precision                                            , dimension(3) :: numberDensitiesHydrogen  =[1.0d0,1.0d4,1.0d10], temperatures     =[3.0d2,1.0d3,3.0d3]
   ! Reference values computed by referenceGalliPallaH2Cooling.py, ordered with density in the outer loop and temperature in the
   ! inner loop. Cooling rates per unit volume [erg cm⁻³ s⁻¹], and logarithmic gradients with respect to density (at fixed
   ! composition) and temperature.
-  double precision                                            , dimension(9)   :: coolingReference         =[5.6482120634463d-30,2.8822048323793d-28,1.2311492985422d-26,8.4464620615498d-23,1.4130232750083d-20,6.8460358568289d-19,9.9306705067642d-17,2.7717550040403d-14,1.5419824254126d-12], &
-       &                                                                          slopeDensityReference    =[1.9994312356886d+00,1.9998960152634d+00,1.9999201581200d+00,1.1494571721116d+00,1.4902067772127d+00,1.5560242989210d+00,1.0000001757149d+00,1.0000009615752d+00,1.0000012523825d+00], &
-       &                                                                          slopeTemperatureReference=[3.4351591418869d+00,3.3445905157237d+00,3.2856499161582d+00,3.7978148241535d+00,4.2784223115433d+00,2.9265484666752d+00,3.8615831570610d+00,5.1765573626206d+00,2.4767387263225d+00]
+  double precision                                            , dimension(9) :: coolingReference         =[5.6482120634463d-30,2.8822048323793d-28,1.2311492985422d-26,8.4464620615498d-23,1.4130232750083d-20,6.8460358568289d-19,9.9306705067642d-17,2.7717550040403d-14,1.5419824254126d-12], &
+       &                                                                        slopeDensityReference    =[1.9994312356886d+00,1.9998960152634d+00,1.9999201581200d+00,1.1494571721116d+00,1.4902067772127d+00,1.5560242989210d+00,1.0000001757149d+00,1.0000009615752d+00,1.0000012523825d+00], &
+       &                                                                        slopeTemperatureReference=[3.4351591418869d+00,3.3445905157237d+00,3.2856499161582d+00,3.7978148241535d+00,4.2784223115433d+00,2.9265484666752d+00,3.8615831570610d+00,5.1765573626206d+00,2.4767387263225d+00]
   ! Tolerances.
   !! The LTE and low-density limit cooling functions are tabulated in log₁₀(T) at 100 points per decade and interpolated
   !! linearly in their logarithms.
-  double precision                                            , parameter      :: toleranceCooling         =1.0d-3
+  double precision                                            , parameter    :: toleranceCooling         =1.0d-3
   !! The density gradient is computed analytically by the class, and by finite differences in the reference.
-  double precision                                            , parameter      :: toleranceSlopeDensity    =1.0d-4
+  double precision                                            , parameter    :: toleranceSlopeDensity    =1.0d-4
   !! The temperature gradient is computed analytically by the class, and by finite differences in the reference.
-  double precision                                            , parameter      :: toleranceSlopeTemperature=1.0d-3
-  double precision                                            , dimension(9)   :: cooling                                     , slopeDensity, &
-       &                                                                          slopeTemperature
-  integer                                                                      :: i                                           , j           , &
-       &                                                                          k
-  integer                                                                      :: indexAtomicHydrogen                         , indexMolecularHydrogen
+  double precision                                            , parameter    :: toleranceSlopeTemperature=1.0d-3
+  double precision                                            , dimension(9) :: cooling                                     , slopeDensity          , &
+       &                                                                        slopeTemperature
+  integer                                                                    :: i                                           , j                     , &
+       &                                                                        k
+  integer                                                                    :: indexAtomicHydrogen                         , indexMolecularHydrogen
 
   ! Initialize.
   parameterFile=inputPath(pathTypeExec)//'testSuite/parameters/coolingFunctionMolecularHydrogenGalliPalla.xml'

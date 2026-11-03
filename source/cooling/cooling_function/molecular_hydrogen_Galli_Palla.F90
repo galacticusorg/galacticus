@@ -29,7 +29,14 @@
   !![
   <coolingFunction name="coolingFunctionMolecularHydrogenGalliPalla" docformat="rst">
    <description>
-   A cooling function class that computes the cooling function due to molecular hydrogen using the results of :cite:t:`galli_chemistry_1998`. For the H--H\ :math:`_2` cooling function, the fitting functions from :cite:t:`galli_chemistry_1998` are used, in the form of :cite:t:`hollenbach_molecule_1979`: the cooling rate per unit volume is :math:`n(\mathrm{H}) n(\mathrm{H}_2) \Lambda(\mathrm{LTE})/[1+n^\mathrm{cr}/n(\mathrm{H})]`, with :math:`n^\mathrm{cr}/n(\mathrm{H}) = \Lambda(\mathrm{LTE})/\Lambda[n(\mathrm{H})\rightarrow 0]`, where :math:`n(\mathrm{H})` is the density of *atomic* hydrogen (the collision partner of H\ :math:`_2`) and :math:`n(\mathrm{H}) \Lambda(\mathrm{LTE})` is the LTE cooling per H\ :math:`_2` molecule of :cite:t:`hollenbach_molecule_1979`. For the H\ :math:`_2^+`--e\ :math:`^-` and H--H\ :math:`_2^+` cooling functions fitting functions to the results plotted in :cite:t:`suchkov_cooling_1978` are used:
+   A cooling function class that computes the cooling function due to molecular hydrogen using the results of
+   :cite:t:`galli_chemistry_1998`. For the H--H\ :math:`_2` cooling function, the fitting functions from
+   :cite:t:`galli_chemistry_1998` are used, in the form of :cite:t:`hollenbach_molecule_1979`: the cooling rate per unit volume is
+   :math:`n(\mathrm{H}) n(\mathrm{H}_2) \Lambda(\mathrm{LTE})/[1+n^\mathrm{cr}/n(\mathrm{H})]`, with
+   :math:`n^\mathrm{cr}/n(\mathrm{H}) = \Lambda(\mathrm{LTE})/\Lambda[n(\mathrm{H})\rightarrow 0]`, where :math:`n(\mathrm{H})` is
+   the density of *atomic* hydrogen (the collision partner of H\ :math:`_2`) and :math:`n(\mathrm{H}) \Lambda(\mathrm{LTE})` is
+   the LTE cooling per H\ :math:`_2` molecule of :cite:t:`hollenbach_molecule_1979`. For the H\ :math:`_2^+`--e\ :math:`^-` and
+   H--H\ :math:`_2^+` cooling functions fitting functions to the results plotted in :cite:t:`suchkov_cooling_1978` are used:
 
    .. math::
       :label: eq-H2CoolingFunction
@@ -87,10 +94,10 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Compute the cooling function due to H--H\ :math:`_2`."       method="coolingFunctionH_H2"           />
+       <method description="Compute the cooling function due to H--H\ :math:`_2`."               method="coolingFunctionH_H2"           />
        <method description="Compute the cooling function due to H\ :math:`_2^+`--e\ :math:`^-`." method="coolingFunctionH2Plus_Electron"/>
-       <method description="Compute the cooling function due to H--H\ :math:`_2^+`."     method="coolingFunctionH_H2Plus"       />
-       <method description="Compute common factors."                             method="commonFactors"                 />
+       <method description="Compute the cooling function due to H--H\ :math:`_2^+`."             method="coolingFunctionH_H2Plus"       />
+       <method description="Compute common factors."                                             method="commonFactors"                 />
      </methods>
      !!]
      procedure :: coolingFunction                    => molecularHydrogenGalliPallaCoolingFunction
@@ -201,9 +208,9 @@ contains
 
     ! Check if the hydrogen density is sufficiently large and temperature is below the maximum.
     if (numberDensityHydrogen > numberDensityHydrogenMinimum .and. temperature < temperatureMaximum) then
-       molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (                      temperature,chemicalDensities) & ! H   - H₂ cooling function.
-            &                                     +self%coolingFunctionH2Plus_Electron(                      temperature,chemicalDensities) & ! H₂⁺ - e⁻ cooling function.
-            &                                     +self%coolingFunctionH_H2Plus       (                      temperature,chemicalDensities)   ! H₂⁺ - H  cooling function.
+       molecularHydrogenGalliPallaCoolingFunction=+self%coolingFunctionH_H2           (temperature,chemicalDensities) & ! H   - H₂ cooling function.
+            &                                     +self%coolingFunctionH2Plus_Electron(temperature,chemicalDensities) & ! H₂⁺ - e⁻ cooling function.
+            &                                     +self%coolingFunctionH_H2Plus       (temperature,chemicalDensities)   ! H₂⁺ - H  cooling function.
     else
        ! No density, return zero.
        molecularHydrogenGalliPallaCoolingFunction=0.0d0
@@ -259,7 +266,7 @@ contains
        coolingFunctionCumulative=0.0d0
        ! H - H₂ cooling function.
        coolingFunction          =+self%coolingFunctionH_H2 (temperature,chemicalDensities)
-       coolingFunctionCumulative=+coolingFunctionCumulative                                                      &
+       coolingFunctionCumulative=+coolingFunctionCumulative                                &
             &                    +coolingFunction
        if (coolingFunction <= 0.0d0) then
           ! No H - H₂ cooling (e.g. no atomic or molecular hydrogen is present).
@@ -289,19 +296,19 @@ contains
        end if
        ! H₂⁺ - e⁻ cooling function.
        coolingFunction                                          =+self%coolingFunctionH2Plus_Electron(temperature,chemicalDensities)
-       coolingFunctionCumulative                                =+coolingFunctionCumulative                                 &
+       coolingFunctionCumulative                                =+coolingFunctionCumulative                                   &
             &                                                    +coolingFunction
-       molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope &
-            &                                                    +2.0d0                                                     &
-            &                                                    *coolingFunction                                           &
+       molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope   &
+            &                                                    +2.0d0                                                       &
+            &                                                    *coolingFunction                                             &
             &                                                    /numberDensityHydrogen
        ! H - H₂⁺ cooling function.
        coolingFunction                                          =+self%coolingFunctionH_H2Plus(temperature,chemicalDensities)
-       coolingFunctionCumulative                                =+coolingFunctionCumulative                                 &
+       coolingFunctionCumulative                                =+coolingFunctionCumulative                                   &
             &                                                    +coolingFunction
-       molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope &
-            &                                                    +2.0d0                                                     &
-            &                                                    *coolingFunction                                           &
+       molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope=+molecularHydrogenGalliPallaCoolingFunctionDensityLogSlope   &
+            &                                                    +2.0d0                                                       &
+            &                                                    *coolingFunction                                             &
             &                                                    /numberDensityHydrogen
        ! Convert to logarithmic slope.
        if (coolingFunctionCumulative /= 0.0d0)                                                                                     &
