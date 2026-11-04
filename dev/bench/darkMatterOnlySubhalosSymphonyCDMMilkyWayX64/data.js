@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793704343761,
+  "lastUpdate": 1793794016761,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX64)": [
@@ -4808,6 +4808,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/f1fab6ba2b505dccf771da40f6acdc60ba758929"
         },
         "date": 1793704342656,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 6.939599117116188,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 2.108795356529332,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 118.17626546336747,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b745263546ff4e4e9a7f9e22158fa76c186b65bb",
+          "message": "Merge pull request #1737 from galacticusorg/fix/prompt-cusp-convergence\n\nfix(nodeOperatorDarkMatterProfilePromptCusps): solve for the cusp-NFW parameters and cusp amplitude self-consistently",
+          "timestamp": "2026-11-03T16:57:09Z",
+          "tree_id": "9c15a082bf664c1d32fa1edea99b8cea4104dbab",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb"
+        },
+        "date": 1793794015723,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
