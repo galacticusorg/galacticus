@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "f1fab6ba2b505dccf771da40f6acdc60ba758929",
-        "message": "Merge pull request #1732 from galacticusorg/fix/disk-truncation-followups\n\nfix(nodeOperators): require an angular-momentum disk in tidalMassLossDisks; test disk angular momentum under truncation\n",
-        "timestamp": "2026-11-02 23:46:33+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/f1fab6ba2b505dccf771da40f6acdc60ba758929"
+        "id": "b745263546ff4e4e9a7f9e22158fa76c186b65bb",
+        "message": "Merge pull request #1737 from galacticusorg/fix/prompt-cusp-convergence\n\nfix(nodeOperatorDarkMatterProfilePromptCusps): solve for the cusp-NFW parameters and cusp amplitude self-consistently\n",
+        "timestamp": "2026-11-03 16:57:09+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb"
     },
     "results": [
         {

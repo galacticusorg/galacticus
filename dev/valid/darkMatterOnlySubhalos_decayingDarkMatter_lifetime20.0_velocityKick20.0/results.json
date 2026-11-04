@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "f1fab6ba2b505dccf771da40f6acdc60ba758929",
-        "message": "Merge pull request #1732 from galacticusorg/fix/disk-truncation-followups\n\nfix(nodeOperators): require an angular-momentum disk in tidalMassLossDisks; test disk angular momentum under truncation\n",
-        "timestamp": "2026-11-02 23:46:33+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/f1fab6ba2b505dccf771da40f6acdc60ba758929"
+        "id": "b745263546ff4e4e9a7f9e22158fa76c186b65bb",
+        "message": "Merge pull request #1737 from galacticusorg/fix/prompt-cusp-convergence\n\nfix(nodeOperatorDarkMatterProfilePromptCusps): solve for the cusp-NFW parameters and cusp amplitude self-consistently\n",
+        "timestamp": "2026-11-03 16:57:09+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb"
     },
     "results": [
         {
@@ -22,7 +22,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo bound mass cumulative distribution function",
                 "description": "Subhalo bound mass cumulative distribution function (τ=20.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "-14.834275831516623",
+                "logLikelihood": "-14.834275831516605",
                 "type": "function1D"
             },
             "data": {
@@ -38,7 +38,7 @@ window.ANALYSES_DATA = {
                     7742636826.811277
                 ],
                 "yDataset": [
-                    48.36325438382704,
+                    48.36325438382702,
                     24.293072176379535,
                     20.072882998388007,
                     14.445167814200735,
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=20.0 Gyr; vₖ=20.0 km/s)",
-                "logLikelihood": "-11.105516169261183",
+                "logLikelihood": "-11.126138927916084",
                 "type": "function1D"
             },
             "data": {
@@ -102,7 +102,7 @@ window.ANALYSES_DATA = {
                     0.10287571951418152,
                     0.10287571951418152,
                     6.7572093198083065,
-                    23.660322306650954,
+                    23.743655639984286,
                     42.536453761401695,
                     48.93273283129665,
                     48.93273283129665,
