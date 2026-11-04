@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793704468842,
+  "lastUpdate": 1793794126535,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.4; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "e5f6a393ac9fa768a4b0f26dd6a5e2ea343d361d",
-          "message": "fix: Update reference",
-          "timestamp": "2024-10-20T10:19:39-07:00",
-          "tree_id": "26cd57a147ac266943d9788964af5b846c9fb998",
-          "url": "https://github.com/galacticusorg/galacticus/commit/e5f6a393ac9fa768a4b0f26dd6a5e2ea343d361d"
-        },
-        "date": 1729470123008,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": "26.85265409129778",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "12.856529957599932",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "11.535619227855877",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9932,6 +9893,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/f1fab6ba2b505dccf771da40f6acdc60ba758929"
         },
         "date": 1793704467676,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": -26.85204437080787,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -12.856479837926374,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.4; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -11.535714175376159,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b745263546ff4e4e9a7f9e22158fa76c186b65bb",
+          "message": "Merge pull request #1737 from galacticusorg/fix/prompt-cusp-convergence\n\nfix(nodeOperatorDarkMatterProfilePromptCusps): solve for the cusp-NFW parameters and cusp amplitude self-consistently",
+          "timestamp": "2026-11-03T16:57:09Z",
+          "tree_id": "9c15a082bf664c1d32fa1edea99b8cea4104dbab",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb"
+        },
+        "date": 1793794125930,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
