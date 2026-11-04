@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793704504987,
+  "lastUpdate": 1793794157723,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -7621,6 +7621,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 31.12992353433744,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b745263546ff4e4e9a7f9e22158fa76c186b65bb",
+          "message": "Merge pull request #1737 from galacticusorg/fix/prompt-cusp-convergence\n\nfix(nodeOperatorDarkMatterProfilePromptCusps): solve for the cusp-NFW parameters and cusp amplitude self-consistently",
+          "timestamp": "2026-11-03T16:57:09Z",
+          "tree_id": "9c15a082bf664c1d32fa1edea99b8cea4104dbab",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb"
+        },
+        "date": 1793794156677,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 129.2687815822729,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 31.60810957974414,
             "unit": "-logℒ"
           }
         ]
