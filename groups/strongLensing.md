@@ -10,5 +10,5 @@ Subhalo populations relevant to strong gravitational lensing measurements.
 
 | Metric | Status | Validation | Benchmark | Last commit |
 |--------|--------|------------|-----------|-------------|
-| PonosV projected subhalo MF | `PASS`{: .label .label-green } | [plots]({{ '/dev/valid/strongLensing/' | relative_url }}) | — | [`f1fab6b`](https://github.com/galacticusorg/galacticus/commit/f1fab6ba2b505dccf771da40f6acdc60ba758929) |
+| PonosV projected subhalo MF | `PASS`{: .label .label-green } | [plots]({{ '/dev/valid/strongLensing/' | relative_url }}) | — | [`b745263`](https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb) |
 
