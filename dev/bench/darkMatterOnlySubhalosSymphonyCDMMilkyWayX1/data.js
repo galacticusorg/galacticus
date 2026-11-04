@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793704331409,
+  "lastUpdate": 1793794004910,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)": [
@@ -6375,6 +6375,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 48.82066380428976,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b745263546ff4e4e9a7f9e22158fa76c186b65bb",
+          "message": "Merge pull request #1737 from galacticusorg/fix/prompt-cusp-convergence\n\nfix(nodeOperatorDarkMatterProfilePromptCusps): solve for the cusp-NFW parameters and cusp amplitude self-consistently",
+          "timestamp": "2026-11-03T16:57:09Z",
+          "tree_id": "9c15a082bf664c1d32fa1edea99b8cea4104dbab",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb"
+        },
+        "date": 1793794004196,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -2.449787257652185,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": -1.4348939000339147,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 49.68989068365412,
             "unit": "-logℒ"
           }
         ]
