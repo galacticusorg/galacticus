@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793794022234,
+  "lastUpdate": 1793919072776,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX1)": [
@@ -6414,6 +6414,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 10.09021971824153,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "275fe42308caf2882ce2390aeaaf77047ae424f7",
+          "message": "Merge pull request #1745 from galacticusorg/feat/merger-tree-variance-test\n\ntest(merger-trees): add a testSuite test of the branchingVariance operator, and document the variance tools",
+          "timestamp": "2026-11-05T15:50:07Z",
+          "tree_id": "9c85fb299349d08e1d923b5b9f996c1684772322",
+          "url": "https://github.com/galacticusorg/galacticus/commit/275fe42308caf2882ce2390aeaaf77047ae424f7"
+        },
+        "date": 1793919071685,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 1.2879328584701357,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 15.140415916407072,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 10.890962522428362,
             "unit": "-logℒ"
           }
         ]
