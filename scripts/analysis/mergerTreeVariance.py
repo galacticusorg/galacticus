@@ -64,7 +64,7 @@ parser.add_argument('--splitTreeStride' ,action='store',default=1               
 parser.add_argument('--processes'       ,action='store',default=1                     ,type=int              ,help='number of worker processes over which chunks are distributed; peak memory scales with this times the chunk size')
 parser.add_argument('--foldOffset'    ,action='store',default=None                  ,type=int              ,help='assign trees to folds by (forest index + this offset) modulo the number of folds, rather than by their order; with the base random number seed as the offset this matches the folds of the branchingVariance merger tree operator, which assigns trees by their seed (this identifies a realization only when tree seeds are the base seed plus the tree index, as under the default mergerTreeSeeds=incremental)')
 parser.add_argument('--omegaTable'    ,action='store',default=None                                         ,help='an output file of the branchingVariance merger tree operator, from whose "redshift" and "omega" datasets ω(z) is interpolated, in place of δc0/D(z)')
-parser.add_argument('--cumulativeOmegaTable',action='store',default=None                                     ,help='an output file of the branchingVariance merger tree operator, whose "omegaCumulative" dataset gives the ω at which the cumulative variance identity is checked for statistics B and C, in place of the default grid (overrides --cumulativeCount; its ω are on the operator\'s scale, so --omegaTable defaults to the same file)')
+parser.add_argument('--cumulativeOmegaTable',action='store',default=None                                     ,help='an output file of the branchingVariance merger tree operator, whose "omegaCumulative" dataset gives the ω at which the cumulative variance identity is checked, in place of the default grid (overrides --cumulativeCount; its ω are on the operator\'s scale, so --omegaTable defaults to the same file; for statistic A, E[N|ω]=N at ω≥ω₁)')
 parser.add_argument('--chunkNodes'      ,action='store',default=20000000              ,type=int              ,help='approximate number of nodes processed at once (whole forests are always kept together); peak memory scales with this'                                                       )
 args = parser.parse_args()
 
@@ -111,7 +111,9 @@ class nodeMeanTable:
     # c δω (offsets from the bin center), is fitted by least squares to the nodes in each bin and a is used, giving n₁ at the bin
     # center; bins with too few nodes, or a degenerate spread of nodes, fall back to the mean. Nodes are added in any number of
     # batches with accumulate() (every quantity needed is a sum over the nodes in a bin), and the table is completed by finalize().
-    def __init__(self,logMassRange,omegaRange,binWidthMass,binWidthOmega,method='mean'):
+    # If a boundary, (ω₁, log₁₀ m), is given, the table ends at ω₁, where n₁ is known exactly, θ(M-m), and between the last row of
+    # bin centers and ω₁ n₁ is interpolated linearly in ω to that value (as for statistic A).
+    def __init__(self,logMassRange,omegaRange,binWidthMass,binWidthOmega,method='mean',boundary=None):
         self.logMassEdges = logMassRange[0]+binWidthMass *np.arange(int(round((logMassRange[1]-logMassRange[0])/binWidthMass ))+1)
         self.omegaEdges   = omegaRange  [0]+binWidthOmega*np.arange(int(round((omegaRange  [1]-omegaRange  [0])/binWidthOmega))+1)
         self.logMassCenters = 0.5*(self.logMassEdges[1:]+self.logMassEdges[:-1])
@@ -121,6 +123,7 @@ class nodeMeanTable:
         self.method         = method
         self.sums           = {}
         self.evaluationsEmpty = 0
+        self.boundary       = boundary
 
     def accumulate(self,logMass,omega,count):
         def binSum(name,weights=None):
@@ -186,10 +189,15 @@ class nodeMeanTable:
         u = y-i
         v = x-j
         self.evaluationsEmpty += np.count_nonzero(self.empty[i,j]|self.empty[i+1,j]|self.empty[i,j+1]|self.empty[i+1,j+1])
-        return +(1.0-u)*(1.0-v)*self.filled[i  ,j  ] \
-               +     u *(1.0-v)*self.filled[i+1,j  ] \
-               +(1.0-u)*     v *self.filled[i  ,j+1] \
-               +     u *     v *self.filled[i+1,j+1]
+        value = +(1.0-u)*(1.0-v)*self.filled[i  ,j  ] \
+                +     u *(1.0-v)*self.filled[i+1,j  ] \
+                +(1.0-u)*     v *self.filled[i  ,j+1] \
+                +     u *     v *self.filled[i+1,j+1]
+        if self.boundary is not None:
+            omegaBoundary, logMassThreshold = self.boundary
+            factor = np.clip((omega-self.omegaCenters[-1])/(omegaBoundary-self.omegaCenters[-1]),0.0,1.0)
+            value  = (1.0-factor)*value+factor*(logMass >= logMassThreshold)
+        return value
 
 class chunkOfTrees:
     # The structure of the trees in a contiguous range of forests: tree topology, primary progenitors, main-branch membership,
@@ -500,8 +508,18 @@ countBinsOmega = max(int(np.ceil((omegaMaximum  -omegaMinimum  )/args.binWidthOm
 logMassRange   = (logMassMaximum+0.5*args.binWidthMass -countBinsMass *args.binWidthMass ,logMassMaximum+0.5*args.binWidthMass )
 omegaRange     = (omegaMinimum  -0.5*args.binWidthOmega,omegaMinimum  -0.5*args.binWidthOmega+countBinsOmega*args.binWidthOmega)
 cases          = [(statistic,indexThreshold,massThreshold) for statistic in args.statistics for indexThreshold, massThreshold in enumerate(massThresholds)]
+# The tables of statistic A have their own ω bins, of nearly the same width, aligned so that the smallest ω lies at a bin center and
+# the last edge is ω₁, where n₁ is known exactly: θ(M-m). (Otherwise the bins smear the step in mass at ω₁, so that E[N|ω₁] differs
+# from N on average.) Only nodes at ω < ω₁ enter these tables.
+countBinsOmegaA = max(int(np.floor((omega1-omegaMinimum)/args.binWidthOmega+1.0)),2)
+binWidthOmegaA  = (omega1-omegaMinimum)/(countBinsOmegaA-0.5)
+omegaRangeA     = (omegaMinimum-0.5*binWidthOmegaA,omega1)
+def newTable(statistic,massThreshold):
+    if statistic == 'A':
+        return nodeMeanTable(logMassRange,omegaRangeA,args.binWidthMass,binWidthOmegaA,method=args.tableMethod,boundary=(omega1,np.log10(massThreshold)))
+    return nodeMeanTable(logMassRange,omegaRange,args.binWidthMass,args.binWidthOmega,method=args.tableMethod)
 def newTables():
-    return {(statistic,indexThreshold): [nodeMeanTable(logMassRange,omegaRange,args.binWidthMass,args.binWidthOmega,method=args.tableMethod) for h in range(countFolds)] for statistic, indexThreshold, massThreshold in cases}
+    return {(statistic,indexThreshold): [newTable(statistic,massThreshold) for h in range(countFolds)] for statistic, indexThreshold, massThreshold in cases}
 
 # Pass 2: build the tree structure of each chunk, and accumulate the n₁ tables, per-tree quantities, and the ω of active splits
 # (needed for the range of the cumulative check). Each worker is given a contiguous group of chunks, and returns the bin sums of
@@ -567,7 +585,7 @@ print('  statistic A target: z₁={:.3f}, ω₁={:.4f} (ω₀={:.4f})'.format(ar
 # Grid of ω for the cumulative check.
 omegaGrids = {}
 for statistic in args.statistics:
-    if omegaCumulativeTable is not None and statistic != 'A':
+    if omegaCumulativeTable is not None:
         omegaGrids[statistic] = omegaCumulativeTable
     else:
         omegaGrids[statistic] = np.linspace(omegaMinimum,omega1 if statistic == 'A' else np.quantile(np.concatenate(omegaSplitsActive[statistic]),0.999),args.cumulativeCount)
@@ -691,6 +709,12 @@ def passJumps(indexChunk):
         # of the two, which excludes the second-order noise of the tables (as for Δ²). The covariance is taken within each fold
         # (see foldedEstimate()).
         for i, omegaG in enumerate(omegaGrids[statistic]):
+            if statistic == 'A' and omegaG >= omega1:
+                # The count of statistic A is fully determined at ω₁ and beyond.
+                result['expectation'         ][i] = countTree
+                result['expectationAlternate'][i] = countTree
+                result['sumBefore'           ][i] = chunk.treeSum(deltaSquared,activeSplit)
+                continue
             alive = (chunk.countChildren > 0) & (chunk.omega <= omegaG) & (chunk.omegaSplit > omegaG)
             if statistic == 'C':
                 alive &= chunk.isMain
@@ -713,7 +737,7 @@ def passJumps(indexChunk):
         result['splits'] = (('tree',chunk.treeOfNode[s]),('delta',delta[s]),('deltaSquared',deltaSquared[s]),('omega',chunk.omegaSplit[s]),
                             ('redshift',chunk.redshift[chunk.primaryChild[s]]),('mass',chunk.massChildren[s]),('massPrimary',chunk.mass[chunk.primaryChild[s]]),
                             ('massSecondary',chunk.massSecondary[s]),('massRoot',chunk.massRoot[chunk.treeLocal[s]]),('n1Parent',n1End[s]),
-                            ('isMainBranch',chunk.isMain[s].astype(np.int8)),('hierarchyDepth',chunk.hierarchyDepth[s]),('countAdded',countAdded[s]))
+                            ('isMainBranch',chunk.isMain[s].astype(np.int8)),('hierarchyDepth',chunk.hierarchyDepth[s]),('countAdded',countAdded[s] if statistic != 'A' else np.zeros(len(s))))
         result['fold'] = chunk.foldKeyOfNode[chunk.roots] % countFolds
         result['evaluationsEmpty'] = sum(table.evaluationsEmpty for table in tablesCase)-emptyBefore
         returns[(statistic,indexThreshold)] = result
