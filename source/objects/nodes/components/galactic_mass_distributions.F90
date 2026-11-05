@@ -220,11 +220,12 @@ contains
 
   end function Node_Component_Mass_Distribution_Truncated_Spherical
 
-  function Node_Component_Mass_Distribution_Truncated_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistributionStellar_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained,heating) result(massDistribution_)
+  function Node_Component_Mass_Distribution_Truncated_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistributionStellar_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetainedStellar,fractionMassRetainedGas,heating) result(massDistribution_)
     !!{RST
     Return the mass distribution of a cylindrical galactic component with the given stellar and gas masses and scale radius,
     built by truncating the component's dimensionless stellar and gas mass distributions (using
-    ``galacticComponentTruncation_``) such that they retain a fraction ``fractionMassRetained`` of their mass, heating them with
+    ``galacticComponentTruncation_``) such that they retain fractions ``fractionMassRetainedStellar`` and
+    ``fractionMassRetainedGas`` of their mass respectively, heating them with
     heating parameter ``heating``, and then scaling them to the size and masses of the component. Since the truncated and heated
     distributions differ from node to node they are constructed afresh, rather than being drawn from a pool. A null distribution
     is returned if the scale radius is non-positive, or if neither stars nor gas are to be included. The stellar and gas
@@ -236,9 +237,9 @@ contains
     implicit none
     class           (massDistributionClass           ), pointer                :: massDistribution_
     logical                                           , intent(in   )          :: includeStars                 , includeGas
-    double precision                                  , intent(in   )          :: massStellar                  , massGas                  , &
-         &                                                                        radiusScale                  , fractionMassRetained     , &
-         &                                                                        heating
+    double precision                                  , intent(in   )          :: massStellar                  , massGas                    , &
+         &                                                                        radiusScale                  , fractionMassRetainedStellar, &
+         &                                                                        fractionMassRetainedGas      , heating
     class           (massDistributionClass           ), intent(in   ), pointer :: massDistributionStellar_     , massDistributionGas_
     class           (kinematicsDistributionClass     ), intent(in   ), target  :: kinematicDistributionStellar_, kinematicDistributionGas_
     class           (galacticComponentTruncationClass), intent(inout)          :: galacticComponentTruncation_
@@ -251,8 +252,8 @@ contains
        ! Build the individual distributions.
        massDistributionStellar => null()
        massDistributionGas     => null()
-       if (includeStars) massDistributionStellar => scaledTruncated(massDistributionStellar_,massStellar,kinematicDistributionStellar_)
-       if (includeGas  ) massDistributionGas     => scaledTruncated(massDistributionGas_    ,massGas    ,kinematicDistributionGas_    )
+       if (includeStars) massDistributionStellar => scaledTruncated(massDistributionStellar_,massStellar,fractionMassRetainedStellar,kinematicDistributionStellar_)
+       if (includeGas  ) massDistributionGas     => scaledTruncated(massDistributionGas_    ,massGas    ,fractionMassRetainedGas    ,kinematicDistributionGas_    )
        ! Combine the distributions as necessary.
        massDistribution_ => Node_Component_Mass_Distribution_Combine(includeStars,includeGas,massDistributionStellar,massDistributionGas)
     end if
@@ -260,17 +261,18 @@ contains
 
   contains
 
-    function scaledTruncated(massDistributionDimensionless_,mass,kinematicsDistribution_) result(massDistributionScaled)
+    function scaledTruncated(massDistributionDimensionless_,mass,fractionMassRetained,kinematicsDistribution_) result(massDistributionScaled)
       !!{RST
-      Truncate and heat the given dimensionless mass distribution, and scale it to the size and the given mass of the component,
-      giving it the kinematics distribution ``kinematicsDistribution_``.
+      Truncate the given dimensionless mass distribution to retain a fraction ``fractionMassRetained`` of its mass, heat it, and
+      scale it to the size and the given mass of the component, giving it the kinematics distribution
+      ``kinematicsDistribution_``.
       !!}
       use :: Error             , only : Error_Report
       use :: Mass_Distributions, only : massDistributionCylindrical, massDistributionCylindricalScaler
       implicit none
       class           (massDistributionClass            ), pointer                :: massDistributionScaled
       class           (massDistributionClass            ), intent(in   ), pointer :: massDistributionDimensionless_
-      double precision                                   , intent(in   )          :: mass
+      double precision                                   , intent(in   )          :: mass                          , fractionMassRetained
       class           (kinematicsDistributionClass      ), intent(in   )          :: kinematicsDistribution_
       class           (massDistributionCylindrical      ), pointer                :: massDistributionTruncated
       type            (massDistributionCylindricalScaler), pointer                :: massDistributionScaler

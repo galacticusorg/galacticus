@@ -79,19 +79,23 @@
      private
      double precision               :: radiusDecayOverRadiusTruncate
      logical                        :: tabulated                    =.false., tabulatedCylindrical                    =.false.
-     double precision               :: truncationLogarithmicMaximum         , truncationLogarithmicCylindricalMaximum
-     type            (interpolator) :: interpolatorRadius                   , interpolatorRatioSpecificAngularMomentum
+     double precision               :: truncationLogarithmicMaximum         , truncationLogarithmicCylindricalMaximum , &
+          &                            radiusTruncateLogarithmicCylindricalMaximum
+     type            (interpolator) :: interpolatorRadius                   , interpolatorRatioSpecificAngularMomentum, &
+          &                            interpolatorRatioRadiusMean          , interpolatorTruncationCylindrical
    contains
      !![
      <methods docformat="rst">
        <method method="tabulate"            description="Tabulate the truncation radius as a function of the degree of truncation."                                                                         />
-       <method method="tabulateCylindrical" description="Tabulate the specific angular momentum of material removed by further truncation of an exponential disk as a function of the degree of truncation."/>
+       <method method="tabulateCylindrical" description="Tabulate the specific angular momentum of material removed by further truncation of an exponential disk, and its mean radius, as functions of the degree of truncation, and the degree of truncation as a function of truncation radius."/>
      </methods>
      !!]
      procedure :: isActive                        => exponentialIsActive
      procedure :: massDistribution                => exponentialMassDistribution
      procedure :: massDistributionCylindrical     => exponentialMassDistributionCylindrical
      procedure :: ratioAngularMomentumCylindrical => exponentialRatioAngularMomentumCylindrical
+     procedure :: ratioRadiusMeanCylindrical      => exponentialRatioRadiusMeanCylindrical
+     procedure :: fractionMassRetainedCylindrical => exponentialFractionMassRetainedCylindrical
      procedure :: tabulate                        => exponentialTabulate
      procedure :: tabulateCylindrical             => exponentialTabulateCylindrical
   end type galacticComponentTruncationExponential
@@ -247,12 +251,55 @@ contains
     return
   end function exponentialRatioAngularMomentumCylindrical
 
+  double precision function exponentialRatioRadiusMeanCylindrical(self,fractionMassRetained) result(ratio)
+    !!{RST
+    Return the mean radius of a truncated exponential disk in units of that of the untruncated disk.
+    !!}
+    implicit none
+    class           (galacticComponentTruncationExponential), intent(inout) :: self
+    double precision                                        , intent(in   ) :: fractionMassRetained
+    double precision                                                        :: truncation
+
+    truncation=-log(max(fractionMassRetained,tiny(0.0d0)))
+    if (truncation < exponentialTruncationNegligible) then
+       ! Negligible truncations are ignored, so the shape of the disk is unchanged.
+       ratio=1.0d0
+    else
+       if (.not.self%tabulatedCylindrical) call self%tabulateCylindrical()
+       ! The shape of strongly truncated disks is held fixed, so the ratio is limited to that at the largest tabulated truncation.
+       ratio=self%interpolatorRatioRadiusMean%interpolate(min(log(truncation),self%truncationLogarithmicCylindricalMaximum))
+    end if
+    return
+  end function exponentialRatioRadiusMeanCylindrical
+
+  double precision function exponentialFractionMassRetainedCylindrical(self,radiusTruncation) result(fractionMassRetained)
+    !!{RST
+    Return the fraction of its mass retained by an exponential disk truncated at the given radius (in units of its scale length).
+    !!}
+    implicit none
+    class           (galacticComponentTruncationExponential), intent(inout) :: self
+    double precision                                        , intent(in   ) :: radiusTruncation
+
+    if (.not.self%tabulatedCylindrical) call self%tabulateCylindrical()
+    if      (radiusTruncation <       exponentialRadiusTruncateMinimumDisk           ) then
+       ! Truncation within the smallest radius modeled - the disk is regarded as completely truncated.
+       fractionMassRetained=0.0d0
+    else if (log(radiusTruncation) > self%radiusTruncateLogarithmicCylindricalMaximum) then
+       ! Truncation is negligible.
+       fractionMassRetained=1.0d0
+    else
+       fractionMassRetained=exp(-exp(self%interpolatorTruncationCylindrical%interpolate(log(radiusTruncation))))
+    end if
+    return
+  end function exponentialFractionMassRetainedCylindrical
+
   subroutine exponentialTabulateCylindrical(self)
     !!{RST
     Tabulate the mean specific angular momentum of the material removed by a further, infinitesimal, truncation of an exponential
-    disk, in units of the mean specific angular momentum of the truncated disk, as a function of the degree of truncation,
-    :math:`x=-\log f`. Truncation radii are stepped logarithmically outward from the smallest truncation radius considered by
-    :galacticus-class:`massDistributionExponentialDiskTidal` until the degree of truncation becomes negligible.
+    disk, in units of the mean specific angular momentum of the truncated disk, and the mean radius of the truncated disk, in units
+    of that of the untruncated disk, as functions of the degree of truncation, :math:`x=-\log f`, and the degree of truncation as
+    a function of the truncation radius. Truncation radii are stepped logarithmically outward from the smallest truncation radius
+    considered by :galacticus-class:`massDistributionExponentialDiskTidal` until the degree of truncation becomes negligible.
     !!}
     use :: Error                  , only : Error_Report
     use :: Gamma_Functions        , only : Gamma_Function_Incomplete, Gamma_Function_Incomplete_Complementary, Gamma_Function_Logarithmic
@@ -261,7 +308,8 @@ contains
     implicit none
     class           (galacticComponentTruncationExponential), intent(inout)           :: self
     integer                                                 , parameter               :: countPerDecade=100, countMaximum  =1000
-    double precision                                        , dimension(countMaximum) :: truncations       , ratios
+    double precision                                        , dimension(countMaximum) :: truncations       , ratios             , &
+         &                                                                               radiiTruncate     , ratiosRadiusMean
     double precision                                        , dimension(0:3)          :: momentOuter
     double precision                                                                  :: radiusStep        , radiusTruncate     , &
          &                                                                               exponent          , momentInner1       , &
@@ -289,6 +337,11 @@ contains
        momentInner1=      Gamma_Function_Incomplete_Complementary(2.0d0,radiusTruncate)
        momentInner2=2.0d0*Gamma_Function_Incomplete_Complementary(3.0d0,radiusTruncate)
        ! Evaluate the degree of truncation, and the ratio of specific angular momenta.
+       radiiTruncate   (count)=radiusTruncate
+       ! The mean radius of the untruncated disk is I₂/I₁=2 scale lengths.
+       ratiosRadiusMean(count)=+(momentInner2+momentOuter(2)) &
+            &                  /(momentInner1+momentOuter(1)) &
+            &                  /2.0d0
        truncations(count)=-log(momentInner1+momentOuter(1))
        ratios     (count)=+(momentOuter (3)/radiusTruncate-momentOuter(2)) &
             &             /(momentOuter (2)/radiusTruncate-momentOuter(1)) &
@@ -303,7 +356,11 @@ contains
     end do
     ! Tabulate in order of increasing truncation (i.e. decreasing truncation radius).
     self%truncationLogarithmicCylindricalMaximum =log(truncations(1))
-    self%interpolatorRatioSpecificAngularMomentum=interpolator(log(truncations(count:1:-1)),ratios(count:1:-1),interpolationType=gsl_interp_cspline,extrapolationType=extrapolationTypeFix)
+    self%interpolatorRatioSpecificAngularMomentum=interpolator(log(truncations(count:1:-1)),ratios          (count:1:-1) ,interpolationType=gsl_interp_cspline,extrapolationType=extrapolationTypeFix)
+    self%interpolatorRatioRadiusMean             =interpolator(log(truncations(count:1:-1)),ratiosRadiusMean(count:1:-1) ,interpolationType=gsl_interp_cspline,extrapolationType=extrapolationTypeFix)
+    ! Tabulate the logarithm of the degree of truncation as a function of the logarithm of truncation radius.
+    self%radiusTruncateLogarithmicCylindricalMaximum=log(radiiTruncate(count))
+    self%interpolatorTruncationCylindrical       =interpolator(log(radiiTruncate(1:count    )),log(truncations(1:count  )),interpolationType=gsl_interp_cspline,extrapolationType=extrapolationTypeFix)
     self%tabulatedCylindrical                    =.true.
     return
   end subroutine exponentialTabulateCylindrical

@@ -35,7 +35,7 @@ module Node_Components_Galactic_Shared
        &    Node_Component_NSC_Standard_Post_Evolve                       , Node_Component_Disk_Very_Simple_Post_Evolve               , &
        &    Node_Component_Spheroid_Very_Simple_Post_Evolve               , Node_Component_Disk_Very_Simple_Post_Step                 , &
        &    Node_Component_Spheroid_Very_Simple_Post_Step                 , Node_Component_Disk_Standard_Plausibility_Angular_Momentum, &
-       &    Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum
+       &    Node_Component_Spheroid_Standard_Plausibility_Angular_Momentum, Node_Component_Disk_Gas_Arrive
 
   !![
   <enumeration docformat="rst">
@@ -236,5 +236,31 @@ contains
     end select
     return
   end function Node_Component_{plausibility¦label}_Plausibility_Angular_Momentum
+
+  subroutine Node_Component_Disk_Gas_Arrive(disk,massGasArriving)
+    !!{RST
+    Announce that a mass ``massGasArriving`` of gas (assumed to have the untruncated distribution of the disk) is about to be added
+    to a disk, ``disk`` (e.g. in a merger), by triggering the ``diskGasArrive`` event. This allows the disk component to respond
+    (e.g. by reducing the truncation of its gas) without other components needing to know which disk component is in use.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDisk
+    implicit none
+    class           (nodeComponentDisk), intent(inout) :: disk
+    double precision                   , intent(in   ) :: massGasArriving
+
+    !![
+    <eventHook name="diskGasArrive">
+     <import>
+      <module name="Galacticus_Nodes" symbols="nodeComponentDisk"/>
+     </import>
+     <interface>
+      class           (nodeComponentDisk), intent(inout) :: disk
+      double precision                   , intent(in   ) :: massGasArriving
+     </interface>
+     <callWith>disk,massGasArriving</callWith>
+    </eventHook>
+    !!]
+    return
+  end subroutine Node_Component_Disk_Gas_Arrive
 
 end module Node_Components_Galactic_Shared

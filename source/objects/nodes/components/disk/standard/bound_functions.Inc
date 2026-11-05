@@ -42,10 +42,10 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   integer                                      , intent(in   ), optional :: weightIndex
   type           (stellarLuminosities         ), save                    :: luminosities
   !$omp threadprivate(luminosities)
-  double precision                                                       :: massStellar      , massGas             , &
-       &                                                                    radiusScale      , fractionMassRetained, &
-       &                                                                    heating
-  logical                                                                :: includeGas       , includeStars
+  double precision                                                       :: massStellar            , massGas                    , &
+       &                                                                    radiusScale            , fractionMassRetainedStellar, &
+       &                                                                    fractionMassRetainedGas, heating
+  logical                                                                :: includeGas             , includeStars
   !![
   <optionalArgument name="weightBy" defaultsTo="weightByMass" />
   !!]
@@ -67,30 +67,33 @@ function Node_Component_Disk_Standard_Mass_Distribution(self,componentType,massT
   end if
   ! Build the disk mass distribution, truncated if the disk has been tidally stripped, and heated if it has been tidally heated.
   radiusScale=self%radius()
-  call Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetained,heating)
-  if (fractionMassRetained < 1.0d0 .or. heating > 0.0d0) then
-     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetained,heating)
+  call Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetainedStellar,fractionMassRetainedGas,heating)
+  if (fractionMassRetainedStellar < 1.0d0 .or. fractionMassRetainedGas < 1.0d0 .or. heating > 0.0d0) then
+     massDistribution_ => Node_Component_Mass_Distribution_Truncated_Cylindrical(includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,galacticComponentTruncation_,fractionMassRetainedStellar,fractionMassRetainedGas,heating)
   else
-     massDistribution_ => Node_Component_Mass_Distribution_Scaled_Cylindrical   (includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool                     )
+     massDistribution_ => Node_Component_Mass_Distribution_Scaled_Cylindrical   (includeStars,includeGas,massStellar,massGas,radiusScale,massDistributionStellar_,massDistributionGas_,kinematicDistribution_,kinematicDistributionGas_,scalerStellarPool,scalerGasPool                                                         )
   end if
   return
 end function Node_Component_Disk_Standard_Mass_Distribution
 
-subroutine Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetained,heating)
+subroutine Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetainedStellar,fractionMassRetainedGas,heating)
   !!{RST
-  Return the fraction of the mass of its untruncated mass distribution retained by the standard disk, and its heating parameter
-  (see :galacticus-class:`galacticDiskHeatingClass`). Heating is applied only to satellites.
+  Return the fractions of the mass of their untruncated mass distributions retained by the stars and gas of the standard disk,
+  and its heating parameter (see :galacticus-class:`galacticDiskHeatingClass`). Heating is applied only to satellites.
   !!}
-  use :: Node_Component_Disk_Standard_Data, only : galacticComponentTruncation_, tidalTruncationID, galacticDiskHeating_
+  use :: Node_Component_Disk_Standard_Data, only : galacticComponentTruncation_, tidalTruncationID, truncationGasID, galacticDiskHeating_
   implicit none
   class           (nodeComponentDiskStandard), intent(inout) :: self
-  double precision                           , intent(  out) :: fractionMassRetained, heating
+  double precision                           , intent(  out) :: fractionMassRetainedStellar, fractionMassRetainedGas, &
+       &                                                        heating
   class           (nodeComponentSatellite   ), pointer       :: satellite
 
-  fractionMassRetained=1.0d0
-  heating             =0.0d0
+  fractionMassRetainedStellar=1.0d0
+  fractionMassRetainedGas    =1.0d0
+  heating                    =0.0d0
   if (galacticComponentTruncation_%isActive()) then
-     if (self%floatRank0MetaPropertyIsCreated(tidalTruncationID)) fractionMassRetained=exp(-self%floatRank0MetaPropertyGet(tidalTruncationID))
+     if (self%floatRank0MetaPropertyIsCreated(tidalTruncationID)) fractionMassRetainedStellar=exp(-          self%floatRank0MetaPropertyGet(tidalTruncationID) )
+     if (self%floatRank0MetaPropertyIsCreated(truncationGasID  )) fractionMassRetainedGas    =exp(-max(0.0d0,self%floatRank0MetaPropertyGet(truncationGasID  )))
   end if
   if (galacticDiskHeating_%isActive()) then
      if (self%hostNode%isSatellite()) then
@@ -115,7 +118,9 @@ end function Node_Component_Disk_Standard_Mass_Baryonic
 
 double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self) result(radiusHalfMass)
   !!{RST
-  Return the half-mass radius of the standard disk, accounting for any tidal truncation and heating of its mass distribution.
+  Return the half-mass radius of the standard disk, accounting for any tidal truncation and heating of its mass distribution. If
+  the gas of the disk is truncated differently from its stars (e.g. by ram pressure stripping), this is the half-mass radius of
+  the stars.
   !!}
   use :: Error                            , only : Error_Report
   use :: Mass_Distributions               , only : massDistributionCylindrical
@@ -123,13 +128,14 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self) re
   implicit none
   class           (nodeComponentDiskStandard  ), intent(inout) :: self
   class           (massDistributionCylindrical), pointer       :: massDistributionTruncated
-  double precision                                             :: fractionMassRetained     , heating
+  double precision                                             :: fractionMassRetainedStellar, fractionMassRetainedGas, &
+       &                                                          heating
 
   select type (massDistributionStellar_)
   class is (massDistributionCylindrical)
-     call Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetained,heating)
-     if (fractionMassRetained < 1.0d0 .or. heating > 0.0d0) then
-        massDistributionTruncated => galacticComponentTruncation_%massDistributionCylindrical(massDistributionStellar_,fractionMassRetained,heating)
+     call Node_Component_Disk_Standard_Tidal_Modification(self,fractionMassRetainedStellar,fractionMassRetainedGas,heating)
+     if (fractionMassRetainedStellar < 1.0d0 .or. heating > 0.0d0) then
+        massDistributionTruncated => galacticComponentTruncation_%massDistributionCylindrical(massDistributionStellar_,fractionMassRetainedStellar,heating)
         radiusHalfMass=+massDistributionTruncated%radiusHalfMass() &
              &         *self                     %radius        ()
         !![
