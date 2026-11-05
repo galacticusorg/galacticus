@@ -332,12 +332,12 @@ contains
     use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass, massDistributionZero
     use :: Coordinates                      , only : coordinateSpherical                 , assignment(=)
     use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , radiusLarge         , massTypeGalactic
-    use :: Numerical_Constants_Astronomical , only : gigaYear                            , massSolar                  , megaParsec
-    use :: Numerical_Constants_Atomic       , only : massHydrogenAtom
+    use :: Numerical_Constants_Astronomical , only : gigaYear                            , megaParsec
     use :: Numerical_Constants_Physical     , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes     , only : hecto                               , centi
+    use :: Numerical_Constants_Prefixes     , only : centi
     use :: Numerical_Constants_Units        , only : ergs
     use :: Numerical_Constants_Math         , only : Pi
+    use :: Hot_Halo_Composition             , only : Hydrogen_Number_Density
     implicit none
     class           (nodeOperatorCoolingEnergyRadiated), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), target  :: node
@@ -412,12 +412,7 @@ contains
        ! Set epoch for radiation field.
        call self%radiation%timeSet(basic%time())
        ! Compute number density of hydrogen (in cm⁻³).
-       numberDensityHydrogen  =  +density                                    &
-            &                    *abundances_     %hydrogenMassFraction()    &
-            &                    *massSolar                                  &
-            &                    /massHydrogenAtom                           &
-            &                    /hecto                                  **3 &
-            &                    /megaParsec                             **3
+       numberDensityHydrogen  =  Hydrogen_Number_Density                  (           density                    ,abundances_                                  )
        ! Get the number density of all species, including electrons.
        numberDensityAllSpecies=+                                                numberDensityHydrogen                                                            &
             &                  /     abundances_   %hydrogenNumberFraction(                                                                                    ) &
