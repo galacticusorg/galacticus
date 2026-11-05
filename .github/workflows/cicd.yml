@@ -1621,6 +1621,7 @@ jobs:
                 test-luminosities-from-SFH-lightcone.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
                 test-merger-tree-prune-clones.py,
+                test-mergerTreeBranchingVariance.py,
                 test-molecular-cooling.py,
                 test-lightcone-crossing.py,
                 test-massProfileSatelliteBoundMass.py,
