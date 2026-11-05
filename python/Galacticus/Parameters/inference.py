@@ -38,6 +38,7 @@ PROV_EXPLICIT    = 'explicit'
 PROV_DEFAULT     = 'default'
 PROV_DECLARATION = 'declaration'
 PROV_UNKNOWN     = 'unknown'
+PROV_DERIVED     = 'derived'
 
 
 def _scalar(value):
@@ -193,3 +194,91 @@ def infer_parameter_type(directive, declaration_lookup=None):
             return {'type': ctype, 'kind': kind, 'provenance': PROV_DECLARATION}
 
     return {'type': TYPE_UNKNOWN, 'kind': None, 'provenance': PROV_UNKNOWN}
+
+
+# Cardinality.  Few `<inputParameter>` directives carry an explicit
+# `<cardinality>`, so it is derived (as the original Perl documentation builder
+# did) from the shape of the variable the parameter is read into, and from
+# whether the parameter may be omitted.  It may be omitted if it has a default,
+# or if the constructor reads it only when it is present (an `isPresent` guard,
+# detected by the caller).  Canonical forms are:
+#
+#   ``1``    -- required, a single value;
+#   ``0..1`` -- optional, a single value;
+#   ``N``    -- required, exactly N values (a fixed-size array);
+#   ``0,N``  -- optional, but if given then exactly N values;
+#   ``1..*`` -- required, one or more values;
+#   ``0..*`` -- optional, any number of values.
+#
+# The derivation can be wrong (e.g. a parameter guarded by a condition other
+# than `isPresent`); an explicit `<cardinality>` corrects it.
+_RE_DIMENSION = re.compile(r'^dimension\s*\((.*)\)\s*$', re.IGNORECASE)
+_RE_EXTENT    = re.compile(r'^(?:1\s*:\s*)?(\d+)$')
+
+
+def _split_top_level(text):
+    """Split `text` on commas not enclosed in parentheses."""
+    parts, depth, current = [], 0, ''
+    for character in text:
+        if character == '(':
+            depth += 1
+        elif character == ')':
+            depth -= 1
+        if character == ',' and depth == 0:
+            parts.append(current.strip())
+            current = ''
+        else:
+            current += character
+    parts.append(current.strip())
+    return parts
+
+
+def maximum_count_from_declaration(declaration):
+    """Return the maximum number of values a declared variable can hold: 1 for
+    a scalar, the number of elements for an array of constant shape, or ``'*'``
+    for any other array (deferred, assumed, or non-literal shape)."""
+    for attribute in declaration.get('attributes') or []:
+        match = _RE_DIMENSION.match(attribute.strip())
+        if not match:
+            continue
+        count = 1
+        for extent in _split_top_level(match.group(1)):
+            extent_match = _RE_EXTENT.match(extent)
+            if not extent_match:
+                return '*'
+            count *= int(extent_match.group(1))
+        return count
+    return 1
+
+
+def infer_parameter_cardinality(directive, declaration_lookup=None, guarded=False):
+    """Infer the cardinality of a single `<inputParameter>` directive.
+
+    ``guarded`` is True when the parameter is read only if it is present in the
+    parameter file, so that it may be omitted even though it has no default.
+
+    Returns ``{'cardinality', 'cardinalityProvenance'}``; the cardinality is
+    None (provenance ``unknown``) if the variable's shape can not be found.
+    """
+    explicit = _scalar(directive.get('cardinality'))
+    if explicit:
+        return {'cardinality': explicit, 'cardinalityProvenance': PROV_EXPLICIT}
+    variable = _scalar(directive.get('variable')) or _scalar(directive.get('name'))
+    if variable and '%' not in variable and '(' in variable:
+        # An array section (any number of values), or an element (one value).
+        maximum = '*' if ':' in variable else 1
+    elif variable and '%' not in variable and declaration_lookup is not None:
+        declaration = declaration_lookup(variable)
+        if not declaration:
+            return {'cardinality': None, 'cardinalityProvenance': PROV_UNKNOWN}
+        maximum = maximum_count_from_declaration(declaration)
+    else:
+        return {'cardinality': None, 'cardinalityProvenance': PROV_UNKNOWN}
+    optional = guarded or directive.get('defaultValue') is not None
+    if maximum == '*':
+        cardinality = '0..*' if optional else '1..*'
+    elif maximum == 1:
+        cardinality = '0..1' if optional else '1'
+    else:
+        cardinality = f'0,{maximum}' if optional else str(maximum)
+    return {'cardinality': cardinality, 'cardinalityProvenance': PROV_DERIVED}

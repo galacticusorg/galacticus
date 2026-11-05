@@ -51,8 +51,12 @@ def _parse_args():
                         help='Distribution model for the progenitor-to-parent mass ratio under N-body '
                              'mass errors: "hinkley" (exact ratio-of-normals) or "normal" (linearized '
                              'Gaussian approximation) (default: hinkley)')
+    parser.add_argument('--modelVariance', default='no', choices=['no', 'yes'],
+                        help='Include the variance of the model (from its finite number of merger trees) in the '
+                             'over-dispersion of the likelihood of each progenitor mass function, so that the noise of a '
+                             'single realization of the trees does not bias the likelihood low (default: no)')
     args = parser.parse_args()
-    # Normalise paths to end with '/'.
+    # Normalize paths to end with '/'.
     for key in ('pipelinePath', 'outputDirectory'):
         val = getattr(args, key)
         if val and not val.endswith('/'):
@@ -423,7 +427,7 @@ def _base_files(entry_groups,options):
                     f'      <massRatioLikelihoodMinimum   value="{mass_ratio_min}"                                                                              />\n'
                     f'      <massRatioLikelihoodMaximum   value="1.00"                                                                                          />\n'
                     f'      <covarianceDiagonalize        value="true"                                                                                          />\n'
-                    f'      <covarianceTargetOnly         value="true"                                                                                          />\n'
+                    f'      <covarianceTargetOnly         value="{"false" if options["modelVariance"] == "yes" else "true"}"                                    />\n'
                     f'      <likelihoodInCounts           value="true"                                                                                          />\n'
                     f'      <likelihoodInLog              value="false"                                                                                         />\n'
                     f'      <fillInZeroBins               value="=[%s|progenitorMassFunctionParameters/fillInZeroBins]"                                         />\n'

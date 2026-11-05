@@ -121,7 +121,7 @@ contains
     !!{RST
     Implement an ICM X-ray properties extractor.
     !!}
-    use :: Galacticus_Nodes            , only : nodeComponentHotHalo                   , treeNode
+    use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Physical, only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes, only : kilo
     use :: Numerical_Constants_Units   , only : electronVolt

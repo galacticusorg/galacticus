@@ -20,7 +20,7 @@
   !+    Contributions to this file made by: Andrew Benson, Xiaolong Du, Claude.
 
   !!{RST
-  Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
+  Implements a node operator class that applies tidal heating to orbiting satellite halos.
   !!}
 
   use :: Satellite_Tidal_Heating, only : satelliteTidalHeatingRateClass
@@ -117,6 +117,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator class.
     !!}
+    use :: Satellite_Tidal_Heating_Status, only : satelliteTidalHeatingIsEvolved
     implicit none
     type            (nodeOperatorSatelliteTidalHeating)                        :: self
     class           (satelliteTidalHeatingRateClass   ), intent(in   ), target :: satelliteTidalHeatingRate_
@@ -132,6 +133,8 @@ contains
     !![
     <componentPropertyAssert class="satellite" properties="position velocity" require="gettable"/>
     !!]
+    ! Record that the tidal heating of satellites is evolved.
+    satelliteTidalHeatingIsEvolved=.true.
     return
   end function satelliteTidalHeatingRateConstructorInternal
 

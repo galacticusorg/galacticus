@@ -121,16 +121,24 @@ with safe_section("linearGrowthCollisionlessMatter"):
     linearGrowth = galacticus.linearGrowthCollisionlessMatter(cosmologyParameters,cosmologyFunctions)
     check("D(t=6 Gyr)", linearGrowth.value(time=6.0), 0.6282911249247264)
 
+# Power spectrum normalizer.
+with safe_section("powerSpectrumNormalizerSigma8"):
+    powerSpectrumNormalizer = galacticus.powerSpectrumNormalizerSigma8(sigma8=0.8,tolerance=1.0e-4,integrationFailureIsFatal=True,cosmologyParameters_=cosmologyParameters,cosmologyFunctions_=cosmologyFunctions,transferFunction_=transferFunction)
+
 # Power spectrum transferred.  Tolerance is loosened here because the result
 # accumulates the integration tolerances of every upstream object, and because it inherits the
 # CAMB tabulation-extent sensitivity described above - roughly doubled, since P ∝ T².
 with safe_section("powerSpectrumPrimordialTransferredSimple"):
-    powerSpectrumTransferred = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth)
-    check("P(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferred.power(wavenumber=2.0,time=6.0), 4.556228825604437e-7, rtol=1.0e-4, fmt=".6e")
+    powerSpectrumTransferred = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth,powerSpectrumNormalizer)
+    check("P(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferred.power(wavenumber=2.0,time=6.0), 5.9354874483499325, rtol=1.0e-4, fmt=".6e", unit="Mpc³")
+    # With the identity normalizer the unnormalized power is returned. This also checks that the normalizer (held as an
+    # unlimited polymorphic object) keeps its dynamic type when passed through the library interface.
+    powerSpectrumTransferredUnnormalized = galacticus.powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial,transferFunction,linearGrowth,galacticus.powerSpectrumNormalizerIdentity())
+    check("P_unnormalized(k=2 Mpc⁻¹,t=6 Gyr)", powerSpectrumTransferredUnnormalized.power(wavenumber=2.0,time=6.0), 4.556228825604437e-7, rtol=1.0e-4, fmt=".6e", unit="Mpc³")
 
 # Cosmological mass variance.
 with safe_section("cosmologicalMassVarianceFilteredPower"):
-    cosmologicalMassVariance = galacticus.cosmologicalMassVarianceFilteredPower(sigma8=0.8,tolerance=1.0e-4,toleranceTopHat=1.0e-4,nonMonotonicIsFatal=True,integrationFailureIsFatal=True,monotonicInterpolation=False,rootVarianceLogarithmicGradientTolerance=1.0e-4,truncateAtParticleHorizon=False,storeTabulations=True,cosmologyParameters_=cosmologyParameters,cosmologyFunctions_=cosmologyFunctions,linearGrowth_=linearGrowth,powerSpectrumPrimordialTransferred_=powerSpectrumTransferred,powerSpectrumWindowFunction_=powerSpectrumWindowFunction)
+    cosmologicalMassVariance = galacticus.cosmologicalMassVarianceFilteredPower(tolerance=1.0e-4,toleranceTopHat=1.0e-4,nonMonotonicIsFatal=True,integrationFailureIsFatal=True,monotonicInterpolation=False,rootVarianceLogarithmicGradientTolerance=1.0e-4,truncateAtParticleHorizon=False,storeTabulations=True,cosmologyParameters_=cosmologyParameters,cosmologyFunctions_=cosmologyFunctions,linearGrowth_=linearGrowth,powerSpectrumPrimordialTransferred_=powerSpectrumTransferred,powerSpectrumWindowFunction_=powerSpectrumWindowFunction)
     check("σ(M=10¹²M☉)", cosmologicalMassVariance.rootVariance(mass=1.0e12,time=13.8), 2.1968436151438357)
 
 # Critical overdensity.
@@ -435,11 +443,14 @@ with safe_section("nodeOperatorEmpiricalGalaxyUniverseMachine"):
 # kind_int8 → c_long mapping, `nodeIndicesReport` would be emitted as
 # `integer(c_int)` (32-bit) and mismatch the inner constructor.  We
 # include a value > 2^31 to make the 64-bit-ness load-bearing.
+# `orphanTrajectory` is a `type(enumerationOrphanTrajectoryType)`
+# argument, passed as its integer ID (0 = host, 1 = decay).
 with safe_section("nodeOperatorPositionInterpolated"):
     indices = np.array([1, 42, 1_000_000_000_000], dtype=np.int64)
     nopi = galacticus.nodeOperatorPositionInterpolated(
         lengthBox=100.0, wrapPeriodic=True,
         nodeIndicesReport=indices,
+        orphanTrajectory=1,
         cosmologyFunctions_=cosmologyFunctions,
     )
     check_eq("constructed type",

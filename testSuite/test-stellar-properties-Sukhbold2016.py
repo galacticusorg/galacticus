@@ -8,12 +8,13 @@ import numpy as np
 # Andrew Benson (10-August-2026); generated with assistance from Claude.
 
 # Sukhbold et al. (2016) computed their models at a single metallicity, and the yields are written at two
-# bracketing metallicities with identical values to say so explicitly. That encoding is not merely cosmetic: the
-# irregular two dimensional interpolation used by `stellarAstrophysicsFile` extrapolates badly when the
-# requested metallicity lies outside the range spanned by the tabulated points at the relevant masses, and for a
-# table at a single metallicity that is almost always the case. Written at one metallicity these models return
-# eleven times the expected metal yield, or zero, or hang the initial mass function integration, depending on
-# what they are combined with.
+# bracketing metallicities with identical values to say so explicitly. That encoding was originally needed
+# because `stellarAstrophysicsFile` interpolated yields in the irregular (mass, metallicity) plane, which
+# extrapolates badly when the requested metallicity lies outside the range spanned by the tabulated points at
+# the relevant masses: written at one metallicity these models returned eleven times the expected metal yield,
+# or zero, or hung the initial mass function integration, depending on what they were combined with. Yields are
+# now interpolated along initial mass at each tabulated metallicity, and taken from the nearest tabulated
+# metallicity beyond the range, so either encoding gives the same result; the test guards against a regression.
 #
 # Roughly half the Sukhbold models collapse entirely to a black hole and eject only their wind, so this
 # compilation must return substantially fewer metals than the standard one: their initial mass function weighted

@@ -26,7 +26,7 @@ Changes to the format or syntax of any of these files are considered to be incom
 
 Versions are implemented through GitHub's "`release <https://docs.github.com/en/github/administering-a-repository/releasing-projects-on-github/about-releases>`_" mechanism, and so are based on ``git`` "`tags <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_". Associated with each release are a statically-linked binary executable and documentation. Additionally a Docker image is built for each version, which can be retrieved using ``docker pull galacticusorg/galacticus:X.Y.Z``.
 
-The Galacticus ``datasets`` repo has corresponding versions - it's recommended to using matching versions of the `galacticus <https://github.com/galacticusorg/galacticus>`_ and `datasets <https://github.com/galacticusorg/galacticus>`_ repos.
+The Galacticus ``datasets`` repo has corresponding versions - it's recommended to use matching versions of the `galacticus <https://github.com/galacticusorg/galacticus>`_ and `datasets <https://github.com/galacticusorg/datasets>`__ repos.
 
 When to Create a Release
 ------------------------
@@ -112,7 +112,7 @@ The publish workflow also pins the run-time data: it records the current
 ``datasets`` ``master`` commit as a ``datasets.ref`` asset on the release and
 notes that commit in the release body, so every install of that version (whether
 via ``pip`` or by hand) uses the same data. Cutting a matching tagged
-`datasets <https://github.com/galacticusorg/datasets>`_ release is therefore
+`datasets <https://github.com/galacticusorg/datasets>`__ release is therefore
 optional — useful for a human-readable version, but the recorded commit is the
 source of truth.
 

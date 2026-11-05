@@ -23,7 +23,7 @@ Contains a module which provides a class implementing atomic collisional ionizat
 
 module Atomic_Rates_Ionization_Collisional
   !!{RST
-  Provides a class implementing radiative recombination rates.
+  Provides a class implementing atomic collisional ionization rates.
   !!}
   private
 

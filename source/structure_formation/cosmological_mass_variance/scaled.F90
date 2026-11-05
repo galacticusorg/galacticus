@@ -38,7 +38,6 @@
    contains
      final     ::                                        scaledDestructor
      procedure :: sigma8                              => scaledSigma8
-     procedure :: powerNormalization                  => scaledPowerNormalization
      procedure :: rootVariance                        => scaledRootVariance
      procedure :: rootVarianceLogarithmicGradient     => scaledRootVarianceLogarithmicGradient
      procedure :: rootVarianceLogarithmicGradientTime => scaledRootVarianceLogarithmicGradientTime
@@ -116,17 +115,6 @@ contains
     !!]
     return
   end subroutine scaledDestructor
-
-  double precision function scaledPowerNormalization(self)
-    !!{RST
-    Return the normalization of the power spectrum.
-    !!}
-    implicit none
-    class(cosmologicalMassVarianceScaled), intent(inout) :: self
-
-    scaledPowerNormalization=self%cosmologicalMassVariance_%powerNormalization()
-    return
-  end function scaledPowerNormalization
 
   double precision function scaledSigma8(self)
     !!{RST
