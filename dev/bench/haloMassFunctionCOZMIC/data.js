@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793794199838,
+  "lastUpdate": 1793919246167,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (COZMIC)": [
@@ -2498,6 +2498,55 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
             "value": 74.48279824775494,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "275fe42308caf2882ce2390aeaaf77047ae424f7",
+          "message": "Merge pull request #1745 from galacticusorg/feat/merger-tree-variance-test\n\ntest(merger-trees): add a testSuite test of the branchingVariance operator, and document the variance tools",
+          "timestamp": "2026-11-05T15:50:07Z",
+          "tree_id": "9c85fb299349d08e1d923b5b9f996c1684772322",
+          "url": "https://github.com/galacticusorg/galacticus/commit/275fe42308caf2882ce2390aeaaf77047ae424f7"
+        },
+        "date": 1793919245735,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000",
+            "value": 81.56288946949522,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
+            "value": 61.04931570009256,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV resolutionX8 z=0.000",
+            "value": 61.922518555381195,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:bumpCutoff resolutionX8 z=0.000",
+            "value": 105.18306910854619,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
+            "value": 74.48289008537377,
             "unit": "-logℒ"
           }
         ]
