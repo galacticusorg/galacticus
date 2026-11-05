@@ -179,11 +179,11 @@ contains
     type            (treeNode                             ), pointer       :: nodeHost
     class           (nodeComponentBasic                   ), pointer       :: basic
     class           (massDistributionClass                ), pointer       :: massDistribution_
-    double precision                                                       :: radiusOrbital        , radiusVirial    , &
-         &                                                                    massEnclosed         , timeDynamical   , &
-         &                                                                    massReduced          , radiusPericenter, &
-         &                                                                    massSatellite        , bExponent       , &
-         &                                                                    energyOrbital        , angularMomentum , &
+    double precision                                                       :: radiusOrbital    , radiusVirial    , &
+         &                                                                    massEnclosed     , timeDynamical   , &
+         &                                                                    massReduced      , radiusPericenter, &
+         &                                                                    massSatellite    , bExponent       , &
+         &                                                                    energyOrbital    , angularMomentum , &
          &                                                                    eccentricity
 
     ! Find the host node.
@@ -197,7 +197,7 @@ contains
     radiusVirial =self %darkMatterHaloScale_%radiusVirial(nodeHost)
     ! Get the host mass enclosed within the orbital radius (Poulton et al. 2021, eqn. 2), which is the virial mass outside the
     ! virial radius.
-    massDistribution_ => self             %darkMatterProfileDMO_%get                 (nodeHost                        )
+    massDistribution_ => self             %darkMatterProfileDMO_%get                 (nodeHost                       )
     massEnclosed      =  massDistribution_                      %massEnclosedBySphere(min(radiusOrbital,radiusVirial))
     !![
     <objectDestructor name="massDistribution_"/>
@@ -211,36 +211,38 @@ contains
     ! the satellite and the enclosed host mass.
     basic            =>  node%basic()
     massSatellite    =   basic%mass()
-    massReduced      =  +massSatellite                &
-         &              *massEnclosed                 &
-         &              /(                            &
-         &                +massSatellite              &
-         &                +massEnclosed               &
+    massReduced      =  +massSatellite   &
+         &              *massEnclosed    &
+         &              /(               &
+         &                +massSatellite &
+         &                +massEnclosed  &
          &               )
-    energyOrbital    =  +0.5d0                                                          &
-         &              *massReduced                                                    &
-         &              *(                                                              &
-         &                +orbit%velocityRadial    ()**2                                &
-         &                +orbit%velocityTangential()**2                                &
-         &               )                                                              &
-         &              -gravitationalConstant_internal*massEnclosed*massSatellite/radiusOrbital
-    angularMomentum  =  +massReduced                  &
-         &              *radiusOrbital                &
+    energyOrbital    =  +0.5d0                           &
+         &              *massReduced                     &
+         &              *(                               &
+         &                +orbit%velocityRadial    ()**2 &
+         &                +orbit%velocityTangential()**2 &
+         &               )                               &
+         &              -gravitationalConstant_internal  &
+         &              *massEnclosed*massSatellite      &
+         &              /radiusOrbital
+    angularMomentum  =  +massReduced                &
+         &              *radiusOrbital              &
          &              *orbit%velocityTangential()
-    eccentricity     =  +sqrt(                                                                                                 &
-         &                    max(                                                                                             &
-         &                        +0.0d0                                                                                     , &
-         &                        +1.0d0                                                                                       &
-         &                        +2.0d0*energyOrbital*angularMomentum**2/(gravitationalConstant_internal*massEnclosed*massSatellite)**2/massReduced &
-         &                       )                                                                                             &
+    eccentricity     =  +sqrt(                                                                                                                        &
+         &                    max(                                                                                                                    &
+         &                        +0.0d0                                                                                                            , &
+         &                        +1.0d0                                                                                                              &
+         &                        +2.0d0*energyOrbital*angularMomentum**2/(gravitationalConstant_internal*massEnclosed*massSatellite)**2/massReduced  &
+         &                       )                                                                                                                    &
          &                   )
     ! Pericentric radius via the locally-Keplerian approximation (Poulton et al. 2021, eqn. 6). This holds for unbound
     ! (e ≥ 1) as well as bound orbits, so the fitting formula is applied to both.
-    radiusPericenter =  +angularMomentum**2                         &
-         &              /(1.0d0+eccentricity)                       &
-         &              /gravitationalConstant_internal             &
-         &              /massEnclosed                               &
-         &              /massSatellite                              &
+    radiusPericenter =  +angularMomentum**2             &
+         &              /(1.0d0+eccentricity)           &
+         &              /gravitationalConstant_internal &
+         &              /massEnclosed                   &
+         &              /massSatellite                  &
          &              /massReduced
     ! Local dynamical time (Poulton et al. 2021, eqn. 7), converted from Mpc/(km/s) to Gyr.
     timeDynamical    =  +sqrt(                                &

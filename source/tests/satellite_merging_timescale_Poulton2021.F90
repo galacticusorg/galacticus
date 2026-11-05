@@ -50,36 +50,36 @@ program Test_Satellite_Merging_Timescale_Poulton2021
        &                                          compareGreaterThan
   implicit none
   ! The host halo, and the parameters of the Poulton et al. (2021) fit (their favored values).
-  double precision                                       , parameter    :: massHost              =1.0d12, concentrationHost  =10.0d0, &
-       &                                                                   timeNode              =13.8d0
-  double precision                                       , parameter    :: A                     =5.5d0 , c                  = 0.2d0, &
-       &                                                                   bInterior             =-0.5d0, bExterior          =-1.0d0
+  double precision                                       , parameter    :: massHost                    = 1.0d12                  , concentrationHost  =10.0d0, &
+       &                                                                   timeNode                    =13.8d00
+  double precision                                       , parameter    :: A                           = 5.5d00                  , c                  = 0.2d0, &
+       &                                                                   bInterior                   =-0.5d00                  , bExterior          =-1.0d0
   ! Orbital configurations: radius (in units of the virial radius), radial and tangential velocities (in units of the virial
   ! velocity), and satellite mass. The third set of velocities gives an unbound orbit at every radius.
-  integer                                                , parameter    :: countRadii            =4     , countVelocities    =3     , &
-       &                                                                   countMasses           =2
-  double precision, dimension(countRadii     )           , parameter    :: radiusFractional      =[0.3d0,0.7d0,1.5d0,2.0d0]
-  double precision, dimension(countVelocities)           , parameter    :: velocityRadialFractional    =[-0.5d0,-0.9d0,-1.6d0], &
+  integer                                                , parameter    :: countRadii                  =4                        , countVelocities    =3     , &
+       &                                                                   countMasses                 =2
+  double precision, dimension(countRadii     )           , parameter    :: radiusFractional            =[0.3d0,0.7d0,1.5d0,2.0d0]
+  double precision, dimension(countVelocities)           , parameter    :: velocityRadialFractional    =[-0.5d0,-0.9d0,-1.6d0]   , &
        &                                                                   velocityTangentialFractional=[+0.6d0,+0.3d0,+1.2d0]
-  double precision, dimension(countMasses    )           , parameter    :: massSatellite         =[1.0d10,1.0d11]
+  double precision, dimension(countMasses    )           , parameter    :: massSatellite               =[1.0d10,1.0d11]
   class           (darkMatterHaloScaleClass             ), pointer      :: darkMatterHaloScale_
   class           (darkMatterProfileDMOClass            ), pointer      :: darkMatterProfileDMO_
   type            (satelliteMergingTimescalesPoulton2021)               :: satelliteMergingTimescales_
-  type            (treeNode                             ), pointer      :: nodeHost                     , nodeSatellite
-  class           (nodeComponentBasic                   ), pointer      :: basicHost                    , basicSatellite
+  type            (treeNode                             ), pointer      :: nodeHost                                              , nodeSatellite
+  class           (nodeComponentBasic                   ), pointer      :: basicHost                                             , basicSatellite
   class           (nodeComponentDarkMatterProfile       ), pointer      :: profileHost
   type            (inputParameters                      )               :: parameters
   type            (keplerOrbit                          )               :: orbit
   character       (len=128                              )               :: message
-  integer                                                               :: iRadius                      , iVelocity           , &
+  integer                                                               :: iRadius                                               , iVelocity                 , &
        &                                                                   iMass
-  double precision                                                      :: radiusVirial                 , velocityVirial      , &
-       &                                                                   radius                       , velocityRadial      , &
-       &                                                                   velocityTangential           , massEnclosed        , &
-       &                                                                   massReduced                  , energyOrbital       , &
-       &                                                                   angularMomentum              , eccentricity        , &
-       &                                                                   radiusPericenter             , timeDynamical       , &
-       &                                                                   timeMergingReference         , timeMerging         , &
+  double precision                                                      :: radiusVirial                                          , velocityVirial            , &
+       &                                                                   radius                                                , velocityRadial            , &
+       &                                                                   velocityTangential                                    , massEnclosed              , &
+       &                                                                   massReduced                                           , energyOrbital             , &
+       &                                                                   angularMomentum                                       , eccentricity              , &
+       &                                                                   radiusPericenter                                      , timeDynamical             , &
+       &                                                                   timeMergingReference                                  , timeMerging               , &
        &                                                                   radiusScaleFree
 
   call displayVerbositySet              (verbosityLevelStandard)
@@ -125,8 +125,8 @@ program Test_Satellite_Merging_Timescale_Poulton2021
            timeMerging=satelliteMergingTimescales_%timeUntilMerging(nodeSatellite,orbit)
            ! Reference evaluation of Poulton et al. (2021) equations 2-8.
            radiusScaleFree =concentrationHost*min(radius,radiusVirial)/radiusVirial
-           massEnclosed    =+massHost                                                                        &
-                &           *(log(1.0d0+radiusScaleFree  )-radiusScaleFree  /(1.0d0+radiusScaleFree  ))      &
+           massEnclosed    =+massHost                                                                   &
+                &           *(log(1.0d0+radiusScaleFree  )-radiusScaleFree  /(1.0d0+radiusScaleFree  )) &
                 &           /(log(1.0d0+concentrationHost)-concentrationHost/(1.0d0+concentrationHost))
            massReduced     =+massSatellite(iMass)*massEnclosed/(massSatellite(iMass)+massEnclosed)
            energyOrbital   =+0.5d0*massReduced*(velocityRadial**2+velocityTangential**2) &
