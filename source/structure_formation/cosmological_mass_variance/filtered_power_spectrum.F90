@@ -40,7 +40,20 @@
 
    The value of :math:`\sigma_8` (the linear theory root-variance of the density field at the present day in spheres of radius :math:`8h^{-1}`\ Mpc) is computed from the power spectrum using a real-space top-hat window function (as per the definition of :math:`\sigma_8`), unless a different window function is explicitly defined via the ``[powerSpectrumWindowFunctionTopHat]`` parameter. For this integration the tolerance can be set via the ``[toleranceTopHat]`` parameter.
 
-   Cubic spline interpolation is then used to interpolate in this table to give :math:`\sigma(M)` at any required value of :math:`M`. The tabulation is always forced to be monotonically decreasing with :math:`M`. However, the interpolation is not necessarily monotonic---for example in cases where :math:`\sigma(M)` becomes constant or close to constant as a function of :math:`M` the interpolation can become non-monotonic over some ranges of :math:`M`. If strict monotonicity is required set ``[monotonicInterpolation]``\ =\ ``true``. This causes a monotonic spline interpolator to be used instead which guarantees monotonicity.
+   Interpolation in this table is then used to give :math:`\sigma(M)` at any required value of :math:`M`. The tabulation is always
+   forced to be monotonically decreasing with :math:`M`. By default (``[monotonicInterpolation]``\ =\ ``true``) a
+   monotonicity-preserving quintic Hermite interpolant (in :math:`\log M`) is used. This guarantees that the interpolation is
+   monotonic also, has continuous first and second derivatives (so that :math:`\alpha=\mathrm{d}\log\sigma/\mathrm{d}\log M` is
+   continuous and smooth), and is *local*: its value in any interval depends only on the tabulated values nearby. The first and
+   last three intervals of the tabulation (in which the derivatives used by the interpolant can not be estimated from the full
+   stencil of tabulated points) are never used---a mass falling in them causes the tabulation to be extended. Together these make
+   :math:`\sigma(M)` at any mass independent of the range over which, and the sequence of requests by which, the tabulation was
+   built. If ``[monotonicInterpolation]``\ =\ ``false`` a standard cubic spline is used instead. Its interpolation need not be
+   monotonic---for example in cases where :math:`\sigma(M)` becomes constant or close to constant as a function of :math:`M` the
+   interpolation can become non-monotonic over some ranges of :math:`M`---and, as every one of its coefficients depends on every
+   tabulated value, extending the tabulation changes :math:`\sigma(M)` near its former ends (by up to a few parts in :math:`10^6`
+   within a tabulated interval of the former end), so that results can then depend on the order in which masses were requested,
+   and on whether the tabulation was built during the run or read from file.
    </description>
   </cosmologicalMassVariance>
   !!]
@@ -159,13 +172,15 @@
 
   ! Seed range of masses to tabulate. Every tabulation contains this range, so any two which are never asked for a mass outside
   ! it span *exactly* the same range - which matters here beyond the usual guarantee that two ranges overlap and so can be
-  ! merged. σ(M) is interpolated with a cubic spline, every coefficient of which depends on every tabulated value, so σ at a
-  ! given mass is not a function of that mass alone: it depends on the range over which the tabulation was built. Since
-  ! tabulations are cached to file and merged across runs and across models sharing the same parameters, a model which extended
-  ! the range would otherwise obtain a different σ(M) from one which ran before it and did not - making results depend on what
-  ! else had run, which is the dependence this pinning exists to remove. The range spans the halo masses which models
-  ! plausibly reach; a mass outside it still extends the tabulation, and the dependence returns for models which straddle it.
-  double precision                , parameter :: massTableSeedMinimum=1.0d6     , massTableSeedMaximum=1.0d18
+  ! merged. With the standard cubic spline interpolator (monotonicInterpolation=false) every coefficient depends on every
+  ! tabulated value, so σ at a given mass is not a function of that mass alone: near the ends of the tabulation it depends on the
+  ! range over which the tabulation was built. Since tabulations are cached to file and merged across runs and across models
+  ! sharing the same parameters, a model which extended the range would otherwise obtain a different σ(M) from one which ran
+  ! before it and did not - making results depend on what else had run. The range spans the halo masses which models plausibly
+  ! reach; a mass outside it still extends the tabulation, and with the standard interpolator the dependence returns for models
+  ! which straddle it. The (default) monotonic interpolator is local, and the first and last three intervals of the tabulation are
+  ! never used (see `filteredPowerRetabulate`), so with it σ(M) is independent of the range in any case.
+  double precision                , parameter :: massTableSeedMinimum=1.0d6, massTableSeedMaximum=1.0d18
 
   ! Cached copies of tabulated solutions. These are used to avoid re-reading from file if the same variance is requested multiple times.
   type :: cachedVariance
@@ -254,9 +269,12 @@ contains
     <inputParameter docformat="rst">
       <name>monotonicInterpolation</name>
       <source>parameters</source>
-      <defaultValue>.false.</defaultValue>
+      <defaultValue>.true.</defaultValue>
       <description>
-      If true use a monotonic cubic spline interpolator to interpolate in the :math:`\sigma(M)` table. Otherwise use a standard cubic spline interpolator. Use of the monotonic interpolator can be helpful is :math:`\sigma(M)` must be strictly monotonic but becomes a very weak function of :math:`M` at low masses.
+      If true use a monotonic, local, quintic Hermite interpolator to interpolate in the :math:`\sigma(M)` table. Otherwise use a
+      standard cubic spline interpolator. The monotonic interpolator guarantees that :math:`\sigma(M)` is strictly monotonic
+      (which matters where it becomes a very weak function of :math:`M` at low masses), and, being local, makes :math:`\sigma(M)`
+      independent of the history of the tabulation; the standard interpolator does neither.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -679,9 +697,12 @@ contains
        k    =1
        hTime=0.0d0
     end if
-    ! If σ exceeds the highest value tabulated, simply return the lowest tabulated mass.
-    if (rootVarianceActual > self%rootVarianceTable(k)%y(1)) then
-       filteredPowerMass=self%rootVarianceTable(k)%x(1)
+    ! If σ exceeds the value at the lowest mass of the usable range of the tabulation, simply return that mass. The tabulated
+    ! points below that mass are not used: returning one of them would cause any subsequent request for σ at that mass to
+    ! extend the tabulation, and, where σ(M) becomes constant at low masses (e.g. for warm dark matter), the requested σ is
+    ! never reached, so that a caller could extend the tabulation downward indefinitely.
+    if (rootVarianceActual > self%rootVarianceTable(k)%y(4)) then
+       filteredPowerMass=self%rootVarianceTable(k)%x(4)
     else
        ! Iterate over times.
        filteredPowerMass=0.0d0
@@ -722,12 +743,12 @@ contains
     !!{RST
     Tabulate the cosmological mass variance.
     !!}
-    use :: Display                 , only : displayIndent            , displayMagenta                   , displayMessage     , displayReset, &
-          &                                 displayUnindent          , verbosityLevelWorking
-    use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
-    use :: Error                   , only : Error_Report             , Warn
-    use :: Numerical_Ranges        , only : Range_Pinned             , Range_Lattice_Offset             , gridSchemePerDecade
-    use :: Tables                  , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
+    use :: Display         , only : displayIndent            , displayMagenta                          , displayMessage     , displayReset, &
+          &                         displayUnindent          , verbosityLevelWorking
+    use :: File_Utilities  , only : File_Lock                , File_Unlock                             , lockDescriptor
+    use :: Error           , only : Error_Report             , Warn
+    use :: Numerical_Ranges, only : Range_Pinned             , Range_Lattice_Offset                    , gridSchemePerDecade
+    use :: Tables          , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneQuinticHermite
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , intent(in   ), optional     :: mass                           , time
@@ -879,9 +900,9 @@ contains
           self%latticeTime=latticeTime
           ! Allocate table grid.
           if (self%monotonicInterpolation) then
-             allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable(rootVarianceTimeCount))
+             allocate(table1DLogarithmicMonotoneQuinticHermite :: self%rootVarianceTable(rootVarianceTimeCount))
           else
-             allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(rootVarianceTimeCount))
+             allocate(table1DLogarithmicCSpline                :: self%rootVarianceTable(rootVarianceTimeCount))
           end if
           call displayIndent("retabulating σ(M)",verbosityLevelWorking)
           write    (labelLow   ,'(e9.2)') latticeMass%minimum()
@@ -1005,9 +1026,20 @@ contains
           ! the lattice: the abscissae of a logarithmically-spaced table are the exponentials of its internal, logarithmic
           ! abscissae, and 10**(k/N) is not bit-identical to exp((k/N)ln10). Taking the limits from the lattice could therefore
           ! place them a fraction of an ulp outside the table, so that a mass which passes the test in `remakeTable` still lies
-          ! beyond the range which the table actually spans.
-          self%massMinimum=self%rootVarianceTable(1)%x(+1)
-          self%massMaximum=self%rootVarianceTable(1)%x(-1)
+          ! beyond the range which the table actually spans. The limits are the fourth and fourth-from-last tabulated masses, not
+          ! the first and last: the monotonic interpolator estimates derivatives at each tabulated point from the three points to
+          ! either side, so interpolation in the three intervals at each end (where that stencil is incomplete) differs from that
+          ! in the same intervals of a wider tabulation. A mass falling in an end interval therefore extends the tabulation. The
+          ! safety margin of the extension (a factor of 2 in mass, i.e. log₁₀2·`pointsPerDecade` > 3 intervals, before rounding
+          ! outward to whole decades) then leaves it inside the new limits, so that, with the local, monotonic interpolator, σ(M)
+          ! at any mass is the same however the tabulation came to be built.
+          self%massMinimum=self%rootVarianceTable(1)%x(+4)
+          self%massMaximum=self%rootVarianceTable(1)%x(-4)
+          ! Verify that the requested mass now lies within the usable range. This relies on the safety margin exceeding the
+          ! excluded intervals, which holds only for suitable choices of `pointsPerDecade` and the margin.
+          if (present(mass)) then
+             if (mass < self%massMinimum .or. mass > self%massMaximum) call Error_Report('requested mass lies outside the usable range of the tabulation'//{introspection:location})
+          end if
           ! Table is now initialized.
           self%initialized=.true.
           ! Store file.
@@ -1188,7 +1220,7 @@ contains
     use :: IO_HDF5         , only : hdf5File
     use :: Numerical_Ranges, only : gridSchemePerDecade
     use :: Table_Caches    , only : Table_Cache_Lattice_Read
-    use :: Tables          , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
+    use :: Tables          , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneQuinticHermite
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
@@ -1301,9 +1333,9 @@ contains
     allocate(self%times                  (size(timesTmp)))
     allocate(self%rootVarianceUniqueTable(size(timesTmp)))
     if (self%monotonicInterpolation) then
-       allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable(size(timesTmp)))
+       allocate(table1DLogarithmicMonotoneQuinticHermite :: self%rootVarianceTable(size(timesTmp)))
     else
-       allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(size(timesTmp)))
+       allocate(table1DLogarithmicCSpline                :: self%rootVarianceTable(size(timesTmp)))
     end if
     self%times      =timesTmp
     self%latticeMass=latticeMass
@@ -1322,8 +1354,9 @@ contains
     ! Recover the derived descriptions of the two axes. None of these is read from the file: each is a function of the lattices
     ! and of the epochs, so recomputing them here - exactly as `filteredPowerRetabulate` does - guarantees that a restored
     ! tabulation is described identically to a freshly built one.
-    self%massMinimum=self%rootVarianceTable(1)%x( 1)
-    self%massMaximum=self%rootVarianceTable(1)%x(-1)
+    ! As in `filteredPowerRetabulate`, the three intervals at each end of the tabulation are excluded from its usable range.
+    self%massMinimum=self%rootVarianceTable(1)%x( 4)
+    self%massMaximum=self%rootVarianceTable(1)%x(-4)
     if (self%growthIsMassDependent_) then
        self%timeMinimum                =self%times(                 1)
        self%timeMaximum                =self%times(size(self%times)  )
