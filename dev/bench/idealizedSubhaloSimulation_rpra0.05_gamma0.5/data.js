@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793794100949,
+  "lastUpdate": 1793919148228,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=0.5)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "1c6506aa5a4e23582702dc035a789fedc6bc828a",
-          "message": "Merge pull request #725 from galacticusorg/fixReinstateDMO\n\nReintroduce optional `darkMatterProfileDMO` argument to the halo mass definition conversion function",
-          "timestamp": "2024-10-22T23:26:33Z",
-          "tree_id": "7aa9014ce1e49185c36431fb7b1171a7fa185598",
-          "url": "https://github.com/galacticusorg/galacticus/commit/1c6506aa5a4e23582702dc035a789fedc6bc828a"
-        },
-        "date": 1729665368053,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
-            "value": "23.523299316991164",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "7.896762812694202",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
-            "value": "9.849823975186059",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9932,6 +9893,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/b745263546ff4e4e9a7f9e22158fa76c186b65bb"
         },
         "date": 1793794100173,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteBoundMass",
+            "value": -23.380591021144156,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -8.011177098874096,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=0.5) - Likelihood - satelliteVelocityMaximum",
+            "value": -10.110657914761397,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "275fe42308caf2882ce2390aeaaf77047ae424f7",
+          "message": "Merge pull request #1745 from galacticusorg/feat/merger-tree-variance-test\n\ntest(merger-trees): add a testSuite test of the branchingVariance operator, and document the variance tools",
+          "timestamp": "2026-11-05T15:50:07Z",
+          "tree_id": "9c85fb299349d08e1d923b5b9f996c1684772322",
+          "url": "https://github.com/galacticusorg/galacticus/commit/275fe42308caf2882ce2390aeaaf77047ae424f7"
+        },
+        "date": 1793919147308,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
