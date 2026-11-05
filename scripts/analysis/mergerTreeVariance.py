@@ -64,6 +64,7 @@ parser.add_argument('--splitTreeStride' ,action='store',default=1               
 parser.add_argument('--processes'       ,action='store',default=1                     ,type=int              ,help='number of worker processes over which chunks are distributed; peak memory scales with this times the chunk size')
 parser.add_argument('--foldOffset'    ,action='store',default=None                  ,type=int              ,help='assign trees to folds by (forest index + this offset) modulo the number of folds, rather than by their order; with the base random number seed as the offset this matches the folds of the branchingVariance merger tree operator, which assigns trees by their seed (this identifies a realization only when tree seeds are the base seed plus the tree index, as under the default mergerTreeSeeds=incremental)')
 parser.add_argument('--omegaTable'    ,action='store',default=None                                         ,help='an output file of the branchingVariance merger tree operator, from whose "redshift" and "omega" datasets ω(z) is interpolated, in place of δc0/D(z)')
+parser.add_argument('--cumulativeOmegaTable',action='store',default=None                                     ,help='an output file of the branchingVariance merger tree operator, whose "omegaCumulative" dataset gives the ω at which the cumulative variance identity is checked for statistics B and C, in place of the default grid (overrides --cumulativeCount; its ω are on the operator\'s scale, so --omegaTable defaults to the same file)')
 parser.add_argument('--chunkNodes'      ,action='store',default=20000000              ,type=int              ,help='approximate number of nodes processed at once (whole forests are always kept together); peak memory scales with this'                                                       )
 args = parser.parse_args()
 
@@ -72,6 +73,14 @@ def omegaOfRedshift(redshift):
     if omegaSpline is not None:
         return omegaSpline(redshift)
     return args.deltaCritical0/linearGrowthFactor(redshift,OmegaMatter,OmegaLambda)
+
+omegaCumulativeTable = None
+if args.cumulativeOmegaTable is not None:
+    with h5py.File(args.cumulativeOmegaTable,'r') as omegaFile:
+        omegaCumulativeTable = omegaFile['branchingVariance/omegaCumulative'][:]
+    args.cumulativeCount = len(omegaCumulativeTable)
+    if args.omegaTable is None:
+        args.omegaTable = args.cumulativeOmegaTable
 
 omegaSpline = None
 if args.omegaTable is not None:
@@ -363,6 +372,45 @@ def weightedVarianceMinusMean(weights,values):
     var  *= total/(total-1.0)
     return var-(weights@values[1])/total
 
+def weightedCovariance(weights,values):
+    # Cov(E₁,E₂) for each set of bootstrap weights; values is (E₁, E₂).
+    total = weights.sum(axis=1)
+    mean1 = (weights@values[0])/total
+    mean2 = (weights@values[1])/total
+    cov   = (weights@(values[0]*values[1]))/total-mean1*mean2
+    return cov*total/(total-1.0)
+
+def weightedCovarianceMinusMean(weights,values):
+    # Cov(E₁,E₂) - <ΣΔ²> for each set of bootstrap weights; values is (E₁, E₂, ΣΔ²).
+    return weightedCovariance(weights,values[0:2])-(weights@values[2])/weights.sum(axis=1)
+
+def foldedEstimate(values,function,fold,coefficient):
+    # Estimate a statistic of per-tree values within each fold of trees, and combine the folds weighted by their number of trees.
+    # Within a fold the n₁ tables applied are fixed. Their noise enters each fold's estimate at first order (through the mean
+    # errors of the tables, and the correlation of their errors with the trees' quantities), which a bootstrap over trees
+    # cannot see. Each fold uses different tables, so this noise is estimated from the scatter of the per-fold estimates in
+    # excess of that expected from tree sampling (the mean of the per-fold bootstrap variances). The coefficient converts that
+    # excess into the variance of the combined estimate: 1/(number of folds) when each fold's estimate uses one table (distinct
+    # between folds), and 4/3 when, as with the cross-product estimator, each uses the tables of both other folds (so that each
+    # table is shared by two folds' estimates; this is an upper bound if the estimate also has noise from the product of the
+    # two tables' errors). With few folds the excess has few degrees of freedom, so this error is itself uncertain by a large
+    # factor. Returns the estimate and its error.
+    if countFolds == 1:
+        return function(np.ones((1,countTrees)),values)[0], bootstrap(values,function,rng)
+    estimates = np.empty(countFolds)
+    variances = np.empty(countFolds)
+    counts    = np.empty(countFolds)
+    for h in range(countFolds):
+        select       = fold == h
+        counts   [h] = np.count_nonzero(select)
+        valuesFold   = values[...,select]
+        estimates[h] = function(np.ones((1,select.sum())),valuesFold)[0]
+        weights      = rng.multinomial(int(counts[h]),np.full(int(counts[h]),1.0/counts[h]),size=args.bootstrapCount).astype(np.float64)
+        variances[h] = np.var(function(weights,valuesFold))
+    weightsFold = counts/counts.sum()
+    variance    = weightsFold**2@variances+coefficient*max(estimates.var(ddof=1)-variances.mean(),0.0)
+    return weightsFold@estimates, np.sqrt(variance)
+
 def weightedVariance(weights,values):
     total = weights.sum(axis=1)
     mean  = (weights@values)/total
@@ -519,7 +567,10 @@ print('  statistic A target: z₁={:.3f}, ω₁={:.4f} (ω₀={:.4f})'.format(ar
 # Grid of ω for the cumulative check.
 omegaGrids = {}
 for statistic in args.statistics:
-    omegaGrids[statistic] = np.linspace(omegaMinimum,omega1 if statistic == 'A' else np.quantile(np.concatenate(omegaSplitsActive[statistic]),0.999),args.cumulativeCount)
+    if omegaCumulativeTable is not None and statistic != 'A':
+        omegaGrids[statistic] = omegaCumulativeTable
+    else:
+        omegaGrids[statistic] = np.linspace(omegaMinimum,omega1 if statistic == 'A' else np.quantile(np.concatenate(omegaSplitsActive[statistic]),0.999),args.cumulativeCount)
 del omegaSplitsActive
 
 output = h5py.File(args.outputFileName,'w')
@@ -550,7 +601,7 @@ def passJumps(indexChunk):
     for statistic, indexThreshold, massThreshold in cases:
         tablesCase  = tables[(statistic,indexThreshold)]
         emptyBefore = sum(table.evaluationsEmpty for table in tablesCase)
-        result      = {'trees': {}, 'markov': {}, 'expectation': np.empty((args.cumulativeCount,chunk.countTrees)), 'sumBefore': np.empty((args.cumulativeCount,chunk.countTrees))}
+        result      = {'trees': {}, 'markov': {}, 'expectation': np.empty((args.cumulativeCount,chunk.countTrees)), 'sumBefore': np.empty((args.cumulativeCount,chunk.countTrees)), 'expectationAlternate': np.empty((args.cumulativeCount,chunk.countTrees))}
         c           = chunk.statisticCounts(statistic,massThreshold)
         countAdded, own, count, tableNodes, activeSplit = c['countAdded'], c['own'], c['count'], c['tableNodes'], c['activeSplit']
         countTree   = count[chunk.roots]
@@ -635,7 +686,10 @@ def passJumps(indexChunk):
         t['sumDeltaSquaredAfterFormation'] = chunk.treeSum(deltaSquared,afterFormation)
         t['telescopeResidual'             ] = countTree-t['n1Root']-t['sumDelta']-t['sumDrift']
         # Cumulative variance: at each ω on a grid, Var(E[N|tree built to ω]) should equal <Σ_{ω_split<ω} Δ²>. E[N|tree built to
-        # ω] is the count already realized (for statistics B, C) plus n₁ summed over the branches alive at ω.
+        # ω] is the count already realized (for statistics B, C) plus n₁ summed over the branches alive at ω. With the cross-product
+        # estimator it is also evaluated with the table of the second other fold, and the variance is estimated by the covariance
+        # of the two, which excludes the second-order noise of the tables (as for Δ²). The covariance is taken within each fold
+        # (see foldedEstimate()).
         for i, omegaG in enumerate(omegaGrids[statistic]):
             alive = (chunk.countChildren > 0) & (chunk.omega <= omegaG) & (chunk.omegaSplit > omegaG)
             if statistic == 'C':
@@ -643,10 +697,16 @@ def passJumps(indexChunk):
             p = np.nonzero(alive)[0]
             logMassG = chunk.logMass[p]+(np.log10(chunk.massChildren[p])-chunk.logMass[p])*(omegaG-chunk.omega[p])/(chunk.omegaSplit[p]-chunk.omega[p])
             expectation = np.bincount(chunk.treeLocal[p],weights=n1(logMassG,np.full(len(p),omegaG),chunk.foldKeyOfNode[p]),minlength=chunk.countTrees)
+            if args.crossProduct:
+                expectationAlternate = np.bincount(chunk.treeLocal[p],weights=n1(logMassG,np.full(len(p),omegaG),chunk.foldKeyOfNode[p],1),minlength=chunk.countTrees)
+            else:
+                expectationAlternate = expectation.copy()
             before      = activeSplit & (chunk.omegaSplit <= omegaG)
             if statistic != 'A':
-                expectation += chunk.treeSum(countAdded,before)
-            result['expectation'][i] = expectation
+                expectation          += chunk.treeSum(countAdded,before)
+                expectationAlternate += chunk.treeSum(countAdded,before)
+            result['expectation'         ][i] = expectation
+            result['expectationAlternate'][i] = expectationAlternate
             result['sumBefore'  ][i] = chunk.treeSum(deltaSquared,before)
         # Per-split values, for the trees selected for output.
         s = s[chunk.treeOfNode[s] % args.splitTreeStride == 0]
@@ -654,6 +714,7 @@ def passJumps(indexChunk):
                             ('redshift',chunk.redshift[chunk.primaryChild[s]]),('mass',chunk.massChildren[s]),('massPrimary',chunk.mass[chunk.primaryChild[s]]),
                             ('massSecondary',chunk.massSecondary[s]),('massRoot',chunk.massRoot[chunk.treeLocal[s]]),('n1Parent',n1End[s]),
                             ('isMainBranch',chunk.isMain[s].astype(np.int8)),('hierarchyDepth',chunk.hierarchyDepth[s]),('countAdded',countAdded[s]))
+        result['fold'] = chunk.foldKeyOfNode[chunk.roots] % countFolds
         result['evaluationsEmpty'] = sum(table.evaluationsEmpty for table in tablesCase)-emptyBefore
         returns[(statistic,indexThreshold)] = result
         del c, n1Node, n1End, delta, drift, deltaSquared, terminal, afterFormation
@@ -661,12 +722,14 @@ def passJumps(indexChunk):
 results = {}
 for statistic, indexThreshold, massThreshold in cases:
     results[(statistic,indexThreshold)] = {
-        'trees'           : {name: np.zeros(countTrees) for name in treeQuantities},
-        'markov'          : {name: np.zeros(3) for name in nodeTypeNames},
-        'expectation'     : np.zeros((args.cumulativeCount,countTrees)),
-        'sumBefore'       : np.zeros((args.cumulativeCount,countTrees)),
-        'splits'          : None,
-        'evaluationsEmpty': 0
+        'trees'               : {name: np.zeros(countTrees) for name in treeQuantities},
+        'markov'              : {name: np.zeros(3) for name in nodeTypeNames},
+        'expectation'         : np.zeros((args.cumulativeCount,countTrees)),
+        'sumBefore'           : np.zeros((args.cumulativeCount,countTrees)),
+        'expectationAlternate': np.zeros((args.cumulativeCount,countTrees)),
+        'fold'                : np.zeros(countTrees,dtype=np.int64),
+        'splits'              : None,
+        'evaluationsEmpty'    : 0
     }
 for indexChunk, returns in enumerate(mapChunks(passJumps,range(len(chunks)))):
     trees = slice(treeOffsets[indexChunk],treeOffsets[indexChunk]+treeCounts[indexChunk])
@@ -677,9 +740,11 @@ for indexChunk, returns in enumerate(mapChunks(passJumps,range(len(chunks)))):
             result['trees'][name][trees] = chunkResult['trees'][name]
         for name in nodeTypeNames:
             result['markov'][name] += chunkResult['markov'][name]
-        result['expectation'][:,trees] = chunkResult['expectation']
-        result['sumBefore'  ][:,trees] = chunkResult['sumBefore'  ]
-        result['evaluationsEmpty']    += chunkResult['evaluationsEmpty']
+        result['expectation'         ][:,trees]  = chunkResult['expectation'         ]
+        result['sumBefore'           ][:,trees]  = chunkResult['sumBefore'           ]
+        result['expectationAlternate'][:,trees]  = chunkResult['expectationAlternate']
+        result['fold'                ][  trees]  = chunkResult['fold'                ]
+        result['evaluationsEmpty'    ]          += chunkResult['evaluationsEmpty'    ]
         # Per-split output, appended chunk by chunk.
         if result['splits'] is None:
             splitGroup = output.create_group('statistic'+statistic+'/threshold{:d}/splits'.format(indexThreshold))
@@ -715,20 +780,26 @@ for statistic in args.statistics:
         meanConditionalError      = np.empty(args.cumulativeCount)
         sumDeltaSquaredCumulative = np.empty(args.cumulativeCount)
         errorCumulative           = np.empty(args.cumulativeCount)
+        # Errors include the noise of the n₁ tables, estimated from the scatter between folds (see foldedEstimate()). Δ² (with the
+        # cross-product estimator) and the cumulative covariance use the tables of both other folds, while Δ and E[N|ω] use one.
+        fold             = result['fold']
+        coefficientOne   = 1.0/countFolds
+        coefficientPair  = 4.0/3.0 if args.crossProduct else coefficientOne
         for i in range(args.cumulativeCount):
-            expectation = result['expectation'][i]
-            sumBefore   = result['sumBefore'  ][i]
-            varianceConditional      [i] = expectation.var(ddof=1)
+            expectation          = result['expectation'         ][i]
+            expectationAlternate = result['expectationAlternate'][i]
+            sumBefore            = result['sumBefore'           ][i]
+            varianceConditional      [i] = foldedEstimate(np.array([expectation,expectationAlternate]),weightedCovariance,fold,coefficientPair)[0]
             meanConditional          [i] = expectation.mean()
-            meanConditionalError     [i] = np.std(expectation-countTree)/np.sqrt(countTrees)
+            meanConditionalError     [i] = foldedEstimate(expectation-countTree,weightedMean,fold,coefficientOne)[1]
             sumDeltaSquaredCumulative[i] = sumBefore.mean()
-            errorCumulative          [i] = bootstrap(np.array([expectation,sumBefore]),weightedVarianceMinusMean,rng)
+            errorCumulative          [i] = foldedEstimate(np.array([expectation,expectationAlternate,sumBefore]),weightedCovarianceMinusMean,fold,coefficientPair)[1]
         # Summary statistics.
         varianceCount= countTree.var(ddof=1)
         meanSDS      = sumDeltaSquared.mean()
-        errorDiff    = bootstrap(np.array([countTree,sumDeltaSquared]),weightedVarianceMinusMean,rng)
+        errorDiff    = foldedEstimate(np.array([countTree,sumDeltaSquared]),weightedVarianceMinusMean,fold,coefficientPair)[1]
         errorVar     = bootstrap(countTree,weightedVariance,rng)
-        errorMean    = bootstrap(sumDelta+sumDrift,weightedMean,rng)
+        errorMean    = foldedEstimate(sumDelta+sumDrift,weightedMean,fold,coefficientOne)[1]
         sigmaI2      = (varianceCount-meanCount)/meanCount**2 if meanCount > 0.0 else np.nan
         print('  {:10.3e} {:9.3f} {:9.3f} {:9.3f} {:9.3f} ± {:7.3f} {:9.3f} {:9.4f} {:8.4f} {:8.1e} {:9.3f} {:9.3f} {:9.3f} {:9.3f}'.format(
             massThreshold,meanCount,n1Root.mean(),varianceCount,meanSDS,errorDiff,varianceCount/meanCount if meanCount > 0.0 else np.nan,sigmaI2,
@@ -781,6 +852,8 @@ for statistic in args.statistics:
             tableGroup.create_dataset('error{:d}'     .format(i),data=table.error     ,compression='gzip')
             tableGroup.create_dataset('countNodes{:d}'.format(i),data=table.countNodes,compression='gzip')
 output.close()
-print('\nColumns: Var(N) is the sample variance of the count; <ΣΔ²> its split-sum estimate (± bootstrap error on the difference);')
+print('\nColumns: Var(N) is the sample variance of the count; <ΣΔ²> its split-sum estimate (± error on the difference: a bootstrap over')
+print('trees, plus, with folds, the noise of the n₁ tables, estimated from the scatter between folds; the same applies to the errors')
+print('of the cumulative check, whose Var(E[N|ω]) is a covariance taken within folds);')
 print('σ_I² = (Var-<N>)/<N>²; <ΣΔ+Σd> should be zero; "telescope" is the largest per-tree bookkeeping residual (should be ~0);')
 print('the last four columns are the fractions of <ΣΔ²> from splits with non-primary mass M′≥m and M′<m, and from main/side-branch splits.')
