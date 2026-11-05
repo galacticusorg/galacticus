@@ -1678,6 +1678,19 @@ program Test_Mass_Distributions
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
 
+  ! Radius enclosing a mean density just below the central density of a soliton profile, where a series solution is used.
+  ! Target radii were found by numerical quadrature and root finding (mpmath).
+  call Unit_Tests_Begin_Group("Soliton profile")
+  allocate(massDistributionSoliton :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionSoliton)
+     massDistribution_=massDistributionSoliton(radiusCore=1.0d0,densitySolitonCentral=1.0d0,dimensionless=.true.)
+  end select
+  call Assert("Radius enclosing density (ρ̅=0.960ρc)",massDistribution_%radiusEnclosingDensity(0.960d0),0.30677223180024721d0,relTol=1.0d-4)
+  call Assert("Radius enclosing density (ρ̅=0.995ρc)",massDistribution_%radiusEnclosingDensity(0.995d0),0.10716980396853026d0,relTol=1.0d-4)
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
   ! Optional `logarithmic` argument in radial density gradients.
   ! The `<optionalArgument>` directive generates a guarded local copy (`logarithmic_`) of the optional
   ! `logarithmic` dummy argument. Several classes read the dummy argument itself instead, which is
