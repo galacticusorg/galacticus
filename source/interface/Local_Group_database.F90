@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which interfaces with the Local Group database.
 !!}
@@ -462,7 +464,8 @@ contains
           ! Convert decimal declination to sexagesimal.
           attribute => getAttributeNode(propertyList2(0)%element,'value')
           call extractDataContent(attribute,declinationDecimal)
-          declinationSexagesimalDegrees   =int( declinationDecimal                                                   )
+          ! The sign of the declination is held only by the degrees, so it must be retained for declinations between 0 and -1 degrees.
+          declinationSexagesimalDegrees   =sign(aint(declinationDecimal),declinationDecimal)
           declinationSexagesimalArcminutes=int((declinationDecimal-declinationSexagesimalDegrees)/arcminutesToDegrees)
           declinationSexagesimalArcseconds=    (declinationDecimal-declinationSexagesimalDegrees-declinationSexagesimalArcminutes*arcminutesToDegrees)/arcsecondsToDegrees
           declinationSexagesimalArcminutes=abs(declinationSexagesimalArcminutes)
@@ -547,7 +550,7 @@ contains
              if (hasAttribute(propertyList2(0)%element,trim(uncertainties(j)))) then
                 attribute => getAttributeNode(propertyList2(0)%element,trim(uncertainties(j)))
                 call extractDataContent(attribute,uncertainty1)
-                uncertainty2=distanceHeliocentric*log(10.0d0)/5.0d0
+                uncertainty2=distanceHeliocentric*log(10.0d0)/5.0d0*uncertainty1
                 write (textContent,'(f16.12)') uncertainty2
                 call setAttribute(newNode,trim(uncertainties(j)),trim(adjustl(textContent)))
              end if
