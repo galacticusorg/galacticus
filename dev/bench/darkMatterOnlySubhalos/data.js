@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794000432212,
+  "lastUpdate": 1794000445580,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "91a2411eb1008148c3a068b35c67a47c875dc4df",
-          "message": "Merge pull request #947 from galacticusorg/fixSFRAnalysisLabels\n\nCorrect axis labels for the star formation rate analysis class",
-          "timestamp": "2025-10-13T18:26:08Z",
-          "tree_id": "4004941759a096c2d6d899c782ad0cfaf6d8bb1b",
-          "url": "https://github.com/galacticusorg/galacticus/commit/91a2411eb1008148c3a068b35c67a47c875dc4df"
-        },
-        "date": 1760402991486,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 1.7947662580775832,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 2.2766833719325597,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 10542.285287410963,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8808,6 +8769,45 @@ window.BENCHMARK_DATA = {
             "value": 35.942,
             "range": "0.10161495952860476",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "419ca22bb53411b61132434723d571d6e22e9ead",
+          "message": "Merge pull request #1750 from galacticusorg/fix/poulton2021-enclosed-mass\n\nfix(satelliteMergingTimescales): use the enclosed host mass throughout the Poulton et al. (2021) merging time, and give unbound satellites a finite time",
+          "timestamp": "2026-11-06T15:26:10Z",
+          "tree_id": "220186d6e67eed4244dd13b467fba1d335f8fd8a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/419ca22bb53411b61132434723d571d6e22e9ead"
+        },
+        "date": 1794000444292,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 5.829536515186543,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": 1.9647143895468635,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 14892.44949826047,
+            "unit": "-logℒ"
           }
         ]
       }
