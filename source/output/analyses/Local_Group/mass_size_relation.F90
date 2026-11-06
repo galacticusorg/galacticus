@@ -269,9 +269,10 @@ contains
     where (isPresentSizes)
        sizesTarget             =log10(sizesTarget)
     end where
-    ! Where sizes have no uncertainty, assign a default one.
+    ! Where sizes have no uncertainty, assign a default one. The default is a fractional uncertainty, converted to an uncertainty in the
+    ! logarithm in the same way as measured uncertainties above.
     where (isPresentSizes .and. .not.isPresentSizesUncertainties)
-       sizesUncertaintiesTarget=sizeUncertaintyDefault*log(10.0d0)
+       sizesUncertaintiesTarget=sizeUncertaintyDefault/log(10.0d0)
     end where
     ! Build the target dataset.
     allocate(countTarget                      (binCount         ))
