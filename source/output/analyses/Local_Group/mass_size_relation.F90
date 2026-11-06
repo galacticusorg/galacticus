@@ -241,7 +241,7 @@ contains
          &                                                                                                     bufferCount                                                 , binCountNonZero
     type            (localGroupDB                                          )                                :: localGroupDB_
     double precision                                                                                        :: massesWidthBin
-    type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
+    type            (outputAnalysisTargetDataStandard                      )                                :: outputAnalysisTargetData_
     !![
     <constructorAssign variables="*outputTimes_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, sizeSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]

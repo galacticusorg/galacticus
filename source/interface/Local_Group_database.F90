@@ -284,10 +284,10 @@ contains
                 write (textContent,'(e24.16)') uncertainty
                 call setAttribute(propertyElement,"uncertainty",trim(adjustl(textContent)))
              end if
-             if     (                                                                                           &
-                  &   (attribute_ == attributeValue       .and. hasAttribute(propertyElement,'value'         )) &
-                  &  .or.                                                                                       &
-                  &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertainty'   )) &
+             if     (                                                                                        &
+                  &   (attribute_ == attributeValue       .and. hasAttribute(propertyElement,'value'      )) &
+                  &  .or.                                                                                    &
+                  &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertainty')) &
                   & ) then
                 propertyFound=.true.
                 if       (attribute_ == attributeValue     ) then
