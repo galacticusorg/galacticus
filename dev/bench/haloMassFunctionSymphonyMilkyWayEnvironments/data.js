@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793919241433,
+  "lastUpdate": 1794000678198,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way environments)": [
@@ -1507,6 +1507,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.000 environments",
             "value": 1672.162590951167,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "419ca22bb53411b61132434723d571d6e22e9ead",
+          "message": "Merge pull request #1750 from galacticusorg/fix/poulton2021-enclosed-mass\n\nfix(satelliteMergingTimescales): use the enclosed host mass throughout the Poulton et al. (2021) merging time, and give unbound satellites a finite time",
+          "timestamp": "2026-11-06T15:26:10Z",
+          "tree_id": "220186d6e67eed4244dd13b467fba1d335f8fd8a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/419ca22bb53411b61132434723d571d6e22e9ead"
+        },
+        "date": 1794000677009,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.000 environments",
+            "value": 1672.1624774266709,
             "unit": "-logℒ"
           }
         ]
