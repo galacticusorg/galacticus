@@ -242,7 +242,7 @@ contains
          &                                                                                                     velocityDispersionMinimum                       =+1.0d-3
     integer         (c_size_t                                              ), parameter                     :: binCount                                        = 7_c_size_t, bufferCountMinimum                                   = 5_c_size_t
     double precision                                                        , parameter                     :: massMinimum                                     =+1.0d+3    , massMaximum                                          = 1.00d+9   , &
-         &                                                                                                     radiusOuter                                     =+3.0d-1    , sizeUncertaintyDefault                               = 0.25d+0
+         &                                                                                                     radiusOuter                                     =+3.0d-1    , velocityDispersionUncertaintyDefault                 = 0.25d+0
     logical                                                                 , parameter                     :: likelihoodNormalize                             =.false.
     integer         (c_size_t                                              )                                :: i                                                           , j                                                                , &
          &                                                                                                     bufferCount                                                 , binCountNonZero
@@ -277,9 +277,10 @@ contains
     where (isPresentVelocityDispersions)
        velocityDispersionsTarget             =log10(velocityDispersionsTarget)
     end where
-    ! Where velocityDispersions have no uncertainty, assign a default one.
+    ! Where velocity dispersions have no uncertainty, assign a default one. The default is a fractional uncertainty, converted to an
+    ! uncertainty in the logarithm in the same way as measured uncertainties above.
     where (isPresentVelocityDispersions .and. .not.isPresentVelocityDispersionsUncertainties)
-       velocityDispersionsUncertaintiesTarget=sizeUncertaintyDefault*log(10.0d0)
+       velocityDispersionsUncertaintiesTarget=velocityDispersionUncertaintyDefault/log(10.0d0)
     end where
     ! Build the target dataset.
     allocate(countTarget                      (binCount         ))
