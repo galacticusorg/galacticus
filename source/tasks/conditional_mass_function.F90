@@ -294,9 +294,9 @@ contains
        self%massHalo_=label
     end if
     if (present(massBinCenters)) then
-       if (.not.present(massLogarithmDelta)                                         ) call Error_Report('[massLogarithmDelta] must be given with [massBinCenters]'                     //{introspection:location})
-       if (     present(massMinimum).or.present(massMaximum).or.present(countMass)) call Error_Report('ambiguous mass specification'                                                 //{introspection:location})
-       if (size(massLogarithmDelta) /= size(massBinCenters)                         ) call Error_Report('[massBinCenters] and [massLogarithmDelta] must have the same number of elements'//{introspection:location})
+       if (.not.present(massLogarithmDelta)                                       ) call Error_Report('[massLogarithmDelta] must be given with [massBinCenters]'                       //{introspection:location})
+       if (     present(massMinimum).or.present(massMaximum).or.present(countMass)) call Error_Report('ambiguous mass specification'                                                   //{introspection:location})
+       if (size(massLogarithmDelta) /= size(massBinCenters)                       ) call Error_Report('[massBinCenters] and [massLogarithmDelta] must have the same number of elements'//{introspection:location})
        self%countMass         =size(massBinCenters)
        self%massLogarithmDelta=log(self%massLogarithmDelta)
     else

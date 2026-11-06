@@ -126,8 +126,8 @@ contains
     Constructor for the :galacticus-class:`kinematicsDistributionHeated` kinematic distribution class.
     !!}
     implicit none
-    type            (kinematicsDistributionHeated     )                :: self
-    logical                                            , intent(in   ) :: velocityDispersionApproximate
+    type            (kinematicsDistributionHeated     )                          :: self
+    logical                                            , intent(in   )           :: velocityDispersionApproximate
     double precision                                   , intent(in   )           :: toleranceRelativeVelocityDispersion, toleranceRelativeVelocityDispersionMaximum
     logical                                            , intent(in   ), optional :: tolerateVelocityDispersionFailure
     type            (enumerationNonAnalyticSolversType), intent(in   )           :: nonAnalyticSolver

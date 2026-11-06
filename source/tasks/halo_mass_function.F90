@@ -911,12 +911,12 @@ contains
           end do
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           if (self%includeUnevolvedSubhaloMassFunction) then
-             iOutputIntegrand                                     =iOutput
-             iMassIntegrand                                       =iMass
-             massFunctionCumulativeSubhalo          (iMass,iOutput)=integrator_%integrate(                                            &
-                  &                                                                   log(massHalo(1)/subhaloMassMaximum       ), &
-                  &                                                                   log(            haloMassEffectiveInfinity)  &
-                  &                                                                  )
+             iOutputIntegrand                                          =iOutput
+             iMassIntegrand                                            =iMass
+             massFunctionCumulativeSubhalo              (iMass,iOutput)=integrator_%integrate(                                            &
+                  &                                                                           log(massHalo(1)/subhaloMassMaximum       ), &
+                  &                                                                           log(            haloMassEffectiveInfinity)  &
+                  &                                                                          )
           end if
           !![
 	  <objectDestructor name="massDistribution_"/>
@@ -1104,7 +1104,7 @@ contains
       ! Extract integrand parameters.
       mass=exp(logMass)
       ! Return the differential halo mass function multiplied by the integrated unevolved subhalo mass function in such hosts.
-      subhaloMassFunctionIntegrand=+                                                                                                                             mass                     &
+      subhaloMassFunctionIntegrand=+                                                                                                                            mass                     &
            &                       *haloMassFunction_            %differential(outputTimes(iOutputIntegrand)                                                   ,mass,node=tree%nodeBase) &
            &                       *unevolvedSubhaloMassFunction_%integrated  (outputTimes(iOutputIntegrand),massHalo(iMassIntegrand),haloMassEffectiveInfinity,mass                   )
       return

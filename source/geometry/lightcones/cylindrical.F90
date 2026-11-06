@@ -321,8 +321,8 @@ contains
        ! We assume that the density field, Δ=ρ/ρ̅, follows a multivariate log-normal distribution with mean ⟨Δ⟩=1 and covariance
        ! C (as computed above). The corresponding normal distribution of logΔ then has covariance log(1+C) (element by element),
        ! and mean μ=-½ log(1+C_ii), the shift which makes ⟨Δ⟩=1.
-       allocate(deviates      (self%outputTimes_%count()))    
-       allocate(logNormalMu   (self%outputTimes_%count()))    
+       allocate(deviates   (self%outputTimes_%count()))    
+       allocate(logNormalMu(self%outputTimes_%count()))    
        do output=1_c_size_t,self%outputTimes_%count()
           !! Generate a deviate.
           deviates      (output)=self%randomNumberGenerator_%standardNormalSample()
