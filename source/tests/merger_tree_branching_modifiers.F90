@@ -34,12 +34,14 @@ program Tests_Merger_Tree_Branching_Modifiers
   use :: Display                             , only : displayVerbositySet                               , verbosityLevelWorking
   use :: Error                               , only : Error_Handler_Register
   use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Nodes                    , only : treeNode
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Merger_Tree_Branching_Modifiers     , only : mergerTreeBranchingProbabilityModifierIdentity     , mergerTreeBranchingProbabilityModifierParkinson2008        , mergerTreeBranchingProbabilityModifierPCHPlus, mergerTreeBranchingProbabilityModifierMulti, &
        &                                              mergerTreeBranchingProbabilityModifierClass        , multiModifierList
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
   use :: Transfer_Functions                  , only : transferFunctionIdentity
   use :: Unit_Tests                          , only : Assert                                            , Unit_Tests_Begin_Group                                     , Unit_Tests_End_Group                         , Unit_Tests_Finish
@@ -51,6 +53,7 @@ program Tests_Merger_Tree_Branching_Modifiers
   type            (powerSpectrumPrimordialPowerLaw                             )                :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionIdentity                                    )                :: transferFunctionIdentity_
   type            (powerSpectrumPrimordialTransferredSimple                    )                :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                               )                :: powerSpectrumNormalizerSigma8_
   type            (linearGrowthCollisionlessMatter                             )                :: linearGrowthCollisionlessMatter_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (darkMatterParticleCDM                                       )                :: darkMatterParticleCDM_
@@ -86,6 +89,7 @@ program Tests_Merger_Tree_Branching_Modifiers
   call Error_Handler_Register()
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set()
   ! Build the objects needed. Only the critical overdensity is actually required by the modifiers - the root-variances on which
   ! they depend are passed to them directly - but it in turn requires the rest of the chain.
   darkMatterParticleCDM_                                       =darkMatterParticleCDM                                        (                                                                                          &
@@ -115,17 +119,25 @@ program Tests_Merger_Tree_Branching_Modifiers
        &                                                                                                                      cosmologyParameters_                    =cosmologyParametersSimple_                     , &
        &                                                                                                                      time                                    =13.8d0                                           &
        &                                                                                                                     )
+  powerSpectrumNormalizerSigma8_                               =powerSpectrumNormalizerSigma8                                (                                                                                          &
+       &                                                                                                                      sigma8                                  =0.8d+0                                         , &
+       &                                                                                                                      tolerance                               =1.0d-4                                         , &
+       &                                                                                                                      integrationFailureIsFatal               =.true.                                         , &
+       &                                                                                                                      cosmologyParameters_                    =cosmologyParametersSimple_                     , &
+       &                                                                                                                      cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                , &
+       &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                        &
+       &                                                                                                                     )
   powerSpectrumPrimordialTransferredSimple_                    =powerSpectrumPrimordialTransferredSimple                     (                                                                                          &
        &                                                                                                                      powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_               , &
        &                                                                                                                      transferFunction_                       =transferFunctionIdentity_                      , &
-       &                                                                                                                      linearGrowth_                           =linearGrowthCollisionlessMatter_                 &
+       &                                                                                                                      linearGrowth_                           =linearGrowthCollisionlessMatter_               , &
+       &                                                                                                                      powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_                   &
        &                                                                                                                     )
   powerSpectrumWindowFunctionSharpKSpace_                      =powerSpectrumWindowFunctionSharpKSpace                       (                                                                                          &
        &                                                                                                                      cosmologyParameters_                    =cosmologyParametersSimple_                     , &
        &                                                                                                                      normalization                           =0.0d0                                            &
        &                                                                                                                     )
   cosmologicalMassVarianceFilteredPower_                       =cosmologicalMassVarianceFilteredPower                        (                                                                                          &
-       &                                                                                                                      sigma8                                  =0.8d+0                                         , &
        &                                                                                                                      tolerance                               =1.0d-4                                         , &
        &                                                                                                                      toleranceTopHat                         =1.0d-4                                         , &
        &                                                                                                                      rootVarianceLogarithmicGradientTolerance=1.0d-6                                         , &

@@ -19,7 +19,9 @@ for the `gaussianDiagonal` form when the target covariance is diagonal, provided
 which is checked. For the `poissonCounts` form, which ignores the model variance, the emulator variance is excluded
 instead, and the observable is emulated both directly and as its logarithm. The test therefore checks that the target data, their covariance, and the model vector reach the emulated
 likelihood intact through the analysis outputs, the collector, and the emulator file, and that the emulated likelihood has
-the same form and normalization as the likelihoods of the analyses.
+the same form and normalization as the likelihoods of the analyses. The Python implementation of the likelihood forms
+(`Galacticus.Emulation.likelihood`, used to profile parameters by direct runs), given the same predictions and variances, is
+checked in the same way.
 
 Posterior sampling requires an MPI build of Galacticus.
 
@@ -311,6 +313,7 @@ def main():
     args, _ = parser.parse_known_args()
     from Galacticus.Emulation import emulatorFile as ef
     from Galacticus.Emulation.campaign import Campaign, output_file_path
+    from Galacticus.Emulation.likelihood import log_likelihood
     from Galacticus.Emulation.train import Observable, collect
     processes = max(args.processesPerNode, 1)
     allowRunAsRoot = ['--allow-run-as-root'] if args.allowRunAsRoot == 'yes' else []
@@ -357,6 +360,7 @@ def main():
                   labelProgenitorLog: labelProgenitor}
     logLikelihoodsProgenitor = []
     errors = {name: [] for name, _, _, _ in checks}
+    errorsPython = {name: [] for name, _, _, _ in checks}
     for run_ in campaign.runs:
         point = run_.point
         direct = directLikelihoods(output_file_path(run_.output_file))
@@ -405,6 +409,15 @@ def main():
                 return
             expected = sum(direct[analysisOf[label]][0] for label in labels)
             errors[name] += [abs(logLikelihood - expected) / max(abs(expected), 1.0) for logLikelihood in logLikelihoods]
+            # The Python implementation of the likelihood forms, given the same prediction and variance, must agree.
+            logLikelihoodPython = 0.0
+            for label, form in zip(labels, forms):
+                trainingSet = trainingSets[label]
+                row = int(np.nonzero(trainingSet.point_index == point)[0][0])
+                logLikelihoodPython += log_likelihood(trainingSet, form, trainingSet.y[row],
+                                                      root_variance_target_fractional=rootVarianceTargetFractional,
+                                                      variance=trainingSet.root_variance[row] ** 2 if includeEmulatorVariance else None)
+            errorsPython[name].append(abs(logLikelihoodPython - expected) / max(abs(expected), 1.0))
     # The progenitor mass function must be sensitive to the parameter of the model of N-body halo mass errors, so that the
     # parameter is tested as an emulator input. (The other varied parameter does not affect it.)
     # The log-likelihood must also not be that of an impossible model (a large, but finite, negative number).
@@ -416,6 +429,10 @@ def main():
         error = max(errors[name])
         message = (f"emulated log-likelihood of {' and '.join(labels)} ({' and '.join(forms)}) equals that of the "
                    f'analysis (maximum relative difference {error:.1e})')
+        print(f'SUCCESS: {message}' if error < 1.0e-9 else f'FAILED: {message}')
+        error = max(errorsPython[name])
+        message = (f"Python log-likelihood of {' and '.join(labels)} ({' and '.join(forms)}) "
+                   f'(Galacticus.Emulation.likelihood) equals that of the analysis (maximum relative difference {error:.1e})')
         print(f'SUCCESS: {message}' if error < 1.0e-9 else f'FAILED: {message}')
 
 

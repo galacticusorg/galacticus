@@ -147,7 +147,7 @@ runs:
         # breaking the build. Galacticus does not use half-precision types, so disabling the feature is safe.
         # HDF5_BUILD_WITH_INSTALL_NAME=ON gives the installed dylibs absolute install_names (/usr/local/lib/...) rather than
         # CMake's default @rpath, so Galacticus.exe records absolute paths and dyld can load libhdf5*.dylib at run time without an
-        # LC_RPATH entry. This matches the Autotools HDF5 1.14 behaviour Galacticus previously relied on.
+        # LC_RPATH entry. This matches the Autotools HDF5 1.14 behavior Galacticus previously relied on.
         cmake -S . -B build -G "Unix Makefiles" \
            -DCMAKE_INSTALL_PREFIX=/usr/local \
            -DCMAKE_BUILD_TYPE=Release \

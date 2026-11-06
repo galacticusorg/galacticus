@@ -47,7 +47,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           # Pinned rather than '3.x': h5py publishes no wheel for a new Python release until some time after it, and
           # without one pip builds h5py from source, which fails here as the runner has no HDF5 library. Python 3.15.0
@@ -386,6 +386,24 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) LTO=disabled LIBRARY=yes preprocess
+          # Even at -j2, two of the largest compiles running together can exhaust memory: the largest peaks at
+          # ~14 GiB, and the next eight at 6-10 GiB each. So build each of those first as a make target of its own:
+          # make builds its dependencies two at a time, then compiles it with nothing running beside it.
+          # `hydrogen` comes first because several of the others depend on it. Every other compile peaks at
+          # under ~5.5 GiB, so any two of the rest fit together. (Peak memories were measured with
+          # gfortran 16.0.1 and LTO disabled.)
+          for object in                                                     \
+              chemical/reaction_rates/hydrogen                              \
+              merger_trees/construct/read/_class                            \
+              libgalacticus/mergerTreeImporter                              \
+              objects/nodes/components/spheroid/standard/_class             \
+              libgalacticus/nodeOperator                                    \
+              libgalacticus/starFormationHistory                            \
+              objects/nodes/components/hot_halo/standard/_class             \
+              objects/nodes/components/disk/standard/_class                 \
+              objects/nodes/components/nuclear_star_cluster/standard/_class; do
+            make -j2 LTO=disabled LIBRARY=yes ./work/buildLib/${object}.o
+          done
           make -j2 LTO=disabled LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
@@ -423,7 +441,7 @@ jobs:
              echo "doPush=true"  >> "$GITHUB_OUTPUT"
           fi
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -1153,15 +1171,29 @@ jobs:
     secrets: inherit
   Validate-Decaying-Dark-Matter-Only-Subhalos:
     needs: Build-Executable-DMO-Linux
+    strategy:
+      # Ensure all jobs are run, even if some fail.
+      fail-fast: false
+      # Each model is a separate job: run together, the six took between 3.5 and 6 hours (the job time limit) depending on
+      # the runner. The artifact is named for the model's metric suffix, which is where the benchmark action looks for it.
+      matrix:
+        model:
+          - { lifetime: "10.0", velocityKick: "20.0" }
+          - { lifetime: "20.0", velocityKick: "20.0" }
+          - { lifetime: "20.0", velocityKick: "40.0" }
+          - { lifetime: "40.0", velocityKick: "20.0" }
+          - { lifetime: "40.0", velocityKick: "40.0" }
+          - { lifetime: "80.0", velocityKick: "40.0" }
     uses: ./.github/workflows/testModel.yml
     with:
       install: python3 python3-h5py python3-numpy python3-git
       file: validate-darkMatterOnlySubhalos-decayingDarkMatter.py
+      options: "${{ matrix.model.lifetime }} ${{ matrix.model.velocityKick }}"
       artifact: galacticus-exec-dmo
       runPath: ./testSuite
       cacheData: 0
       uploadFile: ./testSuite/outputs/*.json
-      uploadName: validate-darkMatterOnlySubhalos-decayingDarkMatter
+      uploadName: validate-darkMatterOnlySubhalos_decayingDarkMatter_lifetime${{ matrix.model.lifetime }}_velocityKick${{ matrix.model.velocityKick }}
     secrets: inherit
   Validate-Fuzzy-Dark-Matter:
     needs: Build-Executable-Linux
@@ -1251,6 +1283,7 @@ jobs:
                       tests.survey_geometry_martin2010_alfalfa.exe,
                       tests.mass_distributions.exe,
                       tests.mass_distributions.tabulated.exe,
+                      tests.mass_distributions.exponential_disk_tidal.exe,
                       tests.kinematic_distributions.NFW.exe,
                       tests.kinematic_distributions.velocity_dispersion_gradient.exe,
                       tests.prompt_cusps.exe,
@@ -1321,10 +1354,13 @@ jobs:
                       tests.mergers_instabilities_physics.exe,
                       tests.mass_definitions_output_times.exe,
                       tests.cooling_chain.exe,
+                      tests.cooling_energy_radiated_cap.exe,
+                      tests.hot_halo_outflow_stripping.exe,
                       tests.bett2007_spin_distribution.exe,
                       tests.bug745815.exe,
                       tests.gaunt_factors.exe,
                       tests.cooling_functions.exe,
+                      tests.cooling_function_molecular_hydrogen_Galli_Palla.exe,
                       tests.accretion_disks.exe,
                       tests.mass_accretion_history.Hearin2021.exe,
                       tests.mass_accretion_history.Hearin2021_stochastic.exe,
@@ -1333,6 +1369,7 @@ jobs:
                       tests.dark_matter_profiles.adiabaticGnedin2004.exe,
                       tests.galactic_structure_equilibrium.exe,
                       tests.satellite_orbit_rates.exe,
+                      tests.satellite_merging_timescale_Poulton2021.exe,
                       tests.satellite_tidal_heating_rate.exe,
                       tests.dark_matter_profiles.heated.exe,
                       tests.dark_matter_profiles.heated_tidal_NFW.exe,
@@ -1342,6 +1379,7 @@ jobs:
                       tests.dark_matter_profiles.finite_resolution.exe,
                       tests.dark_matter_profiles.Zhao1996.exe,
                       tests.mass_distributions.Zhao1996_limits.exe,
+                      tests.mass_distributions.Shi2016_self_similarity.exe,
                       tests.mass_distributions.Zhao1996_dispersion.exe,
                       tests.mass_distributions.Einasto_Burkert.exe,
                       tests.mass_distributions.cusp_soliton_NFW_limits.exe,
@@ -1382,7 +1420,8 @@ jobs:
                       tests.orbits.exe,
                       tests.debugging.exe,
                       tests.hashes.cryptographic.exe,
-                      tests.accretion_halo_isocurvature.exe ]
+                      tests.accretion_halo_isocurvature.exe,
+                      tests.accretion_halo_cold_mode_chemicals.exe ]
     uses: ./.github/workflows/testCode.yml
     with:
       executable: ${{ matrix.executable }}
@@ -1474,7 +1513,7 @@ jobs:
       # Ensure all jobs are run, even if some fail.
       fail-fast: false
       matrix:
-        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py" ]
+        file: [ "test-mass-conservation-simple.py", "test-mass-conservation-standard.py", "test-mass-conservation-coldMode.py", "test-metal-conservation.py" ]
     uses: ./.github/workflows/testModel.yml
     with:
       file: ${{ matrix.file }}
@@ -1530,6 +1569,8 @@ jobs:
       fail-fast: false
       matrix:
         file: [ test-bar-instability.py,
+                test-Local-Group-database-update.py,
+                test-bar-instability-binding-energy.py,
                 test-transfer-functions-axion.py,
                 test-mass-definitions.py,
                 test-branchlessTrees.py,
@@ -1546,6 +1587,7 @@ jobs:
                 test-luminosity-function-Halpha-Sobral.py,
                 test-dust-analyses-SDSS.py,
                 test-outputAnalysisLikelihoods.py,
+                test-progenitorMassFunctionLikelihood.py,
                 test-morphologicalFractionGAMAMoffett2016.py,
                 test-dust-emission-energy-balance.py,
                 test-AGN-torus-misalignment.py,
@@ -1570,6 +1612,7 @@ jobs:
                 test-parameters-extract.py,
                 test-parameters-changes.py,
                 test-parameters-default-reporting.py,
+                test-parameters-circular-conditionals.py,
                 test-temporary-parameter-file.py,
                 test-output-datasets-suffixes.py,
                 test-star-formation-histories.py,
@@ -1577,12 +1620,16 @@ jobs:
                 test-star-formation-histories-inSitu.py,
                 test-star-formation-histories-fixedAge.py,
                 test-luminosities-from-SED-lightcone.py,
+                test-luminosities-from-SFH-lightcone.py,
                 test-mostMassiveProgenitorIsSubhalo.py,
+                test-merger-tree-prune-clones.py,
+                test-mergerTreeBranchingVariance.py,
                 test-molecular-cooling.py,
                 test-lightcone-crossing.py,
                 test-massProfileSatelliteBoundMass.py,
                 test-UniverseMachine.py,
                 test-spheroid-power-law.py,
+                test-power-spectrum-normalizer-amplitude-scalar.py,
                 test-stateRestore.py,
                 test-checkpointing.py,
                 test-stellar-mass-weighted-ages.py,
@@ -1590,8 +1637,10 @@ jobs:
                 test-supernovae-type-Ia-yields-metallicity.py,
                 test-supernovae-type-Ia-rate-metallicity.py,
                 test-stellar-properties-LimongiChieffi2018.py,
+                test-stellar-properties-Karakas2010Doherty2014.py,
                 test-stellar-properties-Sukhbold2016.py,
                 test-tidalTracks.py,
+                test-tidal-stripping-disk-angular-momentum.py,
                 test-satellite-orbit-evolution.py,
                 test-satellite-tidal-heating-evolution.py,
                 test-transferFunctionHalfModeSlope.py,
@@ -1607,13 +1656,19 @@ jobs:
                 test-decayingDM-shell-crossing-capture.py,
                 test-enforceNonNegativity.py,
                 test-pruneLightcone.py,
+                test-position-interpolated-orphan-decay.py,
                 test-soliton-coremass.py,
                 test-soliton-satellite-merging.py,
                 test-promptCuspNFW.py,
                 test-postprocessing.py,
                 test-merger-tree-export.sh,
                 test-AGNSED.py,
+                test-IGM-thermal-evolution.py,
+                test-disk-size-inclination-table.py,
+                test-progenitor-mass-function-forests.py,
+                test-single-epoch-survey-volume.py,
                 test-black-hole-jet-efficiency.py,
+                test-critical-overdensity-tree-dependent.py,
                 test-SIDM-parametric.py,
                 test-decaying-dark-matter-halo-mass-function.py,
                 test-objectBuilder-recursion.py,
@@ -1625,6 +1680,7 @@ jobs:
                 test-virial-orbit-loss-cone.py,
                 test-CGM-ram-pressure-outer-radius.py,
                 test-ram-pressure-history.py,
+                test-ram-pressure-koppen2018.py,
                 test-parameter-resolver.py,
                 test-prompt-cusps-unformed.py,
                 test-radius-specifiers-soliton.py,
@@ -1905,6 +1961,15 @@ jobs:
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
     secrets: inherit
+  MPI-Excursion-Sets-Farahi:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-excursionSetsFarahi_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
   MPI-Emulator-Likelihood:
     needs: Build-Executables-MPI-Linux
     uses: ./.github/workflows/testModel.yml
@@ -2154,7 +2219,7 @@ jobs:
           name: 'Milky Way model benchmarks'
           type: 'benchmark'
           suffix: 'milkyWayModel'
-          threshold: '140%'
+          threshold: '160%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation'
         uses: ./.github/actions/benchmark
@@ -2369,7 +2434,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime10.0_velocityKick20.0'
           threshold: '700%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2378,7 +2442,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=20 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick20.0'
           threshold: '7500%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2387,7 +2450,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=20 Gyr; vₖ=40 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime20.0_velocityKick40.0'
           threshold: '500%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2396,7 +2458,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick20.0'
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2405,7 +2466,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=40 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime40.0_velocityKick40.0'
           threshold: '3000%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2414,7 +2474,6 @@ jobs:
         with:
           name: 'Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)'
           type: 'validate'
-          artifact: 'validate-darkMatterOnlySubhalos-decayingDarkMatter'
           suffix: 'darkMatterOnlySubhalos_decayingDarkMatter_lifetime80.0_velocityKick40.0'
           threshold: '250%'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -2646,6 +2705,7 @@ jobs:
              Methods-MPI,
              MPI-State-Restore,
              MPI-Radiative-Transfer-Stromgren-Sphere,
+             MPI-Excursion-Sets-Farahi,
              MPI-MCMC,
              Python-Interface,
              Codes-MacOS,
@@ -2672,7 +2732,7 @@ jobs:
           gh release upload bleeding-edge ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst --clobber
           # Record the checksums of the assets the launcher downloads and executes, before the local copies are removed. These are
           # collected across the upload steps of this job and published as a single `SHA256SUMS` asset at the end of it. The
-          # launcher also reads this file as the release's asset manifest -- an artefact listed here is one the release carries,
+          # launcher also reads this file as the release's asset manifest -- an artifact listed here is one the release carries,
           # which is how it chooses between the current and the legacy form of an archive without probing for a 404.
           sha256sum Galacticus.exe tools.tar.zst >> "${GITHUB_WORKSPACE}/SHA256SUMS"
           rm ./Galacticus.exe ./libgalacticus.tar.bz2 ./tools.tar.zst

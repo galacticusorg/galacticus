@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that interpolates positions of nodes using the approach of :cite:t:`merson_lightcone_2013`.
   !!}
@@ -26,9 +28,24 @@
   use :: Kind_Numbers       , only : kind_int8
   
   !![
+  <enumeration docformat="rst">
+   <name>orphanTrajectory</name>
+   <description>
+   Options for the trajectory followed by an orphaned satellite once its position history is exhausted.
+   </description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="host" />
+   <entry label="decay"/>
+  </enumeration>
+  !!]
+
+  !![
   <nodeOperator name="nodeOperatorPositionInterpolated" docformat="rst">
    <description>
    A node operator class that interpolates the 3D comoving positions of nodes between snapshots using the approach of :cite:t:`merson_lightcone_2013`, enabling construction of lightcones from discrete simulation outputs. ``lengthBox`` sets the comoving box side length; ``wrapPeriodic`` controls periodic boundary treatment; ``nodeIndicesReport`` lists node indices for which detailed interpolation information should be reported during processing.
+
+   ``orphanTrajectory`` controls the trajectory of a satellite once its position history is exhausted (i.e. once it becomes an orphan). For ``host`` (the default) the orphan moves to the center of its host halo over the following snapshot interval, and then follows the host. For ``decay`` the orphan instead follows a decaying orbit about its host which reaches the host center at the time of merging. The orbit begins at the final position of the satellite relative to its host, in the plane defined by its final relative position and velocity, and is that of a satellite on a circular orbit in a singular isothermal sphere decaying under dynamical friction :cite:p:`binney_galactic_2008`: the square of the orbital radius decreases linearly in time, while the tangential speed is held fixed at its final value. This orbit is followed between successive steps of the host; over the final step before merging, position and velocity are instead interpolated (with a cubic polynomial) from the orbit to the node into which the orphan merges, which avoids the divergence of the radial speed of the orbit at the time of merging. Position is therefore continuous at the time at which the satellite becomes an orphan, and at the time of merging, but velocity in general is not continuous at the time at which the satellite becomes an orphan. The ``host`` trajectory is used for any orphan which has no finite time of merging, which has no position history at all, or whose host halo itself becomes a satellite before the time of merging (from that time until the orphan merges).
    </description>
   </nodeOperator>
   !!]
@@ -37,11 +54,12 @@
      A node operator class that interpolates positions of nodes using the approach of :cite:t:`merson_lightcone_2013`.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
-     integer         (kind_int8              ), allocatable, dimension(:) :: nodeIndicesReport
-     double precision                                                     :: lengthBox
-     logical                                                              :: isPeriodic                   , wrapPeriodic
-     integer                                                              :: coefficientsID
+     class           (cosmologyFunctionsClass          ), pointer                   :: cosmologyFunctions_ => null()
+     integer         (kind_int8                        ), allocatable, dimension(:) :: nodeIndicesReport
+     double precision                                                               :: lengthBox
+     logical                                                                        :: isPeriodic                   , wrapPeriodic
+     integer                                                                        :: coefficientsID
+     type            (enumerationOrphanTrajectoryType  )                            :: orphanTrajectory
    contains
      !![
      <methods docformat="rst">
@@ -68,16 +86,24 @@
      !!{RST
      Type used for tracing nodes through their positional history.
      !!}
-     double precision                     :: time
-     type            (treeNode ), pointer :: node        => null(), nodeHost => null()
-     type            (nodeTrace), pointer :: next        => null()
-     logical                              :: isSatellite
-     integer         (c_size_t )          :: iHistory
+     double precision                                 :: time
+     type            (treeNode ), pointer             :: node             => null() , nodeHost => null()
+     type            (nodeTrace), pointer             :: next             => null()
+     logical                                          :: isSatellite
+     integer         (c_size_t )                      :: iHistory
+     logical                                          :: isOrphanDecaying =  .false.
+     double precision           , dimension(10)       :: orbitOrphan
   end type nodeTrace
 
   ! Count of coefficients for different interpolation types.
-  integer(c_size_t), parameter :: countCoefficientsCubicPolynomial  =12_c_size_t
-  integer(c_size_t), parameter :: countCoefficientsLogarithmicSpiral=20_c_size_t
+  integer         (c_size_t), parameter :: countCoefficientsCubicPolynomial  =12_c_size_t
+  integer         (c_size_t), parameter :: countCoefficientsLogarithmicSpiral=20_c_size_t
+  integer         (c_size_t), parameter :: countCoefficientsOrphanDecay      =10_c_size_t
+
+  ! Labels for the type of interpolation used for each step of the trace.
+  double precision          , parameter :: interpolationCubicPolynomial      =0.0d0
+  double precision          , parameter :: interpolationLogarithmicSpiral    =1.0d0
+  double precision          , parameter :: interpolationOrphanDecay          =2.0d0
   
 contains
   
@@ -93,6 +119,7 @@ contains
     integer         (kind_int8                       ), allocatable, dimension(:) :: nodeIndicesReport
     double precision                                                              :: lengthBox
     logical                                                                       :: wrapPeriodic
+    type            (varying_string                  )                            :: orphanTrajectory
 
     allocate(nodeIndicesReport(parameters%count('nodeIndicesReport',zeroIfNotPresent=.true.)))
     if (parameters%isPresent('nodeIndicesReport')) then
@@ -123,9 +150,17 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>orphanTrajectory</name>
+      <defaultValue>var_str('host')</defaultValue>
+      <description>
+      The trajectory followed by a satellite once its position history is exhausted. "``host``" moves the orphan to the center of its host halo over the following snapshot interval. "``decay``" follows a decaying orbit about the host which reaches the host center at the time of merging.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
-    self=nodeOperatorPositionInterpolated(lengthBox,wrapPeriodic,nodeIndicesReport,cosmologyFunctions_)
+    self=nodeOperatorPositionInterpolated(lengthBox,wrapPeriodic,nodeIndicesReport,enumerationOrphanTrajectoryEncode(char(orphanTrajectory),includesPrefix=.false.),cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_" />
@@ -133,7 +168,7 @@ contains
     return
   end function positionInterpolatedConstructorParameters
 
-  function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,nodeIndicesReport,cosmologyFunctions_) result(self)
+  function positionInterpolatedConstructorInternal(lengthBox,wrapPeriodic,nodeIndicesReport,orphanTrajectory,cosmologyFunctions_) result(self)
     !!{RST
     Constructor for the :galacticus-class:`nodeOperatorPositionInterpolated` node operator class which takes a parameter set as input.
     !!}
@@ -144,8 +179,9 @@ contains
     logical                                           , intent(in   )               :: wrapPeriodic
     class           (cosmologyFunctionsClass         ), intent(in   ), target       :: cosmologyFunctions_
     integer         (kind_int8                       ), intent(in   ), dimension(:) :: nodeIndicesReport
+    type            (enumerationOrphanTrajectoryType ), intent(in   )               :: orphanTrajectory
     !![
-    <constructorAssign variables="lengthBox, wrapPeriodic, nodeIndicesReport, *cosmologyFunctions_"/>
+    <constructorAssign variables="lengthBox, wrapPeriodic, nodeIndicesReport, orphanTrajectory, *cosmologyFunctions_"/>
     !!]
 
     self%isPeriodic=lengthBox > 0.0d0
@@ -234,7 +270,9 @@ contains
     integer         (c_size_t                        )                             :: countTrace         , iTrace               , &
          &                                                                            offset
     integer                                                                        :: i
-    logical                                                                        :: isSpiral           , report
+    logical                                                                        :: isSpiral           , isOrphanDecay        , &
+         &                                                                            report
+    double precision                                  , dimension(3     )          :: positionOrphan     , velocityOrphan
     double precision                                                               :: lengthBox
     character       (len=1024                        )                             :: label
     !$GLC attributes initialized :: coefficients
@@ -259,7 +297,8 @@ contains
        call displayMessage("Index: "//trim(adjustl(label)))
     end if
     ! Extract cubic polynomial coefficients for this time.
-    isSpiral         =coefficients(countTrace+iTrace) > 0.0d0
+    isSpiral         =coefficients(countTrace+iTrace) == interpolationLogarithmicSpiral
+    isOrphanDecay    =coefficients(countTrace+iTrace) == interpolationOrphanDecay
     offset           =2_c_size_t*countTrace+(countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)*(iTrace-1_c_size_t)
     coefficientsCubic=reshape(coefficients(offset+1_c_size_t:offset+countCoefficientsCubicPolynomial),[4,3])
     ! Interpolate the cubic polynomial.
@@ -311,6 +350,20 @@ contains
           write (label,'(3(e12.6,1x),"| ",3(e12.6,1x))') position_,velocity_
           call displayMessage("Logarithmic spiral position|velocity: "//trim(adjustl(label)))
        end if
+    else if (isOrphanDecay) then
+       ! Add on the offset of an orphan on its decaying orbit, in physical position.
+       offset   =offset+countCoefficientsCubicPolynomial
+       call positionInterpolatedOrphanOffset(coefficients(offset+1_c_size_t:offset+countCoefficientsOrphanDecay),time,positionOrphan,velocityOrphan)
+       position_=+position_      &
+            &    +positionOrphan
+       velocity_=+velocity_      &
+            &    +velocityOrphan
+       if (report) then
+          write (label,'(10(e12.6,1x))'                ) coefficients(offset+1_c_size_t:offset+countCoefficientsOrphanDecay)
+          call displayMessage("Orphan decaying orbit coefficients:   "   //trim(adjustl(label)))
+          write (label,'(3(e12.6,1x),"| ",3(e12.6,1x))') position_,velocity_
+          call displayMessage("Orphan decaying orbit position|velocity: "//trim(adjustl(label)))
+       end if
     end if
     ! Handle periodic boundaries.
     if (self%isPeriodic .and. self%wrapPeriodic) then
@@ -357,6 +410,7 @@ contains
     double precision                                  , dimension(   3)              :: positionReference
     double precision                                  , dimension(4 ,3)              :: coefficientsCubic
     double precision                                  , dimension(20  )              :: coefficientsSpiral
+    double precision                                  , dimension(10  )              :: orbitOrphan
     double precision                                  , dimension( :  ), allocatable :: coefficients
     character       (len=128                         )                               :: label
     character       (len=512                         )                               :: message
@@ -370,7 +424,9 @@ contains
     logical                                                                          :: isSatellite         , haveHistory               , &
          &                                                                              haveMerger          , haveBranchJump            , &
          &                                                                              haveSubhaloPromotion, isInitialSatellite        , &
-         &                                                                              isHost              , reporting
+         &                                                                              isHost              , reporting                 , &
+         &                                                                              isOrphanDecaying    , isOrphanBegun             , &
+         &                                                                              isOrphanReverted    , isOrphanDecayEnded
 
     ! Consider only branch tips.
     if (associated(node%firstChild)) return
@@ -435,6 +491,11 @@ contains
     haveMerger      =  .false.
     timeMerger      =  huge(0.0d0)
     nodeMergeTarget => null()    
+    ! Initialize orphan status.
+    isOrphanDecaying  =.false.
+    isOrphanReverted  =.false.
+    isOrphanDecayEnded=.false.
+    orbitOrphan       =0.0d0
     ! Follow the node through the tree.
     if (reporting) then
        write (label,'(i12)') node%index()
@@ -530,28 +591,45 @@ contains
        ! Determine satellite status for the current descendant.
        isSatellite=.not.associated(nodeDescendant,nodeHost)
        if (.not.isSatellite) iHistory=-1_c_size_t
-       ! Append this step to the trace.
-       countTrace=countTrace+1_c_size_t
-       if (associated(traceTail)) then
-          allocate(traceTail%next)
-          traceTail => traceTail%next
-       else
-          allocate(traceHead     )
-          traceTail => traceHead
+       ! Append this step to the trace - unless an orphan has just reverted from a decaying orbit to following its host, in which
+       ! case the final step in the trace has already been updated to describe this step.
+       if (.not.isOrphanReverted) then
+          countTrace=countTrace+1_c_size_t
+          if (associated(traceTail)) then
+             allocate(traceTail%next)
+             traceTail => traceTail%next
+          else
+             allocate(traceHead     )
+             traceTail => traceHead
+          end if
+          if (reporting) then
+             write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
+             call displayMessage(trim(adjustl(label)))
+          end if
+          traceTail%time        =  time
+          traceTail%isSatellite =  isSatellite
+          traceTail%iHistory    =  iHistory
+          traceTail%node        => nodeDescendant
+          traceTail%nodeHost    => nodeHost
+          traceTail%next        => null()
+          if (isOrphanDecaying) then
+             traceTail%isOrphanDecaying=.true.
+             traceTail%orbitOrphan     =orbitOrphan
+          end if
        end if
-       if (reporting) then
-          write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
-          call displayMessage(trim(adjustl(label)))
-       end if
-       traceTail%time        =  time
-       traceTail%isSatellite =  isSatellite
-       traceTail%iHistory    =  iHistory
-       traceTail%node        => nodeDescendant
-       traceTail%nodeHost    => nodeHost
-       traceTail%next        => null()
+       isOrphanReverted=.false.
        ! Move to the next step.
+       !! Case where we are following the decaying orbit of an orphan.
+       if (isOrphanDecaying) then
+          call orphanDecayStep()
+          if (isOrphanReverted) cycle
+          ! Update the time if the orphan has reverted to following its host.
+          if (.not.isOrphanDecaying .and. associated(nodeDescendant)) then
+             basic => nodeDescendant%basic()
+             time  =  basic         %time ()
+          end if
        !! Case where we want to move to the parent node.
-       if     (                                                        &
+       else if (                                                       &
             &                    nodeDescendant%isPrimaryProgenitor()  & ! 1. Node is primary progenitor - so we can move directly to its descendant.
             &  .or.                                                    &
             &    .not.associated(nodeDescendant%parent               ) & ! 2. Node has no descendant - we have reached the end of the tree - move to that null
@@ -570,20 +648,31 @@ contains
              nodeDescendant    => event         %node
              nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
              ! The promoted halo survives as an independent central, so cancel any pending (stale) galaxy merger.
-             haveMerger        =  .false.
-             timeMerger        =  huge(0.0d0)
-             nodeMergeTarget   => null()
+             haveMerger         =  .false.
+             timeMerger         =  huge(0.0d0)
+             nodeMergeTarget    => null()
+             isOrphanDecayEnded =  .false.
           else
-             ! Always move to the host's parent - this allows us to correctly handle satellites that have been orphanized.
-             if (.not.associated(nodeDescendant,nodeHost) .and. associated(nodeHost%parent) .and. nodeHost%parent%index() == nodeHost%index()) then
-                nodeDescendant => nodeHost      %parent%parent ! Parent is a clone (and descendant is a satellite), so skip over it.
-             else
-                nodeDescendant => nodeHost      %parent        ! Parent is not a clone, use directly.
+             ! A satellite which has reached the end of its position history may become an orphan following a decaying orbit.
+             isOrphanBegun=.false.
+             if (.not.associated(nodeDescendant,nodeHost) .and. haveHistory) then
+                if (iHistory == countHistory) isOrphanBegun=orphanDecayBegin()
              end if
-             nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
+             if (isOrphanBegun) then
+                call orphanDecayStep()
+                if (isOrphanReverted) cycle
+             else
+                ! Always move to the host's parent - this allows us to correctly handle satellites that have been orphanized.
+                if (.not.associated(nodeDescendant,nodeHost) .and. associated(nodeHost%parent) .and. nodeHost%parent%index() == nodeHost%index()) then
+                   nodeDescendant => nodeHost      %parent%parent ! Parent is a clone (and descendant is a satellite), so skip over it.
+                else
+                   nodeDescendant => nodeHost      %parent        ! Parent is not a clone, use directly.
+                end if
+                nodeHost          => nodeDescendant               ! This is always an isolated halo by construction, so must be self-hosting.
+             end if
           end if
           ! Update the time if the descendant exists.
-          if (associated(nodeDescendant)) then
+          if (associated(nodeDescendant) .and. .not.isOrphanDecaying) then
              basic => nodeDescendant%basic()
              time  =  basic         %time ()
           end if
@@ -635,17 +724,26 @@ contains
                 nodeDescendant => event         %node
                 nodeHost       => nodeDescendant      ! This is always an isolated halo by construction, so must be self-hosting.
                 ! The promoted halo survives as an independent central, so cancel any pending (stale) galaxy merger.
-                haveMerger      =  .false.
-                timeMerger      =  huge(0.0d0)
-                nodeMergeTarget => null()
+                haveMerger         =  .false.
+                timeMerger         =  huge(0.0d0)
+                nodeMergeTarget    => null()
+                isOrphanDecayEnded =  .false.
              else
-                ! This descendant becomes orphanized in its parent, so move our pointer to that parent such that we will follow
-                ! its position.
-                nodeDescendant => nodeHost      %parent
-                nodeHost       => nodeDescendant        ! This is always an isolated halo by construction, so must be self-hosting.
+                if (orphanDecayBegin()) then
+                   ! The satellite becomes an orphan following a decaying orbit. Step back to the final entry in the history, which
+                   ! is the final position of the satellite.
+                   iHistory=countHistory
+                   call orphanDecayStep()
+                   if (isOrphanReverted) cycle
+                else
+                   ! This descendant becomes orphanized in its parent, so move our pointer to that parent such that we will follow
+                   ! its position.
+                   nodeDescendant => nodeHost      %parent
+                   nodeHost       => nodeDescendant        ! This is always an isolated halo by construction, so must be self-hosting.
+                end if
              end if
              ! Update the time if the descendant exists.
-             if (associated(nodeDescendant)) then
+             if (associated(nodeDescendant) .and. .not.isOrphanDecaying) then
                 basic => nodeDescendant%basic()
                 time  =  basic         %time ()
              end if
@@ -653,6 +751,8 @@ contains
        end if
        ! Check for a merger.
        if (haveMerger .and. time >= timeMerger) then
+          ! Any decaying orbit of an orphan ends at the merger.
+          isOrphanDecaying=.false.
           ! Move to the host, unless the merger time is before the current time, in which case we need to back up to the host's
           ! progenitor.
           if (reporting) then
@@ -724,10 +824,11 @@ contains
              basic      => nodeDescendant%basic()
              timeMerger =  basic         %time ()
           end if
-          time            =  timeMerger
-          timeMerger      =  huge(0.0d0)
-          haveMerger      =  .false.
-          nodeMergeTarget => null()
+          time               =  timeMerger
+          timeMerger         =  huge(0.0d0)
+          haveMerger         =  .false.
+          nodeMergeTarget    => null()
+          isOrphanDecayEnded =  .false.
           ! We have merged - forget any pre-existing branch jumps.
           haveBranchJump=.false.          
        end if
@@ -741,8 +842,9 @@ contains
           call displayMessage("trace events - branch jump?, time, timeJump: "//trim(adjustl(label)))
        end if
        if (haveBranchJump .and. time == timeBranchJump) then
-          if (associated(nodeDescendant,nodeHost)) nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
-          nodeHost => event%node
+          if (associated(nodeDescendant,nodeHost) .or. isOrphanDecaying) nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
+          nodeHost         => event%node
+          isOrphanDecaying =  .false.
        end if
     end do
     if (reporting) call displayUnindent("")
@@ -789,9 +891,27 @@ contains
           ! Store the time.
           coefficients(1_c_size_t+iTrace)=traceTail%time
           ! Determine the type of interpolation to use.
-          if (traceTail%isSatellite .and. traceTail%next%isSatellite) then
+          if (traceTail%isOrphanDecaying .and. traceTail%next%isOrphanDecaying) then
+             ! Decaying orbit of an orphan - the node is following its decaying orbit at this step, and at the next step.
+             coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationOrphanDecay
+             !! Get the cubic polynomial interpolation for the host halo.
+             coefficientsCubic =computeCoefficientsCubicPolynomial(traceTail,useHost=.true. )
+             !! Store the coefficients.
+             offset                                                                 =2_c_size_t*(countTrace-1_c_size_t)+(countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)*iTrace
+             coefficients(offset+1_c_size_t:offset+countCoefficientsCubicPolynomial)=reshape(coefficientsCubic,[countCoefficientsCubicPolynomial])
+             offset                                                                 =offset+countCoefficientsCubicPolynomial
+             coefficients(offset+1_c_size_t:offset+countCoefficientsOrphanDecay    )=traceTail%orbitOrphan
+             if (reporting) then
+                call displayIndent("orphan")
+                write (message,'(10(e12.6,1x))') traceTail%orbitOrphan
+                call displayMessage("   orphan: "//trim(message))
+                write (message,'(12(e12.6,1x))') reshape(coefficientsCubic ,[countCoefficientsCubicPolynomial  ])
+                call displayMessage("     host: "//trim(message))
+                call displayUnindent("")
+             end if
+          else if (traceTail%isSatellite .and. traceTail%next%isSatellite .and. .not.traceTail%isOrphanDecaying) then
              ! Logarithmic spiral interpolation - the node is a satellite at this step, and at the next step.
-             coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=1.0d0
+             coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationLogarithmicSpiral
              !! Get the logarithmic spiral interpolation for the host halo.
              coefficientsSpiral=computeCoefficientsLogarithmicSpiral(traceTail                )
              !! Get the cubic polynomial interpolation for the host halo.
@@ -810,8 +930,9 @@ contains
                 call displayUnindent("")
              end if
           else
-             ! Polynomial interpolation - whenever the node is not a satellite at this and the next step.
-             coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=0.0d0
+             ! Polynomial interpolation - whenever the node is not a satellite at this and the next step, or is ending a decaying
+             ! orbit as an orphan.
+             coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationCubicPolynomial
              !! Get the cubic polynomial coefficients.
              coefficientsCubic=computeCoefficientsCubicPolynomial   (traceTail,useHost=.false.)
              !! Store the coefficients.
@@ -881,6 +1002,147 @@ contains
       end do
       return
     end subroutine findEvents
+
+    logical function orphanDecayBegin()
+      !!{RST
+      Begin a decaying orbit for a satellite which has reached the final entry in its position history (which must be the final
+      step in the trace), if the ``decay`` orphan trajectory is selected and the orbit can be constructed. Returns true if the
+      decaying orbit was begun.
+      !!}
+      use :: Vectors, only : Vector_Product, Vector_Magnitude
+      implicit none
+      class           (nodeComponentPosition), pointer      :: positionSatellite, positionHost_
+      class           (nodeComponentBasic   ), pointer      :: basicHost_
+      type            (history              )               :: positionHistory_
+      double precision                       , dimension(3) :: positionRelative , velocityRelative   , &
+           &                                                   vectorRadial     , vectorTangential   , &
+           &                                                   vectorNormal
+      double precision                                      :: expansionFactor  , expansionFactorHost, &
+           &                                                   lengthBox_       , momentumAngular
+      integer                                               :: j
+
+      orphanDecayBegin=.false.
+      ! A decaying orbit requires that it be selected, that the satellite has a finite time of merging after the final entry in
+      ! its position history, and that it is a satellite at that final entry. A decaying orbit which has ended because the host
+      ! became a satellite is not resumed - the orphan then follows its host until it merges.
+      if (self%orphanTrajectory /= orphanTrajectoryDecay) return
+      if (     isOrphanDecayEnded                       ) return
+      if (.not.haveMerger                               ) return
+      if (.not.traceTail%isSatellite                    ) return
+      if (     timeMerger       <= traceTail%time       ) return
+      ! Find the final position and velocity of the satellite relative to its host. As for the logarithmic spiral interpolation,
+      ! the physical position of the host is translated to that at the expansion factor of the satellite.
+      positionSatellite   => traceTail%node    %position       ()
+      positionHost_       => traceTail%nodeHost%position       ()
+      basicHost_          => traceTail%nodeHost%basic          ()
+      positionHistory_    =  positionSatellite %positionHistory()
+      expansionFactor     =  self%cosmologyFunctions_%expansionFactor(traceTail %time  )
+      expansionFactorHost =  self%cosmologyFunctions_%expansionFactor(basicHost_%time())
+      positionRelative    = +positionHistory_%data    (traceTail%iHistory,1:3) &
+           &                -positionHost_   %position(                      ) &
+           &                *expansionFactor                                   &
+           &                /expansionFactorHost
+      velocityRelative    = +positionHistory_%data    (traceTail%iHistory,4:6) &
+           &                -positionHost_   %velocity(                      )
+      ! Handle periodic positions by taking the nearest periodic image of the satellite.
+      if (self%isPeriodic) then
+         lengthBox_=self%lengthBox*expansionFactor
+         do j=1,3
+            positionRelative(j)=positionRelative(j)-lengthBox_*dble(nint(positionRelative(j)/lengthBox_))
+         end do
+      end if
+      ! A satellite located precisely at the center of its host has no defined orbit.
+      if (Vector_Magnitude(positionRelative) <= 0.0d0) return
+      ! Construct unit vectors in the radial direction, and in the tangential direction in the orbital plane.
+      vectorRadial   =+positionRelative                                    &
+           &          /Vector_Magnitude(positionRelative                 )
+      vectorNormal   =+Vector_Product  (positionRelative,velocityRelative)
+      momentumAngular=+Vector_Magnitude(vectorNormal                     )
+      if (momentumAngular > 0.0d0) then
+         vectorNormal=+vectorNormal    &
+              &       /momentumAngular
+      else
+         ! The orbit is purely radial, so the orbital plane is undefined. Choose any plane containing the radial vector, using the
+         ! Cartesian axis which is most nearly perpendicular to it.
+         vectorNormal                                 =0.0d0
+         vectorNormal(minloc(abs(vectorRadial),dim=1))=1.0d0
+         vectorNormal                                 =+                 Vector_Product(vectorRadial,vectorNormal)  &
+              &                                        /Vector_Magnitude(Vector_Product(vectorRadial,vectorNormal))
+      end if
+      vectorTangential=Vector_Product(vectorNormal,vectorRadial)
+      ! Store the parameters of the decaying orbit.
+      orbitOrphan( 1: 3)=vectorRadial
+      orbitOrphan( 4: 6)=vectorTangential
+      orbitOrphan( 7   )=Vector_Magnitude(positionRelative                 )
+      orbitOrphan( 8   )=traceTail%time
+      orbitOrphan( 9   )=timeMerger
+      orbitOrphan(10   )=Dot_Product     (velocityRelative,vectorTangential)
+      ! The final step in the trace is the start of the decaying orbit.
+      isOrphanDecaying          =.true.
+      traceTail%isOrphanDecaying=.true.
+      traceTail%orbitOrphan     =orbitOrphan
+      orphanDecayBegin          =.true.
+      if (reporting) then
+         write (message,'(10(e12.6,1x))') orbitOrphan
+         call displayMessage("orphan - begin decaying orbit: "//trim(message))
+      end if
+      return
+    end function orphanDecayBegin
+
+    subroutine orphanDecayStep()
+      !!{RST
+      Advance an orphan on its decaying orbit to the next step of its host. If the end of the tree is reached the trace ends on the
+      decaying orbit. If the host itself becomes a satellite the decaying orbit ends, and the orphan reverts to following its host
+      (as for the ``host`` trajectory) until it merges: the final step in the trace is then updated to place the orphan at the
+      center of its host, ``isOrphanReverted`` is set to indicate that the trace walk must continue from that step, and
+      ``isOrphanDecayEnded`` is set to prevent a further decaying orbit from beginning when the position history of the host is
+      exhausted.
+      !!}
+      implicit none
+      class(nodeComponentBasic), pointer :: basicHost_
+
+      do while (.true.)
+         if (.not.associated(nodeHost%parent)) then
+            ! The end of the tree has been reached - the trace ends on the decaying orbit.
+            isOrphanDecaying =  .false.
+            nodeDescendant   => null()
+            if (reporting) call displayMessage("orphan - end decaying orbit at end of tree")
+            exit
+         else if (nodeHost%isPrimaryProgenitor()) then
+            ! Move to the next step of the host, skipping any which do not lie after the final step in the trace.
+            nodeHost   => nodeHost  %parent
+            basicHost_ => nodeHost  %basic ()
+            time       =  basicHost_%time  ()
+            if (time > traceTail%time) exit
+         else if (traceTail%time > traceTail%orbitOrphan(8)) then
+            ! The host is itself becoming a satellite. The orphan reverts to following its host, as for the "host" trajectory. The
+            ! final step in the trace is updated to place the orphan at the center of its host (the interpolation over the
+            ! preceding step then carries the orphan smoothly from its decaying orbit to the host center), and the trace walk
+            ! continues from that step, following the host.
+            traceTail%node             => nodeHost
+            traceTail%isSatellite      =  .false.
+            traceTail%isOrphanDecaying =  .false.
+            traceTail%iHistory         =  -1_c_size_t
+            nodeDescendant             => nodeHost
+            iHistory                   =  -1_c_size_t
+            isOrphanDecaying           =  .false.
+            isOrphanReverted           =  .true.
+            isOrphanDecayEnded         =  .true.
+            if (reporting) call displayMessage("orphan - end decaying orbit as host becomes a satellite")
+            exit
+         else
+            ! The host is itself becoming a satellite at the first step of the decaying orbit. The orphan reverts to following its
+            ! host, exactly as for the "host" trajectory.
+            isOrphanDecaying   =  .false.
+            isOrphanDecayEnded =  .true.
+            nodeDescendant     => nodeHost%parent
+            nodeHost           => nodeDescendant
+            if (reporting) call displayMessage("orphan - end decaying orbit as host becomes a satellite at its first step")
+            exit
+         end if
+      end do
+      return
+    end subroutine orphanDecayStep
     
     function computeCoefficientsLogarithmicSpiral(trace) result(coefficientsLogarithmicSpiral)
       !!{RST
@@ -1093,7 +1355,16 @@ contains
             position        => trace_%node               %position       (              )
             expansionFactor =  self  %cosmologyFunctions_%expansionFactor(      times(i))
          end if
-         if (.not.useHost .and. trace_%isSatellite) then
+         if (.not.useHost .and. trace_%isOrphanDecaying .and. trace_%time > trace_%orbitOrphan(8)) then
+            ! An orphan on its decaying orbit (after the final entry in its position history) - its position is that of the host
+            ! plus its offset on the decaying orbit.
+            position             =>  trace_%nodeHost%position()
+            call positionInterpolatedOrphanOffset(trace_%orbitOrphan,times(i),positionPhysical(i,:),velocityPhysical(i,:))
+            positionPhysical(i,:)=  +positionPhysical(i,:) &
+                 &                  +position%position()
+            velocityPhysical(i,:)=  +velocityPhysical(i,:) &
+                 &                  +position%velocity()
+         else if (.not.useHost .and. trace_%isSatellite) then
             positionHistory      =position       %positionHistory(                   )
             positionPhysical(i,:)=positionHistory%data           (trace_%iHistory,1:3)
             velocityPhysical(i,:)=positionHistory%data           (trace_%iHistory,4:6)
@@ -1167,3 +1438,66 @@ contains
     end function computeCoefficientsCubicPolynomial
       
   end subroutine positionInterpolatedNodeTreeInitialize
+
+  subroutine positionInterpolatedOrphanOffset(orbit,time,position,velocity)
+    !!{RST
+    Compute the offset from its host (in physical position, and in velocity) of an orphan on a decaying orbit. The orbit is that of
+    a satellite on a circular orbit in a singular isothermal sphere, decaying under dynamical friction :cite:p:`binney_galactic_2008`,
+    such that the square of the radius decreases linearly in time to zero at the time of merging, while the tangential speed is
+    constant. The ``orbit`` array contains the initial radial and tangential unit vectors, the initial radius, the initial time, the
+    time of merging, and the tangential speed.
+    !!}
+    use :: Numerical_Constants_Astronomical, only : MpcPerKmPerSToGyr
+    implicit none
+    double precision, intent(in   ), dimension(10) :: orbit
+    double precision, intent(in   )                :: time
+    double precision, intent(  out), dimension( 3) :: position         , velocity
+    double precision                               :: fractionRemaining, duration, &
+         &                                            radius           , angle   , &
+         &                                            speedRadial
+
+    ! Find the fraction of the decay time remaining.
+    duration         =+orbit(9)-orbit(8)
+    fractionRemaining=+max(0.0d0,min(1.0d0,(orbit(9)-time)/duration))
+    if (fractionRemaining <= 0.0d0) then
+       ! The orbit has decayed completely.
+       position=0.0d0
+       velocity=0.0d0
+       return
+    end if
+    ! Compute the radius, angle, and radial speed. The angle is the integral over time of the angular speed, (tangential
+    ! speed)/(radius). Speeds are converted from km/s to Mpc/Gyr where necessary.
+    radius     =+orbit(7)                  &
+         &      *sqrt(fractionRemaining)
+    angle      =+2.0d0                     &
+         &      *orbit(10)                 &
+         &      /MpcPerKmPerSToGyr         &
+         &      *duration                  &
+         &      /orbit(7)                  &
+         &      *(                         &
+         &        +1.0d0                   &
+         &        -sqrt(fractionRemaining) &
+         &       )
+    speedRadial=-0.5d0                     &
+         &      *orbit(7)                  &
+         &      /duration                  &
+         &      /sqrt(fractionRemaining)   &
+         &      *MpcPerKmPerSToGyr
+    ! Construct the position and velocity.
+    position=+radius                       &
+         &   *(                            &
+         &     +orbit(1:3)*cos(angle)      &
+         &     +orbit(4:6)*sin(angle)      &
+         &    )
+    velocity=+speedRadial                  &
+         &   *(                            &
+         &     +orbit(1:3)*cos(angle)      &
+         &     +orbit(4:6)*sin(angle)      &
+         &    )                            &
+         &   +orbit(10)                    &
+         &   *(                            &
+         &     -orbit(1:3)*sin(angle)      &
+         &     +orbit(4:6)*cos(angle)      &
+         &    )
+    return
+  end subroutine positionInterpolatedOrphanOffset

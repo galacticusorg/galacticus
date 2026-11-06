@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to test-luminosities-from-SED-lightcone.xml for a model which computes the SED of each galaxy individually in
+     the observed frame. No single template can serve every galaxy on this path, so the postprocessing multiplier is applied
+     inside the integrals over the star formation history rather than being folded into the filter response. This is the only
+     path on which that multiplier is neither zero nor unity, and so the only one which tests how it is applied.
+
+     Two SEDs are output over the same narrow band, one attenuated by the IGM and one not. Because the multiplier is
+     independent of both the age and the metallicity of the stellar population it factors out of those integrals, so the ratio
+     of the two SEDs must be the attenuation itself, whatever the accuracy of the integration.
+
+     The band is 1320 to 1340 Angstroms in the observed frame, which at the redshift of these galaxies lies just above the
+     Lyman limit in their rest frame, where Lyman-series absorption is strong. It is kept narrow, and the star formation
+     history and integration tolerance coarse, because each galaxy's SED is computed separately and the cost is far higher
+     than on the template path. -->
+<changes>
+
+  <change type="replace" path="nodePropertyExtractor">
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices"/>
+      <nodePropertyExtractor value="redshift"   />
+      <nodePropertyExtractor value="lightcone"  >
+        <atCrossing value="true"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"  />
+        <frame             value="observed"/>
+        <wavelengthMinimum value="1320.0"/>
+        <wavelengthMaximum value="1340.0"/>
+        <toleranceRelative value="1.0e-2"/>
+        <stellarPopulationSpectraPostprocessor value="inoue2014"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"  />
+        <frame             value="observed"/>
+        <wavelengthMinimum value="1320.0"/>
+        <wavelengthMaximum value="1340.0"/>
+        <toleranceRelative value="1.0e-2"/>
+        <stellarPopulationSpectraPostprocessor value="identity"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+  </change>
+
+  <change type="replace" path="starFormationHistory">
+    <starFormationHistory value="fixedAges">
+      <ageMinimum         value="0.001"/>
+      <countAges          value="4"    />
+      <countMetallicities value="2"    />
+    </starFormationHistory>
+  </change>
+
+  <change type="update" path="outputFileName" value="testSuite/outputs/test-luminosities-from-SED-lightcone/galacticusPerGalaxy.hdf5"/>
+
+</changes>

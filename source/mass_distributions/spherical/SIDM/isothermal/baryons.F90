@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Provides a mass distribution implementing the "isothermal" approximation to the effects of SIDM, including the baryonic potential, based on the model of :cite:t:`jiang_semi-analytic_2023`.
   !!}
@@ -59,7 +61,8 @@
      private
      double precision                                                                 :: velocityDispersionCentral
      class           (massDistributionClass                    ), pointer             :: massDistributionBaryonic  => null()
-     type            (interpolator                             ), allocatable         :: densityProfile                     , massProfile
+     type            (interpolator                             ), allocatable         :: densityProfile                     , massProfile           , &
+          &                                                                              potentialProfile
      ! Call-back function and arguments used for as-needed initialization of the baryonic component.
      logical                                                                          :: initialized
      procedure       (sphericalSIDMIsothermalBaryonsInitializor), pointer    , nopass :: initializationFunction
@@ -173,8 +176,9 @@ contains
     end select
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="massDistribution_"  />
-    <objectDestructor name="darkMatterParticle_"/>
+    <objectDestructor name="massDistribution_"       />
+    <objectDestructor name="massDistributionBaryonic"/>
+    <objectDestructor name="darkMatterParticle_"     />
     !!]
     return
   end function sphericalSIDMIsothermalBaryonsConstructorParameters
@@ -209,6 +213,8 @@ contains
     ! Initialize state.
     self%dimensionless=.false.
     self%initialized  =.not.associated(initializationFunction)
+    ! If the baryonic component was supplied directly (rather than through the initialization function), compute the solution now.
+    if (self%initialized) call self%computeSolution()
     return
   end function sphericalSIDMIsothermalBaryonsConstructorInternal
 
@@ -260,9 +266,9 @@ contains
     integer                                                         , parameter                  :: countTable                   =1000
     double precision                                                , parameter                  :: odeToleranceAbsolute         =1.0d-3, odeToleranceRelative     =1.0d-3
     double precision                                                , parameter                  :: fractionRadiusInitial        =1.0d-6
-    double precision                                                , dimension(propertyCount+1) :: properties                          , propertyScales
+    double precision                                                , dimension(propertyCount+2) :: properties                          , propertyScales
     double precision                                                , dimension(countTable     ) :: radiusTable                         , densityTable                    , &
-         &                                                                                          massTable
+         &                                                                                          massTable                           , potentialTable
     double precision                                                , dimension(propertyCount  ) :: locationMinimum
     type            (odeSolver                                     )                             :: odeSolver_
     type            (multiDMinimizer                               )                             :: minimizer_
@@ -284,9 +290,9 @@ contains
     ! Find the velocity dispersion scale.
     velocityDispersionInteraction=sqrt(gravitationalConstant_internal*massInteraction/radiusInteraction)
     ! Set ODE solver  scales.
-    propertyScales               =[velocityDispersionInteraction**2,velocityDispersionInteraction**2/radiusInteraction,massInteraction]
+    propertyScales               =[velocityDispersionInteraction**2,velocityDispersionInteraction**2/radiusInteraction,massInteraction,velocityDispersionInteraction**2]
     ! Construct an ODE solver.
-    odeSolver_                   =odeSolver      (propertyCount+1,sidmIsothermalODEs     ,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)
+    odeSolver_                   =odeSolver      (propertyCount+2,sidmIsothermalODEs     ,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=propertyScales)
     ! Construct a minimizer.
     minimizer_                   =multiDMinimizer(propertyCount  ,sidmIsothermalFitMetric                                                                                                   )
     ! Seek the solution.
@@ -301,10 +307,11 @@ contains
     locationMinimum          =minimizer_%x()
     densityCentral           =exp(locationMinimum(1))*densityInteraction
     velocityDispersionCentral=    locationMinimum(2) *velocityDispersionInteraction
-    ! Tabulate solutions for density and mass.
-    radiusTable    =Make_Range(rangeMinimum=0.0d0,rangeMaximum=radiusInteraction,rangeNumber=countTable,rangeType=rangeTypeLinear)
-    densityTable(1)=densityCentral
-    massTable   (1)=0.0d0
+    ! Tabulate solutions for density, mass, and the potential of the dark matter alone.
+    radiusTable      =Make_Range(rangeMinimum=0.0d0,rangeMaximum=radiusInteraction,rangeNumber=countTable,rangeType=rangeTypeLinear)
+    densityTable  (1)=densityCentral
+    massTable     (1)=0.0d0
+    potentialTable(1)=0.0d0
     do i=2,countTable
        radius    =fractionRadiusInitial*radiusInteraction
        properties=0.0d0
@@ -314,12 +321,15 @@ contains
             &               -properties(1)                &
             &               /velocityDispersionCentral**2 &
             &              )
-       massTable   (i)=+     properties(3)
+       massTable     (i)=+     properties(3)
+       potentialTable(i)=+     properties(4)
     end do
-    allocate(self%densityProfile)
-    allocate(self%   massProfile)
+    allocate(self%  densityProfile)
+    allocate(self%     massProfile)
+    allocate(self%potentialProfile)
     self%           densityProfile=interpolator(radiusTable,             densityTable)
     self%              massProfile=interpolator(radiusTable,                massTable)
+    self%         potentialProfile=interpolator(radiusTable,           potentialTable)
     self%velocityDispersionCentral=                         velocityDispersionCentral
     return
     
@@ -331,7 +341,7 @@ contains
       !!}
       implicit none
       double precision, intent(in   ), dimension(:)               :: propertiesCentral
-      double precision               , dimension(propertyCount+1) :: properties
+      double precision               , dimension(propertyCount+2) :: properties
       double precision                                            :: radius
       
       ! Extract current parameters.
@@ -392,6 +402,10 @@ contains
            &                           *Pi                               &
            &                           *radius**2                        &
            &                           *densityDarkMatter
+      ! The potential of the dark matter alone (relative to that at the center), dΦ/dr = G M(r)/r².
+      propertiesRateOfChange       (4)=+gravitationalConstant_internal   &
+           &                           *properties            (3)        &
+           &                           /radius**2
       sidmIsothermalODEs              = GSL_Success
       return
     end function sidmIsothermalODEs
@@ -417,7 +431,7 @@ contains
 
   double precision function sphericalSIDMIsothermalBaryonsDensityGradientRadial(self,coordinates,logarithmic) result(densityGradient)
     !!{RST
-    Return the density at the specified ``coordinates`` in a truncated spherical mass distribution.
+    Return the radial density gradient at the specified ``coordinates`` for the ``sphericalSIDMIsothermalBaryons`` mass distribution.
     !!}
     implicit none
     class  (massDistributionSphericalSIDMIsothermalBaryons), intent(inout) , target   :: self
@@ -427,6 +441,7 @@ contains
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
+    call self%setBaryonicComponent()
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        densityGradient=self%massDistribution_%densityGradientRadial(coordinates,logarithmic)
     else
@@ -469,7 +484,7 @@ contains
 
   double precision function sphericalSIDMIsothermalBaryonsPotential(self,coordinates,status) result(potential)
     !!{RST
-    Return the potential at the specified ``coordinates`` in an burkert mass distribution.
+    Return the potential at the specified ``coordinates`` for the ``sphericalSIDMIsothermalBaryons`` mass distribution.
     !!}
     use :: Coordinates               , only : coordinateSpherical      , assignment(=)
     use :: Galactic_Structure_Options, only : structureErrorCodeSuccess
@@ -485,14 +500,14 @@ contains
     if (coordinates%rSpherical() > self%radiusInteraction()) then
        potential             =+self%massDistribution_%potential(coordinates,status=status)
     else
+       ! Inside the interaction radius use the tabulated potential of the dark matter alone, integrated from its enclosed mass.
+       ! (The dark matter density, ρ(r) = ρ₀ exp(-Φ(r)/σ₀²), is set by the total potential, so its logarithm would include the
+       ! baryonic potential also.)
        radiusInteraction     =+self%radiusInteraction()
        coordinatesInteraction=[radiusInteraction,0.0d0,0.0d0]
-       potential             =+self%massDistribution_%potential(coordinatesInteraction)              &
-            &                 -self%velocityDispersionCentral**2                                     &
-            &                 *log(                                                                  &
-            &                      +self%densityProfile%interpolate(coordinates%rSpherical       ()) &
-            &                      /self%densityProfile%interpolate(            radiusInteraction  ) &
-            &                 )
+       potential             =+self%massDistribution_%potential  (coordinatesInteraction  ) &
+            &                 +self%potentialProfile %interpolate(coordinates%rSpherical()) &
+            &                 -self%potentialProfile %interpolate(radiusInteraction       )
     end if  
     return
   end function sphericalSIDMIsothermalBaryonsPotential
