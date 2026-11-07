@@ -71,14 +71,18 @@ for statistic in "ABC":
         name = "statistic"+statistic+"/threshold"+str(indexThreshold)
         o    = operator[name]
         p    = script  [name]
-        count           = o["countTotal"     ][:][order]
-        sumDeltaSquared = o["sumDeltaSquared"][:][order]
+        count                         = o["countTotal"                   ][:][order]
+        sumDeltaSquared               = o["sumDeltaSquared"              ][:][order]
+        sumDeltaSquaredAfterFormation = o["sumDeltaSquaredAfterFormation"][:][order]
         print(name+":")
-        # Comparison with the script.
+        # Comparison with the script. The sum of Δ² after formation includes the split at which the main branch falls below half
+        # of the root mass, which often carries a substantial part of it, so the comparison checks that both place the cut at the
+        # same node.
         differences = {
-            "<N>"           : abs(count.mean()       -p.attrs["countMean"          ]),
-            "Var(N)"        : abs(count.var(ddof=1)  -p.attrs["countVariance"      ]),
-            "<ΣΔ²>"         : abs(sumDeltaSquared.mean()-p.attrs["sumDeltaSquaredMean"])/p.attrs["sumDeltaSquaredMean"],
+            "<N>"                  : abs(count                        .mean()      -p.attrs["countMean"          ]),
+            "Var(N)"               : abs(count                        .var(ddof=1) -p.attrs["countVariance"      ]),
+            "<ΣΔ²>"                : abs(sumDeltaSquared              .mean()      -p.attrs["sumDeltaSquaredMean"])/p.attrs["sumDeltaSquaredMean"],
+            "<ΣΔ² after formation>": abs(sumDeltaSquaredAfterFormation.mean()      -p["trees/sumDeltaSquaredAfterFormation"][:].mean())/p.attrs["sumDeltaSquaredMean"],
         }
         expectation          = o["cumulativeExpectation"         ][:][order,:].T
         expectationAlternate = o["cumulativeExpectationAlternate"][:][order,:].T
@@ -91,8 +95,8 @@ for statistic in "ABC":
             fail(name+": <N> differs from that of the analysis script")
         if differences["Var(N)"] > toleranceAggregate*p.attrs["countVariance"]:
             fail(name+": Var(N) differs from that of the analysis script")
-        for quantity in ("<ΣΔ²>","cumulative Var(E[N|ω])","cumulative <ΣΔ²>"):
-            if differences[quantity] > toleranceAggregate*(1.0 if quantity == "<ΣΔ²>" else p.attrs["sumDeltaSquaredMean"]):
+        for quantity in ("<ΣΔ²>","<ΣΔ² after formation>","cumulative Var(E[N|ω])","cumulative <ΣΔ²>"):
+            if differences[quantity] > toleranceAggregate*(1.0 if quantity in ("<ΣΔ²>","<ΣΔ² after formation>") else p.attrs["sumDeltaSquaredMean"]):
                 fail(name+": "+quantity+" differs from that of the analysis script")
         # Per-split values, matched by tree, ω, and mass.
         splitsOperator = o["splits"]

@@ -309,7 +309,12 @@ class chunkOfTrees:
         factor            = (np.log(0.5*massRoot[tree])-np.log(mass[before]))/(np.log(mass[firstBelow])-np.log(mass[before]))
         redshiftFormation[tree] = self.redshift[before]+factor*(self.redshift[firstBelow]-self.redshift[before])
         omegaFormation   [tree] = omega        [before]+factor*(omega        [firstBelow]-omega        [before])
-        self.massRoot, self.redshiftFormation, self.omegaFormation = massRoot, redshiftFormation, omegaFormation
+        # Stopping time: the ω of the first main-branch node below half of the root mass. Unlike the interpolated omegaFormation,
+        # whether a split precedes it depends on nothing beyond it in the tree. Trees whose main branch never falls below half
+        # are included whole (infinite ω).
+        omegaStopping       = np.full(self.countTrees,np.inf)
+        omegaStopping[tree] = omega[firstBelow]
+        self.massRoot, self.redshiftFormation, self.omegaFormation, self.omegaStopping = massRoot, redshiftFormation, omegaFormation, omegaStopping
         # Local tree index of each node (for per-tree sums within the chunk), and global tree index (for fold assignment and
         # output).
         self.treeLocal  = treeOfNode
@@ -700,7 +705,9 @@ def passJumps(indexChunk):
         t['sumDeltaSquaredMain'           ] = chunk.treeSum(deltaSquared, chunk.isMain  )
         t['sumDeltaSquaredSide'           ] = chunk.treeSum(deltaSquared,~chunk.isMain  )
         t['sumDrift'                      ] = chunk.treeSum(drift                       )
-        afterFormation = chunk.omegaSplit < chunk.omegaFormation[chunk.treeLocal]
+        # Splits at or after formation: those up to and including the stopping time, so including the split at which the main
+        # branch falls below half of the root mass. The mean of their sum of Δ² is Var(E[N|tree built to the stopping time]).
+        afterFormation = chunk.omegaSplit <= chunk.omegaStopping[chunk.treeLocal]
         t['sumDeltaSquaredAfterFormation'] = chunk.treeSum(deltaSquared,afterFormation)
         t['telescopeResidual'             ] = countTree-t['n1Root']-t['sumDelta']-t['sumDrift']
         # Cumulative variance: at each ω on a grid, Var(E[N|tree built to ω]) should equal <Σ_{ω_split<ω} Δ²>. E[N|tree built to
