@@ -34,6 +34,7 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
   use :: IO_HDF5                              , only : ioHDF5AccessInitialize
   use :: Mass_Distributions                   , only : massDistributionExponentialDisk       , massDistributionExponentialDiskTidal
   use :: Numerical_Constants_Math             , only : Pi
+  use :: Numerical_Integration_Tabulated      , only : integrateSimpson
   use :: Tensors                              , only : assignment(=)
   use :: Test_Exponential_Disk_Tidal_Reference, only : referenceRotationCurveSquared         , referencePotential                  , referenceRadiusTruncate, referenceFieldOffPlane
   use :: Unit_Tests                           , only : Assert                                , Unit_Tests_Begin_Group              , Unit_Tests_End_Group   , Unit_Tests_Finish
@@ -67,7 +68,7 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
        &                                                                     verticalHeatedReference
   character       (len=32)                                               :: labelInner
   integer                                               , parameter      :: countIntegration =400
-  double precision                                                       :: weight                                            , truncationIntegration
+  double precision                                      , dimension(0:countIntegration) :: logarithmTruncationIntegration     , integrandIntegration
   double precision                                                       :: radiusTruncate                                    , radius                             , &
        &                                                                    jumpMaximum                                       , massMaximum                        , &
        &                                                                    quadrupole                                        , angle                              , &
@@ -459,24 +460,12 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
      diskMinus      =massDistributionExponentialDiskTidal(truncation=truncations(i  ),heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
      valuesParent(i)=+log(diskMinus%surfaceDensityRadialMoment(2.0d0)/diskMinus%surfaceDensityRadialMoment(1.0d0)) &
           &          -log(diskPlus %surfaceDensityRadialMoment(2.0d0)/diskPlus %surfaceDensityRadialMoment(1.0d0))
-     valuesTidal (i)=0.0d0
      do j=0,countIntegration
-        truncationIntegration=exp(log(truncations(i))+log(truncations(i+1)/truncations(i))*dble(j)/dble(countIntegration))
-        if      (j == 0 .or. j == countIntegration) then
-           weight=1.0d0
-        else if (mod(j,2) == 1                    ) then
-           weight=4.0d0
-        else
-           weight=2.0d0
-        end if
-        valuesTidal(i)=+valuesTidal(i)                                                                  &
-             &         +weight                                                                          &
-             &         *truncationIntegration                                                           &
-             &         *(truncation%ratioAngularMomentumCylindrical(exp(-truncationIntegration))-1.0d0) &
-             &         *log(truncations(i+1)/truncations(i))                                            &
-             &         /dble(countIntegration)                                                          &
-             &         /3.0d0
+        logarithmTruncationIntegration(j)=+log(truncations(i))+log(truncations(i+1)/truncations(i))*dble(j)/dble(countIntegration)
+        integrandIntegration          (j)=+exp(logarithmTruncationIntegration(j))                                                                  &
+             &                            *(truncation%ratioAngularMomentumCylindrical(exp(-exp(logarithmTruncationIntegration(j))))-1.0d0)
      end do
+     valuesTidal(i)=integrateSimpson(logarithmTruncationIntegration,integrandIntegration)
   end do
   call Assert('integrated ratio vs. change in mean radius of the truncated disk',valuesTidal(1:size(truncations)-1),valuesParent(1:size(truncations)-1),relTol=1.0d-3)
   ! The shape of the disk is unchanged for negligible truncations, and for truncations beyond the tabulated range.

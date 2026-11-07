@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Merger_Tree_Branching
   !!{RST
   Tests of merger tree branching rates.
@@ -968,37 +970,27 @@ contains
     ! Integrate the branching rate over progenitor mass using the composite Simpson rule in ln M′. The integrand is smooth over
     ! the ranges used here, so a fixed rule suffices - and, being independent of the adaptive integrator used inside the branching
     ! probability itself, it provides a genuinely independent evaluation of that integral.
+    use :: Numerical_Integration_Tabulated, only : integrateSimpson
     implicit none
-    class           (mergerTreeBranchingProbabilityClass), intent(inout), target :: branching_
-    double precision                                     , intent(in   )         :: massLower         , massUpper
-    integer                                              , parameter             :: countInterval=2000
-    double precision                                                             :: logMassLower      , logMassUpper, &
-         &                                                                          deltaLogMass      , weight      , &
-         &                                                                          massCurrent
-    integer                                                                      :: l
+    class           (mergerTreeBranchingProbabilityClass), intent(inout), target       :: branching_
+    double precision                                     , intent(in   )               :: massLower    , massUpper
+    integer                                              , parameter                   :: countInterval=2000
+    double precision                                     , dimension(0:countInterval) :: logMass      , integrand
+    double precision                                                                   :: logMassLower , logMassUpper, &
+         &                                                                                deltaLogMass , massCurrent
+    integer                                                                            :: l
 
     logMassLower=log(massLower)
     logMassUpper=log(massUpper)
     deltaLogMass=(logMassUpper-logMassLower)/dble(countInterval)
-    rateIntegral=0.0d0
     do l=0,countInterval
-       if      (l == 0 .or. l == countInterval) then
-          weight=1.0d0
-       else if (mod(l,2) == 1                 ) then
-          weight=4.0d0
-       else
-          weight=2.0d0
-       end if
-       massCurrent =exp(logMassLower+deltaLogMass*dble(l))
+       logMass    (l)=logMassLower+deltaLogMass*dble(l)
+       massCurrent   =exp(logMass(l))
        ! The rate is per unit progenitor mass, so a factor of the mass converts it to a rate per unit logarithmic mass.
-       rateIntegral=+rateIntegral                                                            &
-            &       +weight                                                                  &
-            &       *branching_%rate(massParent,deltaAnalytic,timeAnalytic,massCurrent,node) &
-            &       *massCurrent
+       integrand  (l)=+branching_%rate(massParent,deltaAnalytic,timeAnalytic,massCurrent,node) &
+            &         *massCurrent
     end do
-    rateIntegral=+rateIntegral  &
-         &       *deltaLogMass  &
-         &       /3.0d0
+    rateIntegral=integrateSimpson(logMass,integrand)
     return
   end function rateIntegral
 

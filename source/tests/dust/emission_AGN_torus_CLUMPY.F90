@@ -52,6 +52,7 @@ program Test_Dust_Emission_AGN_Torus_CLUMPY
        &                                      varying_string
   use :: Numerical_Constants_Physical, only : speedLight
   use :: Numerical_Constants_Units   , only : metersToAngstroms  , micronsToAngstroms
+  use :: Numerical_Integration_Tabulated, only : integrateTrapezoidal
   use :: Unit_Tests                  , only : Assert                            , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   ! The synthetic tabulation: wavelengths (in μm), and the tabulated values of each parameter.
@@ -142,7 +143,7 @@ program Test_Dust_Emission_AGN_Torus_CLUMPY
      !!]
      ! Integrate L_ν over frequency on a fine grid, as ∫ νL_ν dln λ.
      luminosity=emission_%luminosity(wavelengthsFine,luminosityAbsorbed,0.0d0,13.8d0)
-     integral  =trapezoid(log(wavelengthsFine),luminosity*speedLight*metersToAngstroms/wavelengthsFine)
+     integral  =integrateTrapezoidal(log(wavelengthsFine),luminosity*speedLight*metersToAngstroms/wavelengthsFine)
      call Assert('emission integrates to the luminosity absorbed',integral,luminosityAbsorbed,relTol=1.0d-6)
      ! The shape: νL_ν at the tabulated wavelengths, relative to that at 10 μm, is in the ratio of the function.
      emissionExpected=emissionFunction(parametersModel)
@@ -176,16 +177,5 @@ contains
          &   +emissionDepth      *log(parametersModel(5))
     return
   end function emissionFunction
-
-  double precision function trapezoid(x,y) result(integral)
-    !!{RST
-    Integrate ``y`` over ``x`` by the trapezoidal rule.
-    !!}
-    implicit none
-    double precision, intent(in   ), dimension(:) :: x, y
-
-    integral=sum(0.5d0*(y(2:size(y))+y(1:size(y)-1))*(x(2:size(x))-x(1:size(x)-1)))
-    return
-  end function trapezoid
 
 end program Test_Dust_Emission_AGN_Torus_CLUMPY
