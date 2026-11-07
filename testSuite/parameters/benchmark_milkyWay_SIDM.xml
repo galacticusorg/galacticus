@@ -29,9 +29,14 @@
   <!-- Merger tree building options --> 
   <mergerTreeBuildMasses value="fixedMass">
     <!-- Halo masses fixed at a single value. -->
-    <!-- The value used is the median estimate at r=262kpc from Slizewski et al. (2022; https://ui.adsabs.harvard.edu/abs/2022ApJ...924..131S) -->
-    <massTree   value="1.520e12"/>
-    <radiusTree value="0.262e00"/>
+    <!-- The value used is the joint (RR Lyrae + blue horizontal branch) estimate of M200c=1.19(+0.14/-0.12)e12 Msun from DESI DR2 (DESI
+         Collaboration, Aganze et al. 2026; https://arxiv.org/abs/2611.05518). It is imposed as the mass enclosed within R200c=0.2243 Mpc
+         (the value of R200c for this mass in the reference cosmology). This matches M200c for the halo profile assigned when the tree
+         is constructed (approximately the mean concentration-mass relation). The host's final concentration differs from tree to tree, so its z=0
+         M200c is typically ~2% lower (0.94-1.01 times the target in a sample of 24 trees). Note that the joint estimate is weighted ~75% to the GME method - excluding GME gives
+         M200c=1.52(+0.35/-0.30)e12 Msun. -->
+    <massTree   value="1.190e12"/>
+    <radiusTree value="0.2243e00"/>
     <treeCount  value="2"      />
   </mergerTreeBuildMasses>
 
