@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794000633606,
+  "lastUpdate": 1794086396261,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -7713,6 +7713,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/419ca22bb53411b61132434723d571d6e22e9ead"
         },
         "date": 1794000632639,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 178.1801155425085,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 53.70377125682495,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "598ceeaff10ab3021a35ee874260feba62253cf2",
+          "message": "Merge pull request #1752 from galacticusorg/fix/audit-b54-misc\n\nfix: five small fixes from the bug audit (conditional mass function bins, subhalo mass function threading, heated DMO tolerance, cylindrical lightcone density field, likelihood chain labels)",
+          "timestamp": "2026-11-07T15:00:35Z",
+          "tree_id": "9b907f6020bbe06fc0426564ef70032416f7b723",
+          "url": "https://github.com/galacticusorg/galacticus/commit/598ceeaff10ab3021a35ee874260feba62253cf2"
+        },
+        "date": 1794086395424,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
