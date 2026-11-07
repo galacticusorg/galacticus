@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794000457909,
+  "lastUpdate": 1794086241844,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX8)": [
@@ -4925,6 +4925,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/419ca22bb53411b61132434723d571d6e22e9ead"
         },
         "date": 1794000456817,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 1.524733114333632,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 1.8544985402378131,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 33.25993371347582,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "598ceeaff10ab3021a35ee874260feba62253cf2",
+          "message": "Merge pull request #1752 from galacticusorg/fix/audit-b54-misc\n\nfix: five small fixes from the bug audit (conditional mass function bins, subhalo mass function threading, heated DMO tolerance, cylindrical lightcone density field, likelihood chain labels)",
+          "timestamp": "2026-11-07T15:00:35Z",
+          "tree_id": "9b907f6020bbe06fc0426564ef70032416f7b723",
+          "url": "https://github.com/galacticusorg/galacticus/commit/598ceeaff10ab3021a35ee874260feba62253cf2"
+        },
+        "date": 1794086241250,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
