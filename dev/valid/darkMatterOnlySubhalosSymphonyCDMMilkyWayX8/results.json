@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "419ca22bb53411b61132434723d571d6e22e9ead",
-        "message": "Merge pull request #1750 from galacticusorg/fix/poulton2021-enclosed-mass\n\nfix(satelliteMergingTimescales): use the enclosed host mass throughout the Poulton et al. (2021) merging time, and give unbound satellites a finite time\n",
-        "timestamp": "2026-11-06 15:26:10+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/419ca22bb53411b61132434723d571d6e22e9ead"
+        "id": "598ceeaff10ab3021a35ee874260feba62253cf2",
+        "message": "Merge pull request #1752 from galacticusorg/fix/audit-b54-misc\n\nfix: five small fixes from the bug audit (conditional mass function bins, subhalo mass function threading, heated DMO tolerance, cylindrical lightcone density field, likelihood chain labels)\n",
+        "timestamp": "2026-11-07 15:00:35+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/598ceeaff10ab3021a35ee874260feba62253cf2"
     },
     "results": [
         {
@@ -238,7 +238,7 @@ window.ANALYSES_DATA = {
                     18.652348062370155,
                     21.25472236252914,
                     26.059303150119792,
-                    29.586926426746118,
+                    29.586926426746125,
                     34.21340138105925,
                     40.45127904876762,
                     47.51946697203669,
@@ -288,7 +288,7 @@ window.ANALYSES_DATA = {
                     0.5569074371421638,
                     0.5281224777835988,
                     0.8405076434574489,
-                    1.173929951214071,
+                    1.173929951214061,
                     1.2883235723716642,
                     2.07737724736236,
                     3.6971331845342936,

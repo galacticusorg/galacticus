@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "419ca22bb53411b61132434723d571d6e22e9ead",
-        "message": "Merge pull request #1750 from galacticusorg/fix/poulton2021-enclosed-mass\n\nfix(satelliteMergingTimescales): use the enclosed host mass throughout the Poulton et al. (2021) merging time, and give unbound satellites a finite time\n",
-        "timestamp": "2026-11-06 15:26:10+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/419ca22bb53411b61132434723d571d6e22e9ead"
+        "id": "598ceeaff10ab3021a35ee874260feba62253cf2",
+        "message": "Merge pull request #1752 from galacticusorg/fix/audit-b54-misc\n\nfix: five small fixes from the bug audit (conditional mass function bins, subhalo mass function threading, heated DMO tolerance, cylindrical lightcone density field, likelihood chain labels)\n",
+        "timestamp": "2026-11-07 15:00:35+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/598ceeaff10ab3021a35ee874260feba62253cf2"
     },
     "results": [
         {
@@ -291,7 +291,7 @@ window.ANALYSES_DATA = {
         {
             "attributes": {
                 "name": "COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
-                "logLikelihood": "-74.48289008537377",
+                "logLikelihood": "-74.48291754343674",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -312,31 +312,31 @@ window.ANALYSES_DATA = {
                     562341325.1903499
                 ],
                 "yDataset": [
-                    12.420547232163091,
-                    9.337823313420666,
-                    7.075769333488569,
-                    5.966325026724409,
-                    4.708034616134472,
-                    3.494011548279823,
-                    2.6402884689250707,
-                    2.006459957895775,
-                    1.5178330434854177,
-                    1.133997367049177
+                    12.420544064023112,
+                    9.337820939796222,
+                    7.075767541885535,
+                    5.966323520172104,
+                    4.7080334325657685,
+                    3.4940106760825755,
+                    2.6402878155408955,
+                    2.00645946677082,
+                    1.5178326771218595,
+                    1.1339970982038738
                 ],
                 "yError": [
-                    1.7069749181206995,
-                    0.9379668213144917,
-                    1.0383887326492007,
-                    0.8985422509452775,
-                    0.5234636447055334,
-                    0.412865806486776,
-                    0.3337122135485763,
-                    0.2735025327951918,
-                    0.22552753818132956,
-                    0.18612142660304878
+                    1.7069745231391764,
+                    0.9379666104242073,
+                    1.038388507302434,
+                    0.8985420605702422,
+                    0.523463537721104,
+                    0.41286572642076774,
+                    0.33371215227958634,
+                    0.273502485397303,
+                    0.22552750142910818,
+                    0.18612139820218032
                 ],
                 "yDatasetTarget": [
-                    16.59521841410656,
+                    16.595218414106558,
                     10.802136920468312,
                     8.275830705197496,
                     7.491804638389313,
