@@ -60,10 +60,19 @@
    as its ratio to the rotation curve of the untruncated, unheated disk, which is then multiplied by the rotation curve of
    :galacticus-class:`massDistributionExponentialDisk` (such that any errors in the transform cancel to first order). The
    mid-plane potential is computed exactly, as :math:`\Phi(R,0)=-\int_R^\infty V_\mathrm{c}^2(R^\prime) \mathrm{d}\ln R^\prime`,
-   and is tabulated in the same way. Away from the mid-plane, the potential and acceleration are *approximated*. Close to the disk
-   they are those of the untruncated, unheated disk, multiplied by the ratio of the mid-plane potentials, or of the squares of the
-   mid-plane rotation curves, respectively, evaluated at the spherical radius of the point considered. This retains the flattening
-   of the untruncated disk, which a truncated disk does not have. So, further out, they are blended smoothly into the multipole
+   and is tabulated in the same way. Away from the mid-plane, close to the disk, the potential and acceleration are those of the
+   untruncated, unheated disk, multiplied by the ratio of the mid-plane potentials, or of the squares of the mid-plane rotation
+   curves, respectively, evaluated at the spherical radius of the point considered, and by a tabulated correction, :math:`C(R,z)`
+   (separately for the potential, and for the radial and vertical accelerations). The correction is the ratio of the exact
+   quantity (computed, for the :math:`\mathrm{sech}^2` vertical structure, as a Hankel transform using :term:`FFTLog`) to the
+   scaled quantity of the untruncated disk. It is tabulated as a function of cylindrical radius and height (both logarithmically
+   spaced, at 12 points per decade, from :math:`10^{-3}` to :math:`30 R_\mathrm{d}`), on grids of :math:`R_\mathrm{t}` and
+   :math:`s` coarser than those used for mid-plane quantities (every second truncation radius, and every eighth heating
+   parameter). The correction is needed as the scaled field of the untruncated disk overestimates the vertical acceleration
+   inside the truncation radius of a strongly truncated disk, by factors of two to three for :math:`R_\mathrm{t} \approx
+   0.3 R_\mathrm{d}` (a small disk, seen from a height comparable to its radius, pulls much more weakly than the untruncated
+   disk). The scaled field also retains the flattening of the untruncated disk, which a truncated disk does not have. So, further
+   out, the field is blended smoothly into the multipole
    expansion of the potential to quadrupole order, with quadrupole moment :math:`Q=M(\langle z^2 \rangle - \langle R^2
    \rangle/2)`, normalized at each spherical radius such that it reproduces the mid-plane potential and rotation curve. The weight
    given to the multipole expansion rises from zero at 2, to unity at 5, times the root-mean-square radius, :math:`\sqrt{\langle
@@ -75,10 +84,16 @@
    density of the disk. The potential, acceleration, and tidal tensor are therefore exact in the mid-plane, and approximate away
    from it. Compared with direct summation over the disk (for :math:`h=0.137 R_\mathrm{d}` and :math:`y_\mathrm{d}=0.1`), beyond
    five root-mean-square radii the potential away from the mid-plane is accurate to better than 0.5%, and the vertical
-   acceleration to about 2% (and to better than 1% beyond six). Within a few root-mean-square radii of a truncated disk, but
-   beyond its truncation radius, the errors can reach tens of percent in the potential, and factors of several in the vertical
-   acceleration close to the mid-plane. Beyond the tabulated range of radii (see below) the multipole expansion of the potential
-   to quadrupole order is used without normalization.  Quantities which depend on the mass distribution in three dimensions (such
+   acceleration to about 2% (and to better than 1% beyond six). Closer to a truncated disk (compared with the exact field,
+   evaluated by direct numerical integration of the Hankel transforms, for :math:`x=1` and :math:`x=3`, at radii from 0.3 to 4
+   truncation radii and heights from 0.5 to 4 scale heights), the potential is accurate to 0.15%, the radial acceleration to
+   0.8%, and the vertical acceleration to 1.5%, limited by interpolation in the coarse grids on which the corrections are
+   tabulated. (Without the corrections the vertical acceleration inside the truncation radius is overestimated by up to a
+   factor of three.) For truncated and heated disks (:math:`x=1`, with :math:`s=0.1` and :math:`0.3`), compared with an
+   independent calculation (in which the heated disk is a superposition of rings spread in radius), the potential is accurate to
+   0.2%, the radial acceleration to 1%, and the vertical acceleration to 1.5%, at radii from 0.3 to 1 truncation radius and
+   heights from 0.5 to 4 scale heights. Beyond the tabulated range of radii (see below) the multipole expansion of the potential
+   to quadrupole order is used without normalization. Quantities which depend on the mass distribution in three dimensions (such
    as the mass enclosed by a sphere) use the thin-disk approximation, as does :galacticus-class:`massDistributionExponentialDisk`.
 
    **Tabulation.** The rotation curve, the mid-plane potential, the mass enclosed within a cylinder, and the surface density are
@@ -115,6 +130,10 @@
           &                                                                                    moment3
      double precision                           , allocatable, dimension(:,:,:)             :: rotationCurveRatioLogarithmic             , massRatioLogarithmic             , &
           &                                                                                    surfaceDensityRatioLogarithmic            , potentialRatioLogarithmic
+     integer                                                                                :: countOffPlane                             , countTruncationOffPlane          , &
+          &                                                                                    countHeatingOffPlane
+     double precision                                                                       :: offPlaneLogarithmicMinimum                , offPlaneLogarithmicInterval
+     double precision                           , allocatable, dimension(:,:,:,:,:)         :: correctionOffPlaneLogarithmic
      type            (exponentialDiskTidalTable), pointer                                   :: next                             => null()
   end type exponentialDiskTidalTable
 
@@ -123,15 +142,16 @@
      A mass distribution class for tidally truncated and heated exponential disks.
      !!}
      private
-     class           (massDistributionExponentialDisk), pointer         :: massDistribution_             => null()
-     type            (exponentialDiskTidalTable      ), pointer         :: table                         => null()
-     double precision                                                   :: truncation                             , heating                  , &
-          &                                                                radiusDecayOverRadiusTruncate          , radiusTruncateLogarithmic, &
-          &                                                                massTotal_                             , radiusHalfMass_          , &
-          &                                                                massScaleLogarithmic                   , quadrupole               , &
-          &                                                                radiusBlendMinimum                     , radiusBlendMaximum
-     integer                                          , dimension(4  ) :: indexTruncation                         , indexHeating
-     double precision                                 , dimension(4,4) :: weight
+     class           (massDistributionExponentialDisk), pointer        :: massDistribution_             => null()
+     type            (exponentialDiskTidalTable      ), pointer        :: table                         => null()
+     double precision                                                  :: truncation                             , heating                  , &
+          &                                                               radiusDecayOverRadiusTruncate          , radiusTruncateLogarithmic, &
+          &                                                               massTotal_                             , radiusHalfMass_          , &
+          &                                                               massScaleLogarithmic                   , quadrupole               , &
+          &                                                               radiusBlendMinimum                     , radiusBlendMaximum
+     integer                                          , dimension(4  ) :: indexTruncation                        , indexHeating             , &
+          &                                                               indexTruncationOffPlane                , indexHeatingOffPlane
+     double precision                                 , dimension(4,4) :: weight                                 , weightOffPlane
    contains
      !![
      <methods docformat="rst">
@@ -201,8 +221,20 @@
   ! Indices of tabulated quantities.
   integer                                    , parameter :: exponentialDiskTidalQuantityRotationCurve   =  1     , exponentialDiskTidalQuantityMass          =2     , &
        &                                                    exponentialDiskTidalQuantitySurfaceDensity  =  3     , exponentialDiskTidalQuantityPotential     =4
+  ! Grid of cylindrical radius and height (both in units of the disk scale length, and logarithmically spaced) on which corrections
+  ! to the field away from the mid-plane are tabulated. These are tabulated on coarser grids of truncation radius and heating
+  ! parameter, consisting of every `stride`ᵗʰ point of the grids above. The stride in heating parameter divides the number of
+  ! intervals in the grid of heating parameter (56), such that the coarse grid ends at the same, largest, heating parameter. (A
+  ! coarse grid extending beyond it would include disks heated so strongly that they become rings, with negative rotation curves
+  ! at small radii.)
+  double precision                           , parameter :: exponentialDiskTidalOffPlaneMinimum         =  1.0d-3, exponentialDiskTidalOffPlaneMaximum       =3.0d1
+  integer                                    , parameter :: exponentialDiskTidalOffPlanePerDecade       =  12
+  integer                                    , parameter :: exponentialDiskTidalOffPlaneStrideTruncation=   2    , exponentialDiskTidalOffPlaneStrideHeating =8
+  ! Indices of the quantities for which corrections away from the mid-plane are tabulated.
+  integer                                    , parameter :: exponentialDiskTidalCorrectionPotential     =  1     , exponentialDiskTidalCorrectionRadial      =2     , &
+       &                                                    exponentialDiskTidalCorrectionVertical      =  3
   ! Version of the format of the tabulation file. Increment if the grids above, or the content of the file, are changed.
-  integer                                    , parameter :: exponentialDiskTidalFileFormatVersion       =  2
+  integer                                    , parameter :: exponentialDiskTidalFileFormatVersion       =  3
   ! Radii, in units of the root-mean-square radius of the disk, between which the field away from the mid-plane is blended from that
   ! of the scaled untruncated, unheated disk to that of the normalized multipole expansion.
   double precision                           , parameter :: exponentialDiskTidalRadiusBlendMinimum      =  2.0d0 , exponentialDiskTidalRadiusBlendMaximum    =5.0d0
@@ -335,6 +367,14 @@ contains
           self%weight(i,j)=weightTruncation(i)*weightHeating(j)
        end do
     end do
+    ! Evaluate the interpolating weights in the coarser grids on which corrections away from the mid-plane are tabulated.
+    call exponentialDiskTidalWeights(positionTruncation/dble(exponentialDiskTidalOffPlaneStrideTruncation),self%table%countTruncationOffPlane,self%indexTruncationOffPlane,weightTruncation)
+    call exponentialDiskTidalWeights(positionHeating   /dble(exponentialDiskTidalOffPlaneStrideHeating   ),self%table%countHeatingOffPlane   ,self%indexHeatingOffPlane   ,weightHeating   )
+    do i=1,4
+       do j=1,4
+          self%weightOffPlane(i,j)=weightTruncation(i)*weightHeating(j)
+       end do
+    end do
     ! Evaluate the quadrupole moment of the disk, Q = M(⟨z²⟩-⟨R²⟩/2), used beyond the tabulated range of radii. For the sech²
     ! vertical profile ⟨z²⟩=π²h²/12, while ⟨R²⟩=2π∫Σ R³ dR/M is interpolated from the tabulated moments.
     radiusSquaredMean=0.0d0
@@ -465,21 +505,25 @@ contains
     use :: Numerical_Constants_Math                 , only : Pi
     use :: String_Handling                          , only : operator(//)
     implicit none
-    type            (exponentialDiskTidalTable), intent(inout)               :: table
-    double precision                           , allocatable  , dimension(:) :: radiusTransform           , wavenumberTransform         , &
-         &                                                                      kernel                    , rotationCurveSquaredParent  , &
-         &                                                                      truncationLogarithmic     , massCumulativeParent        , &
-         &                                                                      potentialParent
-    type            (kernelVerticalSechSquared)                              :: kernel_
-    type            (varying_string           )                              :: fileName
-    type            (lockDescriptor           )                              :: fileLock
-    character       (len=8                    )                              :: labelHeight               , labelDecay
-    double precision                                                         :: radiusTruncate            , intervalLogarithmicTransform, &
-         &                                                                      massParent
-    integer                                                                  :: i                         , iTruncation                 , &
-         &                                                                      iHeating                  , iPlane                      , &
-         &                                                                      countTruncationMaximum
-    logical                                                                  :: tableRead                 , monotonic
+    type            (exponentialDiskTidalTable), intent(inout)                   :: table
+    double precision                           , allocatable  , dimension(:    ) :: radiusTransform        , wavenumberTransform         , &
+         &                                                                          kernel                 , rotationCurveSquaredParent  , &
+         &                                                                          truncationLogarithmic  , massCumulativeParent        , &
+         &                                                                          potentialParent
+    type            (kernelVerticalSechSquared)                                  :: kernel_
+    double precision                           , allocatable  , dimension(:,:,:) :: kernelOffPlane
+    double precision                           , allocatable  , dimension(:,:  ) :: radialParent           , verticalParent              , &
+         &                                                                          potentialParentOffPlane
+    double precision                           , allocatable  , dimension(:    ) :: positionsOffPlane
+    type            (varying_string           )                                  :: fileName
+    type            (lockDescriptor           )                                  :: fileLock
+    character       (len=8                    )                                  :: labelHeight            , labelDecay
+    double precision                                                             :: radiusTruncate         , intervalLogarithmicTransform, &
+         &                                                                          massParent
+    integer                                                                      :: i                      , iTruncation                 , &
+         &                                                                          iHeating               , iPlane                      , &
+         &                                                                          countTruncationMaximum
+    logical                                                                      :: tableRead              , monotonic
 
     ! Set the grids which do not depend on the degree of truncation.
     table%heatingInterval                  =log(10.0d0)/dble(exponentialDiskTidalHeatingPerDecade)
@@ -489,6 +533,11 @@ contains
     table%countRadius                      =int(log(exponentialDiskTidalRadiusMaximum/exponentialDiskTidalRadiusMinimum)/table%radiusLogarithmicInterval)+1
     table%radiusTruncateLogarithmicMinimum =log(exponentialDiskTidalRadiusTruncateMinimum)
     table%radiusTruncateLogarithmicInterval=log(10.0d0)/dble(exponentialDiskTidalRadiusTruncatePerDecade)
+    table%offPlaneLogarithmicMinimum       =log(exponentialDiskTidalOffPlaneMinimum)
+    table%offPlaneLogarithmicInterval      =log(10.0d0)/dble(exponentialDiskTidalOffPlanePerDecade)
+    table%countOffPlane                    =int(log(exponentialDiskTidalOffPlaneMaximum/exponentialDiskTidalOffPlaneMinimum)/table%offPlaneLogarithmicInterval)+1
+    table%countHeatingOffPlane             =(table%countHeating-2)/exponentialDiskTidalOffPlaneStrideHeating+2
+    if (mod(table%countHeating-1,exponentialDiskTidalOffPlaneStrideHeating) /= 0) call Error_Report('the stride in heating parameter must divide the number of intervals in its grid'//{introspection:location})
     ! Construct a file name for the table.
     write (labelHeight,'(f8.6)') table%scaleHeight
     write (labelDecay ,'(f8.6)') table%radiusDecayOverRadiusTruncate
@@ -577,6 +626,8 @@ contains
        end do
        !$omp end parallel do
        table%monotonic=monotonic
+       ! Tabulate corrections to the field away from the mid-plane.
+       call tabulateOffPlane()
        ! Write the table to file.
        !$ call hdf5Access%set()
        hdf5WriteScope: block
@@ -604,6 +655,8 @@ contains
          call file%writeDataset(table%massRatioLogarithmic          ,'massRatioLogarithmic'          )
          call file%writeDataset(table%surfaceDensityRatioLogarithmic,'surfaceDensityRatioLogarithmic')
          call file%writeDataset(table%potentialRatioLogarithmic     ,'potentialRatioLogarithmic'     )
+         call file%writeAttribute(table%countTruncationOffPlane     ,'countTruncationOffPlane'       )
+         call file%writeDataset(table%correctionOffPlaneLogarithmic ,'correctionOffPlaneLogarithmic' )
        end block hdf5WriteScope
        !$ call hdf5Access%unset()
        call displayUnindent("done",verbosityLevelWorking)
@@ -644,6 +697,8 @@ contains
         call file%readDataset  ('massRatioLogarithmic'          ,table%massRatioLogarithmic          )
         call file%readDataset  ('surfaceDensityRatioLogarithmic',table%surfaceDensityRatioLogarithmic)
         call file%readDataset  ('potentialRatioLogarithmic'     ,table%potentialRatioLogarithmic     )
+        call file%readAttribute('countTruncationOffPlane'       ,table%countTruncationOffPlane       )
+        call file%readDataset  ('correctionOffPlaneLogarithmic' ,table%correctionOffPlaneLogarithmic )
       end block hdf5ReadScope
       !$ call hdf5Access%unset()
       return
@@ -870,6 +925,210 @@ contains
       return
     end subroutine tabulatePlane
 
+    subroutine tabulateOffPlane()
+      !!{RST
+      Tabulate corrections to the potential, and to the radial and vertical accelerations, away from the mid-plane. Close to the
+      disk these quantities are approximated as those of the untruncated, unheated disk multiplied by the ratio of the mid-plane
+      potentials, or of the squares of the mid-plane rotation curves, at the spherical radius of the point. The corrections are
+      the ratios of the exact quantities to those approximations, tabulated as functions of cylindrical radius and height, on
+      grids of truncation radius and heating parameter coarser than those used for the mid-plane quantities. The exact
+      accelerations are Hankel transforms of the surface density with the vertical kernel, :math:`K(k,z)`,
+
+      .. math::
+
+         a_R(R,z) = -2\pi \int_0^\infty k J_1(kR) \tilde{\Sigma}(k) K(k,z) \mathrm{d}k, \quad a_z(R,z) = 2\pi \int_0^\infty
+         J_0(kR) \tilde{\Sigma}(k) {\partial K \over \partial z} \mathrm{d}k,
+
+      evaluated using :term:`FFTLog`. The potential is the exact mid-plane potential plus :math:`\Phi(R,z)-\Phi(R,0) = -2\pi
+      \int_0^\infty J_0(kR) \tilde{\Sigma}(k) [K(k,z)-K(k,0)] \mathrm{d}k`. The same calculations, applied to the untruncated,
+      unheated disk, give the quantities from which the approximations are constructed, such that errors in the transforms
+      largely cancel in the corrections.
+      !!}
+      implicit none
+      type   (kernelVerticalSechSquared) :: kernelOffPlane_
+      integer                            :: iTruncationOffPlane, iHeatingOffPlane, &
+           &                                iPlaneOffPlane     , iHeight         , &
+           &                                iWavenumber
+
+      ! Construct the grid of cylindrical radii and heights.
+      table%countTruncationOffPlane=(table%countTruncation-2)/exponentialDiskTidalOffPlaneStrideTruncation+2
+      allocate(positionsOffPlane(table%countOffPlane))
+      do iHeight=1,table%countOffPlane
+         positionsOffPlane(iHeight)=exp(table%offPlaneLogarithmicMinimum+dble(iHeight-1)*table%offPlaneLogarithmicInterval)
+      end do
+      ! Evaluate the vertical kernel, and its derivative with respect to height, at the wavenumbers of the transform and each
+      ! height.
+      kernelOffPlane_=kernelVerticalSechSquared(table%scaleHeight,positionsOffPlane)
+      allocate(kernelOffPlane(exponentialDiskTidalCountTransform,table%countOffPlane,2))
+      !$omp parallel private(iWavenumber)
+      call Kernel_Vertical_Integrators_Allocate()
+      !$omp do schedule(dynamic)
+      do iHeight=1,table%countOffPlane
+         do iWavenumber=1,exponentialDiskTidalCountTransform
+            kernelOffPlane(iWavenumber,iHeight,1)=kernelOffPlane_%value(wavenumberTransform(iWavenumber),iHeight,1)
+            kernelOffPlane(iWavenumber,iHeight,2)=kernelOffPlane_%value(wavenumberTransform(iWavenumber),iHeight,2)
+         end do
+      end do
+      !$omp end do
+      call Kernel_Vertical_Integrators_Deallocate()
+      !$omp end parallel
+      ! Find the field of the untruncated, unheated disk.
+      allocate(radialParent           (table%countOffPlane,table%countOffPlane))
+      allocate(verticalParent         (table%countOffPlane,table%countOffPlane))
+      allocate(potentialParentOffPlane(table%countOffPlane,table%countOffPlane))
+      call fieldOffPlane(surfaceDensityTruncated(radiusTransform,huge(0.0d0)),potentialParent,radialParent,verticalParent,potentialParentOffPlane)
+      ! Tabulate the corrections for each plane of truncation radius and heating parameter.
+      allocate(table%correctionOffPlaneLogarithmic(table%countOffPlane,table%countOffPlane,table%countTruncationOffPlane,table%countHeatingOffPlane,3))
+      !$omp parallel do schedule(dynamic) private(iTruncationOffPlane,iHeatingOffPlane)
+      do iPlaneOffPlane=1,table%countTruncationOffPlane*table%countHeatingOffPlane
+         iTruncationOffPlane=(iPlaneOffPlane-1)/table%countHeatingOffPlane+1
+         iHeatingOffPlane   =mod(iPlaneOffPlane-1,table%countHeatingOffPlane)+1
+         call tabulatePlaneOffPlane(iTruncationOffPlane,iHeatingOffPlane)
+      end do
+      !$omp end parallel do
+      return
+    end subroutine tabulateOffPlane
+
+    subroutine tabulatePlaneOffPlane(iTruncationOffPlane,iHeatingOffPlane)
+      !!{RST
+      Tabulate the corrections to the field away from the mid-plane for the disk with the given indices in the coarse grids
+      of truncation radius and heating parameter.
+      !!}
+      implicit none
+      integer                  , intent(in   )                 :: iTruncationOffPlane, iHeatingOffPlane
+      double precision         , allocatable  , dimension(:  ) :: surfaceDensity     , surfaceDensityLogarithmic, &
+           &                                                      massCumulative     , rotationCurveSquaredRatio, &
+           &                                                      potentialMidplane_
+      double precision         , allocatable  , dimension(:,:) :: radial             , vertical                 , &
+           &                                                      potential
+      double precision                                         :: radiusTruncate     , heating                  , &
+           &                                                      radiusSpherical    , ratioRotationCurve       , &
+           &                                                      ratioPotential     , correction
+      integer                                                  :: iRadius            , iHeight                  , &
+           &                                                      iQuantity          , j
+      character       (len=256)                                :: message
+
+      allocate(surfaceDensity           (exponentialDiskTidalCountTransform))
+      allocate(surfaceDensityLogarithmic(exponentialDiskTidalCountTransform))
+      allocate(massCumulative           (exponentialDiskTidalCountTransform))
+      allocate(rotationCurveSquaredRatio(exponentialDiskTidalCountTransform))
+      allocate(potentialMidplane_       (exponentialDiskTidalCountTransform))
+      allocate(radial                   (table%countOffPlane,table%countOffPlane))
+      allocate(vertical                 (table%countOffPlane,table%countOffPlane))
+      allocate(potential                (table%countOffPlane,table%countOffPlane))
+      radiusTruncate=exp(table%radiusTruncateLogarithmicMinimum+dble((iTruncationOffPlane-1)*exponentialDiskTidalOffPlaneStrideTruncation)*table%radiusTruncateLogarithmicInterval)
+      heating       =exponentialDiskTidalHeatingScale*sinh(dble((iHeatingOffPlane-1)*exponentialDiskTidalOffPlaneStrideHeating)*table%heatingInterval)
+      ! Find the surface density of the truncated disk, and apply heating.
+      surfaceDensityLogarithmic=max(surfaceDensityTruncatedLogarithmic(radiusTransform,radiusTruncate),log(tiny(0.0d0)))
+      if (iHeatingOffPlane > 1) call heat(heating,radiusTruncate,surfaceDensityLogarithmic)
+      surfaceDensity=exp(surfaceDensityLogarithmic)
+      ! Find the ratios of the mid-plane rotation curve and potential to those of the untruncated, unheated disk, exactly as for
+      ! the tabulation of the mid-plane quantities (see `tabulatePlane()`).
+      call massCumulative_     (surfaceDensity,massCumulative           )
+      call rotationCurveSquared(surfaceDensity,rotationCurveSquaredRatio)
+      rotationCurveSquaredRatio=rotationCurveSquaredRatio/rotationCurveSquaredParent
+      j=int(log(exponentialDiskTidalRadiusRatioFrozen/exponentialDiskTidalTransformRadiusMinimum)/intervalLogarithmicTransform)+1
+      rotationCurveSquaredRatio(1:j-1)=rotationCurveSquaredRatio(j)
+      call potentialMidplane(rotationCurveSquaredRatio*rotationCurveSquaredParent,massCumulative,potentialMidplane_)
+      ! Find the field of this disk away from the mid-plane.
+      call fieldOffPlane(surfaceDensity,potentialMidplane_,radial,vertical,potential)
+      ! Evaluate the corrections.
+      do iHeight=1,table%countOffPlane
+         do iRadius=1,table%countOffPlane
+            radiusSpherical   =sqrt(positionsOffPlane(iRadius)**2+positionsOffPlane(iHeight)**2)
+            ratioRotationCurve=interpolateTransform(rotationCurveSquaredRatio,radiusSpherical)
+            ratioPotential    =interpolateTransform(potentialMidplane_       ,radiusSpherical) &
+                 &            /interpolateTransform(potentialParent          ,radiusSpherical)
+            do iQuantity=1,3
+               select case (iQuantity)
+               case (exponentialDiskTidalCorrectionPotential)
+                  correction=potential(iRadius,iHeight)/potentialParentOffPlane(iRadius,iHeight)/ratioPotential
+               case (exponentialDiskTidalCorrectionRadial   )
+                  correction=radial   (iRadius,iHeight)/radialParent           (iRadius,iHeight)/ratioRotationCurve
+               case (exponentialDiskTidalCorrectionVertical )
+                  correction=vertical (iRadius,iHeight)/verticalParent         (iRadius,iHeight)/ratioRotationCurve
+               end select
+               if (correction <= 0.0d0) then
+                  write (message,'(a,i1,a,e12.6,a,e12.6,a,e12.6,a,e12.6,a,e12.6)') 'non-positive correction (quantity ',iQuantity,') to the field away from the mid-plane in tidally-modified exponential disk: Rₜ=',radiusTruncate,' s=',heating,' R=',positionsOffPlane(iRadius),' z=',positionsOffPlane(iHeight),' C=',correction
+                  call Error_Report(trim(message)//{introspection:location})
+               end if
+               table%correctionOffPlaneLogarithmic(iRadius,iHeight,iTruncationOffPlane,iHeatingOffPlane,iQuantity)=log(correction)
+            end do
+         end do
+      end do
+      return
+    end subroutine tabulatePlaneOffPlane
+
+    subroutine fieldOffPlane(surfaceDensity,potentialMidplane_,radial,vertical,potential)
+      !!{RST
+      Compute the radial and vertical accelerations, and the potential (for unit gravitational constant), of a disk with the
+      given surface density and mid-plane potential (both tabulated on the grid of radii used in the transforms), on the grid of
+      cylindrical radius and height used for the corrections to the field away from the mid-plane. Since ``FFTLog()`` computes
+      :math:`\int_0^\infty f(r) (kr)^{1/2} J_\mu(kr) \mathrm{d}r`, the transforms are applied to :math:`\Sigma(R) R^{1/2}`
+      (giving :math:`\tilde{\Sigma}(k) k^{1/2}`), then to :math:`\tilde{\Sigma}(k) k^{1/2} K(k,z)` with :math:`\mu=1` (giving
+      :math:`-a_R(R,z) R^{-1/2}/2\pi`), to :math:`\tilde{\Sigma}(k) k^{-1/2} \partial K/\partial z` with :math:`\mu=0` (giving
+      :math:`a_z(R,z) R^{-1/2}/2\pi`), and to :math:`\tilde{\Sigma}(k) k^{-1/2} [K(k,z)-K(k,0)]` with :math:`\mu=0` (giving
+      :math:`-[\Phi(R,z)-\Phi(R,0)] R^{-1/2}/2\pi`).
+      !!}
+      implicit none
+      double precision, intent(in   ), dimension(:  ) :: surfaceDensity, potentialMidplane_
+      double precision, intent(  out), dimension(:,:) :: radial        , vertical          , &
+           &                                             potential
+      double precision, allocatable  , dimension(:  ) :: transform     , wavenumber        , &
+           &                                             radius        , field
+      integer                                         :: iRadius       , iHeight
+
+      allocate(transform (exponentialDiskTidalCountTransform))
+      allocate(wavenumber(exponentialDiskTidalCountTransform))
+      allocate(radius    (exponentialDiskTidalCountTransform))
+      allocate(field     (exponentialDiskTidalCountTransform))
+      call FFTLog(radiusTransform,wavenumber,surfaceDensity*sqrt(radiusTransform),transform,0.0d0,fftLogForward)
+      do iHeight=1,table%countOffPlane
+         call FFTLog(wavenumber,radius,transform*kernelOffPlane(:,iHeight,1)           ,field,1.0d0,fftLogForward)
+         field=-2.0d0*Pi*field/sqrt(radius)
+         do iRadius=1,table%countOffPlane
+            radial  (iRadius,iHeight)=interpolateTransform(field,positionsOffPlane(iRadius))
+         end do
+         call FFTLog(wavenumber,radius,transform*kernelOffPlane(:,iHeight,2)/wavenumber,field,0.0d0,fftLogForward)
+         field=+2.0d0*Pi*field/sqrt(radius)
+         do iRadius=1,table%countOffPlane
+            vertical(iRadius,iHeight)=interpolateTransform(field,positionsOffPlane(iRadius))
+         end do
+      end do
+      ! Find the potential, as the mid-plane potential plus the change in potential from the mid-plane, ΔΦ(R,z) = -2π ∫₀^∞ J₀(kR)
+      ! Σ̃(k) [K(k,z)-K(k,0)] dk. (Since K(k,z)-K(k,0) ∝ k for small k, this transform is well-behaved, while that of the potential
+      ! itself, whose integrand tends to a constant at small k, is not. Integrating the vertical acceleration over height instead
+      ! accumulates absolute errors which exceed the potential far above a strongly truncated disk.)
+      do iHeight=1,table%countOffPlane
+         call FFTLog(wavenumber,radius,transform*(kernelOffPlane(:,iHeight,1)-kernel)/wavenumber,field,0.0d0,fftLogForward)
+         field=-2.0d0*Pi*field/sqrt(radius)
+         do iRadius=1,table%countOffPlane
+            potential(iRadius,iHeight)=+interpolateTransform(potentialMidplane_,positionsOffPlane(iRadius)) &
+                 &                     +interpolateTransform(field             ,positionsOffPlane(iRadius))
+         end do
+      end do
+      return
+    end subroutine fieldOffPlane
+
+    double precision function interpolateTransform(values,radius) result(value)
+      !!{RST
+      Interpolate (linearly in the logarithm of radius) in a quantity tabulated on the grid of radii used in the transforms.
+      !!}
+      implicit none
+      double precision, intent(in   ), dimension(:) :: values
+      double precision, intent(in   )               :: radius
+      double precision                              :: position
+      integer                                       :: j
+
+      position=(log(radius)-log(exponentialDiskTidalTransformRadiusMinimum))/intervalLogarithmicTransform
+      j       =min(max(int(position)+1,1),exponentialDiskTidalCountTransform-1)
+      position=position-dble(j-1)
+      value   =+(1.0d0-position)*values(j  ) &
+           &   +       position *values(j+1)
+      return
+    end function interpolateTransform
+
+
     subroutine heat(heating,radiusTruncate,surfaceDensityLogarithmic)
       !!{RST
       Apply heating to the surface density (given as its logarithm on the grid of radii used in the transforms). The mass of each
@@ -888,11 +1147,11 @@ contains
            &                                                                              massCellHeated                       , changeLogarithmic                      , &
            &                                                                              surfaceDensityLogarithmicCoarse      , surfaceDensityLogarithmicHeated
       logical                        , dimension(exponentialDiskTidalCountConvolution) :: isEmpty
-      double precision                                                                 :: interval                            , width                                  , &
-           &                                                                              mean                                , lower                                  , &
-           &                                                                              upper                               , position
-      integer                                                                          :: i                                   , k                                      , &
-           &                                                                              kMinimum                            , kMaximum                               , &
+      double precision                                                                 :: interval                             , width                                  , &
+           &                                                                              mean                                 , lower                                  , &
+           &                                                                              upper                                , position
+      integer                                                                          :: i                                    , k                                      , &
+           &                                                                              kMinimum                             , kMaximum                               , &
            &                                                                              j
 
       ! Construct the coarse grid, and find the mass in each cell.
@@ -1548,6 +1807,119 @@ contains
     return
   end function exponentialDiskTidalRatioAtPosition
 
+  subroutine exponentialDiskTidalCorrectionOffPlane(self,coordinates,quantities,corrections,gradientsRadial,gradientsVertical)
+    !!{RST
+    Return the ``corrections`` to the approximate ``quantities`` (the potential, or the radial or vertical acceleration) away
+    from the mid-plane at the given ``coordinates`` (see ``tabulateOffPlane()``), interpolated in the tabulated corrections, and,
+    optionally, their derivatives with respect to cylindrical radius and to height. Several quantities may be requested at once,
+    such that the interpolating weights are found only once. The logarithm of the correction is interpolated using four-point
+    Lagrange interpolation in the logarithms of radius and height, and in the coarse grids of truncation radius and heating
+    parameter. Below the smallest tabulated radius the correction is held constant. Below the smallest tabulated height the
+    logarithm of the correction to the vertical acceleration is held constant, while those of the corrections to the potential and
+    the radial acceleration (which are exact in the mid-plane) are taken to decrease as :math:`z^2` to zero in the mid-plane.
+    Beyond the tabulated range of radius or height (well beyond which the field of the disk is that of its normalized multipole
+    expansion) no correction is applied.
+    !!}
+    use :: Coordinates, only : assignment(=), coordinateCylindrical
+    implicit none
+    class           (massDistributionExponentialDiskTidal), intent(inout)                                        :: self
+    class           (coordinate                          ), intent(in   )                                        :: coordinates
+    integer                                               , intent(in   ), dimension(:               )           :: quantities
+    double precision                                      , intent(  out), dimension(size(quantities))           :: corrections
+    double precision                                      , intent(  out), dimension(size(quantities)), optional :: gradientsRadial          , gradientsVertical
+    type            (coordinateCylindrical               )                                                       :: position
+    integer                                                              , dimension(4               )           :: indexRadius              , indexHeight
+    double precision                                                     , dimension(4               )           :: weightRadius             , weightHeight             , &
+         &                                                                                                          weightRadiusGradient     , weightHeightGradient
+    double precision                                                     , dimension(size(quantities))           :: correctionLogarithmic    , gradientRadialLogarithmic, &
+         &                                                                                                          gradientHeightLogarithmic
+    double precision                                                                                             :: radius                   , height                   , &
+         &                                                                                                          positionRadius           , positionHeight           , &
+         &                                                                                                          factor                   , weight                   , &
+         &                                                                                                          weightGradientRadial     , weightGradientHeight     , &
+         &                                                                                                          value
+    integer                                                                                                      :: i                        , j                        , &
+         &                                                                                                          k                        , l                        , &
+         &                                                                                                          m
+    logical                                                                                                      :: belowRadius              , belowHeight
+
+    position   =coordinates
+    radius     =    position%r()/self%massDistribution_%radiusScale
+    height     =abs(position%z()/self%massDistribution_%radiusScale)
+    corrections=1.0d0
+    if (present(gradientsRadial  )) gradientsRadial  =0.0d0
+    if (present(gradientsVertical)) gradientsVertical=0.0d0
+    if (radius >= exponentialDiskTidalOffPlaneMaximum .or. height >= exponentialDiskTidalOffPlaneMaximum) return
+    belowRadius=radius < exponentialDiskTidalOffPlaneMinimum
+    belowHeight=height < exponentialDiskTidalOffPlaneMinimum
+    if (belowRadius) then
+       positionRadius=0.0d0
+    else
+       positionRadius=(log(radius)-self%table%offPlaneLogarithmicMinimum)/self%table%offPlaneLogarithmicInterval
+    end if
+    if (belowHeight) then
+       positionHeight=0.0d0
+    else
+       positionHeight=(log(height)-self%table%offPlaneLogarithmicMinimum)/self%table%offPlaneLogarithmicInterval
+    end if
+    call exponentialDiskTidalWeights(positionRadius,self%table%countOffPlane,indexRadius,weightRadius                         )
+    call exponentialDiskTidalWeights(positionHeight,self%table%countOffPlane,indexHeight,weightHeight                         )
+    call exponentialDiskTidalWeights(positionRadius,self%table%countOffPlane,indexRadius,weightRadiusGradient,derivative=.true.)
+    call exponentialDiskTidalWeights(positionHeight,self%table%countOffPlane,indexHeight,weightHeightGradient,derivative=.true.)
+    correctionLogarithmic    =0.0d0
+    gradientRadialLogarithmic=0.0d0
+    gradientHeightLogarithmic=0.0d0
+    do i=1,4
+       do j=1,4
+          do k=1,4
+             do l=1,4
+                weight              =self%weightOffPlane(i,j)*weightRadius        (k)*weightHeight        (l)
+                weightGradientRadial=self%weightOffPlane(i,j)*weightRadiusGradient(k)*weightHeight        (l)
+                weightGradientHeight=self%weightOffPlane(i,j)*weightRadius        (k)*weightHeightGradient(l)
+                do m=1,size(quantities)
+                   value                       =self%table%correctionOffPlaneLogarithmic(indexRadius(k),indexHeight(l),self%indexTruncationOffPlane(i),self%indexHeatingOffPlane(j),quantities(m))
+                   correctionLogarithmic    (m)=correctionLogarithmic    (m)+weight              *value
+                   gradientRadialLogarithmic(m)=gradientRadialLogarithmic(m)+weightGradientRadial*value
+                   gradientHeightLogarithmic(m)=gradientHeightLogarithmic(m)+weightGradientHeight*value
+                end do
+             end do
+          end do
+       end do
+    end do
+    ! Convert gradients to derivatives with respect to radius and height (in units of the disk scale length).
+    if (belowRadius) then
+       gradientRadialLogarithmic=0.0d0
+    else
+       gradientRadialLogarithmic=gradientRadialLogarithmic/self%table%offPlaneLogarithmicInterval/radius
+    end if
+    do m=1,size(quantities)
+       if (belowHeight) then
+          if (quantities(m) == exponentialDiskTidalCorrectionVertical) then
+             gradientHeightLogarithmic(m)=0.0d0
+          else
+             factor                      =+(height/exponentialDiskTidalOffPlaneMinimum)**2
+             gradientHeightLogarithmic(m)=+2.0d0                                  &
+                  &                       *correctionLogarithmic(m)               &
+                  &                       *height                                 &
+                  &                       /exponentialDiskTidalOffPlaneMinimum**2
+             correctionLogarithmic    (m)=+correctionLogarithmic    (m)*factor
+             gradientRadialLogarithmic(m)=+gradientRadialLogarithmic(m)*factor
+          end if
+       else
+          gradientHeightLogarithmic(m)=gradientHeightLogarithmic(m)/self%table%offPlaneLogarithmicInterval/height
+       end if
+    end do
+    corrections=exp(correctionLogarithmic)
+    if (present(gradientsRadial  )) gradientsRadial  =+corrections                        &
+         &                                            *gradientRadialLogarithmic          &
+         &                                            /self%massDistribution_%radiusScale
+    if (present(gradientsVertical)) gradientsVertical=+corrections                        &
+         &                                            *gradientHeightLogarithmic          &
+         &                                            /self%massDistribution_%radiusScale &
+         &                                            *sign(1.0d0,position%z())
+    return
+  end subroutine exponentialDiskTidalCorrectionOffPlane
+
   logical function exponentialDiskTidalBeyondTableAtPosition(self,coordinates) result(beyond)
     !!{RST
     Return true if the spherical radius of the given ``coordinates`` lies beyond the tabulated range, where the multipole
@@ -1581,6 +1953,7 @@ contains
     type            (enumerationStructureErrorCodeType   ), intent(  out), optional :: status
     type            (coordinateCartesian                 )                          :: position
     double precision                                      , dimension(3)            :: positionCartesian
+    double precision                                      , dimension(1)            :: correction
     double precision                                                                :: weight           , potentialMultipole
 
     if (present(status)) status=structureErrorCodeSuccess
@@ -1591,10 +1964,13 @@ contains
     else
        call exponentialDiskTidalBlend(self,sqrt(sum(positionCartesian**2)),weight)
        exponentialDiskTidalPotential=0.0d0
-       if (weight < 1.0d0)                                                                                                               &
-            & exponentialDiskTidalPotential=+(1.0d0-weight)                                                                              &
-            &                               *exponentialDiskTidalRatioAtPosition(self,coordinates,exponentialDiskTidalQuantityPotential) &
-            &                               *self%massDistribution_%potential   (     coordinates,status                               )
+       if (weight < 1.0d0) then
+          call exponentialDiskTidalCorrectionOffPlane(self,coordinates,[exponentialDiskTidalCorrectionPotential],correction)
+          exponentialDiskTidalPotential=+(1.0d0-weight)                                                                              &
+               &                        *exponentialDiskTidalRatioAtPosition(self,coordinates,exponentialDiskTidalQuantityPotential) &
+               &                        *correction                         (1                                                     ) &
+               &                        *self%massDistribution_%potential   (     coordinates,status                               )
+       end if
        if (weight > 0.0d0) then
           call exponentialDiskTidalMultipoleNormalized(self,positionCartesian,potential=potentialMultipole)
           exponentialDiskTidalPotential=+exponentialDiskTidalPotential &
@@ -1621,6 +1997,7 @@ contains
     type            (coordinateCartesian                 )                :: position
     double precision                                      , dimension(3)  :: acceleration                    , positionCartesian, &
          &                                                                   accelerationMultipole
+    double precision                                      , dimension(2)  :: correction
     double precision                                                      :: weight
 
     position         = coordinates
@@ -1631,10 +2008,16 @@ contains
        call exponentialDiskTidalBlend(self,sqrt(sum(positionCartesian**2)),weight)
        acceleration=0.0d0
        if (weight < 1.0d0) then
-          acceleration=self%massDistribution_%acceleration(coordinates)
-          acceleration=+(1.0d0-weight)                                                                                  &
-               &       *exponentialDiskTidalRatioAtPosition(self,coordinates,exponentialDiskTidalQuantityRotationCurve) &
-               &       *acceleration
+          acceleration     =self%massDistribution_%acceleration(coordinates)
+          acceleration     =+(1.0d0-weight)                                                                                  &
+               &            *exponentialDiskTidalRatioAtPosition(self,coordinates,exponentialDiskTidalQuantityRotationCurve) &
+               &            *acceleration
+          ! Apply the corrections to the radial and vertical components.
+          call exponentialDiskTidalCorrectionOffPlane(self,coordinates,[exponentialDiskTidalCorrectionRadial,exponentialDiskTidalCorrectionVertical],correction)
+          acceleration(1:2)=+acceleration(1:2) &
+               &            *correction  (1  )
+          acceleration(3  )=+acceleration(3  ) &
+               &            *correction  (2  )
        end if
        if (weight > 0.0d0) then
           call exponentialDiskTidalMultipoleNormalized(self,positionCartesian,acceleration=accelerationMultipole)
@@ -1650,23 +2033,28 @@ contains
   function exponentialDiskTidalTidalTensor(self,coordinates)
     !!{RST
     Return the gravitational tidal tensor due to a tidally-modified exponential disk. Close to the disk, the acceleration is
-    approximated as :math:`\mathbf{a}_\mathrm{s}(\mathbf{x}) = q(r) \mathbf{a}_0(\mathbf{x})`, where :math:`\mathbf{a}_0` is
-    the acceleration due to the untruncated, unheated disk, and :math:`q(r)` is the ratio of the squares of the mid-plane rotation
-    curves at spherical radius :math:`r`. Its tidal tensor is the symmetrized gradient of this acceleration,
+    approximated as :math:`C_i(R,z) q(r) a_{0,i}(\mathbf{x})`, where :math:`\mathbf{a}_0` is the acceleration due to the
+    untruncated, unheated disk, and :math:`q(r)` is the ratio of the squares of the mid-plane rotation curves at spherical radius
+    :math:`r`. Its tidal tensor is the symmetrized gradient of this acceleration,
 
     .. math::
 
-       T_{\mathrm{s},ij} = q T_{0,ij} + \frac{q^\prime}{2r} (a_{0,i} x_j + a_{0,j} x_i).
+       T_{\mathrm{s},ij} = \frac{1}{2} \left[ C_i G_{ij} + C_j G_{ji} + a_{\mathrm{s},i} \frac{\partial C_i}{\partial x_j} + a_{\mathrm{s},j} \frac{\partial C_j}{\partial x_i} \right], \quad G_{ij} = q T_{0,ij} + \frac{q^\prime}{r} a_{0,i} x_j,
+
+    where :math:`C_i` is the tabulated correction to the radial (:math:`i=x,y`) or vertical (:math:`i=z`) component of the
+    acceleration, and :math:`\mathbf{a}_\mathrm{s}=q \mathbf{a}_0`. (The scaled field is not curl-free, so :math:`G_{ij}` is not
+    symmetric, and the corrections must be applied before symmetrizing.)
 
     Further out this is blended into the tidal tensor, :math:`T_{\mathrm{m},ij}`, of the normalized multipole expansion,
     :math:`\mathbf{a}_\mathrm{m}` (see ``exponentialDiskTidalMultipoleNormalized``), with weight :math:`w(r)`, as the
-    symmetrized gradient of :math:`(1-w)\mathbf{a}_\mathrm{s}+w\mathbf{a}_\mathrm{m}`:
+    symmetrized gradient of :math:`(1-w)\mathbf{C}\mathbf{a}_\mathrm{s}+w\mathbf{a}_\mathrm{m}` (where
+    :math:`\mathbf{C}\mathbf{a}_\mathrm{s}` has components :math:`C_i a_{\mathrm{s},i}`):
 
     .. math::
 
        T_{ij} = (1-w) T_{\mathrm{s},ij} + w T_{\mathrm{m},ij} + \frac{w^\prime}{2r} (\Delta_i x_j + \Delta_j x_i),
 
-    where :math:`\boldsymbol{\Delta}=\mathbf{a}_\mathrm{m}-\mathbf{a}_\mathrm{s}` (which vanishes in the mid-plane).
+    where :math:`\boldsymbol{\Delta}=\mathbf{a}_\mathrm{m}-\mathbf{C}\mathbf{a}_\mathrm{s}` (which vanishes in the mid-plane).
     :math:`T_{zz}` is then adjusted such that :math:`\mathrm{Tr}(T) = -4\pi G\rho` (Poisson's equation). In the mid-plane this
     is exact. Beyond the tabulated range of radii the multipole expansion of the potential to quadrupole order is used.
     !!}
@@ -1678,17 +2066,22 @@ contains
     class           (massDistributionExponentialDiskTidal), intent(inout)   :: self
     class           (coordinate                          ), intent(in   )   :: coordinates
     type            (coordinateCartesian                 )                  :: position
-    double precision                                      , dimension(3  )  :: positionCartesian              , acceleration          , &
+    double precision                                      , dimension(3  )  :: positionCartesian              , acceleration             , &
          &                                                                     accelerationMultipole          , accelerationDifference
-    double precision                                      , dimension(3,3)  :: tidalTensor                    , tidalTensorMultipole
-    double precision                                                        :: radius                         , ratio                 , &
-         &                                                                     gradientLogarithmic            , weight                , &
-         &                                                                     weightDerivative
+    double precision                                      , dimension(3,3)  :: tidalTensor                    , tidalTensorMultipole     , &
+         &                                                                     tidalTensorCorrected           , correctionGradient
+    double precision                                      , dimension(3  )  :: correction
+    double precision                                                        :: radius                         , ratio                    , &
+         &                                                                     gradientLogarithmic            , weight                   , &
+         &                                                                     weightDerivative               , radiusCylindrical
+    double precision                                      , dimension(2  )  :: correctionsComponent           , correctionGradientsRadial, &
+         &                                                                     correctionGradientsVertical
     integer                                                                 :: i                              , j
 
     position         =coordinates
     positionCartesian=position
-    radius           =sqrt(sum(positionCartesian**2))
+    radius           =sqrt(sum(positionCartesian     **2))
+    radiusCylindrical=sqrt(sum(positionCartesian(1:2)**2))
     if (exponentialDiskTidalBeyondTableAtPosition(self,coordinates)) then
        call exponentialDiskTidalMultipole(self,positionCartesian,tidalTensor=tidalTensor)
     else
@@ -1702,19 +2095,51 @@ contains
           tidalTensor=ratio*tidalTensor
           if (radius > 0.0d0) then
              acceleration=self%massDistribution_%acceleration(coordinates)
-             ! The gradient of the ratio is ∇q = q (d ln q/d ln r) x/r².
+             ! The gradient of the ratio is ∇q = q (d ln q/d ln r) x/r². The (unsymmetrized) gradient of the scaled acceleration,
+             ! G_ij = ∂(q a_{0,i})/∂x_j = q T_{0,ij} + a_{0,i} ∂q/∂x_j, is found here - it is not symmetric, as the scaled field is
+             ! not curl-free. It is symmetrized below, after the corrections are applied.
              do i=1,3
                 do j=1,3
-                   tidalTensor(i,j)=+tidalTensor(i,j)                                                            &
-                        &           +ratio                                                                       &
-                        &           *gradientLogarithmic                                                         &
-                        &           *(acceleration(i)*positionCartesian(j)+acceleration(j)*positionCartesian(i)) &
-                        &           /2.0d0                                                                       &
+                   tidalTensor(i,j)=+tidalTensor(i,j)     &
+                        &           +ratio                &
+                        &           *gradientLogarithmic  &
+                        &           *acceleration(i)      &
+                        &           *positionCartesian(j) &
                         &           /radius**2
                 end do
              end do
              acceleration=ratio*acceleration
           end if
+          ! Apply the corrections to the radial and vertical components of the acceleration, a_i → C_i a_i. The tidal tensor is the
+          ! symmetrized gradient of the corrected acceleration, T_ij = [C_i G_ij + C_j G_ji + a_i ∂C_i/∂x_j + a_j ∂C_j/∂x_i]/2.
+          call exponentialDiskTidalCorrectionOffPlane(self,coordinates,[exponentialDiskTidalCorrectionRadial,exponentialDiskTidalCorrectionVertical],correctionsComponent,correctionGradientsRadial,correctionGradientsVertical)
+          correction=[correctionsComponent(1),correctionsComponent(1),correctionsComponent(2)]
+          do i=1,3
+             ! The x and y components take the correction to the radial acceleration (1), the z component that to the vertical (2).
+             j=merge(2,1,i == 3)
+             correctionGradient(i,3)=correctionGradientsVertical(j)
+             if (radiusCylindrical > 0.0d0) then
+                correctionGradient(i,1)=correctionGradientsRadial(j)*positionCartesian(1)/radiusCylindrical
+                correctionGradient(i,2)=correctionGradientsRadial(j)*positionCartesian(2)/radiusCylindrical
+             else
+                correctionGradient(i,1:2)=0.0d0
+             end if
+          end do
+          ! Evaluate the upper triangle only, and copy it to the lower triangle, such that the result is exactly symmetric.
+          do i=1,3
+             do j=i,3
+                tidalTensorCorrected(i,j)=+0.5d0                                     &
+                     &                    *(                                         &
+                     &                      +correction  (i)*tidalTensor       (i,j) &
+                     &                      +correction  (j)*tidalTensor       (j,i) &
+                     &                      +acceleration(i)*correctionGradient(i,j) &
+                     &                      +acceleration(j)*correctionGradient(j,i) &
+                     &                     )
+                tidalTensorCorrected(j,i)=tidalTensorCorrected(i,j)
+             end do
+          end do
+          tidalTensor =tidalTensorCorrected
+          acceleration=correction*acceleration
        end if
        if (weight > 0.0d0) then
           ! Blend in the normalized multipole expansion.

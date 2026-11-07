@@ -35,7 +35,7 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
   use :: Mass_Distributions                   , only : massDistributionExponentialDisk       , massDistributionExponentialDiskTidal
   use :: Numerical_Constants_Math             , only : Pi
   use :: Tensors                              , only : assignment(=)
-  use :: Test_Exponential_Disk_Tidal_Reference, only : referenceRotationCurveSquared         , referencePotential                  , referenceRadiusTruncate
+  use :: Test_Exponential_Disk_Tidal_Reference, only : referenceRotationCurveSquared         , referencePotential                  , referenceRadiusTruncate, referenceFieldOffPlane
   use :: Unit_Tests                           , only : Assert                                , Unit_Tests_Begin_Group              , Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
   double precision                                      , parameter      :: scaleHeight      =0.137d0                         , radiusDecayOverRadiusTruncate=0.1d0, &
@@ -56,6 +56,16 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
        &                                                                    diskMinus
   type            (galacticComponentTruncationExponential)               :: truncation
   double precision                                      , dimension(5  ) :: truncations      =[0.01d0,0.1d0,0.5d0,2.0d0,8.0d0]
+  double precision                                      , dimension(2  ) :: truncationsInner =[1.0d0,3.0d0]
+  double precision                                      , dimension(3  ) :: radiiInner       =[0.3d0,0.6d0,1.0d0]
+  double precision                                      , dimension(4  ) :: heightsInner     =[0.5d0,1.0d0,2.0d0,4.0d0]
+  double precision                                      , dimension(12 ) :: potentialInner                                    , potentialInnerReference            , &
+       &                                                                    radialInner                                       , radialInnerReference               , &
+       &                                                                    verticalInner                                     , verticalInnerReference
+  double precision                                      , dimension(2  ) :: heatingsInner    =[0.1d0,0.3d0]
+  double precision                                      , dimension(12,2) :: potentialHeatedReference                         , radialHeatedReference              , &
+       &                                                                     verticalHeatedReference
+  character       (len=32)                                               :: labelInner
   integer                                               , parameter      :: countIntegration =400
   double precision                                                       :: weight                                            , truncationIntegration
   double precision                                                       :: radiusTruncate                                    , radius                             , &
@@ -63,7 +73,8 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
        &                                                                    quadrupole                                        , angle                              , &
        &                                                                    potentialPrevious                                 , accelerationPrevious               , &
        &                                                                    potentialCurrent                                  , accelerationCurrent
-  integer                                                                :: i                                                 , j
+  integer                                                                :: i                                                 , j                                  , &
+       &                                                                    k                                                 , l
 
   call displayVerbositySet   (verbosityLevelStandard)
   call eventsHooksInitialize ()
@@ -286,6 +297,77 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
      end if
   end do
   call Unit_Tests_End_Group()
+  ! Away from the mid-plane, inside the truncation radius. The scaled field of the untruncated, unheated disk overestimates the
+  ! vertical acceleration of a strongly truncated disk by factors of two to three here, so this checks the tabulated corrections.
+  ! The reference is the exact field, from direct evaluation of the Hankel transforms.
+  call Unit_Tests_Begin_Group("Inside the truncation radius, away from the mid-plane")
+  do k=1,size(truncationsInner)
+     disk          =massDistributionExponentialDiskTidal(truncation=truncationsInner(k),heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+     radiusTruncate=referenceRadiusTruncate(truncationsInner(k),radiusDecayOverRadiusTruncate)
+     l=0
+     do i=1,size(radiiInner)
+        do j=1,size(heightsInner)
+           l       =l+1
+           position=[radiiInner(i)*radiusTruncate,0.0d0,heightsInner(j)*scaleHeight]
+           call referenceFieldOffPlane(position(1),position(3),radiusTruncate,radiusDecayOverRadiusTruncate,scaleHeight,potentialInnerReference(l),radialInnerReference(l),verticalInnerReference(l))
+           valuesTest       =disk%acceleration(coordinateCartesian(position(1),position(2),position(3)))
+           potentialInner(l)=disk%potential   (coordinateCartesian(position(1),position(2),position(3)))
+           radialInner   (l)=valuesTest(1)
+           verticalInner (l)=valuesTest(3)
+        end do
+     end do
+     write (labelInner,'(a,f3.1)') 'x = ',truncationsInner(k)
+     ! The measured agreement is 1.5×10⁻³ for the potential, 8×10⁻³ for the radial acceleration, and 1.2×10⁻² for the vertical
+     ! acceleration (limited by interpolation in the coarse grids on which the corrections are tabulated). Without the
+     ! corrections the vertical acceleration differs by up to a factor of about three for x=3.
+     call Assert('potential vs. direct Hankel transform, '            //trim(labelInner),potentialInner,potentialInnerReference,relTol=3.0d-3)
+     call Assert('radial acceleration vs. direct Hankel transform, '  //trim(labelInner),radialInner   ,radialInnerReference   ,relTol=1.5d-2)
+     call Assert('vertical acceleration vs. direct Hankel transform, '//trim(labelInner),verticalInner ,verticalInnerReference ,relTol=2.5d-2)
+     ! The tidal tensor must be the gradient of the corrected acceleration.
+     position   =[0.6d0*radiusTruncate,0.0d0,2.0d0*scaleHeight]
+     tidalTensor=disk%tidalTensor(coordinateCartesian(position(1),position(2),position(3)))
+     do i=1,3
+        positionPlus     =position
+        positionMinus    =position
+        positionPlus (i) =position(i)+stepFractional*radiusTruncate
+        positionMinus(i) =position(i)-stepFractional*radiusTruncate
+        accelerationPlus =disk%acceleration(coordinateCartesian(positionPlus (1),positionPlus (2),positionPlus (3)))
+        accelerationMinus=disk%acceleration(coordinateCartesian(positionMinus(1),positionMinus(2),positionMinus(3)))
+        tidalTensorDifference(:,i)=(accelerationPlus-accelerationMinus)/2.0d0/stepFractional/radiusTruncate
+     end do
+     ! Only the off-diagonal and radial-radial components are compared: the vertical-vertical component is set by Poisson's
+     ! equation, and the azimuthal-azimuthal component is a_R/R. The approximate field is not exactly curl-free, so the
+     ! off-diagonal component is compared with the mean of the two finite differences. The measured agreement is 3×10⁻³ for the
+     ! off-diagonal component, and 1.1×10⁻² for the radial-radial component (which is the same, 1.1×10⁻², without the
+     ! corrections, arising from the tabulation of the field of the untruncated disk).
+     call Assert('tidal tensor vs. finite difference of acceleration, '//trim(labelInner),[tidalTensor(1,1),tidalTensor(1,3)],[tidalTensorDifference(1,1),0.5d0*(tidalTensorDifference(1,3)+tidalTensorDifference(3,1))],relTol=2.0d-2)
+     ! At an azimuth of 45°, where both horizontal components of the acceleration are non-zero, such that the gradients of the
+     ! corrections enter every component of the tidal tensor. Here T_xy=(T_RR-T_φφ)/2 is a small difference (6% of T_xx for x=3),
+     ! so the error of about 1% in T_RR (see above) gives it a relative error of up to 5%. Components are therefore also accepted
+     ! if they agree to within 1% of the largest component of the tensor. The measured agreement is 0.4% of the largest component,
+     ! while applying the gradients of the correction to the vertical acceleration to the y component gave errors of 3-7%.
+     position   =[0.6d0*radiusTruncate/sqrt(2.0d0),0.6d0*radiusTruncate/sqrt(2.0d0),2.0d0*scaleHeight]
+     tidalTensor=disk%tidalTensor(coordinateCartesian(position(1),position(2),position(3)))
+     do i=1,3
+        positionPlus     =position
+        positionMinus    =position
+        positionPlus (i) =position(i)+stepFractional*radiusTruncate
+        positionMinus(i) =position(i)-stepFractional*radiusTruncate
+        accelerationPlus =disk%acceleration(coordinateCartesian(positionPlus (1),positionPlus (2),positionPlus (3)))
+        accelerationMinus=disk%acceleration(coordinateCartesian(positionMinus(1),positionMinus(2),positionMinus(3)))
+        tidalTensorDifference(:,i)=(accelerationPlus-accelerationMinus)/2.0d0/stepFractional/radiusTruncate
+     end do
+     call Assert(                                                                                                                                 &
+          &      'tidal tensor vs. finite difference of acceleration, at 45 degrees azimuth, '//trim(labelInner)                                , &
+          &      [tidalTensor          (1,1),      tidalTensor          (1,2)                             ,      tidalTensor          (1,3)                              , &
+          &       tidalTensor          (2,2),      tidalTensor          (2,3)                                                                                          ], &
+          &      [tidalTensorDifference(1,1),0.5d0*(tidalTensorDifference(1,2)+tidalTensorDifference(2,1)),0.5d0*(tidalTensorDifference(1,3)+tidalTensorDifference(3,1)), &
+          &       tidalTensorDifference(2,2),0.5d0*(tidalTensorDifference(2,3)+tidalTensorDifference(3,2))                                                         ], &
+          &      absTol=1.0d-2*maxval(abs(tidalTensorDifference))                                                                                                  , &
+          &      relTol=2.0d-2                                                                                                                                       &
+          &     )
+  end do
+  call Unit_Tests_End_Group()
   ! A truncation stronger than that of the smallest tabulated truncation radius.
   call Unit_Tests_Begin_Group("Truncation beyond the tabulated range")
   disk=massDistributionExponentialDiskTidal(truncation=12.0d0,heating=0.0d0,radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
@@ -319,6 +401,47 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
           &          /2.0d0/stepFractional/radii(i)
   end do
   call Assert('rotation curve gradient vs. finite difference',valuesTidal,valuesParent,relTol=1.0d-4)
+  call Unit_Tests_End_Group()
+  ! Away from the mid-plane, inside the truncation radius, of truncated and heated disks. This checks the interpolation of the
+  ! tabulated corrections in heating parameter. The reference values are from exponentialDiskTidalHeated.py (in
+  ! galacticusDevTools/physicsReferences), which evaluates the Hankel transform of the heated disk as that of a superposition of
+  ! rings spread in radius, and shares none of the tabulation used here. Points are at R/R_t = 0.3, 0.6, and 1.0 (outer), and
+  ! z/h = 0.5, 1, 2, and 4 (inner).
+  potentialHeatedReference(:,1)=[-6.07182219d-01,-5.81497759d-01,-5.15548660d-01,-4.03418393d-01,-5.50361311d-01,-5.29387953d-01, &
+                            &   -4.74764306d-01,-3.79021270d-01,-4.49682152d-01,-4.35392483d-01,-3.97980018d-01,-3.30433301d-01]
+  radialHeatedReference   (:,1)=[-1.70869072d-01,-1.53774609d-01,-1.15061956d-01,-6.54096624d-02,-2.50462481d-01,-2.32540744d-01, &
+                            &   -1.87414720d-01,-1.16075520d-01,-3.18539208d-01,-2.96459610d-01,-2.41007352d-01,-1.53367584d-01]
+  verticalHeatedReference (:,1)=[-2.82876380d-01,-4.44028342d-01,-4.79449702d-01,-3.38624535d-01,-2.30153474d-01,-3.63941392d-01, &
+                            &   -4.01471893d-01,-2.94778224d-01,-1.56729649d-01,-2.48145432d-01,-2.76803181d-01,-2.14219896d-01]
+  potentialHeatedReference(:,2)=[-6.31724356d-01,-6.03832430d-01,-5.32149525d-01,-4.11197937d-01,-5.72163171d-01,-5.48040663d-01, &
+                            &   -4.86688578d-01,-3.83634346d-01,-4.41316678d-01,-4.28464994d-01,-3.93965515d-01,-3.29080273d-01]
+  radialHeatedReference   (:,2)=[-1.56884463d-01,-1.46310469d-01,-1.18955842d-01,-7.28043921d-02,-3.07049828d-01,-2.83289075d-01, &
+                            &   -2.23790931d-01,-1.32343820d-01,-3.80229656d-01,-3.49565369d-01,-2.75334770d-01,-1.66879461d-01]
+  verticalHeatedReference (:,2)=[-3.06971014d-01,-4.82481420d-01,-5.20744707d-01,-3.61492931d-01,-2.66432144d-01,-4.15848874d-01, &
+                            &   -4.43323911d-01,-3.10319963d-01,-1.39969078d-01,-2.24749902d-01,-2.59637112d-01,-2.09605943d-01]
+  call Unit_Tests_Begin_Group("Truncated and heated disk, away from the mid-plane")
+  radiusTruncate=referenceRadiusTruncate(1.0d0,radiusDecayOverRadiusTruncate)
+  do k=1,size(heatingsInner)
+     disk=massDistributionExponentialDiskTidal(truncation=1.0d0,heating=heatingsInner(k),radiusDecayOverRadiusTruncate=radiusDecayOverRadiusTruncate,massDistribution_=parent)
+     l=0
+     do i=1,size(radiiInner)
+        do j=1,size(heightsInner)
+           l                =l+1
+           position         =[radiiInner(i)*radiusTruncate,0.0d0,heightsInner(j)*scaleHeight]
+           valuesTest       =disk%acceleration(coordinateCartesian(position(1),position(2),position(3)))
+           potentialInner(l)=disk%potential   (coordinateCartesian(position(1),position(2),position(3)))
+           radialInner   (l)=valuesTest(1)
+           verticalInner (l)=valuesTest(3)
+        end do
+     end do
+     write (labelInner,'(a,f3.1)') 'x = 1.0, s = ',heatingsInner(k)
+     ! The measured agreement is 1.6×10⁻³ for the potential, 9.6×10⁻³ for the radial acceleration, and 1.5×10⁻² for the vertical
+     ! acceleration (limited by interpolation in the coarse grids on which the corrections are tabulated). The field of these disks
+     ! differs from that of the unheated disk by up to 26%.
+     call Assert('potential vs. superposition of rings, '            //trim(labelInner),potentialInner,potentialHeatedReference(:,k),relTol=3.0d-3)
+     call Assert('radial acceleration vs. superposition of rings, '  //trim(labelInner),radialInner   ,radialHeatedReference   (:,k),relTol=1.5d-2)
+     call Assert('vertical acceleration vs. superposition of rings, '//trim(labelInner),verticalInner ,verticalHeatedReference (:,k),relTol=2.5d-2)
+  end do
   call Unit_Tests_End_Group()
   ! The specific angular momentum of material removed by further truncation, j/⟨j⟩ = 1 - d log⟨R⟩/dx.
   call Unit_Tests_Begin_Group("Specific angular momentum of stripped material")
