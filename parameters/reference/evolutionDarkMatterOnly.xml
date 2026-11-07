@@ -54,7 +54,10 @@
     </nodeOperator>
     <nodeOperator value="satelliteDynamicalFriction"       />
     <nodeOperator value="satelliteTidalMassLoss"           />
-    <nodeOperator value="satelliteTidalHeating"            />
+    <!-- Heating decay efficiency from Du et al. (2024; https://arxiv.org/abs/2403.09597) best fit for NFW subhalos. -->
+    <nodeOperator value="satelliteTidalHeating"             >
+      <efficiencyDecay value="0.274859"/>
+    </nodeOperator>
     <nodeOperator value="satelliteMergingRadiusTrigger"     >
       <radiusVirialFraction      value="0.01"/>
     </nodeOperator>

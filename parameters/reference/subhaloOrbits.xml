@@ -28,23 +28,34 @@
   </virialOrbit>
  
   <!-- Orbiting model of satellites -->
-  <!-- Values taken from Yang et al. (2020; MNRAS; 498; 3902; http://adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) approximately
-       interpolated betweeing their gamma=0.0 and 2.5 cases (using the Caterpillar simulations as calibration target) to
-       approximately match our choice of gamma=1.5 using the Caterpillar simulations as calibration target.  -->
+  <!-- The dynamical friction Coulomb logarithm is the value of Yang et al. (2020; MNRAS; 498; 3902;
+       http://adsabs.harvard.edu/abs/2020MNRAS.498.3902Y) for their gamma=0 case (using the Caterpillar simulations as calibration
+       target), consistent with the gamma=0 tidal heating rate used below. Du et al. (2024) adjusted the Coulomb logarithm for each
+       of their idealized simulations to match the measured orbits, noting that this does not significantly affect their
+       calibration, and give no value for use in cosmological models. -->
   <satelliteDynamicalFriction value="massRatioThreshold">
     <!-- Allow for includer files to set a mass ratio threshold for dynamical friction - defaulting to zero if none is given. -->
     <massRatioThreshold value="=[satelliteDynamicalFrictionMassRatioThreshold|0.0]"/>
     <satelliteDynamicalFriction value="chandrasekhar1943">
-      <logarithmCoulomb value="1.35"/>
+      <logarithmCoulomb value="1.53"/>
     </satelliteDynamicalFriction>
   </satelliteDynamicalFriction>
+  <!-- Tidal heating and stripping parameters are the best fit values for NFW (gamma=1) subhalos from Du et al. (2024; PRD; 110;
+       023019; https://arxiv.org/abs/2403.09597), found by matching tidal tracks of idealized N-body simulations of orbiting
+       subhalos. These are the values used in testSuite/parameters/idealizedSubhaloSimulations/. The heating decay efficiency, and
+       the second order heating coefficient, that complete this calibration are set in evolutionDarkMatterOnly.xml,
+       evolutionGalaxyFormation.xml, and darkMatterHalosTidalHeating.xml. -->
   <satelliteTidalHeatingRate  value="gnedin1999"       >
-    <epsilon          value="2.70"/>
-    <gamma            value="1.50"/>
+    <epsilon          value="0.0732225"/>
+    <gamma            value="0.0"      />
   </satelliteTidalHeatingRate>
   <satelliteTidalStripping    value="zentner2005"      >
-    <efficiency       value="2.95"/>
+    <useDynamicalTimeScale value="true"   />
+    <efficiency            value="3.82024"/>
   </satelliteTidalStripping>
+  <satelliteTidalStrippingRadius value="king1962">
+    <efficiencyCentrifugal value="0.0"/>
+  </satelliteTidalStrippingRadius>
   <satelliteTidalField value="standard"/>
 
   <!-- Substructure hierarchy options -->

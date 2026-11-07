@@ -63,7 +63,9 @@ else:
         failures.append("no halo has a solitonic core")
 
     # Tidal stripping must be able to remove the NFW envelope from a satellite and leave it soliton-only. If none do, the tidal
-    # radius is not being limited to the soliton radius, or the transition to the soliton-only state is never triggered.
+    # radius is not being limited to the soliton radius, the transition to the soliton-only state is never triggered, or
+    # satellites are destroyed by the mass threshold before they are stripped down to their cores (see the
+    # `massDestructionAbsolute` change in `testSuite/parameters/fuzzyDarkMatterHeatedValidate.xml`).
     countSolitonOnly = np.count_nonzero(solitonStatus == statusSolitonOnly)
     if countSolitonOnly == 0:
         failures.append("no halo reached the soliton-only state")
