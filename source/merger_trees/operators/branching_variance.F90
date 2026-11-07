@@ -124,12 +124,21 @@
    and, in a subgroup ``statistic&lt;S&gt;/threshold&lt;i&gt;`` for each statistic and threshold, the count :math:`N`,
    :math:`n_1(\mathrm{root})`, :math:`\sum\Delta`, :math:`\sum\mathrm{drift}`, :math:`\sum\Delta^2` (also split into terminal
    splits, whose non-primary progenitors have a total mass of at least :math:`m`, and structural splits; into main-branch and
-   side-branch splits; and into splits after formation, i.e. at :math:`\omega` below that of formation and so later in cosmic
-   time), and the residual of the identity
+   side-branch splits; and into splits at or after formation, defined below), and the residual of the identity
    :math:`N=n_1(\mathrm{root})+\sum\Delta+\sum\mathrm{drift}`. Also written are sums for a check of the Markov property (the
    mean of the count minus :math:`n_1` must vanish for roots, for primary and non-primary progenitors created at splits, and
    for nodes created by accretion alone). In both modes the relation between redshift and :math:`\omega` used is written to
    the datasets ``redshift`` and ``omega``.
+
+   The splits at or after formation (``sumDeltaSquaredAfterFormation``) are those at :math:`\omega\le\tau`, where
+   :math:`\tau` is the :math:`\omega` of the first main-branch node below half of the root mass. They include the split at
+   which the main branch falls below half. Whether a split comes before :math:`\tau` depends only on the tree built up to it,
+   so :math:`\tau` is a stopping time, and the mean of this sum is :math:`\mathrm{Var}(\mathrm{E}[N|\mathcal{F}_\tau])`, the
+   variance of the count expected given the tree built to :math:`\tau`. The mean of the remainder of :math:`\sum\Delta^2` is
+   :math:`\mathrm{E}[\mathrm{Var}(N|\mathcal{F}_\tau)]`. If the main branch never falls below half of the root mass, every
+   split is included. The formation epoch written to ``trees`` is instead interpolated in the logarithm of mass between the
+   main-branch nodes on either side of half of the root mass, so it lies between :math:`\tau` and the :math:`\omega` of the
+   node before.
 
    A ``jumps`` run also writes, for each statistic and threshold:
 
@@ -315,17 +324,17 @@
    <validator>yes</validator>
    <visibility>private</visibility>
    <indexing>1</indexing>
-   <entry label="countTotal"                    description="The count, N"                                                                           />
-   <entry label="n1Root"                        description="The expected count, n₁, at the root"                                                    />
-   <entry label="sumDelta"                      description="The sum of the jumps, Δ, over splits"                                                   />
-   <entry label="sumDrift"                      description="The sum of the drifts over segments"                                                    />
-   <entry label="sumDeltaSquared"               description="The sum of Δ² over splits"                                                              />
-   <entry label="sumDeltaSquaredTerminal"       description="The sum of Δ² over terminal splits (non-primary progenitor mass at least the threshold)"/>
-   <entry label="sumDeltaSquaredStructural"     description="The sum of Δ² over structural splits (non-primary progenitor mass below the threshold)" />
-   <entry label="sumDeltaSquaredMain"           description="The sum of Δ² over main-branch splits"                                                  />
-   <entry label="sumDeltaSquaredSide"           description="The sum of Δ² over side-branch splits"                                                  />
-   <entry label="sumDeltaSquaredAfterFormation" description="The sum of Δ² over splits after formation (ω below that of formation)"                  />
-   <entry label="telescopeResidual"             description="The residual of the identity N = n₁(root) + ΣΔ + Σ(drift)"                              />
+   <entry label="countTotal"                    description="The count, N"                                                                                                     />
+   <entry label="n1Root"                        description="The expected count, n₁, at the root"                                                                              />
+   <entry label="sumDelta"                      description="The sum of the jumps, Δ, over splits"                                                                             />
+   <entry label="sumDrift"                      description="The sum of the drifts over segments"                                                                              />
+   <entry label="sumDeltaSquared"               description="The sum of Δ² over splits"                                                                                        />
+   <entry label="sumDeltaSquaredTerminal"       description="The sum of Δ² over terminal splits (non-primary progenitor mass at least the threshold)"                          />
+   <entry label="sumDeltaSquaredStructural"     description="The sum of Δ² over structural splits (non-primary progenitor mass below the threshold)"                           />
+   <entry label="sumDeltaSquaredMain"           description="The sum of Δ² over main-branch splits"                                                                            />
+   <entry label="sumDeltaSquaredSide"           description="The sum of Δ² over side-branch splits"                                                                            />
+   <entry label="sumDeltaSquaredAfterFormation" description="The sum of Δ² over splits at or after formation (ω ≤ that of the first main-branch node below half the root mass)"/>
+   <entry label="telescopeResidual"             description="The residual of the identity N = n₁(root) + ΣΔ + Σ(drift)"                                                        />
   </enumeration>
   !!]
 
@@ -1236,9 +1245,10 @@ contains
          &                                                                                              redshiftFormation_              , factor                           , &
          &                                                                                              massMaximum                     , residual                         , &
          &                                                                                              expectation                     , sumBefore                        , &
-         &                                                                                              expectationAlternate            , logMassAlive
-    logical                                                                                          :: emptyTouched                    , formationFound                   , &
-         &                                                                                              outside                         , storeSplits
+         &                                                                                              expectationAlternate            , logMassAlive                     , &
+         &                                                                                              omegaStopping
+    logical                                                                                          :: emptyTouched                    , outside                          , &
+         &                                                                                              storeSplits
     integer         (kind_int8                          )                                            :: seed
 
     treeCurrent => tree
@@ -1353,8 +1363,10 @@ contains
           hierarchyDepth(i)=hierarchyDepth(parent(i))+merge(0,1,isPrimary(i))
        end do
        ! Formation epoch: when the main branch first falls below half of the root mass, interpolating ω linearly in the logarithm
-       ! of mass.
-       formationFound    =.false.
+       ! of mass. Also found is the stopping time, the ω of the first main-branch node below half of the root mass. Unlike the
+       ! interpolated formation epoch, whether a split precedes it depends on nothing beyond it in the tree. If the main branch
+       ! never falls below half of the root mass, the stopping time is taken to lie beyond every split.
+       omegaStopping     =huge(0.0d0)
        omegaFormation_   =IEEE_Value(0.0d0,IEEE_Quiet_NaN)
        redshiftFormation_=IEEE_Value(0.0d0,IEEE_Quiet_NaN)
        i=countNodes
@@ -1367,7 +1379,7 @@ contains
              redshiftFormation_=+          redshiftOfNode(nodes(i)%node)  &
                   &             +factor*(+ redshiftOfNode(nodes(p)%node)  &
                   &                      - redshiftOfNode(nodes(i)%node))
-             formationFound    =.true.
+             omegaStopping     =omega(p)
              exit
           end if
           i=p
@@ -1618,11 +1630,7 @@ contains
                 self   %treeQuantities(treeQuantitySumDeltaSquaredStructural    %ID,iCase,self%countTrees)=sum(deltaSquared,mask=.not.(massSecondary >= massThreshold))
                 self   %treeQuantities(treeQuantitySumDeltaSquaredMain          %ID,iCase,self%countTrees)=sum(deltaSquared,mask=      isMain                         )
                 self   %treeQuantities(treeQuantitySumDeltaSquaredSide          %ID,iCase,self%countTrees)=sum(deltaSquared,mask=.not. isMain                         )
-                if (formationFound) then
-                   self%treeQuantities(treeQuantitySumDeltaSquaredAfterFormation%ID,iCase,self%countTrees)=sum(deltaSquared,mask=      omegaSplit < omegaFormation_   )
-                else
-                   self%treeQuantities(treeQuantitySumDeltaSquaredAfterFormation%ID,iCase,self%countTrees)=0.0d0
-                end if
+                self   %treeQuantities(treeQuantitySumDeltaSquaredAfterFormation%ID,iCase,self%countTrees)=sum(deltaSquared,mask=      omegaSplit <= omegaStopping    )
                 self   %treeQuantities(treeQuantityTelescopeResidual            %ID,iCase,self%countTrees)=+self%treeQuantities(treeQuantityCountTotal%ID,iCase,self%countTrees) &
                      &                                                                                     -self%treeQuantities(treeQuantityN1Root    %ID,iCase,self%countTrees) &
                      &                                                                                     -self%treeQuantities(treeQuantitySumDelta  %ID,iCase,self%countTrees) &
