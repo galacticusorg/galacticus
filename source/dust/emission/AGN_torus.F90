@@ -131,8 +131,8 @@ contains
     Internal constructor for the :galacticus-class:`dustEmissionSpectrumAGNTorus` dust emission spectrum class. The
     quadrature over temperature is built here, once.
     !!}
-    use :: Dust_Attenuations, only : gaussLegendreRule
-    use :: Error            , only : Error_Report
+    use :: Error                              , only : Error_Report
+    use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
     use :: Gamma_Functions  , only : Gamma_Function
     use :: Zeta_Functions   , only : Zeta_Function
     implicit none

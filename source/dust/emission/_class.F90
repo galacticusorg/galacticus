@@ -129,7 +129,7 @@ contains
     ``wavelengthsMaximum`` (in Å), from the spectrum ``luminosity`` of ``self`` given the total ``luminosityAbsorbed``,
     by an eight-point Gauss--Legendre rule in :math:`\ln\lambda` over each interval.
     !!}
-    use :: Dust_Attenuations, only : gaussLegendreRule
+    use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
     implicit none
     class           (dustEmissionSpectrumClass), intent(inout)                                      :: self
     double precision                           , intent(in   ), dimension(:                       ) :: wavelengthsMinimum  , wavelengthsMaximum
