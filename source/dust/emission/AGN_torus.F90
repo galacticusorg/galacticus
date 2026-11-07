@@ -168,11 +168,7 @@ contains
     double precision                              , intent(in   )                               :: luminosityAbsorbed        , massDust   , &
          &                                                                                         time
     double precision                                             , dimension(size(wavelengths)) :: luminosity
-    ! Beyond this argument the exponential overflows, and the emission is in any case negligible.
-    double precision                              , parameter                                   :: argumentMaximum   =700.0d0
-    ! Below this argument the denominator is evaluated by its series, avoiding cancellation in exp(x)-1.
-    double precision                              , parameter                                   :: argumentSmall     =1.0d-4
-    double precision                                                                            :: argument                  , denominator
+    double precision                                                                            :: argument
     integer                                                                                     :: i                         , j
     !$GLC attributes unused :: massDust, time
 
@@ -181,17 +177,12 @@ contains
     do i=1,size(wavelengths)
        do j=1,size(self%temperatures)
           argument=plancksConstant*speedLight*metersToAngstroms/wavelengths(i)/boltzmannsConstant/self%temperatures(j)
-          if (argument > argumentMaximum) cycle
-          if (argument < argumentSmall) then
-             denominator=argument*(1.0d0+argument/2.0d0+argument**2/6.0d0)
-          else
-             denominator=exp(argument)-1.0d0
-          end if
+          if (argument > dustEmissionPlanckArgumentMaximum) cycle
           luminosity(i)=+luminosity(i)                                           &
                &        +self%weights(j)                                         &
                &        *plancksConstant/boltzmannsConstant/self%temperatures(j) &
                &        *argument**(3.0d0+self%exponentEmissivity)               &
-               &        /denominator
+               &        /dustEmissionPlanckDenominator(argument)
        end do
     end do
     luminosity=luminosity*luminosityAbsorbed*self%normalizationShape

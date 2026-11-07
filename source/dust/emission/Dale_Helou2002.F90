@@ -23,8 +23,6 @@
   Implements the template spectra of thermal emission from dust of :cite:t:`dale_infrared_2002`.
   !!}
 
-  use :: Numerical_Interpolation, only : interpolator
-
   !![
   <dustEmissionSpectrum name="dustEmissionSpectrumDaleHelou2002" docformat="rst">
    <description>
@@ -57,18 +55,12 @@
    </description>
   </dustEmissionSpectrum>
   !!]
-  type, extends(dustEmissionSpectrumClass) :: dustEmissionSpectrumDaleHelou2002
+  type, extends(dustEmissionSpectrumTabulated) :: dustEmissionSpectrumDaleHelou2002
      !!{RST
      The template spectra of thermal emission from dust of :cite:t:`dale_infrared_2002`.
      !!}
      private
      double precision                                          :: alpha
-     ! The tabulated wavelengths (in Å) within the dust emission range, and the logarithm of the spectrum at each,
-     ! normalized to unit luminosity (so in Hz⁻¹).
-     double precision              , allocatable, dimension(:) :: wavelength            , spectrumLogarithmic
-     type            (interpolator)                            :: interpolatorWavelength
-   contains
-     procedure :: luminosity => daleHelou2002Luminosity
   end type dustEmissionSpectrumDaleHelou2002
 
   interface dustEmissionSpectrumDaleHelou2002
@@ -122,9 +114,6 @@ contains
     use :: Input_Paths                 , only : inputPath           , pathTypeDataStatic
     use :: IO_HDF5                     , only : hdf5File
     use :: ISO_Varying_String          , only : char
-    use :: Numerical_Constants_Physical, only : speedLight
-    use :: Numerical_Constants_Units   , only : metersToAngstroms
-    use :: Table_Labels                , only : extrapolationTypeFix
     implicit none
     type            (dustEmissionSpectrumDaleHelou2002)                                :: self
     double precision                                   , intent(in   )                 :: alpha
@@ -133,7 +122,7 @@ contains
     double precision                                   , allocatable  , dimension(:,:) :: luminosity
     logical                                            , allocatable  , dimension(:  ) :: isDust
     double precision                                                                   :: wavelengthDustMinimum, wavelengthDustMaximum, &
-         &                                                                                weight               , normalization
+         &                                                                                weight
     integer                                                                            :: i
     !![
     <constructorAssign variables="alpha"/>
@@ -163,44 +152,11 @@ contains
          &                +       weight *log(luminosity(:,i+1))
     ! Restrict to the range of dust emission.
     isDust                  =wavelength >= wavelengthDustMinimum .and. wavelength <= wavelengthDustMaximum
-    self%wavelength         =pack(wavelength           ,isDust)
+    wavelength              =pack(wavelength           ,isDust)
     luminosityLogarithmic   =pack(luminosityLogarithmic,isDust)
     ! Convert from νL_ν to L_ν, which is proportional to λ νL_ν, and normalize to unit luminosity. The spectrum is
     ! interpolated as a power law between the tabulated wavelengths, and normalized by integrating that interpolant.
-    normalization           =dustEmissionIntegralPowerLaw(self%wavelength,luminosityLogarithmic)
-    self%spectrumLogarithmic=+luminosityLogarithmic                             &
-         &                   +log(self%wavelength/speedLight/metersToAngstroms) &
-         &                   -log(normalization)
-    self%interpolatorWavelength=interpolator(log(self%wavelength),extrapolationType=extrapolationTypeFix)
+    call self%initializeTabulation(wavelength,luminosityLogarithmic)
     return
   end function daleHelou2002ConstructorInternal
 
-  function daleHelou2002Luminosity(self,wavelengths,luminosityAbsorbed,massDust,time) result(luminosity)
-    !!{RST
-    Return the luminosity per unit frequency emitted by the dust, normalized to the luminosity it absorbs.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    implicit none
-    class           (dustEmissionSpectrumDaleHelou2002), intent(inout)                               :: self
-    double precision                                   , intent(in   ), dimension(:                ) :: wavelengths
-    double precision                                   , intent(in   )                               :: luminosityAbsorbed, massDust, &
-         &                                                                                              time
-    double precision                                                  , dimension(size(wavelengths)) :: luminosity
-    double precision                                                  , dimension(0:1              ) :: weights
-    integer         (c_size_t                         )                                              :: j
-    integer                                                                                          :: i
-    !$GLC attributes unused :: massDust, time
-
-    luminosity=0.0d0
-    if (luminosityAbsorbed <= 0.0d0) return
-    do i=1,size(wavelengths)
-       if (wavelengths(i) < self%wavelength(1) .or. wavelengths(i) > self%wavelength(size(self%wavelength))) cycle
-       call self%interpolatorWavelength%linearFactors(log(wavelengths(i)),j,weights)
-       luminosity(i)=+luminosityAbsorbed                            &
-            &        *exp(                                          &
-            &             +weights(0)*self%spectrumLogarithmic(j  ) &
-            &             +weights(1)*self%spectrumLogarithmic(j+1) &
-            &            )
-    end do
-    return
-  end function daleHelou2002Luminosity

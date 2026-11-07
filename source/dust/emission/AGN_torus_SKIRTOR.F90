@@ -23,8 +23,7 @@
   Implements a spectrum of thermal emission from the dusty torus around an AGN using the SKIRTOR library of models.
   !!}
 
-  use :: ISO_Varying_String     , only : varying_string
-  use :: Numerical_Interpolation, only : interpolator
+  use :: ISO_Varying_String, only : varying_string
 
   !![
   <dustEmissionSpectrum name="dustEmissionSpectrumAGNTorusSKIRTOR" docformat="rst">
@@ -52,7 +51,7 @@
    </description>
   </dustEmissionSpectrum>
   !!]
-  type, extends(dustEmissionSpectrumClass) :: dustEmissionSpectrumAGNTorusSKIRTOR
+  type, extends(dustEmissionSpectrumTabulated) :: dustEmissionSpectrumAGNTorusSKIRTOR
      !!{RST
      A spectrum of thermal emission from the dusty torus around an AGN using the SKIRTOR library of models.
      !!}
@@ -61,12 +60,6 @@
      double precision                                            :: depthOpticalEdgeOn    , exponentDensityRadial, &
           &                                                         exponentDensityPolar  , ratioRadii           , &
           &                                                         angleTorus
-     ! The tabulated wavelengths (in Å) over which the model emits, and the logarithm of the spectrum at each, normalized
-     ! to unit luminosity (so in Hz⁻¹).
-     double precision                , allocatable, dimension(:) :: wavelength            , spectrumLogarithmic
-     type            (interpolator  )                            :: interpolatorWavelength
-   contains
-     procedure :: luminosity => agnTorusSKIRTORLuminosity
   end type dustEmissionSpectrumAGNTorusSKIRTOR
 
   interface dustEmissionSpectrumAGNTorusSKIRTOR
@@ -177,9 +170,6 @@ contains
     use :: Dust_AGN_Torus_SKIRTOR          , only : skirtorRead
     use :: Error                           , only : Error_Report
     use :: Numerical_Constants_Astronomical, only : degreesToRadians
-    use :: Numerical_Constants_Physical    , only : speedLight
-    use :: Numerical_Constants_Units       , only : metersToAngstroms
-    use :: Table_Labels                    , only : extrapolationTypeFix
     implicit none
     type            (dustEmissionSpectrumAGNTorusSKIRTOR)                                :: self
     type            (varying_string                     ), intent(in   )                 :: fileName                   , url
@@ -192,7 +182,6 @@ contains
          &                                                                                  inclination                , luminosityLogarithmic
     double precision                                     , allocatable  , dimension(:,:) :: emissionDustMean
     logical                                              , allocatable  , dimension(:  ) :: isEmitting
-    double precision                                                                     :: normalization
     integer                                                                              :: indexModel
     !![
     <constructorAssign variables="fileName, url, depthOpticalEdgeOn, exponentDensityRadial, exponentDensityPolar, ratioRadii, angleTorus"/>
@@ -205,44 +194,11 @@ contains
     ! Restrict to the range over which the model emits. Emission is non-zero over a single contiguous range.
     isEmitting=emissionDustMean(:,indexModel) > 0.0d0
     if (count(isEmitting) < 2) call Error_Report('the model emits at fewer than two tabulated wavelengths'//{introspection:location})
-    self%wavelength      =pack(wavelength                                          ,isEmitting)
+    wavelength           =pack(wavelength                                          ,isEmitting)
     luminosityLogarithmic=pack(log(max(emissionDustMean(:,indexModel),tiny(0.0d0))),isEmitting)
     ! Convert from νL_ν to L_ν, which is proportional to λ νL_ν, and normalize to unit luminosity. The spectrum is
     ! interpolated as a power law between the tabulated wavelengths, and normalized by integrating that interpolant.
-    normalization           =dustEmissionIntegralPowerLaw(self%wavelength,luminosityLogarithmic)
-    self%spectrumLogarithmic=+luminosityLogarithmic                             &
-         &                   +log(self%wavelength/speedLight/metersToAngstroms) &
-         &                   -log(normalization)
-    self%interpolatorWavelength=interpolator(log(self%wavelength),extrapolationType=extrapolationTypeFix)
+    call self%initializeTabulation(wavelength,luminosityLogarithmic)
     return
   end function agnTorusSKIRTORConstructorInternal
 
-  function agnTorusSKIRTORLuminosity(self,wavelengths,luminosityAbsorbed,massDust,time) result(luminosity)
-    !!{RST
-    Return the luminosity per unit frequency emitted by the torus, normalized to the luminosity it absorbs.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    implicit none
-    class           (dustEmissionSpectrumAGNTorusSKIRTOR), intent(inout)                               :: self
-    double precision                                     , intent(in   ), dimension(:                ) :: wavelengths
-    double precision                                     , intent(in   )                               :: luminosityAbsorbed, massDust, &
-         &                                                                                                time
-    double precision                                                    , dimension(size(wavelengths)) :: luminosity
-    double precision                                                    , dimension(0:1              ) :: weights
-    integer         (c_size_t                           )                                              :: j
-    integer                                                                                            :: i
-    !$GLC attributes unused :: massDust, time
-
-    luminosity=0.0d0
-    if (luminosityAbsorbed <= 0.0d0) return
-    do i=1,size(wavelengths)
-       if (wavelengths(i) < self%wavelength(1) .or. wavelengths(i) > self%wavelength(size(self%wavelength))) cycle
-       call self%interpolatorWavelength%linearFactors(log(wavelengths(i)),j,weights)
-       luminosity(i)=+luminosityAbsorbed                            &
-            &        *exp(                                          &
-            &             +weights(0)*self%spectrumLogarithmic(j  ) &
-            &             +weights(1)*self%spectrumLogarithmic(j+1) &
-            &            )
-    end do
-    return
-  end function agnTorusSKIRTORLuminosity
