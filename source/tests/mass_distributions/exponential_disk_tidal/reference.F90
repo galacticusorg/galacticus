@@ -26,21 +26,24 @@ mass distribution unit tests.
 
 module Test_Exponential_Disk_Tidal_Reference
   !!{RST
-  Provides an independent calculation of the mid-plane rotation curve and potential of a truncated exponential disk, by direct numerical
-  evaluation of the Hankel transforms (rather than by the :term:`FFTLog` method used by
+  Provides an independent calculation of the mid-plane rotation curve and potential, and of the potential and acceleration away
+  from the mid-plane, of a truncated exponential disk, by direct numerical evaluation of the Hankel transforms (rather than by the :term:`FFTLog` method used by
   :galacticus-class:`massDistributionExponentialDiskTidal`).
   !!}
   use :: Mass_Distributions_Cylindrical_Utilities, only : kernelVerticalSechSquared
   use :: Numerical_Integration                   , only : integrator
   implicit none
   private
-  public :: referenceRotationCurveSquared, referencePotential, referenceRadiusTruncate
+  public :: referenceRotationCurveSquared, referencePotential, referenceRadiusTruncate, referenceFieldOffPlane
 
   type            (kernelVerticalSechSquared) :: kernel_
   double precision                            :: radiusTruncate_, radiusDecayOverRadiusTruncate_, &
        &                                         wavenumber_    , radius_
   type            (integrator               ) :: integratorInner, integratorOuter               , &
        &                                         integratorPotential
+  ! Index of the quantity evaluated by the integrand for the field away from the mid-plane (1: potential, 2: radial acceleration,
+  ! 3: vertical acceleration).
+  integer                                     :: quantity_
 
 contains
 
@@ -196,5 +199,68 @@ contains
     call Kernel_Vertical_Integrators_Deallocate()
     return
   end function referencePotential
+
+  double precision function offPlaneIntegrand(wavenumber)
+    !!{RST
+    Integrand for the potential, or the radial or vertical acceleration, away from the mid-plane.
+    !!}
+    use :: Bessel_Functions                        , only : Bessel_Function_J0        , Bessel_Function_J1
+    use :: Mass_Distributions_Cylindrical_Utilities, only : Hankel_Transform_Integrate
+    implicit none
+    double precision, intent(in   ) :: wavenumber
+    double precision                :: transform
+
+    if (wavenumber <= 0.0d0) then
+       offPlaneIntegrand=0.0d0
+       return
+    end if
+    wavenumber_=wavenumber
+    transform  =Hankel_Transform_Integrate(integratorInner,0,wavenumber)
+    select case (quantity_)
+    case (1)
+       offPlaneIntegrand=           Bessel_Function_J0(wavenumber*radius_)*transform*kernel_%value(wavenumber,1,1)
+    case (2)
+       offPlaneIntegrand=wavenumber*Bessel_Function_J1(wavenumber*radius_)*transform*kernel_%value(wavenumber,1,1)
+    case default
+       offPlaneIntegrand=           Bessel_Function_J0(wavenumber*radius_)*transform*kernel_%value(wavenumber,1,2)
+    end select
+    return
+  end function offPlaneIntegrand
+
+  subroutine referenceFieldOffPlane(radius,height,radiusTruncate,radiusDecayOverRadiusTruncate,scaleHeight,potential,accelerationRadial,accelerationVertical)
+    !!{RST
+    Return the potential, and the radial and vertical accelerations (for unit gravitational constant), at cylindrical radius
+    ``radius`` and height ``height`` above the mid-plane of a truncated exponential disk of unit (untruncated) mass and scale
+    length. These are
+
+    .. math::
+
+       \Phi(R,z) = -2\pi \int_0^\infty J_0(kR) \tilde{\Sigma}(k) K(k,z) \mathrm{d}k, \quad a_R(R,z) = -2\pi \int_0^\infty k J_1(kR)
+       \tilde{\Sigma}(k) K(k,z) \mathrm{d}k, \quad a_z(R,z) = 2\pi \int_0^\infty J_0(kR) \tilde{\Sigma}(k) {\partial K \over
+       \partial z} \mathrm{d}k.
+    !!}
+    use :: Mass_Distributions_Cylindrical_Utilities, only : Hankel_Transform_Integrate, Kernel_Vertical_Integrators_Allocate, Kernel_Vertical_Integrators_Deallocate
+    use :: Numerical_Constants_Math                , only : Pi
+    implicit none
+    double precision, intent(in   ) :: radius     , height            , radiusTruncate      , radiusDecayOverRadiusTruncate, &
+         &                             scaleHeight
+    double precision, intent(  out) :: potential  , accelerationRadial, accelerationVertical
+
+    radius_                       =radius
+    radiusTruncate_               =radiusTruncate
+    radiusDecayOverRadiusTruncate_=radiusDecayOverRadiusTruncate
+    kernel_                       =kernelVerticalSechSquared(scaleHeight,[height])
+    integratorInner               =integrator(innerIntegrand   ,toleranceAbsolute=1.0d-14,toleranceRelative=1.0d-9)
+    integratorPotential           =integrator(offPlaneIntegrand,toleranceAbsolute=1.0d-9,toleranceRelative=1.0d-5)
+    call Kernel_Vertical_Integrators_Allocate  ()
+    quantity_           =1
+    potential           =-2.0d0*Pi*Hankel_Transform_Integrate(integratorPotential,0,radius)
+    quantity_           =2
+    accelerationRadial  =-2.0d0*Pi*Hankel_Transform_Integrate(integratorPotential,1,radius)
+    quantity_           =3
+    accelerationVertical=+2.0d0*Pi*Hankel_Transform_Integrate(integratorPotential,0,radius)
+    call Kernel_Vertical_Integrators_Deallocate()
+    return
+  end subroutine referenceFieldOffPlane
 
 end module Test_Exponential_Disk_Tidal_Reference

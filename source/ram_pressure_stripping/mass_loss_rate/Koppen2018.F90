@@ -77,12 +77,8 @@
    beyond :math:`r_\mathrm{s}` once :math:`x_\mathrm{gas}=x_\mathrm{s}` is not stripped.
 
    The vertical restoring force, :math:`|\partial \Phi/\partial z|`, of a truncated disk is taken from
-   :galacticus-class:`massDistributionExponentialDiskTidal`, whose field away from the mid-plane is approximate. Close to the disk
-   that field is the field of the untruncated disk scaled by the ratio of the mid-plane rotation curves, which overestimates the
-   maximum vertical restoring force within (and just beyond) the truncation radius. Compared with an exact calculation for a disk with a
-   :math:`\mathrm{sech}^2` vertical profile of scale height :math:`0.137 R_\mathrm{d}`, the overestimate is less than 6% for a
-   truncation radius of :math:`3 R_\mathrm{d}`, 8--40% for :math:`1 R_\mathrm{d}`, and a factor of 2--3 for :math:`0.3
-   R_\mathrm{d}`. So the gas of a disk whose stars are strongly truncated is stripped too weakly.
+   :galacticus-class:`massDistributionExponentialDiskTidal`, whose field away from the mid-plane is accurate to about 1.5% for
+   truncated disks, and to about 2% for truncated and heated disks (see the documentation of that class).
 
    Only disk components are supported, and the disk must be truncated (i.e. ``[galacticComponentTruncation]`` must not be
    ``none``), with the same ``[galacticComponentTruncation]`` as the disk.
