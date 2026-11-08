@@ -1017,10 +1017,11 @@ contains
     self%weightParents=mpiSelf%sum(self%weightParents)
 #endif
     if (self%weightParents > 0.0d0) then
-       self%functionValue     =+self%functionValue         &
+       self%functionValue     =+self%functionValue      &
             &                  /self%weightParents
-       self%functionCovariance=+self%functionCovariance    &
-            &                  /self%weightParents     **2
+       self%functionCovariance=+self%functionCovariance &
+            &                  /self%weightParents      &
+            &                  /self%weightParents
     end if
     ! If requested, fill in any zero bins with small values. This is useful to avoid improbable likelihoods, which can be
     ! problematic for optimization/MCMC as they provide no gradient information. The approach here is to extrapolate to zero value
@@ -1185,7 +1186,9 @@ contains
                 dispersion=self%rootVarianceTargetFractional(min(i,size(self%rootVarianceTargetFractional)))**2
                 if (.not.self%covarianceTargetOnly)                                      &
                      & dispersion=+dispersion                                            &
-                     &            +self%functionCovariance(i,i)/self%functionValue(i)**2 &
+                     &            +self%functionCovariance(i,i)                          &
+                     &            /self%functionValue     (i  )                          &
+                     &            /self%functionValue     (i  )                          &
                      &            *(1.0d0+dispersion)
                 if (dispersion > 0.0d0) then
                    ! Evaluate the negative binomial likelihood (non-zero model discrepancy term). Here the negative binomial

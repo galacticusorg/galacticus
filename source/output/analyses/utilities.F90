@@ -30,7 +30,8 @@ module Output_Analysis_Utilities
   implicit none
   private
   public :: Output_Analysis_Output_Weight_Survey_Volume, Output_Analysis_Log_Likelihood_Normal, &
-       &    Output_Analysis_Log_Likelihood_Relation    , Output_Analysis_Log_Likelihood_Write
+       &    Output_Analysis_Log_Likelihood_Relation    , Output_Analysis_Log_Likelihood_Write , &
+       &    Output_Analysis_Mean_Covariance
 
 contains
 
@@ -185,6 +186,63 @@ contains
     end if
     return
   end function Output_Analysis_Output_Weight_Survey_Volume
+
+  function Output_Analysis_Mean_Covariance(valueUnweighted,valueWeighted,covarianceUnweighted,covarianceWeighted,covarianceCross) result(covarianceMean)
+    !!{RST
+    Compute the covariance of the mean, :math:`m_i = W_i/U_i`, of a property in each bin, given the weighted, :math:`W_i`, and
+    unweighted, :math:`U_i`, sums of weights in each bin, their covariances, :math:`C^W_{ij}` and :math:`C^U_{ij}`, and their
+    (symmetric) cross-covariance, :math:`C^\times_{ij}`. The covariance is estimated from a first-order Taylor series expansion
+    of the ratio (e.g. http://math.stackexchange.com/questions/40713/calculating-the-variance-of-the-ratio-of-random-variables):
+
+    .. math::
+     \mathrm{Cov}(m_i,m_j) = \frac{C^W_{ij} - (m_i+m_j) C^\times_{ij} + m_i m_j C^U_{ij}}{U_i U_j}.
+
+    Written in this form, the calculation requires a dynamic range of only :math:`U^2` (the scale of the covariances
+    themselves). (The equivalent form with :math:`U_i^2 U_j^2` in the denominator requires a dynamic range of :math:`U^4`, which
+    underflows for :math:`U \lesssim 10^{-77}`.) Under the Poisson covariance model the covariances in a bin scale as
+    :math:`U^2`, so in bins with :math:`U^2` below the smallest normal double precision number (i.e.
+    :math:`U < \sqrt{\mathrm{tiny}}`) they have underflowed during accumulation and the covariance cannot be determined. Such bins have
+    negligible weight (as can arise from the far tails of a distribution operator). They are treated as empty bins: their rows
+    and columns of the covariance matrix are set to zero, which retains positive semi-definiteness of the matrix. (Under the
+    binomial covariance model the variance of a bin scales as :math:`U`, not :math:`U^2`, so the variance of the mean in such a
+    bin is large, not indeterminate. Setting it to zero then understates it, as did the previous form of this calculation, in
+    which :math:`U^4` underflowed.)
+    !!}
+    implicit none
+    double precision, intent(in   ), dimension(:                                          ) :: valueUnweighted                                , valueWeighted
+    double precision, intent(in   ), dimension(:                     ,:                   ) :: covarianceUnweighted                           , covarianceWeighted, &
+         &                                                                                     covarianceCross
+    double precision               , dimension(size(valueUnweighted),size(valueUnweighted)) :: covarianceMean
+    double precision               , dimension(size(valueUnweighted)                      ) :: valueMean
+    logical                        , dimension(size(valueUnweighted)                      ) :: isResolved
+    double precision, parameter                                                             :: valueUnweightedMinimum=sqrt(tiny(0.0d0))
+    integer                                                                                 :: i                                              , j
+
+    isResolved=valueUnweighted > valueUnweightedMinimum
+    where (isResolved)
+       valueMean=+valueWeighted   &
+            &    /valueUnweighted
+    elsewhere
+       valueMean=+0.0d0
+    end where
+    covarianceMean=0.0d0
+    do i=1,size(valueUnweighted)
+       if (.not.isResolved(i)) cycle
+       do j=i,size(valueUnweighted)
+          if (.not.isResolved(j)) cycle
+          covarianceMean(i,j)=+(                                                       &
+               &                +covarianceWeighted  (i,j)                             &
+               &                -covarianceCross     (i,j)*(valueMean(i)+valueMean(j)) &
+               &                +covarianceUnweighted(i,j)* valueMean(i)*valueMean(j)  &
+               &               )                                                       &
+               &              /valueUnweighted(i)                                      &
+               &              /valueUnweighted(j)
+          if (i == j) covarianceMean(i,j)=max(covarianceMean(i,j),0.0d0)
+          covarianceMean(j,i)=covarianceMean(i,j)
+       end do
+    end do
+    return
+  end function Output_Analysis_Mean_Covariance
 
   double precision function Output_Analysis_Log_Likelihood_Normal(difference,covarianceCombined,likelihoodNormalize) result(logLikelihood)
     !!{RST
