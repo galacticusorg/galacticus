@@ -5,7 +5,7 @@ In this tutorial we'll use Galacticus to compute and output solutions to the exc
 
 This tutorial assumes that you've previously completed some of the earlier tutorials, so are familiar with the basics of Galacticus usage. If you haven't, a good place to start is with the :doc:`halo mass function <dark-matter-halo-mass-function>` tutorial.
 
-A more mathematical and detailed discussion of the excursion set problem, and how it is implemented in Galacticus can be found `here <https://hackmd.io/@galacticus/r1gOkpTat>`_.
+A more mathematical and detailed discussion of the excursion set problem, and how it is implemented in Galacticus can be found `here <https://hackmd.io/@galacticus/r1gOkpTat>`__.
 
 Running the calculation
 -----------------------
@@ -43,7 +43,7 @@ and a file ``excursionSets.hdf5`` will have been created.
 Understanding the input
 -----------------------
 
-You can look at the entire parameter file for this tutorial `here <https://raw.githubusercontent.com/galacticusorg/galacticus/master/parameters/tutorials/excursionSets.xml>`_. Below we'll explore just those sections which are specific to this tutorial.
+You can look at the entire parameter file for this tutorial `here <https://raw.githubusercontent.com/galacticusorg/galacticus/master/parameters/tutorials/excursionSets.xml>`__. Below we'll explore just those sections which are specific to this tutorial.
 
 .. code-block:: xml
 

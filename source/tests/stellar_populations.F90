@@ -101,7 +101,8 @@ program Test_Stellar_Populations
        &                                                            sigma                                =+0.69d0                    &
        &                                                           )
   stellarAstrophysics_     =stellarAstrophysicsFile                (                                                                 &
-       &                                                            fileName                             =char(fileNameCompilation)  &
+       &                                                            fileName                             =char(fileNameCompilation), &
+       &                                                            initialMassForSupernovaeTypeII       =8.0d0                      &
        &                                                           )
   stellarTracks_           =stellarTracksFile                      (                                                                 &
        &                                                            fileName                             =char(fileNameTracks     )  &
@@ -117,7 +118,6 @@ program Test_Stellar_Populations
        &                                                            stellarAstrophysics_                 =stellarAstrophysics_       &
        &                                                           )
   stellarFeedback_         =stellarFeedbackStandard                (                                                                 &
-       &                                                            initialMassForSupernovaeTypeII       =8.0d00                   , &
        &                                                            supernovaEnergy                      =1.0d51                   , &
        &                                                            supernovaeTypeIa_                    =supernovaeTypeIa_        , &
        &                                                            supernovaePopulationIII_             =supernovaePopulationIII_ , &
@@ -142,11 +142,14 @@ program Test_Stellar_Populations
        &                                                           )
   call Unit_Tests_Begin_Group("Stellar population functions")
   ! Compute the recycled mass, yield etc. by getting the mean production rate in our time interval and multiplying by the size of
-  ! the interval. This is compared to a previously computed value for the Chabrier (2001) IMF.
+  ! the interval. This is compared to a previously computed value for the Chabrier (2001) IMF. (The metal yield was updated from
+  ! 0.037 when `stellarAstrophysicsFile` changed from bivariate interpolation in the (mass, metallicity) plane to interpolation
+  ! along initial mass at each tabulated metallicity, which neither extrapolates across gaps in the tabulated stars nor
+  ! interpolates yields across the minimum mass for a Type II supernova.)
   recycledMass=stellarPopulation_%recycledFractionInstantaneous()
-  call Assert('recycled fraction',recycledMass,4.6d-1,relTol=1.0d-2)
-  yieldMetals =stellarPopulation_%yieldInstantaneous    ()
-  call Assert('metal yield'      ,yieldMetals ,3.7d-2,relTol=1.0d-2)
+  call Assert('recycled fraction',recycledMass,4.60d-1,relTol=1.0d-2)
+  yieldMetals =stellarPopulation_%yieldInstantaneous           ()
+  call Assert('metal yield'      ,yieldMetals ,3.63d-2,relTol=1.0d-2)
   call Unit_Tests_End_Group  ()
   ! Recycled fraction and metal yield, integrated independently over the initial mass function and compared against the values
   ! the stellar population class returns.

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module that implements a class of parameter mapping functions.
+Contains a module that implements a class of unary operators.
 !!}
 
 module Math_Operators_Unary

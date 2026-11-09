@@ -325,7 +325,6 @@
      !!{RST
      Computes the radius enclosing a given mean density for soliton mass distributions.
      !!}
-     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
      class           (massDistributionSoliton), intent(inout), target   :: self
      double precision                         , intent(in   )           :: density
@@ -337,18 +336,8 @@
         radius=0.0d0
      else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
         ! For densities close to, but below the central density, use a series solution.
-        radius=+0.5d0                              &
-             & *self%radiusCore                    &
-             & *sqrt(                              &
-             &       +5.0d0                        &
-             &       /6.0d0                        &
-             &       /coefficientCore              &
-             &       *(                            &
-             &         +1.0d0                      &
-             &         -     density               &
-             &         /self%densitySolitonCentral &
-             &        )                            &
-             &      )
+        radius=+self%radiusCore                                                                     &
+             & *sqrt(solitonRadiusCoreFreeSquaredSeries(+1.0d0-density/self%densitySolitonCentral))
      else
         radius=sphericalTabulatedRadiusEnclosingDensity(self,density,radiusGuess)
      end if
@@ -359,7 +348,6 @@
      !!{RST
      Computes the radius enclosing a given mean density for soliton mass distributions.
      !!}
-     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
      implicit none
      class           (massDistributionSoliton), intent(inout), target   :: self
      double precision                         , intent(in   )           :: density
@@ -370,24 +358,45 @@
         radius=0.0d0
      else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
         ! For densities close to, but below the central density, use a series solution.
-        radius=+0.5d0                              &
-             & *self%radiusCore                    &
-             & *sqrt(                              &
-             &       +5.0d0                        &
-             &       /6.0d0                        &
-             &       /coefficientCore              &
-             &       *(                            &
-             &         +1.0d0                      &
-             &         -     density               &
-             &         /self%densitySolitonCentral &
-             &        )                            &
-             &      )
+        radius=+self%radiusCore                                                                     &
+             & *sqrt(solitonRadiusCoreFreeSquaredSeries(+1.0d0-density/self%densitySolitonCentral))
      else
         radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
      end if
      return
    end function solitonRadiusEnclosingDensityNumerical
    
+   double precision function solitonRadiusCoreFreeSquaredSeries(deltaDensityFractional) result(radiusCoreFreeSquared)
+     !!{RST
+     Return the series solution for the square of the radius, in units of the core radius, enclosing a mean density just below
+     the central density of a :cite:t:`schive_understanding_2014` soliton profile. Writing the fractional shortfall of the mean
+     enclosed density below the central density as :math:`u`, and :math:`y=\alpha(r/r_\mathrm{c})^2`, the mean enclosed density of
+     the soliton profile gives :math:`u = 24y/5 - 108y^2/7 + 40y^3 - 90y^4 + \ldots`. The reversion of this series is returned,
+     carried to fourth order, which holds the error in the radius below one part in a thousand for :math:`u \le 0.25`. (The
+     leading term alone is in error by 1.7% at :math:`u=0.05`.)
+     !!}
+     use :: Mass_Distribution_Soliton_Schive2014, only : coefficientCore
+     implicit none
+     double precision, intent(in   ) :: deltaDensityFractional
+
+     radiusCoreFreeSquared=+      deltaDensityFractional     &
+          &                *(                                &
+          &                  +           5.0d0/       24.0d0 &
+          &                  +    deltaDensityFractional     &
+          &                  *(                              &
+          &                    +       125.0d0/      896.0d0 &
+          &                    +  deltaDensityFractional     &
+          &                    *(                            &
+          &                      +  453125.0d0/  4064256.0d0 &
+          &                      +deltaDensityFractional     &
+          &                      *29078125.0d0/303464448.0d0 &
+          &                     )                            &
+          &                   )                              &
+          &                 )                                &
+          &                /coefficientCore
+     return
+   end function solitonRadiusCoreFreeSquaredSeries
+
    subroutine solitonParameters(self,densityNormalization,radiusNormalization,parameters,container)
      !!{RST
      Establish parameters for tabulation.

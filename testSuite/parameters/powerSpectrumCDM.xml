@@ -3,7 +3,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
 
   <!-- Specify tasks to perform -->
@@ -35,6 +35,10 @@
     <running value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.807"/>
+    <tolerance value="3.0e-4"/>
+  </powerSpectrumNormalizer>
   <!-- When computing sigma(M) for power spectra with a cut off it's better to use a filter that is sharp in k-space, instead of
        the usual real-space top-hat (which introduces artificial halos below the cut-off scale -->
   <cosmologicalMassVariance value="filteredPower">
@@ -43,7 +47,6 @@
     <powerSpectrumWindowFunction value="sharpKSpace">
       <normalization value="2.5" />
     </powerSpectrumWindowFunction>
-    <sigma_8 value="0.807" />
     <tolerance value="3.0e-4" />
     <toleranceTopHat value="3.0e-4" />
   </cosmologicalMassVariance>

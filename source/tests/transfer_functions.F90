@@ -33,6 +33,8 @@ program Tests_Transfer_Functions
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999        , transferFunctionEisensteinHu1998, transferFunctionCAMB, transferFunctionTypeTotal
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerIdentity
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group          , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -50,6 +52,7 @@ program Tests_Transfer_Functions
   type            (darkMatterParticleCDM                   )                                             :: darkMatterParticle_
   type            (linearGrowthCollisionlessMatter         )                                             :: linearGrowthCollisionlessMatter_
   type            (powerSpectrumPrimordialTransferredSimple)                                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerIdentity         )                                             :: powerSpectrumNormalizerIdentity_
   type            (powerSpectrumPrimordialPowerLaw         )                                             :: powerSpectrumPrimordialPowerLaw_
   double precision                                          , parameter                                  :: stepLogarithmic                          =1.0d-3
   integer                                                   , parameter                                  :: wavenumberCount                          =1000
@@ -95,6 +98,7 @@ program Tests_Transfer_Functions
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  call Functions_Global_Set()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Transfer functions")
   ! Construct required objects.
@@ -140,11 +144,14 @@ program Tests_Transfer_Functions
        &                                                                             cosmologyParameters_    =cosmologyParameters_             , &
        &                                                                             cosmologyFunctions_     =cosmologyFunctions_                &
        &                                                                            )
+  powerSpectrumNormalizerIdentity_         =powerSpectrumNormalizerIdentity         (                                                            &
+       &                                                                            )
   powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple(                                                            &
        &                                                                             powerSpectrumPrimordial_=powerSpectrumPrimordialPowerLaw_ , &
        &                                                                             transferFunction_       =transferFunctionEisensteinHu1998_, &
-       &                                                                             linearGrowth_           =linearGrowthCollisionlessMatter_   &
-       &                                                                            )  
+       &                                                                             linearGrowth_           =linearGrowthCollisionlessMatter_ , &
+       &                                                                             powerSpectrumNormalizer_=powerSpectrumNormalizerIdentity_   &
+       &                                                                            )
   transferFunctionCAMB_                    =transferFunctionCAMB                    (                                                            &
        &                                                                             darkMatterParticle_    =darkMatterParticle_               , &
        &                                                                             cosmologyParameters_   =cosmologyParameters_              , &

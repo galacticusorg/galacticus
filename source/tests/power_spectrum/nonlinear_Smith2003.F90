@@ -56,6 +56,7 @@ program Test_Power_Spectrum_Nonlinear_Smith2003
   use :: Power_Spectra_Nonlinear             , only : powerSpectrumNonlinearSmith2003
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                  , only : transferFunctionCAMB                    , transferFunctionTypeTotal
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group   , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -67,6 +68,7 @@ program Test_Power_Spectrum_Nonlinear_Smith2003
   type            (powerSpectrumPrimordialPowerLaw         ), pointer      :: powerSpectrumPrimordial_
   type            (transferFunctionCAMB                    ), pointer      :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple), pointer      :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8           ), pointer      :: powerSpectrumNormalizer_
   type            (powerSpectrumWindowFunctionTopHat       ), pointer      :: powerSpectrumWindowFunction_
   type            (cosmologicalMassVarianceFilteredPower   ), pointer      :: cosmologicalMassVariance_
   type            (powerSpectrumStandard                   ), pointer      :: powerSpectrum_
@@ -119,6 +121,7 @@ program Test_Power_Spectrum_Nonlinear_Smith2003
   allocate(linearGrowth_                      )
   allocate(powerSpectrumPrimordial_           )
   allocate(transferFunction_                  )
+  allocate(powerSpectrumNormalizer_           )
   allocate(powerSpectrumPrimordialTransferred_)
   allocate(powerSpectrumWindowFunction_       )
   allocate(cosmologicalMassVariance_          )
@@ -132,10 +135,18 @@ program Test_Power_Spectrum_Nonlinear_Smith2003
   linearGrowth_                      =linearGrowthCollisionlessMatter         (cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)
   powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw         (index_=indexPrimordial,running=0.0d0,runningRunning=0.0d0,wavenumberReference=1.0d0,runningSmallScalesOnly=.false.)
   transferFunction_                  =transferFunctionCAMB                    (darkMatterParticle_=darkMatterParticle_,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,transferFunctionType=transferFunctionTypeTotal,redshift=0.0d0,cambCountPerDecade=0)
-  powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_=powerSpectrumPrimordial_,transferFunction_=transferFunction_,linearGrowth_=linearGrowth_)
+  powerSpectrumNormalizer_           =powerSpectrumNormalizerSigma8(                                                &
+       &                                                            sigma8                   =sigma8              , &
+       &                                                            tolerance                =1.0d-6              , &
+       &                                                            integrationFailureIsFatal=.true.              , &
+       &                                                            cosmologyParameters_     =cosmologyParameters_, &
+       &                                                            cosmologyFunctions_      =cosmologyFunctions_ , &
+       &                                                            transferFunction_        =transferFunction_     &
+       &                                                           )
+  powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_=powerSpectrumPrimordial_,transferFunction_=transferFunction_,linearGrowth_=linearGrowth_,powerSpectrumNormalizer_=powerSpectrumNormalizer_)
   powerSpectrumWindowFunction_       =powerSpectrumWindowFunctionTopHat       (cosmologyParameters_=cosmologyParameters_)
-  cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower   (sigma8=sigma8,tolerance=1.0d-6,toleranceTopHat=1.0d-6,rootVarianceLogarithmicGradientTolerance=1.0d-9,integrationFailureIsFatal=.true.,storeTabulations=.true.,nonMonotonicIsFatal=.true.,monotonicInterpolation=.false.,truncateAtParticleHorizon=.false.,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,linearGrowth_=linearGrowth_,powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_=powerSpectrumWindowFunction_)
-  powerSpectrum_                     =powerSpectrumStandard                   (cosmologicalMassVariance_=cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_)
+  cosmologicalMassVariance_          =cosmologicalMassVarianceFilteredPower   (tolerance=1.0d-6,toleranceTopHat=1.0d-6,rootVarianceLogarithmicGradientTolerance=1.0d-9,integrationFailureIsFatal=.true.,storeTabulations=.true.,nonMonotonicIsFatal=.true.,monotonicInterpolation=.false.,truncateAtParticleHorizon=.false.,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,linearGrowth_=linearGrowth_,powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_=powerSpectrumWindowFunction_)
+  powerSpectrum_                     =powerSpectrumStandard                   (powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_)
   ! The full algorithm, and each of its two terms in isolation.
   nonlinear_                         =powerSpectrumNonlinearSmith2003         (includePeacockCorrection=.false.,includeQuasiLinearPower=.true. ,includeHaloPower=.true. ,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,powerSpectrum_=powerSpectrum_)
   nonlinearQuasiLinear_              =powerSpectrumNonlinearSmith2003         (includePeacockCorrection=.false.,includeQuasiLinearPower=.true. ,includeHaloPower=.false.,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,powerSpectrum_=powerSpectrum_)

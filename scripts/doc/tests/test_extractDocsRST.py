@@ -488,6 +488,18 @@ def test_single_paragraph_parameter_description_keeps_notes_inline():
                         "  of two things. *Default from:* A citation.")
 
 
+def test_parameter_facets_show_cardinality():
+    """The cardinality follows the type, as a literal (so that ``*`` is not
+    read as emphasis); a parameter with no known cardinality shows none."""
+    parameter = {"name": "times", "type": "real", "cardinality": "0..*",
+                 "default": "[0.0d0]", "description": "Times."}
+    assert extractDocsRST.render_parameter(parameter, {}) \
+        == "* ``[times]`` (real; ``0..*``; default ``[0.0d0]``) — Times."
+    parameter["cardinality"] = None
+    assert extractDocsRST.render_parameter(parameter, {}) \
+        == "* ``[times]`` (real; default ``[0.0d0]``) — Times."
+
+
 def test_enumeration_description_paragraphs_survive_rendering():
     enumeration = {"name":        "status",
                    "description": "\n  First paragraph.\n\n  Second paragraph.\n  ",

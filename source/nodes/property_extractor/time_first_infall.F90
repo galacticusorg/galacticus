@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a cosmic time output analysis property extractor class.
+Implements a time of first infall property extractor class.
 !!}
 
   !![
