@@ -63,7 +63,8 @@ jobs:
         # interpreter this job happens to resolve `3.x` to. numpy and h5py are
         # needed by the emulator file-format tests, and scikit-learn by the emulator
         # training tests (python/Galacticus/Emulation), which would otherwise be skipped.
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py scikit-learn
+        # pyyaml is needed by the validation report tests.
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py scikit-learn pyyaml
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE

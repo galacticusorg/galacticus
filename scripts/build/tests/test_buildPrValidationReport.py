@@ -91,6 +91,38 @@ def test_analysis_rows_convert_history_to_log_likelihood():
     assert not row["outside"]
 
 
+@pytest.mark.parametrize("analysis,recorded", [
+    ("massCumulativeDistribution", " (tau) - Likelihood - mass function"),
+    ("radialCumulativeDistribution", " (tau) - Likelihood - orbital radius function"),
+    ("Symphony environments (4e8 < M < 4e9)", "Halo mass function - Likelihood - Symphony environments"),
+])
+def test_analysis_rows_find_history_recorded_under_another_name(analysis, recorded):
+    result = {"attributes": {"name": analysis, "logLikelihood": "-5.0"}, "data": {}}
+    history = {recorded: [{"value": value} for value in (4.0, 5.0, 6.0)]}
+    row = report.analysis_rows("suffix", "Title", {"results": [result]}, {"results": [result]}, history, {})[0]
+    assert row["recent"]["count"] == 3
+
+
+def test_analysis_without_history_has_no_recent_range():
+    result = {"attributes": {"name": "massFunction", "logLikelihood": "-5.0"}, "data": {}}
+    history = {"Model - Likelihood - otherAnalysis": [{"value": 4.0}]}
+    row = report.analysis_rows("suffix", "Title", {"results": [result]}, {"results": [result]}, history, {})[0]
+    assert row["recent"] is None
+
+
+def test_roundoff_in_target_is_not_a_changed_target():
+    first = {"data": {"xDataset": [1.0, 2.0], "yDatasetTarget": [3.0, 4.0]}}
+    second = {"data": {"xDataset": [1.0, 2.0], "yDatasetTarget": [3.0 * (1.0 + 1.0e-8), 4.0]}}
+    assert not report.targets_differ(first, second)
+
+
+@pytest.mark.parametrize("target", [[3.0, 4.1], [3.0], [3.0, None], None])
+def test_real_change_in_target_is_detected(target):
+    first = {"data": {"xDataset": [1.0, 2.0], "yDatasetTarget": [3.0, 4.0]}}
+    second = {"data": {"xDataset": [1.0, 2.0], "yDatasetTarget": target}}
+    assert report.targets_differ(first, second)
+
+
 def test_analysis_missing_from_pull_request_is_listed():
     result = {"attributes": {"name": "massFunction", "logLikelihood": "-5.0"}, "data": {}}
     row = report.analysis_rows("suffix", "Title", {"results": []}, {"results": [result]}, {}, {})[0]

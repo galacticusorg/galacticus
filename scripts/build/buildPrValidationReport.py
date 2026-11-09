@@ -66,6 +66,10 @@ ROUND_OFF_TOLERANCE = 1.0e-5
 LARGE_DEVIATION = 1.0e6
 
 LIKELIHOOD_MARKER = " - Likelihood - "
+
+# Analyses whose benchmark history is recorded under a different name (by testSuite/validate-darkMatterOnlySubhalos-decayingDarkMatter.py).
+HISTORY_NAME_ALIASES = {"massCumulativeDistribution": "mass function", "radialCumulativeDistribution": "orbital radius function"}
+
 STATUS_RANK = {"unknown": -1, "ok": 0, "warn": 1, "fail": 2}
 
 
@@ -203,10 +207,31 @@ def compare_to_history(value, recent):
     return outside, (value - recent["median"]) / scatter
 
 
+def values_differ(first, second):
+    """Determine whether two datasets differ by more than round-off. Some targets are computed afresh in each run, and differ by up to 1e-8."""
+    if not isinstance(first, list) or not isinstance(second, list) or len(first) != len(second):
+        return first != second
+    for value_first, value_second in zip(first, second):
+        if isinstance(value_first, (int, float)) and isinstance(value_second, (int, float)):
+            if abs(value_first - value_second) > ROUND_OFF_TOLERANCE * max(abs(value_first), abs(value_second)):
+                return True
+        elif value_first != value_second:
+            return True
+    return False
+
+
 def targets_differ(pr_analysis, master_analysis):
     """Determine whether the target data of an analysis differ between the pull request and master."""
     first, second = pr_analysis["data"], master_analysis["data"]
-    return first.get("yDatasetTarget") != second.get("yDatasetTarget") or first.get("xDataset") != second.get("xDataset")
+    return values_differ(first.get("yDatasetTarget"), second.get("yDatasetTarget")) or values_differ(first.get("xDataset"), second.get("xDataset"))
+
+
+def history_for_analysis(series, name):
+    """Find the benchmark history of an analysis, whose name there may be an alias, or lack the analysis' parenthetical description."""
+    for candidate in (name, HISTORY_NAME_ALIASES.get(name), name.split(" (", 1)[0]):
+        if candidate in series:
+            return series[candidate]
+    return []
 
 
 def analysis_rows(suffix, title, pr, master, history, thresholds):
@@ -220,7 +245,7 @@ def analysis_rows(suffix, title, pr, master, history, thresholds):
         pr_ll = to_float(pr_result["attributes"].get("logLikelihood")) if pr_result else None
         master_ll = to_float(master_result["attributes"].get("logLikelihood")) if master_result else None
         # History records -log(likelihood), since github-action-benchmark assumes that smaller is better.
-        recent = recent_statistics([-item["value"] for item in series.get(name, [])[-HISTORY_LENGTH:]])
+        recent = recent_statistics([-item["value"] for item in history_for_analysis(series, name)[-HISTORY_LENGTH:]])
         outside, deviation = compare_to_history(pr_ll, recent)
         threshold = thresholds.get(name)
         rows.append({"metric": suffix, "metricTitle": title, "analysis": name, "pr": pr_ll, "master": master_ll, "recent": recent,
