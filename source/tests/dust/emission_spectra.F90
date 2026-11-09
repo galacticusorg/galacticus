@@ -53,6 +53,7 @@ program Test_Dust_Emission_Spectra
   use :: Numerical_Constants_Physical    , only : speedLight
   use :: Numerical_Constants_Prefixes    , only : centi                                       , kilo
   use :: Numerical_Constants_Units       , only : ergs                                        , metersToAngstroms
+  use :: Numerical_Integration_Tabulated , only : integrateTrapezoidal
   use :: Thermodynamics_Radiation        , only : Blackbody_Emission                          , radianceTypeFrequency
   use :: Unit_Tests                      , only : Assert                                      , Unit_Tests_Begin_Group                    , Unit_Tests_End_Group                      , &
        &                                          Unit_Tests_Finish
@@ -393,12 +394,9 @@ contains
     !!}
     implicit none
     double precision, intent(in   ), dimension(countWavelengths) :: luminosityPerFrequency
-    integer                                                      :: j
 
-    integral=0.0d0
-    do j=2,countWavelengths
-       integral=integral+0.5d0*(luminosityPerFrequency(j)+luminosityPerFrequency(j-1))*(frequencies(j-1)-frequencies(j))
-    end do
+    ! Frequencies decrease along the wavelength grid, so the integral over increasing frequency is the negative of the integral along the grid.
+    integral=-integrateTrapezoidal(frequencies,luminosityPerFrequency)
     return
   end function integral
 
