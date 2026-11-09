@@ -160,7 +160,6 @@ contains
   subroutine satelliteGranuleDifferentialEvolutionScales(self,node)
     !!{
     Set the absolute ODE solver scale for the dimensionless granule phase.
-    using a fraction of the minimum core mass as reference, following \cite{chan_diversity_2022}.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none
@@ -298,8 +297,14 @@ contains
     <objectDestructor name="massDistributionHost_"/>
     !!]
 
+    ! Core oscillation frequency; reference density 10^9 Msun/kpc^3 = 10^18 Msun/Mpc^3 (Dutta Chowdhury et al. 2021).
     frequencyCore = 10.94d0*(sqrt(densityCentral/1.0d18)) !Gyr^-1
+
+    ! Truncate the Paley-Wiener Fourier series at m = 4*f_core*t_max.
+    ! The factor 4 ensures empirical convergence of acceleration statistics.
     stepNum  = ceiling(4.0d0*frequencyCore*maxTime)
+
+    ! Adjust the integration time to match the integer number of modes.
     maxTime = stepNum/(4.0d0*frequencyCore)
     
     basic              => node%basic()
@@ -602,7 +607,7 @@ and the outer contribution includes the velocity-dependent anisotropy.
             &                                                                  massBound                 , massMaximum          , &
             &                                                                  massHalf                  , massAtOrigin         , &
             &                                                                  radiusHalf                , sizeRatio
-    double precision                                            , parameter :: sizeRatioTransition=0.40d0, exponentSize=-0.229d0
+    double precision                                            , parameter :: sizeRatioTransition=0.40d0, exponentSize=-0.229d0   !The transition ratio and suppression exponent are determined from numerical calibration of the finite-size correction.
 
     satellite                 => node% satellite      ()
     massDistributionSatellite_=> node%massDistribution(componentType=componentTypeAll,massType=massTypeDark)
