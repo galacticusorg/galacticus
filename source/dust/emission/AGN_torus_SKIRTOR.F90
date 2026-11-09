@@ -56,10 +56,10 @@
      A spectrum of thermal emission from the dusty torus around an AGN using the SKIRTOR library of models.
      !!}
      private
-     type            (varying_string)                            :: fileName              , url
-     double precision                                            :: depthOpticalEdgeOn    , exponentDensityRadial, &
-          &                                                         exponentDensityPolar  , ratioRadii           , &
-          &                                                         angleTorus
+     type            (varying_string) :: fileName            , url
+     double precision                 :: depthOpticalEdgeOn  , exponentDensityRadial, &
+          &                              exponentDensityPolar, ratioRadii           , &
+          &                              angleTorus
   end type dustEmissionSpectrumAGNTorusSKIRTOR
 
   interface dustEmissionSpectrumAGNTorusSKIRTOR
@@ -194,11 +194,10 @@ contains
     ! Restrict to the range over which the model emits. Emission is non-zero over a single contiguous range.
     isEmitting=emissionDustMean(:,indexModel) > 0.0d0
     if (count(isEmitting) < 2) call Error_Report('the model emits at fewer than two tabulated wavelengths'//{introspection:location})
-    wavelength           =pack(wavelength                                          ,isEmitting)
+    wavelength           =pack(        wavelength                                  ,isEmitting)
     luminosityLogarithmic=pack(log(max(emissionDustMean(:,indexModel),tiny(0.0d0))),isEmitting)
     ! Convert from νL_ν to L_ν, which is proportional to λ νL_ν, and normalize to unit luminosity. The spectrum is
     ! interpolated as a power law between the tabulated wavelengths, and normalized by integrating that interpolant.
     call self%initializeTabulation(wavelength,luminosityLogarithmic)
     return
   end function agnTorusSKIRTORConstructorInternal
-

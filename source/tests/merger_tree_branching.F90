@@ -972,13 +972,13 @@ contains
     ! probability itself, it provides a genuinely independent evaluation of that integral.
     use :: Numerical_Integration_Tabulated, only : integrateSimpson
     implicit none
-    class           (mergerTreeBranchingProbabilityClass), intent(inout), target       :: branching_
-    double precision                                     , intent(in   )               :: massLower    , massUpper
-    integer                                              , parameter                   :: countInterval=2000
-    double precision                                     , dimension(0:countInterval) :: logMass      , integrand
-    double precision                                                                   :: logMassLower , logMassUpper, &
-         &                                                                                deltaLogMass , massCurrent
-    integer                                                                            :: l
+    class           (mergerTreeBranchingProbabilityClass), intent(inout), target      :: branching_
+    double precision                                     , intent(in   )              :: massLower         , massUpper
+    integer                                              , parameter                  :: countInterval=2000
+    double precision                                     , dimension(0:countInterval) :: logMass           , integrand
+    double precision                                                                  :: logMassLower      , logMassUpper, &
+         &                                                                               deltaLogMass      , massCurrent
+    integer                                                                           :: l
 
     logMassLower=log(massLower)
     logMassUpper=log(massUpper)

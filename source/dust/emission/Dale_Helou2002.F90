@@ -60,7 +60,7 @@
      The template spectra of thermal emission from dust of :cite:t:`dale_infrared_2002`.
      !!}
      private
-     double precision                                          :: alpha
+     double precision :: alpha
   end type dustEmissionSpectrumDaleHelou2002
 
   interface dustEmissionSpectrumDaleHelou2002
@@ -109,11 +109,11 @@ contains
     templates are read, the one selected by ``alpha`` is formed, restricted to the range of dust emission, and
     normalized to unit luminosity.
     !!}
-    use :: Error                       , only : Error_Report
-    use :: HDF5_Access                 , only : hdf5Access
-    use :: Input_Paths                 , only : inputPath           , pathTypeDataStatic
-    use :: IO_HDF5                     , only : hdf5File
-    use :: ISO_Varying_String          , only : char
+    use :: Error             , only : Error_Report
+    use :: HDF5_Access       , only : hdf5Access
+    use :: Input_Paths       , only : inputPath   , pathTypeDataStatic
+    use :: IO_HDF5           , only : hdf5File
+    use :: ISO_Varying_String, only : char
     implicit none
     type            (dustEmissionSpectrumDaleHelou2002)                                :: self
     double precision                                   , intent(in   )                 :: alpha
@@ -151,12 +151,11 @@ contains
     luminosityLogarithmic=+(1.0d0-weight)*log(luminosity(:,i  )) &
          &                +       weight *log(luminosity(:,i+1))
     ! Restrict to the range of dust emission.
-    isDust                  =wavelength >= wavelengthDustMinimum .and. wavelength <= wavelengthDustMaximum
-    wavelength              =pack(wavelength           ,isDust)
-    luminosityLogarithmic   =pack(luminosityLogarithmic,isDust)
+    isDust               =wavelength >= wavelengthDustMinimum .and. wavelength <= wavelengthDustMaximum
+    wavelength           =pack(wavelength           ,isDust)
+    luminosityLogarithmic=pack(luminosityLogarithmic,isDust)
     ! Convert from νL_ν to L_ν, which is proportional to λ νL_ν, and normalize to unit luminosity. The spectrum is
     ! interpolated as a power law between the tabulated wavelengths, and normalized by integrating that interpolant.
     call self%initializeTabulation(wavelength,luminosityLogarithmic)
     return
   end function daleHelou2002ConstructorInternal
-

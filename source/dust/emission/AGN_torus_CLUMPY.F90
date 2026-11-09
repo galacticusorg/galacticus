@@ -68,10 +68,10 @@
      A spectrum of emission from the dusty torus around an AGN using the CLUMPY library of models.
      !!}
      private
-     type            (varying_string)                            :: fileName              , url
-     double precision                                            :: countCloudsEquatorial , widthAngular       , &
-          &                                                         depthOpticalCloudV    , ratioRadii         , &
-          &                                                         exponentRadial
+     type            (varying_string) :: fileName             , url
+     double precision                 :: countCloudsEquatorial, widthAngular, &
+          &                              depthOpticalCloudV   , ratioRadii  , &
+          &                              exponentRadial
   end type dustEmissionSpectrumAGNTorusCLUMPY
 
   interface dustEmissionSpectrumAGNTorusCLUMPY
@@ -179,14 +179,14 @@ contains
     range of wavelength over which it emits and normalized to unit luminosity.
     !!}
     use            :: Error                       , only : Error_Report
-    use            :: File_Utilities              , only : Directory_Make      , File_Exists        , File_Lock     , File_Remove, &
-         &                                                 File_Unlock         , lockDescriptor
+    use            :: File_Utilities              , only : Directory_Make    , File_Exists        , File_Lock   , File_Remove, &
+         &                                                 File_Unlock       , lockDescriptor
     use            :: HDF5                        , only : hsize_t
     use            :: HDF5_Access                 , only : hdf5Access
-    use            :: Input_Paths                 , only : inputPath           , pathTypeDataDynamic
+    use            :: Input_Paths                 , only : inputPath         , pathTypeDataDynamic
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: IO_HDF5                     , only : hdf5File
-    use            :: ISO_Varying_String          , only : char                , operator(//)       , operator(==)  , var_str
+    use            :: ISO_Varying_String          , only : char              , operator(//)       , operator(==), var_str
     use            :: Numerical_Constants_Units   , only : micronsToAngstroms
     use            :: System_Download             , only : download
     implicit none
@@ -288,8 +288,8 @@ contains
     if (count(isEmitting) < 2) call Error_Report('the model emits at fewer than two tabulated wavelengths'//{introspection:location})
     if (any(.not.isEmitting(findloc(isEmitting,.true.,dim=1):findloc(isEmitting,.true.,dim=1,back=.true.)))) &
          & call Error_Report('the model does not emit over a contiguous range of wavelength'//{introspection:location})
-    wavelength           =pack(wavelength   ,isEmitting)
-    luminosityLogarithmic=pack(log(emission),isEmitting)
+    wavelength           =pack(    wavelength ,isEmitting)
+    luminosityLogarithmic=pack(log(emission  ),isEmitting)
     ! Convert from λL_λ to L_ν, which is proportional to λ λL_λ, and normalize to unit luminosity. The spectrum is
     ! interpolated as a power law between the tabulated wavelengths, and normalized by integrating that interpolant.
     call self%initializeTabulation(wavelength,luminosityLogarithmic)
@@ -342,4 +342,3 @@ contains
     end subroutine bracket
 
   end function agnTorusCLUMPYConstructorInternal
-

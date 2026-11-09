@@ -141,7 +141,7 @@ program Test_Dust_Attenuation_AGN_Torus
      widthAngular    =torus_%widthAngular(node)
      integrand       =(1.0d0-exp(-countClouds*exp(-(angle/widthAngular)**2)))*cos(angle)
      coveringFraction=integrateTrapezoidal(angle,integrand)
-     call Assert("angular width gives the covering fraction"                        ,coveringFraction,coveringFractions(j),absTol=1.0d-4)
+     call Assert("angular width gives the covering fraction",coveringFraction,coveringFractions(j),absTol=1.0d-4)
      ! Transmission of opaque clouds at several inclinations.
      do i=0,3
         inclination =dble(i)*Pi/6.0d0
@@ -186,10 +186,10 @@ program Test_Dust_Attenuation_AGN_Torus
   <referenceConstruct object="emission_" constructor="dustEmissionSpectrumAGNTorus(temperatureSublimation,temperatureMinimum,0.0d0,1.0d0)"/>
   !!]
   luminosity=emission_%luminosity(wavelengths,luminosityAbsorbed,0.0d0,13.8d0)
-  call Assert("spectrum integrates to the absorbed luminosity"                      ,-integrateTrapezoidal(frequencies,luminosity),luminosityAbsorbed,relTol=1.0d-5)
+  call Assert("spectrum integrates to the absorbed luminosity" ,-integrateTrapezoidal(frequencies,luminosity),luminosityAbsorbed,relTol=1.0d-5)
   wavelengthPeak=wavelengths(maxloc(luminosity*frequencies,dim=1))
-  call Assert("νL_ν peaks between the hottest and coolest dust"                     ,wavelengthPeak > radiationConstant/argumentPeak/temperatureSublimation .and. wavelengthPeak < radiationConstant/argumentPeak/temperatureMinimum,.true.)
-  call Assert("spectrum scales with the absorbed luminosity"                        ,emission_%luminosity(wavelengths,2.0d0*luminosityAbsorbed,0.0d0,13.8d0),2.0d0*luminosity,relTol=1.0d-12)
+  call Assert("νL_ν peaks between the hottest and coolest dust",wavelengthPeak > radiationConstant/argumentPeak/temperatureSublimation .and. wavelengthPeak < radiationConstant/argumentPeak/temperatureMinimum,.true.)
+  call Assert("spectrum scales with the absorbed luminosity"   ,emission_%luminosity(wavelengths,2.0d0*luminosityAbsorbed,0.0d0,13.8d0),2.0d0*luminosity,relTol=1.0d-12)
   !![
   <objectDestructor name="emission_"/>
   !!]

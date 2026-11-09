@@ -39,43 +39,43 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
   use :: Test_Exponential_Disk_Tidal_Reference, only : referenceRotationCurveSquared         , referencePotential                  , referenceRadiusTruncate, referenceFieldOffPlane
   use :: Unit_Tests                           , only : Assert                                , Unit_Tests_Begin_Group              , Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
-  double precision                                      , parameter      :: scaleHeight      =0.137d0                         , radiusDecayOverRadiusTruncate=0.1d0, &
-       &                                                                    stepFractional   =1.0d-4
-  double precision                                      , dimension(5  ) :: radii            =[0.1d0,0.5d0,1.0d0,2.0d0,5.0d0]
-  double precision                                      , dimension(3  ) :: radiiTruncated   =[0.5d0,1.0d0,2.0d0]
-  double precision                                      , dimension(3  ) :: anglesOffPlane   =[0.0d0,45.0d0,80.0d0]
-  double precision                                      , dimension(2  ) :: radiiBlend       =[1.5d0,0.4d0]
-  character       (len=2)                               , dimension(3  ) :: labelsOffPlane   =['0 ','45','80']
-  double precision                                      , dimension(5  ) :: valuesTidal                                       , valuesParent
-  double precision                                      , dimension(3  ) :: valuesReference                                   , valuesTest                         , &
-       &                                                                    accelerationPlus                                  , accelerationMinus
-  double precision                                      , dimension(3,3) :: tidalTensor                                       , tidalTensorDifference
-  double precision                                      , dimension(3  ) :: position                                          , positionPlus                       , &
-       &                                                                    positionMinus
-  type            (massDistributionExponentialDisk     )                 :: parent
-  type            (massDistributionExponentialDiskTidal)                 :: disk                                              , diskPlus                           , &
-       &                                                                    diskMinus
-  type            (galacticComponentTruncationExponential)               :: truncation
-  double precision                                      , dimension(5  ) :: truncations      =[0.01d0,0.1d0,0.5d0,2.0d0,8.0d0]
-  double precision                                      , dimension(2  ) :: truncationsInner =[1.0d0,3.0d0]
-  double precision                                      , dimension(3  ) :: radiiInner       =[0.3d0,0.6d0,1.0d0]
-  double precision                                      , dimension(4  ) :: heightsInner     =[0.5d0,1.0d0,2.0d0,4.0d0]
-  double precision                                      , dimension(12 ) :: potentialInner                                    , potentialInnerReference            , &
-       &                                                                    radialInner                                       , radialInnerReference               , &
-       &                                                                    verticalInner                                     , verticalInnerReference
-  double precision                                      , dimension(2  ) :: heatingsInner    =[0.1d0,0.3d0]
-  double precision                                      , dimension(12,2) :: potentialHeatedReference                         , radialHeatedReference              , &
-       &                                                                     verticalHeatedReference
-  character       (len=32)                                               :: labelInner
-  integer                                               , parameter      :: countIntegration =400
+  double precision                                      , parameter                     :: scaleHeight      =0.137d0                         , radiusDecayOverRadiusTruncate=0.1d0, &
+       &                                                                                   stepFractional   =1.0d-4
+  double precision                                      , dimension( 5  )               :: radii            =[0.1d0,0.5d0,1.0d0,2.0d0,5.0d0]
+  double precision                                      , dimension( 3  )               :: radiiTruncated   =[0.5d0,1.0d0,2.0d0]
+  double precision                                      , dimension( 3  )               :: anglesOffPlane   =[0.0d0,45.0d0,80.0d0]
+  double precision                                      , dimension( 2  )               :: radiiBlend       =[1.5d0,0.4d0]
+  character       (len=2)                               , dimension( 3  )               :: labelsOffPlane   =['0 ','45','80']
+  double precision                                      , dimension( 5  )               :: valuesTidal                                       , valuesParent
+  double precision                                      , dimension( 3  )               :: valuesReference                                   , valuesTest                         , &
+       &                                                                                   accelerationPlus                                  , accelerationMinus
+  double precision                                      , dimension( 3,3)               :: tidalTensor                                       , tidalTensorDifference
+  double precision                                      , dimension( 3  )               :: position                                          , positionPlus                       , &
+       &                                                                                   positionMinus
+  type            (massDistributionExponentialDisk     )                                :: parent
+  type            (massDistributionExponentialDiskTidal)                                :: disk                                              , diskPlus                           , &
+       &                                                                                   diskMinus
+  type            (galacticComponentTruncationExponential)                              :: truncation
+  double precision                                      , dimension( 5  )               :: truncations      =[0.01d0,0.1d0,0.5d0,2.0d0,8.0d0]
+  double precision                                      , dimension( 2  )               :: truncationsInner =[1.0d0,3.0d0]
+  double precision                                      , dimension( 3  )               :: radiiInner       =[0.3d0,0.6d0,1.0d0]
+  double precision                                      , dimension( 4  )               :: heightsInner     =[0.5d0,1.0d0,2.0d0,4.0d0]
+  double precision                                      , dimension(12  )               :: potentialInner                                    , potentialInnerReference            , &
+       &                                                                                   radialInner                                       , radialInnerReference               , &
+       &                                                                                   verticalInner                                     , verticalInnerReference
+  double precision                                      , dimension( 2  )               :: heatingsInner    =[0.1d0,0.3d0]
+  double precision                                      , dimension(12,2)               :: potentialHeatedReference                         , radialHeatedReference              , &
+       &                                                                                   verticalHeatedReference
+  character       (len=32)                                                              :: labelInner
+  integer                                               , parameter                     :: countIntegration =400
   double precision                                      , dimension(0:countIntegration) :: logarithmTruncationIntegration     , integrandIntegration
-  double precision                                                       :: radiusTruncate                                    , radius                             , &
-       &                                                                    jumpMaximum                                       , massMaximum                        , &
-       &                                                                    quadrupole                                        , angle                              , &
-       &                                                                    potentialPrevious                                 , accelerationPrevious               , &
-       &                                                                    potentialCurrent                                  , accelerationCurrent
-  integer                                                                :: i                                                 , j                                  , &
-       &                                                                    k                                                 , l
+  double precision                                                                      :: radiusTruncate                                    , radius                             , &
+       &                                                                                   jumpMaximum                                       , massMaximum                        , &
+       &                                                                                   quadrupole                                        , angle                              , &
+       &                                                                                   potentialPrevious                                 , accelerationPrevious               , &
+       &                                                                                   potentialCurrent                                  , accelerationCurrent
+  integer                                                                               :: i                                                 , j                                  , &
+       &                                                                                   k                                                 , l
 
   call displayVerbositySet   (verbosityLevelStandard)
   call eventsHooksInitialize ()
@@ -462,7 +462,7 @@ program Test_Mass_Distributions_Exponential_Disk_Tidal
           &          -log(diskPlus %surfaceDensityRadialMoment(2.0d0)/diskPlus %surfaceDensityRadialMoment(1.0d0))
      do j=0,countIntegration
         logarithmTruncationIntegration(j)=+log(truncations(i))+log(truncations(i+1)/truncations(i))*dble(j)/dble(countIntegration)
-        integrandIntegration          (j)=+exp(logarithmTruncationIntegration(j))                                                                  &
+        integrandIntegration          (j)=+exp(logarithmTruncationIntegration(j))                                                           &
              &                            *(truncation%ratioAngularMomentumCylindrical(exp(-exp(logarithmTruncationIntegration(j))))-1.0d0)
      end do
      valuesTidal(i)=integrateSimpson(logarithmTruncationIntegration,integrandIntegration)

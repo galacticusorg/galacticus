@@ -57,15 +57,15 @@ contains
     !!}
     use :: Error, only : Error_Report
     implicit none
-    double precision, intent(in   ), dimension(:) :: x                                , y
+    double precision, intent(in   ), dimension(:) :: x                         , y
     ! Tolerance, relative to the mean spacing, on the departure of the abscissae from uniform spacing.
     double precision, parameter                   :: toleranceUniformity=1.0d-6
     integer                                       :: n
 
     n=size(x)
-    if (size(y) /= n                                                                                       ) &
-         & call Error_Report('`x` and `y` must be the same size'                                   //{introspection:location})
-    if (n < 3 .or. mod(n,2) == 0                                                                           ) &
+    if (size(y) /= n                                                                                  ) &
+         & call Error_Report('`x` and `y` must be the same size'                                    //{introspection:location})
+    if (n < 3 .or. mod(n,2) == 0                                                                      ) &
          & call Error_Report('Simpson''s rule requires an odd number of points, at least three'     //{introspection:location})
     if (any(abs(x(2:n)-x(1:n-1)-(x(n)-x(1))/dble(n-1)) > toleranceUniformity*abs(x(n)-x(1))/dble(n-1))) &
          & call Error_Report('Simpson''s rule requires uniformly spaced abscissae'                  //{introspection:location})

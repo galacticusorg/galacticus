@@ -133,12 +133,12 @@ contains
     !!}
     use :: Error                              , only : Error_Report
     use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
-    use :: Gamma_Functions  , only : Gamma_Function
-    use :: Zeta_Functions   , only : Zeta_Function
+    use :: Gamma_Functions                    , only : Gamma_Function
+    use :: Zeta_Functions                     , only : Zeta_Function
     implicit none
     type            (dustEmissionSpectrumAGNTorus)                            :: self
-    double precision                              , intent(in   )             :: temperatureSublimation  , temperatureMinimum, &
-         &                                                                       exponentTemperature     , exponentEmissivity
+    double precision                              , intent(in   )             :: temperatureSublimation   , temperatureMinimum, &
+         &                                                                       exponentTemperature      , exponentEmissivity
     ! Order of the quadrature over the logarithm of temperature.
     integer                                       , parameter                 :: orderQuadrature       =32
     double precision                              , allocatable, dimension(:) :: abscissae
@@ -165,11 +165,11 @@ contains
     implicit none
     class           (dustEmissionSpectrumAGNTorus), intent(inout)                               :: self
     double precision                              , intent(in   ), dimension(:                ) :: wavelengths
-    double precision                              , intent(in   )                               :: luminosityAbsorbed        , massDust   , &
+    double precision                              , intent(in   )                               :: luminosityAbsorbed, massDust   , &
          &                                                                                         time
     double precision                                             , dimension(size(wavelengths)) :: luminosity
     double precision                                                                            :: argument
-    integer                                                                                     :: i                         , j
+    integer                                                                                     :: i                 , j
     !$GLC attributes unused :: massDust, time
 
     luminosity=0.0d0

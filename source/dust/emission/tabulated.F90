@@ -74,7 +74,7 @@ contains
     double precision                               , intent(in   ), dimension(:) :: wavelength   , luminosityLogarithmic
     double precision                                                             :: normalization
 
-    if (size(wavelength) < 2                           ) call Error_Report('at least two tabulated wavelengths are required'                   //{introspection:location})
+    if (size(wavelength) < 2                           ) call Error_Report('at least two tabulated wavelengths are required'               //{introspection:location})
     if (size(wavelength) /= size(luminosityLogarithmic)) call Error_Report('`wavelength` and `luminosityLogarithmic` must be the same size'//{introspection:location})
     self%wavelength            =wavelength
     normalization              =dustEmissionIntegralPowerLaw(self%wavelength,luminosityLogarithmic)

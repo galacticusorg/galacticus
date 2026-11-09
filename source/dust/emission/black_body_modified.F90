@@ -256,13 +256,13 @@ contains
     implicit none
     class           (dustEmissionSpectrumBlackBodyModified), intent(inout)                               :: self
     double precision                                       , intent(in   ), dimension(:                ) :: wavelengths
-    double precision                                       , intent(in   )                               :: luminosityAbsorbed         , massDust          , &
+    double precision                                       , intent(in   )                               :: luminosityAbsorbed , massDust          , &
          &                                                                                                  time
     double precision                                                      , dimension(size(wavelengths)) :: luminosity
-    double precision                                                                                     :: opacityReference           , wavelengthReference, &
-         &                                                                                                  exponent                   , temperature        , &
-         &                                                                                                  temperatureAbsorbed        , luminosityEmitted  , &
-         &                                                                                                  normalization              , argument
+    double precision                                                                                     :: opacityReference   , wavelengthReference, &
+         &                                                                                                  exponent           , temperature        , &
+         &                                                                                                  temperatureAbsorbed, luminosityEmitted  , &
+         &                                                                                                  normalization      , argument
     integer                                                                                              :: i
 
     luminosity=0.0d0
