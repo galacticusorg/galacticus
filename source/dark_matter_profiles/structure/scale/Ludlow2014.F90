@@ -181,18 +181,18 @@ contains
       class(nodeComponentBasic), pointer               :: basic
 
       basic                 => node%basic()
-      ludlow2014MassDefined =  Dark_Matter_Profile_Mass_Definition(                                                                                                                   &
-           &                                                                              node                                                                                  , &
-           &                                                                           +  states(stateCount)%self                    %densityContrast                               &
-           &                                                                           *(                                                                                         &
-           &                                                                             +states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basic%time())     &
-           &                                                                             /states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=      1.0d0 )     &
-           &                                                                            )                                                                                    **2  &
-           &                                                                           *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basic%time())**3, &
-           &                                                    cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                               , &
-           &                                                    cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                , &
-           &                                                    virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                               &
-           &                                                   )
+      ludlow2014MassDefined =  Dark_Matter_Profile_Mass_Definition(                                                                                                                          &
+           &                                                                                 node                                                                                          , &
+           &                                                                              +  states(stateCount)%self               %densityContrast                                          &
+           &                                                                              *(                                                                                                 &
+           &                                                                                +states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(time           =basic%time())     &
+           &                                                                                /states(stateCount)%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=      1.0d0 )     &
+           &                                                                               )                                                                                            **2  &
+           &                                                                              *  states(stateCount)%cosmologyFunctions_%expansionFactor       (                basic%time())**3, &
+           &                                                       cosmologyParameters_  =states(stateCount)%self%cosmologyParameters_                                                     , &
+           &                                                       cosmologyFunctions_   =states(stateCount)%self%cosmologyFunctions_                                                      , &
+           &                                                       virialDensityContrast_=states(stateCount)%self%virialDensityContrast_                                                     &
+           &                                                      )
       return
     end function ludlow2014MassDefined
 
