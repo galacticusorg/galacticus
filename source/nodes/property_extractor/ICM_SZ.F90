@@ -220,7 +220,7 @@ contains
     !!}
     use :: Numerical_Integration           , only : integrator
     use :: Error                           , only : Error_Report
-    use :: Galacticus_Nodes                , only : nodeComponentHotHalo                   , nodeComponentBasic
+    use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Numerical_Constants_Astronomical, only : degreesToRadians                       , arcminutesToDegrees
     use :: Numerical_Constants_Math        , only : Pi
     use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground

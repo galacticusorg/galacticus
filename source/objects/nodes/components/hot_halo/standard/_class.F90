@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements the standard hot halo node component.
 !!}
@@ -456,7 +458,8 @@ contains
     !!{RST
     Do processing of the node required after evolution.
     !!}
-    use :: Chemical_Abundances_Structure, only : chemicalAbundances
+    use :: Abundances_Structure         , only : zeroAbundances
+    use :: Chemical_Abundances_Structure, only : chemicalAbundances  , zeroChemicalAbundances
     use :: Galacticus_Nodes             , only : nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode   , defaultHotHaloComponent
     use :: Interface_GSL                , only : GSL_Success         , GSL_Continue                , GSL_Failure
     implicit none
@@ -474,12 +477,24 @@ contains
     hotHalo => node%hotHalo()
     select type (hotHalo)
     class is (nodeComponentHotHaloStandard)
-       ! Note that "status" is not set to failure as these changes in state of the hot halo should not change any calculation of
-       ! differential evolution rates as a negative mass/outer radius was unphysical anyway.
+       ! Note that "status" is not set to failure for the outer radius as this change in state of the hot halo should not change
+       ! any calculation of differential evolution rates as a negative outer radius was unphysical anyway.
        if (hotHalo%       mass() < 0.0d0) then
-          call hotHalo%       massSet(0.0d0)
-          ! Indicate that ODE evolution should continue after this state change.
-          if (status == GSL_Success) status=GSL_Continue
+          ! A negative mass is an overshoot by some process removing gas from the hot halo. That process removes metals and
+          ! chemicals along with the gas, in proportion to their content, so these overshoot together. Reset them to zero
+          ! together - the overshoot is then replaced by gas of the composition of the gas which was removed, rather than by
+          ! metal-free gas, and no metals are left in a hot halo which contains no gas. Angular momentum is not necessarily
+          ! removed in proportion (negative accretion removes it at the specific angular momentum of accreted gas, for example),
+          ! but is reset also, as any left in a hot halo containing no gas would be given to the next gas to arrive, with a
+          ! spurious specific angular momentum.
+          call        hotHalo%           massSet(                 0.0d0)
+          call        hotHalo%     abundancesSet(        zeroAbundances)
+          call        hotHalo%angularMomentumSet(                 0.0d0)
+          if (chemicalsCount > 0) &
+               & call hotHalo%chemicalsSet      (zeroChemicalAbundances)
+          ! Mark ODE failure here to force derivatives to be recomputed, as rates may depend on the metals, chemicals, or angular
+          ! momentum which were reset.
+          status=GSL_Failure
        end if
        if (hotHalo%outerRadius() < 0.0d0) then
           call hotHalo%outerRadiusSet(0.0d0)
@@ -698,7 +713,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
     !!{RST
-    Accept outflowing gas abundances from a galaxy and deposit it into the outflowed reservoir.
+    Accept outflowing gas abundances from a galaxy and deposit them into the outflowed and stripped reservoirs.
     !!}
     use :: Abundances_Structure, only : abundances
     use :: Galacticus_Nodes    , only : interruptTask, nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode
@@ -716,7 +731,10 @@ contains
        ! Get the host node.
        node                    => self                    %host            (    )
        fractionOutflowStripped =  hotHaloOutflowStripping_%fractionStripped(node)
-       call self%outflowedAbundancesRate(rate*(1.0d0-fractionOutflowStripped))
+       ! Funnel the outflowing abundances into the outflowed and stripped reservoirs in the same proportions as the mass.
+       if (.not.hotHaloOutflowStripping_%neverStripped(node)) &
+            & call self% strippedAbundancesRate(rate*       fractionOutflowStripped )
+       call        self%outflowedAbundancesRate(rate*(1.0d0-fractionOutflowStripped))
     end select
     return
   end subroutine Node_Component_Hot_Halo_Standard_Outflowing_Abundances_Rate

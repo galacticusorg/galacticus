@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameters for testing broadband luminosities computed directly from the star formation history, for lightcone
+     output. The same luminosities are computed by both available routes, directly from the star formation history and by
+     integrating a filter response over an SED, and compared. The from-SED route needs no tabulation in redshift and performs
+     the filter integral itself, so it is the reference against which the direct route, which interpolates in redshift, is
+     measured. Derived from test-luminosities-from-SED-lightcone.xml, from which it differs only in the output properties. -->
+
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="387e6ed4d9fe5776e810070d2ca0c9ed3e138a20" time="2026-10-20T12:00:00"/>
+
+  <!-- Include required parameters -->
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/simulationUNIT.xml"                xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterParticleCDM.xml"         xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/cosmologyUNIT.xml"                 xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/powerSpectrumUNIT.xml"             xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/structureFormation.xml"            xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosProfile.xml"        xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/darkMatterHalosStructureNBody.xml" xpointer="xpointer(parameters/*)" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../parameters/reference/evolutionGalaxyFormationNBody.xml" xpointer="xpointer(parameters/*)" />
+
+  <!-- Set verbosity to standard level. -->
+  <verbosityLevel value="standard"/>
+
+  <!-- Set up the tasks to perform. -->
+  <task value="evolveForests">
+    <!-- Evolve merger tree forests. -->
+  </task>
+
+  <!-- Merger tree options -->
+  <mergerTreeConstructor value="read">
+    <!-- Specify the merger tree files to read. -->
+    <fileNames                            value="testSuite/data/treeUNIT.hdf5"/>
+    <!-- Consistency checks and validation. -->
+    <outputTimeSnapTolerance              value="0.001"    />
+    <missingHostsAreFatal                 value="true     "/>
+    <!-- Specify tree structure options. -->
+    <allowSubhaloPromotions               value="true"     />
+    <allowBranchJumps                     value="true"     />
+    <!-- Ensure that the most massive progenitor is always the one to be promoted, even if it is a subhalo. -->
+    <alwaysPromoteMostMassive             value="true"     />
+    <!-- Preset the indices of subhalos to match those in the merger tree file. -->
+    <presetSubhaloIndices                 value="true"     />
+    <!-- Use merger tree node positions to compute orbits at the virial radius. -->
+    <presetMergerTimes                    value="true"     />
+    <presetMergerNodes                    value="true"     />
+    <presetOrbits                         value="true"     />
+    <presetOrbitsSetAll                   value="true"     />
+    <presetOrbitsAssertAllSet             value="true"     />
+    <presetOrbitsBoundOnly                value="true"     />
+    <!-- Preset structural properties of the halos. -->
+    <presetSubhaloMasses                  value="true"     />
+    <presetScaleRadii                     value="true"     />
+    <presetScaleRadiiConcentrationMinimum value=" 3"       />
+    <presetScaleRadiiConcentrationMaximum value="60"       />
+    <presetAngularMomenta                 value="false"    />
+    <scaleRadiiFailureIsFatal             value="false"    />
+    <!-- Preset the halo positions/velocities. -->
+    <presetPositions                      value="true"     />
+  </mergerTreeConstructor>
+
+  <!-- Lightcone -->
+  <!-- Define lightcone geometry -->
+  <geometryLightcone           value="square">
+    <lengthReplication         value="1000"          />
+    <lengthHubbleExponent      value="-1"            />
+    <lengthUnitsInSI           value="3.08567758e+22"/>
+    <timeEvolvesAlongLightcone value="true"          />
+    <angularSize               value="20.0"          />
+    <origin                    value=" 0.0 0.0 0.0"  />
+    <unitVector1               value=" 1   0   0  "  />
+    <unitVector2               value=" 0   1   0  "  />
+    <unitVector3               value=" 0   0   1  "  />
+  </geometryLightcone>
+
+  <!-- Prune trees which lie outside the lightcone -->
+  <mergerTreeOperator value="pruneLightcone">
+    <splitTrees value="true"/>
+  </mergerTreeOperator>
+
+  <!-- Star formation histories with fixed ages, so that a single SED template serves every lightcone crossing. -->
+  <starFormationHistory value="fixedAges">
+    <ageMinimum         value=" 0.001"/>
+    <countAges          value="10"    />
+    <countMetallicities value=" 5"    />
+  </starFormationHistory>
+
+  <!-- Specify output properties -->
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="time"       />
+    <nodePropertyExtractor value="redshift"   />
+    <nodePropertyExtractor value="lightcone"  >
+      <atCrossing value="true"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="massStellar"/>
+    <!-- The galaxies in this lightcone lie close to z=0.44. The top-hat filter (1200-1400 Angstroms) then samples the spectrum
+         across the Lyman break in the rest frame, which is the case that sets how finely the direct route must tabulate in
+         redshift, so it is deliberately included. -->
+    <!-- Reference route: the filter response integrated over an SED. This needs no tabulation in redshift. -->
+    <nodePropertyExtractor value="luminosityStellarFromSED">
+      <filterNames value="Galex_FUV Galex_NUV SDSS_r adaptiveResolutionTopHat_1300_200"/>
+      <frame       value="observed"                  />
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"  />
+        <frame             value="rest"  />
+        <wavelengthMinimum value=" 600.0"/>
+        <wavelengthMaximum value="7300.0"/>
+        <stellarPopulationSpectraPostprocessor value="identity"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="luminosityStellarFromSED">
+      <filterNames value="Galex_FUV Galex_NUV SDSS_r adaptiveResolutionTopHat_1300_200"/>
+      <frame       value="rest"                      />
+      <nodePropertyExtractor value="SED">
+        <component         value="disk"  />
+        <frame             value="rest"  />
+        <wavelengthMinimum value=" 600.0"/>
+        <wavelengthMaximum value="7300.0"/>
+        <stellarPopulationSpectraPostprocessor value="identity"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+    <!-- The same luminosities, computed directly from the star formation history. -->
+    <nodePropertyExtractor value="luminosityStellarFromStarFormationHistory">
+      <filterNames     value="Galex_FUV Galex_NUV SDSS_r adaptiveResolutionTopHat_1300_200"/>
+      <component       value="disk"    />
+      <frame           value="observed"/>
+      <redshiftMinimum value="0.43"    />
+      <redshiftMaximum value="0.46"    />
+      <stellarPopulationSpectraPostprocessor value="identity"/>
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="luminosityStellarFromStarFormationHistory">
+      <filterNames     value="Galex_FUV Galex_NUV SDSS_r adaptiveResolutionTopHat_1300_200"/>
+      <component       value="disk"    />
+      <frame           value="rest"    />
+      <stellarPopulationSpectraPostprocessor value="identity"/>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+
+  <!-- Output epochs -->
+  <outputTimes value="list">
+    <redshifts value="0.901141 0.000000"/>
+  </outputTimes>
+
+  <!-- Output -->
+  <mergerTreeOutputter value="null"/>
+
+  <!-- Output file -->
+  <outputFileName value="testSuite/outputs/test-luminosities-from-SFH-lightcone/galacticus.hdf5"/>
+
+</parameters>

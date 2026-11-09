@@ -593,7 +593,7 @@ contains
     use            :: Error             , only : Error_Report              , errorStatusOutOfRange, errorStatusSuccess, GSL_Error_Handler_Abort_Off, &
          &                                       GSL_Error_Handler_Abort_On
     use            :: ISO_Varying_String, only : assignment(=)             , operator(//)         , varying_string
-    use            :: Interface_GSL     , only : GSL_Success               , gslFunction          , gslFunctionFdF
+    use            :: Interface_GSL     , only : GSL_Success               , GSL_EMaxIter         , gslFunction          , gslFunctionFdF
     implicit none
     class           (rootFinder          )              , intent(inout), target   :: self
     real            (kind=c_double       ), dimension(2), intent(in   )           :: rootRange                , rootRangeValues
@@ -1035,7 +1035,12 @@ contains
           else
              statusActual=GSL_Root_fSolver_Iterate  (self%solver%gsl)
           end if
-          if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
+          if (statusActual /= GSL_Success) exit
+          ! Reaching the maximum number of iterations is a failure to converge - the current estimate of the root is not returned.
+          if (iteration > iterationMaximum) then
+             statusActual=GSL_EMaxIter
+             exit
+          end if
           if (iteration > 1) then
              select case (self%stoppingCriterion%ID)
              case (stoppingCriterionDelta   %ID)
@@ -1073,7 +1078,11 @@ contains
              call displayMessage("failed to find root")
           else
              if (report_) call displayUnindent("done")
-             call Error_Report('failed to find root'//{introspection:location})
+             if (statusActual == GSL_EMaxIter) then
+                call Error_Report('failed to find root - maximum number of iterations exceeded'//{introspection:location})
+             else
+                call Error_Report('failed to find root'                                         //{introspection:location})
+             end if
           end if
        else
           if (present(status)) status=GSL_Success

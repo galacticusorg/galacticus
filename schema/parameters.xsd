@@ -188,6 +188,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="barInstabilitySpheroidAngularMomentum">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="angularMomentumTransfer"/>
+          <xs:enumeration value="bindingEnergy"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="blackHoleAccretionRate">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -689,6 +705,21 @@
           <xs:enumeration value="sheth2001"/>
           <xs:enumeration value="tinker2005"/>
           <xs:enumeration value="tinker2010"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="darkMatterHaloFilaments">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="randomSequential"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -1226,6 +1257,22 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="exponential"/>
+          <xs:enumeration value="none"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="galacticDiskHeating">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="impulsive"/>
           <xs:enumeration value="none"/>
          </xs:restriction>
         </xs:simpleType>
@@ -1868,6 +1915,7 @@
           <xs:enumeration value="einasto"/>
           <xs:enumeration value="enzoHydrostatic"/>
           <xs:enumeration value="exponentialDisk"/>
+          <xs:enumeration value="exponentialDiskTidal"/>
           <xs:enumeration value="gaussianEllipsoid"/>
           <xs:enumeration value="gaussianSlab"/>
           <xs:enumeration value="hernquist"/>
@@ -2323,6 +2371,7 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="assignOrbits"/>
           <xs:enumeration value="augment"/>
+          <xs:enumeration value="branchingVariance"/>
           <xs:enumeration value="conditionalMF"/>
           <xs:enumeration value="consolidateBranches"/>
           <xs:enumeration value="deforest"/>
@@ -2729,6 +2778,8 @@
           <xs:enumeration value="densityProfile"/>
           <xs:enumeration value="descendantNode"/>
           <xs:enumeration value="descendants"/>
+          <xs:enumeration value="diskHeating"/>
+          <xs:enumeration value="diskTruncationGas"/>
           <xs:enumeration value="dustAttenuation"/>
           <xs:enumeration value="excursion"/>
           <xs:enumeration value="finalDescendant"/>
@@ -2770,6 +2821,7 @@
           <xs:enumeration value="luminosityEmissionLinePanuzzo2003"/>
           <xs:enumeration value="luminosityStellar"/>
           <xs:enumeration value="luminosityStellarFromSED"/>
+          <xs:enumeration value="luminosityStellarFromStarFormationHistory"/>
           <xs:enumeration value="magnitudesAbsolute"/>
           <xs:enumeration value="magnitudesApparent"/>
           <xs:enumeration value="mainBranchStatus"/>
@@ -3368,6 +3420,24 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="powerSpectrumNormalizer">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="amplitudeScalar"/>
+          <xs:enumeration value="identity"/>
+          <xs:enumeration value="matchedWavenumber"/>
+          <xs:enumeration value="sigma8"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="powerSpectrumPrimordial">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -3556,6 +3626,7 @@
        <xs:attribute name="value" use="optional">
         <xs:simpleType>
          <xs:restriction base="xs:string">
+          <xs:enumeration value="koppen2018"/>
           <xs:enumeration value="simpleCylindrical"/>
           <xs:enumeration value="simpleSpherical"/>
          </xs:restriction>
@@ -4476,6 +4547,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="densityContrastMethod">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="critical200"/>
+          <xs:enumeration value="virial"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="densityContrastRelativeTo">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -4486,6 +4573,22 @@
          <xs:restriction base="xs:string">
           <xs:enumeration value="critical"/>
           <xs:enumeration value="mean"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="densityProfileMethod">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="NFW"/>
+          <xs:enumeration value="einasto"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -4962,6 +5065,22 @@
     <xs:anyAttribute processContents="lax"/>
    </xs:complexType>
   </xs:element>
+  <xs:element name="mode">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="jumps"/>
+          <xs:enumeration value="table"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
   <xs:element name="model">
    <xs:complexType mixed="true">
     <xs:sequence>
@@ -5065,6 +5184,22 @@
           <xs:enumeration value="byRank"/>
           <xs:enumeration value="byRankOnNode"/>
           <xs:enumeration value="none"/>
+         </xs:restriction>
+        </xs:simpleType>
+       </xs:attribute>
+    <xs:anyAttribute processContents="lax"/>
+   </xs:complexType>
+  </xs:element>
+  <xs:element name="orphanTrajectory">
+   <xs:complexType mixed="true">
+    <xs:sequence>
+     <xs:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+       <xs:attribute name="value" use="optional">
+        <xs:simpleType>
+         <xs:restriction base="xs:string">
+          <xs:enumeration value="decay"/>
+          <xs:enumeration value="host"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>

@@ -820,10 +820,11 @@ contains
     self%weightParents=mpiSelf%sum(self%weightParents)
 #endif
     if (self%weightParents > 0.0d0) then
-       self%functionValue     =+self%functionValue         &
+       self%functionValue     =+self%functionValue      &
             &                  /self%weightParents
-       self%functionCovariance=+self%functionCovariance    &
-            &                  /self%weightParents     **2
+       self%functionCovariance=+self%functionCovariance &
+            &                  /self%weightParents      &
+            &                  /self%weightParents
     end if
     return
   end subroutine formationTimeDistributionFinalizeAnalysis

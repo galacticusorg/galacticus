@@ -186,6 +186,10 @@ contains
 #endif
        do i=1,self%countSamples
           quantiles(:,i)=modulo(quantiles(:,i)+shift,1.0d0)
+          ! A quantile of exactly zero (from the origin with a shift of exactly zero, or a point shifted to exactly one) would map
+          ! to the lower limit of the prior, which may be infinite (as for the origin above). Such quantiles, which occur with
+          ! probability of order N d/2³², are moved just above zero.
+          where (quantiles(:,i) <= 0.0d0) quantiles(:,i)=epsilon(0.0d0)
        end do
     end if
     ! Convert the cumulative density to a value of the prior.

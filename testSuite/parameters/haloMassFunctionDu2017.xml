@@ -3,7 +3,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="6b5a4ec8aa300f7b1ecac2138b40563b9c60514b" time="2026-10-16T18:05:49"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
 
   <!-- Specify tasks to perform -->
@@ -42,12 +42,15 @@
     <running value="0.0000"/> <!-- Planck 2018; https://ui.adsabs.harvard.edu/abs/2018arXiv180706211P -->
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8149"/>
+    <tolerance value="3.0e-4"/>
+  </powerSpectrumNormalizer>
 
   <cosmologicalMassVariance value="filteredPower">
     <monotonicInterpolation value="true" />
     <nonMonotonicIsFatal value="false" />
     <powerSpectrumWindowFunction value="topHat"/>
-    <sigma_8 value="0.8149" />
     <tolerance value="3.0e-4" />
     <toleranceTopHat value="3.0e-4" />
   </cosmologicalMassVariance>
@@ -110,7 +113,6 @@
             </darkMatterProfileConcentration>
 
             <cosmologicalMassVariance value="filteredPower">
-              <sigma_8 value="0.8149"/>
               <tolerance value="3.0e-4"/>
               <toleranceTopHat value="3.0e-4"/>
               <nonMonotonicIsFatal value="false"/>
@@ -131,6 +133,11 @@
             </powerSpectrumPrimordial>
 
             <powerSpectrumPrimordialTransferred value="simple"/>
+
+            <powerSpectrumNormalizer value="sigma8">
+              <sigma_8 value="0.8149"/>
+              <tolerance value="3.0e-4"/>
+            </powerSpectrumNormalizer>
 
             <powerSpectrumWindowFunction value="topHat"/>
 
