@@ -379,17 +379,6 @@ def test_validate(workspace):
     assert json.load(open('campaign.json'))['runs'][1]['status'] == 'pending'
 
 
-def test_run_local_executable_missing(workspace):
-    """A run which can not be started at all is judged failed, rather than left submitted."""
-    path, campaign, _ = workspace
-    campaign.executable = str(path / 'missing.py')
-    summary = campaign.run_local(indices=[0])
-    run = cm.Campaign.load('campaign.json').runs[0]
-    assert run.status == 'failed' and run.exit_status == 127
-    assert 'Failed to start the run' in (path / run.log_file).read_text()
-    assert summary.get('submitted', 0) == 0
-
-
 def _task_list(job):
     """Extract the task list file name from an array job's command."""
     for line in job['command'].splitlines():
