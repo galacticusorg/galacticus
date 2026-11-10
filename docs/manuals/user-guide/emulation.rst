@@ -96,8 +96,9 @@ The script ``scripts/emulation/emulatorCalibration.py`` runs the models of a des
 and largest value of each parameter. Since parameter bounds are limits on each parameter separately, this checks every
 parameter value in the design against the bounds declared by the model, as well as checking that every path in the
 change files exists in the base parameter file. ``submit`` submits all pending and failed runs to SLURM as a single array
-job (with the partition and other settings taken from ``galacticusConfig.xml``); ``run`` instead runs them on the local
-machine. A run is complete when Galacticus exited with status zero, its log contains no failure markers (``FAIL``,
+job (with the partition and other settings taken from ``galacticusConfig.xml``), of which at most ``jobMaximum`` tasks
+run at once (from ``galacticusConfig.xml``, or the ``--jobMaximum`` option, where zero means no limit); ``run`` instead
+runs them on the local machine. A run is complete when Galacticus exited with status zero, its log contains no failure markers (``FAIL``,
 ``fatal``, ``aborted``, ``ODE integration failed``, ``unrecognized parameter``), and its output file exists; ``status``
 reports the reason for each failure, and ``resubmit`` submits the failed runs again. The same operations are available
 from Python, in ``Galacticus.Emulation.campaign``, for use from other pipelines.

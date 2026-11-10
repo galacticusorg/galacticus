@@ -406,6 +406,20 @@ def test_task_lists_are_per_submission(workspace):
     assert campaign.runs[1].status == 'complete'
 
 
+def test_array_job_throttled_by_job_maximum(workspace):
+    """A manager's `jobMaximum` option limits how many tasks of an array job run at once; without one there is no limit."""
+    path, campaign, _ = workspace
+    manager = FakeManager()
+    campaign.submit(manager, indices=[0, 1, 3])
+    assert manager.jobs[0]['array'] == '0-1,3'
+    manager.options = {'jobMaximum': 2}
+    campaign.submit(manager, indices=[0, 1, 3])
+    assert manager.jobs[1]['array'] == '0-1,3%2'
+    manager.options = {'jobMaximum': 0}
+    campaign.submit(manager, indices=[0, 1, 3])
+    assert manager.jobs[2]['array'] == '0-1,3'
+
+
 class SequentialManager(FakeManager):
     """A stand-in for a queueManager manager which, like Slurm, gives each job its own ID."""
 
