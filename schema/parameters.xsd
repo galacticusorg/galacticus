@@ -4277,6 +4277,7 @@
           <xs:enumeration value="intergalacticMediumState"/>
           <xs:enumeration value="localGroupDatabase"/>
           <xs:enumeration value="massFunctionCovariance"/>
+          <xs:enumeration value="mergerTreeBranchingMoments"/>
           <xs:enumeration value="mergerTreeFileBuilder"/>
           <xs:enumeration value="mergingHaloOrbitDistribution"/>
           <xs:enumeration value="multi"/>
