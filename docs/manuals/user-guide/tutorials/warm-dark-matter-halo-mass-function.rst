@@ -54,6 +54,10 @@ In the above we explicitly specify a thermal warm dark matter particle, with eff
        <neutrinoMassSummed value="0.000"/>
      </transferFunction>
    </transferFunction>
+   <powerSpectrumNormalizer value="sigma8">
+     <sigma_8 value="0.807"/>
+     <tolerance value="3.0e-4"/>
+   </powerSpectrumNormalizer>
    <!-- When computing sigma(M) for power spectra with a cut off it's better to use a filter that is sharp in k-space, instead of
         the usual real-space top-hat (which introduces artificial halos below the cut-off scale -->
    <cosmologicalMassVariance value="filteredPower">
@@ -62,12 +66,11 @@ In the above we explicitly specify a thermal warm dark matter particle, with eff
      <powerSpectrumWindowFunction value="sharpKSpace">
        <normalization value="2.5" />
      </powerSpectrumWindowFunction>
-     <sigma_8 value="0.8111" />
      <tolerance value="3.0e-4" />
      <toleranceTopHat value="3.0e-4" />
    </cosmologicalMassVariance>
 
-Here we use the `Bode et al. (2001) <http://adsabs.harvard.edu/abs/2001ApJ...556...93B>`_ fitting function for the warm dark matter transfer function. Note that this works by modifying the CDM transfer function (supplied here using the ``eisensteinHu1999`` method), and that we explicitly pass a CDM dark matter particle to this class (otherwise it would find the WDM particle class and refuse to work, since it doesn't know how to compute the transfer function for WDM). For warm dark matter, we switch to using a sharp-in-:math:`k`-space filter to compute :math:`\sigma(M)`, as it avoids spurious halos below the cut-off scale which result for warm dark matter power spectra using the usual top-hat-in-real-space filter (see `Benson et al. (2013) <http://adsabs.harvard.edu/abs/2013MNRAS.428.1774B>`_).
+Here we use the `Bode et al. (2001) <http://adsabs.harvard.edu/abs/2001ApJ...556...93B>`_ fitting function for the warm dark matter transfer function. Note that this works by modifying the CDM transfer function (supplied here using the ``eisensteinHu1999`` method), and that we explicitly pass a CDM dark matter particle to this class (otherwise it would find the WDM particle class and refuse to work, since it doesn't know how to compute the transfer function for WDM). For warm dark matter, we switch to using a sharp-in-:math:`k`-space filter to compute :math:`\sigma(M)`, as it avoids spurious halos below the cut-off scale which result for warm dark matter power spectra using the usual top-hat-in-real-space filter (see `Benson et al. (2013) <http://adsabs.harvard.edu/abs/2013MNRAS.428.1774B>`_). Note that the normalization of the power spectrum to the given value of :math:`\sigma_8` (by the ``powerSpectrumNormalizer``) always uses a top-hat-in-real-space filter, as per the definition of :math:`\sigma_8`, irrespective of the filter used to compute :math:`\sigma(M)`.
 
 .. code-block:: xml
 
@@ -92,9 +95,17 @@ For the critical overdensities for collapse of halos (as used in `Press-Schechte
        <darkMatterProfileConcentration value="gao2008"/>
        <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
        <cosmologicalMassVariance value="filteredPower">
-   	<sigma_8 value="0.807"/>
    	<monotonicInterpolation value="true" />
    	<nonMonotonicIsFatal value="false" />
+   	<powerSpectrumPrimordial value="powerLaw">
+   	  <index value="0.961"/>
+   	  <wavenumberReference value="1.000"/>
+   	  <running value="0.000"/>
+   	</powerSpectrumPrimordial>
+   	<powerSpectrumPrimordialTransferred value="simple"/>
+   	<powerSpectrumNormalizer value="sigma8">
+   	  <sigma_8 value="0.807"/>
+   	</powerSpectrumNormalizer>
    	<powerSpectrumWindowFunction value="sharpKSpace">
    	  <normalization value="2.5" />
    	</powerSpectrumWindowFunction>
@@ -107,7 +118,7 @@ For the critical overdensities for collapse of halos (as used in `Press-Schechte
      </reference>
    </darkMatterProfileConcentration>
 
-For dark matter halo concentrations, we make use of the `Schneider et al. (2015) <http://adsabs.harvard.edu/abs/2012MNRAS.424..684S>`_ algorithm, which computes the concentration by matching halo formation epochs to a "reference" CDM universe. The properties of the reference universe are described in the above in the ``reference`` section.
+For dark matter halo concentrations, we make use of the `Schneider et al. (2015) <http://adsabs.harvard.edu/abs/2012MNRAS.424..684S>`_ algorithm, which computes the concentration by matching halo formation epochs to a "reference" CDM universe. The properties of the reference universe are described in the above in the ``reference`` section. Note that the reference CDM universe has its own power spectrum (defined by the ``powerSpectrumPrimordial``, ``powerSpectrumPrimordialTransferred``, ``powerSpectrumNormalizer``, and ``transferFunction`` within its ``cosmologicalMassVariance``).
 
 Understanding the output
 ------------------------

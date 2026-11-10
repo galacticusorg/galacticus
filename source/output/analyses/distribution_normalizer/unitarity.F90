@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements a unitarity output analysis distribution normalizer class.
   !!}
@@ -79,11 +81,12 @@ contains
     if (.not.present(distribution)) call Error_Report('"distribution" required for this class'//{introspection:location})
     distributionSum=+sum(distribution   )
     if (distributionSum /= 0.0d0) then
-       distribution     =+distribution       &
+       distribution     =+distribution    &
             &            /distributionSum
-       if (present(covariance))              &
-            & covariance=+covariance         &
-            &            /distributionSum**2
+       if (present(covariance))           &
+            & covariance=+covariance      &
+            &            /distributionSum &
+            &            /distributionSum
     end if
     return
   end subroutine unitarityNormalize

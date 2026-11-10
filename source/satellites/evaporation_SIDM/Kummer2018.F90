@@ -269,12 +269,12 @@ contains
        velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    ,massDistribution_    )
        ! Kummer et al. (2018; Appendix A) define v_disp as the root-mean-square of the full (3D) velocity deviation, which is √3
        ! times the 1D velocity dispersion for an isotropic distribution.
-       velocityDispersion          =  +sqrt(                                &
-            &                               +3.0d0                          &
-            &                               *(                              &
+       velocityDispersion          =  +sqrt(                                  &
+            &                               +3.0d0                            &
+            &                               *(                                &
             &                                 +velocityDispersionHost     **2 &
             &                                 +velocityDispersionSatellite**2 &
-            &                                )                              &
+            &                                )                                &
             &                              )
        !![
        <objectDestructor name="massDistribution_"    />

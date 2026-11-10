@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of heated dark matter halo profiles.
   !!}
@@ -319,7 +321,8 @@ contains
                   &amp;                       nonAnalyticSolver                         =self%nonAnalyticSolver                         , &amp;
                   &amp;                       velocityDispersionApproximate             =self%velocityDispersionApproximate             , &amp;
                   &amp;                       toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
-                  &amp;                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
+                  &amp;                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum, &amp;
+                  &amp;                       tolerateVelocityDispersionFailure         =self%tolerateVelocityDispersionFailure           &amp;
 	          &amp;                      )
                </constructor>
              </referenceConstruct>

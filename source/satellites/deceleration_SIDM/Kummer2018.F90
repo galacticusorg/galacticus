@@ -282,12 +282,12 @@ contains
        velocityDispersionSatellite =  +kinematics_                                %velocityDispersion1D  (coordinates    ,massDistribution_    ,massDistribution_    )
        ! Kummer et al. (2018; Appendix A) define v_disp as the root-mean-square of the full (3D) velocity deviation, which is √3
        ! times the 1D velocity dispersion for an isotropic distribution.
-       velocityDispersion          =  +sqrt(                                &
-            &                               +3.0d0                          &
-            &                               *(                              &
+       velocityDispersion          =  +sqrt(                                  &
+            &                               +3.0d0                            &
+            &                               *(                                &
             &                                 +velocityDispersionHost     **2 &
             &                                 +velocityDispersionSatellite**2 &
-            &                                )                              &
+            &                                )                                &
             &                              )
        dispersionFactor            =  +1.0d0                  &
             &                         /(                      &
@@ -408,7 +408,7 @@ contains
              ! single term).
              decelerationFactor_(i,j)=+1.0d0                                                                &
                &                      -integrator_        %integrate                  (0.0d0,thetaCritical) &
-               &                      /darkMatterParticle_%crossSectionSelfInteraction(velocity(j)               ) &
+               &                      /darkMatterParticle_%crossSectionSelfInteraction(velocity(j)        ) &
                &                      /sqrt(2.0d0)
           end do
        end do
@@ -480,11 +480,11 @@ contains
           ! scattering terms of the (asymmetric) t-channel cross section.
           coefficientA                =+1.0d0+1.0d0/(1.0d0+q**2)**2
           coefficientB                =-0.5d0*coefficientA-2.0d0*q**2+2.0d0*q**2/(1.0d0+q**2)**3
-          kummer2018DecelerationFactor=+1.0d0                                                &
-               &                       -(1.0d0+q**2)                                         &
-               &                       *(                                                    &
-               &                         +2.0d0/ 3.0d0*coefficientA/(1.0d0+x**2)             &
-               &                         +4.0d0/15.0d0*coefficientB/(1.0d0+x**2)**2          &
+          kummer2018DecelerationFactor=+1.0d0                                       &
+               &                       -(1.0d0+q**2)                                &
+               &                       *(                                           &
+               &                         +2.0d0/ 3.0d0*coefficientA/(1.0d0+x**2)    &
+               &                         +4.0d0/15.0d0*coefficientB/(1.0d0+x**2)**2 &
                &                        )
        type is (darkMatterParticleSelfInteractingDarkMatterConstant)
           ! Constant cross section.

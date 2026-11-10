@@ -54,7 +54,7 @@ _META_TAGS = frozenset({'formatVersion', 'lastModified'})
 # Galacticus does NOT migrate at run time (project policy: users run
 # scripts/aux/parametersMigrate.py and re-verify).  We therefore validate files
 # as-written, but use scripts/aux/migrations.xml to turn an "unknown parameter"
-# or unrecognised selector value into an actionable "obsolete; renamed to ..."
+# or unrecognized selector value into an actionable "obsolete; renamed to ..."
 # message.  Cached per GALACTICUS_EXEC_PATH so tests can override it.
 _migrations_cache = {}
 _XPATH_LEAF_RE = re.compile(r'([A-Za-z_]\w*)(?:\[[^\]]*\])?\s*$')
