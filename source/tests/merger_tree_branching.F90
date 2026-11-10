@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Merger_Tree_Branching
   !!{RST
   Tests of merger tree branching rates.
@@ -27,6 +29,7 @@ program Tests_Merger_Tree_Branching
   use            :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use            :: Display                             , only : displayVerbositySet                                    , verbosityLevelWorking
   use            :: Events_Hooks                        , only : eventsHooksInitialize
+  use            :: Functions_Global_Utilities          , only : Functions_Global_Set
   use            :: Excursion_Sets_Barriers             , only : excursionSetBarrierCriticalOverdensity
   use            :: Excursion_Sets_First_Crossings      , only : excursionSetFirstCrossingFarahiMidpoint                , excursionSetFirstCrossingFarahiMidpointBrownianBridge       , excursionSetFirstCrossingLinearBarrier, excursionSetFirstCrossingLinearBarrierBrownianBridge
   use            :: Galacticus_Nodes                    , only : treeNode
@@ -41,6 +44,7 @@ program Tests_Merger_Tree_Branching
   use            :: Numerical_Random_Numbers            , only : randomNumberGeneratorGSL
   use            :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use            :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use            :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use            :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace
   use            :: Transfer_Functions                  , only : transferFunctionIdentity
   use            :: Unit_Tests                          , only : Assert                                                 , Unit_Tests_Begin_Group                                      , Unit_Tests_End_Group                 , Unit_Tests_Finish                                    , &
@@ -53,6 +57,7 @@ program Tests_Merger_Tree_Branching
   type            (powerSpectrumPrimordialPowerLaw                             )                           :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionIdentity                                    )                           :: transferFunctionIdentity_
   type            (powerSpectrumPrimordialTransferredSimple                    )                           :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                               )                           :: powerSpectrumNormalizerSigma8_
   type            (linearGrowthCollisionlessMatter                             )                           :: linearGrowthCollisionlessMatter_
   type            (excursionSetFirstCrossingLinearBarrier                      )                           :: excursionSetFirstCrossingLinearBarrier_
   type            (excursionSetFirstCrossingLinearBarrierBrownianBridge        )                           :: excursionSetFirstCrossingLinearBarrierBrownianBridge_
@@ -84,6 +89,12 @@ program Tests_Merger_Tree_Branching
        &                                                                                                      variance_
   integer                                                                                                  :: i                                                                                 , j
   character       (len=16                                                      )                           :: label
+  ! Data used by the closed-form test of the first crossing distribution of a Brownian bridge.
+  integer                                                                       , parameter                :: countBridge                                                   =20000
+  double precision                                                                                         :: varianceBridge                                                                    , heightBridge                                   , &
+       &                                                                                                      barrierBridge                                                                     , stepBridge                                     , &
+       &                                                                                                      varianceUpperBridge                                                               , integralBridge                                 , &
+       &                                                                                                      yMinusBridge                                                                      , yPlusBridge
   ! Objects and data used by the analytic-identity tests which follow the tests above. For an n=-1 power spectrum filtered with a
   ! sharp k-space window function σ(M) ∝ M^{-1/3}, so α ≡ dlnσ/dlnM is a constant. Every identity tested in that section rests on
   ! that constancy - see the comments at the head of each group.
@@ -166,6 +177,7 @@ program Tests_Merger_Tree_Branching
   call Error_Handler_Register()
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set()
   ! Build all objects needed for these tests.
   darkMatterParticleCDM_                                        =darkMatterParticleCDM                                        (                                                                                                        &
        &                                                                                                                      )
@@ -194,10 +206,19 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                   , &
        &                                                                                                                       time                                    =13.8d0                                                         &
        &                                                                                                                      )
+  powerSpectrumNormalizerSigma8_                                =powerSpectrumNormalizerSigma8                                (                                                                                                       &
+       &                                                                                                                       sigma8                                  =1.0d+0                                                      , &
+       &                                                                                                                       tolerance                               =1.0d-4                                                      , &
+       &                                                                                                                       integrationFailureIsFatal               =.true.                                                      , &
+       &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                  , &
+       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                     &
+       &                                                                                                                      )
   powerSpectrumPrimordialTransferredSimple_                     =powerSpectrumPrimordialTransferredSimple                     (                                                                                                        &
        &                                                                                                                       powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_                             , &
        &                                                                                                                       transferFunction_                       =transferFunctionIdentity_                                    , &
-       &                                                                                                                       linearGrowth_                           =linearGrowthCollisionlessMatter_                               &
+       &                                                                                                                       linearGrowth_                           =linearGrowthCollisionlessMatter_                             , &
+       &                                                                                                                       powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_                                 &
        &                                                                                                                      )
   powerSpectrumWindowFunctionSharpKSpace_                       =powerSpectrumWindowFunctionSharpKSpace                       (                                                                                                        &
        &                                                                                                                       cosmologyParameters_                    =cosmologyParametersSimple_                                   , &
@@ -205,7 +226,6 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                      )
 
   cosmologicalMassVarianceFilteredPower_                        =cosmologicalMassVarianceFilteredPower                        (                                                                                                        &
-       &                                                                                                                       sigma8                                  =1.0d+0                                                       , &
        &                                                                                                                       tolerance                               =1.0d-4                                                       , &
        &                                                                                                                       toleranceTopHat                         =1.0d-4                                                       , &
        &                                                                                                                       rootVarianceLogarithmicGradientTolerance=1.0d-9                                                       , &
@@ -468,6 +488,35 @@ program Tests_Merger_Tree_Branching
      ! instead controlled by `toleranceVariance` above, which excludes the region in which the analytic solution diverges.
      call Assert('Unconstrained case',errorMaximumUnconstrained,3.6d-2,compareLessThan)
      call Assert('Constrained case'  ,errorMaximumConstrained  ,3.3d-2,compareLessThan)
+     call Unit_Tests_End_Group()
+     ! For a constant barrier the first crossing distribution of a Brownian bridge has a closed form, with an equally simple
+     ! cumulative distribution. A bridge ending above the barrier must cross it, so the distribution integrates to one.
+     call Unit_Tests_Begin_Group("First crossing distribution of a Brownian bridge (analytic)")
+     ! The constraint point is found as the class finds it, through the mass at which σ(M) matches the constrained variance. That
+     ! round trip through the tabulated σ(M) returns the constrained variance to about 0.15% here, which the closed form below
+     ! resolves.
+     varianceBridge=+cosmologicalMassVarianceFilteredPower_%rootVariance(cosmologicalMassVarianceFilteredPower_%mass(time=timeNow,rootVariance=sqrt(varianceConstrained)),time)**2
+     heightBridge  =+criticalOverdensityConstrained*sqrt(varianceBridge/varianceConstrained)
+     barrierBridge =+excursionSetBarrierCriticalOverdensity_%barrier(0.0d0,time,node,rateCompute=.false.)
+     do j=1,2
+        varianceUpperBridge=+varianceBridge*dble(j)/2.0d0
+        stepBridge         =+varianceUpperBridge/dble(countBridge)
+        integralBridge     =+excursionSetFirstCrossingLinearBarrierBrownianBridge_%probability(varianceUpperBridge,time,node)
+        do k=1,countBridge-1
+           integralBridge=+integralBridge                                                                                  &
+                &         +dble(2*(1+mod(k,2)))                                                                            &
+                &         *excursionSetFirstCrossingLinearBarrierBrownianBridge_%probability(dble(k)*stepBridge,time,node)
+        end do
+        integralBridge=+integralBridge*stepBridge/3.0d0
+        select case (j)
+        case (1)
+           yMinusBridge=+(+heightBridge*varianceUpperBridge                                        -barrierBridge*varianceBridge)/sqrt(varianceBridge*varianceUpperBridge*(varianceBridge-varianceUpperBridge))
+           yPlusBridge =+(+heightBridge*varianceUpperBridge-2.0d0*barrierBridge*varianceUpperBridge+barrierBridge*varianceBridge)/sqrt(varianceBridge*varianceUpperBridge*(varianceBridge-varianceUpperBridge))
+           call Assert('Cumulative distribution at half of the bridge',integralBridge,0.5d0*(erfc(-yMinusBridge/sqrt(2.0d0))+exp(2.0d0*barrierBridge*(heightBridge-barrierBridge)/varianceBridge)*erfc(yPlusBridge/sqrt(2.0d0))),relTol=1.0d-6)
+        case (2)
+           call Assert('Normalization'                                ,integralBridge,1.0d0                                                                                                                                     ,relTol=1.0d-6)
+        end select
+     end do
      call Unit_Tests_End_Group()
      call Unit_Tests_End_Group()
   end do

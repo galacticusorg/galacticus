@@ -33,7 +33,7 @@ module Node_Component_Spheroid_Standard
   use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
   use :: Star_Formation_Histories        , only : starFormationHistory                        , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Standard_Post_Evolve
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Standard_Post_Evolve, Node_Component_Disk_Gas_Arrive
   implicit none
   private
   public :: Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Scale_Set                 , &
@@ -1002,6 +1002,7 @@ contains
        ! Move gas material within the host if necessary.
        select case (destinationGasHost%ID)
        case (destinationMergerDisk   %ID)
+          call Node_Component_Disk_Gas_Arrive(diskHost,spheroidHost%massGas())
           call diskHost    %        massGasSet(                                 &
                &                                diskHost    %massGas        ()  &
                &                               +spheroidHost%massGas        ()  &
@@ -1173,6 +1174,7 @@ contains
           ! Move the gas component of the standard spheroid to the host.
           select case (destinationGasSatellite%ID)
           case (destinationMergerDisk   %ID)
+             call Node_Component_Disk_Gas_Arrive(diskHost,spheroid%massGas())
              call     diskHost%        massGasSet(                                 &
                   &                                diskHost    %        massGas()  &
                   &                               +spheroid%            massGas()  &

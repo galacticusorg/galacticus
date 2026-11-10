@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a null output analysis class.
+Implements a null property extractor class.
 !!}
 
   !![

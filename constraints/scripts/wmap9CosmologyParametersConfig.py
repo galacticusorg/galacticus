@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Generates a configuration for cosmological parameters based on the WMAP-9 covariance matrix and suitable for use with the
 # Galacticus MCMC constraints architecture. Parameters are expressed as linear combinations of six independent normal deviates
-# (labelled "cosmology0" through "cosmology5"). The output of this script can be included into the base parameter file for a
+# (labeled "cosmology0" through "cosmology5"). The output of this script can be included into the base parameter file for a
 # Galacticus MCMC run, and actual cosmological parameters set by referencing those created in this file.
 # Andrew Benson (25-May-2012)
 

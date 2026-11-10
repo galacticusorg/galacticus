@@ -59,8 +59,10 @@ residualGeometry      = np.abs(radiusScaleFromMinus2-radiusScale)/radiusScale
 residualMassWorst     = np.max(residualMass                          )
 residualGeometryWorst = np.max(residualGeometry[~atConcentrationLimit])
 
-# Validate the results.
-if residualMassWorst > 2.0e-4 or residualGeometryWorst > 1.0e-10:
+# Validate the results. The mass equation is solved by a root finder (to a relative tolerance of 10⁻⁹ in the parameter γ=A/ρₛr₋₂^{3/2},
+# which gives mass residuals below 10⁻⁹), including for halos at the minimum-concentration limit, so its residual is required to
+# be small.
+if residualMassWorst > 1.0e-7 or residualGeometryWorst > 1.0e-10:
     print("FAILED: results do not agree with reference calculation (worst mass residual = {:.3e}, worst geometry residual = {:.3e})".format(residualMassWorst,residualGeometryWorst))
 else:
     print("SUCCESS: results do agree with reference calculation")
