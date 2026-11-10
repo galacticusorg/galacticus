@@ -123,6 +123,31 @@ def test_real_change_in_target_is_detected(target):
     assert report.targets_differ(first, second)
 
 
+def comment_for_baseline(baseline, exact):
+    model = {"analyses": [], "timings": [], "missing": []}
+    meta = {"prCommit": "a" * 40, "baseSha": "b" * 40, "baselineCommit": baseline, "baselineExact": exact}
+    return report.render_comment(model, meta)
+
+
+def test_comment_warns_when_baseline_is_not_exact():
+    comment = comment_for_baseline("c" * 40, False)
+    assert "**Warning:**" in comment
+    assert "other pull requests merged to master" in comment
+    assert f"`{'b' * 10}`" in comment and f"`{'c' * 10}`" in comment
+
+
+def test_comment_has_no_warning_when_baseline_is_exact():
+    comment = comment_for_baseline("b" * 40, True)
+    assert "**Warning:**" not in comment
+    assert "the commit this run was built on" in comment
+
+
+def test_comment_reports_absent_baseline():
+    comment = comment_for_baseline(None, False)
+    assert "**Warning:**" not in comment
+    assert "No master results were found" in comment
+
+
 def test_analysis_missing_from_pull_request_is_listed():
     result = {"attributes": {"name": "massFunction", "logLikelihood": "-5.0"}, "data": {}}
     row = report.analysis_rows("suffix", "Title", {"results": []}, {"results": [result]}, {}, {})[0]

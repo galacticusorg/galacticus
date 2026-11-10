@@ -386,9 +386,13 @@ def render_comment(model, meta):
              f"### Validation report for `{short(meta['prCommit'])}`", "",
              "**[Open the report](__REPORT_URL__)**: target data, master, and this pull request on every validation plot, "
              "plus likelihoods and timings against master's recent history. Viewing it requires a GitHub login.", ""]
-    if meta["baselineCommit"]:
-        relation = "the commit this run was built on" if meta["baselineExact"] else f"the nearest earlier results to `{short(meta['baseSha'])}`"
-        lines.append(f"Master results are from `{short(meta['baselineCommit'])}`, {relation}.")
+    if meta["baselineCommit"] and meta["baselineExact"]:
+        lines.append(f"Master results are from `{short(meta['baselineCommit'])}`, the commit this run was built on.")
+    elif meta["baselineCommit"]:
+        lines.append(f"> **Warning:** results for master commit `{short(meta['baseSha'])}`, which this run was built on, are not available yet, "
+                     f"so this comparison uses `{short(meta['baselineCommit'])}`, the nearest master commit with results. Differences may come "
+                     f"from other pull requests merged to master in between, not from this pull request. Once master's CI/CD run for "
+                     f"`{short(meta['baseSha'])}` has finished, re-run this job for an exact comparison.")
     else:
         lines.append("**No master results were found to compare against.**")
     lines += ["", f"- Analyses compared: {len(analyses)}",
