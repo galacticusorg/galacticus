@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794086385395,
+  "lastUpdate": 1794298822331,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=40 Gyr; vₖ=20 km/s)": [
@@ -7747,6 +7747,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/598ceeaff10ab3021a35ee874260feba62253cf2"
         },
         "date": 1794086384241,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 40.05784603086633,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=40.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 11.302375589055769,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d5e9824ac08384388ef71b572882bd67f2075df1",
+          "message": "Merge pull request #1757 from galacticusorg/feat/du2024-tidal-calibration\n\nfeat(parameters): adopt the Du et al. (2024) tidal calibration in the reference models",
+          "timestamp": "2026-11-09T00:13:27Z",
+          "tree_id": "4a41a1d87fafd63ec14d84daaa5c72b5cf39ff93",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d5e9824ac08384388ef71b572882bd67f2075df1"
+        },
+        "date": 1794298821456,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
