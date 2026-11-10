@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements an intracluster medium cooling power in band property extractor class.
+  Implements an intracluster medium Lyman-:math:`\alpha` optical depth property extractor class.
   !!}
   
   use :: Cosmology_Functions    , only : cosmologyFunctions , cosmologyFunctionsClass

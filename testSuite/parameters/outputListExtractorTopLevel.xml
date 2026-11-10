@@ -8,7 +8,7 @@
 
 <parameters>
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="b97be37cd9cbc2a189aa0c8bb027d7d64d390296" time="2026-10-23T19:56:05"/>
 
 
   <!-- Component selection -->
@@ -56,9 +56,10 @@
     <running value="0.000"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"/>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
 
   <!-- Structure formation options -->
   <linearGrowth value="collisionlessMatter"/>

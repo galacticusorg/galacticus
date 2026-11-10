@@ -1216,9 +1216,9 @@ contains
     end select
     ! Normalize by the enclosed mass. This is found through the type-bound function, which points `self_` at this object,
     ! rather than by calling the scale-free function directly, which would act on whichever object `self_` points to.
-    fourierTransform=+fourierTransform                            &
-         &           *self%densityNormalization                   &
-         &           *self%scaleLength                        **3 &
+    fourierTransform=+fourierTransform                          &
+         &           *self%densityNormalization                 &
+         &           *self%scaleLength                      **3 &
          &           /self%massEnclosedBySphere(radiusOuter)
     return
   end function zhao1996FourierTransform

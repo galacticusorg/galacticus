@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to test-luminosities-from-SFH-lightcone.xml for a model whose star formation history does not use fixed ages. The
+     template of the direct route is shared by every galaxy, which is possible only if every galaxy's star formation history has
+     the same bin structure, so this must be reported as an error rather than giving luminosities computed against another
+     galaxy's bins. -->
+<changes>
+
+  <change type="replace" path="starFormationHistory">
+    <starFormationHistory value="metallicitySplit">
+      <countMetallicities value="5"    />
+      <timeStep           value="0.1"  />
+    </starFormationHistory>
+  </change>
+
+  <change type="update" path="outputFileName" value="testSuite/outputs/test-luminosities-from-SFH-lightcone/galacticusAges.hdf5"/>
+
+</changes>

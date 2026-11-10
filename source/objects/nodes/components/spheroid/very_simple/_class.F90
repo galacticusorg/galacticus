@@ -27,7 +27,7 @@ module Node_Component_Spheroid_Very_Simple
   !!}
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Very_Simple_Post_Evolve, Node_Component_Spheroid_Very_Simple_Post_Step
+  use :: Node_Components_Galactic_Shared , only : Node_Component_Spheroid_Very_Simple_Post_Evolve, Node_Component_Spheroid_Very_Simple_Post_Step, Node_Component_Disk_Gas_Arrive
   implicit none
   private
   public :: Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Post_Step          , &
@@ -375,6 +375,7 @@ contains
        ! Move gas material within the host if necessary.
        select case (destinationGasHost%ID)
        case (destinationMergerDisk   %ID)
+          call Node_Component_Disk_Gas_Arrive(diskHost,spheroidHost%massGas())
           call diskHost    %          massGasSet(                                       &
                &                                          +diskHost    %massGas      () &
                &                                          +spheroidHost%massGas      () &
@@ -483,6 +484,7 @@ contains
        ! Move the gas component of the very simple spheroid to the host.
        select case (destinationGasSatellite%ID)
        case (destinationMergerDisk    %ID)
+          call Node_Component_Disk_Gas_Arrive(diskHost,spheroid%massGas())
           call diskHost%massGasSet              (                                       &
                &                                          +diskHost    %      massGas() &
                &                                          +spheroid    %      massGas() &
