@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !!{
+  !!{RST
   Implements a node operator class that applies stochastic gravitational acceleration from fuzzy-dark-matter granules to orbiting satellite halos.
   !!}
   
@@ -25,8 +25,10 @@
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
   !![
-  <nodeOperator name="nodeOperatorSatelliteGranule">
-   <description>A node operator class that applies stochastic gravitational acceleration from fuzzy-dark-matter granules to orbiting satellite halos.</description>
+  <nodeOperator name="nodeOperatorSatelliteGranule" docformat="rst">
+   <description>
+   A node operator class that applies stochastic gravitational acceleration from fuzzy-dark-matter granules to orbiting satellite halos.
+   </description>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteGranule
@@ -158,7 +160,7 @@ contains
   end subroutine satelliteGranuleDestructor
 
   subroutine satelliteGranuleDifferentialEvolutionScales(self,node)
-    !!{
+    !!{RST
     Set the absolute ODE solver scale for the dimensionless granule phase.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
@@ -243,13 +245,12 @@ contains
   end subroutine satelliteGranuleNodesMerge
 
   subroutine satelliteGranuleNodeInitialize(self,node)
-    !!{
+    !!{RST
     Initialize the stochastic granule state of a satellite. Reset the phase,
     store the integration time and core fluctuation frequency, and draw independent dimensionless Gaussian Fourier coefficients for the core and outer stochastic fields.    
     !!}
     use :: Coordinates                     , only : coordinateSpherical         , assignment(=)
     use :: Galacticus_Nodes                , only : nodeComponentBasic          , treeNode
-    use :: Statistics_Distributions        , only : distributionFunction1DNormal
     use :: Mass_Distributions              , only : massDistributionClass
     implicit none
     class            (nodeOperatorSatelliteGranule), intent(inout), target     :: self
@@ -258,12 +259,11 @@ contains
     class            (nodeComponentBasic          ),                pointer    :: basic                , basicHost
     class            (massDistributionClass       )               , pointer    :: massDistributionHost_
     type             (coordinateSpherical         )                            :: coordinates
-    type             (distributionFunction1DNormal)                            :: normalCore           , normalOuter
     double precision                               , dimension(:), allocatable :: axnCore              , aynCore       , &
                      &                                                            aznCore              , axnOuter      , &
                      &                                                            aynOuter             , aznOuter
     double precision                                                           :: maxTime              , densityCentral, &
-                     &                                                            frequencyCore
+                     &                                                            frequencyCore        , alphaCoreComponent
     integer                                                                    :: i                    , stepNum
 
     ! Initialize current satellites and secondary progenitors that can become
@@ -316,8 +316,7 @@ contains
     ! The core acceleration is isotropic and a_eff^core denotes its total
     ! three-dimensional RMS amplitude, so each Cartesian component carries
     ! a factor 1/sqrt(3).
-    normalCore = distributionFunction1DNormal(0.0d0, self%alphaCore**2/3.0d0)
-    normalOuter = distributionFunction1DNormal(0.0d0, self%alphaOuter**2)
+    alphaCoreComponent = self%alphaCore/sqrt(3.0d0)
 
     allocate(axnCore(0:stepNum))
     allocate(aynCore(0:stepNum))
@@ -329,13 +328,13 @@ contains
     ! Draw independent dimensionless Gaussian Fourier coefficients for each
     ! Cartesian component of the core and outer stochastic fields.
     do i = 0, stepNum
-       axnCore(i) = normalCore%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-       aynCore(i) = normalCore%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-       aznCore(i) = normalCore%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
+       axnCore(i) = alphaCoreComponent*node%hostTree%randomNumberGenerator_%standardNormalSample()
+       aynCore(i) = alphaCoreComponent*node%hostTree%randomNumberGenerator_%standardNormalSample()
+       aznCore(i) = alphaCoreComponent*node%hostTree%randomNumberGenerator_%standardNormalSample()
 
-       axnOuter(i) = normalOuter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-       aynOuter(i) = normalOuter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
-       aznOuter(i) = normalOuter%sample(randomNumberGenerator_=node%hostTree%randomNumberGenerator_)
+       axnOuter(i) = self%alphaOuter*node%hostTree%randomNumberGenerator_%standardNormalSample()
+       aynOuter(i) = self%alphaOuter*node%hostTree%randomNumberGenerator_%standardNormalSample()
+       aznOuter(i) = self%alphaOuter*node%hostTree%randomNumberGenerator_%standardNormalSample()
     end do
     
     call basic%floatRank1MetaPropertySet(self%axnCoreID ,axnCore)
@@ -348,10 +347,10 @@ contains
   end subroutine satelliteGranuleNodeInitialize
 
   function granuleAcceleration(self,node)
-    !!{
+    !!{RST
     Compute the stochastic acceleration generated by fuzzy-dark-matter granules
-in the host halo. Core and outer stochastic fields are evaluated separately,
-and the outer contribution includes the velocity-dependent anisotropy.
+    in the host halo. Core and outer stochastic fields are evaluated separately,
+    and the outer contribution includes the velocity-dependent anisotropy.
     Units: km/s/Gyr (same as other dynamical friction acceleration models).
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, nodeComponentDarkMatterProfile, treeNode
@@ -534,7 +533,7 @@ and the outer contribution includes the velocity-dependent anisotropy.
   end function granuleAcceleration
 
   function arrayCos(tau, m) result(arr)
-    !!{
+    !!{RST
     Return the dimensionless Fourier basis. Both ``tau`` and ``arr`` are
     dimensionless; ``m`` is the number of non-zero Fourier modes. The first
     element is 1/sqrt(2), followed by cos(n*tau/2) for n = 1, 2, ..., m.
@@ -554,7 +553,7 @@ and the outer contribution includes the velocity-dependent anisotropy.
   end function arrayCos
 
   function amplitudeOuter(self,velocityDispersionJeans,densityBackground)
-    !!{
+    !!{RST
     Compute the outer-halo effective granule acceleration amplitude.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal, megaParsec, MpcPerKmPerSToGyr
