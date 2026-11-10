@@ -45,7 +45,7 @@ program Tests_SIDM_Kummer_Satellites
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
   use :: Galactic_Structure_Options      , only : massTypeDark
-  use :: Galacticus_Nodes                , only : mergerTree                                        , nodeClassHierarchyInitialize                       , nodeComponentBasic    , nodeComponentDarkMatterProfile, &
+  use :: Galacticus_Nodes                , only : mergerTree                                        , nodeClassHierarchyInitialize                       , nodeComponentBasic                 , nodeComponentDarkMatterProfile, &
        &                                          nodeComponentSatellite                            , treeNode                                           , nodeComponentSpheroid
   use :: Input_Parameters                , only : inputParameters
   use :: Mass_Distributions              , only : massDistributionClass                             , kinematicsDistributionClass
@@ -54,7 +54,7 @@ program Tests_SIDM_Kummer_Satellites
   use :: Numerical_Constants_Prefixes    , only : centi                                             , kilo                                               , milli
   use :: Satellite_Deceleration_SIDM     , only : satelliteDecelerationSIDMKummer2018
   use :: Satellite_Evaporation_SIDM      , only : satelliteEvaporationSIDMKummer2018
-  use :: Unit_Tests                      , only : Assert                                            , Unit_Tests_Begin_Group                             , Unit_Tests_End_Group  , Unit_Tests_Finish
+  use :: Unit_Tests                      , only : Assert                                            , Unit_Tests_Begin_Group                             , Unit_Tests_End_Group               , Unit_Tests_Finish
   use :: Virial_Density_Contrast         , only : virialDensityContrastBryanNorman1998
   implicit none
   type            (inputParameters                                    )               :: parameters
@@ -93,10 +93,10 @@ program Tests_SIDM_Kummer_Satellites
   double precision                                                     , dimension(3) :: massLossRateDarkOnly        , accelerationDarkOnly        , &
        &                                                                                 massLossRateBaryons         , accelerationBaryons
   type            (coordinateCartesian                                )               :: coordinates
-  double precision                                                                    :: densityHost                 , rateNormalization         , &
-       &                                                                                 massLossRate                , massBoundary              , &
-       &                                                                                 fractionDarkMatter          , massLossRateDense         , &
-       &                                                                                 factorDecelerationDense     , radiusHalfMassDense       , &
+  double precision                                                                    :: densityHost                 , rateNormalization           , &
+       &                                                                                 massLossRate                , massBoundary                , &
+       &                                                                                 fractionDarkMatter          , massLossRateDense           , &
+       &                                                                                 factorDecelerationDense     , radiusHalfMassDense         , &
        &                                                                                 velocityDispersionDense     , factorDispersionDense
   integer                                                                             :: i
 
@@ -287,15 +287,15 @@ program Tests_SIDM_Kummer_Satellites
   coordinates               =  [radiusHalfMassDense,0.0d0,0.0d0]
   velocityDispersionDense   =  +kinematicsDense_%velocityDispersion1D(coordinates,massDistributionDMODense_,massDistributionDMODense_)**2
   coordinates               =  [radiusOrbital      ,0.0d0,0.0d0]
-  velocityDispersionDense   =  +sqrt(                                                                                                   &
-       &                             +3.0d0                                                                                             &
-       &                             *(                                                                                                 &
-       &                               +velocityDispersionDense                                                                         &
-       &                               +kinematicsHost_ %velocityDispersion1D(coordinates,massDistributionDMOHost_ ,massDistributionDMOHost_ )**2 &
-       &                              )                                                                                                 &
+  velocityDispersionDense   =  +sqrt(                                                                                                            &
+       &                             +3.0d0                                                                                                      &
+       &                             *(                                                                                                          &
+       &                               +velocityDispersionDense                                                                                  &
+       &                               +kinematicsHost_ %velocityDispersion1D(coordinates,massDistributionDMOHost_,massDistributionDMOHost_ )**2 &
+       &                              )                                                                                                          &
        &                            )
   factorDispersionDense     =  +1.0d0/(1.0d0+(velocityDispersionDense/speedOrbitalDense)**3)
-  call Assert("deceleration factor tends to unity for a deeply bound satellite"  ,factorDecelerationDense/factorDispersionDense,1.0d0,absTol=2.0d-2)
+  call Assert("deceleration factor tends to unity for a deeply bound satellite",factorDecelerationDense/factorDispersionDense,1.0d0,absTol=2.0d-2)
   !![
   <objectDestructor name="massDistributionDense_"   />
   <objectDestructor name="massDistributionDMODense_"/>
