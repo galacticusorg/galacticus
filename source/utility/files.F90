@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements various file-related utilities.
 !!}
@@ -224,8 +226,9 @@ module File_Utilities
      Type used to store file lock descriptors.
      !!}
      private
-     type(c_ptr         ) :: lockDescriptorC
-     type(varying_string) :: fileName
+     type   (c_ptr         ) :: lockDescriptorC
+     type   (varying_string) :: fileName
+     logical                 :: isShared       =.false.
   end type lockDescriptor
 
   type   (ompLock) :: posixOpenMPFileLock
@@ -511,29 +514,40 @@ contains
        end select
     end do
     lock%fileName=trim(fileName)
+    lock%isShared=lockIsShared_ == 1
     return
   end subroutine File_Lock_Char
 
   subroutine File_Unlock(lock,sync)
     !!{RST
-    Remove a lock from a file.
+    Remove a lock from a file. If ``sync`` is true the file is first synced to storage. By default it is synced only if the lock was
+    exclusive: a shared lock guards only reads of the file, so there is nothing of ours to sync.
     !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
+    use :: Error             , only : Error_Report, System_Error_Description
+    use :: ISO_Varying_String, only : char        , operator(//)
     implicit none
     type   (lockDescriptor), intent(inout)           :: lock
     logical                , intent(in   ), optional :: sync
     integer                                          :: fileUnit      , errorStatus, &
          &                                              fileDescriptor
-    !![
-    <optionalArgument name="sync" defaultsTo=".true." />
-    !!]
+    logical                                          :: sync_
+    type   (varying_string)                          :: message
 
+    if (present(sync)) then
+       sync_=sync
+    else
+       sync_=.not.lock%isShared
+    end if
     if (sync_) then
        open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
        if (errorStatus == 0) then
           fileDescriptor=fnum(fileUnit)
-          if (fsync(fileDescriptor) /= 0) call Error_Report('error syncing file at unlock'//{introspection:location})
+          if (fsync(fileDescriptor) /= 0) then
+             ! Capture the system error immediately, before any other call can change it.
+             message=System_Error_Description()
+             message="error syncing file '"//lock%fileName//"' at unlock ["//message//"]"
+             call Error_Report(message//{introspection:location})
+          end if
           close(fileUnit)
       end if
     end if
