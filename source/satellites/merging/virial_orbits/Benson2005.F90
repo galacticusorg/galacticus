@@ -164,7 +164,7 @@ contains
     class           (nodeComponentBasic   ), pointer               :: basicHost              , basic
     double precision                       , parameter             :: pMax                   =1.96797d0                              , &
          &                                                            velocityMax            =3.00000d0
-    ! The unrounded coefficients of the z=0 fit of Benson (2005; Table 2). The published table prints a₂=2.49, although the fit
+    ! The unrounded coefficients of the z=0 fit of Benson (2005; Table 2). The published table prints a₂=2.49, a typo: the fit
     ! value here rounds to 2.48 (all other coefficients round to their printed values). The constants velocityTangentialMean and
     ! velocityTotalRootMeanSquared used elsewhere in this class were computed from these unrounded values.
     double precision                       , parameter             :: a                   (9)=[                                        &
