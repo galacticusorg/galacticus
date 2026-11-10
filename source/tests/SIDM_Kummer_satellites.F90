@@ -237,10 +237,10 @@ program Tests_SIDM_Kummer_Satellites
   call Assert("deceleration is independent of the baryons of the host"           ,accelerationBaryons,accelerationDarkOnly,relTol=1.0d-9)
   ! Finally, a satellite bound deeply enough that its escape velocity exceeds the speed at which it moves relative to its host
   ! (including the 3D velocity dispersion of host and satellite, which enters the relative speed in Appendix A of Kummer et al.
-  ! 2018 - so the satellite must be compact)
-  ! must suffer no evaporation at all: every scattering which ejects one of its own particles also captures a host particle. A
-  ! second node is built for this, rather than the properties of the first being changed: mass distributions are memoized
-  ! against the unique ID of the node, so a node modified in place can be seen with a stale mass distribution.
+  ! 2018 - so the satellite must be compact) must suffer no evaporation at all: every scattering which ejects one of its own
+  ! particles also captures a host particle. A second node is built for this, rather than the properties of the first being
+  ! changed: mass distributions are memoized against the unique ID of the node, so a node modified in place can be seen with a
+  ! stale mass distribution.
   nodeDense                  => treeNode                   (hostTree=tree    )
   nodeHost  %firstChild      => nodeDense
   nodeDense %sibling         => node
