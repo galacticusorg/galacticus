@@ -76,10 +76,10 @@ def test_resolve_subcommand_expands_xinclude(tmp_path, monkeypatch):
 def test_resolve_subcommand_conditionals(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "resolve", lambda *a, **k: _install())
     text = ('<parameters>'
-            '<cosmologicalMassVariance value="filteredPower"><sigma_8 value="0.9"/>'
-            '</cosmologicalMassVariance>'
-            '<active1 value="x" active="[cosmologicalMassVariance/sigma_8] != 0.9"/>'
-            '<active1 value="y" active="[cosmologicalMassVariance/sigma_8] == 0.9"/>'
+            '<powerSpectrumNormalizer value="sigma8"><sigma_8 value="0.9"/>'
+            '</powerSpectrumNormalizer>'
+            '<active1 value="x" active="[powerSpectrumNormalizer/sigma_8] != 0.9"/>'
+            '<active1 value="y" active="[powerSpectrumNormalizer/sigma_8] == 0.9"/>'
             '</parameters>')
     main = _write(tmp_path, "main.xml", text)
     out = tmp_path / "resolved.xml"

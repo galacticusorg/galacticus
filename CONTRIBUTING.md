@@ -72,12 +72,16 @@ See the [Testing and Continuous Integration](https://galacticus.readthedocs.io/e
 
 ### Installing the git hooks
 
-Galacticus uses git hooks (kept in the separate [`gitHooks`](https://github.com/galacticusorg/gitHooks) repository) to run pre-commit checks and to enforce the commit-message format. They are recommended for all contributors and are **required** if you commit directly to the repository. The simplest way to install them is to clone the hooks repository and point your Galacticus clone at it:
+Galacticus uses git hooks (kept in the separate [`gitHooks`](https://github.com/galacticusorg/gitHooks) repository) to run pre-commit checks and to enforce the commit-message format. They are recommended for all contributors and are **required** if you commit directly to the repository. To install them, clone the hooks repository and symlink it in place of your clone's `.git/hooks` directory:
 
 ```bash
-git clone https://github.com/galacticusorg/gitHooks.git
-git config core.hooksPath /path/to/gitHooks
+git clone https://github.com/galacticusorg/gitHooks.git /path/to/gitHooks
+cd /path/to/your/galacticus
+rm -rf .git/hooks
+ln -s /path/to/gitHooks .git/hooks
 ```
+
+Do not use `git config core.hooksPath` instead: the `pre-commit` dispatcher looks for its check scripts in `.git/hooks/pre-commit.d/`, so with `core.hooksPath` it finds none and every commit passes unchecked.
 
 The hooks provide:
 

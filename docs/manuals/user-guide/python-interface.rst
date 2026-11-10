@@ -166,10 +166,15 @@ A common use-case is to build up a chain of Galacticus objects that mirrors the 
    psprim  = galacticus.powerSpectrumPrimordialPowerLaw(
                  0.965, 0.0, 0.0, 1.0, False)
    pswin   = galacticus.powerSpectrumWindowFunctionTopHat(cospar)
+   psnorm  = galacticus.powerSpectrumNormalizerSigma8(
+                 sigma8=0.8, tolerance=1.0e-4,
+                 integrationFailureIsFatal=True,
+                 cosmologyParameters_=cospar, cosmologyFunctions_=cosfun,
+                 transferFunction_=transfn)
    pstran  = galacticus.powerSpectrumPrimordialTransferredSimple(
-                 psprim, transfn, lingrow)
+                 psprim, transfn, lingrow, psnorm)
    cmv     = galacticus.cosmologicalMassVarianceFilteredPower(
-                 sigma8=0.8, tolerance=1.0e-4, toleranceTopHat=1.0e-4,
+                 tolerance=1.0e-4, toleranceTopHat=1.0e-4,
                  nonMonotonicIsFatal=True, monotonicInterpolation=False,
                  truncateAtParticleHorizon=False,
                  cosmologyParameters_=cospar, cosmologyFunctions_=cosfun,

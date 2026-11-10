@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements an output analysis class that computes subhalo mass functions.
   !!}
@@ -565,7 +567,7 @@ contains
     weight=sum(massFunctionHosts)
     if (weight > 0.0d0) then
        self%massFunction=+self%massFunction/weight
-       self%covariance  =+self%covariance  /weight**2
+       self%covariance  =+self%covariance  /weight/weight
     else
        self%massFunction=0.0d0
        self%covariance  =0.0d0

@@ -49,6 +49,7 @@ program Tests_SIDM_Parametric_Model
   use :: Numerical_Constants_Prefixes              , only : kilo
   use :: Power_Spectra_Primordial                  , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred      , only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers                , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions           , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                        , only : transferFunctionEisensteinHu1999
   use :: Unit_Tests                                , only : Assert                                            , Unit_Tests_Begin_Group                 , Unit_Tests_End_Group               , Unit_Tests_Finish
@@ -72,6 +73,7 @@ program Tests_SIDM_Parametric_Model
   type            (linearGrowthCollisionlessMatter                   )                            :: linearGrowth_
   type            (powerSpectrumPrimordialPowerLaw                   )                            :: powerSpectrumPrimordial_
   type            (powerSpectrumPrimordialTransferredSimple          )                            :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                     )                            :: powerSpectrumNormalizer_
   type            (powerSpectrumWindowFunctionTopHat                 )                            :: powerSpectrumWindowFunction_
   type            (transferFunctionEisensteinHu1999                  )                            :: transferFunction_
   type            (cosmologicalMassVarianceFilteredPower             )                            :: cosmologicalMassVariance_
@@ -163,13 +165,21 @@ program Tests_SIDM_Parametric_Model
        &                                                                                  cosmologyParameters_                    =cosmologyParameters_               , &
        &                                                                                  cosmologyFunctions_                     =cosmologyFunctions_                  &
        &                                                                                 )
+  powerSpectrumNormalizer_            =powerSpectrumNormalizerSigma8                     (                                                                              &
+       &                                                                                  sigma8                                  =0.82d+00                           , &
+       &                                                                                  tolerance                               =1.00d-06                           , &
+       &                                                                                  integrationFailureIsFatal               =.true.                             , &
+       &                                                                                  cosmologyParameters_                    =cosmologyParameters_               , &
+       &                                                                                  cosmologyFunctions_                     =cosmologyFunctions_                , &
+       &                                                                                  transferFunction_                       =transferFunction_                    &
+       &                                                                                 )
   powerSpectrumPrimordialTransferred_ =powerSpectrumPrimordialTransferredSimple          (                                                                              &
        &                                                                                  powerSpectrumPrimordial_                =powerSpectrumPrimordial_           , &
        &                                                                                  transferFunction_                       =transferFunction_                  , &
-       &                                                                                  linearGrowth_                           =linearGrowth_                        &
+       &                                                                                  linearGrowth_                           =linearGrowth_                      , &
+       &                                                                                  powerSpectrumNormalizer_                =powerSpectrumNormalizer_             &
        &                                                                                 )
   cosmologicalMassVariance_           =cosmologicalMassVarianceFilteredPower             (                                                                              &
-       &                                                                                  sigma8                                  =0.82d+00                           , &
        &                                                                                  tolerance                               =4.00d-06                           , &
        &                                                                                  toleranceTopHat                         =1.00d-06                           , &
        &                                                                                  rootVarianceLogarithmicGradientTolerance=1.00d-12                           , &

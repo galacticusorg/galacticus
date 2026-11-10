@@ -22,11 +22,11 @@ Contains a module which computes the reference mass and radius, :math:`M_\mathrm
 the splashback radius classes.
 
 This duplicates a small amount of the functionality of
-:galacticus-function:`Dark_Matter_Profile_Mass_Definition`. That is deliberate: the
+``Dark_Matter_Profile_Mass_Definition``. That is deliberate: the
 :galacticus-class:`darkMatterProfileDMOAccretionFlowDiemerKravtsov2014` and
 :galacticus-class:`darkMatterProfileDMOAccretionFlowShi2016` classes make use of splashback radii, so the splashback radius
 classes must not themselves depend on the ``darkMatterProfileDMO`` class---which
-:galacticus-function:`Dark_Matter_Profile_Mass_Definition` does---as that would introduce a circular module dependency.
+``Dark_Matter_Profile_Mass_Definition`` does---as that would introduce a circular module dependency.
 !!}
 
 module Dark_Matter_Halo_Splashback_Radii_Reference

@@ -882,7 +882,13 @@ ifneq ($(IS_LIB_BUILD),)
 -include $(BUILDPATH)/Makefile_Library_Dependencies
 $(BUILDPATH)/Makefile_Library_Dependencies: $(BUILDPATH)/libgalacticus.Inc ./scripts/build/libraryInterfacesDependencies.py
 	./scripts/build/libraryInterfacesDependencies.py
-$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py
+# directiveLocations.xml and stateStorables.xml are byproducts of the Makefile_Directives recipe (see below), so have no rule
+# of their own. The order-only prerequisite on Makefile_Directives ensures that they are brought up to date before
+# libraryInterfaces.py reads them. Without it, when libgalacticus.Inc is out of date for some other reason (e.g. an edit to
+# libraryClasses.xml) make can run libraryInterfaces.py in parallel with codeDirectivesParse.py. libraryInterfaces.py then reads
+# the old catalogs, and its output (being newer than the regenerated catalogs) is never remade, silently omitting any new
+# classes from the library.
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml ./source/libraryClasses.xml ./scripts/build/libraryInterfaces.py ./python/LibraryInterfaces/Pipeline.py ./python/LibraryInterfaces/Emitters.py ./python/LibraryInterfaces/ArgSpec.py ./python/LibraryInterfaces/Hierarchy.py ./python/LibraryInterfaces/Classification.py | $(BUILDPATH)/Makefile_Directives
 	./scripts/build/libraryInterfaces.py
 $(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/preprocessorSources.digest $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml $(BUILDPATH)/stateStorables.xml $(BUILDPATH)/deepCopyActions.xml
 	./scripts/build/preprocess.py $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
@@ -969,10 +975,19 @@ $(BUILDPATH)/preprocessorSources.digest: $(BUILDPATH)/preprocessorSources.digest
 # Dependency on dependencies.
 $(BUILDPATH)/utility.dependencies.p.F90.up : aux/dependencies.yml
 
-# Rules for version routines.
-$(BUILDPATH)/output.version.revision.inc: $(wildcard .git/refs/heads/master)
-	@if [ -f .git/refs/heads/master ] ; then git rev-parse HEAD | awk '{print "character(len=40), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=40), parameter :: gitHash="unknown"\n' > $(BUILDPATH)/output.version.revision.inc; fi
-	@if [ -f .git/refs/heads/master ] ; then git branch | awk '{if ($$1 == "*") print "character(len=128), parameter :: gitBranch=\""$$2"\""}' >> $(BUILDPATH)/output.version.revision.inc; else printf 'character(len=128), parameter :: gitBranch="(unknown)"\n' >> $(BUILDPATH)/output.version.revision.inc; fi
+# Rules for version routines. The git commit hash and branch are recorded in a stamp file, which is rewritten only when they
+# change, so that the revision include file is regenerated whenever (and only when) a different commit or branch is checked
+# out. They are found using git itself, rather than by reading files under .git/, as `.git` is a file (not a directory) in a
+# git worktree, and refs may be packed. The stamp is written here, at parse time, rather than by a rule with a FORCE
+# prerequisite, for the reasons given for BUILDCONFIGURATIONSTAMP below. Outside of a git checkout (e.g. a source archive) the
+# hash and branch are "unknown" and "(unknown)".
+GITREVISIONSTAMP := $(BUILDPATH)/gitRevision.stamp
+ifneq ($(if $(MAKECMDGOALS),$(filter-out clean tidy,$(MAKECMDGOALS)),build)$(if $(wildcard $(GITREVISIONSTAMP)),,missing),)
+GITREVISIONSTATUS := $(shell mkdir -p $(BUILDPATH) && { if [ -e .git ] && git rev-parse --verify -q HEAD > /dev/null 2>&1 ; then git rev-parse --verify -q HEAD; git symbolic-ref -q --short HEAD || echo '(detached)'; else echo unknown; echo '(unknown)'; fi; } > $(GITREVISIONSTAMP).new && { cmp -s $(GITREVISIONSTAMP).new $(GITREVISIONSTAMP) || mv $(GITREVISIONSTAMP).new $(GITREVISIONSTAMP); }; rm -f $(GITREVISIONSTAMP).new)
+endif
+$(BUILDPATH)/output.version.revision.inc: $(GITREVISIONSTAMP)
+	@sed -n 1p $(GITREVISIONSTAMP) | awk '{print "character(len=40), parameter :: gitHash=\""$$1"\""}' > $(BUILDPATH)/output.version.revision.inc
+	@sed -n 2p $(GITREVISIONSTAMP) | awk '{print "character(len=128), parameter :: gitBranch=\""$$1"\""}' >> $(BUILDPATH)/output.version.revision.inc
 	@date -u '+%a %b %d %k:%M:%S UTC %Y' | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/output.version.revision.inc
 
 # Rules for build information routines.
