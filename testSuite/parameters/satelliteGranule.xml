@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Parameter file used to test the satellite granule operator for soliton+NFW, soliton-only, and NFW-only host halos. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <darkMatterParticle value="fuzzyDarkMatter">
+    <mass value="0.8"/>
+    <densityFraction value="1.0"/>
+  </darkMatterParticle>
+
+  <cosmologyParameters value="simple">
+    <HubbleConstant   value="67.36"/>
+    <OmegaMatter      value="0.3153"/>
+    <OmegaDarkEnergy  value="0.6847"/>
+    <OmegaBaryon      value="0.0"/>
+    <temperatureCMB   value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="staticUniverse"/>
+
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType value="mean"/>
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <darkMatterProfileDMO value="solitonNFWHeated">
+    <nonAnalyticSolver value="numerical"/>
+    <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
+  </darkMatterProfileDMO>
+  <darkMatterProfile value="darkMatterOnly"/>
+  <darkMatterProfileHeating value="tidal"/>
+
+  <virialOrbit value="isotropic">
+    <virialOrbit value="benson2005"/>
+  </virialOrbit>
+
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentSatellite         value="orbiting"/>
+  <componentBlackHole         value="null"/>
+  <componentDisk              value="null"/>
+  <componentHotHalo           value="null"/>
+  <componentSpheroid          value="null"/>
+  <componentSpin              value="null"/>
+  <hotHaloMassDistribution    value="null"/>
+  <mergerRemnantSize          value="null"/>
+
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/satelliteGranuleTree.xml"/>
+  </mergerTreeConstructor>
+
+  <nodeOperator value="multi">
+    <nodeOperator value="cosmicTime"/>
+    <nodeOperator value="DMOInterpolate"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="darkMatterProfileSoliton"/>
+    <nodeOperator value="satelliteOrbit"/>
+    <nodeOperator value="satelliteGranule">
+      <alphaCore value="0.3"/>
+      <alphaOuter value="5.0"/>
+      <applyFiniteSize value="false"/>
+    </nodeOperator>
+  </nodeOperator>
+
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="1.0e-8"/>
+    <odeToleranceRelative value="1.0e-8"/>
+    <reuseODEStepSize value="false"/>
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="0.1"/>
+    <timestepHostRelative value="0.0"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple">
+      <timeStepAbsolute value="0.1"/>
+      <timeStepRelative value="0.0"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite">
+      <timeOffsetMaximumAbsolute value="0.005"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+  </mergerTreeEvolveTimestep>
+
+  <outputTimes value="list">
+    <times value="8.02"/>
+  </outputTimes>
+  <nodePropertyExtractor value="nodeIndices"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputFileName value="testSuite/outputs/satelliteGranule.hdf5"/>
+</parameters>

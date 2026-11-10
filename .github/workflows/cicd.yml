@@ -1644,6 +1644,7 @@ jobs:
                 test-tidal-stripping-disk-angular-momentum.py,
                 test-satellite-orbit-evolution.py,
                 test-satellite-tidal-heating-evolution.py,
+                test-satellite-granule.py,
                 test-transferFunctionHalfModeSlope.py,
                 test-galacticStructureStateDeallocateBug.py,
                 test-inactiveNumerics.py,
