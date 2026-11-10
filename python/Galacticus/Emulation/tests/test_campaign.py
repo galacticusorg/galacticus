@@ -407,17 +407,28 @@ def test_task_lists_are_per_submission(workspace):
 
 
 def test_array_job_throttled_by_job_maximum(workspace):
-    """A manager's `jobMaximum` option limits how many tasks of an array job run at once; without one there is no limit."""
+    """A manager's `arrayTaskMaximum` limits how many tasks of an array job run at once; without one there is no limit."""
     path, campaign, _ = workspace
     manager = FakeManager()
     campaign.submit(manager, indices=[0, 1, 3])
     assert manager.jobs[0]['array'] == '0-1,3'
-    manager.options = {'jobMaximum': 2}
+    manager.arrayTaskMaximum = 2
     campaign.submit(manager, indices=[0, 1, 3])
     assert manager.jobs[1]['array'] == '0-1,3%2'
-    manager.options = {'jobMaximum': 0}
+    manager.arrayTaskMaximum = 0
     campaign.submit(manager, indices=[0, 1, 3])
     assert manager.jobs[2]['array'] == '0-1,3'
+
+
+@pytest.mark.parametrize('configured, given, expected', [(None, None, None), ('32', None, 32), (None, 5, 5), ('32', 5, 5), ('32', 0, 0)])
+def test_array_task_maximum_needs_explicit_job_maximum(configured, given, expected):
+    """The limit on an array job's tasks comes only from an explicit `jobMaximum`, not from the queue manager's default."""
+    import argparse
+    import xml.etree.ElementTree as ET
+    pytest.importorskip('lxml')
+    import queueManager
+    config = ET.fromstring('<host/>' if configured is None else f'<host><jobMaximum>{configured}</jobMaximum></host>')
+    assert queueManager.SLURMManager(config, argparse.Namespace(jobMaximum=given)).arrayTaskMaximum == expected
 
 
 class SequentialManager(FakeManager):

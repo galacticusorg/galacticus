@@ -97,6 +97,10 @@ class SLURMManager(QueueManager):
             self.options['waitOnSubmit'] = args.waitOnSubmit
         if 'waitOnActive' in vars(args) and args.waitOnActive is not None:
             self.options['waitOnActive'] = args.waitOnActive
+        # The limit on the tasks of an array job running at once, which applies only if `jobMaximum` was set explicitly: its
+        # default above is for jobs submitted one at a time.
+        jobMaximumIsSet       = config.find('jobMaximum') is not None or vars(args).get('jobMaximum') is not None
+        self.arrayTaskMaximum = self.options['jobMaximum'] if jobMaximumIsSet else None
 
     def _submitOne(self,job):
         """Prepare a job (defaults, task/memory sizing, launch file) and `sbatch` it.

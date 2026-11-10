@@ -387,15 +387,15 @@ class Campaign:
         """Submit the given runs (by default all pending or failed runs) as a Slurm array job, via a queue manager.
 
         ``manager`` is a :mod:`queueManager` manager (e.g. from ``queueManager.factory(args)``); its
-        ``submit_detached(job)`` method is called, and must return the job ID. If it has a ``jobMaximum`` option, at most
-        that many tasks of the array job run at once.
+        ``submit_detached(job)`` method is called, and must return the job ID. If its ``arrayTaskMaximum`` is set (that is,
+        if ``jobMaximum`` was set explicitly), at most that many tasks of the array job run at once.
         """
         runs = self.select(indices=indices) if indices is not None else self.select(statuses=(PENDING, FAILED))
         if not runs:
             return None
         task_list = self._write_task_list()
         try:
-            job = self.array_script(runs, task_list, job_options, throttle=getattr(manager, 'options', {}).get('jobMaximum'))
+            job = self.array_script(runs, task_list, job_options, throttle=getattr(manager, 'arrayTaskMaximum', None))
             # Remove any log from an earlier attempt, so that its exit sentinel is not mistaken for this attempt's. This must
             # be done before submitting, as an array task may start (and open its log) before submission returns.
             for run in runs:
