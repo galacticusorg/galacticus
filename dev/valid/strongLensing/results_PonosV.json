@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "598ceeaff10ab3021a35ee874260feba62253cf2",
-        "message": "Merge pull request #1752 from galacticusorg/fix/audit-b54-misc\n\nfix: five small fixes from the bug audit (conditional mass function bins, subhalo mass function threading, heated DMO tolerance, cylindrical lightcone density field, likelihood chain labels)\n",
-        "timestamp": "2026-11-07 15:00:35+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/598ceeaff10ab3021a35ee874260feba62253cf2"
+        "id": "d5e9824ac08384388ef71b572882bd67f2075df1",
+        "message": "Merge pull request #1757 from galacticusorg/feat/du2024-tidal-calibration\n\nfeat(parameters): adopt the Du et al. (2024) tidal calibration in the reference models\n",
+        "timestamp": "2026-11-09 00:13:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d5e9824ac08384388ef71b572882bd67f2075df1"
     },
     "surfaceDensity": {
-        "percentageBelow": 39.285714285714285,
-        "percentageAbove": 60.714285714285715,
+        "percentageBelow": 3.5714285714285694,
+        "percentageAbove": 96.42857142857143,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 66.66666666666666,
-        "percentageAbove": 33.333333333333336,
+        "percentageBelow": 50.0,
+        "percentageAbove": 50.0,
         "target": 0.85
     }
 }

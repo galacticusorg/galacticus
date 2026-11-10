@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "598ceeaff10ab3021a35ee874260feba62253cf2",
-        "message": "Merge pull request #1752 from galacticusorg/fix/audit-b54-misc\n\nfix: five small fixes from the bug audit (conditional mass function bins, subhalo mass function threading, heated DMO tolerance, cylindrical lightcone density field, likelihood chain labels)\n",
-        "timestamp": "2026-11-07 15:00:35+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/598ceeaff10ab3021a35ee874260feba62253cf2"
+        "id": "d5e9824ac08384388ef71b572882bd67f2075df1",
+        "message": "Merge pull request #1757 from galacticusorg/feat/du2024-tidal-calibration\n\nfeat(parameters): adopt the Du et al. (2024) tidal calibration in the reference models\n",
+        "timestamp": "2026-11-09 00:13:27+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d5e9824ac08384388ef71b572882bd67f2075df1"
     },
     "results": [
         {
@@ -43,7 +43,7 @@ window.ANALYSES_DATA = {
                     27.704752651835218,
                     22.64809004812753,
                     9.293664212815997,
-                    7.326086828005903,
+                    7.326086828005866,
                     3.361641474554441,
                     2.874692832464992,
                     0.9047544246244191
