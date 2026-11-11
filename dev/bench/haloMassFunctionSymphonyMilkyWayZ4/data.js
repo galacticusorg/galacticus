@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794298859562,
+  "lastUpdate": 1794408463048,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=4)": [
@@ -1594,6 +1594,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
             "value": 2739.9045389681123,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5edfc370ad5dfb2024a58da11c14579320e6f55d",
+          "message": "Merge pull request #1765 from galacticusorg/refactor/consolidate-quadrature-helpers\n\nrefactor: consolidate duplicated quadrature and dust emission helpers",
+          "timestamp": "2026-11-10T21:17:10Z",
+          "tree_id": "bcdb493d674136c6f16b418581ebb0ffefa1c510",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5edfc370ad5dfb2024a58da11c14579320e6f55d"
+        },
+        "date": 1794408462329,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
+            "value": 2739.90451525494,
             "unit": "-logℒ"
           }
         ]
