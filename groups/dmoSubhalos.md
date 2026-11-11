@@ -10,5 +10,5 @@ Generic dark matter-only subhalo benchmarks and validations.
 
 | Metric | Status | Validation | Benchmark | Last commit |
 |--------|--------|------------|-----------|-------------|
-| Generic Milky Way analog | `PASS`{: .label .label-green } | [plots]({{ '/dev/valid/darkMatterOnlySubhalos/' | relative_url }}) | [trend]({{ '/dev/bench/darkMatterOnlySubhalos/' | relative_url }}) | [`d5e9824`](https://github.com/galacticusorg/galacticus/commit/d5e9824ac08384388ef71b572882bd67f2075df1) |
+| Generic Milky Way analog | `PASS`{: .label .label-green } | [plots]({{ '/dev/valid/darkMatterOnlySubhalos/' | relative_url }}) | [trend]({{ '/dev/bench/darkMatterOnlySubhalos/' | relative_url }}) | [`5edfc37`](https://github.com/galacticusorg/galacticus/commit/5edfc370ad5dfb2024a58da11c14579320e6f55d) |
 
