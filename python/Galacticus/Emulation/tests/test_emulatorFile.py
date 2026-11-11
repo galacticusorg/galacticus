@@ -205,6 +205,14 @@ def test_predict_single_point_shape():
     assert variance.shape == (COUNT_BINS,)
 
 
+@pytest.mark.parametrize('points', [np.array([[0.5]]), np.array([0.5]), np.array([[0.5, 0.5, 0.5]])])
+def test_predict_rejects_wrong_input_count(points):
+    """Inputs of the wrong width must be rejected, not broadcast against the training inputs."""
+    content, label = _content()
+    with pytest.raises(ValueError, match='inputs per point'):
+        ef.predict(content.emulators[label], points)
+
+
 def test_kernel_matern52():
     """Check the kernel against its closed form at a known separation."""
     log_length_scales = np.log([2.0, 0.5])

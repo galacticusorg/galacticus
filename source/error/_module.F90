@@ -495,10 +495,11 @@ contains
     return
   end subroutine Signal_Handler_SIGINT
 
-  subroutine Signal_Handler(signalNumber,description)
+  subroutine Signal_Handler(signalNumber,description,isCrash)
     !!{RST
     Handle the signal with number ``signalNumber``, by flushing all data and then aborting. ``description`` describes the event
-    in the message reported (e.g. "a segfault").
+    in the message reported (e.g. "a segfault"). ``isCrash`` is true if the signal indicates a bug (rather than, for example,
+    the system running out of memory, which commonly causes bus errors and illegal instructions).
     !!}
     use   , intrinsic :: ISO_Fortran_Env   , only : error_unit        , output_unit
 #ifdef USEMPI
@@ -511,6 +512,7 @@ contains
     implicit none
     integer           , intent(in   ) :: signalNumber
     character(len=*  ), intent(in   ) :: description
+    logical           , intent(in   ) :: isCrash
     character(len=:  ), allocatable   :: message
 #ifdef USEMPI
     integer                           :: mpiRank     , error
@@ -536,7 +538,7 @@ contains
 #endif
     call BackTrace         (           )
     call Warn_Review       (           )
-    call Error_Help_Message(.true.     )
+    call Error_Help_Message(isCrash    )
     call Flush             (output_unit)
     call Flush             ( error_unit)
 #ifdef UNCLEANEXIT
@@ -565,7 +567,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler(11,'a segfault')
+    call Signal_Handler(11,'a segfault'                ,isCrash=.true. )
     return
   end subroutine Signal_Handler_SIGSEGV
 
@@ -575,7 +577,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler(8,'a floating point exception')
+    call Signal_Handler( 8,'a floating point exception',isCrash=.true. )
     return
   end subroutine Signal_Handler_SIGFPE
 
@@ -585,7 +587,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler(7,'a bus error')
+    call Signal_Handler( 7,'a bus error'               ,isCrash=.false.)
     return
   end subroutine Signal_Handler_SIGBUS
 
@@ -595,7 +597,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler(4,'an illegal instruction')
+    call Signal_Handler( 4,'an illegal instruction'    ,isCrash=.false.)
     return
   end subroutine Signal_Handler_SIGILL
 
