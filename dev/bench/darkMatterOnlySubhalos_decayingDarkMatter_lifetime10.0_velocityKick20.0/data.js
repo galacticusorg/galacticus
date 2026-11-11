@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794298808369,
+  "lastUpdate": 1794408403876,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -7781,6 +7781,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/d5e9824ac08384388ef71b572882bd67f2075df1"
         },
         "date": 1794298807442,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 2.5556230227126364,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 3.208180339464448,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5edfc370ad5dfb2024a58da11c14579320e6f55d",
+          "message": "Merge pull request #1765 from galacticusorg/refactor/consolidate-quadrature-helpers\n\nrefactor: consolidate duplicated quadrature and dust emission helpers",
+          "timestamp": "2026-11-10T21:17:10Z",
+          "tree_id": "bcdb493d674136c6f16b418581ebb0ffefa1c510",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5edfc370ad5dfb2024a58da11c14579320e6f55d"
+        },
+        "date": 1794408402880,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
