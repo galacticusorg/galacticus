@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794298754627,
+  "lastUpdate": 1794408345938,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 6.5keV resolutionX8)": [
@@ -5018,6 +5018,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 98.43451493371538,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5edfc370ad5dfb2024a58da11c14579320e6f55d",
+          "message": "Merge pull request #1765 from galacticusorg/refactor/consolidate-quadrature-helpers\n\nrefactor: consolidate duplicated quadrature and dust emission helpers",
+          "timestamp": "2026-11-10T21:17:10Z",
+          "tree_id": "bcdb493d674136c6f16b418581ebb0ffefa1c510",
+          "url": "https://github.com/galacticusorg/galacticus/commit/5edfc370ad5dfb2024a58da11c14579320e6f55d"
+        },
+        "date": 1794408345227,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 13.602511203145646,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 36.184758941449104,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:6.5keV resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 97.18931976443898,
             "unit": "-logℒ"
           }
         ]
