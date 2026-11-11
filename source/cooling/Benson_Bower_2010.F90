@@ -60,20 +60,20 @@ contains
     class           (coolingFunctionClass                   ), intent(inout) :: coolingFunction_
     class           (chemicalStateClass                     ), intent(inout) :: chemicalState_
     type            (radiationFieldCosmicMicrowaveBackground), intent(inout) :: radiation
-    double precision                                         , intent(  out) :: coolingFunction        , numberDensityHydrogen, &
+    double precision                                         , intent(  out) :: coolingFunction        , numberDensityHydrogen  , &
          &                                                                      countParticles
     class           (nodeComponentBasic                     ), pointer       :: basic
     class           (nodeComponentHotHalo                   ), pointer       :: hotHalo
     class           (massDistributionClass                  ), pointer       :: massDistribution_
     class           (kinematicsDistributionClass            ), pointer       :: kinematicsDistribution_
     type            (coordinateSpherical                    )                :: coordinates
-    double precision                                                         :: density                , temperature          , &
+    double precision                                                         :: density                , temperature            , &
          &                                                                      massToDensityConversion, numberDensityAllSpecies, &
          &                                                                      massNotional
     type            (abundances                             )                :: abundances_
     type            (chemicalAbundances                     )                :: chemicalDensities_     , chemicalMasses_
 
-    exists=.false.
+    exists  =  .false.
     hotHalo => node%hotHalo()
     select type (hotHalo)
     type is (nodeComponentHotHalo)
@@ -133,10 +133,10 @@ contains
     ! Set epoch for radiation field.
     call radiation%timeSet(basic%time())
     ! Compute number density of hydrogen (in cm⁻³).
-    numberDensityHydrogen  =  Hydrogen_Number_Density             (           density                    ,abundances_                             )
+    numberDensityHydrogen  =  Hydrogen_Number_Density             (            density                    ,abundances_                             )
     ! Get the number density of all species, including electrons.
-    numberDensityAllSpecies=+                                           numberDensityHydrogen                                                       &
-         &                  /abundances_    %hydrogenNumberFraction(                                                                              ) &
+    numberDensityAllSpecies=+                                            numberDensityHydrogen                                                       &
+         &                  /abundances_    %hydrogenNumberFraction(                                                                               ) &
          &                  +chemicalState_ %electronDensity       (     numberDensityHydrogen,temperature,abundances_                   ,radiation)
     ! Get the cooling function (in ergs cm⁻³ s⁻¹).
     coolingFunction        =+coolingFunction_%coolingFunction      (node,numberDensityHydrogen,temperature,abundances_,chemicalDensities_,radiation)

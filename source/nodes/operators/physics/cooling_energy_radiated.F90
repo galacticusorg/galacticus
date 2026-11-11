@@ -336,9 +336,9 @@ contains
        ! Set the rate. Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and
        ! nₕ is the number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
        ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
-       rate=+coolingFunction       &
-            &   /numberDensityHydrogen &
-            &   *countParticles
+       rate   =+coolingFunction       &
+            &  /numberDensityHydrogen &
+            &  *countParticles
     else
        rate=0.0d0
     end if
