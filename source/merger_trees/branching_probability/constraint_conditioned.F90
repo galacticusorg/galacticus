@@ -121,7 +121,7 @@ Implements a merger tree branching probability class which conditions a branch o
           &                                                            probabilitySeek
    contains
      !![
-     <methods>
+     <methods docformat="rst">
        <method method="progenitorExpectation" description="Return the expected number of progenitors in the window about the constraint, for a halo of given mass and critical overdensity."/>
      </methods>
      !!]
