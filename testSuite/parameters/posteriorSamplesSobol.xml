@@ -6,7 +6,7 @@
   <formatVersion>2</formatVersion>
 
   <!-- A grid simulation, as used to evaluate a design. It is not run: the test builds its model parameters and design. -->
-  <posteriorSampleSimulation value="grid">
+  <posteriorSampleSimulation value="grid" ignoreWarnings="true">
     <!-- One active parameter for each class of prior used in calibrations. The names are arbitrary: they are not applied to -->
     <!-- any model.                                                                                                        -->
     <modelParameter value="active">
