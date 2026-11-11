@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "d5e9824ac08384388ef71b572882bd67f2075df1",
-        "message": "Merge pull request #1757 from galacticusorg/feat/du2024-tidal-calibration\n\nfeat(parameters): adopt the Du et al. (2024) tidal calibration in the reference models\n",
-        "timestamp": "2026-11-09 00:13:27+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/d5e9824ac08384388ef71b572882bd67f2075df1"
+        "id": "5edfc370ad5dfb2024a58da11c14579320e6f55d",
+        "message": "Merge pull request #1765 from galacticusorg/refactor/consolidate-quadrature-helpers\n\nrefactor: consolidate duplicated quadrature and dust emission helpers\n",
+        "timestamp": "2026-11-10 21:17:10+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/5edfc370ad5dfb2024a58da11c14579320e6f55d"
     },
     "surfaceDensity": {
         "percentageBelow": 3.5714285714285694,
