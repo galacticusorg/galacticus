@@ -2056,6 +2056,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="PCHPlus"/>
+          <xs:enumeration value="constraintConditioned"/>
           <xs:enumeration value="fakhouri2010"/>
           <xs:enumeration value="generalizedPressSchechter"/>
           <xs:enumeration value="parkinsonColeHelly"/>
