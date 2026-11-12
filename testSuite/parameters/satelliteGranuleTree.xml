@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Merger trees used to test the satellite granule operator for soliton+NFW, soliton-only, and NFW-only host halos. -->
+<!-- Merger trees used to test the satellite granule operator for soliton+NFW, soliton-only, and NFW-only host halos.
+
+     The soliton status of a halo can not be specified here: it is a meta-property, which the tree builder does not read, and it is
+     determined by the dark matter profile. Each host is therefore constructed such that it reaches the intended state:
+
+      * a 10^10 Msun halo with a typical scale radius has a soliton+NFW structure;
+      * a 10^8 Msun satellite which has already lost most of its mass, orbiting in the NFW part of a 10^10 Msun host, is tidally
+        stripped down to its soliton immediately, becoming soliton-only, and so acts as a soliton-only host to a satellite of its
+        own;
+      * a 10^11 Msun halo with a very small scale radius (a concentration of about 7000) admits no soliton+NFW solution, and so is
+        NFW-only.
+
+     Satellite positions are chosen relative to the core and soliton radii of their hosts (for the random number seed used in
+     testSuite/parameters/satelliteGranule.xml), and the model is evolved for a small fraction of an orbital period, so that each
+     satellite remains in the same radial region throughout. testSuite/test-satellite-granule.py checks the state of each host,
+     and which of the core and outer granule contributions act on each satellite. -->
 <trees>
 
-<!-- Soliton+NFW host. -->
+<!-- Soliton+NFW host (core radius 0.44 kpc, soliton radius 1.34 kpc), with satellites inside the core radius, between the core and
+     soliton radii, and outside the soliton radius. -->
 <tree>
   <node>
     <index>101</index>
@@ -13,11 +29,10 @@
     <basic>
       <time>8.0</time>
       <timeLastIsolated>8.0</timeLastIsolated>
-      <mass>1.0e12</mass>
+      <mass>1.0e10</mass>
     </basic>
     <darkMatterProfile>
-      <scale>0.0310934597</scale>
-      <solitonStatus>1</solitonStatus>
+      <scale>6.7e-3</scale>
     </darkMatterProfile>
   </node>
   <node>
@@ -28,15 +43,91 @@
     <basic>
       <time>8.1</time>
       <timeLastIsolated>8.1</timeLastIsolated>
-      <mass>1.0e12</mass>
+      <mass>1.0e10</mass>
     </basic>
     <darkMatterProfile>
-      <scale>0.0310934597</scale>
-      <solitonStatus>1</solitonStatus>
+      <scale>6.7e-3</scale>
     </darkMatterProfile>
   </node>
+  <!-- Inside the core radius. -->
   <node>
     <index>103</index>
+    <parent>101</parent>
+    <firstChild>-1</firstChild>
+    <sibling>104</sibling>
+    <basic>
+      <time>8.0</time>
+      <timeLastIsolated>8.0</timeLastIsolated>
+      <mass>1.0e7</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>6.5e-4</scale>
+    </darkMatterProfile>
+    <satellite>
+      <boundMass>1.0e7</boundMass>
+      <position>2.0e-4</position>
+      <position>0.0</position>
+      <position>0.0</position>
+      <velocity>0.0</velocity>
+      <velocity>20.0</velocity>
+      <velocity>0.0</velocity>
+      <virialOrbit>
+        <radius>2.0e-4</radius>
+        <velocityRadial>0.0</velocityRadial>
+        <velocityTangential>20.0</velocityTangential>
+        <massHost>1.0e10</massHost>
+        <massSatellite>1.0e7</massSatellite>
+      </virialOrbit>
+      <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
+      <tidalTensorPathIntegrated>
+        <x00>0.0</x00><x01>0.0</x01><x02>0.0</x02>
+        <x11>0.0</x11><x12>0.0</x12><x22>0.0</x22>
+      </tidalTensorPathIntegrated>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+    </satellite>
+  </node>
+  <!-- Between the core and soliton radii. -->
+  <node>
+    <index>104</index>
+    <parent>101</parent>
+    <firstChild>-1</firstChild>
+    <sibling>105</sibling>
+    <basic>
+      <time>8.0</time>
+      <timeLastIsolated>8.0</timeLastIsolated>
+      <mass>1.0e7</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>6.5e-4</scale>
+    </darkMatterProfile>
+    <satellite>
+      <boundMass>1.0e7</boundMass>
+      <position>8.0e-4</position>
+      <position>0.0</position>
+      <position>0.0</position>
+      <velocity>0.0</velocity>
+      <velocity>28.0</velocity>
+      <velocity>0.0</velocity>
+      <virialOrbit>
+        <radius>8.0e-4</radius>
+        <velocityRadial>0.0</velocityRadial>
+        <velocityTangential>28.0</velocityTangential>
+        <massHost>1.0e10</massHost>
+        <massSatellite>1.0e7</massSatellite>
+      </virialOrbit>
+      <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
+      <tidalTensorPathIntegrated>
+        <x00>0.0</x00><x01>0.0</x01><x02>0.0</x02>
+        <x11>0.0</x11><x12>0.0</x12><x22>0.0</x22>
+      </tidalTensorPathIntegrated>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+    </satellite>
+  </node>
+  <!-- Outside the soliton radius. -->
+  <node>
+    <index>105</index>
     <parent>101</parent>
     <firstChild>-1</firstChild>
     <sibling>-1</sibling>
@@ -46,21 +137,21 @@
       <mass>1.0e7</mass>
     </basic>
     <darkMatterProfile>
-      <scale>1.0e-4</scale>
+      <scale>6.5e-4</scale>
     </darkMatterProfile>
     <satellite>
       <boundMass>1.0e7</boundMass>
-      <position>5.0e-4</position>
+      <position>3.0e-3</position>
       <position>0.0</position>
       <position>0.0</position>
       <velocity>0.0</velocity>
-      <velocity>17.65</velocity>
+      <velocity>20.0</velocity>
       <velocity>0.0</velocity>
       <virialOrbit>
-        <radius>5.0e-4</radius>
+        <radius>3.0e-3</radius>
         <velocityRadial>0.0</velocityRadial>
-        <velocityTangential>17.65</velocityTangential>
-        <massHost>1.0e12</massHost>
+        <velocityTangential>20.0</velocityTangential>
+        <massHost>1.0e10</massHost>
         <massSatellite>1.0e7</massSatellite>
       </virialOrbit>
       <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
@@ -74,7 +165,7 @@
   </node>
 </tree>
 
-<!-- Soliton-only host. -->
+<!-- Soliton-only host: satellite 203 is stripped to its soliton (core radius 5.6 kpc), and satellite 204 orbits within its core. -->
 <tree>
   <node>
     <index>201</index>
@@ -85,11 +176,10 @@
     <basic>
       <time>8.0</time>
       <timeLastIsolated>8.0</timeLastIsolated>
-      <mass>1.0e12</mass>
+      <mass>1.0e10</mass>
     </basic>
     <darkMatterProfile>
-      <scale>0.0310934597</scale>
-      <solitonStatus>2</solitonStatus>
+      <scale>6.7e-3</scale>
     </darkMatterProfile>
   </node>
   <node>
@@ -100,40 +190,79 @@
     <basic>
       <time>8.1</time>
       <timeLastIsolated>8.1</timeLastIsolated>
-      <mass>1.0e12</mass>
+      <mass>1.0e10</mass>
     </basic>
     <darkMatterProfile>
-      <scale>0.0310934597</scale>
-      <solitonStatus>2</solitonStatus>
+      <scale>6.7e-3</scale>
     </darkMatterProfile>
   </node>
+  <!-- Stripped to its soliton by the host. -->
   <node>
     <index>203</index>
     <parent>201</parent>
     <firstChild>-1</firstChild>
     <sibling>-1</sibling>
+    <firstSatellite>204</firstSatellite>
     <basic>
       <time>8.0</time>
       <timeLastIsolated>8.0</timeLastIsolated>
-      <mass>1.0e7</mass>
+      <mass>1.0e8</mass>
     </basic>
     <darkMatterProfile>
-      <scale>1.0e-4</scale>
+      <scale>1.4e-3</scale>
     </darkMatterProfile>
     <satellite>
-      <boundMass>1.0e7</boundMass>
-      <position>5.0e-4</position>
+      <boundMass>5.0e6</boundMass>
+      <position>5.0e-3</position>
       <position>0.0</position>
       <position>0.0</position>
       <velocity>0.0</velocity>
-      <velocity>17.65</velocity>
+      <velocity>29.0</velocity>
       <velocity>0.0</velocity>
       <virialOrbit>
-        <radius>5.0e-4</radius>
+        <radius>5.0e-3</radius>
         <velocityRadial>0.0</velocityRadial>
-        <velocityTangential>17.65</velocityTangential>
-        <massHost>1.0e12</massHost>
-        <massSatellite>1.0e7</massSatellite>
+        <velocityTangential>29.0</velocityTangential>
+        <massHost>1.0e10</massHost>
+        <massSatellite>1.0e8</massSatellite>
+      </virialOrbit>
+      <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
+      <tidalTensorPathIntegrated>
+        <x00>0.0</x00><x01>0.0</x01><x02>0.0</x02>
+        <x11>0.0</x11><x12>0.0</x12><x22>0.0</x22>
+      </tidalTensorPathIntegrated>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+    </satellite>
+  </node>
+  <!-- Orbiting within the core of the soliton-only satellite. -->
+  <node>
+    <index>204</index>
+    <parent>203</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>8.0</time>
+      <timeLastIsolated>8.0</timeLastIsolated>
+      <mass>1.0e6</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>3.0e-4</scale>
+    </darkMatterProfile>
+    <satellite>
+      <boundMass>1.0e6</boundMass>
+      <position>1.0e-3</position>
+      <position>0.0</position>
+      <position>0.0</position>
+      <velocity>0.0</velocity>
+      <velocity>1.5</velocity>
+      <velocity>0.0</velocity>
+      <virialOrbit>
+        <radius>1.0e-3</radius>
+        <velocityRadial>0.0</velocityRadial>
+        <velocityTangential>1.5</velocityTangential>
+        <massHost>1.0e8</massHost>
+        <massSatellite>1.0e6</massSatellite>
       </virialOrbit>
       <tidalHeatingNormalized>0.0</tidalHeatingNormalized>
       <tidalTensorPathIntegrated>
@@ -146,7 +275,7 @@
   </node>
 </tree>
 
-<!-- NFW-only host. -->
+<!-- NFW-only host: the small scale radius means that no soliton+NFW solution exists. -->
 <tree>
   <node>
     <index>301</index>
@@ -157,11 +286,10 @@
     <basic>
       <time>8.0</time>
       <timeLastIsolated>8.0</timeLastIsolated>
-      <mass>1.0e12</mass>
+      <mass>1.0e11</mass>
     </basic>
     <darkMatterProfile>
-      <scale>0.0310934597</scale>
-      <solitonStatus>3</solitonStatus>
+      <scale>2.0e-5</scale>
     </darkMatterProfile>
   </node>
   <node>
@@ -172,13 +300,13 @@
     <basic>
       <time>8.1</time>
       <timeLastIsolated>8.1</timeLastIsolated>
-      <mass>1.0e12</mass>
+      <mass>1.0e11</mass>
     </basic>
     <darkMatterProfile>
-      <scale>0.0310934597</scale>
-      <solitonStatus>3</solitonStatus>
+      <scale>2.0e-5</scale>
     </darkMatterProfile>
   </node>
+  <!-- Orbiting the NFW-only host. -->
   <node>
     <index>303</index>
     <parent>301</parent>
@@ -190,21 +318,21 @@
       <mass>1.0e7</mass>
     </basic>
     <darkMatterProfile>
-      <scale>1.0e-4</scale>
+      <scale>6.5e-4</scale>
     </darkMatterProfile>
     <satellite>
       <boundMass>1.0e7</boundMass>
-      <position>5.0e-4</position>
+      <position>3.0e-3</position>
       <position>0.0</position>
       <position>0.0</position>
       <velocity>0.0</velocity>
-      <velocity>17.65</velocity>
+      <velocity>60.0</velocity>
       <velocity>0.0</velocity>
       <virialOrbit>
-        <radius>5.0e-4</radius>
+        <radius>3.0e-3</radius>
         <velocityRadial>0.0</velocityRadial>
-        <velocityTangential>17.65</velocityTangential>
-        <massHost>1.0e12</massHost>
+        <velocityTangential>60.0</velocityTangential>
+        <massHost>1.0e11</massHost>
         <massSatellite>1.0e7</massSatellite>
       </virialOrbit>
       <tidalHeatingNormalized>0.0</tidalHeatingNormalized>

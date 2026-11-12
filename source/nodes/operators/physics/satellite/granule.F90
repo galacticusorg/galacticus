@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Yu Zhao.
+  !+    Contributions to this file made by: Yu Zhao, Claude.
 
   !!{RST
   Implements a node operator class that applies stochastic gravitational acceleration from fuzzy-dark-matter granules to orbiting satellite halos.
@@ -52,8 +52,8 @@
 
       m = 4 f_\mathrm{core}t_\mathrm{max}.
 
-   The Fourier coefficients, truncation order, and maximum time are fixed when the satellite state is initialized. The core
-   oscillation frequency is
+   The Fourier coefficients, truncation order, and maximum time are fixed when a realization is drawn, which happens when the
+   satellite state is initialized. The core oscillation frequency is
 
    .. math::
 
@@ -66,8 +66,13 @@
       \right)^{1/2}.
 
    As the host halo evolves, the stored Fourier realization is retained, while its phase rate is rescaled by the ratio of the
-   current core frequency to its value at initialization. Thus, changes in the host core density alter the fluctuation timescale
-   without redrawing the stochastic field or changing the number of Fourier modes.
+   current core frequency to its value when the realization was drawn. Thus, changes in the host core density alter the
+   fluctuation timescale without redrawing the stochastic field or changing the number of Fourier modes. A new realization is
+   drawn, with the phase reset to zero, if the satellite moves to a different host halo (for example because its host merges,
+   or through sub-subhalo promotion), or if its host changes soliton status (for example to soliton-only after tidal
+   stripping). In either case the frequencies that set the phase rate and the number of modes change discontinuously, so the
+   fluctuations are not correlated across the change. Promotion of the host to its descendant in the merger tree does not
+   change the host halo, so does not cause a new realization to be drawn.
 
    Within the solitonic core, the effective three-dimensional core acceleration is
 
@@ -95,7 +100,9 @@
 
    For a soliton--NFW host, both the core and outer contributions are included. For a soliton-only host, only the core
    contribution is retained. For an NFW-only host, only the outer contribution is used, so the divergent central density of the
-   NFW profile is never evaluated.
+   NFW profile is never evaluated. Such a host has no core frequency, so the truncation order is instead set by replacing
+   :math:`f_\mathrm{core}` with the outer granule frequency evaluated at the scale radius of the host, close to the peak of its
+   Jeans velocity dispersion.
 
    If ``[applyFiniteSize]`` is false, the satellite is treated as a point mass. If it is true, the outer stochastic amplitude is
    suppressed according to the satellite half-mass radius relative to the effective granule size, following the finite-size
@@ -121,7 +128,8 @@
                      &                                       radiusSolitonID                 , tauID          , &
                      &                                       maxTimeID                       , frequencyCoreID, &
                      &                                       stepNumID                       , solitonStatusID, &
-                     &                                       densityCoreID
+                     &                                       densityCoreID                   , statusHostID   , &
+                     &                                       identityHostID                  , identityHaloID
      double precision                                     :: alphaCore                       , alphaOuter
      logical                                              :: applyFiniteSize
    contains
@@ -137,6 +145,10 @@
      module procedure satelliteGranuleConstructorParameters
      module procedure satelliteGranuleConstructorInternal
   end interface nodeOperatorSatelliteGranule
+
+  ! Submodule-scope pointer to self, used in callback functions.
+  class(nodeOperatorSatelliteGranule), pointer :: self_ => null()
+  !$omp threadprivate(self_)
 
 contains
 
@@ -209,7 +221,10 @@ contains
     <addMetaProperty component="basic"             name="axnOuter"             id="self%axnOuterID"       rank="1"            isCreator="yes"/>
     <addMetaProperty component="basic"             name="aynOuter"             id="self%aynOuterID"       rank="1"            isCreator="yes"/>
     <addMetaProperty component="basic"             name="aznOuter"             id="self%aznOuterID"       rank="1"            isCreator="yes"/>
-    <addMetaProperty component="basic"             name="stepNum"              type="integer"             id="self%stepNumID" isCreator="yes"/>
+    <addMetaProperty component="basic"             name="stepNum"              id="self%stepNumID"        type="integer"      isCreator="yes"/>
+    <addMetaProperty component="basic"             name="granuleStatusHost"    id="self%statusHostID"     type="integer"      isCreator="yes"/>
+    <addMetaProperty component="basic"             name="granuleIdentityHost"  id="self%identityHostID"   type="longInteger"  isCreator="yes"/>
+    <addMetaProperty component="basic"             name="granuleIdentityHalo"  id="self%identityHaloID"   type="longInteger"  isCreator="yes"/>
     <addMetaProperty component="darkMatterProfile" name="solitonMassCore"      id="self%massCoreID"       isEvolvable="no"    isCreator="no" />
     <addMetaProperty component="darkMatterProfile" name="solitonDensityCore"   id="self%densityCoreID"    isEvolvable="no"    isCreator="no" />
     <addMetaProperty component="darkMatterProfile" name="solitonRadiusCore"    id="self%radiusCoreID"     isEvolvable="no"    isCreator="no" />
@@ -280,20 +295,39 @@ contains
               &                                                           tauRate
     type      (enumerationSolitonStatusType)                           :: solitonStatus
     double precision                          , dimension(3)           :: acceleration
-    !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
+    !$GLC attributes unused :: propertyType
 
     if (.not. node%isSatellite()) return
 
     satellite             => node%satellite()
     basic                 => node%basic    ()
     nodeHost              => node%parent
+    ! Evaluate the acceleration first. This gets the host mass distribution, which ensures that the soliton status of the host
+    ! is current before it is read below.
+    acceleration          =  self%acceleration(node)
     darkMatterProfileHost => nodeHost%darkMatterProfile()
     solitonStatus          = enumerationSolitonStatusType(darkMatterProfileHost%integerRank0MetaPropertyGet(self%solitonStatusID))
 
-    ! The Fourier coefficients, basis size, and maximum time are fixed at
-    ! initialization. The core frequency scales as sqrt(densityCore), so rescale
-    ! the phase rate by the ratio of the current frequency to its initial value.
-    ! An NFW-only halo has no core frequency and retains the unscaled phase rate.
+    ! The realization was drawn for a specific host in a specific soliton status. If the satellite has moved to a different host
+    ! (e.g. because its host merged, or because of sub-subhalo promotion), or the host has changed status (e.g. to soliton-only
+    ! after tidal stripping, or to NFW-only if no soliton solution exists), the reference frequency and the number of modes no
+    ! longer describe the host. Trigger an interrupt to draw a new realization for the current host.
+    if     (                                                                                                           &
+         &   solitonStatus%ID                            /= basic%integerRank0MetaPropertyGet    (self%statusHostID  ) &
+         &  .or.                                                                                                       &
+         &   satelliteGranuleHaloIdentity(self,nodeHost) /= basic%longIntegerRank0MetaPropertyGet(self%identityHostID) &
+         & ) then
+       interrupt         =  .true.
+       functionInterrupt => satelliteGranuleRealizationRedraw
+       self_             => self
+       return
+    end if
+
+    ! The Fourier coefficients, basis size, and maximum time are fixed for each
+    ! realization. The core frequency scales as sqrt(densityCore), so rescale
+    ! the phase rate by the ratio of the current frequency to its value when the
+    ! realization was drawn. An NFW-only halo has no core frequency and retains
+    ! the unscaled phase rate.
     maxTime                = basic%floatRank0MetaPropertyGet(self%maxTimeID)
     frequencyCoreReference = basic%floatRank0MetaPropertyGet(self%frequencyCoreID)
     if (solitonStatus == solitonStatusNfwOnly) then
@@ -303,15 +337,49 @@ contains
        frequencyCoreCurrent = 10.94d0*sqrt(densityCoreCurrent/1.0d18)
        tauRate              = 2.0d0*Pi/maxTime*frequencyCoreCurrent/frequencyCoreReference
     end if
-    acceleration = self%acceleration(node)
 
-    call basic%floatRank0MetaPropertyRate( &
-         & self%tauID,                     &
-         & tauRate                         &
-         &                                )
+    call basic%floatRank0MetaPropertyRate(self%tauID,tauRate)
     call satellite%velocityRate(acceleration)
     return
   end subroutine satelliteGranuleDifferentialEvolution
+
+  subroutine satelliteGranuleRealizationRedraw(node,timeEnd)
+    !!{RST
+    Draw a new granule realization for a satellite whose host halo, or the soliton status of its host halo, has changed since its
+    current realization was drawn.
+    !!}
+    use :: Galacticus_Nodes, only : treeNode
+    implicit none
+    type            (treeNode), intent(inout), target   :: node
+    double precision          , intent(in   ), optional :: timeEnd
+    !$GLC attributes unused :: timeEnd
+
+    call satelliteGranuleNodeInitialize(self_,node)
+    return
+  end subroutine satelliteGranuleRealizationRedraw
+
+  function satelliteGranuleHaloIdentity(self,node) result(identity)
+    !!{RST
+    Return the identity of ``node`` as a host of satellites perturbed by granules. This is set to the unique ID of ``node`` on
+    first use. It is stored in the basic component, which moves to the parent node when a node is promoted, so the identity
+    stays the same along the primary branch of a halo, and changes only when a satellite moves to a different halo.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Kind_Numbers    , only : kind_int8
+    implicit none
+    integer(kind_int8                  )                         :: identity
+    class  (nodeOperatorSatelliteGranule), intent(inout)         :: self
+    type   (treeNode                    ), intent(inout), target :: node
+    class  (nodeComponentBasic          ), pointer               :: basic
+
+    basic    => node %basic                          (                   )
+    identity =  basic%longIntegerRank0MetaPropertyGet(self%identityHaloID)
+    if (identity <= 0_kind_int8) then
+       identity = node%uniqueID()
+       call basic%longIntegerRank0MetaPropertySet(self%identityHaloID,identity)
+    end if
+    return
+  end function satelliteGranuleHaloIdentity
 
   subroutine satelliteGranuleNodesMerge(self,node)
     !!{RST
@@ -331,22 +399,29 @@ contains
     Initialize the stochastic granule state of a satellite. Reset the phase,
     store the integration time and core fluctuation frequency, and draw independent dimensionless Gaussian Fourier coefficients for the core and outer stochastic fields.    
     !!}
-    use :: Coordinates                     , only : coordinateSpherical         , assignment(=)
-    use :: Galacticus_Nodes                , only : nodeComponentBasic          , treeNode
-    use :: Mass_Distributions              , only : massDistributionClass
+    use :: Coordinates                        , only : coordinateSpherical         , assignment(=)
+    use :: Dark_Matter_Profiles_Soliton_Status, only : enumerationSolitonStatusType, solitonStatusNfwOnly          , solitonStatusSolitonNFW, &
+         &                                             solitonStatusSolitonOnly
+    use :: Error                              , only : Error_Report
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic          , nodeComponentDarkMatterProfile, treeNode
+    use :: Mass_Distributions                 , only : massDistributionClass       , kinematicsDistributionClass
     implicit none
-    class            (nodeOperatorSatelliteGranule), intent(inout), target     :: self
-    type             (treeNode                    ), intent(inout), target     :: node
-    type             (treeNode                    ),                pointer    :: nodeHost
-    class            (nodeComponentBasic          ),                pointer    :: basic                , basicHost
-    class            (massDistributionClass       )               , pointer    :: massDistributionHost_
-    type             (coordinateSpherical         )                            :: coordinates
-    double precision                               , dimension(:), allocatable :: axnCore              , aynCore          , &
-                     &                                                            aznCore              , axnOuter         , &
-                     &                                                            aynOuter             , aznOuter
-    double precision                                                           :: maxTime              , densityCentral    , &
-                     &                                                            frequencyCore        , alphaCoreComponent
-    integer                                                                    :: i                    , stepNum
+    class            (nodeOperatorSatelliteGranule  ), intent(inout), target     :: self
+    type             (treeNode                      ), intent(inout), target     :: node
+    type             (treeNode                      ),                pointer    :: nodeHost
+    class            (nodeComponentBasic            ),                pointer    :: basic                  , basicHost
+    class            (nodeComponentDarkMatterProfile),                pointer    :: darkMatterProfileHost
+    class            (massDistributionClass         )               , pointer    :: massDistributionHost_
+    class            (kinematicsDistributionClass   )               , pointer    :: kinematicsHost_
+    type             (coordinateSpherical           )                            :: coordinates
+    type             (enumerationSolitonStatusType  )                            :: solitonStatus
+    double precision                                 , dimension(:), allocatable :: axnCore                , aynCore           , &
+                     &                                                              aznCore                , axnOuter          , &
+                     &                                                              aynOuter               , aznOuter
+    double precision                                                             :: maxTime                , densityCore       , &
+                     &                                                              frequencyCore          , alphaCoreComponent, &
+                     &                                                              velocityDispersionJeans
+    integer                                                                      :: i                      , stepNum
 
     ! Initialize current satellites and secondary progenitors that can become
     ! satellites after a merger; skip primary or parentless central nodes.
@@ -371,16 +446,37 @@ contains
        nodeHost => node%parent%firstChild
     end if
     
+    ! Get the host mass distribution. Doing so first ensures that the soliton status of the host has been determined.
     massDistributionHost_ => self%darkMatterProfileDMO_%get(nodeHost)
-    coordinates           = [0.0d0,0.0d0,0.0d0]
-    densityCentral        =+massDistributionHost_%density(coordinates) !Msun/Mpc^3
-    
+    darkMatterProfileHost => nodeHost%darkMatterProfile()
+    solitonStatus         =  enumerationSolitonStatusType(darkMatterProfileHost%integerRank0MetaPropertyGet(self%solitonStatusID))
+    if      (solitonStatus == solitonStatusSolitonNFW .or. solitonStatus == solitonStatusSolitonOnly) then
+       ! Core oscillation frequency; reference density 10^9 Msun/kpc^3 = 10^18 Msun/Mpc^3 (Dutta Chowdhury et al. 2021). The
+       ! central density of the soliton is taken from the stored core density (which is the central density of the Schive et
+       ! al. 2014 profile), the same quantity used to rescale the phase rate as the host evolves, so that the rescaling starts
+       ! from exactly 1.
+       densityCore   =+darkMatterProfileHost%floatRank0MetaPropertyGet(self%densityCoreID) ! Msun/Mpc^3
+       frequencyCore =+10.94d0*sqrt(densityCore/1.0d18)                                    ! Gyr^-1
+    else if (solitonStatus == solitonStatusNfwOnly                                         ) then
+       ! An NFW-only host has no soliton, so no core frequency exists (and the central density of the NFW profile is
+       ! divergent). Instead use the outer granule frequency at the scale radius, which is close to the peak of the Jeans
+       ! velocity dispersion of an NFW profile, and so to the highest outer granule frequency in the host. This frequency sets
+       ! the number of Fourier modes, and is the reference for the (unscaled) phase rate of this host. The core term is zero
+       ! for this host, so the frequency plays no role in its normalization.
+       kinematicsHost_         => massDistributionHost_%kinematicsDistribution()
+       coordinates             =  [darkMatterProfileHost%scale(),0.0d0,0.0d0]
+       velocityDispersionJeans =  kinematicsHost_%velocityDispersion1D(coordinates,massDistributionHost_,massDistributionHost_) ! km/s
+       frequencyCore           =  frequencyGranuleOuter(self,velocityDispersionJeans)                                              ! Gyr^-1
+       !![
+       <objectDestructor name="kinematicsHost_"/>
+       !!]
+    else
+       frequencyCore           =  0.0d0
+       call Error_Report('soliton status of host halo is uninitialized'//{introspection:location})
+    end if
     !![
     <objectDestructor name="massDistributionHost_"/>
     !!]
-
-    ! Core oscillation frequency; reference density 10^9 Msun/kpc^3 = 10^18 Msun/Mpc^3 (Dutta Chowdhury et al. 2021).
-    frequencyCore = 10.94d0*(sqrt(densityCentral/1.0d18)) !Gyr^-1
 
     ! Truncate the Paley-Wiener Fourier series at m = 4*f_core*t_max.
     ! The factor 4 ensures empirical convergence of acceleration statistics.
@@ -394,6 +490,10 @@ contains
     call basic%floatRank0MetaPropertySet(self%frequencyCoreID ,frequencyCore)
     call basic%floatRank0MetaPropertySet(self%maxTimeID ,maxTime)
     call basic%integerRank0MetaPropertySet(self%stepNumID ,stepNum)
+    ! Record the host, and its soliton status, for which this realization is drawn, so that a new realization can be drawn if
+    ! either changes.
+    call basic%integerRank0MetaPropertySet    (self%statusHostID  ,solitonStatus%ID                       )
+    call basic%longIntegerRank0MetaPropertySet(self%identityHostID,satelliteGranuleHaloIdentity(self,nodeHost))
 
     ! The core acceleration is isotropic and a_eff^core denotes its total
     ! three-dimensional RMS amplitude, so each Cartesian component carries
@@ -439,9 +539,7 @@ contains
     use :: Dark_Matter_Profiles_Soliton_Status, only : enumerationSolitonStatusType, solitonStatusNfwOnly, solitonStatusSolitonOnly
     use :: Coordinates                        , only : coordinateSpherical  , assignment(=)
     use :: Mass_Distributions                 , only : massDistributionClass, kinematicsDistributionClass
-    use :: Numerical_Constants_Astronomical   , only : gigaYear             , gravitationalConstant_internal, MpcPerKmPerSToGyr
-    use :: Numerical_Constants_Prefixes       , only : kilo
-    use :: Numerical_Constants_Physical       , only : plancksConstant
+    use :: Numerical_Constants_Astronomical   , only : gravitationalConstant_internal, MpcPerKmPerSToGyr
     use :: Vectors                            , only : Vector_Magnitude
     implicit none
     double precision                                               , dimension(3):: granuleAcceleration
@@ -524,7 +622,7 @@ contains
         densityLocal                   =+massDistributionHost_%density(coordinates) ! Msun/Mpc^3
         amplCore                       = 0.0d0
         amplOuter                      = amplitudeOuter(self,velocityDispersionJeans,densityLocal)
-        frequencyOuter                 = self%massParticleSI*(velocityDispersionJeans*kilo)**2.0d0/0.35d0/sqrt(2.0d0)/plancksConstant*gigaYear
+        frequencyOuter                 = frequencyGranuleOuter(self,velocityDispersionJeans)
         velocityDispersionGranule      = velocityDispersionJeans
     else if (solitonStatus == solitonStatusSolitonOnly) then
         ! Soliton-only: retain the core fluctuation and omit the outer granule term.
@@ -555,17 +653,17 @@ contains
         if (radius<=radiusCore) then
             amplCore  = gravitationalConstant_internal*massCore/(radiusCore**2.0d0)/MpcPerKmPerSToGyr                                     ! km/s/Gyr
             amplOuter = amplitudeOuter(self,velocityDispersionJeansSoliton,densitySoliton)                                                ! km/s/Gyr
-            frequencyOuter = self%massParticleSI*(velocityDispersionJeansSoliton*kilo)**2.0d0/0.35d0/sqrt(2.0d0)/plancksConstant*gigaYear ! Gyr^-1
+            frequencyOuter = frequencyGranuleOuter(self,velocityDispersionJeansSoliton) ! Gyr^-1
             velocityDispersionGranule = velocityDispersionJeansSoliton
         else if (radius<=radiusSoliton) then
             amplCore  = 0.0d0
             amplOuter = amplitudeOuter(self,velocityDispersionJeansSoliton,densitySoliton)
-            frequencyOuter = self%massParticleSI*(velocityDispersionJeansSoliton*kilo)**2.0d0/0.35d0/sqrt(2.0d0)/plancksConstant*gigaYear
+            frequencyOuter = frequencyGranuleOuter(self,velocityDispersionJeansSoliton)
             velocityDispersionGranule = velocityDispersionJeansSoliton
         else
             amplCore  = 0.0d0
             amplOuter = amplitudeOuter(self,velocityDispersionJeans,densityLocal)
-            frequencyOuter = self%massParticleSI*(velocityDispersionJeans*kilo)**2.0d0/0.35d0/sqrt(2.0d0)/plancksConstant*gigaYear
+            frequencyOuter = frequencyGranuleOuter(self,velocityDispersionJeans)
             velocityDispersionGranule = velocityDispersionJeans
         end if
     end if
@@ -676,6 +774,27 @@ contains
     amplitudeOuter = gravitationalConstant_internal*meff/(deff**2.0d0)/MpcPerKmPerSToGyr        ! km/s/Gyr
     return
   end function amplitudeOuter
+
+  double precision function frequencyGranuleOuter(self,velocityDispersionJeans)
+    !!{RST
+    Return the characteristic frequency (in Gyr\ :math:`^{-1}`) of outer-halo granule fluctuations, :math:`f = m
+    \sigma^2/(0.35\sqrt{2}h)`, for a host with Jeans velocity dispersion ``velocityDispersionJeans`` (in km/s).
+    !!}
+    use :: Numerical_Constants_Astronomical, only : gigaYear
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Physical    , only : plancksConstant
+    implicit none
+    class           (nodeOperatorSatelliteGranule), intent(inout) :: self
+    double precision                              , intent(in   ) :: velocityDispersionJeans
+
+    frequencyGranuleOuter=+self%massParticleSI                &
+         &                *(velocityDispersionJeans*kilo)**2  &
+         &                /0.35d0                             &
+         &                /sqrt(2.0d0)                        &
+         &                /plancksConstant                    &
+         &                *gigaYear
+    return
+  end function frequencyGranuleOuter
 
   double precision function finiteSizeAmplitudeFactor(self,node,velocityDispersionJeans)
     !!{RST

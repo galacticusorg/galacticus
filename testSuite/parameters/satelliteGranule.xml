@@ -59,6 +59,10 @@
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <nodeOperator value="darkMatterProfileSoliton"/>
     <nodeOperator value="satelliteOrbit"/>
+    <!-- Tidal mass loss is needed so that the soliton-only host can form, by stripping a satellite down to its soliton. -->
+    <nodeOperator value="satelliteTidalMassLossSoliton">
+      <satelliteTidalStrippingCore value="du2018"/>
+    </nodeOperator>
     <nodeOperator value="satelliteGranule">
       <alphaCore value="0.3"/>
       <alphaOuter value="5.0"/>
@@ -88,10 +92,22 @@
     </mergerTreeEvolveTimestep>
   </mergerTreeEvolveTimestep>
 
+  <satelliteTidalStripping value="zentner2005"/>
+  <satelliteTidalStrippingRadius value="king1962">
+    <efficiencyCentrifugal value="0.0"/>
+  </satelliteTidalStrippingRadius>
+  <!-- Allow satellites to have satellites of their own, as needed for the soliton-only host. -->
+  <mergerTreeNodeMerger value="multiLevelHierarchy"/>
+  <!-- The first output time checks that each host has reached its intended state early in the evolution of its satellites. The
+       model is evolved for only a small fraction of an orbital period, so that each satellite remains within the same radial
+       region of its host. -->
   <outputTimes value="list">
-    <times value="8.02"/>
+    <times value="8.0005 8.002"/>
   </outputTimes>
-  <nodePropertyExtractor value="nodeIndices"/>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="soliton"   />
+  </nodePropertyExtractor>
   <mergerTreeOutputter value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputter>
