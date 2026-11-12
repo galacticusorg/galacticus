@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794408403876,
+  "lastUpdate": 1794448993473,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -7815,6 +7815,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/5edfc370ad5dfb2024a58da11c14579320e6f55d"
         },
         "date": 1794408402880,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 2.5556230227126364,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 3.208180339464448,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b80f507690ff89057955185e99d763a2648f4a83",
+          "message": "Merge pull request #1775 from galacticusorg/fix/nfs-table-close-errno\n\nfix(files): report errno for failed file closes and syncs, and do not sync after shared locks",
+          "timestamp": "2026-11-11T19:28:24Z",
+          "tree_id": "dcb9e712fdf122f1540c981ae214feb333e192a2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b80f507690ff89057955185e99d763a2648f4a83"
+        },
+        "date": 1794448992520,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
