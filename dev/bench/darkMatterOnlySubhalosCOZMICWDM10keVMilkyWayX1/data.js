@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794408318816,
+  "lastUpdate": 1794448919411,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 10keV resolutionX1)": [
@@ -5057,6 +5057,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 75.19477234251204,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b80f507690ff89057955185e99d763a2648f4a83",
+          "message": "Merge pull request #1775 from galacticusorg/fix/nfs-table-close-errno\n\nfix(files): report errno for failed file closes and syncs, and do not sync after shared locks",
+          "timestamp": "2026-11-11T19:28:24Z",
+          "tree_id": "dcb9e712fdf122f1540c981ae214feb333e192a2",
+          "url": "https://github.com/galacticusorg/galacticus/commit/b80f507690ff89057955185e99d763a2648f4a83"
+        },
+        "date": 1794448918869,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": -1.2319530043446099,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 0.16267419407177952,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:10keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 75.01092125351826,
             "unit": "-logℒ"
           }
         ]
