@@ -38,27 +38,40 @@ module Mass_Distributions_Spherical_Utilities
        !!}
        double precision, intent(in   ) :: radius1, radius2
      end function potentialDifferenceScaleFreeTemplate
+
+     double precision function timeFreefallSmallRadiusTemplate(radius)
+       !!{RST
+       Interface for functions returning an approximation to the freefall time from a small radius in a scale-free mass distribution.
+       !!}
+       double precision, intent(in   ) :: radius
+     end function timeFreefallSmallRadiusTemplate
   end interface
 
 contains
 
-  subroutine Mass_Distribution_Time_Freefall_Tabulate(timeFreefallScaleFree_,timeScaleFree,potentialDifferenceScaleFree,toleranceRelative)
+  subroutine Mass_Distribution_Time_Freefall_Tabulate(timeFreefallScaleFree_,timeScaleFree,potentialDifferenceScaleFree,toleranceRelative,radiusSmall,timeFreefallSmallRadius)
     !!{RST
     Extend the tabulation of the freefall time in a scale-free mass distribution, ``timeFreefallScaleFree_``, until it brackets
     ``timeScaleFree``. The freefall time from each radius is found by integrating over the potential difference given by
-    ``potentialDifferenceScaleFree``, to relative tolerance ``toleranceRelative``.
+    ``potentialDifferenceScaleFree``, to relative tolerance ``toleranceRelative``. If ``radiusSmall`` and
+    ``timeFreefallSmallRadius`` are given, the freefall time from radii no larger than ``radiusSmall`` is instead given by the
+    approximation ``timeFreefallSmallRadius``.
     !!}
+    use :: Error                , only : Error_Report
     use :: Numerical_Integration, only : integrator
     use :: Tabulations_Inverse  , only : tabulationInverse
     implicit none
     type            (tabulationInverse                   ), intent(inout)               :: timeFreefallScaleFree_
     double precision                                      , intent(in   )               :: timeScaleFree               , toleranceRelative
     procedure       (potentialDifferenceScaleFreeTemplate)                              :: potentialDifferenceScaleFree
+    double precision                                      , intent(in   ), optional     :: radiusSmall
+    procedure       (timeFreefallSmallRadiusTemplate     )               , optional     :: timeFreefallSmallRadius
     double precision                                      , allocatable  , dimension(:) :: radii
     double precision                                                                    :: radiusStart
     integer                                                                             :: i
     type            (integrator                          )                              :: integrator_
 
+    if (present(radiusSmall) .neqv. present(timeFreefallSmallRadius)) call Error_Report('`radiusSmall` and `timeFreefallSmallRadius` must be given together'//{introspection:location})
     ! Each point is an independent quadrature from the center out to its own radius, so a point carried over by an extension
     ! is precisely the value which would be computed afresh.
     if (.not.timeFreefallScaleFree_%brackets(timeScaleFree)) then
@@ -84,6 +97,12 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
 
+      if (present(radiusSmall)) then
+         if (radius <= radiusSmall) then
+            timeFreefallScaleFree=timeFreefallSmallRadius(radius)
+            return
+         end if
+      end if
       radiusStart          =                            radius
       timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
       return
