@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "5edfc370ad5dfb2024a58da11c14579320e6f55d",
-        "message": "Merge pull request #1765 from galacticusorg/refactor/consolidate-quadrature-helpers\n\nrefactor: consolidate duplicated quadrature and dust emission helpers\n",
-        "timestamp": "2026-11-10 21:17:10+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/5edfc370ad5dfb2024a58da11c14579320e6f55d"
+        "id": "b80f507690ff89057955185e99d763a2648f4a83",
+        "message": "Merge pull request #1775 from galacticusorg/fix/nfs-table-close-errno\n\nfix(files): report errno for failed file closes and syncs, and do not sync after shared locks\n",
+        "timestamp": "2026-11-11 19:28:24+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/b80f507690ff89057955185e99d763a2648f4a83"
     },
     "results": [
         {
@@ -192,11 +192,11 @@ window.ANALYSES_DATA = {
                     0.02142857142857143,
                     0.026180381919460975,
                     0.05725338519546886,
-                    0.15063917628537435,
+                    0.15063917628537438,
                     0.27622942740955464,
-                    0.4772184714037133,
+                    0.4772184714037132,
                     0.9616860914369194,
-                    1.7245429943162116,
+                    1.7245429943162118,
                     3.022385236381515,
                     5.301992536064734,
                     8.634189774658243,
@@ -243,7 +243,7 @@ window.ANALYSES_DATA = {
                     0.08418316314741078,
                     0.11586011173755557,
                     0.16361132827721536,
-                    0.21688948665312724,
+                    0.2168894866531272,
                     0.26988533953105937,
                     0.342300614652267,
                     0.411164684519371,
