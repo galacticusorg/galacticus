@@ -69,7 +69,7 @@ program Tests_Merger_Tree_Branching
   type            (mergerTreeBranchingProbabilityModifierIdentity              )                           :: mergerTreeBranchingProbabilityModifierIdentity_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                           :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (mergerTreeBranchingProbabilityParkinsonColeHelly            ), dimension(            3) :: mergerTreeBranchingProbabilityParkinsonColeHelly_
-  type            (mergerTreeBranchingProbabilityGeneralizedPressSchechter             ), dimension(            5) :: mergerTreeBranchingProbabilityGeneralizedPressSchechter_
+  type            (mergerTreeBranchingProbabilityGeneralizedPressSchechter     ), dimension(            7) :: mergerTreeBranchingProbabilityGeneralizedPressSchechter_
   double precision                                                                                         :: time                                                                              , rootVarianceParent                             , &
        &                                                                                                      rootVarianceResolution                                                            , branchingProbabilityRate                       , &
        &                                                                                                      accretionRate                                                                     , criticalOverdensity_                           , &
@@ -89,6 +89,12 @@ program Tests_Merger_Tree_Branching
        &                                                                                                      variance_
   integer                                                                                                  :: i                                                                                 , j
   character       (len=16                                                      )                           :: label
+  ! Data used by the test of continuity of the mass loss rate across the mass resolution.
+  integer                                                                       , parameter                :: countContinuity                                               =3
+  integer                                                                       , dimension(countContinuity), parameter :: indexContinuity                                     =[1,6,7]
+  character       (len=24                                                      ), dimension(countContinuity), parameter :: labelContinuity                                     =['lower half              ','full range; normalized  ','full range; unnormalized']
+  double precision                                                              , parameter                :: massContinuityLower                                           =1.0d11             , massContinuityUpper       =1.2d11
+  double precision                                                                                         :: massMeanContinuity
   ! Data used by the closed-form test of the first crossing distribution of a Brownian bridge.
   integer                                                                       , parameter                :: countBridge                                                   =20000
   double precision                                                                                         :: varianceBridge                                                                    , heightBridge                                   , &
@@ -336,66 +342,90 @@ program Tests_Merger_Tree_Branching
        &                                                                                                                       linearGrowth_                           =linearGrowthCollisionlessMatter_                             , &
        &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                        &
        &                                                                                                                      )
-  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(1)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
-       &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
-       &                                                                                                                       massMinimum                             =1.0d+0                                                       , &
-       &                                                                                                                       smoothAccretion                         =.false.                                                      , &
-       &                                                                                                                       distributionFunctionLowerHalfOnly       =.true.                                                       , &
-       &                                                                                                                       distributionFunctionNormalize           =.true.                                                       , &
-       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
-       &                                                                                                                       criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
-       &                                                                                                                       cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
-       &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
-       &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
-       &                                                                                                                      )
-  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(2)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
-       &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
-       &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
-       &                                                                                                                       smoothAccretion                         =.false.                                                      , &
-       &                                                                                                                       distributionFunctionLowerHalfOnly       =.true.                                                       , &
-       &                                                                                                                       distributionFunctionNormalize           =.true.                                                       , &
-       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
-       &                                                                                                                       criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
-       &                                                                                                                       cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
-       &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
-       &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
-       &                                                                                                                      )
-  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(3)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
-       &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
-       &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
-       &                                                                                                                       smoothAccretion                         =.false.                                                      , &
-       &                                                                                                                       distributionFunctionLowerHalfOnly       =.true.                                                       , &
-       &                                                                                                                       distributionFunctionNormalize           =.true.                                                       , &
-       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
-       &                                                                                                                       criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
-       &                                                                                                                       cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
-       &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingFarahiMidpoint_                     , &
-       &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
-       &                                                                                                                      )
-  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(4)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
-       &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
-       &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
-       &                                                                                                                       smoothAccretion                         =.true.                                                       , &
-       &                                                                                                                       distributionFunctionLowerHalfOnly       =.true.                                                       , &
-       &                                                                                                                       distributionFunctionNormalize           =.true.                                                       , &
-       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
-       &                                                                                                                       criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
-       &                                                                                                                       cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
-       &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
-       &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
-       &                                                                                                                      )
-  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(5)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter              (                                                                                                        &
-       &                                                                                                                       deltaStepMaximum                        =1.0d-1                                                       , &
-       &                                                                                                                       massMinimum                             =1.0d-1*massResolution                                        , &
-       &                                                                                                                       smoothAccretion                         =.true.                                                       , &
-       &                                                                                                                       distributionFunctionLowerHalfOnly       =.true.                                                       , &
-       &                                                                                                                       distributionFunctionNormalize           =.true.                                                       , &
-       &                                                                                                                       cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
-       &                                                                                                                       criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
-       &                                                                                                                       cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
-       &                                                                                                                       excursionSetFirstCrossing_              =excursionSetFirstCrossingFarahiMidpoint_                     , &
-       &                                                                                                                       mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
-       &                                                                                                                      )
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(1)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter(                                                                                                        &
+       &                                                                                                                         deltaStepMaximum                        =1.0d-1                                                       , &
+       &                                                                                                                         massMinimum                             =1.0d+0                                                       , &
+       &                                                                                                                         smoothAccretion                         =.false.                                                      , &
+       &                                                                                                                         distributionFunctionLowerHalfOnly       =.true.                                                       , &
+       &                                                                                                                         distributionFunctionNormalize           =.true.                                                       , &
+       &                                                                                                                         cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                         criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                         cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                         excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
+       &                                                                                                                         mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                        )
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(2)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter(                                                                                                        &
+       &                                                                                                                         deltaStepMaximum                        =1.0d-1                                                       , &
+       &                                                                                                                         massMinimum                             =1.0d-1*massResolution                                        , &
+       &                                                                                                                         smoothAccretion                         =.false.                                                      , &
+       &                                                                                                                         distributionFunctionLowerHalfOnly       =.true.                                                       , &
+       &                                                                                                                         distributionFunctionNormalize           =.true.                                                       , &
+       &                                                                                                                         cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                         criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                         cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                         excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
+       &                                                                                                                         mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                        )
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(3)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter(                                                                                                        &
+       &                                                                                                                         deltaStepMaximum                        =1.0d-1                                                       , &
+       &                                                                                                                         massMinimum                             =1.0d-1*massResolution                                        , &
+       &                                                                                                                         smoothAccretion                         =.false.                                                      , &
+       &                                                                                                                         distributionFunctionLowerHalfOnly       =.true.                                                       , &
+       &                                                                                                                         distributionFunctionNormalize           =.true.                                                       , &
+       &                                                                                                                         cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                         criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                         cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                         excursionSetFirstCrossing_              =excursionSetFirstCrossingFarahiMidpoint_                     , &
+       &                                                                                                                         mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                        )
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(4)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter(                                                                                                        &
+       &                                                                                                                         deltaStepMaximum                        =1.0d-1                                                       , &
+       &                                                                                                                         massMinimum                             =1.0d-1*massResolution                                        , &
+       &                                                                                                                         smoothAccretion                         =.true.                                                       , &
+       &                                                                                                                         distributionFunctionLowerHalfOnly       =.true.                                                       , &
+       &                                                                                                                         distributionFunctionNormalize           =.true.                                                       , &
+       &                                                                                                                         cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                         criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                         cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                         excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
+       &                                                                                                                         mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                        )
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(5)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter(                                                                                                        &
+       &                                                                                                                         deltaStepMaximum                        =1.0d-1                                                       , &
+       &                                                                                                                         massMinimum                             =1.0d-1*massResolution                                        , &
+       &                                                                                                                         smoothAccretion                         =.true.                                                       , &
+       &                                                                                                                         distributionFunctionLowerHalfOnly       =.true.                                                       , &
+       &                                                                                                                         distributionFunctionNormalize           =.true.                                                       , &
+       &                                                                                                                         cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                         criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                         cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                         excursionSetFirstCrossing_              =excursionSetFirstCrossingFarahiMidpoint_                     , &
+       &                                                                                                                         mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                        )
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(6)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter(                                                                                                        &
+       &                                                                                                                         deltaStepMaximum                        =1.0d-1                                                       , &
+       &                                                                                                                         massMinimum                             =1.0d+0                                                       , &
+       &                                                                                                                         smoothAccretion                         =.false.                                                      , &
+       &                                                                                                                         distributionFunctionLowerHalfOnly       =.false.                                                      , &
+       &                                                                                                                         distributionFunctionNormalize           =.true.                                                       , &
+       &                                                                                                                         cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                         criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                         cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                         excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
+       &                                                                                                                         mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                        )
+  mergerTreeBranchingProbabilityGeneralizedPressSchechter_(7)           =mergerTreeBranchingProbabilityGeneralizedPressSchechter(                                                                                                        &
+       &                                                                                                                         deltaStepMaximum                        =1.0d-1                                                       , &
+       &                                                                                                                         massMinimum                             =1.0d+0                                                       , &
+       &                                                                                                                         smoothAccretion                         =.false.                                                      , &
+       &                                                                                                                         distributionFunctionLowerHalfOnly       =.false.                                                      , &
+       &                                                                                                                         distributionFunctionNormalize           =.false.                                                      , &
+       &                                                                                                                         cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_                              , &
+       &                                                                                                                         criticalOverdensity_                    =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_, &
+       &                                                                                                                         cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                                                                                         excursionSetFirstCrossing_              =excursionSetFirstCrossingLinearBarrier_                      , &
+       &                                                                                                                         mergerTreeBranchingProbabilityModifier_ =mergerTreeBranchingProbabilityModifierIdentity_                &
+       &                                                                                                                        )
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Merger tree branching")
   ! Set up physical system to be tested.
@@ -455,6 +485,27 @@ program Tests_Merger_Tree_Branching
      call Assert('Branching probability rate',branchingProbabilityRate,branchingProbabilityRateTargetGeneral,relTol=2.5d-2)
      call Assert('Accretion rate'            ,accretionRate           ,accretionRateTargetGeneral           ,relTol=2.5d-2)
      call Assert('Smooth accretion rate'     ,smoothAccretionRate     ,smoothAccretionRateTargetGeneral     ,relTol=2.5d-2)
+     call Unit_Tests_End_Group  (                                             )
+     ! Test that the rate of mass loss per unit progenitor mass is continuous across the mass resolution. Mass loss below the
+     ! resolution is given by the subresolution fraction, F(Mᵣ), and above it by the branching probability, P(Mᵣ). Both are
+     ! integrals over the same progenitor mass function, n(m), so continuity requires dF/dMᵣ = -(Mᵣ/M) dP/dMᵣ, in every mode
+     ! (see https://github.com/galacticusorg/galacticus/issues/1770). Over an interval [M₁,M₂] of resolution,
+     ! M [F(M₂)-F(M₁)]/[P(M₁)-P(M₂)] is then the mean of m weighted by n(m), which must lie in [M₁,M₂]. A normalization of F which
+     ! differs from that of P by a factor of 2 would place it in [2M₁,2M₂], or [M₁/2,M₂/2], instead.
+     call Unit_Tests_Begin_Group("Generalized Press-Schechter mass loss continuity across the resolution")
+     do k=1,countContinuity
+        massMeanContinuity=+massParent                                                                                                                                                          &
+             &             *(                                                                                                                                                                   &
+             &               +mergerTreeBranchingProbabilityGeneralizedPressSchechter_(indexContinuity(k))%fractionSubresolution(massParent,criticalOverdensity_,time,massContinuityUpper,node) &
+             &               -mergerTreeBranchingProbabilityGeneralizedPressSchechter_(indexContinuity(k))%fractionSubresolution(massParent,criticalOverdensity_,time,massContinuityLower,node) &
+             &              )                                                                                                                                                                   &
+             &             /(                                                                                                                                                                   &
+             &               +mergerTreeBranchingProbabilityGeneralizedPressSchechter_(indexContinuity(k))%probability          (massParent,criticalOverdensity_,time,massContinuityLower,node) &
+             &               -mergerTreeBranchingProbabilityGeneralizedPressSchechter_(indexContinuity(k))%probability          (massParent,criticalOverdensity_,time,massContinuityUpper,node) &
+             &              )
+        call Assert(trim(labelContinuity(k))//': mean mass > M₁',massMeanContinuity,massContinuityLower,compare=compareGreaterThan)
+        call Assert(trim(labelContinuity(k))//': mean mass < M₂',massMeanContinuity,massContinuityUpper,compare=compareLessThan   )
+     end do
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_End_Group  (                                             )
      call Unit_Tests_Begin_Group("First crossing distribution (numerical)"    )
@@ -559,17 +610,17 @@ program Tests_Merger_Tree_Branching
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("Probability bounds are exact for constant α")
   do i=1,countIdentity
-     branchingIdentity_(i)=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                             &
-          &                                                                 G0                       =G0Identity                                  (i) , &
-          &                                                                 gamma1                   =gamma1Identity                              (i) , &
-          &                                                                 gamma2                   =gamma2Identity                              (i) , &
-          &                                                                 accuracyFirstOrder       =1.0d-1                                          , &
-          &                                                                 precisionHypergeometric  =1.0d-6                                          , &
-          &                                                                 hypergeometricTabulate   =tabulateIdentity                            (i) , &
-          &                                                                 cdmAssumptions           =.true.                                          , &
-          &                                                                 tolerateRoundOffErrors   =.false.                                         , &
-          &                                                                 cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_           , &
-          &                                                                 criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_ &
+     branchingIdentity_(i)=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                            &
+          &                                                                 G0                       =G0Identity                                                   (i), &
+          &                                                                 gamma1                   =gamma1Identity                                               (i), &
+          &                                                                 gamma2                   =gamma2Identity                                               (i), &
+          &                                                                 accuracyFirstOrder       =1.0d-1                                                          , &
+          &                                                                 precisionHypergeometric  =1.0d-6                                                          , &
+          &                                                                 hypergeometricTabulate   =tabulateIdentity                                             (i), &
+          &                                                                 cdmAssumptions           =.true.                                                          , &
+          &                                                                 tolerateRoundOffErrors   =.false.                                                         , &
+          &                                                                 cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                          , &
+          &                                                                 criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_     &
           &                                                                )
      do j=1,countRatio
         massResolution_       =massParent/ratioResolution(j)
@@ -606,32 +657,32 @@ program Tests_Merger_Tree_Branching
   ! the singular point of the hypergeometric function and the evaluation must fall back to the more robust form.
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("Probability bounds bracket the probability")
-  branchingOrdering_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                                     &
-       &                                                              G0                       =0.57d0                                                                   , &
-       &                                                              gamma1                   =0.38d0                                                                   , &
-       &                                                              gamma2                   =-0.01d0                                                                  , &
-       &                                                              accuracyFirstOrder       =1.0d-1                                                                   , &
-       &                                                              precisionHypergeometric  =1.0d-6                                                                   , &
-       &                                                              hypergeometricTabulate   =.false.                                                                  , &
-       &                                                              cdmAssumptions           =.false.                                                                  , &
-       &                                                              tolerateRoundOffErrors   =.false.                                                                  , &
-       &                                                              cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
-       &                                                              criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+  branchingOrdering_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                         &
+       &                                                              G0                       =0.57d0                                                       , &
+       &                                                              gamma1                   =0.38d0                                                       , &
+       &                                                              gamma2                   =-0.01d0                                                      , &
+       &                                                              accuracyFirstOrder       =1.0d-1                                                       , &
+       &                                                              precisionHypergeometric  =1.0d-6                                                       , &
+       &                                                              hypergeometricTabulate   =.false.                                                      , &
+       &                                                              cdmAssumptions           =.false.                                                      , &
+       &                                                              tolerateRoundOffErrors   =.false.                                                      , &
+       &                                                              cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                              criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                             )
   ! γ₁=0 places the effective exponent γ₁-1/α at exactly 3, an odd integer, at which the third parameter of the hypergeometric
   ! function vanishes and its evaluation fails. Tabulation is disabled here because only the direct evaluation carries the
   ! fallback to the more robust bound; the tabulation of the upper bound has no such fallback.
-  branchingPole_    =mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                                     &
-       &                                                              G0                       =1.0d0                                                                    , &
-       &                                                              gamma1                   =0.0d0                                                                    , &
-       &                                                              gamma2                   =0.0d0                                                                    , &
-       &                                                              accuracyFirstOrder       =1.0d-1                                                                   , &
-       &                                                              precisionHypergeometric  =1.0d-6                                                                   , &
-       &                                                              hypergeometricTabulate   =.false.                                                                  , &
-       &                                                              cdmAssumptions           =.true.                                                                   , &
-       &                                                              tolerateRoundOffErrors   =.false.                                                                  , &
-       &                                                              cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
-       &                                                              criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+  branchingPole_    =mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                         &
+       &                                                              G0                       =1.0d0                                                        , &
+       &                                                              gamma1                   =0.0d0                                                        , &
+       &                                                              gamma2                   =0.0d0                                                        , &
+       &                                                              accuracyFirstOrder       =1.0d-1                                                       , &
+       &                                                              precisionHypergeometric  =1.0d-6                                                       , &
+       &                                                              hypergeometricTabulate   =.false.                                                      , &
+       &                                                              cdmAssumptions           =.true.                                                       , &
+       &                                                              tolerateRoundOffErrors   =.false.                                                      , &
+       &                                                              cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                              criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                             )
   do j=1,countRatio
      massResolution_       =massParent/ratioResolution(j)
@@ -673,25 +724,25 @@ program Tests_Merger_Tree_Branching
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("Subresolution accretion rate has an elementary closed form")
   do i=1,countClosedForm
-     branchingClosedForm_(i)=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                             &
-          &                                                                   G0                       =1.0d0                                           , &
-          &                                                                   gamma1                   =gamma1ClosedForm                            (i) , &
-          &                                                                   gamma2                   =0.0d0                                           , &
-          &                                                                   accuracyFirstOrder       =1.0d-1                                          , &
-          &                                                                   precisionHypergeometric  =1.0d-6                                          , &
-          &                                                                   hypergeometricTabulate   =tabulateClosedForm                          (i) , &
-          &                                                                   cdmAssumptions           =.false.                                         , &
-          &                                                                   tolerateRoundOffErrors   =.false.                                         , &
-          &                                                                   cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_           , &
-          &                                                                   criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_ &
+     branchingClosedForm_(i)=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                            &
+          &                                                                   G0                       =1.0d0                                                           , &
+          &                                                                   gamma1                   =gamma1ClosedForm                                             (i), &
+          &                                                                   gamma2                   =0.0d0                                                           , &
+          &                                                                   accuracyFirstOrder       =1.0d-1                                                          , &
+          &                                                                   precisionHypergeometric  =1.0d-6                                                          , &
+          &                                                                   hypergeometricTabulate   =tabulateClosedForm                                           (i), &
+          &                                                                   cdmAssumptions           =.false.                                                         , &
+          &                                                                   tolerateRoundOffErrors   =.false.                                                         , &
+          &                                                                   cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                          , &
+          &                                                                   criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_    &
           &                                                                  )
      do j=1,countX
         massResolution_        =massParent/(1.0d0+xTarget(j))**3
         sigmaResolutionAnalytic=cosmologicalMassVarianceFilteredPower_%rootVariance(massResolution_,timeAnalytic)
         xActual         (j)    =sigmaResolutionAnalytic/sigmaParentAnalytic-1.0d0
         fractionActual  (j)    =branchingClosedForm_(i)%fractionSubresolution(massParent,deltaAnalytic,timeAnalytic,massResolution_,node)
-        fractionExpected(j)    =+sqrt(2.0d0/Pi)                                              &
-             &                  /sigmaParentAnalytic                                         &
+        fractionExpected(j)    =+sqrt(2.0d0/Pi)                                 &
+             &                  /sigmaParentAnalytic                            &
              &                  *factorAnalytic(xActual(j),gamma1ClosedForm(i))
      end do
      write (label,'(a,f5.2)') "γ₁ = ",gamma1ClosedForm(i)
@@ -720,17 +771,17 @@ program Tests_Merger_Tree_Branching
   ! reaches it. They tie together three methods which have no analytic solution of their own.
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("Rate, probability, and branch mass are mutually consistent")
-  branchingGeneric_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                                     &
-       &                                                             G0                       =0.57d0                                                                   , &
-       &                                                             gamma1                   =0.38d0                                                                   , &
-       &                                                             gamma2                   =-0.01d0                                                                  , &
-       &                                                             accuracyFirstOrder       =1.0d-1                                                                   , &
-       &                                                             precisionHypergeometric  =1.0d-6                                                                   , &
-       &                                                             hypergeometricTabulate   =.false.                                                                  , &
-       &                                                             cdmAssumptions           =.false.                                                                  , &
-       &                                                             tolerateRoundOffErrors   =.false.                                                                  , &
-       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
-       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+  branchingGeneric_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                         &
+       &                                                             G0                       =0.57d0                                                       , &
+       &                                                             gamma1                   =0.38d0                                                       , &
+       &                                                             gamma2                   =-0.01d0                                                      , &
+       &                                                             accuracyFirstOrder       =1.0d-1                                                       , &
+       &                                                             precisionHypergeometric  =1.0d-6                                                       , &
+       &                                                             hypergeometricTabulate   =.false.                                                      , &
+       &                                                             cdmAssumptions           =.false.                                                      , &
+       &                                                             tolerateRoundOffErrors   =.false.                                                      , &
+       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                            )
   massResolution_ =massParent/1.0d3
   probabilityFull =branchingGeneric_%probability(massParent,deltaAnalytic,timeAnalytic,massResolution_,node)
@@ -758,29 +809,29 @@ program Tests_Merger_Tree_Branching
   ! cumulative distribution of a sample drawn from the former is compared here with that implied by the latter.
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("Branch mass sampler reproduces the branching rate")
-  branchingSampler_     =mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                                &
-       &                                                             G0                       =0.57d0                                                                   , &
-       &                                                             gamma1                   =0.38d0                                                                   , &
-       &                                                             gamma2                   =-0.01d0                                                                  , &
-       &                                                             accuracyFirstOrder       =1.0d-1                                                                   , &
-       &                                                             precisionHypergeometric  =1.0d-6                                                                   , &
-       &                                                             hypergeometricTabulate   =.false.                                                                  , &
-       &                                                             cdmAssumptions           =.true.                                                                   , &
-       &                                                             tolerateRoundOffErrors   =.false.                                                                  , &
-       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
-       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+  branchingSampler_     =mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                    &
+       &                                                             G0                       =0.57d0                                                       , &
+       &                                                             gamma1                   =0.38d0                                                       , &
+       &                                                             gamma2                   =-0.01d0                                                      , &
+       &                                                             accuracyFirstOrder       =1.0d-1                                                       , &
+       &                                                             precisionHypergeometric  =1.0d-6                                                       , &
+       &                                                             hypergeometricTabulate   =.false.                                                      , &
+       &                                                             cdmAssumptions           =.true.                                                       , &
+       &                                                             tolerateRoundOffErrors   =.false.                                                      , &
+       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                            )
-  branchingSamplerGeneric_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                              &
-       &                                                             G0                       =0.57d0                                                                   , &
-       &                                                             gamma1                   =0.38d0                                                                   , &
-       &                                                             gamma2                   =-0.01d0                                                                  , &
-       &                                                             accuracyFirstOrder       =1.0d-1                                                                   , &
-       &                                                             precisionHypergeometric  =1.0d-6                                                                   , &
-       &                                                             hypergeometricTabulate   =.false.                                                                  , &
-       &                                                             cdmAssumptions           =.false.                                                                  , &
-       &                                                             tolerateRoundOffErrors   =.false.                                                                  , &
-       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
-       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+  branchingSamplerGeneric_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                  &
+       &                                                             G0                       =0.57d0                                                       , &
+       &                                                             gamma1                   =0.38d0                                                       , &
+       &                                                             gamma2                   =-0.01d0                                                      , &
+       &                                                             accuracyFirstOrder       =1.0d-1                                                       , &
+       &                                                             precisionHypergeometric  =1.0d-6                                                       , &
+       &                                                             hypergeometricTabulate   =.false.                                                      , &
+       &                                                             cdmAssumptions           =.false.                                                      , &
+       &                                                             tolerateRoundOffErrors   =.false.                                                      , &
+       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                       , &
+       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_  &
        &                                                            )
   ! The cumulative distribution of the branch mass requires no special functions of its own: the branching probability evaluated
   ! for a resolution m is precisely the integral of the branching rate from m up to half the parent mass, so the fraction of
@@ -821,34 +872,34 @@ program Tests_Merger_Tree_Branching
   ! function against the unfused form used by its parent.
   ! ----------------------------------------------------------------------------------------------------------------------------------
   call Unit_Tests_Begin_Group("PCH+ reductions")
-  branchingReference_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                                   &
-       &                                                             G0                       =0.57d0                                                                   , &
-       &                                                             gamma1                   =0.38d0                                                                   , &
-       &                                                             gamma2                   =-0.01d0                                                                  , &
-       &                                                             accuracyFirstOrder       =1.0d-1                                                                   , &
-       &                                                             precisionHypergeometric  =1.0d-6                                                                   , &
-       &                                                             hypergeometricTabulate   =.false.                                                                  , &
-       &                                                             cdmAssumptions           =.true.                                                                   , &
-       &                                                             tolerateRoundOffErrors   =.false.                                                                  , &
-       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                    , &
-       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_              &
+  branchingReference_=mergerTreeBranchingProbabilityParkinsonColeHelly(                                                                                          &
+       &                                                             G0                       =0.57d0                                                          , &
+       &                                                             gamma1                   =0.38d0                                                          , &
+       &                                                             gamma2                   =-0.01d0                                                         , &
+       &                                                             accuracyFirstOrder       =1.0d-1                                                          , &
+       &                                                             precisionHypergeometric  =1.0d-6                                                          , &
+       &                                                             hypergeometricTabulate   =.false.                                                         , &
+       &                                                             cdmAssumptions           =.true.                                                          , &
+       &                                                             tolerateRoundOffErrors   =.false.                                                         , &
+       &                                                             cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                          , &
+       &                                                             criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_     &
        &                                                            )
   do i=1,3
-     branchingPCHPlus_(i)=mergerTreeBranchingProbabilityPCHPlus(                                                                                                          &
-          &                                                     G0                       =0.57d0                                                                       , &
-          &                                                     gamma1                   =0.38d0                                                                       , &
-          &                                                     gamma2                   =-0.01d0                                                                      , &
-          &                                                     gamma3                   =gamma3PCHPlus                                                          (i) , &
-          &                                                     gamma4                   =gamma4PCHPlus                                                          (i) , &
-          &                                                     gamma5                   =gamma5PCHPlus                                                          (i) , &
-          &                                                     accuracyFirstOrder       =1.0d-1                                                                       , &
-          &                                                     precisionHypergeometric  =1.0d-6                                                                       , &
-          &                                                     hypergeometricTabulate   =.false.                                                                      , &
-          &                                                     cdmAssumptions           =.true.                                                                       , &
-          &                                                     tolerateRoundOffErrors   =.false.                                                                      , &
-          &                                                     cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                                        , &
-          &                                                     criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_                 , &
-          &                                                     linearGrowth_            =linearGrowthCollisionlessMatter_                                               &
+     branchingPCHPlus_(i)=mergerTreeBranchingProbabilityPCHPlus(                                                                                                 &
+          &                                                     G0                       =0.57d0                                                               , &
+          &                                                     gamma1                   =0.38d0                                                               , &
+          &                                                     gamma2                   =-0.01d0                                                              , &
+          &                                                     gamma3                   =gamma3PCHPlus                                                     (i), &
+          &                                                     gamma4                   =gamma4PCHPlus                                                     (i), &
+          &                                                     gamma5                   =gamma5PCHPlus                                                     (i), &
+          &                                                     accuracyFirstOrder       =1.0d-1                                                               , &
+          &                                                     precisionHypergeometric  =1.0d-6                                                               , &
+          &                                                     hypergeometricTabulate   =.false.                                                              , &
+          &                                                     cdmAssumptions           =.true.                                                               , &
+          &                                                     tolerateRoundOffErrors   =.false.                                                              , &
+          &                                                     cosmologicalMassVariance_=cosmologicalMassVarianceFilteredPower_                               , &
+          &                                                     criticalOverdensity_     =criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_        , &
+          &                                                     linearGrowth_            =linearGrowthCollisionlessMatter_                                       &
           &                                                    )
   end do
   massResolution_=massParent/1.0d3
