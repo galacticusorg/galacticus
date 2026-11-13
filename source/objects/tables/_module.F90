@@ -31,11 +31,12 @@ module Tables
   use :: Numerical_Ranges       , only : rangeLattice
   use :: Table_Labels           , only : enumerationExtrapolationTypeType
   private
-  public :: table                          , table1D                          , table1DGeneric                    , &
-       &    table1DLinearLinear            , table1DLogarithmicLinear         , table1DNonUniformLinearLogarithmic, &
-       &    table1DLinearCSpline           , table1DLogarithmicCSpline        , table2DLogLogLin                  , &
-       &    table1DLinearMonotoneCSpline   , table1DLogarithmicMonotoneCSpline, table2DLinLinLin                  , &
-       &    tablesIntegrationWeightFunction, table1DMonotoneCSpline           , table2D
+  public :: table                              , table1D                                 , table1DGeneric                    , &
+       &    table1DLinearLinear                , table1DLogarithmicLinear                , table1DNonUniformLinearLogarithmic, &
+       &    table1DLinearCSpline               , table1DLogarithmicCSpline               , table2DLogLogLin                  , &
+       &    table1DLinearMonotoneCSpline       , table1DLogarithmicMonotoneCSpline       , table2DLinLinLin                  , &
+       &    tablesIntegrationWeightFunction    , table1DMonotoneCSpline                  , table2D                           , &
+       &    table1DLinearMonotoneQuinticHermite, table1DLogarithmicMonotoneQuinticHermite
 
   !![
   <enumeration docformat="rst">
@@ -346,6 +347,66 @@ module Tables
      procedure :: x                   => Table_Logarithmic_Monotone_CSpline_1D_X
      procedure :: xs                  => Table_Logarithmic_Monotone_CSpline_1D_Xs
   end type table1DLogarithmicMonotoneCSpline
+
+  type, extends(table1DLinearCSpline) :: table1DLinearMonotoneQuinticHermite
+     !!{RST
+     Table type supporting one dimensional table with linear spacing in :math:`x` and monotonicity-preserving, local, quintic
+     Hermite interpolation.
+
+     Each interval is interpolated by the quintic polynomial matching the tabulated values, and the first and second derivatives
+     estimated at its two ends, so the interpolant is continuous in its value and in its first and second derivatives. The
+     derivatives at each point are estimated from the tabulated values by sixth-order (seven-point) central differences, then
+     limited to guarantee monotonicity:
+
+     * where the tabulated values on either side of a point are equal, or change in opposite directions (a local extremum of the
+       data), both derivatives are set to zero;
+     * otherwise the first derivative, :math:`y^\prime`, is constrained to have the sign of the data, with :math:`|y^\prime|
+       \le a \min(|\Delta_-|,|\Delta_+|)` where :math:`\Delta_\pm` are the slopes of the secants to the neighboring points, and
+       the second derivative to :math:`|y^{\prime\prime}| \le \beta |y^\prime|/h`, where :math:`h` is the spacing of the table.
+
+     With :math:`(a,\beta)=(1.75,3)` the interpolating quintic in an interval whose ends both satisfy these constraints is
+     monotonic: its gradient is linear in the four end derivatives, each end is constrained to a triangle in the
+     :math:`(y^\prime,y^{\prime\prime})` plane, and the gradient is non-negative (for increasing data) at every vertex of their
+     product. For smooth data the constraints are far from binding---the derivatives of a smooth function sampled on a fine grid
+     satisfy :math:`y^\prime\approx\Delta_\pm` and :math:`|y^{\prime\prime}|h \ll |y^\prime|`---so the limiter is then inactive,
+     and does not degrade the accuracy of the interpolant.
+
+     The interpolant is *local*: its value in the :math:`i^\mathrm{th}` interval depends only on points :math:`i-3` to
+     :math:`i+4`. Points within three of either end of the table lack the full stencil, and use lower-order differences, so
+     interpolation in the three intervals at each end depends on the extent of the table. Elsewhere, for a table built on an
+     absolute lattice (via ``extend``), the interval is located from the lattice index, and the interpolated value is therefore
+     bit-for-bit independent of the range over which the table extends.
+     !!}
+     double precision, allocatable, dimension(:,:,:) :: qv
+     logical                                         :: latticeAnchored
+     integer                                         :: latticeIndexMinimum
+   contains
+     procedure :: create              => Table_Linear_Monotone_QHermite_1D_Create
+     procedure :: extend              => Table_Linear_Monotone_QHermite_1D_Extend
+     procedure :: destroy             => Table_Linear_Monotone_QHermite_1D_Destroy
+     procedure :: populateArray       => Table_Linear_Monotone_QHermite_1D_Populate
+     procedure :: populateScalar      => Table_Linear_Monotone_QHermite_1D_Populate_Single
+     procedure :: interpolate         => Table_Linear_Monotone_QHermite_1D_Interpolate
+     procedure :: interpolateGradient => Table_Linear_Monotone_QHermite_1D_Interpolate_Gradient
+     procedure :: integrationWeights  => Table_Linear_Monotone_QHermite_Integration_Weights
+  end type table1DLinearMonotoneQuinticHermite
+
+  type, extends(table1DLinearMonotoneQuinticHermite) :: table1DLogarithmicMonotoneQuinticHermite
+     !!{RST
+     Table type supporting one dimensional table with logarithmic spacing in :math:`x` and monotonicity-preserving, local,
+     quintic Hermite interpolation (in :math:`\log x`)---see ``table1DLinearMonotoneQuinticHermite``.
+     !!}
+     logical          :: previousSet
+     double precision :: xLinearPrevious, xLogarithmicPrevious
+     double precision :: xMinimum       , xMaximum
+   contains
+     procedure :: create              => Table_Logarithmic_Monotone_QHermite_1D_Create
+     procedure :: extend              => Table_Logarithmic_Monotone_QHermite_1D_Extend
+     procedure :: interpolate         => Table_Logarithmic_Monotone_QHermite_1D_Interpolate
+     procedure :: interpolateGradient => Table_Logarithmic_Monotone_QHermite_1D_Interpolate_Gradient
+     procedure :: x                   => Table_Logarithmic_Monotone_QHermite_1D_X
+     procedure :: xs                  => Table_Logarithmic_Monotone_QHermite_1D_Xs
+  end type table1DLogarithmicMonotoneQuinticHermite
 
   type, extends(table1D) :: table1DMonotoneCSpline
      !!{RST
@@ -1002,6 +1063,25 @@ contains
        class default
           call Error_Report('mismatched types in assignment'//{introspection:location})
        end select
+    class is (table1DLinearMonotoneQuinticHermite)
+       select type (to)
+       class is (table1DLinearMonotoneQuinticHermite)
+          call Table1D_Assignment_Monotone_Quintic_Hermite(to,from)
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
+    class is (table1DLogarithmicMonotoneQuinticHermite)
+       select type (to)
+       class is (table1DLogarithmicMonotoneQuinticHermite)
+          call Table1D_Assignment_Monotone_Quintic_Hermite(to,from)
+          to%previousSet         =from%previousSet
+          to%xLinearPrevious     =from%xLinearPrevious
+          to%xLogarithmicPrevious=from%xLogarithmicPrevious
+          to%xMinimum            =from%xMinimum
+          to%xMaximum            =from%xMaximum
+       class default
+          call Error_Report('mismatched types in assignment'//{introspection:location})
+       end select
     class is (table1DMonotoneCSpline)
        select type (to)
        class is (table1DMonotoneCSpline)
@@ -1030,6 +1110,30 @@ contains
     end select
     return
   end subroutine Table1D_Assignment
+
+  subroutine Table1D_Assignment_Monotone_Quintic_Hermite(to,from)
+    !!{RST
+    Assign the components of a ``table1DLinearMonotoneQuinticHermite`` (other than those of ``table1D``, which
+    ``Table1D_Assignment`` has already assigned).
+    !!}
+    implicit none
+    class(table1DLinearMonotoneQuinticHermite), intent(inout) :: to
+    class(table1DLinearMonotoneQuinticHermite), intent(in   ) :: from
+
+    if (allocated(to  %qv)) deallocate(to%qv               )
+    if (allocated(from%qv)) allocate  (to%qv,source=from%qv)
+    to%latticeAnchored    =from%latticeAnchored
+    to%latticeIndexMinimum=from%latticeIndexMinimum
+    to%dTablePrevious     =from%dTablePrevious
+    to%tablePrevious      =from%tablePrevious
+    to%deltaX             =from%deltaX
+    to%inverseDeltaX      =from%inverseDeltaX
+    to%dxPrevious         =from%dxPrevious
+    to%dyPrevious         =from%dyPrevious
+    to%xPrevious          =from%xPrevious
+    to%yPrevious          =from%yPrevious
+    return
+  end subroutine Table1D_Assignment_Monotone_Quintic_Hermite
 
   elemental subroutine table1dGenericObjectsDestructor(self)
     !!{RST
@@ -2486,8 +2590,8 @@ contains
        end if
     end do
     self%av(size(dx)+1,table)=m(size(m))
-    ! Get degree-2 and degree-3 coefficients.
-    do i=1,size(self%av)-1
+    ! Get degree-2 and degree-3 coefficients, one set per interval of this table.
+    do i=1,size(dx)
        factor=self%av(i,table)+self%av(i+1,table)-2.0d0*m(i)
        self%bv(i,table)=(m(i)-self%av(i,table)-factor)/dx(i)
        self%cv(i,table)=factor/dx(i)**2
@@ -3719,6 +3823,495 @@ contains
     Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient=self%table1DLinearMonotoneCSpline%interpolateGradient(self%xLogarithmicPrevious,table,status)/x
     return
   end function Table_Logarithmic_Monotone_CSpline_1D_Interpolate_Gradient
+
+  subroutine Table_Linear_Monotone_QHermite_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
+    !!{RST
+    Create a 1-D linear table with monotonic quintic Hermite interpolation.
+    !!}
+    use :: Error            , only : Error_Report
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
+    use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)                         :: self
+    double precision                                     , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                              , intent(in   )                         :: xCount
+    integer                                              , intent(in   ), optional               :: tableCount
+    type            (enumerationextrapolationTypeType   ), intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                                                      :: tableCountActual
+
+    if (xCount < 2) call Error_Report('at least two points are required'//{introspection:location})
+    ! Determine number of tables.
+    tableCountActual=1
+    if (present(tableCount)) tableCountActual=tableCount
+    ! Allocate arrays and construct the x-range.
+    self%xCount=xCount
+    allocate(self%xv(    xCount                   ))
+    allocate(self%yv(    xCount  ,tableCountActual))
+    allocate(self%qv(0:5,xCount-1,tableCountActual))
+    self%xv             =Make_Range(xMinimum,xMaximum,xCount,rangeType=rangeTypeLinear)
+    self%       deltaX  =self%xv(2)-self%xv(1)
+    self%inverseDeltaX  =1.0d0/self%deltaX
+    self%latticeAnchored    =.false.
+    self%latticeIndexMinimum=0
+    call Table_Monotone_QHermite_1D_Reset(self)
+    ! Set extrapolation type.
+    if (present(extrapolationType)) then
+       if (any(extrapolationType == extrapolationTypeZero)) call Error_Report('zero extrapolation is not supported'//{introspection:location})
+       self%extrapolationType=extrapolationType
+    else
+       self%extrapolationType=extrapolationTypeExtrapolate
+    end if
+    return
+  end subroutine Table_Linear_Monotone_QHermite_1D_Create
+
+  subroutine Table_Monotone_QHermite_1D_Reset(self)
+    !!{RST
+    Reset the memoized interpolation state of a monotonic quintic Hermite table.
+    !!}
+    implicit none
+    class(table1DLinearMonotoneQuinticHermite), intent(inout) :: self
+
+    self%tablePrevious =-1
+    self%dTablePrevious=-1
+    self%xPrevious     =-1.0d0
+    self%dxPrevious    =-1.0d0
+    select type (self)
+    class is (table1DLogarithmicMonotoneQuinticHermite)
+       self%previousSet         =.false.
+       self%xLinearPrevious     =-1.0d0
+       self%xLogarithmicPrevious=-1.0d0
+    end select
+    return
+  end subroutine Table_Monotone_QHermite_1D_Reset
+
+  subroutine Table_Monotone_QHermite_1D_Extend_(self,lattice,xValues,deltaX,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Worker used to extend monotonic quintic Hermite tables onto an absolute lattice. The tabulated values are preserved; the
+    interpolating coefficients are discarded, to be rebuilt when the table is next populated (those of the intervals near the
+    former ends of the table change, as the derivatives there are now estimated from the full stencil).
+    !!}
+    use :: Numerical_Ranges, only : rangeLattice
+    use :: Table_Labels    , only : extrapolationTypeZero
+    use :: Error           , only : Error_Report
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)                            :: self
+    type            (rangeLattice                       ), intent(in   )                            :: lattice
+    double precision                                     , intent(in   )             , dimension(:) :: xValues
+    double precision                                     , intent(in   )                            :: deltaX
+    logical                                              , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                              , intent(in   ), optional                  :: tableCount
+    type            (enumerationExtrapolationTypeType   ), intent(in   ), optional   , dimension(2) :: extrapolationType
+
+    if (lattice%count < 2) call Error_Report('at least two points are required'//{introspection:location})
+    if (present(extrapolationType)) then
+       if (any(extrapolationType == extrapolationTypeZero)) call Error_Report('zero extrapolation is not supported'//{introspection:location})
+    end if
+    call Table_1D_Extend_Uniform(self,lattice,xValues,isComputed,tableCount,extrapolationType)
+    if (allocated(self%qv)) deallocate(self%qv)
+    allocate(self%qv(0:5,size(self%yv,dim=1)-1,size(self%yv,dim=2)))
+    self%qv=0.0d0
+    ! The spacing comes from the lattice - see `Table_1D_Extend_Uniform`.
+    self%       deltaX      =      deltaX
+    self%inverseDeltaX      =1.0d0/deltaX
+    self%latticeAnchored    =.true.
+    self%latticeIndexMinimum=lattice%indexMinimum
+    call Table_Monotone_QHermite_1D_Reset(self)
+    return
+  end subroutine Table_Monotone_QHermite_1D_Extend_
+
+  subroutine Table_Linear_Monotone_QHermite_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D linearly-spaced monotonic quintic Hermite table onto an absolute lattice.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerUnit
+    implicit none
+    class  (table1DLinearMonotoneQuinticHermite), intent(inout)                            :: self
+    type   (rangeLattice                       ), intent(in   )                            :: lattice
+    logical                                     , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                     , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType   ), intent(in   ), optional  , dimension(2)  :: extrapolationType
+
+    if (lattice%scheme /= gridSchemePerUnit) call Error_Report('a linearly-spaced table requires a `perUnit` gridding scheme'//{introspection:location})
+    call Table_Monotone_QHermite_1D_Extend_(self,lattice,lattice%values(),lattice%step(),isComputed,tableCount,extrapolationType)
+    return
+  end subroutine Table_Linear_Monotone_QHermite_1D_Extend
+
+  subroutine Table_Linear_Monotone_QHermite_1D_Destroy(self)
+    !!{RST
+    Destroy a monotonic quintic Hermite 1-D table.
+    !!}
+    implicit none
+    class(table1DLinearMonotoneQuinticHermite), intent(inout) :: self
+
+    call Table_1D_Destroy(self)
+    if (allocated(self%qv)) deallocate(self%qv)
+    return
+  end subroutine Table_Linear_Monotone_QHermite_1D_Destroy
+
+  subroutine Table_Linear_Monotone_QHermite_1D_Populate(self,y,table,computeSpline)
+    !!{RST
+    Populate a 1-D monotonic quintic Hermite table.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite)              , intent(inout)           :: self
+    double precision                                     , dimension(:), intent(in   )           :: y
+    integer                                                            , intent(in   ), optional :: table
+    logical                                                            , intent(in   ), optional :: computeSpline
+    integer                                                                                      :: tableActual
+    logical                                                                                      :: computeSplineActual
+
+    if (.not.allocated(self%yv)       ) call Error_Report("create the table before populating it"//{introspection:location})
+    if (size(self%yv,dim=1) /= size(y)) call Error_Report("provided y array is of wrong size"    //{introspection:location})
+    tableActual=1
+    if (present(table)) tableActual=table
+    self%yv(:,tableActual)=y
+    computeSplineActual=.true.
+    if (present(computeSpline)) computeSplineActual=computeSpline
+    if (computeSplineActual) call Table_Monotone_QHermite_1D_Coefficients(self,tableActual)
+    return
+  end subroutine Table_Linear_Monotone_QHermite_1D_Populate
+
+  subroutine Table_Linear_Monotone_QHermite_1D_Populate_Single(self,y,i,table,computeSpline)
+    !!{RST
+    Populate a single element of a 1-D monotonic quintic Hermite table.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)           :: self
+    double precision                                     , intent(in   )           :: y
+    integer                                              , intent(in   )           :: i
+    integer                                              , intent(in   ), optional :: table
+    logical                                              , intent(in   ), optional :: computeSpline
+    integer                                                                        :: tableActual
+    logical                                                                        :: computeSplineActual
+
+    if (.not.allocated(self%yv)           ) call Error_Report("create the table before populating it"//{introspection:location})
+    if (i < 1 .or. i > size(self%yv,dim=1)) call Error_Report("provided i value is out of bounds"    //{introspection:location})
+    tableActual=1
+    if (present(table)) tableActual=table
+    self%yv(i,tableActual)=y
+    computeSplineActual=.true.
+    if (present(computeSpline)) computeSplineActual=computeSpline
+    if (computeSplineActual) call Table_Monotone_QHermite_1D_Coefficients(self,tableActual)
+    return
+  end subroutine Table_Linear_Monotone_QHermite_1D_Populate_Single
+
+  subroutine Table_Monotone_QHermite_1D_Coefficients(self,table)
+    !!{RST
+    Compute the coefficients of the interpolating quintic in each interval of the ``table``\ :math:`^\mathrm{th}` table. The
+    first and second derivatives are estimated at each point by central differences of the highest order (up to sixth) for
+    which the table has the points, and by second-order one-sided differences at the end points, then limited to guarantee
+    monotonicity (see ``table1DLinearMonotoneQuinticHermite``). Each interval is then interpolated, in the variable
+    :math:`t=(x-x_i)/h\in[0,1]`, by the quintic
+
+    .. math::
+       p(t) = \sum_{k=0}^5 q_k t^k,
+
+    which matches the values, :math:`y_{i,i+1}`, and the scaled first, :math:`h y^\prime_{i,i+1}`, and second,
+    :math:`h^2 y^{\prime\prime}_{i,i+1}`, derivatives at its two ends.
+    !!}
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)                  :: self
+    integer                                              , intent(in   )                  :: table
+    ! Limits on the first and second derivatives which guarantee monotonicity - see `table1DLinearMonotoneQuinticHermite`.
+    double precision                                     , parameter                      :: slopeRatioMaximum=1.75d0, curvatureRatioMaximum=3.0d0
+    double precision                                     , dimension(size(self%yv,dim=1)) :: derivativeFirst         , derivativeSecond
+    integer                                                                               :: i                       , n
+    double precision                                                                      :: secantLeft              , secantRight                , &
+         &                                                                                   secantMinimum           , signData                   , &
+         &                                                                                   changeY
+
+    n=size(self%yv,dim=1)
+    ! Estimate derivatives - working with derivatives scaled by the spacing, h, throughout: `derivativeFirst` holds h y′,
+    ! `derivativeSecond` holds h² y″.
+    associate (y => self%yv(:,table))
+      do i=1,n
+         if      (i >= 4 .and. i <= n-3) then
+            derivativeFirst (i)=(-      y(i-3)+ 9.0d0*y(i-2)- 45.0d0*y(i-1)             + 45.0d0*y(i+1)- 9.0d0*y(i+2)+      y(i+3))/ 60.0d0
+            derivativeSecond(i)=(+2.0d0*y(i-3)-27.0d0*y(i-2)+270.0d0*y(i-1)-490.0d0*y(i)+270.0d0*y(i+1)-27.0d0*y(i+2)+2.0d0*y(i+3))/180.0d0
+         else if (i >= 3 .and. i <= n-2) then
+            derivativeFirst (i)=(             +       y(i-2)-  8.0d0*y(i-1)             +  8.0d0*y(i+1)-       y(i+2)             )/ 12.0d0
+            derivativeSecond(i)=(             -       y(i-2)+ 16.0d0*y(i-1)- 30.0d0*y(i)+ 16.0d0*y(i+1)-       y(i+2)             )/ 12.0d0
+         else if (i >= 2 .and. i <= n-1) then
+            derivativeFirst (i)=(                           -        y(i-1)             +        y(i+1)                           )/  2.0d0
+            derivativeSecond(i)=(                           +        y(i-1)-  2.0d0*y(i)+        y(i+1)                           )
+         else if (n == 2) then
+            derivativeFirst (i)=y(2)-y(1)
+            derivativeSecond(i)=0.0d0
+         else if (i == 1) then
+            derivativeFirst (i)=(-3.0d0*y(1)+4.0d0*y(  2)-y(  3))/2.0d0
+            derivativeSecond(i)=(+      y(1)-2.0d0*y(  2)+y(  3))
+         else
+            derivativeFirst (i)=(+3.0d0*y(n)-4.0d0*y(n-1)+y(n-2))/2.0d0
+            derivativeSecond(i)=(+      y(n)-2.0d0*y(n-1)+y(n-2))
+         end if
+      end do
+      ! Limit the derivatives to guarantee monotonicity.
+      do i=1,n
+         if (i > 1) then
+            secantLeft =y(i  )-y(i-1)
+         else
+            secantLeft =y(i+1)-y(i  )
+         end if
+         if (i < n) then
+            secantRight=y(i+1)-y(i  )
+         else
+            secantRight=y(i  )-y(i-1)
+         end if
+         if (secantLeft == 0.0d0 .or. secantRight == 0.0d0 .or. sign(1.0d0,secantLeft) /= sign(1.0d0,secantRight)) then
+            ! The data are flat to one side of this point, or it is a local extremum - the interpolant must be stationary here.
+            derivativeFirst (i)=0.0d0
+            derivativeSecond(i)=0.0d0
+         else
+            signData           =sign(1.0d0,secantLeft)
+            secantMinimum      =min(abs(secantLeft),abs(secantRight))
+            derivativeFirst (i)=signData*min(max(signData*derivativeFirst(i),0.0d0),slopeRatioMaximum*secantMinimum)
+            derivativeSecond(i)=max(min(derivativeSecond(i),+curvatureRatioMaximum*abs(derivativeFirst(i))),-curvatureRatioMaximum*abs(derivativeFirst(i)))
+         end if
+      end do
+      ! Compute the coefficients of the quintic in each interval.
+      do i=1,n-1
+         changeY           =y(i+1)-y(i)
+         self%qv(0,i,table)=+      y(i)
+         self%qv(1,i,table)=               +      derivativeFirst(i)
+         self%qv(2,i,table)=                                                                   +0.5d0*derivativeSecond(i)
+         self%qv(3,i,table)=+10.0d0*changeY-6.0d0*derivativeFirst(i)-4.0d0*derivativeFirst(i+1)-1.5d0*derivativeSecond(i)+0.5d0*derivativeSecond(i+1)
+         self%qv(4,i,table)=-15.0d0*changeY+8.0d0*derivativeFirst(i)+7.0d0*derivativeFirst(i+1)+1.5d0*derivativeSecond(i)-      derivativeSecond(i+1)
+         self%qv(5,i,table)=+ 6.0d0*changeY-3.0d0*derivativeFirst(i)-3.0d0*derivativeFirst(i+1)-0.5d0*derivativeSecond(i)+0.5d0*derivativeSecond(i+1)
+      end do
+    end associate
+    ! Reset memoized values, which may refer to the previous coefficients.
+    call Table_Monotone_QHermite_1D_Reset(self)
+    return
+  end subroutine Table_Monotone_QHermite_1D_Coefficients
+
+  subroutine Table_Monotone_QHermite_1D_Locate(self,x,i,t)
+    !!{RST
+    Locate the interval, ``i``, of a monotonic quintic Hermite table containing the internal coordinate ``x``, and the position,
+    ``t``, within it. For a table built on an absolute lattice the interval is found from the lattice index of ``x``, so that
+    both ``i`` (relative to the lattice) and ``t`` are independent of the range of the table. Beyond the ends of the table the
+    end intervals are used (with ``t`` outside of :math:`[0,1]`).
+    !!}
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(in   ) :: self
+    double precision                                     , intent(in   ) :: x
+    integer                                              , intent(  out) :: i
+    double precision                                     , intent(  out) :: t
+
+    if      (x <  self%xv(          1)) then
+       i=1
+    else if (x >= self%xv(self%xCount)) then
+       i=self%xCount-1
+    else if (self%latticeAnchored) then
+       ! Note that the interval is *not* found from the offset relative to the first point of the table, `x-xv(1)`, as the result
+       ! would then depend (in its final bits) on the lower limit of the table.
+       i=floor(x*self%inverseDeltaX)-self%latticeIndexMinimum+1
+       i=max(min(i,self%xCount-1),1)
+       ! The product x/h may round to either side of an integer when x is (within rounding) a tabulated point, which would place
+       ! that point at t≈1 in the interval below rather than at t=0 in its own interval. Since the interval below may lie at the
+       ! end of the table (and so depend on its range), correct the index against the tabulated points themselves - these are
+       ! bit-identical in any table on the same lattice, so the result remains independent of the range.
+       if      (i < self%xCount-1 .and. x >= self%xv(i+1)) then
+          i=i+1
+       else if (i > 1             .and. x <  self%xv(i  )) then
+          i=i-1
+       end if
+    else
+       i=int((x-self%xv(1))*self%inverseDeltaX)+1
+       i=max(min(i,self%xCount-1),1)
+    end if
+    t=(x-self%xv(i))*self%inverseDeltaX
+    return
+  end subroutine Table_Monotone_QHermite_1D_Locate
+
+  double precision function Table_Linear_Monotone_QHermite_1D_Interpolate(self,x,table,status)
+    !!{RST
+    Perform monotonic quintic Hermite interpolation in a linear 1D table.
+    !!}
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)           :: self
+    double precision                                     , intent(in   )           :: x
+    integer                                              , intent(in   ), optional :: table
+    integer                                              , intent(  out), optional :: status
+    integer                                                                        :: i     , tableActual
+    double precision                                                               :: t
+    double precision                                     , dimension(0:5)          :: q
+
+    tableActual=1
+    if (present(table)) tableActual=table
+    if (x /= self%xPrevious .or. tableActual /= self%tablePrevious) then
+       call Table_Monotone_QHermite_1D_Locate(self,self%xEffective(x,status),i,t)
+       self%xPrevious    =x
+       self%tablePrevious=tableActual
+       ! Note that the coefficients are copied to a local array: an `associate` to the section would renumber its index from 1.
+       q             =self%qv(:,i,tableActual)
+       self%yPrevious=q(0)+t*(q(1)+t*(q(2)+t*(q(3)+t*(q(4)+t*q(5)))))
+    end if
+    Table_Linear_Monotone_QHermite_1D_Interpolate=self%yPrevious
+    return
+  end function Table_Linear_Monotone_QHermite_1D_Interpolate
+
+  double precision function Table_Linear_Monotone_QHermite_1D_Interpolate_Gradient(self,x,table,status)
+    !!{RST
+    Perform monotonic quintic Hermite interpolation of the gradient in a linear 1D table.
+    !!}
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)           :: self
+    double precision                                     , intent(in   )           :: x
+    integer                                              , intent(in   ), optional :: table
+    integer                                              , intent(  out), optional :: status
+    integer                                                                        :: i     , tableActual
+    double precision                                                               :: t
+    double precision                                     , dimension(0:5)          :: q
+
+    ! Beyond the range of the table, with "fix" extrapolation, the gradient is zero. This is tested before the memoized result is
+    ! used, as all points beyond the range share the same effective x.
+    if (Table1D_Gradient_Vanishes(self,x,status)) then
+       Table_Linear_Monotone_QHermite_1D_Interpolate_Gradient=0.0d0
+       return
+    end if
+    tableActual=1
+    if (present(table)) tableActual=table
+    if (x /= self%dxPrevious .or. tableActual /= self%dTablePrevious) then
+       call Table_Monotone_QHermite_1D_Locate(self,self%xEffective(x,status),i,t)
+       self%dxPrevious    =x
+       self%dTablePrevious=tableActual
+       q              =self%qv(:,i,tableActual)
+       self%dyPrevious=(q(1)+t*(2.0d0*q(2)+t*(3.0d0*q(3)+t*(4.0d0*q(4)+t*5.0d0*q(5)))))*self%inverseDeltaX
+    end if
+    Table_Linear_Monotone_QHermite_1D_Interpolate_Gradient=self%dyPrevious
+    return
+  end function Table_Linear_Monotone_QHermite_1D_Interpolate_Gradient
+
+  function Table_Linear_Monotone_QHermite_Integration_Weights(self,x0,x1,integrand)
+    !!{RST
+    Integration weights are not supported for monotonic quintic Hermite tables.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class           (table1DLinearMonotoneQuinticHermite), intent(inout)                               :: self
+    double precision                                     , intent(in   )                               :: x0                                                , x1
+    procedure       (tablesIntegrationWeightFunction    ), intent(in   )           , pointer, optional :: integrand
+    double precision                                     , dimension(size(self%xv))                    :: Table_Linear_Monotone_QHermite_Integration_Weights
+    !$GLC attributes unused :: self, x0, x1, integrand
+
+    Table_Linear_Monotone_QHermite_Integration_Weights=0.0d0
+    call Error_Report('integration weights not supported'//{introspection:location})
+    return
+  end function Table_Linear_Monotone_QHermite_Integration_Weights
+
+  subroutine Table_Logarithmic_Monotone_QHermite_1D_Create(self,xMinimum,xMaximum,xCount,tableCount,extrapolationType)
+    !!{RST
+    Create a 1-D logarithmic table with monotonic quintic Hermite interpolation.
+    !!}
+    implicit none
+    class           (table1DLogarithmicMonotoneQuinticHermite), intent(inout)                         :: self
+    double precision                                          , intent(in   )                         :: xMaximum         , xMinimum
+    integer                                                   , intent(in   )                         :: xCount
+    type            (enumerationExtrapolationTypeType        ), intent(in   ), optional, dimension(2) :: extrapolationType
+    integer                                                   , intent(in   ), optional               :: tableCount
+
+    call self%table1DLinearMonotoneQuinticHermite%create(log(xMinimum),log(xMaximum),xCount,tableCount,extrapolationType)
+    self%xMinimum=exp(self%xv(     1))
+    self%xMaximum=exp(self%xv(xCount))
+    return
+  end subroutine Table_Logarithmic_Monotone_QHermite_1D_Create
+
+  subroutine Table_Logarithmic_Monotone_QHermite_1D_Extend(self,lattice,isComputed,tableCount,extrapolationType)
+    !!{RST
+    Extend a 1-D logarithmically-spaced monotonic quintic Hermite table onto an absolute lattice.
+    !!}
+    use :: Error           , only : Error_Report
+    use :: Numerical_Ranges, only : rangeLattice, gridSchemePerDecade, gridSchemePerOctave
+    implicit none
+    class  (table1DLogarithmicMonotoneQuinticHermite), intent(inout)                            :: self
+    type   (rangeLattice                            ), intent(in   )                            :: lattice
+    logical                                          , intent(  out), allocatable, dimension(:) :: isComputed
+    integer                                          , intent(in   ), optional                  :: tableCount
+    type   (enumerationExtrapolationTypeType        ), intent(in   ), optional   , dimension(2) :: extrapolationType
+
+    if     (                                       &
+         &   lattice%scheme /= gridSchemePerDecade &
+         &  .and.                                  &
+         &   lattice%scheme /= gridSchemePerOctave &
+         & ) call Error_Report('a logarithmically-spaced table requires a `perDecade` or `perOctave` gridding scheme'//{introspection:location})
+    ! The internal abscissae of this table type are the natural logarithms of the tabulation points.
+    call Table_Monotone_QHermite_1D_Extend_(self,lattice,lattice%valuesLogarithmic(),lattice%stepLogarithmic(),isComputed,tableCount,extrapolationType)
+    ! See `Table_Logarithmic_CSpline_1D_Extend` for why the end points come from the stored abscissae, not from the lattice.
+    self%xMinimum=exp(self%xv(          1))
+    self%xMaximum=exp(self%xv(self%xCount))
+    return
+  end subroutine Table_Logarithmic_Monotone_QHermite_1D_Extend
+
+  double precision function Table_Logarithmic_Monotone_QHermite_1D_X(self,i)
+    !!{RST
+    Return the ``i``\ :math:`^\mathrm{th}` :math:`x`-value for a logarithmic 1D table.
+    !!}
+    implicit none
+    class  (table1DLogarithmicMonotoneQuinticHermite), intent(inout) :: self
+    integer                                          , intent(in   ) :: i
+
+    if      (i ==  1                      ) then
+       Table_Logarithmic_Monotone_QHermite_1D_X=self%xMinimum
+    else if (i == -1 .or. i == self%xCount) then
+       Table_Logarithmic_Monotone_QHermite_1D_X=self%xMaximum
+    else
+       Table_Logarithmic_Monotone_QHermite_1D_X=exp(self%table1DLinearMonotoneQuinticHermite%x(i))
+    end if
+    return
+  end function Table_Logarithmic_Monotone_QHermite_1D_X
+
+  function Table_Logarithmic_Monotone_QHermite_1D_Xs(self)
+    !!{RST
+    Return the :math:`x`-values for a logarithmic 1D table.
+    !!}
+    implicit none
+    class           (table1DLogarithmicMonotoneQuinticHermite), intent(in   )            :: self
+    double precision                                          , dimension(size(self%xv)) :: Table_Logarithmic_Monotone_QHermite_1D_Xs
+
+    Table_Logarithmic_Monotone_QHermite_1D_Xs=exp(self%table1DLinearMonotoneQuinticHermite%xs())
+    return
+  end function Table_Logarithmic_Monotone_QHermite_1D_Xs
+
+  double precision function Table_Logarithmic_Monotone_QHermite_1D_Interpolate(self,x,table,status)
+    !!{RST
+    Perform monotonic quintic Hermite interpolation in a logarithmic 1D table.
+    !!}
+    implicit none
+    class           (table1DLogarithmicMonotoneQuinticHermite), intent(inout)           :: self
+    double precision                                          , intent(in   )           :: x
+    integer                                                   , intent(in   ), optional :: table
+    integer                                                   , intent(  out), optional :: status
+
+    if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
+       self%previousSet         =.true.
+       self%xLinearPrevious     =    x
+       self%xLogarithmicPrevious=log(x)
+    end if
+    Table_Logarithmic_Monotone_QHermite_1D_Interpolate=self%table1DLinearMonotoneQuinticHermite%interpolate(self%xLogarithmicPrevious,table,status)
+    return
+  end function Table_Logarithmic_Monotone_QHermite_1D_Interpolate
+
+  double precision function Table_Logarithmic_Monotone_QHermite_1D_Interpolate_Gradient(self,x,table,status)
+    !!{RST
+    Perform monotonic quintic Hermite interpolation of the gradient in a logarithmic 1D table.
+    !!}
+    implicit none
+    class           (table1DLogarithmicMonotoneQuinticHermite), intent(inout)           :: self
+    double precision                                          , intent(in   )           :: x
+    integer                                                   , intent(in   ), optional :: table
+    integer                                                   , intent(  out), optional :: status
+
+    if (.not.self%previousSet .or. x /= self%xLinearPrevious) then
+       self%previousSet         =.true.
+       self%xLinearPrevious     =    x
+       self%xLogarithmicPrevious=log(x)
+    end if
+    Table_Logarithmic_Monotone_QHermite_1D_Interpolate_Gradient=self%table1DLinearMonotoneQuinticHermite%interpolateGradient(self%xLogarithmicPrevious,table,status)/x
+    return
+  end function Table_Logarithmic_Monotone_QHermite_1D_Interpolate_Gradient
 
   subroutine Table_2D_LinLinLin_Create(self,x,y,tableCount,extrapolationTypeX,extrapolationTypeY)
     !!{RST

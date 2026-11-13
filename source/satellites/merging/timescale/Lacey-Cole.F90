@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a satellite merging timescale class which uses the :cite:t:`lacey_merger_1993` method.
   !!}
@@ -127,8 +129,9 @@ contains
     type            (keplerOrbit                            ), intent(inout) :: orbit
     type            (treeNode                               ), pointer       :: nodeHost
     double precision                                                         :: equivalentCircularOrbitRadius, orbitalCircularity, &
-         &                                                                      radialScale                  , velocityScale
-    
+         &                                                                      radialScale                  , velocityScale     , &
+         &                                                                      energyOrbital
+
     ! Find the host node.
     if (node%isSatellite()) then
        nodeHost => node%parent
@@ -138,8 +141,19 @@ contains
     ! Get velocity scale.
     velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
     radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
+    ! Convert the orbital energy to the potential of the current host. The orbit's energy is defined such that Φ(r₀)=-V₀² at the
+    ! radius, r₀, and with the velocity scale, V₀, of the halo in which it was defined. For the isothermal potential of the
+    ! current host, Φ(r)=V²[ln(r/r_vir)-1], the energy is therefore e=e₀+V₀²+Φ(r₀). This is the identity for an orbit defined in
+    ! the current host.
+    energyOrbital=+orbit%energy       ()                                  &
+         &        +orbit%velocityScale()**2                               &
+         &        +      velocityScale  **2                               &
+         &        *(                                                      &
+         &          +log(orbit%radius()/radialScale)                      &
+         &          -1.0d0                                                &
+         &         )
     ! Compute radius of orbit with same energy.
-    equivalentCircularOrbitRadius=exp(orbit%energy()/velocityScale**2+0.5d0)
+    equivalentCircularOrbitRadius=exp(energyOrbital/velocityScale**2+0.5d0)
     ! Compute orbital circularity.
     orbitalCircularity=orbit%angularMomentum()/velocityScale/radialScale/equivalentCircularOrbitRadius
     ! Compute the merging timescale.

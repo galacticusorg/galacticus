@@ -16,6 +16,7 @@ hand-written manuals under `docs/manuals/`:
     which exists;
   * every ``:cite:`` key has an entry in `docs/Galacticus.bib`;
   * every ``:galacticus-class:`` reference names a type which exists;
+  * every ``:galacticus-...:`` role is one which `docs/conf.py` defines;
   * every implementation named in an XML example exists;
   * no interpreted-text role runs on into the word which follows it.
 
@@ -57,6 +58,10 @@ DOC_FORMAT = re.compile(r'^[ \t]*(?:RST|latex)[ \t]*\n')
 PARAMETER_REFERENCE = re.compile(r'``\[([^\]`]+)\]``')
 CITE_REFERENCE = re.compile(r':cite:[a-z]*:`([^`]+)`')
 CLASS_REFERENCE = re.compile(r':galacticus-class:`([^`]+)`')
+# The custom roles, and their registration in `docs/conf.py`. A role which is not
+# registered is reported by Sphinx as an error, and its text rendered verbatim.
+GALACTICUS_ROLE = re.compile(r':(galacticus-[a-z-]+):`')
+ROLE_REGISTRATION = re.compile(r"add_role\(\s*'(galacticus-[a-z-]+)'")
 XML_EXAMPLE = re.compile(r'<(\w+)\s+value="([^"]*)"')
 # A role must be followed by whitespace or punctuation: a letter immediately
 # after the closing backtick (":math:`5500\,`Å") leaves the role unrecognized,
@@ -161,6 +166,7 @@ class Vocabulary:
             self.parameters.update(parameter['name'] for parameter in implementation['parameters'])
             self.parameters.update(object_['parameterName'] for object_ in implementation['objects'])
         self.derivedTypes = set()
+        self.roles = set(ROLE_REGISTRATION.findall(readFile(root, os.path.join('docs', 'conf.py'))))
         self.parametersByFile = {}
         for path in paths:
             self._addSource(root, path)
@@ -273,6 +279,9 @@ def checkText(path, text, fileParameters, vocabulary, keys, problems):
         name = match.group(1)
         if not vocabulary.isType(name):
             problems.append((path, 'unknown class reference: ' + name))
+    for match in GALACTICUS_ROLE.finditer(text):
+        if match.group(1) not in vocabulary.roles:
+            problems.append((path, 'unknown role: ' + match.group(1)))
 
 
 def citationKeys(root):

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
   !!{RST
   Implements an output analysis class that computes mass functions for Local Group satellite galaxies.
   !!}
@@ -627,14 +629,15 @@ contains
     weightVariance   = sum(covarianceCentrals  )
     if (weight > 0.0d0) then
        self%massFunction=+self%massFunction/weight
-       self%covariance  =+self%covariance  /weight**2
+       self%covariance  =+self%covariance  /weight/weight
        do    i=1_c_size_t,size(self%massFunction)
           do j=1_c_size_t,size(self%massFunction)
              self%covariance(i,j)=+self%covariance  (i,j)    &
                   &               +self%massFunction(i  )    &
                   &               *self%massFunction(  j)    &
                   &               *weightVariance            &
-                  &               /weight                **2
+                  &               /weight                    &
+                  &               /weight
           end do
        end do
     end if

@@ -26,7 +26,7 @@ Contains a module which applies tidal mass loss to galactic components.
 module Tidal_Mass_Loss_Utilities
   !!{RST
   Applies tidal mass loss to galactic components. Since the disk, spheroid, and nuclear star cluster components share no parent
-  type below :galacticus-type:`nodeComponent`, the procedure is written once as a template and instantiated for each component.
+  type below ``nodeComponent``, the procedure is written once as a template and instantiated for each component.
   !!}
   implicit none
   private
@@ -42,13 +42,18 @@ module Tidal_Mass_Loss_Utilities
 
 contains
 
-  subroutine Tidal_Mass_Loss_Apply_{tidalcomponent¦label}(node,tidalStripping_,tidalTruncationID)
+  subroutine Tidal_Mass_Loss_Apply_{tidalcomponent¦label}(node,tidalStripping_,tidalTruncationID,ratioSpecificAngularMomentum,ratioSpecificAngularMomentumGas,truncationGasID)
     !!{RST
     Apply the rates of tidal mass loss from the {tidalcomponent¦name} of ``node``: gas is moved to the outflowed reservoir of the
     hot halo, stellar mass is removed, and angular momentum is lost at the specific angular momentum of the stripped material
-    (as given by ``tidalStripping_``). The degree of tidal truncation of the {tidalcomponent¦name}, :math:`x=-\log f` where
-    :math:`f` is the fraction of the mass of its untruncated mass distribution which it retains (stored in the meta-property
-    with ID ``tidalTruncationID``), is increased at rate :math:`\dot{x} = \dot{M}_\mathrm{strip}/M`.
+    (as given by ``tidalStripping_``, unless ``ratioSpecificAngularMomentum``, the specific angular momentum of the stripped
+    material in units of the mean specific angular momentum of the {tidalcomponent¦name}, is given - if
+    ``ratioSpecificAngularMomentumGas`` is also given it is the corresponding ratio for the stripped gas, and
+    ``ratioSpecificAngularMomentum`` applies to the stripped stars only). The degree of tidal truncation of the
+    {tidalcomponent¦name}, :math:`x=-\log f` where :math:`f` is the fraction of the mass of its untruncated mass distribution
+    which it retains (stored in the meta-property with ID ``tidalTruncationID``), is increased at rate :math:`\dot{x} =
+    \dot{M}_\mathrm{strip}/M`. If ``truncationGasID`` is given, the degree of truncation of the gas (stored in the meta-property
+    with that ID) is increased at the same rate.
     !!}
     use :: Abundances_Structure          , only : operator(*)
     use :: Galacticus_Nodes              , only : {tidalcomponent¦intrinsic}, nodeComponentHotHalo, treeNode
@@ -56,34 +61,47 @@ contains
     use :: Stellar_Luminosities_Structure, only : operator(*)               , stellarLuminosities , zeroStellarLuminosities, max
     use :: Tidal_Stripping_Mass_Loss_Rate, only : tidalStrippingClass
     implicit none
-    type            (treeNode                  ), intent(inout), target  :: node
-    class           (tidalStrippingClass       ), intent(inout)          :: tidalStripping_
-    integer                                     , intent(in   )          :: tidalTruncationID
-    class           ({tidalcomponent¦intrinsic})               , pointer :: component
-    class           (nodeComponentHotHalo      )               , pointer :: hotHalo
-    type            (stellarLuminosities       ), save                   :: luminositiesTransferRate
+    type            (treeNode                  ), intent(inout), target   :: node
+    class           (tidalStrippingClass       ), intent(inout)           :: tidalStripping_
+    integer                                     , intent(in   )           :: tidalTruncationID
+    double precision                            , intent(in   ), optional :: ratioSpecificAngularMomentum    , ratioSpecificAngularMomentumGas
+    integer                                     , intent(in   ), optional :: truncationGasID
+    class           ({tidalcomponent¦intrinsic})               , pointer  :: component
+    class           (nodeComponentHotHalo      )               , pointer  :: hotHalo
+    type            (stellarLuminosities       ), save                    :: luminositiesTransferRate
     !$omp threadprivate(luminositiesTransferRate)
-    double precision                                                     :: fractionGas             , fractionStellar             , &
-         &                                                                  massLossRate            , ratioSpecificAngularMomentum
-    type            (history                   )                         :: historyTransferRate
+    double precision                                                      :: fractionGas                     , fractionStellar               , &
+         &                                                                   massLossRate                    , ratioSpecificAngularMomentum_ , &
+         &                                                                   ratioSpecificAngularMomentumGas_
+    type            (history                   )                          :: historyTransferRate
 
     ! Return if the component has no mass.
     component => node%{tidalcomponent¦accessor}()
     if (component%massGas()+component%massStellar() <= 0.0d0) return
     ! Return if the tidal mass loss rate is zero.
-    massLossRate=tidalStripping_%rateMassLoss(component,ratioSpecificAngularMomentum)
+    if (present(ratioSpecificAngularMomentum)) then
+       massLossRate                 =tidalStripping_%rateMassLoss(component                              )
+       ratioSpecificAngularMomentum_=ratioSpecificAngularMomentum
+    else
+       massLossRate                 =tidalStripping_%rateMassLoss(component,ratioSpecificAngularMomentum_)
+    end if
     if (massLossRate                                <= 0.0d0) return
+    if (present(ratioSpecificAngularMomentumGas)) then
+       ratioSpecificAngularMomentumGas_=ratioSpecificAngularMomentumGas
+    else
+       ratioSpecificAngularMomentumGas_=ratioSpecificAngularMomentum_
+    end if
     ! Transfer stripped material from the component.
     !! Gas is moved to the hot halo component.
     hotHalo         => node%hotHalo()
     fractionGas     =  min(1.0d0,max(0.0d0,component%massGas()/(component%massGas()+component%massStellar())))
     fractionStellar =  1.0d0-fractionGas
     if (fractionGas     > 0.0d0 .and. component%massGas    () > 0.0d0) then
-       call component       %                  massGasRate(-fractionGas    *massLossRate                                                                                                         )
-       call component       %            abundancesGasRate(-fractionGas    *massLossRate*component%abundancesGas    ()/ component%massGas()                                                      )
-       call   hotHalo       %           outflowingMassRate(+fractionGas    *massLossRate                                                                                                         )
-       call   hotHalo       %     outflowingAbundancesRate(+fractionGas    *massLossRate*component%abundancesGas    ()/ component%massGas()                                                      )
-       call   hotHalo       %outflowingAngularMomentumRate(+fractionGas    *massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar())*ratioSpecificAngularMomentum)
+       call component       %                  massGasRate(-fractionGas    *massLossRate                                                                                                             )
+       call component       %            abundancesGasRate(-fractionGas    *massLossRate*component%abundancesGas    ()/ component%massGas()                                                          )
+       call   hotHalo       %           outflowingMassRate(+fractionGas    *massLossRate                                                                                                             )
+       call   hotHalo       %     outflowingAbundancesRate(+fractionGas    *massLossRate*component%abundancesGas    ()/ component%massGas()                                                          )
+       call   hotHalo       %outflowingAngularMomentumRate(+fractionGas    *massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar())*ratioSpecificAngularMomentumGas_)
     end if
     ! Stellar mass is simply removed.
     if (fractionStellar > 0.0d0 .and. component%massStellar() > 0.0d0) then
@@ -91,25 +109,31 @@ contains
        ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
        ! luminosities to the spheroid by bar instabilities could work here.)
        !! Stellar mass and metals.
-       call component       %              massStellarRate(-fractionStellar*massLossRate                                                                                                         )
-       call component       %        abundancesStellarRate(-fractionStellar*massLossRate*component%abundancesStellar()/                     component%massStellar()                              )
+       call component       %              massStellarRate(-fractionStellar*massLossRate                                                                                                             )
+       call component       %        abundancesStellarRate(-fractionStellar*massLossRate*component%abundancesStellar()/                     component%massStellar()                                  )
        !! Stellar luminosities.
        luminositiesTransferRate=max(zeroStellarLuminosities,component%luminositiesStellar())
-       call component       %      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesTransferRate     /                     component%massStellar()                              )
+       call component       %      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesTransferRate     /                     component%massStellar()                                  )
        !! Stellar properties history.
        historyTransferRate=component%stellarPropertiesHistory()
        if (historyTransferRate%exists()) &
-            & call component% stellarPropertiesHistoryRate(-fractionStellar*massLossRate*historyTransferRate          /                     component%massStellar()                              )
+            & call component% stellarPropertiesHistoryRate(-fractionStellar*massLossRate*historyTransferRate          /                     component%massStellar()                                  )
        call historyTransferRate%destroy()
        !! Star formation history.
        historyTransferRate=component%starFormationHistory()
        if (historyTransferRate%exists()) &
-            & call component% starFormationHistoryRate    (-fractionStellar*massLossRate*historyTransferRate          /                     component%massStellar()                              )
+            & call component% starFormationHistoryRate    (-fractionStellar*massLossRate*historyTransferRate          /                     component%massStellar()                                  )
     end if
     ! Angular momentum is lost at the specific angular momentum of the stripped material.
-    call component          % angularMomentumRate         (-                massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar())*ratioSpecificAngularMomentum)
-    ! The degree of truncation increases in proportion to the fractional rate of mass loss.
-    call component          % floatRank0MetaPropertyRate  (tidalTruncationID,+massLossRate                            /(component%massGas()+component%massStellar())                             )
+    if (present(ratioSpecificAngularMomentumGas)) then
+       call component       % angularMomentumRate         (-                massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar())*(fractionStellar*ratioSpecificAngularMomentum_+fractionGas*ratioSpecificAngularMomentumGas_))
+    else
+       call component       % angularMomentumRate         (-                massLossRate*component%angularMomentum  ()/(component%massGas()+component%massStellar())*                 ratioSpecificAngularMomentum_                                              )
+    end if
+    ! The degrees of truncation increase in proportion to the fractional rate of mass loss.
+    call component          % floatRank0MetaPropertyRate  (tidalTruncationID,+massLossRate                            /(component%massGas()+component%massStellar())                                                                                             )
+    if (present(truncationGasID)) &
+         & call component   % floatRank0MetaPropertyRate  (truncationGasID  ,+massLossRate                            /(component%massGas()+component%massStellar())                                                                                             )
     return
   end subroutine Tidal_Mass_Loss_Apply_{tidalcomponent¦label}
 

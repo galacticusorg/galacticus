@@ -23,11 +23,14 @@
 Contains a module which implements error reporting for the  Galacticus package.
 !!}
 
+! Specify an explicit dependence on the C interface files.
+!: $(BUILDPATH)/system/errno.o
+
 module Error
   !!{RST
   Implements error reporting for the  Galacticus package.
   !!}
-  use, intrinsic :: ISO_C_Binding     , only : c_int         , c_size_t
+  use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int       , c_size_t
   use            :: ISO_Varying_String, only : varying_string
   use            :: Interface_GSL     , only : GSL_Failure   , GSL_Success , GSL_eDom    , GSL_eRange, &
           &                                    GSL_eUndrFlw  , GSL_eZeroDiv, GSL_eMaxIter, GSL_eRound
@@ -39,7 +42,8 @@ module Error
        &    Warn                       , Error_Wait_Set                 , &
        &    GSL_Error_Details          , signalHandlerDeregister        , &
        &    signalHandlerRegister      , signalHandlerInterface         , &
-       &    GSL_Error_Handler_Aborting , Error_Report_Allocation_Failure 
+       &    GSL_Error_Handler_Aborting , Error_Report_Allocation_Failure, &
+       &    System_Error_Clear         , System_Error_Description
 
   interface Error_Report
      module procedure Error_Report_Char
@@ -142,6 +146,35 @@ module Error
   type   (signalHandler), pointer :: signalHandlers  => null() , signalHandlerLast => null()
   logical                         :: inErrorHandling =  .false.
   !$omp threadprivate(signalHandlers,signalHandlerLast,inErrorHandling)
+
+  interface
+     function errnoGet_C() bind(c,name='errnoGet_C')
+       !!{RST
+       Template for a C function that returns the value of ``errno`` for the calling thread.
+       !!}
+       import
+       integer(c_int) :: errnoGet_C
+     end function errnoGet_C
+  end interface
+
+  interface
+     subroutine errnoClear_C() bind(c,name='errnoClear_C')
+       !!{RST
+       Template for a C function that sets ``errno`` to zero for the calling thread.
+       !!}
+     end subroutine errnoClear_C
+  end interface
+
+  interface
+     subroutine errnoDescription_C(errorNumber,description,descriptionLength) bind(c,name='errnoDescription_C')
+       !!{RST
+       Template for a C function that writes a null-terminated description of an error number into a buffer.
+       !!}
+       import
+       integer  (c_int ), value        :: errorNumber, descriptionLength
+       character(c_char), dimension(*) :: description
+     end subroutine errnoDescription_C
+  end interface
   
 contains
 
@@ -914,5 +947,49 @@ contains
     inErrorHandling=.false.
     return
   end subroutine signalHandlersCall
+
+  subroutine System_Error_Clear()
+    !!{RST
+    Set the system error number (``errno``) of the calling thread to zero, so that a later call to ``System_Error_Description``
+    reports only an error from a system call made after this point.
+    !!}
+    implicit none
+
+    call errnoClear_C()
+    return
+  end subroutine System_Error_Clear
+
+  function System_Error_Description() result(description)
+    !!{RST
+    Return a description of the system error number (``errno``) of the calling thread, such as ``errno=5 (Input/output error)``, or
+    ``no system error recorded`` if it is zero. Call this immediately after the call that failed, since any later system call may
+    change ``errno``.
+    !!}
+    use, intrinsic :: ISO_C_Binding     , only : c_null_char
+    use            :: ISO_Varying_String, only : assignment(=)
+    implicit none
+    type     (varying_string)                                              :: description
+    integer  (c_int         ), parameter                                   :: descriptionLengthMaximum=256
+    character(c_char        ), dimension(descriptionLengthMaximum)         :: descriptionC
+    character(len=descriptionLengthMaximum                         )       :: descriptionText
+    character(len=12                                               )       :: label
+    integer  (c_int         )                                              :: errorNumber
+    integer                                                                :: i
+
+    errorNumber=errnoGet_C()
+    if (errorNumber == 0) then
+       description='no system error recorded'
+       return
+    end if
+    call errnoDescription_C(errorNumber,descriptionC,descriptionLengthMaximum)
+    descriptionText=''
+    do i=1,descriptionLengthMaximum
+       if (descriptionC(i) == c_null_char) exit
+       descriptionText(i:i)=descriptionC(i)
+    end do
+    write (label,'(i0)') errorNumber
+    description='errno='//trim(label)//' ('//trim(descriptionText)//')'
+    return
+  end function System_Error_Description
   
 end module Error

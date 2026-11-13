@@ -204,7 +204,7 @@ contains
     double precision                                               , intent(in   )  :: radiusCylinderComoving       , radiusBufferComoving       , &
          &                                                                             massHaloLens                 , redshiftLens
     double precision                                  , allocatable, dimension(:  ) :: deviates                     , densityContrastLogarithmic , &
-         &                                                                             logNormalSigma               , logNormalMu
+         &                                                                             logNormalMu
     double precision                                  , allocatable, dimension(:,:) :: covariance
      type            (treeNode                       ), pointer                     :: node
      class           (nodeComponentBasic             ), pointer                     :: basic
@@ -318,28 +318,25 @@ contains
     ! Generate a realization of the cosmic density field.
     !! Realization is generated only on the master process so that we guarantee that it is the same across all processes.
     if (mpiSelf%isMaster()) then
-       ! We assume that the density field follows a log-normal distribution. Note
-       ! that we don't explicitly transform the covariance (computed in terms of Δ=ρ/ρ̅) to that for logΔ because (since the
-       ! unperturbed Δ̅=1) the transformed covariance is just equal to the original covariance.
-       allocate(deviates      (self%outputTimes_%count()))    
-       allocate(logNormalSigma(self%outputTimes_%count()))    
-       allocate(logNormalMu   (self%outputTimes_%count()))    
+       ! We assume that the density field, Δ=ρ/ρ̅, follows a multivariate log-normal distribution with mean ⟨Δ⟩=1 and covariance
+       ! C (as computed above). The corresponding normal distribution of logΔ then has covariance log(1+C) (element by element),
+       ! and mean μ=-½ log(1+C_ii), the shift which makes ⟨Δ⟩=1.
+       allocate(deviates   (self%outputTimes_%count()))    
+       allocate(logNormalMu(self%outputTimes_%count()))    
        do output=1_c_size_t,self%outputTimes_%count()
           !! Generate a deviate.
           deviates      (output)=self%randomNumberGenerator_%standardNormalSample()
-          !! Compute the parameters of the log-normal distribution.
-          logNormalSigma(output)=+sqrt(log(1.0d0+covariance(output,output)))
-          logNormalMu   (output)=-logNormalSigma(output)**2 &
-               &                 /2.0d0
+          !! Compute the mean of the log-normal distribution.
+          logNormalMu   (output)=-0.5d0*log(1.0d0+covariance(output,output))
        end do
        deviateVector=vector(deviates)
-       !! Cholesky decompose the covariance matrix.
-       covarianceMatrix=matrix(covariance)
+       !! Cholesky decompose the covariance matrix of logΔ.
+       covarianceMatrix=matrix(log(1.0d0+covariance))
        call covarianceMatrix%choleskyDecomposition()
        !! Generate the realization.
        allocate(densityContrastLogarithmic(self%outputTimes_%count()))
        densityContrastLogarithmic=covarianceMatrix*deviateVector
-       self%densityContrast      =exp(densityContrastLogarithmic)
+       self%densityContrast      =exp(logNormalMu+densityContrastLogarithmic)
     else
        self%densityContrast      =0.0d0
     end if

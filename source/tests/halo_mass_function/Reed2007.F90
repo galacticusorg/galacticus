@@ -31,12 +31,14 @@ program Tests_Halo_Mass_Function_Reed2007
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: File_Utilities                      , only : Count_Lines_In_File
   use :: Halo_Mass_Functions                 , only : haloMassFunctionReed2007
   use :: IO_HDF5                             , only : ioHDF5AccessInitialize
   use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                  , only : transferFunctionFile                    , transferFunctionTypeDarkMatter
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group               , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -59,6 +61,7 @@ program Tests_Halo_Mass_Function_Reed2007
   type            (powerSpectrumPrimordialPowerLaw         )                            :: powerSpectrumPrimordial_
   type            (transferFunctionFile                    )                            :: transferFunction_
   type            (powerSpectrumPrimordialTransferredSimple)                            :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8           )                            :: powerSpectrumNormalizer_
   type            (darkMatterParticleCDM                   )                            :: darkMatterParticle_
   type            (criticalOverdensityFixed                )                            :: criticalOverdensity_
   type            (haloMassFunctionReed2007                )                            :: haloMassFunction_
@@ -68,6 +71,7 @@ program Tests_Halo_Mass_Function_Reed2007
   call displayVerbositySet(verbosityLevelStandard)
   ! Initialize event hooks.
   call eventsHooksInitialize()
+  call Functions_Global_Set ()
   ! Initialize HDF5 lock.
   call ioHDF5AccessInitialize()
   ! Begin unit tests.
@@ -120,14 +124,26 @@ program Tests_Halo_Mass_Function_Reed2007
   <referenceConstruct object="transferFunction_"                  >
    <constructor>
     transferFunctionFile                                        (                                                                                                           &amp;
-     &amp;                                                        fileName                                ='testSuite/data/haloMassFunction/reed2007TransferFunction.hdf5', &amp;
-     &amp;                                                        transferFunctionType                    =transferFunctionTypeDarkMatter                                 , &amp;
-     &amp;                                                        redshift                                =0.000d0                                                        , &amp;
-     &amp;                                                        acceptNegativeValues                    =.false.                                                        , &amp;
-     &amp;                                                        factorWavenumberSmoothExtrapolation     =0.0d0                                                          , &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                                           , &amp;
-     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                                              &amp;
-     &amp;                                                       )
+     &amp;                                                       fileName                                ='testSuite/data/haloMassFunction/reed2007TransferFunction.hdf5' , &amp;
+     &amp;                                                       transferFunctionType                    =transferFunctionTypeDarkMatter                                  , &amp;
+     &amp;                                                       redshift                                =0.000d0                                                         , &amp;
+     &amp;                                                       acceptNegativeValues                    =.false.                                                         , &amp;
+     &amp;                                                       factorWavenumberSmoothExtrapolation     =0.0d0                                                           , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                                            , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                                               &amp;
+     &amp;                                                      )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizer_"          >
+   <constructor>
+    powerSpectrumNormalizerSigma8                               (                                                                                                           &amp;
+     &amp;                                                       sigma8                                  =0.74d+0                                                         , &amp;
+     &amp;                                                       tolerance                               =1.00d-4                                                         , &amp;
+     &amp;                                                       integrationFailureIsFatal               =.true.                                                          , &amp;
+     &amp;                                                       cosmologyParameters_                    =cosmologyParameters_                                            , &amp;
+     &amp;                                                       cosmologyFunctions_                     =cosmologyFunctions_                                             , &amp;
+     &amp;                                                       transferFunction_                       =transferFunction_                                                 &amp;
+     &amp;                                                      )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferred_">
@@ -135,7 +151,8 @@ program Tests_Halo_Mass_Function_Reed2007
     powerSpectrumPrimordialTransferredSimple                     (                                                                                                          &amp;
      &amp;                                                        powerSpectrumPrimordial_                =powerSpectrumPrimordial_                                       , &amp;
      &amp;                                                        transferFunction_                       =transferFunction_                                              , &amp;
-     &amp;                                                        linearGrowth_                           =linearGrowth_                                                    &amp;
+     &amp;                                                        linearGrowth_                           =linearGrowth_                                                  , &amp;
+     &amp;                                                        powerSpectrumNormalizer_                =powerSpectrumNormalizer_                                         &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -149,7 +166,6 @@ program Tests_Halo_Mass_Function_Reed2007
   <referenceConstruct object="cosmologicalMassVariance_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower                        (                                                                                                          &amp;
-     &amp;                                                        sigma8                                  =0.74d+0                                                        , &amp;
      &amp;                                                        tolerance                               =1.00d-4                                                        , &amp;
      &amp;                                                        toleranceTopHat                         =1.00d-4                                                        , &amp;
      &amp;                                                        rootVarianceLogarithmicGradientTolerance=1.0d-9                                                         , &amp;

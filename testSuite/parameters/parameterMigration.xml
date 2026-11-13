@@ -35,4 +35,9 @@
     <hotHaloMassDistribution value="betaProfile"/>
   </hotHaloRamPressureForce>
 
+  <!-- An explicitly given blitz2006 star formation frequency must be rescaled to apply to all molecular gas. -->
+  <starFormationRateSurfaceDensityDisks value="blitz2006">
+    <starFormationFrequencyNormalization value="1.36e-9"/>
+  </starFormationRateSurfaceDensityDisks>
+
 <componentHotHalo value="standard"/></parameters>

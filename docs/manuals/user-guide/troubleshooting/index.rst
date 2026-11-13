@@ -123,7 +123,7 @@ The order in which trees appear in an output file is not deterministic when Gala
 Parameters missing from the output file
 ---------------------------------------
 
-The ``Parameters`` group of an output file records every parameter the model read, including defaults. In versions before August 2026, parameters read while initializing node components on each thread (for example those of the ``hotHalo`` and ``disk`` components) were omitted from this record, and ``scripts/aux/parametersExtract.py`` silently dropped them as well, so a parameter file reconstructed from an old output could be incomplete (`issue #1377 <https://github.com/galacticusorg/galacticus/issues/1377>`_). If you rely on an output file as the record of a run, check that the component parameters you expect are present, and regenerate from the original parameter file where they are not.
+The ``Parameters`` group of an output file records every parameter the model read, including defaults. In versions before August 2026, parameters read while initializing node components on each thread (for example those of the ``hotHalo`` and ``disk`` components) were omitted from this record, and ``scripts/parameters/parametersExtract.py`` silently dropped them as well, so a parameter file reconstructed from an old output could be incomplete (`issue #1377 <https://github.com/galacticusorg/galacticus/issues/1377>`_). If you rely on an output file as the record of a run, check that the component parameters you expect are present, and regenerate from the original parameter file where they are not.
 
 .. toctree::
    :maxdepth: 1
