@@ -1,16 +1,20 @@
 """Tests for `Galacticus.Emulation.design` and `Galacticus.Emulation.campaign`.
 
 A stub executable stands in for Galacticus. It reads the run's change file and behaves according to a keyword placed
-in it: `FAILEXIT` (exit with status 3), `MARKER` (print a failure marker but exit 0), `NOOUTPUT` (exit 0 without
-writing the output file), or `BADBOUND` (fail, but only in a dry run). Otherwise it writes the output file named in the
+in it: `FAILEXIT` (exit with status 3), `SLEEP` (sleep for a few seconds first), `MARKER` (print a failure marker but exit 0),
+`NOOUTPUT` (exit 0 without writing the output file), `BADBOUND` (fail, but only in a dry run), or `UNRECOGNIZED` (report an
+unrecognized parameter, but exit 0, in a dry run or not). Otherwise it writes the output file named in the
 change file and exits 0.
 """
 
 import json
 import os
+import signal
+import socket
 import stat
 import subprocess
 import sys
+import time
 
 import h5py
 import numpy as np
@@ -22,7 +26,7 @@ from Galacticus.Emulation.design import parse_descriptor, read_design
 COUNT_POINTS = 6
 
 STUB = '''#!{python}
-import re, sys
+import re, sys, time
 arguments = [a for a in sys.argv[1:] if a != '--dry-run']
 dry_run = '--dry-run' in sys.argv
 text = ''.join(open(f).read() for f in arguments[1:])
@@ -33,8 +37,12 @@ if 'BADBOUND' in text and dry_run:
     print('parameter [x] has value -1, but must be greater than 0.0')
     print(' Occurred at: somewhere')
     sys.exit(1)
+if 'UNRECOGNIZED' in text:
+    print('MM:     unrecognized parameter [y in parameters/]')
 if dry_run:
     sys.exit(0)
+if 'SLEEP' in text:
+    time.sleep(3)
 if 'FAILEXIT' in text:
     sys.exit(3)
 if 'MARKER' in text:
@@ -194,6 +202,100 @@ def test_refresh_in_progress(workspace):
     assert campaign.runs[0].status == 'complete'
 
 
+def _ended_pid():
+    """The process ID of a process which has ended."""
+    process = subprocess.Popen([sys.executable, '-c', 'pass'])
+    process.wait()
+    return process.pid
+
+
+def test_refresh_interrupted_local(workspace):
+    path, campaign, _ = workspace
+    (path / 'logs').mkdir()
+    host = socket.gethostname()
+    owners = {0: f'local:{host}:{_ended_pid()}', 1: f'local:{host}:{os.getpid()}', 2: f'local:another-host:{_ended_pid()}', 3: 'local'}
+    for index, owner in owners.items():
+        run = campaign.runs[index]
+        run.status, run.job_id = 'running', owner
+        (path / run.log_file).write_text('evolving trees...\n')
+    campaign.refresh()
+    statuses = [run.status for run in campaign.runs]
+    # Ended process, or a run from an earlier version (no process recorded): interrupted. A live process, or a process on
+    # another host (which cannot be checked): still running.
+    assert statuses[:4] == ['failed', 'running', 'running', 'failed']
+    assert 'interrupted' in campaign.runs[0].message
+    # Running again takes the interrupted runs, but not the running ones.
+    campaign.run_local()
+    runs = cm.Campaign.load('campaign.json').runs
+    assert [run.status for run in runs] == ['complete', 'running', 'running', 'complete', 'complete', 'complete']
+
+
+def test_run_local_killed(workspace):
+    path, campaign, _ = workspace
+    _mark(path, 0, 'SLEEP')
+    # Run the campaign in another process, and kill it while its first run is in progress.
+    runner = subprocess.Popen([sys.executable, '-c', 'import sys; from Galacticus.Emulation.campaign import Campaign; '
+                               'Campaign.load(sys.argv[1]).run_local()', 'campaign.json'],
+                              env=dict(os.environ, PYTHONPATH=os.pathsep.join(sys.path)))
+    for _ in range(100):
+        if cm.Campaign.load('campaign.json').runs[0].status == 'running':
+            break
+        time.sleep(0.1)
+    runner.send_signal(signal.SIGKILL)
+    runner.wait()
+    campaign = cm.Campaign.load('campaign.json')
+    # The run in progress records its process; the runs not yet started are still pending.
+    assert campaign.runs[0].status == 'running' and campaign.runs[0].job_id.startswith('local:')
+    assert [run.status for run in campaign.runs[1:]] == ['pending'] * 5
+    # The orphaned Galacticus process is still running, so the run is not yet interrupted.
+    campaign.refresh()
+    assert campaign.runs[0].status == 'running'
+    # Once it ends (without its exit status recorded), it is.
+    pid = int(campaign.runs[0].job_id.split(':')[2])
+    for _ in range(100):
+        try:
+            os.kill(pid, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.1)
+    campaign.refresh()
+    assert campaign.runs[0].status == 'failed' and 'interrupted' in campaign.runs[0].message
+    assert campaign.run_local() == {'complete': 6}
+
+
+def test_run_local_launch_failure(workspace):
+    path, campaign, _ = workspace
+    executable = path / 'stub.py'
+    mode = executable.stat().st_mode
+    executable.chmod(mode & ~(stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH))
+    # A launch failure fails each run, without stopping the others.
+    assert campaign.run_local(parallel=2) == {'failed': 6}
+    assert all('could not launch' in run.message for run in campaign.runs)
+    executable.chmod(mode)
+    assert campaign.run_local() == {'complete': 6}
+    assert all(run.attempts == 2 for run in campaign.runs)
+
+
+def test_parse_job_list():
+    jobs = cm._parse_job_list('100\n200_3\n200_[5-7,9%2]\n300_[11]\n')
+    assert jobs == {'100', '200', '200_3', '200_5', '200_6', '200_7', '200_9', '300', '300_11'}
+
+
+def test_refresh_interrupted_slurm(workspace):
+    path, campaign, _ = workspace
+    for run in campaign.runs:
+        run.status, run.job_id = 'submitted', '500'
+    # Without a list of live jobs, Slurm runs are not checked.
+    campaign.refresh()
+    assert campaign.summary() == {'submitted': 6}
+    # Tasks 0 and 1 are still listed (running or pending); the others have ended without writing a log (e.g. canceled).
+    campaign.refresh(live_jobs=cm._parse_job_list('500_0 500_[1]'))
+    assert [run.status for run in campaign.runs] == ['submitted', 'submitted'] + ['failed'] * 4
+    # A job not listed at all has ended.
+    campaign.refresh(live_jobs=set())
+    assert campaign.summary() == {'failed': 6}
+
+
 def test_array_specification():
     assert cm._array_specification([0, 1, 2, 3]) == '0-3'
     assert cm._array_specification([7, 0, 1, 9, 10, 3]) == '0-1,3,7,9-10'
@@ -236,6 +338,24 @@ def test_submit_array_job(workspace):
     assert summary['submitted'] == 4
 
 
+class EagerManager(FakeManager):
+    """A queue manager whose array task for run 2 starts (and finishes) before submission returns."""
+
+    def submit_detached(self, job):
+        environment = dict(os.environ, SLURM_ARRAY_TASK_ID='2')
+        subprocess.run(['bash', '-c', job['command']], env=environment, capture_output=True, text=True, check=True)
+        return super().submit_detached(job)
+
+
+def test_submit_keeps_logs_of_started_tasks(workspace):
+    path, campaign, _ = workspace
+    campaign.submit(EagerManager())
+    # The log written by the task which started early must survive the removal of earlier attempts' logs.
+    assert (path / campaign.runs[2].log_file).exists()
+    campaign.refresh()
+    assert campaign.runs[2].status == 'complete'
+
+
 def test_validate(workspace):
     path, campaign, values = workspace
     extremes = campaign.extreme_runs()
@@ -248,6 +368,12 @@ def test_validate(workspace):
     assert results[0].ok and results[2].ok
     assert not results[1].ok
     assert results[1].message == 'parameter [x] has value -1, but must be greater than 0.0'
+    # A dry run which exits successfully, but reports a problem that would mark the real run as failed, fails validation.
+    _mark(path, 2, 'UNRECOGNIZED')
+    results = {result.run: result for result in campaign.validate(indices=[0, 2])}
+    assert results[0].ok
+    assert not results[2].ok
+    assert results[2].message == 'output contains failure markers: unrecognized parameter'
     # Validation writes no model output and leaves the manifest unchanged.
     assert not any((path / 'models').iterdir())
     assert json.load(open('campaign.json'))['runs'][1]['status'] == 'pending'

@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which provides a class that implements on-the-fly analyses.
+Contains a module which provides a class that implements molecular ratios for on-the-fly analyses.
 !!}
 
 module Output_Analysis_Molecular_Ratios
   !!{RST
-  Provides a class that implements operators on properties for on-the-fly analyses.
+  Provides a class that implements molecular ratios for on-the-fly analyses.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   private

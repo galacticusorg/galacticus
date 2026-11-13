@@ -818,7 +818,8 @@ contains
     !!{RST
     Finalize analysis of a ``meanFunction1D`` output analysis.
     !!}
-    use    :: Display, only : displayMessage, displayIndent , displayUnindent
+    use    :: Display                  , only : displayMessage                 , displayIndent , displayUnindent
+    use    :: Output_Analysis_Utilities, only : Output_Analysis_Mean_Covariance
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self
     double precision                              , allocatable  , dimension(:  ) :: unweightedValue     , weightedValue
@@ -826,7 +827,7 @@ contains
          &                                                                           crossCovariance
     type            (varying_string              )                                :: message
     character       (len=43                      )                                :: label
-    integer         (c_size_t                    )                                :: i                   , j
+    integer         (c_size_t                    )                                :: i
 
     ! If already finalized, no need to do anything.
     if (self%finalized) return
@@ -847,12 +848,9 @@ contains
        end do
        call displayUnindent("done")
     end if
-    ! Estimate covariance of ratio using Taylor series expansion approach
-    ! (e.g. http://math.stackexchange.com/questions/40713/calculating-the-variance-of-the-ratio-of-random-variables).
-    allocate(self%meanValue     (size(self%binCenter)                     ))
-    allocate(self%meanCovariance(size(self%binCenter),size(self%binCenter)))
-    self%meanValue     =0.0d0
-    self%meanCovariance=0.0d0
+    ! Compute the mean in each bin.
+    allocate(self%meanValue(size(self%binCenter)))
+    self%meanValue=0.0d0
     ! Report if required.
     if (self%report) then
        message="report: "//self%reportLabel//": mean"
@@ -867,21 +865,10 @@ contains
              write (label,'(i4,1x,e12.6,1x,e12.6,1x,e12.6)') i,unweightedValue(i),weightedValue(i),self%meanValue(i)
              call displayMessage(label)
           end if
-          do j=i,size(self%binCenter)
-             if (unweightedValue(j) > 0.0d0) then
-                self%meanCovariance(i,j)=+(                                                                                                      &
-                     &                     +  weightedCovariance(i,j)* unweightedValue(i)                 *unweightedValue(j)                    &
-                     &                     +unweightedCovariance(i,j)*                    weightedValue(i)                   *weightedValue(j)   &
-                     &                     -     crossCovariance(i,j)*(unweightedValue(i)*weightedValue(j)+unweightedValue(j)*weightedValue(i))  &
-                     &                    )                                                                                                      &
-                     &                   /unweightedValue(i)**2                                                                                  &
-                     &                   /unweightedValue(j)**2
-                if (i == j) self%meanCovariance(i,j)=max(self%meanCovariance(i,j),0.0d0)
-                self%meanCovariance(j,i)=self%meanCovariance(i,j)
-            end if
-          end do
        end if
     end do
+    ! Estimate the covariance of the mean.
+    self%meanCovariance=Output_Analysis_Mean_Covariance(unweightedValue,weightedValue,unweightedCovariance,weightedCovariance,crossCovariance)
     if (self%report) call displayUnindent("done")
     return
   end subroutine meanFunction1DFinalizeAnalysis

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the effects of inclination on disk size in an output analysis distribution operator class.
   !!}
@@ -93,9 +95,9 @@ contains
     !$omp threadprivate (finder)
     double precision                                                                               :: halfLightRadiusFaceOn         , halfLightRadius
     integer                                                                                        :: i
+    logical                                                                                        :: tabulate
     double precision                                                   , dimension(:), allocatable :: halfMassRadii
     type            (varying_string                                   )                            :: fileName
-    type            (hdf5File                                         )                            :: file
     type            (lockDescriptor                                   )                            :: lockFileDescriptor
 
     call self%inclinationTable%create      (                                                                           &
@@ -105,17 +107,29 @@ contains
          &                                  extrapolationType            =[extrapolationTypeFix,extrapolationTypeFix]  &
          &                                 )
     fileName=inputPath(pathTypeDataDynamic)//"/galacticStructure/diskExponentialInclinedHalfMassRadii.hdf5"
+    tabulate=.true.
     if (File_Exists(fileName)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.true.)
        !$ call hdf5Access%set()
-       file=hdf5File(fileName,readOnly=.true.)
-       call file%readDataset('halfMassRadii',halfMassRadii)
+       ! The file is local to this block so that it is closed on leaving the block, before it may be reopened for writing below.
+       block
+         type(hdf5File) :: file
+         file=hdf5File(fileName,readOnly=.true.)
+         call file%readDataset('halfMassRadii',halfMassRadii)
+       end block
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)
        call self%inclinationTable%populate(halfMassRadii)
-    else
-       ! Tabulate dependence of projected half-light radius on disk inclination angle.
+       ! Earlier versions could store a corrupted table (due to a race condition in its tabulation), which can be detected as
+       ! it is not monotonic, and so can not be reversed. Recompute any such table.
+       tabulate=.not.self%inclinationTable%isMonotonic()
+    end if
+    if (tabulate) then
+       ! Tabulate dependence of projected half-light radius on disk inclination angle. Each thread constructs its own root
+       ! finder, as copies of a root finder share the underlying GSL solver state.
+       call self%inclinationTable%populate(0.0d0,1)
+       !$omp parallel private (i,halfLightRadius)
        finder=rootFinder(                                                             &
             &            rootFunction                 =diskSizeInclntnRoot          , &
             &            toleranceRelative            =1.0d-6                       , &
@@ -126,28 +140,35 @@ contains
             &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
             &            rangeExpandType              =rangeExpandMultiplicative      &
             &           )
-       angle =acos(self%inclinationTable%x(1))
+       !$omp single
+       angle                =acos(self%inclinationTable%x(1))
        halfLightRadiusFaceOn=finder%find(rootGuess=1.0d0)
-       call self%inclinationTable%populate(0.0d0,1)
-       !$omp parallel do private (i,halfLightRadius) copyin (finder)
+       !$omp end single
+       !$omp do
        do i=2,inclinationAngleCount
           angle=acos(self%inclinationTable%x(i))
           halfLightRadius =finder%find(rootGuess=1.0d0)
           call self%inclinationTable%populate(log10(halfLightRadius/halfLightRadiusFaceOn),i)
        end do
-       !$omp end parallel do
+       !$omp end do
+       !$omp end parallel
+       ! Reverse the table before storing it, so that a table which can not be reversed is never stored.
+       call self%inclinationTable%reverse(self%sizeTable)
        halfMassRadii=reshape(self%inclinationTable%ys(),[inclinationAngleCount])
        call Directory_Make(inputPath(pathTypeDataDynamic)//"/galacticStructure")
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
        !$ call hdf5Access%set()
-       file=hdf5File(fileName,objectsOverwritable=.true.)
-       call file%writeDataset(halfMassRadii,'halfMassRadii')
+       block
+         type(hdf5File) :: file
+         file=hdf5File(fileName,objectsOverwritable=.true.)
+         call file%writeDataset(halfMassRadii,'halfMassRadii')
+       end block
        !$ call hdf5Access%unset()
        call File_Unlock(lockFileDescriptor)
+    else
+       call self%inclinationTable%reverse(self%sizeTable)
     end if
-    ! Reverse the table
-    call self%inclinationTable%reverse(self%sizeTable)
     return
   end function diskSizeInclinationConstructorInternal
 

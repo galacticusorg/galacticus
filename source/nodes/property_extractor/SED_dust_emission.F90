@@ -23,11 +23,12 @@
   Implements a property extractor for the spectral energy distribution of thermal emission from dust.
   !!}
 
-  use :: Cosmology_Functions           , only : cosmologyFunctionsClass
-  use :: Dust_Attenuations             , only : dustAttenuationClass     , gaussLegendreRule
-  use :: Dust_Emission_Spectra         , only : dustEmissionSpectrumClass, dustEmissionSpectrumList
-  use :: Dust_Properties               , only : dustPropertiesClass
-  use :: Stellar_Luminosities_Structure, only : enumerationFrameType
+  use :: Cosmology_Functions                , only : cosmologyFunctionsClass
+  use :: Dust_Attenuations                  , only : dustAttenuationClass
+  use :: Dust_Emission_Spectra              , only : dustEmissionSpectrumClass, dustEmissionSpectrumList
+  use :: Dust_Properties                    , only : dustPropertiesClass
+  use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
+  use :: Stellar_Luminosities_Structure     , only : enumerationFrameType
 
   ! The grid of wavelength (in Å) on which absorbed light is accumulated for the emission spectra: intervals of width 0.01
   ! in ln λ, comparable to the absorbed-photon bins of tabulated PAH emission, spanning any wavelength of heating light.

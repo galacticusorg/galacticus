@@ -208,6 +208,48 @@ def test_ignore_warnings_suppresses_unknown():
     assert findings == []
 
 
+def _validate_grid(tmp_path, block):
+    """Validate a `parameterGrid` file holding the given `<parameters>` content."""
+    grid = tmp_path / "grid.xml"
+    grid.write_text(
+        '<parameterGrid><emailReport>no</emailReport>'
+        f'<parameters>{block}</parameters></parameterGrid>')
+    findings, error = validate_file(str(grid), CATALOG)
+    assert error is None
+    return findings
+
+
+def test_parameter_grid_block_is_validated(tmp_path):
+    """Models in a `parameterGrid` file are checked, not just `<parameters>` roots."""
+    findings = _validate_grid(
+        tmp_path, '<accretionHalo value="simple"><nonsense value="1"/></accretionHalo>')
+    assert [(f.kind, f.path) for f in findings] == [
+        ('unknown', 'parameters/accretionHalo/nonsense')]
+
+
+def test_parameter_grid_level_top_moves_to_root(tmp_path):
+    """A `parameterLevel="top"` element is judged where the model will see it."""
+    findings = _validate_grid(
+        tmp_path,
+        '<accretionHalo value="simple">'
+        '<nonsense value="1" parameterLevel="top"/>'
+        '</accretionHalo>')
+    assert findings == []
+
+
+@pytest.mark.parametrize("level, flagged", [("-2", False), ("-1", True)])
+def test_parameter_grid_negative_level_moves_up(tmp_path, level, flagged):
+    """A negative `parameterLevel` moves an element up by that many levels: two
+    levels reaches the root (not flagged), one only the enclosing object."""
+    findings = _validate_grid(
+        tmp_path,
+        '<accretionHalo value="simple"><cosmologyParameters value="simple">'
+        f'<nonsense value="1" parameterLevel="{level}"/>'
+        '</cosmologyParameters></accretionHalo>')
+    assert [f.path for f in findings] == (
+        ['parameters/accretionHalo/nonsense'] if flagged else [])
+
+
 _XI = 'xmlns:xi="http://www.w3.org/2001/XInclude"'
 
 

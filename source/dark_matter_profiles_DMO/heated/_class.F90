@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of heated dark matter halo profiles.
   !!}
@@ -173,14 +175,6 @@ contains
       The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.
       </description>
     </inputParameter>
-    <inputParameter docformat="rst">
-      <name>tolerateVelocityMaximumFailure</name>
-      <defaultValue>.true.</defaultValue>
-      <description>
-      If true, tolerate failures to find the radius of the peak in the rotation curve.
-      </description>
-      <source>parameters</source>
-    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
@@ -319,7 +313,8 @@ contains
                   &amp;                       nonAnalyticSolver                         =self%nonAnalyticSolver                         , &amp;
                   &amp;                       velocityDispersionApproximate             =self%velocityDispersionApproximate             , &amp;
                   &amp;                       toleranceRelativeVelocityDispersion       =self%toleranceRelativeVelocityDispersion       , &amp;
-                  &amp;                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum  &amp;
+                  &amp;                       toleranceRelativeVelocityDispersionMaximum=self%toleranceRelativeVelocityDispersionMaximum, &amp;
+                  &amp;                       tolerateVelocityDispersionFailure         =self%tolerateVelocityDispersionFailure           &amp;
 	          &amp;                      )
                </constructor>
              </referenceConstruct>

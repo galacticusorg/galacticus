@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 An implementation of the hot halo mass distribution class for :math:`\beta`-profile distributions.
 !!}
@@ -138,7 +140,7 @@ contains
     return
   end subroutine betaProfileDestructor
 
-  function betaProfileGet(self,node,weightBy,weightIndex) result(massDistribution_)
+  function betaProfileGet(self,node,weightBy,weightIndex,untruncated) result(massDistribution_)
     !!{RST
     Return the :math:`\beta`-profile hot halo mass distribution for the given ``node``.
     !!}
@@ -150,13 +152,15 @@ contains
     type            (treeNode                          ), intent(inout)           :: node
     type            (enumerationWeightByType           ), intent(in   ), optional :: weightBy
     integer                                             , intent(in   ), optional :: weightIndex
+    logical                                             , intent(in   ), optional :: untruncated
     class           (nodeComponentHotHalo              ), pointer                 :: hotHalo
     double precision                                                              :: radiusScale      , radiusOuter, &
          &                                                                           mass
     logical                                                                       :: reused
     integer                                                                       :: i
     !![
-    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    <optionalArgument name="weightBy"    defaultsTo="weightByMass" />
+    <optionalArgument name="untruncated" defaultsTo=".false."      />
     !!]
 
     ! Assume a null distribution by default.
@@ -168,6 +172,8 @@ contains
     hotHalo     => node                                      %hotHalo    (    )
     radiusOuter =  hotHalo                                   %outerRadius(    )
     mass        =  hotHalo                                   %mass       (    )
+    ! For an untruncated profile only the shape is required, so normalize an empty hot halo to unit mass.
+    if (untruncated_ .and. mass <= 0.0d0) mass=1.0d0
     ! If outer radius is non-positive return a null profile.
     if (radiusOuter <= 0.0d0 .or. mass <= 0.0d0) return
     ! Acquire a pool slot, creating the pool itself on first use. If an existing object is available
@@ -180,12 +186,12 @@ contains
        if (reused) then
           ! An existing distribution in the pool is available for re-use - update its properties for
           ! this node.
-          call massDistribution__%initialize(                                   &
-               &                             beta                 =self%beta  , &
-               &                             radiusCore           =radiusScale, &
-               &                             mass                 =mass       , &
-               &                             radiusOuter          =radiusOuter, &
-               &                             truncateAtOuterRadius=.true.       &
+          call massDistribution__%initialize(                                         &
+               &                             beta                 =     self%beta   , &
+               &                             radiusCore           =     radiusScale , &
+               &                             mass                 =     mass        , &
+               &                             radiusOuter          =     radiusOuter , &
+               &                             truncateAtOuterRadius=.not.untruncated_  &
                &                            )
        else
           ! No pool object was available - construct a new distribution.
@@ -197,7 +203,7 @@ contains
                 &amp;                     radiusCore           =     radiusScale         , &amp;
                 &amp;                     mass                 =     mass                , &amp;
                 &amp;                     radiusOuter          =     radiusOuter         , &amp;
-                &amp;                     truncateAtOuterRadius=     .true.              , &amp;
+                &amp;                     truncateAtOuterRadius=.not.untruncated_        , &amp;
                 &amp;                     componentType        =     componentTypeHotHalo, &amp;
                 &amp;                     massType             =     massTypeGaseous       &amp;
                 &amp;                    )
