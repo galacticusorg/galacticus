@@ -41,7 +41,7 @@
 
        y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
 
-    where :math:`r_0=`\ ``[radiusLow]``, :math:`r_1=`\ ``[radiusHigh]``, :math:`r_\nu=`\ ``[radiusTransition]``, :math:`\Delta r=`\ ``[radiusWidth]``, :math:`\alpha_0=`\ ``[massLow]``, :math:`\alpha_1=`\ ``[massHigh]``, :math:`\alpha_\nu=`\ ``[massTransition]``, :math:`\Delta \alpha=`\ ``[massWidth]``, :math:`\beta_0=`\ ``[expansionFactorLow]``, :math:`\beta_1=`\ ``[expansionFactorHigh]``, :math:`\beta_\nu=`\ ``[expansionFactorTransition]``, and :math:`\Delta \beta=`\ ``[expansionFactorWidth]``, and :math:`M_0=10^{12}\,\mathrm{M}_\odot`. No scatter is applied (the ``[scatter]`` parameter is read, but not used, by this class).
+    where :math:`r_0=`\ ``[radiusLow]``, :math:`r_1=`\ ``[radiusHigh]``, :math:`r_\nu=`\ ``[radiusTransition]``, :math:`\Delta r=`\ ``[radiusWidth]``, :math:`\alpha_0=`\ ``[massLow]``, :math:`\alpha_1=`\ ``[massHigh]``, :math:`\alpha_\nu=`\ ``[massTransition]``, :math:`\Delta \alpha=`\ ``[massWidth]``, :math:`\beta_0=`\ ``[expansionFactorLow]``, :math:`\beta_1=`\ ``[expansionFactorHigh]``, :math:`\beta_\nu=`\ ``[expansionFactorTransition]``, and :math:`\Delta \beta=`\ ``[expansionFactorWidth]``, and :math:`M_0=10^{12}\,\mathrm{M}_\odot`. A log-normal scatter of :math:`\sigma=`\ ``[scatter]`` dex is then applied, multiplying :math:`r_\mathrm{s}` by :math:`10^{\sigma g}`, with :math:`g` drawn from a standard normal distribution (no random number is drawn if :math:`\sigma=0`).
     </description>
   </darkMatterProfileScaleRadius>
   !!]
@@ -193,10 +193,10 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>scatter</name>
-      <defaultValue>+0.1513d0</defaultValue>
+      <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
       <description>
-      The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration. Currently not applied by this class.
+      The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration.
       </description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
@@ -274,6 +274,13 @@ contains
     radiusScale             =  + radiusNormalization                                           &
          &                     *(basic%mass         ()/massReference)**exponentMass            &
          &                     * expansionFactor                     **exponentExpansionFactor
+    ! Add scatter if necessary.
+    if (self%scatter > 0.0d0)                                                                  &
+         & radiusScale=+radiusScale                                                            &
+         &             *10.0d0**(                                                              &
+         &                       +self%scatter                                                 &
+         &                       *node%hostTree%randomNumberGenerator_%standardNormalSample()  &
+         &                      )
     return
 
   contains
