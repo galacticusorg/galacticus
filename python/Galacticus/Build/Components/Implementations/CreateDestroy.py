@@ -455,10 +455,13 @@ def Implementation_Builder(build, class_dict, member):
                     f"Node_Component_Builder_Error({error_args}0,self%hostNode)\n"
                 )
                 if is_long_integer:
+                    # Report an error only if the property is actually present
+                    # in the definition, so that a long integer meta-property
+                    # does not prevent building components that do not set it.
                     content += (
-                        "  call Error_Report('building of long integer "
-                        "properties currently not supported'"
-                        "//{introspection:location})\n"
+                        "  if (propertyListLength == 1) call Error_Report("
+                        "'building of long integer properties currently not "
+                        "supported'//{introspection:location})\n"
                     )
                 else:
                     content += (
@@ -474,9 +477,9 @@ def Implementation_Builder(build, class_dict, member):
             elif rank == 1:
                 if is_long_integer:
                     content += (
-                        "  call Error_Report('building of long integer "
-                        "properties currently not supported'"
-                        "//{introspection:location})\n"
+                        "  if (propertyListLength >= 1) call Error_Report("
+                        "'building of long integer properties currently not "
+                        "supported'//{introspection:location})\n"
                     )
                 else:
                     content += (

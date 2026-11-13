@@ -66,6 +66,7 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
   use :: Numerical_Constants_Math           , only : Pi
   use :: Numerical_Constants_Physical       , only : speedLight
   use :: Numerical_Constants_Units          , only : metersToAngstroms                  , micronsToAngstroms
+  use :: Numerical_Integration_Tabulated    , only : integrateSimpson                   , integrateTrapezoidal
   use :: Unit_Tests                         , only : Assert                             , Unit_Tests_Begin_Group           , Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
   ! The synthetic tabulation: wavelengths (in μm), inclinations and angles of the torus (in degrees).
@@ -171,7 +172,7 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
      do i=1,countFine
         integrand(i)=interpolateInclination(transmissionDirect(indexV,:,m),inclinationFine(i))*sin(inclinationFine(i))
      end do
-     coveringFractionModel(m)=1.0d0-simpson(inclinationFine,integrand)
+     coveringFractionModel(m)=1.0d0-integrateSimpson(inclinationFine,integrand)
   end do
   ! Parcels: accretion disk continuum at V, at 2 μm (tabulated), and at 1 μm (between tabulated wavelengths), AGN line
   ! emission, and stellar emission.
@@ -207,7 +208,7 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
         transmissionFine(i)=transmission(1)
         integrand       (i)=transmission(1)*sin(inclinationFine(i))
      end do
-     call Assert('V-band absorption averaged over orientation equals the covering fraction',1.0d0-simpson(inclinationFine,integrand),coveringFraction,absTol=1.0d-9)
+     call Assert('V-band absorption averaged over orientation equals the covering fraction',1.0d0-integrateSimpson(inclinationFine,integrand),coveringFraction,absTol=1.0d-9)
      ! Interpolation between models, in inclination, and in wavelength, checked against values found here.
      m          =max(1,min(2,count(coveringFractionModel <= coveringFraction)))
      weightModel=(coveringFraction-coveringFractionModel(m))/(coveringFractionModel(m+1)-coveringFractionModel(m))
@@ -232,7 +233,7 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
         transmission=torus_%transmission(node,descriptors,inclination=inclinationFine(i))
         integrand(i)=transmission(1)*sin(inclinationFine(i))
      end do
-     call Assert('transmission averaged over orientation is limited to one',simpson(inclinationFine,integrand),1.0d0,absTol=1.0d-9)
+     call Assert('transmission averaged over orientation is limited to one',integrateSimpson(inclinationFine,integrand),1.0d0,absTol=1.0d-9)
      descriptors(1)%wavelength=wavelengthTable(indexV)*micronsToAngstroms
      !![
      <objectDestructor name="torus_"                         />
@@ -301,7 +302,7 @@ program Test_Dust_Attenuation_AGN_Torus_SKIRTOR
      wavelengthsFine(i)=wavelengthTable(2)*micronsToAngstroms*exp(log(wavelengthTable(6)/wavelengthTable(2))*dble(i-1)/dble(countWavelengthFine-1))
   end do
   luminosity=emission_%luminosity(wavelengthsFine,luminosityAbsorbed,0.0d0,13.8d0)
-  integral  =trapezoid(log(wavelengthsFine),luminosity*speedLight*metersToAngstroms/wavelengthsFine)
+  integral  =integrateTrapezoidal(log(wavelengthsFine),luminosity*speedLight*metersToAngstroms/wavelengthsFine)
   call Assert('emission integrates to the luminosity absorbed',integral,luminosityAbsorbed,relTol=1.0d-6)
   ! The shape: νL_ν at the tabulated wavelengths is in the ratio of the tabulated values.
   luminosityOne  =emission_%luminosity([wavelengthTable(5)*micronsToAngstroms],luminosityAbsorbed,0.0d0,13.8d0)
@@ -340,35 +341,5 @@ contains
     value             =(1.0d0-weight)*values(j)+weight*values(j+1)
     return
   end function interpolateInclination
-
-  double precision function simpson(x,y) result(integral)
-    !!{RST
-    Integrate ``y`` over ``x``, which must be uniformly spaced and an odd number of points, by Simpson's rule.
-    !!}
-    implicit none
-    double precision, intent(in   ), dimension(:) :: x, y
-    integer                                       :: n
-
-    n       =size(x)
-    integral=+(x(2)-x(1))/3.0d0       &
-         &   *(                       &
-         &     +      y(1)            &
-         &     +4.0d0*sum(y(2:n-1:2)) &
-         &     +2.0d0*sum(y(3:n-2:2)) &
-         &     +      y(n)            &
-         &    )
-    return
-  end function simpson
-
-  double precision function trapezoid(x,y) result(integral)
-    !!{RST
-    Integrate ``y`` over ``x`` by the trapezoidal rule.
-    !!}
-    implicit none
-    double precision, intent(in   ), dimension(:) :: x, y
-
-    integral=sum(0.5d0*(y(2:size(y))+y(1:size(y)-1))*(x(2:size(x))-x(1:size(x)-1)))
-    return
-  end function trapezoid
 
 end program Test_Dust_Attenuation_AGN_Torus_SKIRTOR

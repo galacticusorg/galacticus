@@ -44,7 +44,7 @@ program Test_Dust_Attenuation_AGN_Torus
   use :: Black_Hole_Torus_Covering_Fractions, only : blackHoleTorusCoveringFractionFixed
   use :: Display                            , only : displayVerbositySet                , verbosityLevelStandard
   use :: Dust_Attenuation_Descriptors       , only : emissionDescriptor                 , emissionSourceAccretionDisk      , emissionSourceNebular, emissionSourceStellar
-  use :: Dust_Attenuations                  , only : dustAttenuationAGNTorus            , gaussLegendreRule
+  use :: Dust_Attenuations                  , only : dustAttenuationAGNTorus
   use :: Dust_Emission_Spectra              , only : dustEmissionSpectrumAGNTorus
   use :: Dust_Extinction_Curves             , only : dustExtinctionCurvePowerLaw
   use :: Error                              , only : Error_Handler_Register
@@ -58,6 +58,8 @@ program Test_Dust_Attenuation_AGN_Torus
   use :: Numerical_Constants_Math           , only : Pi
   use :: Numerical_Constants_Physical       , only : speedLight
   use :: Numerical_Constants_Units          , only : metersToAngstroms
+  use :: Numerical_Integration_Tabulated    , only : integrateTrapezoidal
+  use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
   use :: Unit_Tests                         , only : Assert                             , Unit_Tests_Begin_Group           , Unit_Tests_End_Group , Unit_Tests_Finish
   implicit none
   ! Mean number of clouds on an equatorial ray, and the optical depths of the clouds: typical, and so opaque that a ray
@@ -138,8 +140,8 @@ program Test_Dust_Attenuation_AGN_Torus
      ! The angular width gives the required covering fraction.
      widthAngular    =torus_%widthAngular(node)
      integrand       =(1.0d0-exp(-countClouds*exp(-(angle/widthAngular)**2)))*cos(angle)
-     coveringFraction=trapezoid(angle,integrand)
-     call Assert("angular width gives the covering fraction"                        ,coveringFraction,coveringFractions(j),absTol=1.0d-4)
+     coveringFraction=integrateTrapezoidal(angle,integrand)
+     call Assert("angular width gives the covering fraction",coveringFraction,coveringFractions(j),absTol=1.0d-4)
      ! Transmission of opaque clouds at several inclinations.
      do i=0,3
         inclination =dble(i)*Pi/6.0d0
@@ -153,7 +155,7 @@ program Test_Dust_Attenuation_AGN_Torus
         transmission=torusOpaque_%transmission(node,descriptors,0.5d0*Pi-angle(i))
         integrand(i)=(1.0d0-transmission(1))*cos(angle(i))
      end do
-     absorbedAverage=trapezoid(angle,integrand)
+     absorbedAverage=integrateTrapezoidal(angle,integrand)
      call Assert("opaque clouds absorb the covering fraction, averaged over cos(i)" ,absorbedAverage,coveringFractions(j),absTol=1.0d-4)
      ! The 8-point rule used for the absorbed luminosity is close to the exact average.
      absorbed=torusOpaque_%absorbedFractions(node,descriptors,cosineInclination,weight)
@@ -184,10 +186,10 @@ program Test_Dust_Attenuation_AGN_Torus
   <referenceConstruct object="emission_" constructor="dustEmissionSpectrumAGNTorus(temperatureSublimation,temperatureMinimum,0.0d0,1.0d0)"/>
   !!]
   luminosity=emission_%luminosity(wavelengths,luminosityAbsorbed,0.0d0,13.8d0)
-  call Assert("spectrum integrates to the absorbed luminosity"                      ,-trapezoid(frequencies,luminosity),luminosityAbsorbed,relTol=1.0d-5)
+  call Assert("spectrum integrates to the absorbed luminosity" ,-integrateTrapezoidal(frequencies,luminosity),luminosityAbsorbed,relTol=1.0d-5)
   wavelengthPeak=wavelengths(maxloc(luminosity*frequencies,dim=1))
-  call Assert("νL_ν peaks between the hottest and coolest dust"                     ,wavelengthPeak > radiationConstant/argumentPeak/temperatureSublimation .and. wavelengthPeak < radiationConstant/argumentPeak/temperatureMinimum,.true.)
-  call Assert("spectrum scales with the absorbed luminosity"                        ,emission_%luminosity(wavelengths,2.0d0*luminosityAbsorbed,0.0d0,13.8d0),2.0d0*luminosity,relTol=1.0d-12)
+  call Assert("νL_ν peaks between the hottest and coolest dust",wavelengthPeak > radiationConstant/argumentPeak/temperatureSublimation .and. wavelengthPeak < radiationConstant/argumentPeak/temperatureMinimum,.true.)
+  call Assert("spectrum scales with the absorbed luminosity"   ,emission_%luminosity(wavelengths,2.0d0*luminosityAbsorbed,0.0d0,13.8d0),2.0d0*luminosity,relTol=1.0d-12)
   !![
   <objectDestructor name="emission_"/>
   !!]
@@ -197,18 +199,5 @@ program Test_Dust_Attenuation_AGN_Torus
   <objectDestructor name="galacticInclination_"/>
   !!]
   call Unit_Tests_Finish()
-
-contains
-
-  double precision function trapezoid(x,y)
-    !!{RST
-    Return the integral of ``y`` over ``x`` by the trapezoidal rule.
-    !!}
-    implicit none
-    double precision, intent(in   ), dimension(:) :: x, y
-
-    trapezoid=sum(0.5d0*(y(2:)+y(:size(y)-1))*(x(2:)-x(:size(x)-1)))
-    return
-  end function trapezoid
 
 end program Test_Dust_Attenuation_AGN_Torus

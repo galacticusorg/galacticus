@@ -6,7 +6,7 @@
   <formatVersion>2</formatVersion>
 
   <!-- A grid simulation, as a container for model parameters. It is not run. -->
-  <posteriorSampleSimulation value="grid">
+  <posteriorSampleSimulation value="grid" ignoreWarnings="true">
     <!-- A truncated log-normal prior, specified by its median and width. -->
     <modelParameter value="active">
       <name value="parameterLogNormalMedian"/>
