@@ -458,7 +458,8 @@ contains
 
     basic         => node %basic                      (                   )
     isConstrained =  basic%integerRank0MetaPropertyGet(self%isConstrainedID) == 1
-    if (isConstrained) then
+    ! The constraint applies only between the root and the constraint point. Above that point every node is unconstrained.
+    if (isConstrained .and. basic%time() < self%criticalOverdensityConstrained) then
        mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityConstrained_
     else
        mergerTreeBranchingProbability_ => self%mergerTreeBranchingProbabilityUnconstrained_

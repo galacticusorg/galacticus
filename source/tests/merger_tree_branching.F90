@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Merger_Tree_Branching
   !!{RST
   Tests of merger tree branching rates.
@@ -87,6 +89,12 @@ program Tests_Merger_Tree_Branching
        &                                                                                                      variance_
   integer                                                                                                  :: i                                                                                 , j
   character       (len=16                                                      )                           :: label
+  ! Data used by the closed-form test of the first crossing distribution of a Brownian bridge.
+  integer                                                                       , parameter                :: countBridge                                                   =20000
+  double precision                                                                                         :: varianceBridge                                                                    , heightBridge                                   , &
+       &                                                                                                      barrierBridge                                                                     , stepBridge                                     , &
+       &                                                                                                      varianceUpperBridge                                                               , integralBridge                                 , &
+       &                                                                                                      yMinusBridge                                                                      , yPlusBridge
   ! Objects and data used by the analytic-identity tests which follow the tests above. For an n=-1 power spectrum filtered with a
   ! sharp k-space window function σ(M) ∝ M^{-1/3}, so α ≡ dlnσ/dlnM is a constant. Every identity tested in that section rests on
   ! that constancy - see the comments at the head of each group.
@@ -480,6 +488,35 @@ program Tests_Merger_Tree_Branching
      ! instead controlled by `toleranceVariance` above, which excludes the region in which the analytic solution diverges.
      call Assert('Unconstrained case',errorMaximumUnconstrained,3.6d-2,compareLessThan)
      call Assert('Constrained case'  ,errorMaximumConstrained  ,3.3d-2,compareLessThan)
+     call Unit_Tests_End_Group()
+     ! For a constant barrier the first crossing distribution of a Brownian bridge has a closed form, with an equally simple
+     ! cumulative distribution. A bridge ending above the barrier must cross it, so the distribution integrates to one.
+     call Unit_Tests_Begin_Group("First crossing distribution of a Brownian bridge (analytic)")
+     ! The constraint point is found as the class finds it, through the mass at which σ(M) matches the constrained variance. That
+     ! round trip through the tabulated σ(M) returns the constrained variance to about 0.15% here, which the closed form below
+     ! resolves.
+     varianceBridge=+cosmologicalMassVarianceFilteredPower_%rootVariance(cosmologicalMassVarianceFilteredPower_%mass(time=timeNow,rootVariance=sqrt(varianceConstrained)),time)**2
+     heightBridge  =+criticalOverdensityConstrained*sqrt(varianceBridge/varianceConstrained)
+     barrierBridge =+excursionSetBarrierCriticalOverdensity_%barrier(0.0d0,time,node,rateCompute=.false.)
+     do j=1,2
+        varianceUpperBridge=+varianceBridge*dble(j)/2.0d0
+        stepBridge         =+varianceUpperBridge/dble(countBridge)
+        integralBridge     =+excursionSetFirstCrossingLinearBarrierBrownianBridge_%probability(varianceUpperBridge,time,node)
+        do k=1,countBridge-1
+           integralBridge=+integralBridge                                                                                  &
+                &         +dble(2*(1+mod(k,2)))                                                                            &
+                &         *excursionSetFirstCrossingLinearBarrierBrownianBridge_%probability(dble(k)*stepBridge,time,node)
+        end do
+        integralBridge=+integralBridge*stepBridge/3.0d0
+        select case (j)
+        case (1)
+           yMinusBridge=+(+heightBridge*varianceUpperBridge                                        -barrierBridge*varianceBridge)/sqrt(varianceBridge*varianceUpperBridge*(varianceBridge-varianceUpperBridge))
+           yPlusBridge =+(+heightBridge*varianceUpperBridge-2.0d0*barrierBridge*varianceUpperBridge+barrierBridge*varianceBridge)/sqrt(varianceBridge*varianceUpperBridge*(varianceBridge-varianceUpperBridge))
+           call Assert('Cumulative distribution at half of the bridge',integralBridge,0.5d0*(erfc(-yMinusBridge/sqrt(2.0d0))+exp(2.0d0*barrierBridge*(heightBridge-barrierBridge)/varianceBridge)*erfc(yPlusBridge/sqrt(2.0d0))),relTol=1.0d-6)
+        case (2)
+           call Assert('Normalization'                                ,integralBridge,1.0d0                                                                                                                                     ,relTol=1.0d-6)
+        end select
+     end do
      call Unit_Tests_End_Group()
      call Unit_Tests_End_Group()
   end do
@@ -968,37 +1005,27 @@ contains
     ! Integrate the branching rate over progenitor mass using the composite Simpson rule in ln M′. The integrand is smooth over
     ! the ranges used here, so a fixed rule suffices - and, being independent of the adaptive integrator used inside the branching
     ! probability itself, it provides a genuinely independent evaluation of that integral.
+    use :: Numerical_Integration_Tabulated, only : integrateSimpson
     implicit none
-    class           (mergerTreeBranchingProbabilityClass), intent(inout), target :: branching_
-    double precision                                     , intent(in   )         :: massLower         , massUpper
-    integer                                              , parameter             :: countInterval=2000
-    double precision                                                             :: logMassLower      , logMassUpper, &
-         &                                                                          deltaLogMass      , weight      , &
-         &                                                                          massCurrent
-    integer                                                                      :: l
+    class           (mergerTreeBranchingProbabilityClass), intent(inout), target      :: branching_
+    double precision                                     , intent(in   )              :: massLower         , massUpper
+    integer                                              , parameter                  :: countInterval=2000
+    double precision                                     , dimension(0:countInterval) :: logMass           , integrand
+    double precision                                                                  :: logMassLower      , logMassUpper, &
+         &                                                                               deltaLogMass      , massCurrent
+    integer                                                                           :: l
 
     logMassLower=log(massLower)
     logMassUpper=log(massUpper)
     deltaLogMass=(logMassUpper-logMassLower)/dble(countInterval)
-    rateIntegral=0.0d0
     do l=0,countInterval
-       if      (l == 0 .or. l == countInterval) then
-          weight=1.0d0
-       else if (mod(l,2) == 1                 ) then
-          weight=4.0d0
-       else
-          weight=2.0d0
-       end if
-       massCurrent =exp(logMassLower+deltaLogMass*dble(l))
+       logMass    (l)=logMassLower+deltaLogMass*dble(l)
+       massCurrent   =exp(logMass(l))
        ! The rate is per unit progenitor mass, so a factor of the mass converts it to a rate per unit logarithmic mass.
-       rateIntegral=+rateIntegral                                                            &
-            &       +weight                                                                  &
-            &       *branching_%rate(massParent,deltaAnalytic,timeAnalytic,massCurrent,node) &
-            &       *massCurrent
+       integrand  (l)=+branching_%rate(massParent,deltaAnalytic,timeAnalytic,massCurrent,node) &
+            &         *massCurrent
     end do
-    rateIntegral=+rateIntegral  &
-         &       *deltaLogMass  &
-         &       /3.0d0
+    rateIntegral=integrateSimpson(logMass,integrand)
     return
   end function rateIntegral
 

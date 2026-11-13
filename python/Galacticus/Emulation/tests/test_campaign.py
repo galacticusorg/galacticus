@@ -1,8 +1,9 @@
 """Tests for `Galacticus.Emulation.design` and `Galacticus.Emulation.campaign`.
 
 A stub executable stands in for Galacticus. It reads the run's change file and behaves according to a keyword placed
-in it: `FAILEXIT` (exit with status 3), `SLEEP` (sleep for a few seconds first), `MARKER` (print a failure marker but exit 0), `NOOUTPUT` (exit 0 without
-writing the output file), or `BADBOUND` (fail, but only in a dry run). Otherwise it writes the output file named in the
+in it: `FAILEXIT` (exit with status 3), `SLEEP` (sleep for a few seconds first), `MARKER` (print a failure marker but exit 0),
+`NOOUTPUT` (exit 0 without writing the output file), `BADBOUND` (fail, but only in a dry run), or `UNRECOGNIZED` (report an
+unrecognized parameter, but exit 0, in a dry run or not). Otherwise it writes the output file named in the
 change file and exits 0.
 """
 
@@ -36,6 +37,8 @@ if 'BADBOUND' in text and dry_run:
     print('parameter [x] has value -1, but must be greater than 0.0')
     print(' Occurred at: somewhere')
     sys.exit(1)
+if 'UNRECOGNIZED' in text:
+    print('MM:     unrecognized parameter [y in parameters/]')
 if dry_run:
     sys.exit(0)
 if 'SLEEP' in text:
@@ -335,6 +338,24 @@ def test_submit_array_job(workspace):
     assert summary['submitted'] == 4
 
 
+class EagerManager(FakeManager):
+    """A queue manager whose array task for run 2 starts (and finishes) before submission returns."""
+
+    def submit_detached(self, job):
+        environment = dict(os.environ, SLURM_ARRAY_TASK_ID='2')
+        subprocess.run(['bash', '-c', job['command']], env=environment, capture_output=True, text=True, check=True)
+        return super().submit_detached(job)
+
+
+def test_submit_keeps_logs_of_started_tasks(workspace):
+    path, campaign, _ = workspace
+    campaign.submit(EagerManager())
+    # The log written by the task which started early must survive the removal of earlier attempts' logs.
+    assert (path / campaign.runs[2].log_file).exists()
+    campaign.refresh()
+    assert campaign.runs[2].status == 'complete'
+
+
 def test_validate(workspace):
     path, campaign, values = workspace
     extremes = campaign.extreme_runs()
@@ -347,6 +368,12 @@ def test_validate(workspace):
     assert results[0].ok and results[2].ok
     assert not results[1].ok
     assert results[1].message == 'parameter [x] has value -1, but must be greater than 0.0'
+    # A dry run which exits successfully, but reports a problem that would mark the real run as failed, fails validation.
+    _mark(path, 2, 'UNRECOGNIZED')
+    results = {result.run: result for result in campaign.validate(indices=[0, 2])}
+    assert results[0].ok
+    assert not results[2].ok
+    assert results[2].message == 'output contains failure markers: unrecognized parameter'
     # Validation writes no model output and leaves the manifest unchanged.
     assert not any((path / 'models').iterdir())
     assert json.load(open('campaign.json'))['runs'][1]['status'] == 'pending'

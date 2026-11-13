@@ -73,15 +73,15 @@ Install ``libmatheval``
 
 .. code-block:: bash
 
-   curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.13.tar.gz --output libmatheval-1.1.13.tar.gz
-   tar xvfz libmatheval-1.1.13.tar.gz
-   cd libmatheval-1.1.13
+   curl -L https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.14.tar.gz --output libmatheval-1.1.14.tar.gz
+   tar xvfz libmatheval-1.1.14.tar.gz
+   cd libmatheval-1.1.14
    sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
    CC=gcc-16 ./configure --prefix=/usr/local
    make -j
    sudo make install
    cd ..
-   rm -rf libmatheval-1.1.13.tar.gz libmatheval-1.1.13
+   rm -rf libmatheval-1.1.14.tar.gz libmatheval-1.1.14
 
 Install QHull
 ~~~~~~~~~~~~~

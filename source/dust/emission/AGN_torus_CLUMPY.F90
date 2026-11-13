@@ -23,8 +23,7 @@
   Implements a spectrum of emission from the dusty torus around an AGN using the CLUMPY library of models.
   !!}
 
-  use :: ISO_Varying_String     , only : varying_string
-  use :: Numerical_Interpolation, only : interpolator
+  use :: ISO_Varying_String, only : varying_string
 
   !![
   <dustEmissionSpectrum name="dustEmissionSpectrumAGNTorusCLUMPY" docformat="rst">
@@ -64,21 +63,15 @@
    </description>
   </dustEmissionSpectrum>
   !!]
-  type, extends(dustEmissionSpectrumClass) :: dustEmissionSpectrumAGNTorusCLUMPY
+  type, extends(dustEmissionSpectrumTabulated) :: dustEmissionSpectrumAGNTorusCLUMPY
      !!{RST
      A spectrum of emission from the dusty torus around an AGN using the CLUMPY library of models.
      !!}
      private
-     type            (varying_string)                            :: fileName              , url
-     double precision                                            :: countCloudsEquatorial , widthAngular       , &
-          &                                                         depthOpticalCloudV    , ratioRadii         , &
-          &                                                         exponentRadial
-     ! The tabulated wavelengths (in Å) over which the model emits, and the logarithm of the spectrum at each, normalized
-     ! to unit luminosity (so in Hz⁻¹).
-     double precision                , allocatable, dimension(:) :: wavelength            , spectrumLogarithmic
-     type            (interpolator  )                            :: interpolatorWavelength
-   contains
-     procedure :: luminosity => agnTorusCLUMPYLuminosity
+     type            (varying_string) :: fileName             , url
+     double precision                 :: countCloudsEquatorial, widthAngular, &
+          &                              depthOpticalCloudV   , ratioRadii  , &
+          &                              exponentRadial
   end type dustEmissionSpectrumAGNTorusCLUMPY
 
   interface dustEmissionSpectrumAGNTorusCLUMPY
@@ -186,18 +179,16 @@ contains
     range of wavelength over which it emits and normalized to unit luminosity.
     !!}
     use            :: Error                       , only : Error_Report
-    use            :: File_Utilities              , only : Directory_Make      , File_Exists        , File_Lock     , File_Remove, &
-         &                                                 File_Unlock         , lockDescriptor
+    use            :: File_Utilities              , only : Directory_Make    , File_Exists        , File_Lock   , File_Remove, &
+         &                                                 File_Unlock       , lockDescriptor
     use            :: HDF5                        , only : hsize_t
     use            :: HDF5_Access                 , only : hdf5Access
-    use            :: Input_Paths                 , only : inputPath           , pathTypeDataDynamic
+    use            :: Input_Paths                 , only : inputPath         , pathTypeDataDynamic
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: IO_HDF5                     , only : hdf5File
-    use            :: ISO_Varying_String          , only : char                , operator(//)       , operator(==)  , var_str
-    use            :: Numerical_Constants_Physical, only : speedLight
-    use            :: Numerical_Constants_Units   , only : metersToAngstroms   , micronsToAngstroms
+    use            :: ISO_Varying_String          , only : char              , operator(//)       , operator(==), var_str
+    use            :: Numerical_Constants_Units   , only : micronsToAngstroms
     use            :: System_Download             , only : download
-    use            :: Table_Labels                , only : extrapolationTypeFix
     implicit none
     type            (dustEmissionSpectrumAGNTorusCLUMPY)                                          :: self
     type            (varying_string                    ), intent(in   )                           :: fileName                  , url
@@ -215,7 +206,7 @@ contains
     type            (lockDescriptor                    )                                          :: lock
     type            (varying_string                    )                                          :: pathFile                  , pathDirectory
     integer         (c_size_t                          )                                          :: sizeFile
-    double precision                                                                              :: normalization             , weight
+    double precision                                                                              :: weight
     integer                                                                                       :: status                    , iCloud               , &
          &                                                                                           iWidth                    , iDepth               , &
          &                                                                                           iRatio                    , iExponent
@@ -297,15 +288,11 @@ contains
     if (count(isEmitting) < 2) call Error_Report('the model emits at fewer than two tabulated wavelengths'//{introspection:location})
     if (any(.not.isEmitting(findloc(isEmitting,.true.,dim=1):findloc(isEmitting,.true.,dim=1,back=.true.)))) &
          & call Error_Report('the model does not emit over a contiguous range of wavelength'//{introspection:location})
-    self%wavelength      =pack(wavelength   ,isEmitting)
-    luminosityLogarithmic=pack(log(emission),isEmitting)
+    wavelength           =pack(    wavelength ,isEmitting)
+    luminosityLogarithmic=pack(log(emission  ),isEmitting)
     ! Convert from λL_λ to L_ν, which is proportional to λ λL_λ, and normalize to unit luminosity. The spectrum is
     ! interpolated as a power law between the tabulated wavelengths, and normalized by integrating that interpolant.
-    normalization           =dustEmissionIntegralPowerLaw(self%wavelength,luminosityLogarithmic)
-    self%spectrumLogarithmic=+luminosityLogarithmic                             &
-         &                   +log(self%wavelength/speedLight/metersToAngstroms) &
-         &                   -log(normalization)
-    self%interpolatorWavelength=interpolator(log(self%wavelength),extrapolationType=extrapolationTypeFix)
+    call self%initializeTabulation(wavelength,luminosityLogarithmic)
     return
 
   contains
@@ -355,33 +342,3 @@ contains
     end subroutine bracket
 
   end function agnTorusCLUMPYConstructorInternal
-
-  function agnTorusCLUMPYLuminosity(self,wavelengths,luminosityAbsorbed,massDust,time) result(luminosity)
-    !!{RST
-    Return the luminosity per unit frequency emitted by the torus, normalized to the luminosity it absorbs.
-    !!}
-    use, intrinsic :: ISO_C_Binding, only : c_size_t
-    implicit none
-    class           (dustEmissionSpectrumAGNTorusCLUMPY), intent(inout)                               :: self
-    double precision                                    , intent(in   ), dimension(:                ) :: wavelengths
-    double precision                                    , intent(in   )                               :: luminosityAbsorbed, massDust, &
-         &                                                                                               time
-    double precision                                                   , dimension(size(wavelengths)) :: luminosity
-    double precision                                                   , dimension(0:1              ) :: weights
-    integer         (c_size_t                          )                                              :: j
-    integer                                                                                           :: i
-    !$GLC attributes unused :: massDust, time
-
-    luminosity=0.0d0
-    if (luminosityAbsorbed <= 0.0d0) return
-    do i=1,size(wavelengths)
-       if (wavelengths(i) < self%wavelength(1) .or. wavelengths(i) > self%wavelength(size(self%wavelength))) cycle
-       call self%interpolatorWavelength%linearFactors(log(wavelengths(i)),j,weights)
-       luminosity(i)=+luminosityAbsorbed                            &
-            &        *exp(                                          &
-            &             +weights(0)*self%spectrumLogarithmic(j  ) &
-            &             +weights(1)*self%spectrumLogarithmic(j+1) &
-            &            )
-    end do
-    return
-  end function agnTorusCLUMPYLuminosity

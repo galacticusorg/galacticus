@@ -40,7 +40,7 @@
 
       M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
 
-   where :math:`\delta_{i,j}=0` of mass type :math:`j` in :term:`component` :math:`i` will end up in the remnant spheroid and :math:`0` otherwise. Radii of material that will end up in the spheroid are set by finding the solution to:
+   where :math:`\delta_{i,j}=1` if mass type :math:`j` in :term:`component` :math:`i` will end up in the remnant spheroid and :math:`0` otherwise. Radii of material that will end up in the spheroid are set by finding the solution to:
 
    .. math::
 

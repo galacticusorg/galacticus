@@ -1071,6 +1071,7 @@
           <xs:enumeration value="draineLi2007"/>
           <xs:enumeration value="richieHensley2026"/>
           <xs:enumeration value="sum"/>
+          <xs:enumeration value="tabulated"/>
          </xs:restriction>
         </xs:simpleType>
        </xs:attribute>
@@ -2055,6 +2056,7 @@
         <xs:simpleType>
          <xs:restriction base="xs:string">
           <xs:enumeration value="PCHPlus"/>
+          <xs:enumeration value="constraintConditioned"/>
           <xs:enumeration value="fakhouri2010"/>
           <xs:enumeration value="generalizedPressSchechter"/>
           <xs:enumeration value="parkinsonColeHelly"/>
@@ -4278,6 +4280,7 @@
           <xs:enumeration value="intergalacticMediumState"/>
           <xs:enumeration value="localGroupDatabase"/>
           <xs:enumeration value="massFunctionCovariance"/>
+          <xs:enumeration value="mergerTreeBranchingMoments"/>
           <xs:enumeration value="mergerTreeFileBuilder"/>
           <xs:enumeration value="mergingHaloOrbitDistribution"/>
           <xs:enumeration value="multi"/>

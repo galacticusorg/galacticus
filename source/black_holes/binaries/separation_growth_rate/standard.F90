@@ -32,8 +32,8 @@
 
    .. math::
 
-      \dot{a} = \hbox{min} \left( - \frac{\mathrm{G}\rho _{*}a^2 H}{\sigma}, +\frac{2 \dot{v}_\mathrm{DF} a}{v_c} \right) -
-      \frac{256 G^3 M_{\bullet, 1} M_{\bullet, 2} (M_{\bullet, 1} +M_{\bullet, 2})}{5 c^5 a^3}
+      \dot{a} = \hbox{min} \left( - \frac{\mathrm{G}\rho _{*}a^2 H}{\sigma}, +\frac{\dot{v}_\mathrm{DF} a}{v_c + a\,\mathrm{d}v_c/\mathrm{d}a} \right) -
+      \frac{64 G^3 M_{\bullet, 1} M_{\bullet, 2} (M_{\bullet, 1} +M_{\bullet, 2})}{5 c^5 a^3}
 
    where :math:`a` is the black hole binary separation, :math:`H` is a dimensionless hardening parameter :math:`H\approx 15` in the limit of a very hard, equal mass binary, :math:`\rho _\star` is the density of stars, :math:`\dot{v}_\mathrm{DF}` is the acceleration (negative) due to dynamical friction, :math:`v_\mathrm{c}` is the circular velocity, :math:`\sigma` is the velocity dispersion of stars. Here the first factor represents hardening due to strong scattering of stars, the second results from dynamical friction with distant stars, gas and dark matter and the last results from the emission of gravitational waves :cite:t:`peters_gravitational_1964`.
 
@@ -232,7 +232,7 @@ contains
     end if
     ! Compute the separation growth rate due to emission of gravitational waves.
     rateGravitationalWaves=-(                                        &
-         &                   +256.0d0                                &
+         &                   +64.0d0                                 &
          &                   *gravitationalConstant_internal**3      &
          &                   *  blackHole       %mass          ()    &
          &                   *  blackHoleCentral%mass          ()    &
@@ -327,8 +327,9 @@ contains
           call displayUnindent('done')
           call Error_Report('rotation curve gradient is zero'//{introspection:location})
        end if
-       rateScatteringDynamicalFriction=+2.0d0                         &
-            &                          *dynamicalFrictionAcceleration &
+       ! For a circular orbit losing angular momentum at a rate a v̇_DF, ȧ = a v̇_DF/(v_c + a dv_c/da) (which reduces to
+       ! 2 a v̇_DF/v_c for a Keplerian potential). The denominator, rotationCurveGradient, is v_c + a dv_c/da.
+       rateScatteringDynamicalFriction=+dynamicalFrictionAcceleration &
             &                          *blackHole%radialPosition()    &
             &                          /rotationCurveGradient
        ! Take the most negative rate from dynamical friction or scattering of stars.

@@ -63,7 +63,8 @@ jobs:
         # interpreter this job happens to resolve `3.x` to. numpy and h5py are
         # needed by the emulator file-format tests, and scikit-learn by the emulator
         # training tests (python/Galacticus/Emulation), which would otherwise be skipped.
-        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py scikit-learn
+        # pyyaml is needed by the validation report tests.
+        run: python -m pip install --upgrade pip pytest platformdirs requests lxml zstandard numpy h5py scikit-learn pyyaml
       - name: Run Python regression tests
         run: |
           cd $GITHUB_WORKSPACE
@@ -1414,6 +1415,7 @@ jobs:
                       tests.merger_tree_branching_CDM.exe,
                       tests.merger_tree_branching_WDM.exe,
                       tests.merger_tree_branching_modifiers.exe,
+                      tests.merger_tree_branching_constraint_conditioned.exe,
                       tests.merger_tree_census.exe,
                       tests.event_hooks.exe,
                       tests.tree_branch_destroy.exe,
@@ -2659,6 +2661,68 @@ jobs:
           fi
           git checkout -
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+  # Build a report comparing this pull request's validation results to master, and link to it from a comment on the pull request.
+  # This runs even if some validation jobs failed, since that is when the report is most useful: their results are reported as missing.
+  Validation-Report:
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && !github.event.pull_request.draft }}
+    permissions:
+      contents:      read
+      actions:       read
+      pull-requests: write # required to post the link to the report as a comment on the pull request
+    needs: [ Benchmark-Dark-Matter-Only-Subhalos, Benchmark-Milky-Way-Model, Validate-Dark-Matter-Only-Subhalos, Validate-Dark-Matter-Only-Subhalos-Symphony, Validate-Dark-Matter-Only-Subhalos-Symphony-X64, Validate-Dark-Matter-Only-Subhalos-COZMICWDM, Validate-Halo-Mass-Function, Validate-Milky-Way-Model, Validate-PonosV, Validate-Baryonic-Suppression, Validate-Idealized-Subhalo-Simulations, Validate-Decaying-Dark-Matter-Only-Subhalos ]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2 # the first parent of the merge commit is the master commit which this run was built on
+      - name: Download validation artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: validate-*
+          path: reportArtifacts
+      - name: Download benchmark artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: benchmark-*
+          path: reportArtifacts
+      - name: Build the report
+        run: |
+          mkdir -p reportArtifacts
+          # Only a few files are needed from the history of gh-pages, so fetch its files on demand.
+          git fetch --filter=blob:none --no-tags origin gh-pages:refs/remotes/origin/gh-pages
+          pip install --quiet pyyaml
+          python3 scripts/build/buildPrValidationReport.py \
+            --artifacts     reportArtifacts \
+            --gh-pages-repo . \
+            --base-sha      "$(git rev-parse HEAD^1)" \
+            --output        validationReport.html \
+            --comment       validationReportComment.md \
+            --pr-number     "${{ github.event.pull_request.number }}" \
+            --pr-commit     "${{ github.event.pull_request.head.sha }}" \
+            --run-url       "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      - name: Upload the report
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          path: validationReport.html
+          archive: false
+          overwrite: true
+      - name: Link to the report
+        env:
+          REPORT_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          sed -i "s|__REPORT_URL__|$REPORT_URL|" validationReportComment.md
+          cat validationReportComment.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Comment on the PR with a link to the report
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
+        with:
+          file-path: validationReportComment.md
+          comment-tag: validation-report
   Deploy:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
