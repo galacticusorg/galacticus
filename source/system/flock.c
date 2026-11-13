@@ -118,12 +118,15 @@ void funlock_C(struct lockDescriptor **ld) {
   /* Skip unlock if the original lock failed due to locking not being available on the system */
   if ( (*ld)->fd != -1 ) {
     (*ld)->fl.l_type  =F_UNLCK;
-    close((*ld)->fd);
+    /* Unlock before closing the descriptor. (Closing first would make the unlock act on a descriptor that is no longer ours: it
+       would fail with EBADF, or, if another thread had since opened a file and been given the same descriptor number, act on that
+       thread's file instead. The close itself releases the lock in any case.) */
 #ifdef OFDAVAIL
     fcntl((*ld)->fd, F_OFD_SETLK, &(*ld)->fl); /* set the region to unlocked */
 #else
     fcntl((*ld)->fd, F_SETLK    , &(*ld)->fl); /* set the region to unlocked */
 #endif
+    close((*ld)->fd);
     free((*ld)->name);
     free(*ld);
   }

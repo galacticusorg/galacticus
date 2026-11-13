@@ -128,11 +128,17 @@ for i in range(treeCount):
 alphaPonosV                  = 0.850
 subhaloSurfaceDensity8PonosV = 0.006
 
+# The PonosV value is consistent with the model if at least this percentage of realizations lies on each side of it - the
+# same criterion as the validation dashboard applies (`ponosVPercentile` in `scripts/build/buildGhPagesIndex.py`). A value
+# outside of that range is reported as a warning rather than a failure: as for the other validation models, the model running
+# successfully is what is tested here, while its agreement with the target data is tracked on the dashboard.
+percentageMinimum = 5.0
+
 # Compute percentage of realizations above/below the PonosV subhalo surface density, and report.
 above = np.nonzero(subhaloSurfaceDensity8 > subhaloSurfaceDensity8PonosV)
 percentageAbove = 100.0*np.count_nonzero(subhaloSurfaceDensity8 > subhaloSurfaceDensity8PonosV)/treeCount
 percentageBelow = 100.0-percentageAbove
-statusSurfaceDensity = "SUCCESS" if percentageAbove > 5.0 or percentageBelow > 5.0 else "FAILED"
+statusSurfaceDensity = "SUCCESS" if min(percentageAbove,percentageBelow) >= percentageMinimum else "WARNING"
 print(f"{statusSurfaceDensity}: Percentage of realizations above/below the PonosV subhalo surface density: {percentageAbove:5.1f}/{percentageBelow:5.1f}")
 
 # Compute the mean slope of the subhalo mass function, and report.
@@ -142,7 +148,7 @@ alphas      = -np.log(        subhaloSurfaceDensity8[nonZero]     /        subha
               /np.log(np.sqrt(massBoundMinimum8*massBoundMaximum8)/np.sqrt(massBoundMinimum9*massBoundMaximum9))
 percentageAboveSlope = 100.0*np.count_nonzero(alphas > alphaPonosV)/len(alphas)
 percentageBelowSlope = 100.0-percentageAboveSlope
-statusSlope = "SUCCESS" if percentageAboveSlope > 5.0 or percentageBelowSlope > 5.0 else "FAILED"
+statusSlope = "SUCCESS" if min(percentageAboveSlope,percentageBelowSlope) >= percentageMinimum else "WARNING"
 print(f"{statusSlope}: Percentage of realizations above/below the PonosV subhalo mass function slope: {percentageAboveSlope:5.1f}/{percentageBelowSlope:5.1f}")
 
 # Interface with git.

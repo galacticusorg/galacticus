@@ -888,79 +888,34 @@ contains
     !!{RST
     Tabulate the freefall radius at the given ``time`` in an NFW mass distribution.
     !!}
-    use :: Numerical_Integration, only : integrator
+    use :: Mass_Distributions_Spherical_Utilities, only : Mass_Distribution_Time_Freefall_Tabulate
     implicit none
-    class           (massDistributionNFW), intent(inout)               :: self
-    double precision                     , intent(in   )               :: timeScaleFree
-    double precision                     , allocatable  , dimension(:) :: radii
-    double precision                                                   :: radiusStart
-    integer                                                            :: i
-    type            (integrator         )                              :: integrator_
+    class           (massDistributionNFW), intent(inout) :: self
+    double precision                     , intent(in   ) :: timeScaleFree
+    double precision                     , parameter     :: radiusSmall  =4.0d-6
+    !$GLC attributes unused :: self
 
-    ! The freefall time increases with radius. Note that each point is an independent quadrature from the center out to its
-    ! own radius, so a point carried over by an extension is precisely the value which would be computed afresh.
+    ! The freefall time increases with radius.
     if (timeFreefallScaleFree_%pointsPerOctave == 0) call timeFreefallScaleFree_%reset(countRadiiPerOctave,increasing=.true.)
-    if (.not.timeFreefallScaleFree_%brackets(timeScaleFree)) then
-       integrator_=integrator(timeFreeFallIntegrand,toleranceRelative=1.0d-3)
-       do while (.not.timeFreefallScaleFree_%brackets(timeScaleFree))
-          call timeFreefallScaleFree_%expand(timeScaleFree)
-          radii=timeFreefallScaleFree_%abscissae()
-          do i=1,size(radii)
-             if (timeFreefallScaleFree_%isComputed(i)) cycle
-             call timeFreefallScaleFree_%set(i,timeFreefallScaleFree(radii(i)))
-          end do
-          call timeFreefallScaleFree_%build()
-       end do
-    end if
+    call Mass_Distribution_Time_Freefall_Tabulate(timeFreefallScaleFree_,timeScaleFree,potentialDifferenceScaleFree,toleranceRelative=1.0d-3,radiusSmall=radiusSmall,timeFreefallSmallRadius=timeFreefallSmallRadius)
     return
 
   contains
-    
-    double precision function timeFreefallScaleFree(radius)
+
+    double precision function timeFreefallSmallRadius(radius)
       !!{RST
-      Evaluate the freefall time from a given radius in a scale-free NFW mass distribution.
+      Approximate the freefall time from a small radius in a scale-free NFW mass distribution.
       !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: radius
-      double precision, parameter     :: radiusSmall=4.0d-6
 
-      if (radius > radiusSmall) then
-         radiusStart          =                            radius
-         timeFreefallScaleFree=integrator_%integrate(0.0d0,radius)
-      else
-         ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
-         ! first order terms.
-         timeFreefallScaleFree=2.0d0*sqrt(radius/4.0d0/Pi)
-      end if
+      ! This approximation is found by taking series expansions of the logarithms in the integrand and keeping only the first
+      ! order terms.
+      timeFreefallSmallRadius=2.0d0*sqrt(radius/4.0d0/Pi)
       return
-    end function timeFreefallScaleFree
-    
-    double precision function timeFreeFallIntegrand(radius)
-      !!{RST
-      Integrand used to find the freefall time in a scale-free NFW mass distribution.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
-      double precision                :: potentialDifference
-      
-      if (radius == 0.0d0) then
-         timeFreeFallIntegrand=+0.0d0
-      else
-         potentialDifference=+potentialDifferenceScaleFree(radiusStart,radius)
-         if (potentialDifference > 0.0d0) then
-            timeFreeFallIntegrand=+1.0d0                     &
-                 &                /sqrt(                     &
-                 &                      +2.0d0               &
-                 &                      *potentialDifference &
-                 &                     )
-         else
-            timeFreeFallIntegrand=+0.0d0
-         end if
-      end if
-      return
-    end function timeFreeFallIntegrand
-    
+    end function timeFreefallSmallRadius
+
   end subroutine nfwTimeFreefallTabulate
   
   double precision function nfwEnergyPotential(self,radiusOuter) result(energy)

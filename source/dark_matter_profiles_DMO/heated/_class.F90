@@ -175,14 +175,6 @@ contains
       The maximum allowed relative tolerance to use in numerical solutions for the gravitational potential in dark-matter-only density profiles before aborting.
       </description>
     </inputParameter>
-    <inputParameter docformat="rst">
-      <name>tolerateVelocityMaximumFailure</name>
-      <defaultValue>.true.</defaultValue>
-      <description>
-      If true, tolerate failures to find the radius of the peak in the rotation curve.
-      </description>
-      <source>parameters</source>
-    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
     !!]
