@@ -199,9 +199,9 @@ contains
       The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration. Currently not applied by this class.
       </description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>
-    <objectBuilder class="cosmologicalMassVariance"     name="cosmologicalMassVariance_"     source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
     self=darkMatterProfileScaleRadiusPowerLaw(radiusLow,radiusHigh,radiusTransition,radiusWidth,massLow,massHigh,massTransition,massWidth,expansionFactorLow,expansionFactorHigh,expansionFactorTransition,expansionFactorWidth,scatter,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
@@ -259,9 +259,9 @@ contains
     class           (darkMatterProfileScaleRadiusPowerLaw), intent(inout) , target  :: self
     type            (treeNode                            ), intent(inout) , target  :: node
     class           (nodeComponentBasic                  )                , pointer :: basic
-    double precision                                      , parameter               :: massReference   =1.0d12
-    double precision                                                                :: expansionFactor        , peakHeight  , &
-         &                                                                             radiusNormalization    , exponentMass, &
+    double precision                                      , parameter               :: massReference          =1.0d12
+    double precision                                                                :: expansionFactor               , peakHeight  , &
+         &                                                                             radiusNormalization           , exponentMass, &
          &                                                                             exponentExpansionFactor
     
     basic                   =>  node                          %basic          (                                             )
