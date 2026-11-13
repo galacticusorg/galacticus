@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794448876719,
+  "lastUpdate": 1794566300072,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "520abf8874e55ae5faca38acfd76be4e737977e2",
-          "message": "Merge pull request #954 from galacticusorg/fixUnrecognizedParameters\n\nFor named parameters in `objectBuilder` directives, add them to the list of recognized parameters for each executable",
-          "timestamp": "2025-10-22T14:29:40Z",
-          "tree_id": "359aae7be7afe41a9251ff58385863bd86751613",
-          "url": "https://github.com/galacticusorg/galacticus/commit/520abf8874e55ae5faca38acfd76be4e737977e2"
-        },
-        "date": 1761167998827,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Wall Time",
-            "value": 51.396,
-            "range": "0.123791760630539",
-            "unit": "seconds"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8812,6 +8782,36 @@ window.BENCHMARK_DATA = {
             "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
             "value": 17129.052142243065,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "206c5a51aa9a3d00cfa1a871e33be8259157e0c7",
+          "message": "Merge pull request #1779 from galacticusorg/refactor/nfw-freefall-shared-driver\n\nrefactor(mass-distributions): tabulate NFW freefall times with the shared driver",
+          "timestamp": "2026-11-12T22:21:11Z",
+          "tree_id": "5f304e9aa42d90c100f9f78fd6755e693d11e54c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/206c5a51aa9a3d00cfa1a871e33be8259157e0c7"
+        },
+        "date": 1794566294435,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Wall Time",
+            "value": 31.063,
+            "range": "0.06922499548573502",
+            "unit": "seconds"
           }
         ]
       }
