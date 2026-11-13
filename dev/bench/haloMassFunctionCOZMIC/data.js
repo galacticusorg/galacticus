@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794449053567,
+  "lastUpdate": 1794566517159,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (COZMIC)": [
@@ -2767,6 +2767,55 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/b80f507690ff89057955185e99d763a2648f4a83"
         },
         "date": 1794449052956,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000",
+            "value": 81.56288946949522,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
+            "value": 61.04931570009256,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV resolutionX8 z=0.000",
+            "value": 61.922518555381195,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:bumpCutoff resolutionX8 z=0.000",
+            "value": 105.18306910854619,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
+            "value": 74.48289008537377,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "206c5a51aa9a3d00cfa1a871e33be8259157e0c7",
+          "message": "Merge pull request #1779 from galacticusorg/refactor/nfw-freefall-shared-driver\n\nrefactor(mass-distributions): tabulate NFW freefall times with the shared driver",
+          "timestamp": "2026-11-12T22:21:11Z",
+          "tree_id": "5f304e9aa42d90c100f9f78fd6755e693d11e54c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/206c5a51aa9a3d00cfa1a871e33be8259157e0c7"
+        },
+        "date": 1794566516428,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
