@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794448895777,
+  "lastUpdate": 1794566332574,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (COZMIC Milky Way WDM 3keV resolutionX1)": [
@@ -6648,6 +6648,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 46.65532040713806,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "206c5a51aa9a3d00cfa1a871e33be8259157e0c7",
+          "message": "Merge pull request #1779 from galacticusorg/refactor/nfw-freefall-shared-driver\n\nrefactor(mass-distributions): tabulate NFW freefall times with the shared driver",
+          "timestamp": "2026-11-12T22:21:11Z",
+          "tree_id": "5f304e9aa42d90c100f9f78fd6755e693d11e54c",
+          "url": "https://github.com/galacticusorg/galacticus/commit/206c5a51aa9a3d00cfa1a871e33be8259157e0c7"
+        },
+        "date": 1794566332049,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 3.339375798668974,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 20.162943285015125,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (COZMIC WDM:3keV resolution X1 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 43.64188501808822,
             "unit": "-logℒ"
           }
         ]
