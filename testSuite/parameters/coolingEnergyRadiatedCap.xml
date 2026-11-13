@@ -39,11 +39,15 @@
   <hotHaloTemperatureProfile value="virial"/>
 
   <!-- Cooling, following Benson &amp; Bower (2010). -->
-  <coolingFunction value="atomicCIECloudy"/>
+  <coolingFunction value="summation">
+    <coolingFunction value="atomicCIECloudy"/>
+    <coolingFunction value="CMBCompton"     />
+  </coolingFunction>
   <chemicalState   value="atomicCIECloudy"/>
   <coolingTime     value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTime>
   <coolingTimeAvailable value="bensonBower2010"/>
+  <coolingRadius        value="simple"         />
   <nodeOperator         value="coolingEnergyRadiated"/>
 </parameters>
