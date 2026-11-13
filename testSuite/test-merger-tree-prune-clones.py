@@ -41,9 +41,10 @@ millennium = """
     <OmegaBaryon value="0.045"/>
     <HubbleConstant value="73.0"/>
   </cosmologyParameters>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.9"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower"/>
   <componentPosition value="cartesian"/>
 </root>
 """

@@ -88,9 +88,9 @@ runs:
     - name: Install libmatheval
       shell: bash
       run: |
-        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.13.tar.gz --output libmatheval-1.1.13.tar.gz
-        tar xvfz libmatheval-1.1.13.tar.gz
-        cd libmatheval-1.1.13
+        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.14.tar.gz --output libmatheval-1.1.14.tar.gz
+        tar xvfz libmatheval-1.1.14.tar.gz
+        cd libmatheval-1.1.14
         # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
         sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
@@ -98,7 +98,7 @@ runs:
         make -j3
         sudo make install
         cd ..
-        rm -rf libmatheval-1.1.13.tar.gz libmatheval-1.1.13
+        rm -rf libmatheval-1.1.14.tar.gz libmatheval-1.1.14
     - name: Install qhull
       shell: bash
       # NOTE: `www.qhull.org` presents a certificate which is not valid for that host, so this must be fetched over plain HTTP and
