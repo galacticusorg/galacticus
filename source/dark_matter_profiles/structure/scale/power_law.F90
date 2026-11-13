@@ -275,11 +275,11 @@ contains
          &                     *(basic%mass         ()/massReference)**exponentMass            &
          &                     * expansionFactor                     **exponentExpansionFactor
     ! Add scatter if necessary.
-    if (self%scatter > 0.0d0)                                                                  &
-         & radiusScale=+radiusScale                                                            &
-         &             *10.0d0**(                                                              &
-         &                       +self%scatter                                                 &
-         &                       *node%hostTree%randomNumberGenerator_%standardNormalSample()  &
+    if (self%scatter > 0.0d0)                                                                 &
+         & radiusScale=+radiusScale                                                           &
+         &             *10.0d0**(                                                             &
+         &                       +self%scatter                                                &
+         &                       *node%hostTree%randomNumberGenerator_%standardNormalSample() &
          &                      )
     return
 
