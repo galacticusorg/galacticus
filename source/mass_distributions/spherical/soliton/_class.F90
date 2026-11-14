@@ -94,7 +94,7 @@
      <inputParameter docformat="rst">
        <name>densitySolitonCentral</name>
        <description>
-       The central density (in :math:`\mathrm{M}_\odot`/Mpc\ :math:`^3`) of the solitonic core at :math:`r=0`, which sets the overall normalization of the density profile :math:`\rho(r) = \rho_\mathrm{c} [1+(r/r_c)^2]^{-8}`.
+       The central density (in :math:`\mathrm{M}_\odot`/Mpc\ :math:`^3`) of the solitonic core at :math:`r=0`, which sets the overall normalization of the density profile :math:`\rho(r) = \rho_\mathrm{c} [1+0.091(r/r_\mathrm{c})^2]^{-8}`.
        </description>
        <source>parameters</source>
      </inputParameter>
