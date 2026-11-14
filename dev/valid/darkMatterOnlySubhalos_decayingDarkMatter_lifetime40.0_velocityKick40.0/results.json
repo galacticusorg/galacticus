@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "206c5a51aa9a3d00cfa1a871e33be8259157e0c7",
-        "message": "Merge pull request #1779 from galacticusorg/refactor/nfw-freefall-shared-driver\n\nrefactor(mass-distributions): tabulate NFW freefall times with the shared driver\n",
-        "timestamp": "2026-11-12 22:21:11+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/206c5a51aa9a3d00cfa1a871e33be8259157e0c7"
+        "id": "6470db346a405444ba3218af479c1054625120f9",
+        "message": "Merge pull request #1783 from galacticusorg/fix/gps-subresolution-normalization\n\nfix(mergerTrees): halve gPS subresolution accretion in full-range normalized mode\n",
+        "timestamp": "2026-11-13 16:29:21+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/6470db346a405444ba3218af479c1054625120f9"
     },
     "results": [
         {
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=40.0 Gyr; vₖ=40.0 km/s)",
-                "logLikelihood": "-153.29280196650123",
+                "logLikelihood": "-153.38256162022856",
                 "type": "function1D"
             },
             "data": {
@@ -103,7 +103,7 @@ window.ANALYSES_DATA = {
                     0.18885611413785405,
                     9.527150076185317,
                     65.04981637144857,
-                    92.00049950460156,
+                    92.09017078310474,
                     99.49864792031501,
                     99.49864792031501,
                     99.49864792031501
