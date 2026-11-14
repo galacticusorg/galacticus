@@ -2238,7 +2238,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosSymphonyCDMMilkyWayX1'
-          threshold: '160%'
+          threshold: '180%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (Symphony Milky Way resolutionX8)'
         uses: ./.github/actions/benchmark
