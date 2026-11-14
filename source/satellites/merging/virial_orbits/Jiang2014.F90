@@ -825,7 +825,10 @@ contains
 
   subroutine jiang2014ParametersSelect(self,massHost,massSatellite,i,j)
     !!{RST
-    Select the parameter set to use for this satellite/host pairing.
+    Select the parameter set to use for this satellite/host pairing. Note that :cite:t:`jiang_orbital_2014` bin host halos by
+    their mass at :math:`z=0` (with infall restricted to times after the host reached half of that mass), while the satellite-to-host
+    mass ratio is measured at infall. Here the host mass bin is chosen using the host mass at infall (under the
+    :cite:t:`jiang_orbital_2014` definition of virial mass), since the final mass is not known when the orbit is assigned.
     !!}
     implicit none
     class           (virialOrbitJiang2014), intent(inout) :: self

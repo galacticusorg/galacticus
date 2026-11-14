@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger progenitor properties class which uses the algorithm of :cite:t:`cole_hierarchical_2000`.
   !!}
@@ -47,14 +49,14 @@
       \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j}(r) \delta_{i,j} = {1 \over 2}
       \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
 
-   such that the radii are the half-mass radii of the material that will end up in the remnant spheroid. Finally, the angular momentum factor is set to
+   such that the radii are the half-mass radii of the material that will end up in the remnant spheroid. Finally, the angular momentum factor of the remnant is set to
 
    .. math::
 
-      f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
-      \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
+      f_\mathrm{AM} = {1 \over M_\mathrm{spheroid\,\,host}+M_\mathrm{spheroid\,\,satellite}} \sum_{k=\mathrm{host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+      \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_i \over M^{3/2}_i (\mathrm{G} r_{1/2\,\,i})^{1/2}} \delta_{i,j},
 
-   where :math:`J_{i,j}` is the angular momentum or pseudo-angular momentum of mass type :math:`j` in :term:`component` :math:`i`\ [#]_.
+   where, for :term:`component` :math:`i` of galaxy :math:`k`, :math:`M_i` is its total (stellar plus gaseous) mass, :math:`r_{1/2\,\,i}` its half-mass radius, and :math:`J_i` its angular momentum or pseudo-angular momentum\ [#]_, such that each term is the specific angular momentum of the component in units of :math:`(\mathrm{G} M_i r_{1/2\,\,i})^{1/2}`.
 
    .. [#] This is technically not quite what :cite:t:`cole_hierarchical_2000` do. Instead, when computing the masses of the material which ends up in the spheroid they include twice the mass of dark matter (accounting for the effects of adiabatic contraction) within the half-mass radius of each galaxy (as calculated above). The final angular momentum is then :math:`j=\sqrt{\mathrm{G} M_\mathrm{remnant} r_\mathrm{remnant}/2}` (where :math:`M_\mathrm{remnant}` includes the contribution from dark matter and the factor of :math:`2` appears to make this the half-mass). This approach is currently not used in Galacticus since there is no way to get the mass of dark matter enclosed accounting for adiabatic contraction in the general case. This is a solvable problem, and so this algorithm is expected to be modified to match that of :cite:t:`cole_hierarchical_2000` precisely in a future version of Galacticus.
    </description>

@@ -76,7 +76,7 @@ contains
       <name>timescaleMultiplier</name>
       <defaultValue>0.75d0</defaultValue>
       <description>
-      A multiplier for the merging timescale in dynamical friction timescale calculations.
+      A multiplier for the merging timescale in dynamical friction timescale calculations. The default, 0.75, is a calibration of the Galacticus galaxy formation model, so by default the timescale is 0.75 times that given by the published formula; set this parameter to 1 to recover the published formula.
       </description>
       <source>parameters</source>
     </inputParameter>
