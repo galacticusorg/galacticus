@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794566445461,
+  "lastUpdate": 1794629197917,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=10 Gyr; vₖ=20 km/s)": [
@@ -7883,6 +7883,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/206c5a51aa9a3d00cfa1a871e33be8259157e0c7"
         },
         "date": 1794566444590,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - mass function",
+            "value": 2.5556230227126364,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=10.0 Gyr; vₖ=20.0 km/s) - Likelihood - orbital radius function",
+            "value": 3.208180339464448,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6470db346a405444ba3218af479c1054625120f9",
+          "message": "Merge pull request #1783 from galacticusorg/fix/gps-subresolution-normalization\n\nfix(mergerTrees): halve gPS subresolution accretion in full-range normalized mode",
+          "timestamp": "2026-11-13T16:29:21Z",
+          "tree_id": "76d97ec1b63291a75df462acfff7a14072c1cd74",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6470db346a405444ba3218af479c1054625120f9"
+        },
+        "date": 1794629197304,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
