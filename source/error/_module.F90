@@ -85,14 +85,22 @@ module Error
   integer, parameter, public :: signalNone              =   0         ! Not a signal.
   
   !![
-  <constant variable="Kernel_EACCES"       kernelSymbol="EACCES"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for permission denied."             group="Kernel"/>
-  <constant variable="Kernel_ELOOP"        kernelSymbol="ELOOP"        kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for loop exists in symbolic links." group="Kernel"/>
-  <constant variable="Kernel_EMLINK"       kernelSymbol="EMLINK"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for too many links."                group="Kernel"/>
-  <constant variable="Kernel_ENAMETOOLONG" kernelSymbol="ENAMETOOLONG" kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for name too long."                 group="Kernel"/>
-  <constant variable="Kernel_ENOENT"       kernelSymbol="ENOENT"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for non-existent directory."        group="Kernel"/>
-  <constant variable="Kernel_ENOSPC"       kernelSymbol="ENOSPC"       kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for no space on file system."       group="Kernel"/>
-  <constant variable="Kernel_ENOTDIR"      kernelSymbol="ENOTDIR"      kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for not a directory."               group="Kernel"/>
-  <constant variable="Kernel_EROFS"        kernelSymbol="EROFS"        kernelHeader="errno" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html" description="Error code for read only file system."         group="Kernel"/>
+  <constant variable="Kernel_EACCES"       kernelSymbol="EACCES"       kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for permission denied."                                                                                        group="Kernel"/>
+  <constant variable="Kernel_ELOOP"        kernelSymbol="ELOOP"        kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for loop exists in symbolic links."                                                                            group="Kernel"/>
+  <constant variable="Kernel_EMLINK"       kernelSymbol="EMLINK"       kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for too many links."                                                                                           group="Kernel"/>
+  <constant variable="Kernel_ENAMETOOLONG" kernelSymbol="ENAMETOOLONG" kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for name too long."                                                                                            group="Kernel"/>
+  <constant variable="Kernel_ENOENT"       kernelSymbol="ENOENT"       kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for non-existent directory."                                                                                   group="Kernel"/>
+  <constant variable="Kernel_ENOSPC"       kernelSymbol="ENOSPC"       kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for no space on file system."                                                                                  group="Kernel"/>
+  <constant variable="Kernel_ENOTDIR"      kernelSymbol="ENOTDIR"      kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for not a directory."                                                                                          group="Kernel"/>
+  <constant variable="Kernel_EROFS"        kernelSymbol="EROFS"        kernelHeader="errno"  type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man3/errno.3.html"  description="Error code for read only file system."                                                                                    group="Kernel"/>
+  <constant variable="Kernel_SIGINT"       kernelSymbol="SIGINT"       kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for interrupt (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)."                group="Kernel"/>
+  <constant variable="Kernel_SIGILL"       kernelSymbol="SIGILL"       kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for illegal instruction (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)."      group="Kernel"/>
+  <constant variable="Kernel_SIGBUS"       kernelSymbol="SIGBUS"       kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for bus error (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)."                group="Kernel"/>
+  <constant variable="Kernel_SIGFPE"       kernelSymbol="SIGFPE"       kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for floating point exception (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)." group="Kernel"/>
+  <constant variable="Kernel_SIGUSR1"      kernelSymbol="SIGUSR1"      kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for user-defined signal 1 (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)."    group="Kernel"/>
+  <constant variable="Kernel_SIGSEGV"      kernelSymbol="SIGSEGV"      kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for segmentation fault (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)."       group="Kernel"/>
+  <constant variable="Kernel_SIGTERM"      kernelSymbol="SIGTERM"      kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for termination (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)."              group="Kernel"/>
+  <constant variable="Kernel_SIGXCPU"      kernelSymbol="SIGXCPU"      kernelHeader="signal" type="integer" reference="Linux kernel man pages" referenceURL="https://man7.org/linux/man-pages/man7/signal.7.html" description="Signal number for CPU time limit exceeded (platform-dependent: e.g. SIGBUS and SIGUSR1 differ between Linux and macOS)."  group="Kernel"/>
   !!]
   
   ! Time to wait after errors under MPI.
@@ -424,14 +432,14 @@ contains
     implicit none
     type(c_funptr) :: standardGslErrorHandler
 
-    call Signal( 2,Signal_Handler_SIGINT )
-    call Signal( 4,Signal_Handler_SIGILL )
-    call Signal( 7,Signal_Handler_SIGBUS )
-    call Signal( 8,Signal_Handler_SIGFPE )
-    call Signal(10,Signal_Handler_SIGUSR1)
-    call Signal(11,Signal_Handler_SIGSEGV)
-    call Signal(15,Signal_Handler_SIGINT )
-    call Signal(24,Signal_Handler_SIGXCPU)
+    call Signal(Kernel_SIGINT ,Signal_Handler_SIGINT )
+    call Signal(Kernel_SIGILL ,Signal_Handler_SIGILL )
+    call Signal(Kernel_SIGBUS ,Signal_Handler_SIGBUS )
+    call Signal(Kernel_SIGFPE ,Signal_Handler_SIGFPE )
+    call Signal(Kernel_SIGUSR1,Signal_Handler_SIGUSR1)
+    call Signal(Kernel_SIGSEGV,Signal_Handler_SIGSEGV)
+    call Signal(Kernel_SIGTERM,Signal_Handler_SIGINT )
+    call Signal(Kernel_SIGXCPU,Signal_Handler_SIGXCPU)
     !$omp critical(gslErrorHandler)
     standardGslErrorHandler=gslSetErrorHandler(errorHandlerGSL)
     !$omp end critical(gslErrorHandler)
@@ -513,7 +521,6 @@ contains
     integer           , intent(in   ) :: signalNumber
     character(len=*  ), intent(in   ) :: description
     logical           , intent(in   ) :: isCrash
-    character(len=:  ), allocatable   :: message
 #ifdef USEMPI
     integer                           :: mpiRank     , error
     character(len=128)                :: hostName
@@ -521,11 +528,12 @@ contains
 #endif
 
     call signalHandlersCall(signalNumber)
-    message='Galacticus experienced '//description//' - will try to flush data before exiting.'
+    ! The message is written in pieces, rather than first assembled into a single string, so that (when not writing to a
+    ! terminal) nothing need be allocated on the heap, which may be corrupt.
     if (stdOutIsATTY()) then
-       write (error_unit,*) displayRed()//displayBold()//message//displayReset()
+       write (error_unit,'(5a)') ' ',displayRed()//displayBold(),'Galacticus experienced '//description,' - will try to flush data before exiting.',displayReset()
     else
-       write (error_unit,*)                              message
+       write (error_unit,'(4a)') ' ',                            'Galacticus experienced ',description ,' - will try to flush data before exiting.'
     end if
     !$ if (omp_in_parallel()) then
     !$    write (error_unit,*) " => Error occurred in thread ",omp_get_thread_num()
@@ -567,7 +575,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler(11,'a segfault'                ,isCrash=.true. )
+    call Signal_Handler(Kernel_SIGSEGV,'a segfault'                ,isCrash=.true. )
     return
   end subroutine Signal_Handler_SIGSEGV
 
@@ -577,7 +585,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler( 8,'a floating point exception',isCrash=.true. )
+    call Signal_Handler(Kernel_SIGFPE ,'a floating point exception',isCrash=.true. )
     return
   end subroutine Signal_Handler_SIGFPE
 
@@ -587,7 +595,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler( 7,'a bus error'               ,isCrash=.false.)
+    call Signal_Handler(Kernel_SIGBUS ,'a bus error'               ,isCrash=.false.)
     return
   end subroutine Signal_Handler_SIGBUS
 
@@ -597,7 +605,7 @@ contains
     !!}
     implicit none
 
-    call Signal_Handler( 4,'an illegal instruction'    ,isCrash=.false.)
+    call Signal_Handler(Kernel_SIGILL ,'an illegal instruction'    ,isCrash=.false.)
     return
   end subroutine Signal_Handler_SIGILL
 
