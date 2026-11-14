@@ -2709,6 +2709,7 @@
           <xs:enumeration value="satelliteDestructionMassThreshold"/>
           <xs:enumeration value="satelliteDynamicalFriction"/>
           <xs:enumeration value="satelliteEvaporationSIDM"/>
+          <xs:enumeration value="satelliteGranule"/>
           <xs:enumeration value="satelliteMassLoss"/>
           <xs:enumeration value="satelliteMergingRadius"/>
           <xs:enumeration value="satelliteMergingRadiusTrigger"/>
