@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "6470db346a405444ba3218af479c1054625120f9",
-        "message": "Merge pull request #1783 from galacticusorg/fix/gps-subresolution-normalization\n\nfix(mergerTrees): halve gPS subresolution accretion in full-range normalized mode\n",
-        "timestamp": "2026-11-13 16:29:21+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6470db346a405444ba3218af479c1054625120f9"
+        "id": "6512fc2ae879f4ec9bdee818822d84b4cbdf460f",
+        "message": "Merge pull request #1785 from galacticusorg/fix/root-finder-exact-root-at-zero\n\nfix(cooling): find the cooling radius when the cooling time is independent of radius\n",
+        "timestamp": "2026-11-14 18:06:04+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
     },
     "results": [
         {
@@ -43,7 +43,7 @@ window.ANALYSES_DATA = {
                     27.704752651835218,
                     22.64809004812753,
                     9.293664212815997,
-                    7.326086828005866,
+                    7.326086828005903,
                     3.361641474554441,
                     2.874692832464992,
                     0.9047544246244191
