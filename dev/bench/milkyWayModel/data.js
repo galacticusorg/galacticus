@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794629148059,
+  "lastUpdate": 1794705499123,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "ee1a915ee5a43a63d05ea315805440c3e100da9c",
-          "message": "Merge pull request #957 from galacticusorg/fixSubhaloValidationStats\n\nIncrease the number of realizations for some subhalo validation models",
-          "timestamp": "2025-10-26T04:30:42Z",
-          "tree_id": "e23aaa5814520f99aebe825fab83e68f5250201f",
-          "url": "https://github.com/galacticusorg/galacticus/commit/ee1a915ee5a43a63d05ea315805440c3e100da9c"
-        },
-        "date": 1761478762716,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 72.739,
-            "range": "0.0677414201209189",
-            "unit": "seconds"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10992,6 +10962,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.586521004141687,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6512fc2ae879f4ec9bdee818822d84b4cbdf460f",
+          "message": "Merge pull request #1785 from galacticusorg/fix/root-finder-exact-root-at-zero\n\nfix(cooling): find the cooling radius when the cooling time is independent of radius",
+          "timestamp": "2026-11-14T18:06:04Z",
+          "tree_id": "61925bbe8d8a79cf759fcac19e4e034e78165a6a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
+        },
+        "date": 1794705497904,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 23.226999999999997,
+            "range": "0.07872801280357568",
+            "unit": "seconds"
           }
         ]
       }
