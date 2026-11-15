@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794629252719,
+  "lastUpdate": 1794705711703,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=1)": [
@@ -1710,6 +1710,35 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.990 (47 realizations)",
             "value": 3957.7652025231364,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6512fc2ae879f4ec9bdee818822d84b4cbdf460f",
+          "message": "Merge pull request #1785 from galacticusorg/fix/root-finder-exact-root-at-zero\n\nfix(cooling): find the cooling radius when the cooling time is independent of radius",
+          "timestamp": "2026-11-14T18:06:04Z",
+          "tree_id": "61925bbe8d8a79cf759fcac19e4e034e78165a6a",
+          "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
+        },
+        "date": 1794705710604,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.990 (47 realizations)",
+            "value": 3956.3788018547525,
             "unit": "-logℒ"
           }
         ]
