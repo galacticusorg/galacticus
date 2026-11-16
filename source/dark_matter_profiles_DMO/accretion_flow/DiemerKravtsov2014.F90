@@ -125,9 +125,9 @@ contains
     <inputParameter docformat="rst">
       <name>sz</name>
       <source>parameters</source>
-      <defaultValue>-0.199d0</defaultValue>
+      <defaultValue>-0.092d0</defaultValue>
       <defaultSource>
-      Derived by Andrew Benson by constructing simple functional forms which fit the plots in figure 18 of :cite:t:`diemer_dependence_2014`.
+      Fitted, with :math:`s_0` and :math:`s_\nu` held fixed, to the median :math:`s_\mathrm{e}` curves in the left panel of figure 18 of :cite:t:`diemer_dependence_2014`, which it matches to an rms of about 5% (the previous value, :math:`-0.199`, made :math:`s` fall too steeply with redshift).
       </defaultSource>
       <description>
       The parameter :math:`s_z` in the fitting function :math:`s(\nu,z)=s_0 (1+z)^{s_z} \nu^{s_\nu}` for the parameter :math:`s(\nu,z)` appearing in equation (4) of :cite:t:`diemer_dependence_2014`.
