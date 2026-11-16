@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794705729883,
+  "lastUpdate": 1794864185021,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (COZMIC)": [
@@ -2914,6 +2914,55 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
         },
         "date": 1794705728730,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay FDM:25.9e-22eV resolutionX8 z=0.000",
+            "value": 81.60692442299214,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
+            "value": 61.072258110124366,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV resolutionX8 z=0.000",
+            "value": 61.90409759290176,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:bumpCutoff resolutionX8 z=0.000",
+            "value": 105.17443109974924,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
+            "value": 74.56695610598476,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+          "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles",
+          "timestamp": "2026-11-16T15:58:50Z",
+          "tree_id": "3aceb52da11a647f40a84d7916e2fc8ea6af6c93",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
+        },
+        "date": 1794864183834,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
