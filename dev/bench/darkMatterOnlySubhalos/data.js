@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794863954858,
+  "lastUpdate": 1794863966141,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "dfb8b9b2de370a6ef3a65666d4830d920f4a5713",
-          "message": "Merge pull request #962 from galacticusorg/featSEDErrorMessage\n\nAdd improve error handling for SED integration",
-          "timestamp": "2025-11-06T15:40:33Z",
-          "tree_id": "44e9b6b02b5390b9fa323156b189f7dd7d7b46af",
-          "url": "https://github.com/galacticusorg/galacticus/commit/dfb8b9b2de370a6ef3a65666d4830d920f4a5713"
-        },
-        "date": 1762486818658,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
-            "value": 1.6457231437789404,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
-            "value": 3.261151105282234,
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
-            "value": 10655.177013496395,
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -8812,6 +8773,45 @@ window.BENCHMARK_DATA = {
             "value": 42.351000000000006,
             "range": "0.10076159982850609",
             "unit": "seconds"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+          "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles",
+          "timestamp": "2026-11-16T15:58:50Z",
+          "tree_id": "3aceb52da11a647f40a84d7916e2fc8ea6af6c93",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
+        },
+        "date": 1794863965259,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloMassFunction",
+            "value": 2.5822144153543256,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloRadialDistribution",
+            "value": -5.121953059169675,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos - Likelihood - subhaloVelocityMaximumMean",
+            "value": 17129.052142242985,
+            "unit": "-logℒ"
           }
         ]
       }
