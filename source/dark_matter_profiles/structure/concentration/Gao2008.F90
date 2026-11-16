@@ -23,10 +23,11 @@
   An implementation of dark matter halo profile concentrations using the :cite:t:`gao_redshift_2008` algorithm.
   !!}
 
-  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters    , only : cosmologyParametersClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMONFW
-  use :: Virial_Density_Contrast , only : virialDensityContrastFixed
+  use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters      , only : cosmologyParametersClass
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
+  use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOEinasto
+  use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008" docformat="rst">
@@ -47,6 +48,11 @@
    For halo masses of :math:`10^{11}` to :math:`10^{15}h^{-1}\mathrm{M}_\odot`, these fits reproduce the concentrations given in
    Table 1 of :cite:t:`gao_redshift_2008` to about 3% at :math:`z \le 0.5`, but are about 10--19% too high at :math:`z=1`--2,
    and about 10--15% too low at :math:`z=3`.
+
+   Following :cite:t:`gao_redshift_2008`, whose concentrations are :math:`c=r_{200}/r_{-2}` from fits of Einasto profiles with
+   the shape parameter fixed by :math:`\alpha(\nu)` (see :galacticus-class:`darkMatterProfileShapeGao2008`), the density
+   profile which defines these concentrations is Einasto, with that :math:`\alpha(\nu)`, and the density contrast is 200
+   times the critical density.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
@@ -61,10 +67,12 @@
      A dark matter halo profile concentration class implementing the algorithm of :cite:t:`gao_redshift_2008`.
      !!}
      private
-     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
-     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
-     type            (virialDensityContrastFixed), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileDMONFW   ), pointer :: darkMatterProfileDMODefinition_  => null()
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_             => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
+     type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
+     type            (darkMatterProfileDMOEinasto  ), pointer :: darkMatterProfileDMODefinition_  => null()
      double precision                                      :: scatter
    contains
      final     ::                                   gao2008Destructor
@@ -94,11 +102,15 @@ contains
     type            (inputParameters                      ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass              ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass             ), pointer       :: cosmologyParameters_
+    class           (criticalOverdensityClass             ), pointer       :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass        ), pointer       :: cosmologicalMassVariance_
     double precision                                                       :: scatter
 
     !![
-    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <inputParameter docformat="rst">
       <name>scatter</name>
       <source>parameters</source>
@@ -109,33 +121,40 @@ contains
       <minimum>0.0</minimum>
     </inputParameter>
     !!]
-    self=darkMatterProfileConcentrationGao2008(scatter,cosmologyParameters_,cosmologyFunctions_)
+    self=darkMatterProfileConcentrationGao2008(scatter,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyParameters_"/>
-    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
     !!]
     return
   end function gao2008ConstructorParameters
 
-  function gao2008ConstructorInternal(scatter,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function gao2008ConstructorInternal(scatter,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterProfileConcentrationGao2008` dark matter halo profile concentration class.
     !!}
-    use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
-    use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
+    use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Dark_Matter_Profiles_Shape, only : darkMatterProfileShapeGao2008
+    use :: Virial_Density_Contrast   , only : fixedDensityTypeCritical
     implicit none
     type            (darkMatterProfileConcentrationGao2008             )                         :: self
     class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
+    class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_
+    class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     double precision                                                    , intent(in   )          :: scatter
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
+    type            (darkMatterProfileShapeGao2008                     )               , pointer :: darkMatterProfileShapeDefinition_
     !![
-    <constructorAssign variables="scatter, *cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="scatter, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
 
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
+    allocate(     darkMatterProfileShapeDefinition_)
     allocate(self%virialDensityContrastDefinition_)
     !![
     <referenceConstruct owner="self" isResult="yes" object="virialDensityContrastDefinition_">
@@ -158,15 +177,24 @@ contains
        &amp;                                            )
      </constructor>
     </referenceConstruct>
-    <referenceConstruct owner="self" isResult="yes" object="darkMatterProfileDMODefinition_" >
+    <referenceConstruct                             object="darkMatterProfileShapeDefinition_">
      <constructor>
-      darkMatterProfileDMONFW                           (                                                                            &amp;
-       &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
-       &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+      darkMatterProfileShapeGao2008                     (                                                                            &amp;
+       &amp;                                             criticalOverdensity_                =self%criticalOverdensity_            , &amp;
+       &amp;                                             cosmologicalMassVariance_           =self%cosmologicalMassVariance_         &amp;
        &amp;                                            )
      </constructor>
     </referenceConstruct>
-    <objectDestructor                               name  ="darkMatterHaloScaleDefinition_" />
+    <referenceConstruct owner="self" isResult="yes" object="darkMatterProfileDMODefinition_" >
+     <constructor>
+      darkMatterProfileDMOEinasto                       (                                                                            &amp;
+       &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_       , &amp;
+       &amp;                                             darkMatterProfileShape_             =darkMatterProfileShapeDefinition_      &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor                               name  ="darkMatterHaloScaleDefinition_"   />
+    <objectDestructor                               name  ="darkMatterProfileShapeDefinition_"/>
     !!]
     return
   end function gao2008ConstructorInternal
@@ -181,6 +209,8 @@ contains
     !![
     <objectDestructor name="self%cosmologyParameters_"            />
     <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%criticalOverdensity_"            />
+    <objectDestructor name="self%cosmologicalMassVariance_"       />
     <objectDestructor name="self%virialDensityContrastDefinition_"/>
     <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     !!]
