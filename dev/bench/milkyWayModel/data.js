@@ -1,38 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794705600520,
+  "lastUpdate": 1794863960638,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Milky Way model benchmarks": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "dfb8b9b2de370a6ef3a65666d4830d920f4a5713",
-          "message": "Merge pull request #962 from galacticusorg/featSEDErrorMessage\n\nAdd improve error handling for SED integration",
-          "timestamp": "2025-11-06T15:40:33Z",
-          "tree_id": "44e9b6b02b5390b9fa323156b189f7dd7d7b46af",
-          "url": "https://github.com/galacticusorg/galacticus/commit/dfb8b9b2de370a6ef3a65666d4830d920f4a5713"
-        },
-        "date": 1762486814905,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Milky Way model - Wall Time",
-            "value": 89.159,
-            "range": "0.238115308201894",
-            "unit": "seconds"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -10997,6 +10967,36 @@ window.BENCHMARK_DATA = {
             "name": "Milky Way model - Likelihood - localGroupStellarMassHaloMassRelation",
             "value": 8.586528973223794,
             "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+          "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles",
+          "timestamp": "2026-11-16T15:58:50Z",
+          "tree_id": "3aceb52da11a647f40a84d7916e2fc8ea6af6c93",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
+        },
+        "date": 1794863959548,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Milky Way model - Wall Time",
+            "value": 52.448,
+            "range": "0.08791814374746569",
+            "unit": "seconds"
           }
         ]
       }
