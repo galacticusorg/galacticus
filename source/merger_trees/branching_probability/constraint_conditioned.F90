@@ -62,8 +62,11 @@ Implements a merger tree branching probability class which conditions a branch o
    equivalent to conditioning on the tree having such a progenitor when that number is rarely more than one, that is, when
    :math:`H(M_0,\delta_0) \ll 1` for the root halo, or when no two progenitors can both lie in the window.
 
-   The tabulation of :math:`H` is shared by all copies of the object, and is rebuilt only if a larger range is needed. A separate
-   table is needed for each distinct mass resolution, so a resolution which varies from tree to tree, as with
+   The tabulation of :math:`H` is shared by all copies of the object, and is rebuilt only if a larger range is needed. A rebuilt
+   table agrees exactly with the one that it replaces over their common range, provided that the objects from which it is built
+   (the mass variance, critical overdensity, and so on) return the same values for both. Some of those objects change their values
+   slightly when they are retabulated over a larger range, so the order in which trees are built can still affect them.
+   A separate table is needed for each distinct mass resolution, so a resolution which varies from tree to tree, as with
    :galacticus-class:`mergerTreeMassResolutionScaled`, can make the cost of tabulation significant. When tabulating, the relation
    between critical overdensity and time is evaluated at :math:`M_1`, so a critical overdensity which depends on mass is treated
    only approximately.
@@ -83,7 +86,8 @@ Implements a merger tree branching probability class which conditions a branch o
      double precision                                                          :: massResolution          , logMassStep   , &
           &                                                                       logMassMinimum          , logMassMaximum, &
           &                                                                       deltaMaximum            , deltaMinimum  , &
-          &                                                                       deltaStep
+          &                                                                       deltaStep               , massRequested , &
+          &                                                                       deltaRequested
      integer                                                                   :: countMass               , countDelta
      double precision                            , allocatable, dimension(:,:) :: H
      type            (constraintConditionedTable), pointer                     :: next           => null()
@@ -661,19 +665,23 @@ contains
              self%table_ => table
              exit
           end if
-          ! Any replacement must also cover everything that this table covers.
-          massCovered =max(massCovered ,exp(table%logMassMaximum))
-          deltaCovered=min(deltaCovered,    table%deltaMinimum   )
+          ! Any replacement must also cover everything that was requested of this table. The requested range, rather than the
+          ! range actually covered, is used here, as the latter already includes the margins, which would otherwise compound with
+          ! each extension.
+          massCovered =max(massCovered ,table%massRequested )
+          deltaCovered=min(deltaCovered,table%deltaRequested)
        end if
        table => table%next
     end do
     if (.not.associated(self%table_)) then
        allocate(table)
        call constraintConditionedTableBuild(self,table,massCovered*massMarginFactor,deltaCovered-deltaMargin,massResolution,node)
-       table  %hash  =  self%hash
-       table  %next  =>      tables
-       tables        =>      table
-       self  %table_ =>      table
+       table  %hash           =  self%hash
+       table  %massRequested  =  massCovered
+       table  %deltaRequested =  deltaCovered
+       table  %next           => tables
+       tables                 => table
+       self   %table_         => table
     end if
     !$omp end critical(mergerTreeBranchingConstraintConditioned)
     return
@@ -682,13 +690,19 @@ contains
   subroutine constraintConditionedTableBuild(self,table,massMaximum,deltaMinimum,massResolution,node)
     !!{RST
     Solve the backward equation for the expected number of progenitors in the window about the constraint, stepping from the
-    constraint toward lower critical overdensity. Both grids are anchored (at the mass resolution, and at the constraint), so a
-    larger table has the same values at the points that it shares with a smaller one, since the solution at each mass depends only
-    on lower masses.
+    constraint toward lower critical overdensity. Both grids are anchored (at the mass resolution, and at the constraint), and the
+    solution at each mass is computed using only the solution at that and lower masses, so a larger table has exactly the same
+    values at the points that it shares with a smaller one (provided that the objects wrapped return the same values for both).
+    This requires three things. First, the solution is interpolated with a monotone (Fritsch-Butland) cubic Hermite polynomial,
+    whose slope at each point depends on the next point above it, except in the interval which ends at the mass being computed,
+    where the slope at that mass is instead estimated from the solution at that and lower masses. Second, the interpolation uses
+    the masses of the grid points exactly as computed for the table, rather than a general purpose spline object, whose points are
+    computed from the ends of its range, and so differ in their final bits between tables of different extents. Third, the
+    sub-resolution fraction, which is evaluated at only a subset of masses, is evaluated on a lattice of masses fixed by the mass
+    resolution and the constraint, and not by the extent of the table.
     !!}
-    use :: Display                        , only : displayMessage              , verbosityLevelWorking
+    use :: Display                        , only : displayMessage      , verbosityLevelWorking
     use :: Numerical_Integration_Tabulated, only : integrateTrapezoidal
-    use :: Tables                         , only : table1DLinearMonotoneCSpline
     implicit none
     class           (mergerTreeBranchingProbabilityConstraintConditioned), intent(inout)               :: self
     type            (constraintConditionedTable                         ), intent(inout)               :: table
@@ -720,9 +734,9 @@ contains
          &                                                                                                logComplement               , &
          &                                                                                                weight                      , &
          &                                                                                                fractionSubresolution       , &
-         &                                                                                                growthFactor
+         &                                                                                                growthFactor                , &
+         &                                                                                                slope
     integer                                                              , allocatable  , dimension(:) :: offset
-    type            (table1DLinearMonotoneCSpline                       )                              :: spline
     integer                                                                                            :: i                           , &
          &                                                                                                k                           , &
          &                                                                                                n                           , &
@@ -753,6 +767,7 @@ contains
     allocate(HShifted             (table%countMass  ))
     allocate(fractionSubresolution(table%countMass  ))
     allocate(growthFactor         (table%countMass  ))
+    allocate(slope                (table%countMass  ))
     allocate(offset               (table%countMass+1))
     fractionDrift      =min(fractionDriftMaximum,fractionDriftWindow*self%windowLogMass)
     strideSubresolution=max(1,nint(stepLogSubresolution/table%logMassStep))
@@ -762,7 +777,6 @@ contains
     do i=1,table%countMass
        logMass(i)=table%logMassMinimum+dble(i-1)*table%logMassStep
     end do
-    call spline%create(table%logMassMinimum,logMass(table%countMass),table%countMass)
     indexActive=table%countMass+1
     do i=1,table%countMass
        if (logMass(i) >= logMassEdge) then
@@ -790,34 +804,40 @@ contains
     do n=2,table%countDelta
        delta=table%deltaMaximum-dble(n-1)*table%deltaStep
        if (mod(n-2,stepsRebuild) == 0) call rebuild(delta)
-       call spline%populate(H)
+       ! Fritsch-Butland slopes for the monotone interpolation of the current solution. That at the final point is never used.
+       slope(1)=(H(2)-H(1))/table%logMassStep
+       do i=2,table%countMass-1
+          slope(i)=slopeMonotone((H(i)-H(i-1))/table%logMassStep,(H(i+1)-H(i))/table%logMassStep)
+       end do
+       slope(table%countMass)=0.0d0
        do i=1,table%countMass
           gain(i)=0.0d0
           do k=offset(i),offset(i+1)-1
-             gain(i)=+gain(i)+weight(k)*(interpolate(logDrawn(k))+interpolate(logComplement(k)))
+             gain(i)=+gain(i)+weight(k)*(interpolate(logDrawn(k),i)+interpolate(logComplement(k),i))
           end do
-          HShifted(i)=interpolate(logMass(i)-drift(i)*table%deltaStep)
+          HShifted(i)=interpolate(logMass(i)-drift(i)*table%deltaStep,i)
        end do
        H           =max(HShifted+table%deltaStep*(gain-loss*H),0.0d0)
        table%H(:,n)=H
     end do
-    call spline%destroy()
     return
 
   contains
 
     subroutine rebuild(deltaNow)
       !!{RST
-      Compute the quadrature weights, loss rates, and drift rates for all masses at the given critical overdensity. Draws of small complements are treated as a continuous drift.
+      Compute the quadrature weights, loss rates, and drift rates for all masses at the given critical overdensity. Draws of small
+      complements are treated as a continuous drift.
       !!}
       double precision, intent(in   )            :: deltaNow
       double precision, dimension(countDrift)    :: logComplementDrift, integrandDrift
-      double precision                           :: time              , massParent    , &
-           &                                        massLower         , massUpper     , &
-           &                                        step              , x             , &
-           &                                        integral
-      integer                                    :: iMass             , j             , &
+      double precision                           :: time              , massParent                , &
+           &                                        massLower         , massUpper                 , &
+           &                                        step              , x                         , &
+           &                                        integral          , fractionSubresolutionUpper
+      integer                                    :: iMass             , j                         , &
            &                                        k_                , iLower
+      logical                                    :: computedBeyond
 
       time=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaNow,mass=self%massConstrained,node=node)
       ! Branching rates are per unit critical overdensity at the current time, while the critical overdensity used here is scaled
@@ -826,20 +846,28 @@ contains
          growthFactor(iMass)=+self%cosmologicalMassVariance_%rootVariance(time=time       ,mass=exp(logMass(iMass))) &
               &              /self%cosmologicalMassVariance_%rootVariance(time=timePresent,mass=exp(logMass(iMass)))
       end do
-      ! The sub-resolution fraction is expensive, but smooth in mass, so is evaluated only on a coarse subset of the masses.
+      ! The sub-resolution fraction is expensive, but smooth in mass, so is evaluated only on a coarse lattice of masses, and
+      ! interpolated linearly between them. The lattice is anchored at the first active mass, and continues past the end of the
+      ! table if necessary, so that the interpolated values do not depend on the extent of the table.
       fractionSubresolution=0.0d0
-      do iMass=indexActive,table%countMass
-         if (mod(iMass-indexActive,strideSubresolution) == 0 .or. iMass == table%countMass)                                                                                              &
-              & fractionSubresolution(iMass)=+self%mergerTreeBranchingProbability_%fractionSubresolution(exp(logMass(iMass)),deltaNow,time,min(massResolution,exp(logMass(iMass))),node) &
-              &                              *growthFactor(iMass)
+      do iMass=indexActive,table%countMass,strideSubresolution
+         fractionSubresolution(iMass)=fractionSubresolutionAt(iMass,deltaNow,time)
       end do
+      computedBeyond=.false.
       do iMass=indexActive,table%countMass
-         if (mod(iMass-indexActive,strideSubresolution) == 0 .or. iMass == table%countMass) cycle
+         if (mod(iMass-indexActive,strideSubresolution) == 0) cycle
          iLower=indexActive+strideSubresolution*((iMass-indexActive)/strideSubresolution)
-         j     =min(iLower+strideSubresolution,table%countMass)
-         fractionSubresolution(iMass)=+fractionSubresolution(iLower)                            &
-              &                       +(fractionSubresolution(j)-fractionSubresolution(iLower)) &
-              &                       *dble(iMass-iLower)                                        &
+         j     =iLower+strideSubresolution
+         if (j <= table%countMass) then
+            fractionSubresolutionUpper=fractionSubresolution(j)
+         else if (.not.computedBeyond) then
+            ! The lattice point beyond the end of the table is the same for all remaining masses, so is evaluated only once.
+            fractionSubresolutionUpper=fractionSubresolutionAt(j,deltaNow,time)
+            computedBeyond            =.true.
+         end if
+         fractionSubresolution(iMass)=+fractionSubresolution(iLower)                              &
+              &                       +(fractionSubresolutionUpper-fractionSubresolution(iLower)) &
+              &                       *dble(iMass-iLower)                                         &
               &                       /dble(j    -iLower)
       end do
       k_=1
@@ -869,6 +897,24 @@ contains
       offset(table%countMass+1)=k_
       return
     end subroutine rebuild
+
+    double precision function fractionSubresolutionAt(iMass,deltaNow,time)
+      !!{RST
+      The sub-resolution fraction, per unit present-day-scaled critical overdensity, at the given point of the mass lattice, which
+      may lie beyond the end of the table.
+      !!}
+      integer         , intent(in   ) :: iMass
+      double precision, intent(in   ) :: deltaNow   , time
+      double precision                :: massLattice
+
+      massLattice           =+exp(table%logMassMinimum+dble(iMass-1)*table%logMassStep)
+      fractionSubresolutionAt=+  self%mergerTreeBranchingProbability_%fractionSubresolution(     massLattice,deltaNow,     time       ,min(massResolution,massLattice),node)  &
+           &                  *(                                                                                                                                              &
+           &                    +self%cosmologicalMassVariance_      %rootVariance         (mass=massLattice         ,time=time                                            )  &
+           &                    /self%cosmologicalMassVariance_      %rootVariance         (mass=massLattice         ,time=timePresent                                     )  &
+           &                   )
+      return
+    end function fractionSubresolutionAt
 
     subroutine quadratureMass(massParent,countNodes,deltaNow,time,loss)
       !!{RST
@@ -961,16 +1007,69 @@ contains
       return
     end function drawRate
 
-    double precision function interpolate(x)
+    double precision function interpolate(x,iMass)
       !!{RST
-      Monotone cubic interpolation of the current solution. Zero below the mass resolution.
+      Monotone cubic interpolation of the current solution, using only the solution at masses up to that of point ``iMass``, which is
+      being computed. Zero below the mass resolution.
       !!}
       double precision, intent(in   ) :: x
+      integer         , intent(in   ) :: iMass
+      double precision                :: slopeUpper   , slopeBelow, &
+           &                             slopeInterval, u         , &
+           &                             t
+      integer                         :: k
 
       interpolate=0.0d0
       if (x < table%logMassMinimum) return
-      interpolate=spline%interpolate(x)
+      if (iMass == 1) then
+         interpolate=H(1)
+         return
+      end if
+      ! Find the interval, of which point k is the lower end. Points lie exactly on the lattice of masses, so all tables agree on the
+      ! interval and the position within it.
+      u=(x-table%logMassMinimum)/table%logMassStep
+      k=min(int(u)+1,iMass-1)
+      t=min(u-dble(k-1),1.0d0)
+      if (k+1 == iMass) then
+         ! In the interval ending at the point being computed, the Fritsch-Butland slope at that point would depend on the solution
+         ! at the next point. Use instead the one-sided, three-point (second order) estimate, limited to preserve monotonicity, that
+         ! is commonly used at the ends of monotone splines. A first order estimate here (the slope of the interval) makes the drift
+         ! diffusive, and smears the edges of the window.
+         slopeInterval=(H(iMass)-H(iMass-1))/table%logMassStep
+         if (iMass == 2) then
+            slopeUpper=slopeInterval
+         else
+            slopeBelow=(H(iMass-1)-H(iMass-2))/table%logMassStep
+            slopeUpper=0.5d0*(3.0d0*slopeInterval-slopeBelow)
+            if      (slopeUpper*slopeInterval <= 0.0d0                                                     ) then
+               slopeUpper=0.0d0
+            else if (slopeBelow*slopeInterval <= 0.0d0 .and. abs(slopeUpper) > 3.0d0*abs(slopeInterval)) then
+               slopeUpper=3.0d0*slopeInterval
+            end if
+         end if
+      else
+         slopeUpper=slope(k+1)
+      end if
+      interpolate=+H         (k  )                  *(+2.0d0*t**3-3.0d0*t**2+1.0d0) &
+           &      +slope     (k  )*table%logMassStep*(+      t**3-2.0d0*t**2+t    ) &
+           &      +H         (k+1)                  *(-2.0d0*t**3+3.0d0*t**2      ) &
+           &      +slopeUpper     *table%logMassStep*(+      t**3-      t**2      )
       return
     end function interpolate
+
+    double precision function slopeMonotone(slopeLower,slopeUpper)
+      !!{RST
+      The Fritsch-Butland slope at a point, given the slopes of the intervals below and above it: zero at an extremum, and otherwise
+      the harmonic mean of those slopes, which preserves monotonicity.
+      !!}
+      double precision, intent(in   ) :: slopeLower, slopeUpper
+
+      if (slopeLower*slopeUpper <= 0.0d0) then
+         slopeMonotone=0.0d0
+      else
+         slopeMonotone=2.0d0/(1.0d0/slopeLower+1.0d0/slopeUpper)
+      end if
+      return
+    end function slopeMonotone
 
   end subroutine constraintConditionedTableBuild
