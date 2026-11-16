@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794705683058,
+  "lastUpdate": 1794864139165,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -7951,6 +7951,40 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
         },
         "date": 1794705681840,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 178.1801155425085,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 53.70377125682495,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+          "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles",
+          "timestamp": "2026-11-16T15:58:50Z",
+          "tree_id": "3aceb52da11a647f40a84d7916e2fc8ea6af6c93",
+          "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
+        },
+        "date": 1794864138256,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
