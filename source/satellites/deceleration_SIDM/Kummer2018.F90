@@ -330,10 +330,14 @@ contains
        rateScattering               =  +speedOrbital                             &
             &                          *densityHost                              &
             &                          *rateScatteringNormalization
+       ! The momentum is lost only by the dark matter of the satellite, but the loss decelerates its whole bound mass, so the
+       ! acceleration includes the factor M_DM/(M_DM+M★) in the deceleration equation of Kummer et al. (2018). This is the dark
+       ! matter fraction assumed for the satellite above.
        kummer2018Acceleration       =  -velocity                                 &
             &                          *rateScattering                           &
             &                          *self%decelerationFactor(x,speedHalfMass) &
-            &                          *dispersionFactor
+            &                          *dispersionFactor                         &
+            &                          *self%fractionDarkMatter
     end if
     return
   end function kummer2018Acceleration

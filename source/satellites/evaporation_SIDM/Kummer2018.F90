@@ -33,7 +33,9 @@
   !![
   <satelliteEvaporationSIDM name="satelliteEvaporationSIDMKummer2018" docformat="rst">
    <description>
-   A satellite evaporation due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`.
+   A satellite evaporation due to dark matter self-interactions using the model of :cite:t:`kummer_effective_2018`. Only mass
+   loss is modeled: for a subhalo whose escape velocity exceeds its speed relative to its host, for which
+   :cite:t:`kummer_effective_2018` find a net capture of host particles, the rate is zero.
    </description>
   </satelliteEvaporationSIDM>
   !!]
@@ -302,7 +304,9 @@ contains
        ! evaporates a particle.
        x            =+velocityEscape &
             &        /speedRelative
-       ! Evaporation occurs for x<1.
+       ! Evaporation occurs for x<1. For x>1 Kummer et al. (2018) find χ_e<0: a net capture of host particles, since scatterings
+       ! with θ_c<θ<π-θ_c then leave both particles bound. That mass gain is not modeled here - this class computes only mass
+       ! loss - so the rate is zero for x≥1.
        if (x < 1.0d0) then
           ! Find the speed with which host particles arrive at the half-mass radius of the subhalo: the effective relative speed,
           ! boosted by the energy they gain in falling in. This is the typical speed of the particles which actually scatter, and
