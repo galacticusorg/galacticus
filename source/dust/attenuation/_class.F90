@@ -67,7 +67,7 @@ module Dust_Attenuations
   ! Made public so that it survives into the object file: it is called only from the submodules into which the
   ! implementations of this class are generated, never from this module itself, and a private procedure with no
   ! caller in its own module can be discarded before those submodules are linked against it.
-  public :: absorbedFractionsPhases, gaussLegendreRule, radiusSpheroidRelative
+  public :: absorbedFractionsPhases, radiusSpheroidRelative
 
   !![
   <functionClass docformat="rst">

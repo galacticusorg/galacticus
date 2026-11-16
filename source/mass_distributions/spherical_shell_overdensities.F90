@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implementation of a mass distribution class which overlays clouds on another mass distribution.
+  Implementation of a mass distribution class which overlays spherical shells on another mass distribution.
   !!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t

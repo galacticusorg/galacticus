@@ -1,11 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <cosmologicalMassVariance value="peakBackgroundSplit">
     <cosmologicalMassVariance value="filteredPower">
       <monotonicInterpolation value="true" />
       <nonMonotonicIsFatal value="false" />
-      <sigma_8 value="0.820" />
       <tolerance value="4.0e-4" />
       <toleranceTopHat value="2.0e-4" />
     </cosmologicalMassVariance>
@@ -71,11 +70,14 @@
     <wavenumberReference value="1.000" />
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple" />
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.820"/>
+    <tolerance value="2.0e-4"/>
+  </powerSpectrumNormalizer>
   <powerSpectrumSimulation ignoreWarnings="true" value="standard">
     <cosmologicalMassVariance value="filteredPower">
       <monotonicInterpolation value="true" />
       <nonMonotonicIsFatal value="false" />
-      <sigma_8 value="0.820" />
       <tolerance value="4.0e-4" />
       <toleranceTopHat value="2.0e-4" />
     </cosmologicalMassVariance>

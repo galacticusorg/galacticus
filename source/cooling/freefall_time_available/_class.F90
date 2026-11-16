@@ -23,7 +23,7 @@ Contains a module that implements calculations of the time available for freefal
 
 module Cooling_Freefall_Times_Available
   !!{RST
-  Provides a class that implements calculations of the freefall radius.
+  Provides a class that implements calculations of the time available for freefall.
   !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none

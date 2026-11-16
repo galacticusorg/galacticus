@@ -95,7 +95,7 @@ contains
     class           (cosmologyFunctionsClass                     ), intent(in   ), target :: cosmologyFunctions_
     class           (linearGrowthClass                           ), intent(in   ), target :: linearGrowth_
     class           (cosmologicalMassVarianceClass               ), intent(in   ), target :: cosmologicalMassVariance_
-    double precision                                              , parameter             :: toleranceRelative        =1.0d-6,toleranceAbsolute=0.0d+0
+    double precision                                              , parameter             :: toleranceRelative        =1.0d-6,toleranceAbsolute=1.0d-6
     !![
     <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
     !!]

@@ -24,7 +24,7 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
-  use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionTraceDarkMatter
+  use :: Satellite_Orphan_Distributions, only : satelliteOrphanDistributionTraceDarkMatter
   !![
   <nodeOperator name="nodeOperatorPositionTraceDarkMatter" docformat="rst">
    <description>

@@ -23,13 +23,12 @@
 Implements a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to :math:`z=0`.
 !!}
 
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
 
   !![
   <powerSpectrum name="powerSpectrumStandard" docformat="rst">
    <description>
-   Provides a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to :math:`z=0`.
+   Provides a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum (see :galacticus-class:`powerSpectrumPrimordialTransferred`), which is normalized by its :galacticus-class:`powerSpectrumNormalizer`.
    </description>
   </powerSpectrum>
   !!]
@@ -38,14 +37,12 @@ Implements a linear theory power spectrum class in which the power spectrum is j
      A linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to :math:`z=0`.
      !!}
      private
-     class(cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_           => null()
      class(powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_ => null()
    contains
      final     ::                               standardDestructor
      procedure :: power                      => standardPower
      procedure :: powerLogarithmicDerivative => standardPowerLogarithmicDerivative
      procedure :: powerDimensionless         => standardPowerDimensionless
-     procedure :: descriptor                 => standardDescriptor
   end type powerSpectrumStandard
 
   interface powerSpectrumStandard
@@ -66,32 +63,28 @@ contains
     implicit none
     type (powerSpectrumStandard                  )                :: self
     type (inputParameters                        ), intent(inout) :: parameters
-    class(cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVariance_
     class(powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
 
     !![
-    <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVariance_"           source="parameters"/>
     <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
     !!]
-    self=powerSpectrumStandard(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_)
+    self=powerSpectrumStandard(powerSpectrumPrimordialTransferred_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologicalMassVariance_"          />
     <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
     !!]
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_) result(self)
+  function standardConstructorInternal(powerSpectrumPrimordialTransferred_) result(self)
     !!{RST
     Internal constructor for the standard power spectrum class.
     !!}
     implicit none
     type (powerSpectrumStandard)                                          :: self
-    class(cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
     class(powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     !![
-    <constructorAssign variables="*cosmologicalMassVariance_, *powerSpectrumPrimordialTransferred_"/>
+    <constructorAssign variables="*powerSpectrumPrimordialTransferred_"/>
     !!]
 
     return
@@ -105,7 +98,6 @@ contains
     type(powerSpectrumStandard), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologicalMassVariance_"          />
     <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
     !!]
     return
@@ -119,9 +111,7 @@ contains
     class           (powerSpectrumStandard), intent(inout) :: self
     double precision                       , intent(in   ) :: wavenumber, time
 
-    ! Compute the power spectrum.
-    standardPower=+self%powerSpectrumPrimordialTransferred_%power             (wavenumber,time) &
-         &        *self%cosmologicalMassVariance_          %powerNormalization(               )
+    standardPower=self%powerSpectrumPrimordialTransferred_%power(wavenumber,time)
     return
   end function standardPower
 
@@ -156,25 +146,3 @@ contains
          &                      )**3
     return
   end function standardPowerDimensionless
-
-  subroutine standardDescriptor(self,descriptor,includeClass,includeFileModificationTimes,parameterName)
-      !!{RST
-      Generate a descriptor for the standard power spectrum class.
-      !!}
-      use Input_Parameters, only : inputParameters, descriptorParameterName
-      implicit none
-      class    (powerSpectrumStandard), intent(inout)           :: self
-      type     (inputParameters      ), intent(inout)           :: descriptor
-      logical                         , intent(in   ), optional :: includeClass , includeFileModificationTimes
-      character(len=*                ), intent(in   ), optional :: parameterName
-      type     (inputParameters      )                          :: parameters
-      !![
-      <optionalArgument name="includeClass" defaultsTo=".true." />
-      !!]
-      
-      if (includeClass_) call descriptor%addParameter(descriptorParameterName('powerSpectrum',parameterName),'standard')
-      parameters=descriptor%subparameters(descriptorParameterName('powerSpectrum',parameterName))
-      if (associated(self%cosmologicalMassVariance_          )) call self%cosmologicalMassVariance_          %descriptorNormalizationOnly(parameters,includeClass,includeFileModificationTimes)
-      if (associated(self%powerSpectrumPrimordialTransferred_)) call self%powerSpectrumPrimordialTransferred_%descriptor                 (parameters,includeClass,includeFileModificationTimes)
-      return      
-    end subroutine standardDescriptor

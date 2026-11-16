@@ -32,12 +32,12 @@ module Power_Spectra_Primordial_Transferred
    <name>powerSpectrumPrimordialTransferred</name>
    <descriptiveName>Transferred Primordial Power Spectrum</descriptiveName>
    <description>
-   Class providing the transferred primordial power spectrum :math:`T^2(k)P_\mathrm{prim}(k,t)`---the product of the primordial power spectrum :math:`P_\mathrm{prim}(k) \propto k^{n_s}` with the linear transfer function squared :math:`T^2(k)`, which encodes the suppression of power on small scales by radiation pressure before matter-radiation equality. The transferred spectrum is the starting point for computing the late-time matter power spectrum :math:`P(k,t) = D^2(t) T^2(k) P_\mathrm{prim}(k)` used in the mass variance, halo mass function, and clustering predictions.
+   Class providing the transferred primordial power spectrum :math:`T^2(k)P_\mathrm{prim}(k,t)`---the product of the primordial power spectrum :math:`P_\mathrm{prim}(k) \propto k^{n_s}` with the linear transfer function squared :math:`T^2(k)`, which encodes the suppression of power on small scales by radiation pressure before matter-radiation equality. The transferred spectrum is the starting point for computing the late-time matter power spectrum :math:`P(k,t) = D^2(t) T^2(k) P_\mathrm{prim}(k)` used in the mass variance, halo mass function, and clustering predictions. The transferred spectrum is normalized (for example, to a specified :math:`\sigma_8`) by a :galacticus-class:`powerSpectrumNormalizerClass` object, so that every quantity derived from it is consistently normalized.
    </description>
    <default>simple</default>
    <method name="power" >
     <description>
-    Return the (unnormalized) power in the transferred primordial power spectrum at the given ``wavenumber`` (specified in units of Mpc\ :math:`^{-1}`).
+    Return the (normalized) power in the transferred primordial power spectrum at the given ``wavenumber`` (specified in units of Mpc\ :math:`^{-1}`) and ``time`` (in units of Gyr). The normalization is determined by a :galacticus-class:`powerSpectrumNormalizerClass` object.
     </description>
     <type>double precision</type>
     <pass>yes</pass>

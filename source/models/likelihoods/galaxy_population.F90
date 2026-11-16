@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for Galacticus models.
   !!}
@@ -448,7 +450,8 @@ contains
              logLikelihoods(iRank_)=logLikelihoodProposed
              ! Optionally output results.
              if (self%outputAnalyses) then
-                groupName=var_str("step")//simulationState%count()//":chain"//simulationState%chainIndex()
+                ! Label the results with the chain whose state was evaluated, which is not, in general, the chain of this process.
+                groupName=var_str("step")//simulationState%count()//":chain"//chainIndex(iRank_)
                 call self%outputAnalysis_%finalize(groupName)
              end if
           end if

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galacticus validation report</title>
+<style>
+:root {
+  --surface: #fcfcfb; --surface-raised: #f1f0ec; --ink: #1c1c1a; --ink-muted: #5f5e58; --rule: #dcdad3; --grid: rgba(0, 0, 0, 0.06);
+  --master: #0072B2; --pr: #D55E00; --target: #1c1c1a;
+  --ok: #1a7f37; --warn: #9a6700; --fail: #cf222e; --link: #0a5fa8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #1a1a19; --surface-raised: #262624; --ink: #ecebe6; --ink-muted: #a8a69e; --rule: #3b3a36; --grid: rgba(255, 255, 255, 0.08);
+    --master: #3D9BD6; --pr: #D9680B; --target: #ecebe6;
+    --ok: #4ac26b; --warn: #d4a72c; --fail: #ff7b72; --link: #6cb6ff;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0 auto; padding: 24px 16px 64px; max-width: 1240px; background: var(--surface); color: var(--ink); font: 15px/1.5 system-ui, sans-serif; }
+a { color: var(--link); }
+h1 { font-size: 1.6rem; margin: 0 0 4px; }
+h2 { font-size: 1.2rem; margin: 36px 0 8px; }
+h3 { font-size: 1rem; margin: 0 0 6px; }
+.muted { color: var(--ink-muted); }
+.small { font-size: 0.875rem; }
+.notice { border-left: 3px solid var(--warn); padding: 8px 12px; background: var(--surface-raised); margin: 12px 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0; }
+.tile { background: var(--surface-raised); border-radius: 8px; padding: 10px 14px; }
+.tile b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.tableScroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
+th, td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; font-variant-numeric: tabular-nums; }
+th { color: var(--ink-muted); font-weight: 600; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+td.wrap { white-space: normal; min-width: 140px; }
+button.linkish { background: none; border: 0; padding: 0; color: var(--link); cursor: pointer; font: inherit; text-align: left; text-decoration: underline; }
+.status { font-weight: 600; white-space: nowrap; }
+.status-ok { color: var(--ok); } .status-warn { color: var(--warn); } .status-fail { color: var(--fail); } .status-unknown { color: var(--ink-muted); }
+label.toggle { display: inline-block; margin: 6px 0; cursor: pointer; }
+details.metric { border: 1px solid var(--rule); border-radius: 8px; margin: 8px 0; background: var(--surface); }
+details.metric > summary { cursor: pointer; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; }
+details.metric > summary .name { font-weight: 600; margin-right: auto; }
+.metricBody { padding: 4px 12px 14px; }
+.plots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 18px; }
+.plot { min-width: 0; }
+.plot canvas { max-width: 100%; }
+.key { display: inline-flex; gap: 16px; flex-wrap: wrap; margin: 6px 0 2px; }
+.key span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; background: var(--swatch); }
+</style>
+</head>
+<body>
+<noscript><p class="notice">This report draws its plots with JavaScript, which is disabled in this browser.</p></noscript>
+<div id="root"></div>
+<script id="reportData" type="application/json">__DATA__</script>
+<script>__CHARTJS__</script>
+<script>__ERRORBARS__</script>
+<script>
+'use strict';
+(function () {
+  const model = JSON.parse(document.getElementById('reportData').textContent);
+  const meta = model.meta;
+  const root = document.getElementById('root');
+  const css = getComputedStyle(document.documentElement);
+  const color = name => css.getPropertyValue(name).trim();
+  const IMPOSSIBLE = 1.0e100;
+
+  // Build a DOM element. All text goes through text nodes, so results data can never be interpreted as markup.
+  function el(tag, attributes, ...children) {
+    const element = document.createElement(tag);
+    for (const [key, value] of Object.entries(attributes || {})) {
+      if (key === 'class') element.className = value;
+      else if (key === 'onclick') element.addEventListener('click', value);
+      else element.setAttribute(key, value);
+    }
+    for (const child of children) {
+      if (child !== null && child !== undefined) element.append(child);
+    }
+    return element;
+  }
+
+  function number(value) {
+    if (value === null || value === undefined) return '–';
+    if (Math.abs(value) >= IMPOSSIBLE) return 'impossible';
+    const size = Math.abs(value);
+    if (size !== 0 && (size >= 1.0e5 || size < 1.0e-2)) return value.toExponential(2);
+    return value.toFixed(2);
+  }
+
+  const STATUS_TEXT = { ok: '✓ ok', warn: '▲ warn', fail: '✕ fail', unknown: '– none' };
+  const status = name => el('span', { class: 'status status-' + name }, STATUS_TEXT[name]);
+  const commitLink = sha => sha ? el('a', { href: meta.repoUrl + '/commit/' + sha }, el('code', null, sha.slice(0, 10))) : 'unknown';
+
+  // Header.
+  const title = 'Validation report' + (meta.prNumber ? ' for PR #' + meta.prNumber : '');
+  document.title = title;
+  root.append(el('h1', null, title));
+  const description = el('p', { class: 'muted small' });
+  if (meta.prNumber) description.append(el('a', { href: meta.repoUrl + '/pull/' + meta.prNumber }, 'Pull request'), ' · ');
+  if (meta.prCommit) description.append('commit ', commitLink(meta.prCommit), ' · ');
+  description.append('master results from ', commitLink(meta.baselineCommit));
+  if (meta.baselineDate) description.append(' (' + meta.baselineDate + ')');
+  if (meta.runUrl) description.append(' · ', el('a', { href: meta.runUrl }, 'CI run'));
+  description.append(' · generated ' + meta.generated);
+  description.append(' · ', el('a', { href: '#plots' }, 'Jump to plots'));
+  root.append(description);
+
+  if (!meta.baselineCommit) {
+    root.append(el('p', { class: 'notice' }, 'No master results could be found, so only this pull request and the target data are shown.'));
+  } else if (!meta.baselineExact) {
+    root.append(el('p', { class: 'notice' }, 'Master has no published results for the commit this run was built on (', commitLink(meta.baseSha),
+      '). The nearest earlier results are used, so differences may include other changes merged to master in between.'));
+  }
+  if (model.missing.length) {
+    root.append(el('p', { class: 'notice' }, 'No results from this run for: ' + model.missing.join('; ') + '. A job failed or was skipped.'));
+  }
+
+  // Summary figures.
+  const rank = { unknown: -1, ok: 0, warn: 1, fail: 2 };
+  const outside = model.analyses.filter(row => row.outside);
+  const worse = model.analyses.filter(row => rank[row.statusPr] > rank[row.statusMaster] && rank[row.statusMaster] >= 0);
+  const better = model.analyses.filter(row => rank[row.statusPr] < rank[row.statusMaster] && rank[row.statusPr] >= 0);
+  const expected = 2.0 * model.analyses.length / (model.historyLength + 1.0);
+  const tile = (value, label) => el('div', { class: 'tile' }, el('b', null, String(value)), el('span', { class: 'small muted' }, label));
+  root.append(el('div', { class: 'tiles' },
+    tile(model.analyses.length, 'analyses compared'),
+    tile(worse.length, 'status worse than master'),
+    tile(better.length, 'status better than master'),
+    tile(outside.length, 'likelihoods outside recent range'),
+    tile(model.timings.filter(row => row.outside).length, 'timings outside recent range')));
+
+  // Open a metric's section and bring it into view.
+  function showMetric(suffix) {
+    const section = document.getElementById('metric-' + suffix);
+    if (section) { section.open = true; section.scrollIntoView({ block: 'start' }); }
+  }
+  const metricButton = row => el('button', { class: 'linkish', onclick: () => showMetric(row.metric) }, row.metricTitle);
+
+  // Likelihood table.
+  function deviationText(row) {
+    if (row.deviation === null || row.deviation === undefined) return '–';
+    if (Math.abs(row.deviation) >= 1000.0) return (row.deviation > 0 ? '> +' : '< −') + '1000σ';
+    return (row.deviation > 0 ? '+' : '') + row.deviation.toFixed(1) + 'σ';
+  }
+  const rangeText = row => row.recent ? number(row.recent.low) + ' to ' + number(row.recent.high) : '–';
+  root.append(el('h2', null, 'Likelihoods'));
+  root.append(el('p', { class: 'small muted' }, 'Log-likelihoods compared to the last ' + model.historyLength + ' results on master. The deviation is from their median, in units of a robust estimate of their scatter. ',
+    'Tree-based models vary from run to run, so about ' + expected.toFixed(0) + ' of these ' + model.analyses.length + ' analyses should fall outside the recent range by chance alone.'));
+  const allToggle = el('input', { type: 'checkbox' });
+  root.append(el('label', { class: 'toggle small' }, allToggle, ' Show all analyses'));
+  const analysisBody = el('tbody');
+  root.append(el('div', { class: 'tableScroll' }, el('table', null,
+    el('thead', null, el('tr', null, ...['Metric', 'Analysis', 'Master', 'PR', 'Recent range', 'Deviation', 'Status (master)', 'Status (PR)'].map(text => el('th', null, text)))),
+    analysisBody)));
+  const sortedAnalyses = model.analyses.slice().sort((a, b) => Math.abs(b.deviation || 0) - Math.abs(a.deviation || 0));
+  function fillAnalyses() {
+    analysisBody.replaceChildren();
+    const rows = sortedAnalyses.filter(row => allToggle.checked || row.outside || row.statusPr !== row.statusMaster || row.targetChanged);
+    if (!rows.length) analysisBody.append(el('tr', null, el('td', { colspan: 8 }, 'No analysis is outside its recent range or has changed status.')));
+    for (const row of rows) {
+      analysisBody.append(el('tr', null,
+        el('td', { class: 'wrap' }, metricButton(row)),
+        el('td', { class: 'wrap' }, row.analysis, row.targetChanged ? ' (target changed)' : null),
+        el('td', null, number(row.master)), el('td', null, number(row.pr)), el('td', null, rangeText(row)), el('td', null, deviationText(row)),
+        el('td', null, status(row.statusMaster)), el('td', null, status(row.statusPr))));
+    }
+  }
+  allToggle.addEventListener('change', fillAnalyses);
+  fillAnalyses();
+
+  // Timing table.
+  root.append(el('h2', null, 'Benchmarks'));
+  const timingBody = el('tbody');
+  for (const row of model.timings.slice().sort((a, b) => Math.abs(b.deviation || 0) - Math.abs(a.deviation || 0))) {
+    timingBody.append(el('tr', null,
+      el('td', { class: 'wrap' }, metricButton(row)), el('td', { class: 'wrap' }, row.name),
+      el('td', null, number(row.master)), el('td', null, number(row.pr)), el('td', null, row.unit),
+      el('td', null, row.master ? (row.pr / row.master).toFixed(2) : '–'), el('td', null, row.alert ? '×' + row.alert.toFixed(2) : '–'),
+      el('td', null, rangeText(row)), el('td', null, deviationText(row))));
+  }
+  root.append(el('div', { class: 'tableScroll' }, el('table', null,
+    el('thead', null, el('tr', null, ...['Metric', 'Benchmark', 'Master', 'PR', 'Unit', 'PR / master', 'Alert at', 'Recent range', 'Deviation'].map(text => el('th', null, text)))),
+    timingBody)));
+
+  // Plots.
+  const axisNumber = value => {
+    const size = Math.abs(value);
+    if (size === 0) return '0';
+    if (size < 1.0e-3 || size >= 1.0e4) return value.toExponential(1);
+    return value.toLocaleString();
+  };
+
+  const SERIES = {
+    // Chart.js draws the lowest `order` on top. The pull request goes on top as an open marker, so that a point from master which
+    // coincides with it (the usual case for a change which does not affect a model) remains visible underneath it.
+    target: { pointStyle: 'rectRot',  radius: 5, variable: '--target', order: 2, filled: true,  width: 1.5 },
+    master: { pointStyle: 'circle',   radius: 4, variable: '--master', order: 1, filled: true,  width: 1.5 },
+    pr:     { pointStyle: 'triangle', radius: 7, variable: '--pr',     order: 0, filled: false, width: 2.0 }
+  };
+
+  function dataset(kind, label, points) {
+    const style = SERIES[kind];
+    return { label: label, data: points, order: style.order, borderColor: color(style.variable), backgroundColor: style.filled ? color(style.variable) : 'transparent',
+      pointStyle: style.pointStyle, radius: style.radius, pointRadius: style.radius, borderWidth: style.width,
+      errorBarColor: color(style.variable), errorBarWhiskerColor: color(style.variable) };
+  }
+
+  // Collect the points with a usable value. Zero is omitted, as in the published pages, since most of these axes are logarithmic.
+  function points(x, y, error) {
+    const result = [];
+    for (let i = 0; i < x.length; i++) {
+      if (y[i] === null || y[i] === undefined || y[i] === 0.0 || x[i] === null) continue;
+      const point = { x: x[i], y: y[i] };
+      if (error && error[i] !== null && error[i] !== undefined) { point.yMin = y[i] - error[i]; point.yMax = y[i] + error[i]; }
+      result.push(point);
+    }
+    return result;
+  }
+
+  function drawChart(parent, datasets, axes) {
+    const canvas = el('canvas');
+    parent.append(canvas);
+    let low = Infinity, high = -Infinity;
+    for (const series of datasets) {
+      for (const point of series.data) {
+        for (const value of [point.y, point.yMin, point.yMax]) {
+          if (value === undefined || (axes.yLog && value <= 0.0)) continue;
+          low = Math.min(low, value); high = Math.max(high, value);
+        }
+      }
+    }
+    const scale = (text, log) => ({
+      type: log ? 'logarithmic' : 'linear', grid: { color: color('--grid') }, ticks: { color: color('--ink-muted'), callback: axisNumber },
+      title: { display: true, text: text, color: color('--ink') }
+    });
+    const options = {
+      animation: false, responsive: true, aspectRatio: 1.5,
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, color: color('--ink'), boxHeight: 8, sort: (a, b) => a.datasetIndex - b.datasetIndex } } },
+      scales: { x: scale(axes.x, axes.xLog), y: scale(axes.y, axes.yLog) }
+    };
+    if (axes.yMin !== undefined) { options.scales.y.min = axes.yMin; options.scales.y.max = axes.yMax; }
+    else if (isFinite(low) && low < high) { options.scales.y.min = low; options.scales.y.max = high; }
+    new Chart(canvas, { type: 'scatterWithErrorBars', data: { datasets: datasets }, options: options });
+  }
+
+  function drawStandard(body, metric) {
+    const results = (metric.pr || metric.master).results.slice();
+    if (metric.pr && metric.master) {
+      const known = new Set(results.map(result => result.attributes.name));
+      for (const result of metric.master.results) { if (!known.has(result.attributes.name)) results.push(result); }
+    }
+    const find = (source, name) => source ? source.results.find(result => result.attributes.name === name) : undefined;
+    const rows = model.analyses.filter(row => row.metricTitle === metric.title);
+    const plots = el('div', { class: 'plots' });
+    body.append(plots);
+    for (const reference of results) {
+      const attributes = reference.attributes;
+      const pr = find(metric.pr, attributes.name), master = find(metric.master, attributes.name);
+      const row = rows.find(candidate => candidate.analysis === attributes.name);
+      const plot = el('div', { class: 'plot' }, el('h3', null, attributes.description || attributes.name));
+      if (row) plot.append(el('div', { class: 'small muted' }, attributes.name + ': log ℒ ' + number(row.master) + ' (master), ' + number(row.pr) + ' (PR)'));
+      plots.append(plot);
+      const source = (pr || master).data;
+      const datasets = [dataset('target', attributes.targetLabel || 'Target', points(source.xDataset, source.yDatasetTarget, source.yErrorTarget))];
+      if (master) datasets.push(dataset('master', 'Master', points(master.data.xDataset, master.data.yDataset, master.data.yError)));
+      if (pr) datasets.push(dataset('pr', 'This PR', points(pr.data.xDataset, pr.data.yDataset, pr.data.yError)));
+      drawChart(plot, datasets, { x: attributes.xAxisLabel, y: attributes.yAxisLabel, xLog: attributes.xAxisIsLog == 1, yLog: attributes.yAxisIsLog == 1 });
+    }
+  }
+
+  function drawBaryonic(body, metric) {
+    const source = metric.pr || metric.master;
+    const plots = el('div', { class: 'plots' });
+    body.append(plots);
+    const variants = [['withBaryons', 'with reionization'], ['withBaryons_noReionization', 'no reionization']];
+    for (let i = 1; i < source.redshift.length; i++) {
+      for (const [key, label] of variants) {
+        const plot = el('div', { class: 'plot' }, el('h3', null, 'z = ' + source.redshift[i] + ', ' + label));
+        plots.append(plot);
+        const model_ = run => points(run.massHalo, run.model[key][i].ratio, run.model[key][i].ratioError);
+        const datasets = [dataset('target', 'Zheng et al. (2024)', points(source.massHalo, source.target[key][i]))];
+        if (metric.master) datasets.push(dataset('master', 'Master', model_(metric.master)));
+        if (metric.pr) datasets.push(dataset('pr', 'This PR', model_(metric.pr)));
+        drawChart(plot, datasets, { x: 'log₁₀(M₂₀₀/M☉)', y: 'HMF ratio', yMin: 0.6, yMax: 1.2 });
+      }
+    }
+  }
+
+  function drawPonosV(body, metric) {
+    const label = { surfaceDensity: 'Σ_sub', slope: 'α' };
+    const cell = (run, key) => run ? run[key].percentageAbove.toFixed(1) + ' / ' + run[key].percentageBelow.toFixed(1) : '–';
+    const table = el('tbody');
+    for (const key of ['surfaceDensity', 'slope']) {
+      table.append(el('tr', null, el('td', null, label[key]), el('td', null, String((metric.pr || metric.master)[key].target)), el('td', null, cell(metric.master, key)), el('td', null, cell(metric.pr, key))));
+    }
+    body.append(el('p', { class: 'small muted' }, 'Percentage of realizations above / below the PonosV value.'),
+      el('div', { class: 'tableScroll' }, el('table', null, el('thead', null, el('tr', null, ...['Quantity', 'PonosV', 'Master', 'PR'].map(text => el('th', null, text)))), table)));
+  }
+
+  const DRAW = { standard: drawStandard, baryonicSuppression: drawBaryonic, ponosV: drawPonosV };
+
+  root.append(el('h2', { id: 'plots' }, 'Validation plots'));
+  root.append(el('div', { class: 'small key' },
+    el('span', { style: '--swatch:' + color('--target') }, 'Target (diamond)'),
+    el('span', { style: '--swatch:' + color('--master') }, 'Master (circle)'),
+    el('span', { style: '--swatch:' + color('--pr') }, 'This PR (open triangle)')));
+  root.append(el('p', { class: 'small muted' }, 'Open a section to draw its plots. Click a legend entry to hide that series.'));
+  for (const group of model.groups) {
+    root.append(el('h3', { style: 'margin-top:20px' }, group.title));
+    for (const suffix of group.metrics) {
+      const metric = model.metrics[suffix];
+      const summary = el('summary', null, el('span', { class: 'name' }, metric.shortTitle));
+      if (metric.missing) summary.append(el('span', { class: 'status status-fail' }, 'no PR result'));
+      if (metric.flagged) summary.append(el('span', { class: 'small muted' }, metric.flagged + ' outside recent range'));
+      if (metric.kind === 'standard') summary.append(status(metric.worstStatus));
+      const body = el('div', { class: 'metricBody' });
+      const section = el('details', { class: 'metric', id: 'metric-' + suffix }, summary, body);
+      let drawn = false;
+      section.addEventListener('toggle', () => {
+        if (!section.open || drawn) return;
+        drawn = true;
+        try { DRAW[metric.kind](body, metric); }
+        catch (error) { body.append(el('p', { class: 'notice' }, 'This section could not be drawn: ' + error)); }
+      });
+      root.append(section);
+    }
+  }
+})();
+</script>
+</body>
+</html>

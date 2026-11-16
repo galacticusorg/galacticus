@@ -88,9 +88,9 @@ runs:
     - name: Install libmatheval
       shell: bash
       run: |
-        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.13.tar.gz --output libmatheval-1.1.13.tar.gz
-        tar xvfz libmatheval-1.1.13.tar.gz
-        cd libmatheval-1.1.13
+        curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.14.tar.gz --output libmatheval-1.1.14.tar.gz
+        tar xvfz libmatheval-1.1.14.tar.gz
+        cd libmatheval-1.1.14
         # Patch following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
         sed -E -i~ s/"#undef HAVE_SCM_T_BITS"/"#define HAVE_SCM_T_BITS 1"/ config.h.in
         # Set guile paths following the approach used in MacPorts (https://github.com/macports/macports-ports/tree/master/math/libmatheval).
@@ -98,7 +98,7 @@ runs:
         make -j3
         sudo make install
         cd ..
-        rm -rf libmatheval-1.1.13.tar.gz libmatheval-1.1.13
+        rm -rf libmatheval-1.1.14.tar.gz libmatheval-1.1.14
     - name: Install qhull
       shell: bash
       # NOTE: `www.qhull.org` presents a certificate which is not valid for that host, so this must be fetched over plain HTTP and
@@ -147,7 +147,7 @@ runs:
         # breaking the build. Galacticus does not use half-precision types, so disabling the feature is safe.
         # HDF5_BUILD_WITH_INSTALL_NAME=ON gives the installed dylibs absolute install_names (/usr/local/lib/...) rather than
         # CMake's default @rpath, so Galacticus.exe records absolute paths and dyld can load libhdf5*.dylib at run time without an
-        # LC_RPATH entry. This matches the Autotools HDF5 1.14 behaviour Galacticus previously relied on.
+        # LC_RPATH entry. This matches the Autotools HDF5 1.14 behavior Galacticus previously relied on.
         cmake -S . -B build -G "Unix Makefiles" \
            -DCMAKE_INSTALL_PREFIX=/usr/local \
            -DCMAKE_BUILD_TYPE=Release \

@@ -16,7 +16,15 @@ import sys
 _HERE           = os.path.dirname(os.path.abspath(__file__))
 GALACTICUS_ROOT = os.path.abspath(os.path.join(_HERE, '..'))
 
-os.environ.setdefault('GALACTICUS_EXEC_PATH', GALACTICUS_ROOT)
+# Set, not setdefault. These tests exercise *this* tree, so the variable must
+# name it: modules under test read it at import to find the schemas they
+# validate directives against, and deferring to the environment means a shell
+# configured for another checkout silently changes what the tests check. On
+# master, with it naming a different checkout,
+# `test_harvest_records_capability_markers` fails because that tree's
+# `objectBuilder.xsd` predates the `withholds` attribute. Only CI, which sets
+# the variable to its workspace, was unaffected.
+os.environ['GALACTICUS_EXEC_PATH'] = GALACTICUS_ROOT
 
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)

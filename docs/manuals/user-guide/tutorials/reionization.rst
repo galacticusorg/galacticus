@@ -38,7 +38,7 @@ which to tabulate the background per decade of wavelength and cosmic
 time are specified.
 
 Finally, the third block of parameters tells Galacticus to use the
-`Naoz & Barkana (2007 <https://ui.adsabs.harvard.edu/abs/2007MNRAS.377..667N>`_; `naozBarkana2007 <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_) prescription for computing gas accretion into halos
+:cite:t:`naoz_formation_2007` (:galacticus-class:`accretionHaloNaozBarkana2007`) prescription for computing gas accretion into halos
 from the IGM. This prescription uses the filtering mass to determine
 accretion rates, and will take the filtering mass from the internal
 evolution calculation.

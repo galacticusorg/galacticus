@@ -246,16 +246,13 @@ contains
     !!}
     use :: Abundances_Structure                , only : abundances
     use :: Chemical_Abundances_Structure       , only : chemicalAbundances
-    use :: Chemical_Reaction_Rates_Utilities   , only : Chemicals_Mass_To_Fraction_Conversion
     use :: Galactic_Structure_Options          , only : componentTypeHotHalo                 , massTypeGaseous
     use :: Galactic_Structure_Radii_Definitions, only : radiusResolver, radiusUndefined
-    use :: Galacticus_Nodes                    , only : nodeComponentBasic                   , nodeComponentHotHalo        , treeNode
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic                   , treeNode
     use :: Mass_Distributions                  , only : massDistributionClass                , kinematicsDistributionClass
     use :: Coordinates                         , only : coordinateSpherical                  , assignment(=)
-    use :: Numerical_Constants_Astronomical    , only : massSolar                            , megaParsec
-    use :: Numerical_Constants_Atomic          , only : massHydrogenAtom
-    use :: Numerical_Constants_Prefixes        , only : hecto
     use :: Error                               , only : Error_Report
+    use :: Hot_Halo_Composition                , only : Hydrogen_Number_Density              , Hot_Halo_Gas_Composition
     implicit none
     double precision                                         , dimension(:,:), allocatable :: cgmCoolingFunctionExtract
     class           (nodePropertyExtractorCGMCoolingFunction), intent(inout) , target      :: self
@@ -263,17 +260,15 @@ contains
     double precision                                         , intent(in   )               :: time
     type            (multiCounter                           ), intent(inout) , optional    :: instance
     class           (nodeComponentBasic                     )                , pointer     :: basic
-    class           (nodeComponentHotHalo                   )                , pointer     :: hotHalo
     class           (massDistributionClass                  )                , pointer     :: massDistribution_
     class           (kinematicsDistributionClass            )                , pointer     :: kinematicsDistribution_
     type            (radiusResolver                         )                              :: resolver
     type            (coordinateSpherical                    )                              :: coordinates
     integer                                                                                :: i
     double precision                                                                       :: radius                   , density              , &
-         &                                                                                    temperature              , numberDensityHydrogen, &
-         &                                                                                    massToDensityConversion
+         &                                                                                    temperature              , numberDensityHydrogen
     type            (abundances                             )                              :: abundancesGas
-    type            (chemicalAbundances                     )                              :: chemicalMasses           , fractionsChemical
+    type            (chemicalAbundances                     )                              :: fractionsChemical
     !$GLC attributes unused :: time, instance
 
     allocate(cgmCoolingFunctionExtract(self%radiiCount,self%elementCount_))
@@ -291,26 +286,13 @@ contains
        end if
        ! Extract properties needed for the cooling function.       
        basic   => node%basic  ()
-       hotHalo => node%hotHalo()
        ! Set epoch for radiation field.
        call self%radiation%timeSet(basic%time())
-       ! Compute metal abundances.
-       abundancesGas=hotHalo%abundances()
-       call abundancesGas%massToMassFraction(hotHalo%mass())
-       ! Compute the chemicals for this node.
+       ! Compute metal abundances and (if any are being tracked) the chemicals for this node.
        if (self%chemicalsCount > 0) then
-          chemicalMasses=hotHalo%chemicals()
-          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-          call chemicalMasses%massToNumber(fractionsChemical)
-          ! Compute factor converting mass of chemicals in (M☉) to number density per unit total mass density (in cm⁻³ / M☉
-          ! Mpc⁻³).
-          if (hotHalo%mass() > 0.0d0) then
-             massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-          else
-             massToDensityConversion=0.0d0
-          end if          
-          ! Convert to number density per unit total mass density.
-          call fractionsChemical%scale(massToDensityConversion)
+          call Hot_Halo_Gas_Composition(node,abundancesGas,fractionsChemical)
+       else
+          call Hot_Halo_Gas_Composition(node,abundancesGas                  )
        end if
        ! Get density and temperature.
        coordinates             =  [radius,0.0d0,0.0d0]
@@ -342,12 +324,7 @@ contains
        <objectDestructor name="kinematicsDistribution_"/>
        !!]
        ! Compute number density of hydrogen (in cm⁻³).
-       numberDensityHydrogen=+density                                    &
-            &                *abundancesGas   %hydrogenMassFraction()    &
-            &                *massSolar                                  &
-            &                /massHydrogenAtom                           &
-            &                /hecto                                  **3 &
-            &                /megaParsec                             **3
+       numberDensityHydrogen=Hydrogen_Number_Density(density,abundancesGas)
        if (numberDensityHydrogen > 0.0d0) then
           ! Extract the cooling function. Note that we must convert to the standard definition of "per hydrogen atom" here.
           cgmCoolingFunctionExtract    (i,                1)=+self%coolingFunction_%coolingFunction(                              &

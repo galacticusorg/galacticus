@@ -30,7 +30,8 @@
    <description>
    A satellite dynamical friction class which computes the Coulomb logarithm following the prescription of :cite:t:`lancaster_dynamical_2020`.
    The Coulomb logarithm is evaluated as :math:`\ln\Lambda`, with :math:`\Lambda = r_\mathrm{orbital}/l_{90}`, where :math:`l_{90}=\mathrm{G}M_\mathrm{sat}/v_\mathrm{orbital}^2`
-   is the impact parameter for an encounter causing a 90-degree deflection.
+   is the impact parameter for an encounter causing a 90-degree deflection. Following :cite:t:`lancaster_dynamical_2020`, only
+   impact parameters greater than :math:`l_{90}` contribute, so :math:`\ln\Lambda` is set to zero for :math:`\Lambda &lt; 1`.
    </description>
   </satelliteDynamicalFriction>
   !!]
@@ -119,9 +120,13 @@ contains
     impactParameter90Degree =  +gravitationalConstant_internal    &
          &                     *massSatellite                     &
          &                     /speedOrbital                  **2
+    ! Only impact parameters greater than l₉₀ contribute, so the Coulomb logarithm is zero (not negative) if r_orbital<l₉₀.
     coulombLogarithm        =  +log(                              &
-         &                          +radiusOrbital                &
-         &                          /impactParameter90Degree      &
+         &                          max(                          &
+         &                              +1.0d0                  , &
+         &                              +radiusOrbital            &
+         &                              /impactParameter90Degree  &
+         &                             )                          &
          &                         )
     return
   end function lancaster2020CoulombLogarithm

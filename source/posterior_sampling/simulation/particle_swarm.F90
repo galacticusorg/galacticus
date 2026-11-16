@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
+  Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
   !!}
 
   use :: Model_Parameters                    , only : modelParameterList

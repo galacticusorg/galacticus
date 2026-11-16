@@ -1039,12 +1039,12 @@ contains
     use :: MPI_F08, only : MPI_AllReduce, MPI_Logical, {logicalreduction¦operation}
 #endif
     implicit none
-    class  (mpiObject), intent(in   )                         :: self
-    logical           , intent(in   )                         :: boolean
-    logical           , intent(in   ), dimension(:), optional :: mask
+    class  (mpiObject), intent(in   )                          :: self
+    logical           , intent(in   )                          :: boolean
+    logical           , intent(in   ), dimension(0:), optional :: mask
 #ifdef USEMPI
-    integer                                                   :: iError
-    logical                          , dimension(1)           :: array
+    integer                                                    :: iError
+    logical                          , dimension(1 )           :: array
 #endif
 
 #ifdef USEMPI

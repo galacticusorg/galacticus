@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which provides a class that implements on-the-fly analyses.
+Contains a module which provides a class that implements property operators for on-the-fly analyses.
 !!}
 
 module Output_Analysis_Property_Operators

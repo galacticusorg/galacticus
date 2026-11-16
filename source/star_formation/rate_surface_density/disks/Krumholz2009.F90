@@ -56,7 +56,7 @@
 
    .. math::
 
-      s = {\ln(1+0.6\chi+0.01\chi^2) \over 0.04 \Sigma_\mathrm{comp,0} Z^\prime},
+      s = {\ln(1+0.6\chi) \over 0.04 \Sigma_\mathrm{comp,0} Z^\prime},
 
    with
 
@@ -68,7 +68,18 @@
 
    .. math::
 
-      f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}.
+      f_\mathrm{H_2} = 1 - { 3s/4 \over (1 + s/4)}
+
+   of :cite:t:`mckee_atomic--molecular_2010`, with :math:`f_\mathrm{H_2}=0` for :math:`s \ge 2`. In that case :math:`s` is
+   computed as in their section on molecular mass fractions in atomic-molecular complexes, where this formula was derived:
+
+   .. math::
+
+      s = {\ln(1+0.6\chi+0.01\chi^2) \over 0.6 \tau_\mathrm{c}},
+
+   with :math:`\tau_\mathrm{c} = 0.066 \Sigma_\mathrm{comp,0} Z^\prime` and :math:`\chi = 3.1 \left[ 1 + 3.1 Z^{\prime 0.365}
+   \right]/4.1`. These differ from the :cite:t:`krumholz_star_2009` definitions above by less than 5% in :math:`s` for
+   :math:`0.01 \le Z^\prime \le 3`.
    </description>
   </starFormationRateSurfaceDensityDisks>
   !!]
@@ -337,9 +348,22 @@ contains
        ! Get the metallicity in Solar units, and related quantities.
        self%metallicityRelativeToSolar=abundancesFuel%metallicity(metallicityTypeLinearByMassSolar)
        if (self%metallicityRelativeToSolar > 0.0d0) then
-          self%chi                               =0.77d0*(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)
           self%sigmaMolecularComplexNormalization=self%clumpingFactorMolecularComplex/mega**2
-          self%sNormalization                    =log(1.0d0+0.6d0*self%chi+0.01d0*self%chi**2)/(0.04d0*self%metallicityRelativeToSolar)
+          ! Each fitting function for the molecular fraction is paired with the definition of s used in deriving it.
+          if (self%molecularFractionFast) then
+             ! McKee & Krumholz (2010), section on molecular mass fractions in atomic-molecular complexes.
+             self%chi           =+3.1d0                                                  &
+                  &              *(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0) &
+                  &              /4.1d0
+             self%sNormalization=+log(1.0d0+0.6d0*self%chi+0.01d0*self%chi**2)           &
+                  &              /(0.6d0*0.066d0*self%metallicityRelativeToSolar)
+          else
+             ! Krumholz, McKee & Tumlinson (2009; eqn. 2).
+             self%chi           =+0.77d0                                                 &
+                  &              *(1.0d0+3.1d0*self%metallicityRelativeToSolar**0.365d0)
+             self%sNormalization=+log(1.0d0+0.6d0*self%chi                 )             &
+                  &              /(0.04d0       *self%metallicityRelativeToSolar)
+          end if
           ! Find the gas surface density below which the molecular fraction is negligible. Since s ∝ 1/Σ_gas, the molecular
           ! fraction falls below `molecularFractionTiny` wherever the gas surface density falls below this value.
           if (self%sigmaMolecularComplexNormalization > 0.0d0) then

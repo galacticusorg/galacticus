@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements an N-body data operator which computes mass functions.
+  Implements an N-body data operator which computes concentration distribution functions.
   !!}
   
   use            :: Cosmology_Parameters, only : cosmologyParametersClass

@@ -413,7 +413,7 @@ def state_store_variables(state_stores, state_store, class_record,
                 _maybe_flag_custom_hooks(state_store, declaration)
                 continue
 
-            # Unrecognised derived type — deliberately emit nothing (the
+            # Unrecognized derived type — deliberately emit nothing (the
             # `class`/`type` arm has no fall-through into the intrinsic
             # branch).  Without this explicit continue our walk dropped into
             # the `is_allocatable` intrinsic path below and emitted, e.g.,

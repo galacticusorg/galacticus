@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a merger mass movements class which uses a simple calculation.
+  Implements a merger mass movements class which uses a very simple calculation.
   !!}
 
   !![

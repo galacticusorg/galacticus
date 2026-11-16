@@ -16,10 +16,10 @@ different luminosities.
 Typical uses of stellar spectra postprocessors include accounting for
 absorption of galaxy light by the intervening IGM, or capturing only the
 light from recent star formation [1]_. A full list of the available
-postprocessors can be found `here <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_.
+postprocessors can be found in :galacticus-class:`stellarPopulationSpectraPostprocessor`.
 
 If you don't specify a postprocessing set, the "default" set (consisting
-of the `inoue2014 <https://galacticus.readthedocs.io/en/latest/physics/index.html>`_ postprocessor) is applied
+of the :galacticus-class:`stellarPopulationSpectraPostprocessorInoue2014` postprocessor) is applied
 to each luminosity calculation. To specify other postprocessing sets add
 the following to your parameter file:
 

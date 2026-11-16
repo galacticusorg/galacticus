@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a transfer function class for fuzzy dark matter using the fitting function of :cite:t:`murgia_non-cold_2017`.
   !!}
@@ -37,6 +39,8 @@
      private
      double precision                                   :: m22
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
+   contains
+     final :: fuzzyDMMurgia2017Destructor
   end type transferFunctionFuzzyDMMurgia2017
    
   interface transferFunctionFuzzyDMMurgia2017
@@ -160,3 +164,16 @@ contains
     self%transferFunctionMurgia2017=transferFunctionMurgia2017(transferFunctionCDM,alpha,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_)
     return
   end function fuzzyDMMurgia2017ConstructorInternal
+
+  subroutine fuzzyDMMurgia2017Destructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`transferFunctionFuzzyDMMurgia2017` transfer function class.
+    !!}
+    implicit none
+    type(transferFunctionFuzzyDMMurgia2017), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterParticle_"/>
+    !!]
+    return
+  end subroutine fuzzyDMMurgia2017Destructor

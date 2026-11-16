@@ -950,6 +950,11 @@ contains
                       deallocate(currentTree)
                       currentTree => nextTree
                       tree        => currentTree
+                      ! The remaining trees in the forest must now point to the new first tree.
+                      do while (associated(nextTree))
+                         nextTree%firstTree => tree
+                         nextTree           => nextTree%nextTree
+                      end do
                    else
                       ! A previous tree exists - simply connect its `next` pointer to the `next` pointer of the current tree, and
                       ! then destroy the current tree.
