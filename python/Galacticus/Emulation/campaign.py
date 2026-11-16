@@ -148,6 +148,7 @@ class Campaign:
     working_directory: str
     runs: list = field(default_factory=list)
     seed_per_point: bool = False
+    task_lists: dict = field(default_factory=dict)  # The task list of each array job, by job ID, until the job has finished.
 
     # Construction and persistence.
 
@@ -339,16 +340,25 @@ class Campaign:
         with open(log_file, 'a') as log:
             log.write(f'\n{EXIT_SENTINEL}{process.returncode}\n')
 
-    def array_script(self, runs, job_options=None):
-        """Return a Slurm job description (for :mod:`queueManager`) which runs the given runs as one array job.
+    def _write_task_list(self):
+        """Write a new task list alongside the manifest (one line per run, in run order), and return its name.
 
-        The array index is the run index. Each array task reads its change and log file from a task list written
-        alongside the manifest (one line per run, in run order), runs Galacticus, and appends the exit status to its log.
+        Each submission writes its own task list, so that a later submission can not change the list from which the tasks
+        of an earlier array job, which may still be queued, read. :meth:`refresh` removes it once its job has finished.
         """
-        task_list = os.path.splitext(os.path.abspath(self.manifest_file))[0] + '.tasks'
-        with open(task_list, 'w') as handle:
+        root = os.path.splitext(os.path.abspath(self.manifest_file))[0]
+        descriptor, task_list = tempfile.mkstemp(prefix=os.path.basename(root) + '.', suffix='.tasks', dir=os.path.dirname(root))
+        with os.fdopen(descriptor, 'w') as handle:
             for run in self.runs:
                 handle.write(f'{run.change_file} {run.log_file}\n')
+        return task_list
+
+    def array_script(self, runs, task_list, job_options=None):
+        """Return a Slurm job description (for :mod:`queueManager`) which runs the given runs as one array job.
+
+        The array index is the run index. Each array task reads its change and log file from ``task_list`` (see
+        :meth:`_write_task_list`), runs Galacticus, and appends the exit status to its log.
+        """
         base = shlex.quote(self.base_parameters)
         executable = shlex.quote(self.executable)
         command = '\n'.join([
@@ -381,14 +391,21 @@ class Campaign:
         runs = self.select(indices=indices) if indices is not None else self.select(statuses=(PENDING, FAILED))
         if not runs:
             return None
-        job = self.array_script(runs, job_options)
-        # Remove any log from an earlier attempt, so that its exit sentinel is not mistaken for this attempt's. This must be
-        # done before submitting, as an array task may start (and open its log) before submission returns.
-        for run in runs:
-            log_file = self.path(run.log_file)
-            if os.path.exists(log_file):
-                os.remove(log_file)
-        job_id = manager.submit_detached(job)
+        task_list = self._write_task_list()
+        try:
+            job = self.array_script(runs, task_list, job_options)
+            # Remove any log from an earlier attempt, so that its exit sentinel is not mistaken for this attempt's. This must
+            # be done before submitting, as an array task may start (and open its log) before submission returns.
+            for run in runs:
+                log_file = self.path(run.log_file)
+                if os.path.exists(log_file):
+                    os.remove(log_file)
+            job_id = manager.submit_detached(job)
+        except Exception:
+            # No job will read this task list.
+            os.remove(task_list)
+            raise
+        self.task_lists[str(job_id)] = task_list
         for run in runs:
             run.attempts += 1
             run.status = SUBMITTED
@@ -403,7 +420,7 @@ class Campaign:
 
         A run with no exit status whose process (for a local run) has ended, or whose Slurm job is not in ``live_jobs``
         (the set returned by :func:`slurm_live_jobs`; if None, Slurm runs are not checked), is marked failed as
-        interrupted.
+        interrupted. The task list of any array job which has finished is removed.
         """
         for run in self.runs:
             if run.status in (SUBMITTED, RUNNING):
@@ -414,8 +431,23 @@ class Campaign:
                 if run.status in (SUBMITTED, RUNNING) and _interrupted(run, live_jobs):
                     run.status = FAILED
                     run.message = 'interrupted: ended without recording an exit status'
+        self._remove_finished_task_lists(live_jobs)
         self.save()
         return self.summary()
+
+    def _remove_finished_task_lists(self, live_jobs):
+        """Remove the task list of each array job which none of its tasks can still need.
+
+        That is a job with no run still submitted or running. A job can be queued with no such run if its runs have all been
+        submitted again in later jobs, so a job which ``live_jobs`` (if known) lists is kept too.
+        """
+        active = {run.job_id for run in self.runs if run.status in (SUBMITTED, RUNNING)}
+        for job_id, task_list in list(self.task_lists.items()):
+            if job_id in active or (live_jobs is not None and _job_is_live(job_id, live_jobs)):
+                continue
+            if os.path.exists(task_list):
+                os.remove(task_list)
+            del self.task_lists[job_id]
 
 
 def run_local(campaigns, indices=None, parallel=1, threads=None):
@@ -473,6 +505,11 @@ def _parse_job_list(text):
         elif task is not None:
             jobs.add(f'{job}_{task}')
     return jobs
+
+
+def _job_is_live(job_id, live_jobs):
+    """Whether the given job, or any task of it, is listed in ``live_jobs``."""
+    return job_id in live_jobs or any(job.startswith(f'{job_id}_') for job in live_jobs)
 
 
 def _interrupted(run, live_jobs):
