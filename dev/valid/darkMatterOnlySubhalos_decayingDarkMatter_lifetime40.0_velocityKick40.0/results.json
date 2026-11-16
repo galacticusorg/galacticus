@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "6512fc2ae879f4ec9bdee818822d84b4cbdf460f",
-        "message": "Merge pull request #1785 from galacticusorg/fix/root-finder-exact-root-at-zero\n\nfix(cooling): find the cooling radius when the cooling time is independent of radius\n",
-        "timestamp": "2026-11-14 18:06:04+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
+        "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+        "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles\n",
+        "timestamp": "2026-11-16 15:58:50+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
     },
     "results": [
         {
@@ -82,7 +82,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Mau et al. (DES), 2022",
                 "comment": "Analysis of subhalo orbital radius cumulative distribution function",
                 "description": "Subhalo orbital radius cumulative distribution function (τ=40.0 Gyr; vₖ=40.0 km/s)",
-                "logLikelihood": "-153.29280196650123",
+                "logLikelihood": "-153.38256162022856",
                 "type": "function1D"
             },
             "data": {
@@ -103,7 +103,7 @@ window.ANALYSES_DATA = {
                     0.18885611413785405,
                     9.527150076185317,
                     65.04981637144857,
-                    92.00049950460156,
+                    92.09017078310474,
                     99.49864792031501,
                     99.49864792031501,
                     99.49864792031501

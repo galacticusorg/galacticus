@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "6512fc2ae879f4ec9bdee818822d84b4cbdf460f",
-        "message": "Merge pull request #1785 from galacticusorg/fix/root-finder-exact-root-at-zero\n\nfix(cooling): find the cooling radius when the cooling time is independent of radius\n",
-        "timestamp": "2026-11-14 18:06:04+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
+        "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+        "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles\n",
+        "timestamp": "2026-11-16 15:58:50+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
     },
     "results": [
         {
@@ -43,7 +43,7 @@ window.ANALYSES_DATA = {
                     27.704752651835218,
                     22.64809004812753,
                     9.293664212815997,
-                    7.326086828005903,
+                    7.326086828005866,
                     3.361641474554441,
                     2.874692832464992,
                     0.9047544246244191

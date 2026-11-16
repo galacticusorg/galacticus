@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "6512fc2ae879f4ec9bdee818822d84b4cbdf460f",
-        "message": "Merge pull request #1785 from galacticusorg/fix/root-finder-exact-root-at-zero\n\nfix(cooling): find the cooling radius when the cooling time is independent of radius\n",
-        "timestamp": "2026-11-14 18:06:04+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
+        "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+        "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles\n",
+        "timestamp": "2026-11-16 15:58:50+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
     },
     "results": [
         {
@@ -199,7 +199,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-66.70650137094206",
+                "logLikelihood": "-66.70650137094204",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -236,7 +236,7 @@ window.ANALYSES_DATA = {
                 "yDataset": [
                     17.07508682693647,
                     19.632452326373535,
-                    22.515053706649105,
+                    22.515053706649102,
                     26.66036075668481,
                     32.28458870648411,
                     35.555107937772966,
@@ -284,9 +284,9 @@ window.ANALYSES_DATA = {
                     0.0
                 ],
                 "yError": [
-                    0.22617223101744316,
+                    0.22617223101744258,
                     0.3598557421757544,
-                    0.5358805403945337,
+                    0.5358805403945355,
                     0.8553445161628146,
                     0.8116814932367752,
                     1.287737613857945,

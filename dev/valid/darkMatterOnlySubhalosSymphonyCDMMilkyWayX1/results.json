@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "6512fc2ae879f4ec9bdee818822d84b4cbdf460f",
-        "message": "Merge pull request #1785 from galacticusorg/fix/root-finder-exact-root-at-zero\n\nfix(cooling): find the cooling radius when the cooling time is independent of radius\n",
-        "timestamp": "2026-11-14 18:06:04+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/6512fc2ae879f4ec9bdee818822d84b4cbdf460f"
+        "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
+        "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles\n",
+        "timestamp": "2026-11-16 15:58:50+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
     },
     "results": [
         {
@@ -189,7 +189,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Symphony (Nadler et al. 2023)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-178.68115651812855",
+                "logLikelihood": "-178.6811565181283",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -224,7 +224,7 @@ window.ANALYSES_DATA = {
                     34.52695262731888,
                     39.20234487686533,
                     45.60703972400579,
-                    52.84482100538743,
+                    52.84482100538742,
                     61.873581767377416,
                     70.27600830845013,
                     83.29968868800084,
@@ -263,13 +263,13 @@ window.ANALYSES_DATA = {
                 ],
                 "yError": [
                     0.16645366551358587,
-                    0.24972299680425572,
+                    0.2497229968042564,
                     0.3311978219347328,
                     0.4380146437899517,
-                    0.712611492561004,
+                    0.7126114925610086,
                     0.9449549062150213,
                     1.6105017831722441,
-                    2.379296696515602,
+                    2.379296696515607,
                     4.068212013972287,
                     3.683732806361398,
                     5.275110344506774,
