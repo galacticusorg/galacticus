@@ -105,6 +105,58 @@
    ``countVarianceRoot``). For ``A`` the subgroup also holds :math:`M_\mathrm{c}` (``massBoundary``, zero beyond
    :math:`\omega_1` and where :math:`M_\mathrm{c}` exceeds the root mass), and all of its tables are zero beyond
    :math:`\omega_1`. Two-dimensional datasets are indexed by :math:`\omega` and then mass (in the C order of HDF5).
+
+   If ``[decomposeVariance]`` is true, the task also finds the densities of branches, forward in :math:`\omega` from the root, and
+   decomposes the variance into the contributions of splits, as the ``branchingVariance`` merger tree operator measures them in
+   trees. The density of branches, :math:`\rho(M,\omega)`, is the expected number of branches per unit :math:`\ln M` alive at
+   :math:`\omega`, and the density of the main branch, :math:`\rho_\mathrm{main}(M,\omega)`, is the probability density of its
+   mass. They are found by the transpose of the scheme which solves the equations: each step of that scheme is a linear map from
+   the solution at :math:`\omega_{k+1}` to that at :math:`\omega_k` (plus the sources), and its transpose maps the numbers of
+   branches at the points of the grid at :math:`\omega_k` to those at :math:`\omega_{k+1}` (starting from a single branch at the
+   root). For :math:`\rho_\mathrm{main}` only the primary progenitor of each split is followed. The transpose of the interpolation
+   to the feet of the characteristics moves each branch along its characteristic and shares it between the four nearest points of
+   the grid, so the density at a single point of the grid ripples (typically by much less than a percent, but by more where the
+   density varies rapidly, and the narrow peak of the branch from the root which has not yet split rings, with negative values),
+   while its integrals against smooth functions are accurate. Because the densities are the exact transpose of the scheme, for
+   statistics ``B`` and ``C`` (with :math:`\rho_\mathrm{main}`, as only the main branch counts)
+
+   .. math::
+
+      n_1(M_0,\omega_0) = \langle\textstyle\sum c\rangle_{&lt;\omega} + \int\rho\,n_1\mathrm{d}\ln M,\quad
+      W(M_0,\omega_0) = V(\omega) + \int\rho\,W\mathrm{d}\ln M,
+
+   hold to rounding error at every :math:`\omega` of the grid, where :math:`\langle\sum c\rangle_{&lt;\omega}` is the count
+   expected from the splits before :math:`\omega`, and :math:`V(\omega)=\mathrm{Var}(\mathrm{E}[N|\omega])` is the
+   cumulative variance, the variance contributed by the splits before :math:`\omega`. With the trapezoid rule in
+   :math:`\omega` implied by the scheme, :math:`V(\omega)=\int^\omega\mathrm{d}\omega^\prime\int\rho\,s\,\mathrm{d}\ln M`,
+   where :math:`s=\int f\Delta^2\mathrm{d}M^\prime` is the source of the variance. For statistic ``A``, which counts all
+   branches but is not solved by the same scheme, :math:`\rho` is integrated against its solution (near the boundary of its
+   support, by the trapezoid rule over the nodes there), and the identities hold to the accuracy of the solution. The largest
+   departures from them over :math:`\omega` are written to the attributes ``identityResidualMean`` and
+   ``identityResidualVariance`` of each statistic and threshold.
+
+   The contributions of the splits in each step in :math:`\omega` are then classified, as by the operator, by the mass of the
+   parent, :math:`M`, by the mass ratio, :math:`x=M^\prime/M`, and by class: splits of the main branch (weighted by
+   :math:`\rho_\mathrm{main}`) or of side branches (weighted by :math:`\rho-\rho_\mathrm{main}`), each either terminal
+   (:math:`M^\prime\ge m`) or structural. For statistic ``C`` all splits are of the main branch. Mass ratios are those of a
+   lattice, :math:`x=\exp(-d\,\Delta\ln M)` for :math:`d=0,1,\ldots`, where :math:`\Delta\ln M` is the step of the mass
+   grid, and the contribution of each quadrature node is assigned to the nearest point of the lattice.
+
+   The densities, :math:`\rho` (``densityBranches``) and :math:`\rho_\mathrm{main}` (``densityMainBranch``), are written on
+   the grid as the other tables, and the lattice of mass ratios to ``massRatio``. For each statistic and threshold,
+   :math:`V(\omega)` is written to ``varianceCumulative``, and the contributions of splits to ``varianceContributionsMass``
+   (by the mass of the parent, on the mass grid) and ``varianceContributionsMassRatio`` (by mass ratio, on the lattice), each
+   summed over the steps between consecutive values of :math:`\omega` of the tables, and indexed (in the C order of HDF5) by
+   class (main branch terminal, main branch structural, side branch terminal, side branch structural), interval in
+   :math:`\omega`, and mass or mass ratio. Each sums to the variance of the count (exactly for statistics ``B`` and ``C``, and,
+   for statistic ``A``, to the accuracy of its scheme near the boundary of its support, as do the identities above). Where the
+   density rings, next to the root, the contributions include negative values (typically 1 to 2 percent of the variance, balanced by
+   larger positive values nearby). For statistic ``A`` with a threshold close to the root mass, whose support then spans only a
+   few points of the grid near the root, this ringing makes the decomposition (and :math:`V(\omega)`) inaccurate, which the
+   attributes ``identityResidualMean`` and ``identityResidualVariance`` show. The density
+   at the lowest point of the grid, :math:`M_\mathrm{res}`, is that of branches which fell below the resolution in the last
+   step: they have no count, and are removed in the next step. The densities require the kernel at each
+   :math:`\omega` of the grid a second time, so roughly double the cost of the task.
    </description>
   </task>
   !!]
@@ -125,7 +177,7 @@
           &                                                                              outputStrideOmega
      type            (varying_string                     )                            :: statistics                                , outputGroupName
      type            (inputParameters                    )                            :: parameters
-     logical                                                                          :: nodeComponentsInitialized       =  .false.
+     logical                                                                          :: nodeComponentsInitialized       =  .false., decomposeVariance
    contains
      final     ::            mergerTreeBranchingMomentsDestructor
      procedure :: perform => mergerTreeBranchingMomentsPerform
@@ -163,6 +215,7 @@ contains
     integer                                                                            :: countMassPerDecade             , countOmega     , &
          &                                                                                outputStrideOmega
     type            (varying_string                     )                              :: statistics                     , outputGroupName
+    logical                                                                            :: decomposeVariance
 
     ! Ensure the nodes objects are initialized (a node is needed as an argument to the branching probability class).
     if (associated(parameters%parent)) then
@@ -264,6 +317,18 @@ contains
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
+      <name>decomposeVariance</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      If true, the densities of branches are found, and the variance is decomposed into the contributions of splits (see the
+      description of this task). This roughly doubles the cost of the task, and, for each statistic and threshold, adds to the
+      memory and output two arrays of :math:`4 N_\omega/N_\mathrm{stride}` by :math:`N_M+1` values, where :math:`N_\omega` is
+      ``[countOmega]``, :math:`N_\mathrm{stride}` is ``[outputStrideOmega]``, and :math:`N_M+1` is the number of points of the
+      mass grid, so a larger ``[outputStrideOmega]`` reduces it.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
       <name>outputGroupName</name>
       <source>parameters</source>
       <defaultValue>var_str('branchingMoments')</defaultValue>
@@ -276,7 +341,7 @@ contains
     <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
     <objectBuilder class="mergerTreeBranchingProbability" name="mergerTreeBranchingProbability_" source="parameters"/>
     !!]
-    self=taskMergerTreeBranchingMoments(massRoot,redshiftRoot,massResolution,redshiftMaximum,redshiftTarget,statistics,massThresholds,countMassPerDecade,countOmega,outputStrideOmega,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_,parametersRoot)
+    self=taskMergerTreeBranchingMoments(massRoot,redshiftRoot,massResolution,redshiftMaximum,redshiftTarget,statistics,massThresholds,countMassPerDecade,countOmega,outputStrideOmega,decomposeVariance,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_,parametersRoot)
     self%nodeComponentsInitialized=.true.
     !![
     <inputParametersValidate source="parameters"/>
@@ -288,7 +353,7 @@ contains
     return
   end function mergerTreeBranchingMomentsConstructorParameters
 
-  function mergerTreeBranchingMomentsConstructorInternal(massRoot,redshiftRoot,massResolution,redshiftMaximum,redshiftTarget,statistics,massThresholds,countMassPerDecade,countOmega,outputStrideOmega,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_,parameters) result(self)
+  function mergerTreeBranchingMomentsConstructorInternal(massRoot,redshiftRoot,massResolution,redshiftMaximum,redshiftTarget,statistics,massThresholds,countMassPerDecade,countOmega,outputStrideOmega,decomposeVariance,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_,parameters) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`taskMergerTreeBranchingMoments` task class.
     !!}
@@ -303,6 +368,7 @@ contains
     integer                                              , intent(in   )               :: countMassPerDecade             , countOmega     , &
          &                                                                                outputStrideOmega
     type            (varying_string                     ), intent(in   )               :: statistics                     , outputGroupName
+    logical                                              , intent(in   )               :: decomposeVariance
     class           (cosmologyFunctionsClass            ), intent(in   ), target       :: cosmologyFunctions_
     class           (criticalOverdensityClass           ), intent(in   ), target       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target       :: cosmologicalMassVariance_
@@ -311,7 +377,7 @@ contains
     integer                                                                            :: i
     character       (len=:                              ), allocatable                 :: statisticsList
     !![
-    <constructorAssign variables="massRoot, redshiftRoot, massResolution, redshiftMaximum, redshiftTarget, statistics, massThresholds, countMassPerDecade, countOmega, outputStrideOmega, outputGroupName, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBranchingProbability_"/>
+    <constructorAssign variables="massRoot, redshiftRoot, massResolution, redshiftMaximum, redshiftTarget, statistics, massThresholds, countMassPerDecade, countOmega, outputStrideOmega, decomposeVariance, outputGroupName, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBranchingProbability_"/>
     !!]
 
     if (len(statistics) < 1) call Error_Report('at least one statistic is required'//{introspection:location})
@@ -381,81 +447,104 @@ contains
     ! the grid (so that the nodes are nowhere coarser than the grid), and the last lies at least this many steps of the grid (in
     ! ln M), and this many times the mass resolution, above the threshold (so that the nodes span the layer above the boundary,
     ! whatever the grid). At most this many nodes are placed.
-    double precision                                     , parameter                       :: spacingNearFirst                =  0.25d0, growthNear             =1.25d0, &
-         &                                                                                    spacingNearGrid                 =  0.50d0, extentNear             =5.00d0, &
-         &                                                                                    extentNearResolution            =  4.00d0
-    integer                                              , parameter                       :: countNearLimit                  =256
-    type            (treeNode                           ), pointer                         :: node
-    class           (nodeComponentBasic                 ), pointer                         :: basic
-    class           (criticalOverdensityClass           ), pointer    , save               :: criticalOverdensity_            => null()
-    class           (cosmologicalMassVarianceClass      ), pointer    , save               :: cosmologicalMassVariance_       => null()
-    class           (mergerTreeBranchingProbabilityClass), pointer    , save               :: mergerTreeBranchingProbability_ => null()
-    type            (treeNode                           ), pointer    , save               :: nodeThread                      => null()
-    type            (inputParameters                    ), allocatable, save               :: parameters
+    double precision                                     , parameter                         :: spacingNearFirst                =  0.25d0, growthNear             =1.25d0, &
+         &                                                                                      spacingNearGrid                 =  0.50d0, extentNear             =5.00d0, &
+         &                                                                                      extentNearResolution            =  4.00d0
+    integer                                              , parameter                         :: countNearLimit                  =256
+    type            (treeNode                           ), pointer                           :: node
+    class           (nodeComponentBasic                 ), pointer                           :: basic
+    class           (criticalOverdensityClass           ), pointer    , save                 :: criticalOverdensity_            => null()
+    class           (cosmologicalMassVarianceClass      ), pointer    , save                 :: cosmologicalMassVariance_       => null()
+    class           (mergerTreeBranchingProbabilityClass), pointer    , save                 :: mergerTreeBranchingProbability_ => null()
+    type            (treeNode                           ), pointer    , save                 :: nodeThread                      => null()
+    type            (inputParameters                    ), allocatable, save                 :: parameters
     !$omp threadprivate(criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBranchingProbability_,nodeThread,parameters)
-    double precision                                     , allocatable  , dimension(:    ) :: logMass                                  , mass                          , &
-         &                                                                                    omega                                    , redshift                      , &
-         &                                                                                    logMassNode                              , weightNode                    , &
-         &                                                                                    kernelCurrent                            , fractionPrevious              , &
-         &                                                                                    rateCurrent                              , rateQuadratureCurrent         , &
-         &                                                                                    logMassFoot                              , countMeanFoot                 , &
-         &                                                                                    countVarianceFoot                        , sourceMeanFoot                , &
-         &                                                                                    sourceVarianceFoot                       , countMeanPredicted            , &
-         &                                                                                    countVariancePredicted                   , sourceMeanPredicted           , &
-         &                                                                                    sourceVariancePredicted                  , sourceSquaredPredicted        , &
-         &                                                                                    sourceSquaredCurrent                     , fractionCurrent               , &
-         &                                                                                    logMassPrimaryNode                       , countMeanNearPredicted        , &
-         &                                                                                    countVarianceNearPredicted               , sourceMeanNearPredicted       , &
-         &                                                                                    sourceVarianceNearPredicted              , rootVarianceNow
-    double precision                                     , allocatable  , dimension(:,:  ) :: weightsSecondary                         , weightsPrimary                , &
-         &                                                                                    countMean                                , countVariance                 , &
-         &                                                                                    sourceMean                               , sourceVariance                , &
-         &                                                                                    fractionSubresolution                    , rateSplit                     , &
-         &                                                                                    rateSplitQuadrature                      , massBoundaryTable             , &
-         &                                                                                    offsetNear                               , logMassNear                   , &
-         &                                                                                    countMeanNear                            , countVarianceNear             , &
-         &                                                                                    sourceMeanNear                           , sourceVarianceNear            , &
-         &                                                                                    logMassNearPrevious                      , countMeanNearPrevious         , &
-         &                                                                                    countVarianceNearPrevious                , sourceMeanNearPrevious        , &
-         &                                                                                    sourceVarianceNearPrevious               , logMassNodeNear               , &
-         &                                                                                    kernelNear                               , logMassPrimaryNodeNear
-    double precision                                     , allocatable  , dimension(:,:,:) :: countMeanTable                           , countVarianceTable            , &
-         &                                                                                    sourceSquaredTable
-    integer                                              , allocatable  , dimension(:    ) :: nodeStart                                , nodeCount                     , &
-         &                                                                                    baseSecondary                            , basePrimary                   , &
-         &                                                                                    thresholdNode                            , sideNode                      , &
-         &                                                                                    caseThreshold
-    integer                                              , allocatable  , dimension(:,:  ) :: countAdded
-    double precision                                     , allocatable  , dimension(:    ) :: logMassCandidate
-    integer                                              , allocatable  , dimension(:    ) :: thresholdCandidate                       , sideCandidate
-    integer                                                                                :: countCandidates
-    logical                                                                                :: countingOnly                             , hasTarget
-    logical                                              , allocatable  , dimension(:    ) :: terminatedPrevious                       , terminatedCurrent
-    character       (len=1                              ), allocatable  , dimension(:    ) :: caseStatistic
-    double precision                                                                       :: timeNow                                  , timeRoot                      , &
-         &                                                                                    timeEarliest                             , omegaRoot                     , &
-         &                                                                                    omegaEnd                                 , stepLogMass                   , &
-         &                                                                                    stepOmega                                , logMassHalf                   , &
-         &                                                                                    logMassFootTrial                         , rateStepMaximum               , &
-         &                                                                                    quadratureErrorMaximum                   , timeTarget                    , &
-         &                                                                                    omegaTarget                              , stepOmegaBelow                , &
-         &                                                                                    stepOmegaAbove                           , logMassFootTarget             , &
-         &                                                                                    offset                                   , spacing
-    double precision                                                    , dimension(4    ) :: weightsFoot
-    integer                                                                                :: countMass                                , countCases                    , &
-         &                                                                                    countNodes                               , countThresholds               , &
-         &                                                                                    i                                        , j                             , &
-         &                                                                                    k                                        , iCase                         , &
-         &                                                                                    iStatistic                               , iThreshold                    , &
-         &                                                                                    kTarget                                  , indexFirstPrevious            , &
-         &                                                                                    baseFoot                                 , countNearMaximum              , &
-         &                                                                                    countNearActivePrevious
-    integer                                              , allocatable  , dimension(:    ) :: countNear                                , countNearActive               , &
-         &                                                                                    countNodesNear
-    type            (hdf5Group                          )                                  :: outputGroup                              , caseGroup                     , &
-         &                                                                                    statisticGroup
-    type            (varying_string                     )                                  :: message                                  , groupName
-    character       (len=16                             )                                  :: label
+    double precision                                     , allocatable  , dimension(:      ) :: logMass                                  , mass                          , &
+         &                                                                                      omega                                    , redshift                      , &
+         &                                                                                      logMassNode                              , weightNode                    , &
+         &                                                                                      kernelCurrent                            , fractionPrevious              , &
+         &                                                                                      rateCurrent                              , rateQuadratureCurrent         , &
+         &                                                                                      logMassFoot                              , countMeanFoot                 , &
+         &                                                                                      countVarianceFoot                        , sourceMeanFoot                , &
+         &                                                                                      sourceVarianceFoot                       , countMeanPredicted            , &
+         &                                                                                      countVariancePredicted                   , sourceMeanPredicted           , &
+         &                                                                                      sourceVariancePredicted                  , sourceSquaredPredicted        , &
+         &                                                                                      sourceSquaredCurrent                     , fractionCurrent               , &
+         &                                                                                      logMassPrimaryNode                       , countMeanNearPredicted        , &
+         &                                                                                      countVarianceNearPredicted               , sourceMeanNearPredicted       , &
+         &                                                                                      sourceVarianceNearPredicted              , rootVarianceNow
+    double precision                                     , allocatable  , dimension(:,:    ) :: weightsSecondary                         , weightsPrimary                , &
+         &                                                                                      countMean                                , countVariance                 , &
+         &                                                                                      sourceMean                               , sourceVariance                , &
+         &                                                                                      fractionSubresolution                    , rateSplit                     , &
+         &                                                                                      rateSplitQuadrature                      , massBoundaryTable             , &
+         &                                                                                      offsetNear                               , logMassNear                   , &
+         &                                                                                      countMeanNear                            , countVarianceNear             , &
+         &                                                                                      sourceMeanNear                           , sourceVarianceNear            , &
+         &                                                                                      logMassNearPrevious                      , countMeanNearPrevious         , &
+         &                                                                                      countVarianceNearPrevious                , sourceMeanNearPrevious        , &
+         &                                                                                      sourceVarianceNearPrevious               , logMassNodeNear               , &
+         &                                                                                      kernelNear                               , logMassPrimaryNodeNear
+    double precision                                     , allocatable  , dimension(:,:,:  ) :: countMeanTable                           , countVarianceTable            , &
+         &                                                                                      sourceSquaredTable
+    integer                                              , allocatable  , dimension(:      ) :: nodeStart                                , nodeCount                     , &
+         &                                                                                      baseSecondary                            , basePrimary                   , &
+         &                                                                                      thresholdNode                            , sideNode                      , &
+         &                                                                                      caseThreshold
+    integer                                              , allocatable  , dimension(:,:    ) :: countAdded
+    double precision                                     , allocatable  , dimension(:      ) :: logMassCandidate
+    integer                                              , allocatable  , dimension(:      ) :: thresholdCandidate                       , sideCandidate
+    integer                                                                                  :: countCandidates
+    logical                                                                                  :: countingOnly                             , hasTarget
+    logical                                              , allocatable  , dimension(:      ) :: terminatedPrevious                       , terminatedCurrent
+    character       (len=1                              ), allocatable  , dimension(:      ) :: caseStatistic
+    double precision                                                                         :: timeNow                                  , timeRoot                      , &
+         &                                                                                      timeEarliest                             , omegaRoot                     , &
+         &                                                                                      omegaEnd                                 , stepLogMass                   , &
+         &                                                                                      stepOmega                                , logMassHalf                   , &
+         &                                                                                      rateStepMaximum                          , quadratureErrorMaximum        , &
+         &                                                                                      timeTarget                               , omegaTarget                   , &
+         &                                                                                      stepOmegaBelow                           , stepOmegaAbove                , &
+         &                                                                                      logMassFootTarget                        , offset                        , &
+         &                                                                                      spacing
+    double precision                                                    , dimension(4      ) :: weightsFoot
+    integer                                                                                  :: countMass                                , countCases                    , &
+         &                                                                                      countNodes                               , countThresholds               , &
+         &                                                                                      i                                        , j                             , &
+         &                                                                                      k                                        , iCase                         , &
+         &                                                                                      iStatistic                               , iThreshold                    , &
+         &                                                                                      kTarget                                  , indexFirstPrevious            , &
+         &                                                                                      baseFoot                                 , countNearMaximum              , &
+         &                                                                                      countNearActivePrevious
+    integer                                              , allocatable  , dimension(:      ) :: countNear                                , countNearActive               , &
+         &                                                                                      countNodesNear
+    type            (hdf5Group                          )                                    :: outputGroup                              , caseGroup                     , &
+         &                                                                                      statisticGroup
+    type            (varying_string                     )                                    :: message                                  , groupName
+    character       (len=16                             )                                    :: label
+    ! Densities of branches, and the decomposition of the variance into the contributions of splits.
+    double precision                                     , allocatable  , dimension(:      ) :: kernelNext                               , fractionNext                 , &
+         &                                                                                      rateNext                                 , rateQuadratureNext           , &
+         &                                                                                      weightsPopulation                        , weightsMain                  , &
+         &                                                                                      splitsPopulation                         , splitsMain                   , &
+         &                                                                                      rateNode                                 , entryWeight                  , &
+         &                                                                                      sourceSquaredTerminal                    , sourceAdded                  , &
+         &                                                                                      massRatio
+    double precision                                     , allocatable  , dimension(:,:    ) :: densityPopulation                        , densityPopulationPredicted   , &
+         &                                                                                      densityMain                              , densityMainPredicted         , &
+         &                                                                                      stepVariance                             , stepAdded                    , &
+         &                                                                                      aliveMean                                , aliveVariance                , &
+         &                                                                                      varianceCumulative                       , countAddedCumulative
+    double precision                                     , allocatable  , dimension(:,:,:  ) :: squaredRatio
+    double precision                                     , allocatable  , dimension(:,:,:,:) :: contributionsMass                        , contributionsRatio
+    logical                                              , allocatable  , dimension(:      ) :: terminatedNext                           , entrySecondary               , &
+         &                                                                                      ratioActive
+    integer                                              , allocatable  , dimension(:      ) :: entryStart                               , entryNode                    , &
+         &                                                                                      entryFill                                , latticeNode
+    double precision                                     , allocatable  , dimension(:      ) :: identityResidualMean                     , identityResidualVariance
+    integer                                                                                  :: countEntries                             , countBlocks                  , &
+         &                                                                                      p                                        , q                            , &
+         &                                                                                      l                                        , kEnd
 
     call displayIndent('Begin task: merger tree branching moments')
     call Node_Components_Thread_Initialize(self%parameters)
@@ -563,36 +652,119 @@ contains
     message=message//(self%countOmega+1)//' points; quadrature nodes: '
     message=message//countNodes
     call displayMessage(message)
+    ! For the densities of branches and the decomposition of the variance: the index of each node in a lattice of mass ratios,
+    ! x=M′/M=exp(-d Δln M), and, for each point of the grid, the list of the contributions to it of the splits of each parent
+    ! (from the stencils of the primary and of the secondary, and from the loss of the parent itself), so that the transpose of
+    ! the split operator is a gather in a fixed order (making the results independent of the number of threads).
+    if (self%decomposeVariance) then
+       allocate(latticeNode(countNodes   ))
+       allocate(entryFill  (0:countMass  ))
+       allocate(entryStart (0:countMass+1))
+       entryFill=0
+       do i=0,countMass
+          do q=nodeStart(i),nodeStart(i)+nodeCount(i)-1
+             latticeNode(q)=max(0,min(countMass,nint((logMass(i)-logMassNode(q))/stepLogMass)))
+             entryFill(basePrimary  (q)-1:basePrimary  (q)+2)=entryFill(basePrimary  (q)-1:basePrimary  (q)+2)+1
+             entryFill(baseSecondary(q)-1:baseSecondary(q)+2)=entryFill(baseSecondary(q)-1:baseSecondary(q)+2)+1
+             entryFill(i                                    )=entryFill(i                                    )+1
+          end do
+       end do
+       entryStart(0)=1
+       do p=0,countMass
+          entryStart(p+1)=entryStart(p)+entryFill(p)
+       end do
+       countEntries=entryStart(countMass+1)-1
+       allocate(entryNode     (countEntries))
+       allocate(entryWeight   (countEntries))
+       allocate(entrySecondary(countEntries))
+       entryFill=0
+       do i=0,countMass
+          do q=nodeStart(i),nodeStart(i)+nodeCount(i)-1
+             do l=1,4
+                call addEntry(basePrimary  (q)-2+l,q,weightsPrimary  (l,q),.false.)
+             end do
+             do l=1,4
+                call addEntry(baseSecondary(q)-2+l,q,weightsSecondary(l,q),.true. )
+             end do
+             call addEntry(i,q,-1.0d0,.false.)
+          end do
+       end do
+       allocate(massRatio(0:countMass))
+       do l=0,countMass
+          massRatio(l)=exp(-dble(l)*stepLogMass)
+       end do
+    end if
     ! Allocate the solution and its tables.
-    allocate(countMean              (0:countMass                                          ,countCases))
-    allocate(countVariance          (0:countMass                                          ,countCases))
-    allocate(sourceMean             (0:countMass                                          ,countCases))
-    allocate(sourceVariance         (0:countMass                                          ,countCases))
-    allocate(countMeanTable         (0:countMass ,0:self%countOmega/self%outputStrideOmega,countCases))
-    allocate(countVarianceTable     (0:countMass ,0:self%countOmega/self%outputStrideOmega,countCases))
-    allocate(sourceSquaredTable     (0:countMass ,0:self%countOmega/self%outputStrideOmega,countCases))
-    allocate(fractionSubresolution  (0:countMass ,0:self%countOmega/self%outputStrideOmega           ))
-    allocate(rateSplit              (0:countMass ,0:self%countOmega/self%outputStrideOmega           ))
-    allocate(rateSplitQuadrature    (0:countMass ,0:self%countOmega/self%outputStrideOmega           ))
-    allocate(kernelCurrent          (  countNodes                                                    ))
-    allocate(fractionPrevious       (0:countMass                                                     ))
-    allocate(fractionCurrent        (0:countMass                                                     ))
-    allocate(rateCurrent            (0:countMass                                                     ))
-    allocate(rateQuadratureCurrent  (0:countMass                                                     ))
-    allocate(terminatedPrevious     (0:countMass                                                     ))
-    allocate(terminatedCurrent      (0:countMass                                                     ))
-    allocate(logMassFoot            (0:countMass                                                     ))
-    allocate(countMeanFoot          (0:countMass                                                     ))
-    allocate(countVarianceFoot      (0:countMass                                                     ))
-    allocate(sourceMeanFoot         (0:countMass                                                     ))
-    allocate(sourceVarianceFoot     (0:countMass                                                     ))
-    allocate(countMeanPredicted     (0:countMass                                                     ))
-    allocate(countVariancePredicted (0:countMass                                                     ))
-    allocate(sourceMeanPredicted    (0:countMass                                                     ))
-    allocate(sourceVariancePredicted(0:countMass                                                     ))
-    allocate(sourceSquaredPredicted (0:countMass                                                     ))
-    allocate(sourceSquaredCurrent   (0:countMass                                                     ))
-    allocate(massBoundaryTable      (            0:self%countOmega/self%outputStrideOmega,countCases))
+    allocate(countMean                    (0:countMass                                          ,countCases))
+    allocate(countVariance                (0:countMass                                          ,countCases))
+    allocate(sourceMean                   (0:countMass                                          ,countCases))
+    allocate(sourceVariance               (0:countMass                                          ,countCases))
+    allocate(countMeanTable               (0:countMass ,0:self%countOmega/self%outputStrideOmega,countCases))
+    allocate(countVarianceTable           (0:countMass ,0:self%countOmega/self%outputStrideOmega,countCases))
+    allocate(sourceSquaredTable           (0:countMass ,0:self%countOmega/self%outputStrideOmega,countCases))
+    allocate(fractionSubresolution        (0:countMass ,0:self%countOmega/self%outputStrideOmega           ))
+    allocate(rateSplit                    (0:countMass ,0:self%countOmega/self%outputStrideOmega           ))
+    allocate(rateSplitQuadrature          (0:countMass ,0:self%countOmega/self%outputStrideOmega           ))
+    allocate(kernelCurrent                (  countNodes                                                    ))
+    allocate(fractionPrevious             (0:countMass                                                     ))
+    allocate(fractionCurrent              (0:countMass                                                     ))
+    allocate(rateCurrent                  (0:countMass                                                     ))
+    allocate(rateQuadratureCurrent        (0:countMass                                                     ))
+    allocate(terminatedPrevious           (0:countMass                                                     ))
+    allocate(terminatedCurrent            (0:countMass                                                     ))
+    allocate(logMassFoot                  (0:countMass                                                     ))
+    allocate(countMeanFoot                (0:countMass                                                     ))
+    allocate(countVarianceFoot            (0:countMass                                                     ))
+    allocate(sourceMeanFoot               (0:countMass                                                     ))
+    allocate(sourceVarianceFoot           (0:countMass                                                     ))
+    allocate(countMeanPredicted           (0:countMass                                                     ))
+    allocate(countVariancePredicted       (0:countMass                                                     ))
+    allocate(sourceMeanPredicted          (0:countMass                                                     ))
+    allocate(sourceVariancePredicted      (0:countMass                                                     ))
+    allocate(sourceSquaredPredicted       (0:countMass                                                     ))
+    allocate(sourceSquaredCurrent         (0:countMass                                                     ))
+    allocate(massBoundaryTable            (             0:self%countOmega/self%outputStrideOmega,countCases))
+    if (self%decomposeVariance) then
+       countBlocks=self%countOmega/self%outputStrideOmega
+       allocate(kernelNext                (  countNodes                                 ))
+       allocate(rateNode                  (  countNodes                                 ))
+       allocate(fractionNext              (0:countMass                                  ))
+       allocate(rateNext                  (0:countMass                                  ))
+       allocate(rateQuadratureNext        (0:countMass                                  ))
+       allocate(terminatedNext            (0:countMass                                  ))
+       allocate(weightsPopulation         (0:countMass                                  ))
+       allocate(weightsMain               (0:countMass                                  ))
+       allocate(splitsPopulation          (0:countMass                                  ))
+       allocate(splitsMain                (0:countMass                                  ))
+       allocate(sourceSquaredTerminal     (0:countMass                                  ))
+       allocate(sourceAdded               (0:countMass                                  ))
+       allocate(densityPopulation         (0:countMass ,0:self%countOmega               ))
+       allocate(densityPopulationPredicted(0:countMass ,0:self%countOmega               ))
+       allocate(densityMain               (0:countMass ,0:self%countOmega               ))
+       allocate(densityMainPredicted      (0:countMass ,0:self%countOmega               ))
+       allocate(squaredRatio              (0:countMass ,0:countMass        ,2           ))
+       allocate(ratioActive               (0:countMass                                  ))
+       allocate(contributionsMass         (0:countMass ,  countBlocks      ,4,countCases))
+       allocate(contributionsRatio        (0:countMass ,  countBlocks      ,4,countCases))
+       allocate(stepVariance              (             0:self%countOmega-1  ,countCases))
+       allocate(stepAdded                 (             0:self%countOmega-1  ,countCases))
+       allocate(aliveMean                 (             0:self%countOmega    ,countCases))
+       allocate(aliveVariance             (             0:self%countOmega    ,countCases))
+       sourceSquaredTerminal     =0.0d0
+       sourceAdded               =0.0d0
+       densityPopulation         =0.0d0
+       densityPopulationPredicted=0.0d0
+       densityMain               =0.0d0
+       densityMainPredicted      =0.0d0
+       squaredRatio              =0.0d0
+       ratioActive               =.false.
+       contributionsMass         =0.0d0
+       contributionsRatio        =0.0d0
+       stepVariance              =0.0d0
+       stepAdded                 =0.0d0
+       aliveMean                 =0.0d0
+       aliveVariance             =0.0d0
+    end if
     ! Nodes near the boundary of the support of statistic A, which is followed along its characteristic. In a layer of width
     ! about M_res above it no split leaves a progenitor in the support, so that the slope of the solution changes sharply across
     ! the layer. Its width in ln M is M_res/M_c, which can be much less than the step of the grid, so the layer is resolved by
@@ -676,6 +848,52 @@ contains
     call Node_Components_Thread_Initialize(parameters)
     nodeThread => treeNode        (                 )
     basic      => nodeThread%basic(autoCreate=.true.)
+    ! The densities of branches, from the root forward in ω (see the description of this task).
+    if (self%decomposeVariance) then
+       call levelEvaluate(0,kernelCurrent,fractionCurrent,rateCurrent,rateQuadratureCurrent,terminatedCurrent)
+       !$omp single
+       densityPopulation(countMass,0)=1.0d0
+       densityMain      (countMass,0)=1.0d0
+       !$omp end single
+       do k=0,self%countOmega-1
+          !$omp single
+          stepOmega=merge(stepOmegaBelow,stepOmegaAbove,k < kTarget)
+          !$omp end single
+          call levelEvaluate(k+1,kernelNext,fractionNext,rateNext,rateQuadratureNext,terminatedNext)
+          call characteristicFeet(fractionCurrent,terminatedCurrent,fractionNext,terminatedNext)
+          ! Splits at ω_k, of the branches which are not terminated there.
+          !$omp single
+          weightsPopulation=merge(0.0d0,densityPopulation(:,k),terminatedCurrent)
+          weightsMain      =merge(0.0d0,densityMain      (:,k),terminatedCurrent)
+          !$omp end single
+          call splitsTranspose(kernelCurrent,weightsPopulation,.false.,splitsPopulation)
+          call splitsTranspose(kernelCurrent,weightsMain      ,.true. ,splitsMain      )
+          ! Transport along the characteristics to ω_{k+1}: the predictor (after a full step of splits at ω_k), and the first
+          ! part of the corrector (after half of a step).
+          !$omp single
+          where (terminatedCurrent)
+             splitsPopulation=0.0d0
+             splitsMain      =0.0d0
+          end where
+          call transportTranspose(weightsPopulation+      stepOmega*splitsPopulation,densityPopulationPredicted(:,k+1))
+          call transportTranspose(weightsMain      +      stepOmega*splitsMain      ,densityMainPredicted      (:,k+1))
+          call transportTranspose(weightsPopulation+0.5d0*stepOmega*splitsPopulation,densityPopulation         (:,k+1))
+          call transportTranspose(weightsMain      +0.5d0*stepOmega*splitsMain      ,densityMain               (:,k+1))
+          !$omp end single
+          ! The second part of the corrector: half of a step of splits at ω_{k+1}, of the predicted densities.
+          call splitsTranspose(kernelNext,densityPopulationPredicted(:,k+1),.false.,splitsPopulation)
+          call splitsTranspose(kernelNext,densityMainPredicted      (:,k+1),.true. ,splitsMain      )
+          !$omp single
+          densityPopulation    (:,k+1)=densityPopulation(:,k+1)+0.5d0*stepOmega*splitsPopulation
+          densityMain          (:,k+1)=densityMain      (:,k+1)+0.5d0*stepOmega*splitsMain
+          kernelCurrent               =kernelNext
+          fractionCurrent             =fractionNext
+          rateCurrent                 =rateNext
+          rateQuadratureCurrent       =rateQuadratureNext
+          terminatedCurrent           =terminatedNext
+          !$omp end single
+       end do
+    end if
     ! The end condition: no count from branches at the maximum redshift.
     call levelEvaluate(self%countOmega,kernelCurrent,fractionCurrent,rateCurrent,rateQuadratureCurrent,terminatedCurrent)
     !$omp single
@@ -695,6 +913,7 @@ contains
           !$omp end single
        else
           call sources(iCase,kernelCurrent,terminatedCurrent,countMean(:,iCase),countVariance(:,iCase),sourceMean(:,iCase),sourceVariance(:,iCase),sourceSquaredTable(:,self%countOmega/self%outputStrideOmega,iCase))
+          if (self%decomposeVariance) call decompositionAccumulate(iCase,self%countOmega,.false.,sourceSquaredTable(:,self%countOmega/self%outputStrideOmega,iCase))
        end if
     end do
     !$omp single
@@ -725,22 +944,7 @@ contains
        if (rateStepMaximum > 1.0d0) call Error_Report('the step in ω is too large for stability (R Δω > 1): increase [countOmega]'//{introspection:location})
        quadratureErrorMaximum    =max(quadratureErrorMaximum,quadratureError(rateCurrent,rateQuadratureCurrent))
        !$omp end single
-       ! Feet of the characteristics: the mass at ω_{k+1} of a branch of mass M_i at ω_k, with the subresolution mass loss
-       ! rate averaged over the step.
-       !$omp do private(logMassFootTrial)
-       do i=0,countMass
-          if (terminatedCurrent(i)) then
-             logMassFoot(i)=-huge(0.0d0)
-          else
-             logMassFootTrial=logMass(i)-fractionCurrent(i)*stepOmega
-             if (logMassFootTrial > logMass(1)) then
-                logMassFoot(i)=logMass(i)-0.5d0*(fractionCurrent(i)+interpolateFraction(fractionPrevious,terminatedPrevious,logMassFootTrial))*stepOmega
-             else
-                logMassFoot(i)=logMassFootTrial
-             end if
-          end if
-       end do
-       !$omp end do
+       call characteristicFeet(fractionCurrent,terminatedCurrent,fractionPrevious,terminatedPrevious)
        do iCase=1,countCases
           if (caseStatistic(iCase) == 'A') then
              ! Statistic A is defined only up to the target epoch.
@@ -812,6 +1016,7 @@ contains
                 !$omp end single
                 call levelEvaluateNear(k,iCase)
                 call sourcesTarget(iCase,kernelCurrent,terminatedCurrent,countMeanPredicted,countVariancePredicted,countMeanNearPredicted,countVarianceNearPredicted,sourceMeanPredicted,sourceVariancePredicted,sourceSquaredPredicted,sourceMeanNearPredicted,sourceVarianceNearPredicted)
+                if (self%decomposeVariance) call decompositionAccumulate(iCase,k,.true.,sourceSquaredPredicted)
                 !$omp single
                 countMean    (:,iCase)=countMeanFoot    +0.5d0*stepOmega*(sourceMeanFoot    +sourceMeanPredicted    )
                 countVariance(:,iCase)=countVarianceFoot+0.5d0*stepOmega*(sourceVarianceFoot+sourceVariancePredicted)
@@ -826,6 +1031,7 @@ contains
                 !$omp end single
              end if
              call sourcesTarget(iCase,kernelCurrent,terminatedCurrent,countMean(:,iCase),countVariance(:,iCase),countMeanNear(:,iCase),countVarianceNear(:,iCase),sourceMean(:,iCase),sourceVariance(:,iCase),sourceSquaredCurrent,sourceMeanNear(:,iCase),sourceVarianceNear(:,iCase))
+             if (self%decomposeVariance) call decompositionAccumulate(iCase,k,.false.,sourceSquaredCurrent)
              !$omp single
              if (mod(k,self%outputStrideOmega) == 0) then
                 countMeanTable    (:,k/self%outputStrideOmega,iCase)=countMean    (:,iCase)
@@ -863,6 +1069,7 @@ contains
           end where
           !$omp end single
           call sources(iCase,kernelCurrent,terminatedCurrent,countMeanPredicted,countVariancePredicted,sourceMeanPredicted,sourceVariancePredicted,sourceSquaredPredicted)
+          if (self%decomposeVariance) call decompositionAccumulate(iCase,k,.true.,sourceSquaredPredicted)
           !$omp single
           countMean    (:,iCase)=countMeanFoot    +0.5d0*stepOmega*(sourceMeanFoot    +sourceMeanPredicted    )
           countVariance(:,iCase)=countVarianceFoot+0.5d0*stepOmega*(sourceVarianceFoot+sourceVariancePredicted)
@@ -872,6 +1079,7 @@ contains
           end where
           !$omp end single
           call sources(iCase,kernelCurrent,terminatedCurrent,countMean(:,iCase),countVariance(:,iCase),sourceMean(:,iCase),sourceVariance(:,iCase),sourceSquaredCurrent)
+          if (self%decomposeVariance) call decompositionAccumulate(iCase,k,.false.,sourceSquaredCurrent)
           !$omp single
           if (mod(k,self%outputStrideOmega) == 0) then
              countMeanTable    (:,k/self%outputStrideOmega,iCase)=countMean    (:,iCase)
@@ -896,6 +1104,28 @@ contains
     write (label,'(e10.3)') quadratureErrorMaximum
     message=message//'; maximum fractional difference of quadrature and class split rates: '//trim(adjustl(label))
     call displayMessage(message)
+    ! The cumulative variance, V(ω)=Var(E[N|ω]), and the count added by splits up to ω. With the solution of the equations, the
+    ! mean and variance of the count are then the sums of these and of the mean and variance expected from the branches alive at
+    ! ω (exactly, for statistics B and C, whose densities are found by the transpose of the scheme used for the solution): the
+    ! largest departures from these identities are found.
+    if (self%decomposeVariance) then
+       allocate(varianceCumulative      (0:self%countOmega,countCases))
+       allocate(countAddedCumulative    (0:self%countOmega,countCases))
+       allocate(identityResidualMean    (                  countCases))
+       allocate(identityResidualVariance(                  countCases))
+       do iCase=1,countCases
+          varianceCumulative  (0,iCase)=0.0d0
+          countAddedCumulative(0,iCase)=0.0d0
+          do k=1,self%countOmega
+             varianceCumulative  (k,iCase)=varianceCumulative  (k-1,iCase)+stepVariance(k-1,iCase)
+             countAddedCumulative(k,iCase)=countAddedCumulative(k-1,iCase)+stepAdded   (k-1,iCase)
+          end do
+          kEnd=self%countOmega
+          if (caseStatistic(iCase) == 'A') kEnd=kTarget
+          identityResidualMean    (iCase)=maxval(abs(countMeanTable    (countMass,0,iCase)-countAddedCumulative(0:kEnd,iCase)-aliveMean    (0:kEnd,iCase)))
+          identityResidualVariance(iCase)=maxval(abs(countVarianceTable(countMass,0,iCase)-varianceCumulative  (0:kEnd,iCase)-aliveVariance(0:kEnd,iCase)))
+       end do
+    end if
     ! Output.
     allocate(rootVarianceNow(0:countMass))
     do i=0,countMass
@@ -903,22 +1133,27 @@ contains
     end do
     !$ call hdf5Access%set()
     outputGroup=outputFile%openGroup(char(self%outputGroupName),'Mean and variance of subhalo counts in merger trees from the moment equations.')
-    call    outputGroup%writeAttribute(self%massRoot                                                       ,'massRoot'                                                                                            )
-    call    outputGroup%writeAttribute(self%massResolution                                                 ,'massResolution'                                                                                      )
-    call    outputGroup%writeAttribute(self%redshiftRoot                                                   ,'redshiftRoot'                                                                                        )
-    call    outputGroup%writeAttribute(     omegaRoot                                                      ,'omegaRoot'                                                                                           )
-    call    outputGroup%writeAttribute(     omegaEnd                                                       ,'omegaEnd'                                                                                            )
+    call    outputGroup%writeAttribute(self%massRoot                                                                     ,'massRoot'                                                                                            )
+    call    outputGroup%writeAttribute(self%massResolution                                                               ,'massResolution'                                                                                      )
+    call    outputGroup%writeAttribute(self%redshiftRoot                                                                 ,'redshiftRoot'                                                                                        )
+    call    outputGroup%writeAttribute(     omegaRoot                                                                    ,'omegaRoot'                                                                                           )
+    call    outputGroup%writeAttribute(     omegaEnd                                                                     ,'omegaEnd'                                                                                            )
     if (hasTarget) then
-       call outputGroup%writeAttribute(self%redshiftTarget                                                 ,'redshiftTarget'                                                                                      )
-       call outputGroup%writeAttribute(     omegaTarget                                                    ,'omegaTarget'                                                                                         )
+       call outputGroup%writeAttribute(self%redshiftTarget                                                               ,'redshiftTarget'                                                                                      )
+       call outputGroup%writeAttribute(     omegaTarget                                                                  ,'omegaTarget'                                                                                         )
     end if
-    call    outputGroup%writeDataset  (     mass                                                           ,'mass'                 ,'Masses of the grid.'                                                         )
-    call    outputGroup%writeDataset  (     rootVarianceNow                                                ,'rootVariance'         ,'Root variance of the density field at the present day, σ(M,t₀), on the grid.')
-    call    outputGroup%writeDataset  (     omega                (0:self%countOmega:self%outputStrideOmega),'omega'                ,'Values of ω of the grid.'                                                    )
-    call    outputGroup%writeDataset  (     redshift             (0:self%countOmega:self%outputStrideOmega),'redshift'             ,'Redshifts of the ω grid.'                                                    )
-    call    outputGroup%writeDataset  (     fractionSubresolution                                          ,'fractionSubresolution','Fractional rate of mass loss to subresolution halos, per unit ω.'            )
-    call    outputGroup%writeDataset  (     rateSplit                                                      ,'rateSplit'            ,'Rate of splits, per unit ω, from the branching probability class.'           )
-    call    outputGroup%writeDataset  (     rateSplitQuadrature                                            ,'rateSplitQuadrature'  ,'Rate of splits, per unit ω, from the quadrature used to solve the equations.')
+    call    outputGroup%writeDataset  (     mass                                                                         ,'mass'                 ,'Masses of the grid.'                                                         )
+    call    outputGroup%writeDataset  (     rootVarianceNow                                                              ,'rootVariance'         ,'Root variance of the density field at the present day, σ(M,t₀), on the grid.')
+    call    outputGroup%writeDataset  (     omega                (0:self%countOmega:self%outputStrideOmega)              ,'omega'                ,'Values of ω of the grid.'                                                    )
+    call    outputGroup%writeDataset  (     redshift             (0:self%countOmega:self%outputStrideOmega)              ,'redshift'             ,'Redshifts of the ω grid.'                                                    )
+    call    outputGroup%writeDataset  (     fractionSubresolution                                                        ,'fractionSubresolution','Fractional rate of mass loss to subresolution halos, per unit ω.'            )
+    call    outputGroup%writeDataset  (     rateSplit                                                                    ,'rateSplit'            ,'Rate of splits, per unit ω, from the branching probability class.'           )
+    call    outputGroup%writeDataset  (     rateSplitQuadrature                                                          ,'rateSplitQuadrature'  ,'Rate of splits, per unit ω, from the quadrature used to solve the equations.')
+    if (self%decomposeVariance) then
+       call outputGroup%writeDataset  (     densityPopulation    (:,0:self%countOmega:self%outputStrideOmega)/stepLogMass,'densityBranches'      ,'Expected number of branches per unit ln M.'                                  )
+       call outputGroup%writeDataset  (     densityMain          (:,0:self%countOmega:self%outputStrideOmega)/stepLogMass,'densityMainBranch'    ,'Probability density of the mass of the main branch per unit ln M.'           )
+       call outputGroup%writeDataset  (     massRatio                                                                    ,'massRatio'            ,'Mass ratios, M′/M, of the lattice of the decomposition.'                     )
+    end if
     do iCase=1,countCases
        statisticGroup=outputGroup%openGroup('statistic'//caseStatistic(iCase),'Results for one statistic.')
        groupName     =var_str('threshold')
@@ -933,6 +1168,13 @@ contains
        call caseGroup%writeDataset  (sourceSquaredTable (:        ,:,              iCase ),'sourceDeltaSquared','Source of the variance, ∫ f Δ² dM′.')
        if (caseStatistic(iCase) == 'A')                                                                                                      &
             & call caseGroup%writeDataset(massBoundaryTable(:,iCase),'massBoundary','The smallest mass with a count, M_c (zero beyond ω₁).')
+       if (self%decomposeVariance) then
+          call caseGroup%writeAttribute(identityResidualMean    (iCase)                                         ,'identityResidualMean'                                                                     )
+          call caseGroup%writeAttribute(identityResidualVariance(iCase)                                         ,'identityResidualVariance'                                                                 )
+          call caseGroup%writeDataset  (varianceCumulative      (0:self%countOmega:self%outputStrideOmega,iCase),'varianceCumulative'            ,'Cumulative variance, V(ω)=Var(E[N|ω]).'                  )
+          call caseGroup%writeDataset  (contributionsMass       (:,:,:,iCase)                                   ,'varianceContributionsMass'     ,'Contributions of splits to the variance, by parent mass.')
+          call caseGroup%writeDataset  (contributionsRatio      (:,:,:,iCase)                                   ,'varianceContributionsMassRatio','Contributions of splits to the variance, by mass ratio.' )
+       end if
        write (label,'(es10.3)') self%massThresholds(caseThreshold(iCase))
        message='statistic '//caseStatistic(iCase)//', m = '//trim(adjustl(label))
        write (label,'(f12.5)') countMeanTable(countMass,0,iCase)
@@ -957,6 +1199,24 @@ contains
     return
 
   contains
+
+    subroutine addEntry(p_,q_,weight,secondary)
+      !!{RST
+      Add an entry to the list of contributions to point ``p_`` of the grid from the splits at quadrature node ``q_``.
+      !!}
+      implicit none
+      integer         , intent(in   ) :: p_       , q_
+      double precision, intent(in   ) :: weight
+      logical         , intent(in   ) :: secondary
+      integer                         :: e
+
+      e                =entryStart(p_)+entryFill(p_)
+      entryFill  (p_)  =entryFill (p_)+1
+      entryNode     (e)=q_
+      entryWeight   (e)=weight
+      entrySecondary(e)=secondary
+      return
+    end subroutine addEntry
 
     double precision function omegaOf(time,mass)
       !!{RST
@@ -1143,6 +1403,282 @@ contains
       return
     end function interpolateFraction
 
+    subroutine characteristicFeet(fractionCurrent_,terminatedCurrent_,fractionPrevious_,terminatedPrevious_)
+      !!{RST
+      Find the feet of the characteristics through the points of the grid at :math:`\omega_k`: the mass at :math:`\omega_{k+1}`
+      of a branch of mass :math:`M_i` at :math:`\omega_k`, with the subresolution mass loss rate averaged over the step.
+      !!}
+      implicit none
+      double precision, intent(in   ), dimension(0:) :: fractionCurrent_  , fractionPrevious_
+      logical         , intent(in   ), dimension(0:) :: terminatedCurrent_, terminatedPrevious_
+      double precision                               :: logMassFootTrial_
+      integer                                        :: i
+
+      !$omp do
+      do i=0,countMass
+         if (terminatedCurrent_(i)) then
+            logMassFoot(i)=-huge(0.0d0)
+         else
+            logMassFootTrial_=logMass(i)-fractionCurrent_(i)*stepOmega
+            if (logMassFootTrial_ > logMass(1)) then
+               logMassFoot(i)=logMass(i)-0.5d0*(fractionCurrent_(i)+interpolateFraction(fractionPrevious_,terminatedPrevious_,logMassFootTrial_))*stepOmega
+            else
+               logMassFoot(i)=logMassFootTrial_
+            end if
+         end if
+      end do
+      !$omp end do
+      return
+    end subroutine characteristicFeet
+
+    subroutine splitsTranspose(kernel,weights,primaryOnly,result)
+      !!{RST
+      Apply the transpose of the split operator (the change in the count expected from a branch due to its splits, per unit
+      :math:`\omega`, with the kernel ``kernel``) to ``weights``, the numbers of branches at the points of the grid. If
+      ``primaryOnly`` is true, only the primary progenitor of each split is followed (as for the main branch).
+      !!}
+      implicit none
+      double precision, intent(in   ), dimension(:  ) :: kernel
+      double precision, intent(in   ), dimension(0: ) :: weights
+      logical         , intent(in   )                 :: primaryOnly
+      double precision, intent(  out), dimension(0: ) :: result
+      double precision                                :: sum
+      integer                                         :: i          , q, &
+           &                                             p          , e
+
+      !$omp do schedule(dynamic)
+      do i=0,countMass
+         do q=nodeStart(i),nodeStart(i)+nodeCount(i)-1
+            rateNode(q)=weights(i)*weightNode(q)*kernel(q)
+         end do
+      end do
+      !$omp end do
+      !$omp do
+      do p=0,countMass
+         sum=0.0d0
+         do e=entryStart(p),entryStart(p+1)-1
+            if (primaryOnly .and. entrySecondary(e)) cycle
+            sum=sum+rateNode(entryNode(e))*entryWeight(e)
+         end do
+         result(p)=sum
+      end do
+      !$omp end do
+      return
+    end subroutine splitsTranspose
+
+    subroutine transportTranspose(values,result)
+      !!{RST
+      Apply the transpose of the interpolation to the feet of the characteristics to ``values``, the numbers of branches at the
+      points of the grid at :math:`\omega_k`, giving their numbers at the points of the grid at :math:`\omega_{k+1}`.
+      !!}
+      implicit none
+      double precision, intent(in   ), dimension(0:) :: values
+      double precision, intent(  out), dimension(0:) :: result
+      double precision               , dimension(4 ) :: weights
+      integer                                        :: i      , base
+
+      result=0.0d0
+      do i=0,countMass
+         if (logMassFoot(i) <= logMass(0)) cycle
+         call stencil(logMassFoot(i),base,weights)
+         result(base-1:base+2)=result(base-1:base+2)+values(i)*weights
+      end do
+      return
+    end subroutine transportTranspose
+
+    subroutine decompositionAccumulate(iCase,k,predicted,sourceSquared_)
+      !!{RST
+      Add the contributions of splits at :math:`\omega_k` to the decomposition of the variance, given the source
+      ``sourceSquared_``, :math:`\int f\Delta^2\mathrm{d}M^\prime`, found from the predicted solution at :math:`\omega_k`
+      (if ``predicted`` is true; these are weighted by the densities of branches at :math:`\omega_k`, and belong to the step
+      from :math:`\omega_k` to :math:`\omega_{k+1}`), or from the solution (weighted by the predicted densities, and belonging
+      to the step from :math:`\omega_{k-1}` to :math:`\omega_k`). In the latter case, also find the sums of the mean and
+      variance over the branches alive at :math:`\omega_k`. All of the work is done in one shared loop (so with one barrier):
+      its first two iterations find the sums over branches alive, and the contributions by parent mass and the totals for the
+      step, in a fixed order, and the others find the contributions by mass ratio, one point of the lattice each.
+      !!}
+      implicit none
+      integer         , intent(in   )                :: iCase            , k
+      logical         , intent(in   )                :: predicted
+      double precision, intent(in   ), dimension(0:) :: sourceSquared_
+      double precision                               :: factor           , weightMain     , &
+           &                                            weightSide       , sumMainTerminal, &
+           &                                            sumMainStructural, sumSideTerminal, &
+           &                                            sumSideStructural, sumVariance    , &
+           &                                            sumAdded
+      integer                                        :: i                , d              , &
+           &                                            step             , block
+      logical                                        :: mainOnly         , contributes
+
+      ! For statistic C only splits of the main branch count.
+      mainOnly=caseStatistic(iCase) == 'C'
+      ! The solution at the root has no step before it, so only the sums over branches alive are found.
+      contributes=predicted .or. k > 0
+      if (predicted) then
+         step=k
+      else
+         step=k-1
+      end if
+      ! Each source is half of the trapezoid rule over its step.
+      if (contributes) then
+         factor=0.5d0*merge(stepOmegaBelow,stepOmegaAbove,step < kTarget)
+         block =step/self%outputStrideOmega+1
+      else
+         factor=0.0d0
+         block =1
+      end if
+      !$omp do schedule(static)
+      do d=-2,countMass
+         if      (d == -2) then
+            ! Sums over the branches alive.
+            if (.not.predicted) then
+               if      (mainOnly                    ) then
+                  aliveMean    (k,iCase)=sum(densityMain      (:,k)*countMean    (:,iCase))
+                  aliveVariance(k,iCase)=sum(densityMain      (:,k)*countVariance(:,iCase))
+               else if (caseStatistic(iCase) == 'A') then
+                  call aliveTarget(iCase,k)
+               else
+                  aliveMean    (k,iCase)=sum(densityPopulation(:,k)*countMean    (:,iCase))
+                  aliveVariance(k,iCase)=sum(densityPopulation(:,k)*countVariance(:,iCase))
+               end if
+            end if
+         else if (.not.contributes) then
+            cycle
+         else if (d == -1) then
+            ! Contributions by parent mass, and the totals for the step.
+            sumVariance=0.0d0
+            sumAdded   =0.0d0
+            do i=0,countMass
+               call decompositionWeights(i,k,predicted,mainOnly,factor,weightMain,weightSide)
+               contributionsMass(i,block,1,iCase)=contributionsMass(i,block,1,iCase)+ weightMain            *                          sourceSquaredTerminal(i)
+               contributionsMass(i,block,2,iCase)=contributionsMass(i,block,2,iCase)+ weightMain            *(sourceSquared_       (i)-sourceSquaredTerminal(i))
+               contributionsMass(i,block,3,iCase)=contributionsMass(i,block,3,iCase)+            weightSide *                          sourceSquaredTerminal(i)
+               contributionsMass(i,block,4,iCase)=contributionsMass(i,block,4,iCase)+            weightSide *(sourceSquared_       (i)-sourceSquaredTerminal(i))
+               sumVariance                       =sumVariance                       +(weightMain+weightSide)* sourceSquared_       (i)
+               sumAdded                          =sumAdded                          +(weightMain+weightSide)* sourceAdded          (i)
+            end do
+            stepVariance(step,iCase)=stepVariance(step,iCase)+sumVariance
+            stepAdded   (step,iCase)=stepAdded   (step,iCase)+sumAdded
+         else
+            ! Contributions by mass ratio.
+            sumMainTerminal  =0.0d0
+            sumMainStructural=0.0d0
+            sumSideTerminal  =0.0d0
+            sumSideStructural=0.0d0
+            do i=d,countMass
+               call decompositionWeights(i,k,predicted,mainOnly,factor,weightMain,weightSide)
+               sumMainTerminal  =sumMainTerminal  +weightMain*squaredRatio(d,i,1)
+               sumMainStructural=sumMainStructural+weightMain*squaredRatio(d,i,2)
+               sumSideTerminal  =sumSideTerminal  +weightSide*squaredRatio(d,i,1)
+               sumSideStructural=sumSideStructural+weightSide*squaredRatio(d,i,2)
+            end do
+            contributionsRatio(d,block,1,iCase)=contributionsRatio(d,block,1,iCase)+sumMainTerminal
+            contributionsRatio(d,block,2,iCase)=contributionsRatio(d,block,2,iCase)+sumMainStructural
+            contributionsRatio(d,block,3,iCase)=contributionsRatio(d,block,3,iCase)+sumSideTerminal
+            contributionsRatio(d,block,4,iCase)=contributionsRatio(d,block,4,iCase)+sumSideStructural
+         end if
+      end do
+      !$omp end do
+      return
+    end subroutine decompositionAccumulate
+
+    subroutine decompositionWeights(i,k,predicted,mainOnly,factor,weightMain,weightSide)
+      !!{RST
+      Return the weights of the contributions of parents of mass ``mass(i)`` at :math:`\omega_k` from splits of the main branch,
+      and of side branches (see ``decompositionAccumulate``). Parents with no contributions in this evaluation are excluded
+      (their contributions by mass ratio are stale).
+      !!}
+      implicit none
+      integer         , intent(in   ) :: i               , k
+      logical         , intent(in   ) :: predicted       , mainOnly
+      double precision, intent(in   ) :: factor
+      double precision, intent(  out) :: weightMain      , weightSide
+      double precision                :: weightPopulation
+
+      if (.not.ratioActive(i)) then
+         weightMain=0.0d0
+         weightSide=0.0d0
+         return
+      end if
+      if (predicted) then
+         weightMain      =factor*densityMain               (i,k)
+         weightPopulation=factor*densityPopulation         (i,k)
+      else
+         weightMain      =factor*densityMainPredicted      (i,k)
+         weightPopulation=factor*densityPopulationPredicted(i,k)
+      end if
+      if (mainOnly) then
+         weightSide=0.0d0
+      else
+         weightSide=weightPopulation-weightMain
+      end if
+      return
+    end subroutine decompositionWeights
+
+    subroutine aliveTarget(iCase,k)
+      !!{RST
+      Find the sums of the mean and variance of statistic A over the branches alive at :math:`\omega_k`. These jump at the
+      boundary of the support, so, below the cell of the first point of the grid above the nodes near the boundary, the
+      density of branches (interpolated from the grid) is integrated against the mean and variance at those nodes by the
+      trapezoid rule, from the boundary to that cell.
+      !!}
+      implicit none
+      integer         , intent(in   ) :: iCase           , k
+      double precision, dimension(4 ) :: weights
+      double precision                :: logMassEnd      , densityPrevious, &
+           &                             densityHere     , meanHere       , &
+           &                             varianceHere    , meanPrevious   , &
+           &                             variancePrevious, logMassPrevious, &
+           &                             logMassHere
+      integer                         :: countNear_      , indexFirst_    , &
+           &                             j               , base
+      logical                         :: first
+
+      aliveMean    (k,iCase)=0.0d0
+      aliveVariance(k,iCase)=0.0d0
+      countNear_           =countNearActive(iCase)
+      if (countNear_ == 0) return
+      indexFirst_=indexFirst(logMassNear(countNear_,iCase))
+      if (indexFirst_ <= countMass) then
+         aliveMean    (k,iCase)=sum(densityPopulation(indexFirst_:countMass,k)*countMean    (indexFirst_:countMass,iCase))
+         aliveVariance(k,iCase)=sum(densityPopulation(indexFirst_:countMass,k)*countVariance(indexFirst_:countMass,iCase))
+         logMassEnd            =logMass(indexFirst_)-0.5d0*stepLogMass
+      else
+         ! The nodes near the boundary reach into the cell of the root. Its weight is counted with the value on the grid there (as
+         ! for the other points of the grid above), and the trapezoid rule ends at the bottom of its cell.
+         if (logMass(countMass) >= logMassNear(1,iCase)) then
+            aliveMean    (k,iCase)=densityPopulation(countMass,k)*countMean    (countMass,iCase)
+            aliveVariance(k,iCase)=densityPopulation(countMass,k)*countVariance(countMass,iCase)
+         end if
+         logMassEnd=logMass(countMass)-0.5d0*stepLogMass
+      end if
+      first=.true.
+      do j=1,countNear_+1
+         if (j <= countNear_) then
+            if (logMassNear(j,iCase) >= logMassEnd) cycle
+            logMassHere =logMassNear      (j,iCase)
+            meanHere    =countMeanNear    (j,iCase)
+            varianceHere=countVarianceNear(j,iCase)
+         else
+            logMassHere =logMassEnd
+            call stencil(logMassEnd,base,weights)
+            meanHere    =valueSupported(countMean    (:,iCase),logMassNear(1:countNear_,iCase),countMeanNear    (1:countNear_,iCase),indexFirst_,logMassEnd,base,weights)
+            varianceHere=valueSupported(countVariance(:,iCase),logMassNear(1:countNear_,iCase),countVarianceNear(1:countNear_,iCase),indexFirst_,logMassEnd,base,weights)
+         end if
+         densityHere=interpolateAt(densityPopulation(:,k),logMassHere)/stepLogMass
+         if (.not.first) then
+            aliveMean    (k,iCase)=aliveMean    (k,iCase)+0.5d0*(logMassHere-logMassPrevious)*(densityPrevious*meanPrevious    +densityHere*meanHere    )
+            aliveVariance(k,iCase)=aliveVariance(k,iCase)+0.5d0*(logMassHere-logMassPrevious)*(densityPrevious*variancePrevious+densityHere*varianceHere)
+         end if
+         first           =.false.
+         logMassPrevious =logMassHere
+         densityPrevious =densityHere
+         meanPrevious    =meanHere
+         variancePrevious=varianceHere
+      end do
+      return
+    end subroutine aliveTarget
+
     subroutine levelEvaluate(k,kernel,fraction,rate,rateQuadrature,terminated)
       !!{RST
       Evaluate the kernel of the split integral (:math:`f M^\prime` at each quadrature node), the subresolution mass loss
@@ -1212,25 +1748,41 @@ contains
       integer         , intent(in   )                 :: iCase
       double precision, intent(in   ), dimension(:  ) :: kernel
       logical         , intent(in   ), dimension(0: ) :: terminated
-      double precision, intent(in   ), dimension(0: ) :: countMean_    , countVariance_
-      double precision, intent(  out), dimension(0: ) :: sourceMean_   , sourceVariance_ , &
+      double precision, intent(in   ), dimension(0: ) :: countMean_     , countVariance_
+      double precision, intent(  out), dimension(0: ) :: sourceMean_    , sourceVariance_ , &
            &                                             sourceSquared_
-      double precision                                :: delta         , varianceChildren, &
-           &                                             sumMean       , sumVariance     , &
-           &                                             sumSquared
-      integer                                         :: i             , q
+      double precision                                :: delta          , varianceChildren, &
+           &                                             sumMean        , sumVariance     , &
+           &                                             sumSquared     , sumTerminal     , &
+           &                                             sumAdded       , contribution
+      integer                                         :: i              , q               , &
+           &                                             latticePrevious
 
       ! Every thread executes this procedure, so all writes to the (shared) results are made within the shared loop. The sums are
-      ! accumulated in local scalars so that threads do not repeatedly write to neighboring array elements.
+      ! accumulated in local scalars so that threads do not repeatedly write to neighboring array elements. For the decomposition
+      ! of the variance, the source ∫ f Δ² dM′ is also split into the contributions of terminal splits (M′ ≥ m) and structural
+      ! splits, and by mass ratio, and the count added by splits is found. The nodes of a parent fall on a contiguous range of the
+      ! lattice of mass ratios (in decreasing order), so the first contribution to each point of the lattice replaces its value
+      ! from the previous evaluation.
       !$omp do schedule(dynamic)
       do i=0,countMass
          sumMean    =0.0d0
          sumVariance=0.0d0
          sumSquared =0.0d0
+         sumTerminal=0.0d0
+         sumAdded   =0.0d0
+         if (self%decomposeVariance) then
+            ratioActive    (i)=.not.terminated(i) .and. nodeCount(i) > 0
+            latticePrevious   =-1
+         end if
          if (terminated(i)) then
             sourceMean_    (i)=0.0d0
             sourceVariance_(i)=0.0d0
             sourceSquared_ (i)=0.0d0
+            if (self%decomposeVariance) then
+               sourceSquaredTerminal(i)=0.0d0
+               sourceAdded          (i)=0.0d0
+            end if
             cycle
          end if
          do q=nodeStart(i),nodeStart(i)+nodeCount(i)-1
@@ -1250,10 +1802,29 @@ contains
             sumMean    =sumMean    +weightNode(q)*kernel(q)* delta
             sumVariance=sumVariance+weightNode(q)*kernel(q)*(delta**2+varianceChildren-countVariance_(i))
             sumSquared =sumSquared +weightNode(q)*kernel(q)* delta**2
+            if (self%decomposeVariance) then
+               contribution=weightNode(q)*kernel(q)*delta**2
+               if (latticePrevious < 0) latticePrevious=latticeNode(q)+1
+               if (latticeNode(q) < latticePrevious) then
+                  squaredRatio(latticeNode(q):latticePrevious-1,i,:)=0.0d0
+                  latticePrevious                                   =latticeNode(q)
+               end if
+               if (countAdded(q,caseThreshold(iCase)) == 1) then
+                  sumTerminal                     =sumTerminal                     +contribution
+                  squaredRatio(latticeNode(q),i,1)=squaredRatio(latticeNode(q),i,1)+contribution
+               else
+                  squaredRatio(latticeNode(q),i,2)=squaredRatio(latticeNode(q),i,2)+contribution
+               end if
+               sumAdded=sumAdded+weightNode(q)*kernel(q)*dble(countAdded(q,caseThreshold(iCase)))
+            end if
          end do
          sourceMean_    (i)=sumMean
          sourceVariance_(i)=sumVariance
          sourceSquared_ (i)=sumSquared
+         if (self%decomposeVariance) then
+            sourceSquaredTerminal(i)=sumTerminal
+            sourceAdded          (i)=sumAdded
+         end if
       end do
       !$omp end do
       return
@@ -1464,7 +2035,7 @@ contains
       return
     end function integrandTarget
 
-    function quadratureTarget(logMassParent,countParent,varianceParent,logMassNode_,kernel_,logMassPrimaryNode_,countMean_,countVariance_,logMassNear_,countMeanNear_,countVarianceNear_,indexFirst_,baseSecondary_,weightsSecondary_,basePrimary_,weightsPrimary_) result(sums)
+    function quadratureTarget(logMassParent,countParent,varianceParent,logMassNode_,kernel_,logMassPrimaryNode_,countMean_,countVariance_,logMassNear_,countMeanNear_,countVarianceNear_,indexFirst_,baseSecondary_,weightsSecondary_,basePrimary_,weightsPrimary_,logMassThreshold_,squaredRatio_) result(sums)
       !!{RST
       Return the sources of the mean, the variance, and :math:`\int f\Delta^2\mathrm{d}M^\prime`, for statistic A, for a parent
       at ``logMassParent``, by the trapezoid rule in :math:`\ln M^\prime`. The integrand varies rapidly where either progenitor
@@ -1472,10 +2043,13 @@ contains
       added the images of the nodes near the boundary, :math:`M^\prime=M_j` and :math:`M-M^\prime=M_j`, with the kernel
       interpolated (linearly in its logarithm) between the given nodes, and the steps, at :math:`M^\prime=M_\mathrm{c}` and
       :math:`M-M^\prime=M_\mathrm{c}`, are nodes taken twice, with the values on either side. The interpolation stencils of the
-      given nodes are given for the parents on the grid, and found here otherwise.
+      given nodes are given for the parents on the grid, and found here otherwise. If ``logMassThreshold_`` is given, the fourth
+      element of the result is the part of :math:`\int f\Delta^2\mathrm{d}M^\prime` from terminal splits (:math:`M^\prime\ge
+      m`), and ``squaredRatio_`` accumulates that integral by mass ratio (on the lattice of the decomposition) for terminal and
+      structural splits.
       !!}
       implicit none
-      double precision, dimension(3)                                                                  :: sums
+      double precision, dimension(4)                                                                  :: sums
       double precision, intent(in   )                                                                 :: logMassParent         , countParent         , &
            &                                                                                             varianceParent
       double precision, intent(in   ), dimension(:  )                                                 :: logMassNode_          , kernel_             , &
@@ -1485,6 +2059,8 @@ contains
       integer         , intent(in   )                                                                 :: indexFirst_
       integer         , intent(in   ), dimension(:  )                                      , optional :: baseSecondary_        , basePrimary_
       double precision, intent(in   ), dimension(:,:)                                      , optional :: weightsSecondary_     , weightsPrimary_
+      double precision, intent(in   )                                                      , optional :: logMassThreshold_
+      double precision, intent(inout), dimension(0:,:)                                     , optional :: squaredRatio_
       ! Kinds of node: given, image of a node near the boundary as the secondary, or as the primary, and a step.
       integer         , parameter                                                                     :: kindGiven           =1, kindSecondary     =2, &
            &                                                                                             kindPrimary         =3, kindStep          =4
@@ -1510,11 +2086,15 @@ contains
            &                                                                                             kindNext              , l                   , &
            &                                                                                             baseS                 , baseP               , &
            &                                                                                             side                  , countImagesPrimary  , &
-           &                                                                                             jStart                , jEnd
+           &                                                                                             jStart                , jEnd                , &
+           &                                                                                             latticePrevious       , lattice             , &
+           &                                                                                             classSplit            , latticeZeroed
       logical                                                                                         :: isSecondaryStep       , isPrimaryStep
+      double precision                                                                                :: widthHalf
 
-      sums      =0.0d0
-      countGiven=size(logMassNode_)
+      sums         =0.0d0
+      latticeZeroed=huge(0)
+      countGiven   =size(logMassNode_)
       countNear_=size(logMassNear_)
       if (countGiven < 2) return
       logMassFirst    =logMassNode_(1         )
@@ -1721,8 +2301,37 @@ contains
             end if
          end if
          integrand=integrandTarget(kernelMerged(l),countSecondary,varianceSecondary,countPrimary,variancePrimary,countParent,varianceParent)
-         if (l > 1) sums=sums+0.5d0*(logMassMerged(l)-logMassMerged(l-1))*(integrandPrevious+integrand)
+         lattice  =max(0,min(countMass,nint((logMassParent-logMassMerged(l))/stepLogMass)))
+         if (l > 1) then
+            widthHalf=0.5d0*(logMassMerged(l)-logMassMerged(l-1))
+            sums(1:3)=sums(1:3)+widthHalf*(integrandPrevious+integrand)
+            if (present(logMassThreshold_)) then
+               ! Splits are terminal if M′ ≥ m (the nodes include the threshold, so no interval straddles it).
+               if (0.5d0*(logMassMerged(l)+logMassMerged(l-1)) >= logMassThreshold_) then
+                  classSplit=1
+                  sums(4)   =sums(4)+widthHalf*(integrandPrevious(3)+integrand(3))
+               else
+                  classSplit=2
+               end if
+               if (present(squaredRatio_)) then
+                  ! The lattice points are reached in decreasing order: the first contribution to each replaces its value from the
+                  ! previous evaluation.
+                  if (latticeZeroed   == huge(0)      ) latticeZeroed=latticePrevious+1
+                  if (latticePrevious <  latticeZeroed) then
+                     squaredRatio_(latticePrevious:latticeZeroed-1,:)=0.0d0
+                     latticeZeroed=latticePrevious
+                  end if
+                  if (lattice         <  latticeZeroed) then
+                     squaredRatio_(lattice        :latticeZeroed-1,:)=0.0d0
+                     latticeZeroed=lattice
+                  end if
+                  squaredRatio_(latticePrevious,classSplit)=squaredRatio_(latticePrevious,classSplit)+widthHalf*integrandPrevious(3)
+                  squaredRatio_(lattice        ,classSplit)=squaredRatio_(lattice        ,classSplit)+widthHalf*integrand        (3)
+               end if
+            end if
+         end if
          integrandPrevious=integrand
+         latticePrevious  =lattice
       end do
       return
     end function quadratureTarget
@@ -1741,7 +2350,7 @@ contains
       double precision, intent(  out), dimension(0: ) :: sourceMean_    , sourceVariance_    , &
            &                                             sourceSquared_
       double precision, intent(inout), dimension(:  ) :: sourceMeanNear_, sourceVarianceNear_
-      double precision               , dimension(3  ) :: sums
+      double precision               , dimension(4  ) :: sums
       integer                                         :: i              , j                  , &
            &                                             qStart         , qEnd               , &
            &                                             countNear_     , indexFirst_
@@ -1752,6 +2361,11 @@ contains
       ! Every thread executes this procedure, so all writes to the (shared) results are made within the shared loops.
       !$omp do schedule(dynamic)
       do i=0,countMass
+         if (self%decomposeVariance) then
+            ratioActive          (i)=.false.
+            sourceSquaredTerminal(i)=0.0d0
+            sourceAdded          (i)=0.0d0
+         end if
          if (countNear_ == 0 .or. terminated(i) .or. nodeCount(i) == 0) then
             sourceMean_    (i)=0.0d0
             sourceVariance_(i)=0.0d0
@@ -1766,16 +2380,32 @@ contains
          end if
          qStart=nodeStart(i)
          qEnd  =nodeStart(i)+nodeCount(i)-1
-         sums  =quadratureTarget(                                                                                               &
-              &                  logMass(i),countMean_(i),countVariance_(i)                                                   , &
-              &                  logMassNode(qStart:qEnd),kernel(qStart:qEnd)                                                 , &
-              &                  logMassPrimaryNode(qStart:qEnd)                                                              , &
-              &                  countMean_,countVariance_                                                                    , &
-              &                  logMassNear(1:countNear_,iCase),countMeanNear_(1:countNear_),countVarianceNear_(1:countNear_), &
-              &                  indexFirst_                                                                                  , &
-              &                  baseSecondary(qStart:qEnd),weightsSecondary(:,qStart:qEnd)                                   , &
-              &                  basePrimary  (qStart:qEnd),weightsPrimary  (:,qStart:qEnd)                                     &
-              &                 )
+         if (self%decomposeVariance) then
+            sums=quadratureTarget(                                                                                               &
+                 &                logMass(i),countMean_(i),countVariance_(i)                                                   , &
+                 &                logMassNode(qStart:qEnd),kernel(qStart:qEnd)                                                 , &
+                 &                logMassPrimaryNode(qStart:qEnd)                                                              , &
+                 &                countMean_,countVariance_                                                                    , &
+                 &                logMassNear(1:countNear_,iCase),countMeanNear_(1:countNear_),countVarianceNear_(1:countNear_), &
+                 &                indexFirst_                                                                                  , &
+                 &                baseSecondary(qStart:qEnd),weightsSecondary(:,qStart:qEnd)                                   , &
+                 &                basePrimary  (qStart:qEnd),weightsPrimary  (:,qStart:qEnd)                                   , &
+                 &                log(self%massThresholds(caseThreshold(iCase))),squaredRatio(:,i,:)                             &
+                 &               )
+            sourceSquaredTerminal(i)=sums(4)
+            ratioActive          (i)=.true.
+         else
+            sums=quadratureTarget(                                                                                               &
+                 &                logMass(i),countMean_(i),countVariance_(i)                                                   , &
+                 &                logMassNode(qStart:qEnd),kernel(qStart:qEnd)                                                 , &
+                 &                logMassPrimaryNode(qStart:qEnd)                                                              , &
+                 &                countMean_,countVariance_                                                                    , &
+                 &                logMassNear(1:countNear_,iCase),countMeanNear_(1:countNear_),countVarianceNear_(1:countNear_), &
+                 &                indexFirst_                                                                                  , &
+                 &                baseSecondary(qStart:qEnd),weightsSecondary(:,qStart:qEnd)                                   , &
+                 &                basePrimary  (qStart:qEnd),weightsPrimary  (:,qStart:qEnd)                                     &
+                 &               )
+         end if
          sourceMean_    (i)=sums(1)
          sourceVariance_(i)=sums(2)
          sourceSquared_ (i)=sums(3)
