@@ -41,7 +41,7 @@ program Test_Mass_Distributions
        &                                        massDistributionList                 , massDistributionSymmetryCylindrical   , enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
        &                                        massDistributionCylindricalScaler    , massDistributionCylindrical           , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
        &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
-       &                                        massDistributionDiemerKravtsov2014   , &
+       &                                        massDistributionDiemerKravtsov2014   , massDistributionSphericalAccretionFlow, &
        &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
        &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
        &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator
@@ -218,6 +218,55 @@ program Test_Mass_Distributions
      call Assert("Logarithmic density gradient (mean excluded)",massDistribution_%densityGradientRadial(position,logarithmic=.true.),massDistribution_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-6)
   end select
   deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Accretion flow decorator. Following Diemer & Kravtsov (2014; eqn. 4), the density is that of the halo multiplied by the
+  ! transition function, plus that of the accretion flow, which is not suppressed by the transition function. The logarithmic
+  ! density gradient is compared with a numerical estimate.
+  call Unit_Tests_Begin_Group("Accretion flow decorator")
+  block
+    class           (massDistributionSpherical), pointer      :: halo_                 , accretionFlow_, &
+         &                                                       decorated_
+    double precision                           , parameter    :: radiusTransition=0.45d0
+    double precision                           , dimension(3) :: radii           =[0.15d0,0.45d0,0.90d0]
+    double precision                                          :: multiplier
+    character       (len=32                   )               :: label
+    integer                                                   :: j
+
+    allocate(massDistributionNFW :: halo_)
+    select type (halo_)
+    type is (massDistributionNFW)
+       !![
+       <referenceConstruct object="halo_" constructor="massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=1.0d12,dimensionless=.false.)"/>
+       !!]
+    end select
+    allocate(massDistributionDiemerKravtsov2014 :: accretionFlow_)
+    select type (accretionFlow_)
+    type is (massDistributionDiemerKravtsov2014)
+       !![
+       <referenceConstruct object="accretionFlow_" constructor="massDistributionDiemerKravtsov2014(densityMean=4.0d10,radius200Mean=0.3d0,includeMean=.false.,b=1.0d0,s=1.5d0)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalAccretionFlow :: decorated_)
+    select type (decorated_)
+    type is (massDistributionSphericalAccretionFlow)
+       !![
+       <referenceConstruct object="decorated_" constructor="massDistributionSphericalAccretionFlow(radiusTransition=radiusTransition,nonAnalyticSolver=nonAnalyticSolversNumerical,massDistribution_=halo_,massDistributionAccretionFlow_=accretionFlow_)"/>
+       !!]
+    end select
+    do j=1,size(radii)
+       position  =[radii(j),0.0d0,0.0d0]
+       multiplier=1.0d0/(1.0d0+(radii(j)/radiusTransition)**4)**2
+       write (label,'(a,f4.2,a)') '(r=',radii(j),' Mpc)'
+       call Assert("Density "                     //trim(label),decorated_%density              (position                 ),multiplier*halo_%density(position)+accretionFlow_%density(position)       ,relTol=1.0d-12)
+       call Assert("Logarithmic density gradient "//trim(label),decorated_%densityGradientRadial(position,logarithmic=.true.),decorated_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-6 )
+    end do
+    !![
+    <objectDestructor name="decorated_"    />
+    <objectDestructor name="accretionFlow_"/>
+    <objectDestructor name="halo_"         />
+    !!]
+  end block
   call Unit_Tests_End_Group()
 
   ! Hernquist profile.
