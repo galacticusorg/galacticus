@@ -54,6 +54,11 @@
 
    The HDF5 file specified by the ``projectedCorrelationFunctionFileName`` element should contain a ``separation`` dataset, giving the separations at which the projected correlation function is measured (in units of Mpc), a ``projectedCorrelationFunctionObserved`` dataset giving the observed values of the projected correlation function at those separations (in units of Mpc), and a ``covariance`` dataset, giving the covariance of the projected correlation function (in units of Mpc\ :math:`^2`).
    </description>
+   <stateStorable>
+    <!-- Not stored: covariance, means - this class is not used by the evolveForests task, which is the only task that stores and
+         restores state. -->
+    <exclude variables="covariance, means"/>
+   </stateStorable>
    <runTimeFileDependencies paths="fileName"/>
   </posteriorSampleLikelihood>
   !!]

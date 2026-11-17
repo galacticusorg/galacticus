@@ -30,6 +30,11 @@
    <description>
    Accelerates spherical mass distribution classes by storing previous results for the enclosed mass and interpolating where possible.
    </description>
+   <stateStorable>
+    <!-- Not stored: treeMassEnclosed - a cache of enclosed masses, rebuilt on demand (results agree with those from a populated
+         cache to within toleranceRelative). -->
+    <exclude variables="treeMassEnclosed"/>
+   </stateStorable>
   </massDistribution>
   !!]
   type, extends(massDistributionSphericalDecorator) :: massDistributionSphericalAccelerator

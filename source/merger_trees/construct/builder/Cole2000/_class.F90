@@ -85,6 +85,10 @@
      <ignore variables="workers"                           />
      <setTo  variables="workersInitialized" value=".false."/>
    </deepCopy>
+   <stateStorable>
+    <!-- Not stored: workers - stored and restored by cole2000StateStore and cole2000StateRestore. -->
+    <exclude variables="workers"/>
+   </stateStorable>
   </mergerTreeBuilder>
   !!]
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000

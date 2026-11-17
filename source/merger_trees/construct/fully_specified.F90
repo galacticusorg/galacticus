@@ -123,6 +123,10 @@
 
    The parameter ``[countRealizations]`` (defaulting to 1) controls how many merger tree realizations are simulated for each input tree.
    </description>
+   <stateStorable>
+    <!-- Not stored: trees - nodes of the tree document, set by the constructor and never changed afterwards. -->
+    <exclude variables="trees"/>
+   </stateStorable>
    <runTimeFileDependencies paths="fileName"/>
   </mergerTreeConstructor>
   !!]
