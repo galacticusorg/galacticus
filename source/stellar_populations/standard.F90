@@ -110,6 +110,11 @@
 
     If they are not specified, they are computed by integrating the recycling and yield rates of a Solar metallicity population up to an age of ``ageEffective``. These parameters do not change the recycling and yield rates themselves, which are always computed as described above.
     </description>
+   <stateStorable>
+    <!-- Not stored: recycleFraction, energyOutput, yield - tables built on demand, and each records whether it has been built, so
+         a restored object rebuilds them when needed. -->
+    <exclude variables="recycleFraction, energyOutput, yield"/>
+   </stateStorable>
   </stellarPopulation>
   !!]
   type, extends(stellarPopulationClass) :: stellarPopulationStandard

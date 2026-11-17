@@ -37,6 +37,11 @@
    <description>
    Defines a computational domain on a cylindrical grid, with radial and vertical boundaries specified by ``[rBoundaries]`` and ``[zBoundaries]``, and the number of cells in each dimension by ``[countCells]``. Convergence of integrated cell quantities is monitored using percentile and threshold criteria set by ``[convergencePercentile]`` and ``[convergenceThreshold]``.
    </description>
+   <stateStorable>
+    <!-- Not stored: boundariesCells, properties - this class is not used by the evolveForests task, which is the only task that
+         stores and restores state. -->
+    <exclude variables="boundariesCells, properties"/>
+   </stateStorable>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainCylindrical

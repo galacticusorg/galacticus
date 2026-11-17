@@ -45,6 +45,11 @@
     <description>
     A property extractor that returns the spectral energy distribution (SED) of a galaxy component (disk, spheroid, or total) at a grid of wavelengths, computed by convolving the star formation history with stellar population spectral templates. Parameters include ``component`` (the galaxy component), ``frame`` (``rest`` or ``observed``), ``wavelengthMinimum`` and ``wavelengthMaximum`` (in Å), ``resolution`` (:math:`\lambda/\Delta\lambda`; negative for full template resolution), and ``toleranceRelative`` for the spectral integration. The SED is returned as a 2D array over wavelength and output time.
     </description>
+   <stateStorable>
+    <!-- Not stored: templates - templates built on demand, and each records whether it has been built, so a restored object
+         rebuilds them when needed. -->
+    <exclude variables="templates"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorSED

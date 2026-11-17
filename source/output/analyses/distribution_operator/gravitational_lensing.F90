@@ -47,6 +47,11 @@ Implements a gravitational lensing output analysis distribution operator class.
    <description>
    Applies gravitational lensing magnification to a specified galaxy property (luminosity or size) during output analysis, convolving with the lensing magnification distribution computed for a characteristic source size set by ``sizeSource``.
    </description>
+   <stateStorable>
+    <!-- Not stored: transfer_ - transfer matrices built on demand, and each records whether it has been built, so a restored
+         object rebuilds them when needed. -->
+    <exclude variables="transfer_"/>
+   </stateStorable>
   </outputAnalysisDistributionOperator>
   !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGravitationalLensing

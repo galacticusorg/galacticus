@@ -41,6 +41,10 @@ An implementation of the hot halo mass distribution class for :math:`\beta`-prof
    <deepCopy>
      <deallocate variables="pool"/>
    </deepCopy>
+   <stateStorable>
+    <!-- Not stored: pool - a pool of reusable scratch objects, holding no model state. -->
+    <exclude variables="pool"/>
+   </stateStorable>
   </hotHaloMassDistribution>
   !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionBetaProfile
