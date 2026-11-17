@@ -1064,7 +1064,15 @@ contains
                    fHigh=self%finderFunction(xHigh)
                    call reportState(includeExpectations=.false.)
                 end if
-                statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+                ! GSL's bracketing solvers report an exact root (one at which the function evaluated to exactly zero) by setting
+                ! xLow=xHigh. If that root is at x=0 and the absolute tolerance is zero, the tolerance of the interval test is also
+                ! zero and can never be met, so such a bracket is accepted explicitly. (A root that is approached only as x→0⁺ still
+                ! requires a non-zero absolute tolerance.)
+                if (xLow == xHigh) then
+                   statusActual=GSL_Success
+                else
+                   statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+                end if
              case default
                 call Error_Report('unknown stopping criterion'//{introspection:location})
              end select
