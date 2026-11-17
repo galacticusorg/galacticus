@@ -34,7 +34,7 @@ module Dust_AGN_Torus_SKIRTOR
   exponents of the radial (``exponentRadial``, :math:`p`) and polar (``exponentPolar``, :math:`q`) gradients of dust
   density, ratio of outer to inner radius (``ratioRadii``), and angle between the equatorial plane and the edge of the
   torus (``angleTorus``), each seen at ten inclinations from face-on to edge-on. The first four select a set of models,
-  which differ only in ``angleTorus``; :galacticus-module:`Dust_AGN_Torus_SKIRTOR` returns that set, ordered by
+  which differ only in ``angleTorus``; ``skirtorRead`` returns that set, ordered by
   ``angleTorus``.
   !!}
   private

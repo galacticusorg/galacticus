@@ -4,7 +4,7 @@
        are not allowed to evolve until their host no longer has a child node this can result in a deadlock. This version has the
        deadlock occur in a non-primary progenitor. -->
   <formatVersion>2</formatVersion>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <cosmologyParameters value="simple">
     <HubbleConstant value="67.77"/>
@@ -13,9 +13,10 @@
     <OmegaBaryon value="0.048206"/>
     <temperatureCMB value="2.72548"/>
   </cosmologyParameters>
-  <cosmologicalMassVariance value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower"/>
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.8228"/>
-  </cosmologicalMassVariance>
+  </powerSpectrumNormalizer>
 
   <accretionHalo value="zero"/>
   <mergerTreeOutputter value="standard">

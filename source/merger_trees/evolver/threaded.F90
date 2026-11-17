@@ -47,6 +47,11 @@
    <description>
    An OpenMP threaded merger tree evolver. This class extends the :galacticus-class:`mergerTreeEvolverStandard` merger tree evolver class. To evolve the tree, a list of evolvable nodes is constructed and then a set of parallel threads is spawned which take nodes from that list, evolve them, and add them to a second list for postprocessing. This repeats until tree evolution is completed.
    </description>
+   <stateStorable>
+    <!-- Not stored: workers, workersInitialized - per-thread workers, created on first use: the workers are not state-storable,
+         so the flag recording that they exist is not restored either. -->
+    <exclude variables="workers, workersInitialized"/>
+   </stateStorable>
   </mergerTreeEvolver>
   !!]
   type, extends(mergerTreeEvolverStandard) :: mergerTreeEvolverThreaded

@@ -61,6 +61,10 @@ module Numerical_Ranges
   ! 10⁻⁶ shifts a bound by at most one part in 10⁶ of a step - far below any level at which a tabulation is meaningful.
   double precision, parameter :: toleranceLattice=1.0d-6
 
+  !![
+  <stateStorable class="rangeLattice"/>
+  !!]
+
   type, public :: rangeLattice
      !!{RST
      A specification of a contiguous set of points on an absolute lattice. The lattice itself is fixed by ``scheme`` and

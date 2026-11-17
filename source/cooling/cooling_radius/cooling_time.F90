@@ -129,35 +129,18 @@ contains
     Return the abundances of gas in the hot atmosphere of ``node`` as mass fractions, and (if any chemicals are being tracked)
     its chemical abundances as number densities (in cm⁻³) per unit total mass density (in M☉ Mpc⁻³).
     !!}
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Fraction_Conversion
-    use :: Galacticus_Nodes                 , only : nodeComponentHotHalo                 , treeNode
+    use :: Galacticus_Nodes    , only : treeNode
+    use :: Hot_Halo_Composition, only : Hot_Halo_Gas_Composition
     implicit none
-    class           (coolingRadiusCoolingTime), intent(in   ) :: self
-    type            (treeNode                ), intent(inout) :: node
-    type            (abundances              ), intent(  out) :: abundancesGas
-    type            (chemicalAbundances      ), intent(  out) :: fractionsChemical
-    class           (nodeComponentHotHalo    ), pointer       :: hotHalo
-    type            (chemicalAbundances      )                :: chemicalMasses
-    double precision                                          :: massToDensityConversion
+    class(coolingRadiusCoolingTime), intent(in   ) :: self
+    type (treeNode                ), intent(inout) :: node
+    type (abundances              ), intent(  out) :: abundancesGas
+    type (chemicalAbundances      ), intent(  out) :: fractionsChemical
 
-    hotHalo => node%hotHalo()
-    ! Get the abundances for this node.
-    abundancesGas=hotHalo%abundances()
-    call abundancesGas%massToMassFraction(hotHalo%mass())
-    ! Get the chemicals for this node.
     if (self%chemicalsCount > 0) then
-       chemicalMasses=hotHalo%chemicals()
-       ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-       call chemicalMasses%massToNumber(fractionsChemical)
-       ! Compute factor converting mass of chemicals in (M☉) to number density per unit total mass density (in cm⁻³ / M☉
-       ! Mpc⁻³).
-       if (hotHalo%mass() > 0.0d0) then
-          massToDensityConversion=Chemicals_Mass_To_Fraction_Conversion(hotHalo%mass())
-       else
-          massToDensityConversion=0.0d0
-       end if
-       ! Convert to number density per unit total mass density.
-       call fractionsChemical%scale(massToDensityConversion)
+       call Hot_Halo_Gas_Composition(node,abundancesGas,fractionsChemical)
+    else
+       call Hot_Halo_Gas_Composition(node,abundancesGas                  )
     end if
     return
   end subroutine coolingTimeHotHaloComposition

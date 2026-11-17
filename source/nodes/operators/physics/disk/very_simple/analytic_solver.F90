@@ -32,6 +32,11 @@
    <description>
    A node operator class that analytically integrates the evolution of satellite disks for the :galacticus-class:`nodeComponentDiskVerySimple` disk component. At the start of each ODE step the timescales for fuel depletion, star formation and outflow are computed; the disk gas and stellar masses (and optionally their abundances), together with the host hot halo's outflowed mass and abundances, are then provided as closed-form analytic solutions during the integration. Satellites that are too small to ever be of interest, and that will not merge before the present day, are pruned from the tree at this point.
    </description>
+   <stateStorable>
+    <!-- Not stored: abundancesGasInitial, abundancesStellarInitial, yieldMassEffective - working values, set for each node before
+         they are used. -->
+    <exclude variables="abundancesGasInitial, abundancesStellarInitial, yieldMassEffective"/>
+   </stateStorable>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDiskVerySimpleAnalyticSolver

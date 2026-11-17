@@ -220,6 +220,11 @@ contains
        rateEnergyInput=history_%data(iHistory,self%       rateEnergyInputIndex                               )
        metalReturnRate=history_%data(iHistory,self%returnedMetalRateBeginIndex:self%returnedMetalRateEndIndex)
        metalYieldRate =history_%data(iHistory,self%   metalYieldRateBeginIndex:self%   metalYieldRateEndIndex)
+       ! The history passed in is a copy of the current stellar properties history (from which the current rates were read
+       ! above). Zero it so that it can be populated with rates of change - any entry not set below (those lying entirely in
+       ! the past, and the final entry) must have zero rate of change, otherwise its current value would be returned as its rate
+       ! of change, causing it to grow exponentially.
+       call history_%reset()
        ! Get the metallicity of the fuel supply.
        call abundancesFuel%serialize(fuelMetallicity)
        ! Set the stellar and fuel mass rates of change.

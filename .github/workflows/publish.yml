@@ -5,7 +5,7 @@ name: 'Publish'
 #     to PyPI via Trusted Publishing (OIDC -- no stored token); and
 #   * create a versioned GitHub Release carrying the same pre-built binary and
 #     tools assets that the CI/CD `Deploy` job publishes to `bleeding-edge`, so
-#     that the launcher can fetch reproducible artefacts pinned to the version.
+#     that the launcher can fetch reproducible artifacts pinned to the version.
 #
 # Trigger by pushing a semantic-version tag, e.g.:
 #   git tag v1.2.3 && git push origin v1.2.3
@@ -42,7 +42,7 @@ jobs:
           # setuptools_scm derives the version from tags, so we need full history.
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.12'
       - name: Build sdist and wheel
@@ -102,7 +102,7 @@ jobs:
           path: dist/
       - name: Publish to TestPyPI
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.testpypi }}
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
           # A repeated dry run from the same commit produces the same dev
@@ -112,11 +112,11 @@ jobs:
         # No skip-existing here: a duplicate version on a real release should
         # fail loudly (it signals a tagging mistake).
         if: ${{ github.event_name == 'push' }}
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
 
   Release-Assets:
     # Mirror the current `bleeding-edge` binary/tools assets onto the versioned
-    # tag so the launcher can fetch artefacts pinned to this release. Runs only
+    # tag so the launcher can fetch artifacts pinned to this release. Runs only
     # for real tag pushes (not the TestPyPI dry run).
     if: ${{ github.event_name == 'push' }}
     needs: [Build-Distribution, Verify-Release]
@@ -135,7 +135,7 @@ jobs:
           # Only names `bleeding-edge` still refreshes may be listed here. An asset the deploy no longer
           # uploads is never removed from that rolling release by `gh release upload --clobber`, so it sits
           # there frozen at whatever commit last produced it -- and mirroring such a copy onto a new version
-          # tag would publish an artefact built from an unrelated commit. Missing names are warned about and
+          # tag would publish an artifact built from an unrelated commit. Missing names are warned about and
           # skipped below, so a superseded name is dropped from this list rather than kept "just in case".
           #
           # Deliberately absent for that reason: the macOS Intel assets (`Galacticus_MacOS.exe`,

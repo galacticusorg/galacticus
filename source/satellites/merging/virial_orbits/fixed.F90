@@ -32,7 +32,7 @@
   !![
   <virialOrbit name="virialOrbitFixed" docformat="rst">
    <description>
-   A virial orbit class that assigns all satellite infall orbits a single fixed set of orbital parameters, with radial velocity :math:`v_\mathrm{r}=`\ ``[velocityRadial]``\ :math:`V_\mathrm{virial}` and tangential velocity :math:`v_\phi=`\ ``[velocityTangential]``\ :math:`V_\mathrm{virial}` in units of the host halo virial velocity. Default values match the approximate peak in the distribution of :cite:t:`benson_orbital_2005`.
+   A virial orbit class that assigns all satellite infall orbits a single fixed set of orbital parameters, with radial velocity :math:`v_\mathrm{r}=`\ ``[velocityRadial]``\ :math:`V_\mathrm{virial}` and tangential velocity :math:`v_\phi=`\ ``[velocityTangential]``\ :math:`V_\mathrm{virial}` in units of the host halo virial velocity. Default values match the approximate means of the distributions of :cite:t:`benson_orbital_2005`.
    </description>
   </virialOrbit>
   !!]
@@ -90,7 +90,7 @@ contains
       <defaultValue>-0.90d0</defaultValue>
       <source>parameters</source>
       <description>
-      The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of :cite:t:`benson_orbital_2005`.
+      The radial velocity (in units of the host virial velocity) to use for the fixed virial orbits distribution. Default value matches the approximate mean of the distribution of :cite:t:`benson_orbital_2005`.
       </description>
     </inputParameter>
     <inputParameter docformat="rst">
@@ -98,7 +98,7 @@ contains
       <defaultValue>0.75d0</defaultValue>
       <source>parameters</source>
       <description>
-      The tangential velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of :cite:t:`benson_orbital_2005`.
+      The tangential velocity (in units of the host virial velocity) to use for the fixed virial orbits distribution. Default value matches the approximate mean of the distribution of :cite:t:`benson_orbital_2005`.
       </description>
     </inputParameter>
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />

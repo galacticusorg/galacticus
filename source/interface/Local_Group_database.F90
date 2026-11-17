@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which interfaces with the Local Group database.
 !!}
@@ -194,7 +196,8 @@ contains
 
   subroutine localGroupDBGetProperty{Type¦label}(self,name,property,isPresent,attribute)
     !!{RST
-    Get a named text property from the Local Group database.
+    Get a named text property from the Local Group database. For ``attribute=attributeUncertainty``, a property with only
+    asymmetric uncertainties (``uncertaintyLow`` and ``uncertaintyHigh``) is given the mean of the two.
     !!}
     use                      :: FoX_DOM           , only : getAttributeNode            , getTextContent , hasAttribute, setAttribute, &
          &                                                 extractDataContent
@@ -242,17 +245,6 @@ contains
                   &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertaintyLow') .and. hasAttribute(propertyElement,'uncertaintyHigh')) &
                   & ) then
                 countGalaxies=countGalaxies+1
-                if (attribute_ == attributeUncertainty .and. .not.hasAttribute(propertyElement,'uncertainty')) then
-                   ! Compute an uncertainty from the lower and upper bounds.
-                   propertyElement => properties(0)%element
-                   attributeNode   => getAttributeNode(propertyElement,'uncertaintyLower')
-                   call extractDataContent(attributeNode,uncertaintyLower)
-                   attributeNode   => getAttributeNode(propertyElement,'uncertaintyUpper')
-                   call extractDataContent(attributeNode,uncertaintyUpper)
-                   uncertainty=0.5d0*(uncertaintyLower+uncertaintyUpper)
-                   write (textContent,'(f16.12)') uncertainty
-                   call setAttribute(propertyElement,"uncertainty",trim(adjustl(textContent)))
-                end if
              end if
           end if
        end if
@@ -276,10 +268,26 @@ contains
           call XML_Get_Elements_By_Tag_Name(galaxy,name,properties)
           if (size(properties) == 1) then
              propertyElement => properties(0)%element
-             if     (                                                                                           &
-                  &   (attribute_ == attributeValue       .and. hasAttribute(propertyElement,'value'         )) &
-                  &  .or.                                                                                       &
-                  &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertainty'   )) &
+             if     (                                                           &
+                  &        attribute_ == attributeUncertainty                   &
+                  &  .and. .not.hasAttribute(propertyElement,'uncertainty'    ) &
+                  &  .and.      hasAttribute(propertyElement,'uncertaintyLow' ) &
+                  &  .and.      hasAttribute(propertyElement,'uncertaintyHigh') &
+                  & ) then
+                ! Only asymmetric uncertainties are given. Use their mean as the uncertainty, and store it in the element so that
+                ! it is computed only once.
+                attributeNode => getAttributeNode(propertyElement,'uncertaintyLow' )
+                call extractDataContent(attributeNode,uncertaintyLower)
+                attributeNode => getAttributeNode(propertyElement,'uncertaintyHigh')
+                call extractDataContent(attributeNode,uncertaintyUpper)
+                uncertainty=0.5d0*(uncertaintyLower+uncertaintyUpper)
+                write (textContent,'(e24.16)') uncertainty
+                call setAttribute(propertyElement,"uncertainty",trim(adjustl(textContent)))
+             end if
+             if     (                                                                                        &
+                  &   (attribute_ == attributeValue       .and. hasAttribute(propertyElement,'value'      )) &
+                  &  .or.                                                                                    &
+                  &   (attribute_ == attributeUncertainty .and. hasAttribute(propertyElement,'uncertainty')) &
                   & ) then
                 propertyFound=.true.
                 if       (attribute_ == attributeValue     ) then
@@ -462,7 +470,8 @@ contains
           ! Convert decimal declination to sexagesimal.
           attribute => getAttributeNode(propertyList2(0)%element,'value')
           call extractDataContent(attribute,declinationDecimal)
-          declinationSexagesimalDegrees   =int( declinationDecimal                                                   )
+          ! The sign of the declination is held only by the degrees, so it must be retained for declinations between 0 and -1 degrees.
+          declinationSexagesimalDegrees   =sign(aint(declinationDecimal),declinationDecimal)
           declinationSexagesimalArcminutes=int((declinationDecimal-declinationSexagesimalDegrees)/arcminutesToDegrees)
           declinationSexagesimalArcseconds=    (declinationDecimal-declinationSexagesimalDegrees-declinationSexagesimalArcminutes*arcminutesToDegrees)/arcsecondsToDegrees
           declinationSexagesimalArcminutes=abs(declinationSexagesimalArcminutes)
@@ -547,7 +556,7 @@ contains
              if (hasAttribute(propertyList2(0)%element,trim(uncertainties(j)))) then
                 attribute => getAttributeNode(propertyList2(0)%element,trim(uncertainties(j)))
                 call extractDataContent(attribute,uncertainty1)
-                uncertainty2=distanceHeliocentric*log(10.0d0)/5.0d0
+                uncertainty2=distanceHeliocentric*log(10.0d0)/5.0d0*uncertainty1
                 write (textContent,'(f16.12)') uncertainty2
                 call setAttribute(newNode,trim(uncertainties(j)),trim(adjustl(textContent)))
              end if

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module which implements quasi-random sequences.
+Contains a module which implements an ODE solver class.
 !!}
 
 ! Specify an explicit dependence on the interface.GSL.C.odeiv2.o object file.

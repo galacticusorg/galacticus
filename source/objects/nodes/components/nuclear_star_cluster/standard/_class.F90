@@ -33,7 +33,7 @@ module Node_Component_NSC_Standard
   use :: Satellite_Merging_Remnant_Sizes , only : mergerRemnantSizeClass
   use :: Star_Formation_Histories        , only : starFormationHistory                   , starFormationHistoryClass
   use :: Stellar_Population_Properties   , only : stellarPopulationPropertiesClass
-  use :: Node_Components_Galactic_Shared , only : Node_Component_NSC_Standard_Post_Evolve
+  use :: Node_Components_Galactic_Shared , only : Node_Component_NSC_Standard_Post_Evolve, Node_Component_Disk_Gas_Arrive
   implicit none
   private
   public :: Node_Component_NSC_Standard_Scale_Set        , Node_Component_NSC_Standard_Pre_Evolve         , &
@@ -940,6 +940,7 @@ contains
        ! Move gas material within the host if necessary
        select case (destinationGasHost%ID)
        case (destinationMergerDisk%ID)
+          call Node_Component_Disk_Gas_Arrive(diskHost,nuclearStarCluster%massGas())
           call diskHost              %        massGasSet(                                                                &
                &                                         +diskHost          %      massGas                            () &
                &                                         +nuclearStarCluster%      massGas                            () &
@@ -1105,6 +1106,7 @@ contains
           ! Move the gas component of the standard nuclear star cluster to the host.
           select case (destinationGasSatellite%ID)
           case (destinationMergerDisk%ID)
+             call Node_Component_Disk_Gas_Arrive(diskHost,nuclearStarCluster%massGas())
              call diskHost    %       massGasSet     (                                                                &
                   &                                   +diskHost          %massGas                                  () &
                   &                                   +nuclearStarCluster%massGas                                  () &

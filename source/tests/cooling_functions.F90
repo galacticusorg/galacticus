@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests cooling function functionality.
 !!}
@@ -31,6 +33,7 @@ program Test_Cooling_Functions
   use :: Cooling_Functions               , only : coolingFunctionSummation                  , coolingFunctionAtomicCIECloudy   , coolingFunctionCMBCompton          , coolantList, &
        &                                          coolingFunctionMolecularHydrogenGalliPalla
   use :: Cosmology_Parameters            , only : cosmologyParametersSimple
+  use :: Cooling_Times                   , only : coolingTimeSimple
   use :: Cosmology_Functions             , only : cosmologyFunctionsMatterLambda
   use :: Display                         , only : displayVerbositySet                       , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
@@ -38,27 +41,36 @@ program Test_Cooling_Functions
   use :: Galacticus_Nodes                , only : nodeClassHierarchyInitialize              , nodeComponentBasic               , treeNode
   use :: Input_Parameters                , only : inputParameters
   use :: Node_Components                 , only : Node_Components_Initialize                , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Numerical_Constants_Astronomical, only : gigaYear
+  use :: Numerical_Constants_Astronomical, only : gigaYear                                  , massSolar                        , megaParsec
+  use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
   use :: Numerical_Constants_Physical    , only : boltzmannsConstant
+  use :: Numerical_Constants_Prefixes    , only : hecto
   use :: Numerical_Constants_Units       , only : ergs
   use :: Radiation_Fields                , only : radiationFieldCosmicMicrowaveBackground
   use :: Unit_Tests                      , only : Assert                                    , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  type            (coolantList                            ), pointer                                    :: coolants
+  type            (coolantList                            ), pointer                                    :: coolants                          , coolantsMixed
   type            (treeNode                               ), pointer                                    :: node
   class           (nodeComponentBasic                     ), pointer                                    :: basic
   type            (coolingFunctionCMBCompton              ), target                                     :: coolingFunctionCMBCompton_
   type            (coolingFunctionSummation               )                                             :: coolingFunctionSummation_
-  type            (coolingFunctionAtomicCIECloudy)                                                      :: coolingFunctionAtomicCIECloudy_
+  type            (coolingFunctionSummation               ), target                                     :: coolingFunctionMixed_
+  type            (coolingTimeSimple                      )                                             :: coolingTime_
+  type            (coolingFunctionAtomicCIECloudy         ), target                                     :: coolingFunctionAtomicCIECloudy_
   type            (cosmologyParametersSimple              )                                             :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda         )                                             :: cosmologyFunctions_
-  type            (chemicalStateAtomicCIECloudy           )                                             :: chemicalState_
+  type            (chemicalStateAtomicCIECloudy           ), target                                     :: chemicalState_
   type            (abundances                             )                                             :: gasAbundances
   type            (chemicalAbundances                     )                                             :: chemicalDensities
   type            (radiationFieldCosmicMicrowaveBackground)                                             :: radiation
   double precision                                                                                      :: numberDensityHydrogen             , temperature                        , &
        &                                                                                                   coolantSummation                  , coolantCMBCompton                  , &
-       &                                                                                                   timescaleCooling                  , coolantAtomicCIECloudy
+       &                                                                                                   timescaleCooling                  , coolantAtomicCIECloudy             , &
+       &                                                                                                   density                           , gradientDensity                    , &
+       &                                                                                                   gradientTemperature               , gradientDensityNumerical           , &
+       &                                                                                                   gradientTemperatureNumerical
+  ! Logarithmic step used in finite difference estimates of the cooling time gradients.
+  double precision                                                                          , parameter :: stepLogarithmic  =1.0d-3
   type            (inputParameters                        )                                             :: parameters
   ! Objects and workspace used to check that the tabulation built by the Galli & Palla molecular hydrogen cooling function does
   ! not depend on the order in which temperatures are requested of it.
@@ -74,7 +86,7 @@ program Test_Cooling_Functions
   integer                                                                                   , parameter :: countTemperaturesSlope=3
   double precision                                            , dimension(countTemperaturesSlope), parameter :: temperaturesSlope=10.0d0**[2.475d0,3.485d0,3.845d0]
   double precision                                            , dimension(countTemperaturesSlope)            :: slopeTemperature , slopeTemperatureNumerical
-  double precision                                                                          , parameter :: stepLogarithmic       =0.005d0*log(10.0d0)
+  double precision                                                                          , parameter :: stepLogarithmicSlope  =0.005d0*log(10.0d0)
   ! One object per temperature, each constructed once and asked a single question - these must not be re-assigned in a loop, as
   ! the assignment would finalize the previous object.
   type            (coolingFunctionMolecularHydrogenGalliPalla), dimension(countTemperatures)            :: coolingFunctionGalliPallaSingle
@@ -240,13 +252,76 @@ program Test_Cooling_Functions
   do i=1,countTemperaturesSlope
      slopeTemperature         (i)=+    coolingFunctionGalliPallaSlope%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperaturesSlope(i)                       ,gasAbundances,chemicalDensities,radiation)
      slopeTemperatureNumerical(i)=+(                                                                                                                                                                                      &
-          &                         +log(coolingFunctionGalliPallaSlope%coolingFunction                   (node,numberDensityHydrogen,temperaturesSlope(i)*exp(+stepLogarithmic),gasAbundances,chemicalDensities,radiation)) &
-          &                         -log(coolingFunctionGalliPallaSlope%coolingFunction                   (node,numberDensityHydrogen,temperaturesSlope(i)*exp(-stepLogarithmic),gasAbundances,chemicalDensities,radiation)) &
+          &                         +log(coolingFunctionGalliPallaSlope%coolingFunction                   (node,numberDensityHydrogen,temperaturesSlope(i)*exp(+stepLogarithmicSlope),gasAbundances,chemicalDensities,radiation)) &
+          &                         -log(coolingFunctionGalliPallaSlope%coolingFunction                   (node,numberDensityHydrogen,temperaturesSlope(i)*exp(-stepLogarithmicSlope),gasAbundances,chemicalDensities,radiation)) &
           &                        )                                                                                                                                                                                      &
           &                       /2.0d0                                                                                                                                                                                  &
-          &                       /stepLogarithmic
+          &                       /stepLogarithmicSlope
   end do
   call Assert('d ln Λ / d ln T',slopeTemperature,slopeTemperatureNumerical,relTol=1.0d-3)
+  call Unit_Tests_End_Group()
+  ! Check the logarithmic gradients of the simple cooling time against finite differences of the cooling time itself. Use a sum of
+  ! the CIE and CMB Compton cooling functions, at a density where the two are comparable - the density slope of the summed cooling
+  ! function then depends on the density at which it is evaluated, so this tests that the gradients are evaluated at the correct
+  ! hydrogen number density (not at the mass density, in M☉ Mpc⁻³).
+  call Unit_Tests_Begin_Group("Cooling time gradients")
+  allocate(coolantsMixed     )
+  allocate(coolantsMixed%next)
+  coolantsMixed     %coolingFunction => coolingFunctionCMBCompton_
+  coolantsMixed%next%coolingFunction => coolingFunctionAtomicCIECloudy_
+  !![
+  <referenceConstruct object="coolingFunctionMixed_">
+   <constructor>
+    coolingFunctionSummation      (                                        &amp;
+     &amp;                         coolants        =coolantsMixed          &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="coolingTime_"         >
+   <constructor>
+    coolingTimeSimple             (                                        &amp;
+     &amp;                         degreesOfFreedom=3.0d0                , &amp;
+     &amp;                         coolingFunction_=coolingFunctionMixed_, &amp;
+     &amp;                         chemicalState_  =chemicalState_         &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  !!]
+  call radiation%timeSet(13.8d0)
+  numberDensityHydrogen=+1.0d-7 ! cm⁻³
+  temperature          =+1.1d+6 ! K
+  ! Convert to a mass density (in M☉ Mpc⁻³), as required by the cooling time class.
+  density              =+numberDensityHydrogen                &
+       &                /gasAbundances%hydrogenMassFraction() &
+       &                *massHydrogenAtom                     &
+       &                *hecto                            **3 &
+       &                *megaParsec                       **3 &
+       &                /massSolar
+  ! Confirm that the two cooling functions are comparable at these conditions.
+  coolantCMBCompton     =coolingFunctionCMBCompton_     %coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  coolantAtomicCIECloudy=coolingFunctionAtomicCIECloudy_%coolingFunction(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
+  call Assert('CIE and CMB Compton cooling are comparable',abs(log10(coolantAtomicCIECloudy/coolantCMBCompton)) < 1.0d0,.true.)
+  ! Compute the gradients, and their finite difference estimates.
+  gradientDensity          =+coolingTime_%gradientDensityLogarithmic    (node,temperature                      ,density                      ,gasAbundances,chemicalDensities,radiation)
+  gradientTemperature      =+coolingTime_%gradientTemperatureLogarithmic(node,temperature                      ,density                      ,gasAbundances,chemicalDensities,radiation)
+  gradientDensityNumerical =+log(                                                                                                                                                        &
+       &                         +coolingTime_%time                     (node,temperature                      ,density*exp(+stepLogarithmic),gasAbundances,chemicalDensities,radiation) &
+       &                         /coolingTime_%time                     (node,temperature                      ,density*exp(-stepLogarithmic),gasAbundances,chemicalDensities,radiation) &
+       &                        )                                                                                                                                                        &
+       &                    /2.0d0                                                                                                                                                       &
+       &                    /stepLogarithmic
+  gradientTemperatureNumerical=+log(                                                                                                                                                     &
+       &                            +coolingTime_%time                  (node,temperature*exp(+stepLogarithmic),density                      ,gasAbundances,chemicalDensities,radiation) &
+       &                            /coolingTime_%time                  (node,temperature*exp(-stepLogarithmic),density                      ,gasAbundances,chemicalDensities,radiation) &
+       &                           )                                                                                                                                                     &
+       &                       /2.0d0                                                                                                                                                    &
+       &                       /stepLogarithmic
+  ! The temperature gradient neglects any dependence of the total particle number density on temperature, so is checked to a
+  ! looser tolerance (it agrees to better than 10⁻³ here). Evaluating the cooling function at the mass density, rather than the
+  ! hydrogen number density, and omitting the thermal energy term from the temperature gradient, gave errors of 0.3 and 0.6 in
+  ! these gradients.
+  call Assert('cooling time density gradient'    ,gradientDensity    ,gradientDensityNumerical    ,absTol=1.0d-3)
+  call Assert('cooling time temperature gradient',gradientTemperature,gradientTemperatureNumerical,absTol=1.0d-2)
   call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()

@@ -31,6 +31,11 @@
    <description>
    A posterior sampling likelihood class which evaluates the likelihood of a modeled dark matter halo mass function against observed data, supporting Poisson or multivariate normal statistics. The target data file is set by ``[fileNames]``, with the evaluation redshift, mass limits, and minimum halo count per bin set by ``[redshifts]``, ``[massRangeMinimum]``, and ``[binCountMinimum]``.
    </description>
+   <stateStorable>
+    <!-- Not stored: covariance - this class is not used by the evolveForests task, which is the only task that stores and
+         restores state. -->
+    <exclude variables="covariance"/>
+   </stateStorable>
    <runTimeFileDependencies paths="fileNames"/>
   </posteriorSampleLikelihood>
   !!]

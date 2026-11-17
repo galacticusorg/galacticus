@@ -230,7 +230,7 @@ def _scan_file(file_path, entry, source_root):
 
 
 # ---------------------------------------------------------------------------
-# Per-file processing (parallelised across files)
+# Per-file processing (parallelized across files)
 # ---------------------------------------------------------------------------
 #
 # Each source file is scanned independently: it reads the file (and any
@@ -242,7 +242,7 @@ def _scan_file(file_path, entry, source_root):
 #
 # A fork-based process pool is used rather than threads so the workers are fully
 # isolated -- no assumptions are made about the thread-safety of the parser --
-# and the regex/AST parsing parallelises too. Workers inherit the read-only
+# and the regex/AST parsing parallelizes too. Workers inherit the read-only
 # `locations` map and `source_root` via copy-on-write fork, so nothing large is
 # pickled per task; only the small result dicts come back.
 
@@ -328,6 +328,24 @@ def _build_submodule_map(modules_per_file):
 # ---------------------------------------------------------------------------
 # Makefile emission
 # ---------------------------------------------------------------------------
+
+def _remove_if_stale(path, lines):
+    """Delete the module-list (`.m`) file `path` if its content is not `lines`.
+
+    The `.m` rules written below have no prerequisites, so make never rewrites
+    an existing `.m` file.  If the modules that a source file provides change
+    (a module is renamed, say), the old file would list module files that are
+    no longer produced, and the compile rule would fail trying to move them
+    into place.  Deleting the stale file makes make regenerate it.
+    """
+    try:
+        with open(path) as fh:
+            current = fh.read()
+    except FileNotFoundError:
+        return
+    if current != ''.join(line + '\n' for line in lines):
+        os.remove(path)
+
 
 def _write_makefile(path, modules_per_file, submodules_by_module, work_dir):
     """Write `Makefile_Module_Dependencies`.
@@ -479,11 +497,13 @@ def _write_makefile(path, modules_per_file, submodules_by_module, work_dir):
             )
             mk.write(f"{modules_list_path}:\n")
             director = '> '
+            modules_listed = []
             for module_file_name in mods:
                 mk.write(
                     f"\t@echo {work_dir}{module_file_name} "
                     f"{director} {modules_list_path}\n"
                 )
+                modules_listed.append(f"{work_dir}{module_file_name}")
                 director = '>>'
                 sub_list = submodules_by_module.get(module_file_name.lower(), [])
                 if sub_list:
@@ -492,7 +512,9 @@ def _write_makefile(path, modules_per_file, submodules_by_module, work_dir):
                         f"\t@echo {work_dir}{smod_name} "
                         f"{director} {modules_list_path}\n"
                     )
+                    modules_listed.append(f"{work_dir}{smod_name}")
             mk.write("\n")
+            _remove_if_stale(modules_list_path, modules_listed)
 
             # Per-submodule `.m` files.
             for module_file_name in mods:
@@ -506,6 +528,9 @@ def _write_makefile(path, modules_per_file, submodules_by_module, work_dir):
                     mk.write(
                         f"\t@echo {work_dir}{module_name}@"
                         f"{sub_name}.smod > {sub_m}\n\n"
+                    )
+                    _remove_if_stale(
+                        sub_m, [f"{work_dir}{module_name}@{sub_name}.smod"],
                     )
 
 

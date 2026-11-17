@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a chemical state class which reads and interpolates a collisional ionization equilibrium chemical state from a file.
   !!}
@@ -131,6 +133,13 @@
 
    .. [#] The exception is if the first electron density is tabulated for zero metallicity. In that case, a linear interpolation in metallicity is always used between zero and the first non-zero tabulated metallicity.
    </description>
+   <stateStorable>
+    <!-- Not stored: chemicalDensitiesPrevious - the memoized chemical densities are not state-storable. -->
+    <!-- Reset on restore: temperatureChemicalPrevious, metallicityChemicalPrevious - the key for those memoized densities, reset
+         so that they are recomputed after a restore rather than taken from the unrestored memo. -->
+    <restoreTo variables="temperatureChemicalPrevious, metallicityChemicalPrevious" state="-1.0d0"/>
+    <exclude variables="chemicalDensitiesPrevious"/>
+   </stateStorable>
    <runTimeFileDependencies paths="fileName"/>
   </chemicalState>
   !!]
