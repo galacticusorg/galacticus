@@ -24,8 +24,8 @@
   !+    Contributions to this file made by: Andrew Robertson, Codex.
 
   use :: Galactic_Structure_Equilibrium_Iteration, only : equilibriumIterationState
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO                , only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
 
   !![
   <galacticStructureSolver name="galacticStructureSolverEquilibrium" docformat="rst">
@@ -60,12 +60,12 @@
   end interface galacticStructureSolverEquilibrium
 
   ! Module-scope variables used to communicate current state of radius solver.
-  type(equilibriumIterationState)                        :: iterationState
-  integer                                               :: countComponentsActive        , countIterations
-  double precision                                      :: fitMeasure
-  type            (treeNode), pointer                   :: node_
-  double precision          , allocatable, dimension(:) :: radiusStored                , velocityStored
-  logical                                               :: revertStructure     =.false.
+  type            (equilibriumIterationState)                            :: iterationState
+  integer                                                                :: countComponentsActive        , countIterations
+  double precision                                                       :: fitMeasure
+  type            (treeNode                 ), pointer                   :: node_
+  double precision                           , allocatable, dimension(:) :: radiusStored                , velocityStored
+  logical                                                                :: revertStructure     =.false.
   !$omp threadprivate(iterationState,countIterations,countComponentsActive,fitMeasure,node_,radiusStored,velocityStored,revertStructure)
 
 contains
@@ -276,21 +276,21 @@ contains
       use :: Numerical_Constants_Astronomical          , only : gravitationalConstant_internal
       use :: String_Handling                           , only : operator(//)
       implicit none
-      type            (treeNode                    ), intent(inout)                     :: node
-      type            (enumerationComponentTypeType), intent(in   )                     :: component
-      double precision                              , intent(in   )                     :: specificAngularMomentum
-      procedure       (solverGet                   ), intent(in   ) , pointer           :: radiusGet                         , velocityGet
-      procedure       (solverSet                   ), intent(in   ) , pointer           :: radiusSet                         , velocitySet
-      double precision                              , dimension(:  ), allocatable       :: radiusStoredTmp                   , velocityStoredTmp
-      class           (massDistributionClass       ), pointer                           :: massDistribution_
-      integer                                       , parameter                         :: storeIncrement                 =10
-      character       (len=14                      )                                    :: label
-      type            (varying_string              ), save                              :: message
+      type            (treeNode                    ), intent(inout)               :: node
+      type            (enumerationComponentTypeType), intent(in   )               :: component
+      double precision                              , intent(in   )               :: specificAngularMomentum
+      procedure       (solverGet                   ), intent(in   ) , pointer     :: radiusGet                         , velocityGet
+      procedure       (solverSet                   ), intent(in   ) , pointer     :: radiusSet                         , velocitySet
+      double precision                              , dimension(:  ), allocatable :: radiusStoredTmp                   , velocityStoredTmp
+      class           (massDistributionClass       ), pointer                     :: massDistribution_
+      integer                                       , parameter                   :: storeIncrement                 =10
+      character       (len=14                      )                              :: label
+      type            (varying_string              ), save                        :: message
       !$omp threadprivate(message)
-      double precision                                                                  :: baryonicVelocitySquared           , darkMatterMassFinal, &
-           &                                                                               darkMatterVelocitySquared         , velocity           , &
-           &                                                                               radius                            , radiusNew          , &
-           &                                                                               specificAngularMomentumMaximum     , radiusFitContribution
+      double precision                                                            :: baryonicVelocitySquared           , darkMatterMassFinal  , &
+           &                                                                         darkMatterVelocitySquared         , velocity             , &
+           &                                                                         radius                            , radiusNew            , &
+           &                                                                         specificAngularMomentumMaximum    , radiusFitContribution
       !$GLC attributes unused :: component
 
       ! Count the number of active components.

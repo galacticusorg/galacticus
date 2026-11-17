@@ -39,6 +39,12 @@ module Galactic_Structure_Equilibrium_Iteration
      private
      double precision, allocatable, dimension(:,:) :: history
    contains
+     !![
+     <methods docformat="rst">
+       <method method="reset"  description="Discard the iteration history of all components, ready for a new solve."                                                                                                  />
+       <method method="update" description="Record the current radius of a component, damp the proposed new radius if an oscillation is detected, and return the component's contribution to the convergence measure."/>
+     </methods>
+     !!]
      procedure :: reset  => iterationReset
      procedure :: update => iterationUpdate
   end type equilibriumIterationState
@@ -93,11 +99,11 @@ contains
           ! by the caller, rather than radius, which is the location where the potential was evaluated.
           select case (mod(iteration,4))
           case (0)
-             radiusNew=sqrt(radius*self%history(1,component))
+             radiusNew=sqrt  (radius*self%history(1,component))
           case (1)
              radiusNew=0.5d0*(radius+self%history(1,component))
           case (2)
-             radiusNew=sqrt(self%history(1,component)*self%history(2,component))
+             radiusNew=sqrt  (self%history(1,component)*self%history(2,component))
           case (3)
              radiusNew=0.5d0*(self%history(1,component)+self%history(2,component))
           end select

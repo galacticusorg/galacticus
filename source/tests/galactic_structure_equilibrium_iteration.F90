@@ -47,8 +47,8 @@ program Test_Galactic_Structure_Equilibrium_Iteration
   call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group('Equilibrium radius iteration')
 
-  ! The smooth map P(R)=4/R has a unique positive fixed point R=2 and an undamped two-cycle 1 <-> 4.
-  ! It can be written in the solver's form P=sqrt(j R/V) with j=1 and V(R)=R**3/16.
+  ! The smooth map P(R)=4/R has a unique positive fixed point R=2 and an undamped two-cycle 1 ↔ 4.
+  ! It can be written in the solver's form P=√(j R/V) with j=1 and V(R)=R^3/16.
   ! This is an artificial numerical fixture, not a galaxy model or a contraction-boundary discontinuity.
   radius=1.0d0
   do iteration=2,100
@@ -113,11 +113,11 @@ program Test_Galactic_Structure_Equilibrium_Iteration
      call state%update(14,method,2.0d0,proposal,fit)
      call fresh%update(14,method,2.0d0,freshProposal,freshFit)
      call Assert('reset removes history for every component',proposal,freshProposal,relTol=1.0d-14)
-     call Assert('reset restores the undamped fit',fit,freshFit,absTol=1.0d-14)
-     call Assert('first step after reset is not damped',proposal,2.2d0,relTol=1.0d-14)
+     call Assert('reset restores the undamped fit'          ,fit     ,freshFit     ,absTol=1.0d-14)
+     call Assert('first step after reset is not damped'     ,proposal,2.2d0        ,relTol=1.0d-14)
   end do
 
-  ! A populated neighbouring component must not damp a component with no history.
+  ! A populated neighboring component must not damp a component with no history.
   call state%reset()
   call seedHistory(state,1)
   proposal=2.2d0
@@ -129,7 +129,7 @@ program Test_Galactic_Structure_Equilibrium_Iteration
   call state%update(10,1,2.0d0,proposal,fit)
   call Assert('burn-in does not damp the proposal',proposal,2.2d0,relTol=1.0d-14)
 
-  ! With V=1 and j=4, the ordinary update sqrt(4R) approaches R=4 monotonically.
+  ! With V=1 and j=4, the ordinary update √(4R) approaches R=4 monotonically.
   call state%reset()
   radius=1.0d0
   converged=.false.
