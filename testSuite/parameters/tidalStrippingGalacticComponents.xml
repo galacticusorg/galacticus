@@ -2,7 +2,7 @@
 <!-- Tests tidal stripping of galactic components (disks, spheroids, and nuclear star clusters) using the tidal radius of the satellite. -->
 
 <parameters>
-  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
+  <lastModified revision="5b070ef6b33fde0f072c86c7f15cfad5db393e27" time="2026-11-17T20:09:22"/>
 
   <formatVersion>2</formatVersion>
   <!-- Specify tasks to perform -->
@@ -165,7 +165,9 @@
     </starFormationTimescale>
   </starFormationRateSpheroids>
 
-  <starFormationRateNuclearStarClusters value="krumholz2009"/>
+  <starFormationRateNuclearStarClusters value="krumholz2009">
+    <frequencyStarFormation value="2.36"/>
+  </starFormationRateNuclearStarClusters>
   <nuclearStarClusterGrowthRates value="antonini2015"/>
 
   <!-- Stellar populations options -->
