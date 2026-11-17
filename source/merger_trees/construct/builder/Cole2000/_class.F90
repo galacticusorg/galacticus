@@ -125,17 +125,17 @@
        <method description="Perform any required actions on branching."            method="onBranch"                      />
      </methods>
      !!]
-     final             ::                                   cole2000Destructor
-     procedure         :: build                          => cole2000Build
-     procedure         :: timeEarliestSet                => cole2000TimeEarliestSet
-     procedure, nopass :: buildBranch                    => cole2000BuildBranch
-     procedure, nopass :: onBranch                       => cole2000OnBranch
-     procedure, nopass :: criticalOverdensityUpdate      => cole2000CriticalOverdensityUpdate
-     procedure, nopass :: convertTimeNode                => cole2000ConvertTimeNode
-     procedure         :: convertCriticalOverdensityNode => cole2000ConvertCriticalOverdensityNode
-     procedure, nopass :: checkOrderNode                 => cole2000CheckOrderNode
-     procedure         :: stateStore                     => cole2000StateStore
-     procedure         :: stateRestore                   => cole2000StateRestore
+     final     ::                                   cole2000Destructor
+     procedure :: build                          => cole2000Build
+     procedure :: timeEarliestSet                => cole2000TimeEarliestSet
+     procedure :: buildBranch                    => cole2000BuildBranch
+     procedure :: onBranch                       => cole2000OnBranch
+     procedure :: criticalOverdensityUpdate      => cole2000CriticalOverdensityUpdate
+     procedure :: convertTimeNode                => cole2000ConvertTimeNode
+     procedure :: convertCriticalOverdensityNode => cole2000ConvertCriticalOverdensityNode
+     procedure :: checkOrderNode                 => cole2000CheckOrderNode
+     procedure :: stateStore                     => cole2000StateStore
+     procedure :: stateRestore                   => cole2000StateRestore
   end type mergerTreeBuilderCole2000
 
   interface mergerTreeBuilderCole2000
@@ -146,23 +146,9 @@
      module procedure cole2000ConstructorInternal
   end interface mergerTreeBuilderCole2000
 
-  ! Sub-module scope variables used in tree building.
-  !![
-  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110547" docformat="rst">
-    <description>
-    We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" above) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP task-based parallelism. This may be a compiler bug.
-    </description>
-  </workaround>
-  <workaround type="gfortran" PR="110548" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110548" docformat="rst">
-    <description>
-    We use an allocatable ``treeWalker`` here. Some subclasses will not need a ``treeWalker``. Ideally this would therefore be passed to functions as an optional argument, but current optional arguments used in OpenMP tasks cause segfaults. Therefore, we instead use the allocation status of this variable as an indication of whether or not a ``treeWalker`` is needed.
-    </description>
-  </workaround>
-  !!]  
-  class  (mergerTreeBuilderCole2000       ), pointer     :: self_
-  integer                                                :: numberWorker
-  type   (mergerTreeWalkerTreeConstruction), allocatable :: treeWalker_
-  !$omp threadprivate(self_,numberWorker,treeWalker_)
+  ! Sub-module scope variables used in tree building: the index of the worker (a set of per-thread objects) used by this thread.
+  integer :: numberWorker
+  !$omp threadprivate(numberWorker)
 
 contains
 
@@ -385,11 +371,11 @@ contains
          &                                                                    nodeWork
     class           (nodeComponentBasic           ), pointer               :: basic                , basicChild
     type            (mergerTreeWalkerIsolatedNodes)                        :: treeWalkerIsolated
+    type            (mergerTreeWalkerTreeConstruction)                     :: treeWalker
     double precision                                                       :: timeNodeBase         , massResolution, &
          &                                                                    deltaCriticalEarliest        
       
     ! Begin construction.
-    self_          => self
     self%nodeIndex =  1               ! Initialize the node index counter to unity.
     node           => tree%nodeBase   ! Point to the base node.
     basic          => node%basic   () ! Get the basic component of the node.
@@ -466,12 +452,10 @@ contains
     !$omp end critical(mergerTreeBuilderCole2000ParallelDeepCopy)
     call self%workers(numberWorker)%randomNumberGenerator_%seedSet(seed=tree%index+numberWorker,offset=.true.)
     ! Begin tree build loop.
-    allocate(treeWalker_)
-    treeWalker_=mergerTreeWalkerTreeConstruction(tree)
-    do while (treeWalker_%next(node))
-       call self%buildBranch(tree,massResolution,node)
+    treeWalker=mergerTreeWalkerTreeConstruction(tree)
+    do while (treeWalker%next(node))
+       call self%buildBranch(tree,massResolution,node,treeWalker)
     end do
-    deallocate(treeWalker_)
     ! Walk the tree and convert w to time.
     treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
     do while (treeWalkerIsolated%next(node))
@@ -508,9 +492,10 @@ contains
     return
   end subroutine cole2000Build
   
-  recursive subroutine cole2000BuildBranch(tree,massResolution,nodeTip)
+  recursive subroutine cole2000BuildBranch(self,tree,massResolution,nodeTip,treeWalker)
     !!{RST
-    Build a single branch of the merger tree.
+    Build a single branch of the merger tree. If a ``treeWalker`` is given, it determines the order in which nodes are
+    visited, and only ``nodeTip`` is built here. Otherwise, the branch is followed through the first child of each node.
     !!}
     use :: Display              , only : displayReset                 , displayMagenta               , displayGreen, displayYellow, &
          &                               displayBlue
@@ -520,9 +505,11 @@ contains
     use :: Numerical_Comparison , only : Values_Agree
     use :: String_Handling      , only : stringXMLFormat
     implicit none
-    type            (mergerTree                         ), intent(in   )           :: tree
+    class           (mergerTreeBuilderCole2000          ), intent(inout), target   :: self
+    type            (mergerTree                         ), intent(in   ), target   :: tree
     double precision                                     , intent(in   )           :: massResolution
     type            (treeNode                           ), intent(inout), pointer  :: nodeTip
+    type            (mergerTreeWalkerTreeConstruction   ), intent(inout), optional :: treeWalker
     type            (treeNode                           )               , pointer  :: nodeNew1                              , nodeNew2                   , &
          &                                                                            nodeCurrent
     class           (nodeComponentBasic                 )               , pointer  :: basicNew1                             , basicNew2                  , &
@@ -551,10 +538,10 @@ contains
     nodeCurrent => nodeTip
     do while (associated(nodeCurrent))
        ! Apply control.
-       if (allocated(treeWalker_)) then
-          if (.not.self_%workers(numberWorker)%mergerTreeBuildController_%control(nodeCurrent,treeWalker_)) return
+       if (present(treeWalker)) then
+          if (.not.self%workers(numberWorker)%mergerTreeBuildController_%control(nodeCurrent,treeWalker )) return
        else
-          if (.not.self_%workers(numberWorker)%mergerTreeBuildController_%control(nodeCurrent            )) return
+          if (.not.self%workers(numberWorker)%mergerTreeBuildController_%control(nodeCurrent            )) return
        end if
        ! Get the basic component of the node.
        basic_                       => nodeCurrent%basic()
@@ -569,11 +556,11 @@ contains
        branchMassPrevious          =  -huge(0.0d0)
        do while (.not.branchIsDone)
           ! Get the branching probability object to use for this step.
-          mergerTreeBranchingProbability_ => self_%workers(numberWorker)%mergerTreeBuildController_%branchingProbabilityObject(nodeCurrent)
+          mergerTreeBranchingProbability_ => self%workers(numberWorker)%mergerTreeBuildController_%branchingProbabilityObject(nodeCurrent)
           ! Get the growth factor in the root variance at the mass of the current branch.
-          time                     =+self_%workers(numberWorker)%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=      branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeCurrent)
-          rootVarianceGrowthFactor_=+self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance  (time               =      time                      ,mass=branchMassCurrent                 ) &
-               &                    /self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance  (time               =self_%timeNow                   ,mass=branchMassCurrent                 )
+          time                     =+self%workers(numberWorker)%criticalOverdensity_      %timeOfCollapse(criticalOverdensity=      branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeCurrent)
+          rootVarianceGrowthFactor_=+self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance   (time               =      time                      ,mass=branchMassCurrent                 ) &
+               &                    /self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance   (time               =self%timeNow                    ,mass=branchMassCurrent                 )
           ! Check for progress.
           if (branchDeltaCriticalCurrent == branchDeltaCriticalPrevious .and. branchMassCurrent == branchMassPrevious) then
              countNoProgress            =countNoProgress+1
@@ -587,14 +574,14 @@ contains
                type     (varying_string) :: message
                character(len=20        ) :: label
                message='branch is making no progress'
-               if (time < self_%timeEarliest*1.01d0) then
-                  write (label,'(e12.6)') self_%toleranceTimeEarliest
+               if (time < self%timeEarliest*1.01d0) then
+                  write (label,'(e12.6)') self%toleranceTimeEarliest
                   message=message                                                                                                                   //char(10)// &
                        &  displayGreen()//'   HELP:'//displayReset()//' branch is within 1% of the imposed earliest time'                           //char(10)// &
                        &                  '          - this may be a tolerance issue'                                                               //char(10)// &
                        &                  '          - try increasing the value of the tolerance parameter, currently (see highlighted line below):'//char(10)// &
                        & stringXMLFormat(                                                                                                                        &
-                       &                  '<mergerTreeBuilder value="'//char(self_%objectType(short=.true.))//'">'                                            // &
+                       &                  '<mergerTreeBuilder value="'//char(self%objectType(short=.true.))//'">'                                             // &
                        &                  '**B<toleranceTimeEarliest value="'//trim(adjustl(label))//'"/>**C'                                                 // &
                        &                  '</mergerTreeBuilder>'                                                                                                 &
                        &                 )
@@ -603,31 +590,31 @@ contains
              end block
           end if
           ! Process the branch.
-          if     (                                                                               &
-               &     branchMassCurrent <= massResolution                                         &
-               &  .or.                                                                           &
-               &     time              <  self_%timeEarliest*(1.0d0+self_%toleranceTimeEarliest) &
-               &  .or.                                                                           &
-               &   (                                                                             &
-               &     countNoProgress   == limitNoProgress                                        &
-               &    .and.                                                                        &
-               &     self_%ignoreNoProgress                                                      &
-               &   )                                                                             &
+          if     (                                                                             &
+               &     branchMassCurrent <= massResolution                                       &
+               &  .or.                                                                         &
+               &     time              <  self%timeEarliest*(1.0d0+self%toleranceTimeEarliest) &
+               &  .or.                                                                         &
+               &   (                                                                           &
+               &     countNoProgress   == limitNoProgress                                      &
+               &    .and.                                                                      &
+               &     self%ignoreNoProgress                                                     &
+               &   )                                                                           &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
                 !$omp atomic
-                self_%nodeIndex =  self_%nodeIndex+1
-                nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                self%nodeIndex  =  self%nodeIndex+1
+                nodeNew1        => treeNode(self%nodeIndex,nodeCurrent%hostTree)
                 basicNew1       => nodeNew1%basic(autoCreate=.true.)
                 ! Compute new mass accounting for sub-resolution accretion.
                 nodeMass1       =  basic_%mass()*(1.0d0-accretionFractionCumulative)
                 call basicNew1%massSet(nodeMass1     )
                 ! Compute the critical overdensity corresponding to this new node.
-                deltaCritical1=self_%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
+                deltaCritical1=self%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
                 call basicNew1%timeSet(deltaCritical1)
                 ! Inform the build controller of this new node.
-                call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
+                call self%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
                 ! Create links from old to new node and vice-versa.
                 nodeCurrent%firstChild => nodeNew1
                 nodeNew1%parent => nodeCurrent
@@ -650,29 +637,29 @@ contains
              if (accretionFraction < 0.0d0) then
                 ! Terminate the branch with a final node.
                 !$omp atomic
-                self_%nodeIndex    =  self_%nodeIndex+1
-                nodeNew1           => treeNode      (self_%nodeIndex        ,nodeCurrent%hostTree)
-                basicNew1          => nodeNew1%basic(autoCreate=.true.     )
+                self%nodeIndex     =  self%nodeIndex+1
+                nodeNew1           => treeNode      (self%nodeIndex,nodeCurrent%hostTree)
+                basicNew1          => nodeNew1%basic(autoCreate=.true.)
                 ! Create a node at the mass resolution.
                 nodeMass1          =  massResolution
                 ! Compute critical overdensity for this new node.
-                deltaCritical1      =self_%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
+                deltaCritical1      =self%criticalOverdensityUpdate(branchDeltaCriticalCurrent,branchMassCurrent,nodeMass1,nodeNew1)
                 ! Ensure critical overdensity exceeds that of the current node.
-                collapseTime_       =self_%workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeNew1)
-                collapseTimeTruncate=self_%workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1            ,mass=nodeMass1        ,node=nodeNew1)
+                collapseTime_       =self%workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=branchDeltaCriticalCurrent,mass=branchMassCurrent,node=nodeNew1)
+                collapseTimeTruncate=self%workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1             ,mass=nodeMass1        ,node=nodeNew1)
                 if (collapseTimeTruncate > collapseTime_*(1.0d0+toleranceTime)) then
                    call Error_Report('truncating to resolution, but resolution node exists after parent'//{introspection:location})
                 else
                    do while (collapseTimeTruncate > collapseTime_*(1.0d0-toleranceTime))
                       deltaCritical1      =deltaCritical1*(1.0d0+toleranceTime)
-                      collapseTimeTruncate=self_%workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1,mass=nodeMass1,node=nodeNew1)
+                      collapseTimeTruncate=self%workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaCritical1,mass=nodeMass1,node=nodeNew1)
                    end do
                 end if
                 ! Set properties of the new node.
                 call basicNew1%massSet(nodeMass1     )
                 call basicNew1%timeSet(deltaCritical1)
                 ! Inform the build controller of this new node.
-                call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
+                call self%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
                 ! Create links from old to new node and vice-versa.
                 nodeCurrent%firstChild => nodeNew1
                 nodeNew1   %parent     => nodeCurrent
@@ -686,7 +673,7 @@ contains
                 deltaW               =mergerTreeBranchingProbability_%stepMaximum(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution)/rootVarianceGrowthFactor_
                 snapAccretionFraction=.false.
                 if (accretionFraction > 0.0d0) then
-                   deltaWAccretionLimit=(self_%accretionLimit-accretionFractionCumulative)/accretionFraction
+                   deltaWAccretionLimit=(self%accretionLimit-accretionFractionCumulative)/accretionFraction
                    if (deltaWAccretionLimit <= deltaW) then
                       deltaW               =deltaWAccretionLimit
                       snapAccretionFraction=.true.
@@ -695,21 +682,21 @@ contains
                 if     (                                  &
                      &   branchingProbabilityRate > 0.0d0 &
                      &  .and.                             &
-                     &   .not.self_%branchIntervalStep    &
+                     &   .not.self%branchIntervalStep     &
                      & ) then
-                   if (self_%mergeProbability/branchingProbabilityRate < deltaW) then
+                   if (self%mergeProbability/branchingProbabilityRate < deltaW) then
                       ! Timestep is limited by branching rate. Reduce the timestep to the allowed
                       ! size and unset the flag to snap the accretion fraction to its maximum
                       ! allowed value (since we won't reach that value with this new, reduced
                       ! timestep).
-                      deltaW               =self_%mergeProbability/branchingProbabilityRate
+                      deltaW               =self%mergeProbability/branchingProbabilityRate
                       snapAccretionFraction=.false.
                    end if
                 end if
                 ! Limit the timestep so that the maximum allowed time is not exceeded.
-                deltaWEarliestTime=+self_%workers(numberWorker)%criticalOverdensity_     %value       (time=self_%timeEarliest,mass=branchMassCurrent         ,node=nodeCurrent) &
-                     &             *self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self_%timeNow     ,mass=branchMassCurrent                          ) &
-                     &             /self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self_%timeEarliest,mass=branchMassCurrent                          ) &
+                deltaWEarliestTime=+self%workers(numberWorker)%criticalOverdensity_      %value       (time=self%timeEarliest,mass=branchMassCurrent          ,node=nodeCurrent) &
+                     &             *self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self%timeNow       ,mass=branchMassCurrent                          ) &
+                     &             /self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest,mass=branchMassCurrent                            ) &
                      &             -                                                                                                branchDeltaCriticalCurrent
                 if (deltaWEarliestTime < deltaW) then
                    deltaW               =deltaWEarliestTime
@@ -721,11 +708,11 @@ contains
                 ! Allow the build controller to set a minimum step.
                 deltaW=max(                                                                                                                                              &
                      &                                                             deltaW                                                                              , &
-                     &     +self_%workers(numberWorker)%mergerTreeBuildController_%timeMinimum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent)  &
+                     &     +self%workers(numberWorker)%mergerTreeBuildController_%timeMinimum                (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent)  &
                      &     -                                                       branchDeltaCriticalCurrent                                                            &
                      &    )
                 ! Limit the timestep according to the build controller.
-                deltaWController=+self_%workers(numberWorker)%mergerTreeBuildController_%timeMaximum               (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self_%timeNow,controlInsertNode) &
+                deltaWController=+self%workers(numberWorker)%mergerTreeBuildController_%timeMaximum                (nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self%timeNow,controlInsertNode) &
                      &           -                                                       branchDeltaCriticalCurrent
                 if (deltaWController < deltaW) then
                    deltaW               =deltaWController
@@ -737,14 +724,14 @@ contains
                 end if
                 ! Scale values to the determined timestep.
                 branchingProbability       =0.0d0
-                if (.not.self_%branchIntervalStep)                           &
+                if (.not.self%branchIntervalStep)                            &
                      & branchingProbability=branchingProbabilityRate*deltaW
                 accretionFraction          =accretionFraction       *deltaW
                 ! Accretion fraction must be less than unity. Reduce timestep (and branching
                 ! probability and accretion fraction) by factors of two until this condition is
                 ! satisfied.
                 do while (accretionFraction+accretionFractionCumulative >= 1.0d0)
-                   if (.not.self_%branchIntervalStep)                      &
+                   if (.not.self%branchIntervalStep)                       &
                         & branchingProbability=branchingProbability*0.5d0
                    accretionFraction          =accretionFraction   *0.5d0
                    deltaW                     =deltaW              *0.5d0
@@ -753,13 +740,13 @@ contains
                    controlLimited             =.false.
                 end do
                 ! Decide if a branching occurs.
-                if (self_%branchIntervalStep) then
+                if (self%branchIntervalStep) then
                    ! In this case we draw intervals between branching events from a negative
                    ! exponential distribution.
                    if (branchingProbabilityRate > 1.0d-100) then
                       branchingIntervalScaleFree=0.0d0
                       do while (branchingIntervalScaleFree <= 0.0d0)
-                         branchingIntervalScaleFree=self_%workers(numberWorker)%branchingIntervalDistribution%sample(randomNumberGenerator_=self_%workers(numberWorker)%randomNumberGenerator_)
+                         branchingIntervalScaleFree=self%workers(numberWorker)%branchingIntervalDistribution%sample(randomNumberGenerator_=self%workers(numberWorker)%randomNumberGenerator_)
                       end do
                       branchingInterval=branchingIntervalScaleFree/branchingProbabilityRate
                       ! Based on the upper bound on the rate, check if branching occurs before the maximum allowed timestep.
@@ -778,7 +765,7 @@ contains
                             snapEarliestTime     =.false.
                             controlLimited       =.false.
                             ! Draw a random deviate and scale by the branching rate - this will be used to choose the branch mass.
-                            uniformRandom       =self_%workers(numberWorker)%randomNumberGenerator_%uniformSample()       
+                            uniformRandom       =self%workers(numberWorker)%randomNumberGenerator_%uniformSample()        
                             branchingProbability=uniformRandom*branchingProbabilityRate
                          end if
                       else
@@ -790,7 +777,7 @@ contains
                 else
                    ! In this case we're using the original Cole et al. (2000) algorithm.
                    if (branchingProbability > 0.0d0) then
-                      uniformRandom=self_%workers(numberWorker)%randomNumberGenerator_%uniformSample()
+                      uniformRandom=self%workers(numberWorker)%randomNumberGenerator_%uniformSample()
                       doBranch=(uniformRandom <= branchingProbability)
                       if (doBranch) then
                          branchingProbability   =+mergerTreeBranchingProbability_%probabilityBound(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,mergerTreeBranchingBoundLower,nodeCurrent) &
@@ -813,15 +800,15 @@ contains
                 end if
                 ! Determine the critical overdensity for collapse for the new halo(s).
                 if (snapEarliestTime) then
-                   deltaCritical_=+self_%workers(numberWorker)%criticalOverdensity_     %value       (time=self_%timeEarliest,mass=branchMassCurrent,node=nodeCurrent) &
-                        &         *self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self_%timeNow     ,mass=branchMassCurrent                 ) &
-                        &         /self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self_%timeEarliest,mass=branchMassCurrent                 )
+                   deltaCritical_=+self%workers(numberWorker)%criticalOverdensity_     %value       (time=self%timeEarliest,mass=branchMassCurrent,node=nodeCurrent) &
+                        &         *self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self%timeNow     ,mass=branchMassCurrent                 ) &
+                        &         /self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest,mass=branchMassCurrent                 )
                 else
-                   deltaCritical_=+branchDeltaCriticalCurrent                                                                                                          &
+                   deltaCritical_=+branchDeltaCriticalCurrent                                                                                                        &
                         &         +deltaW
                 end if
                 if (snapAccretionFraction) then
-                   accretionFractionCumulative=self_%accretionLimit
+                   accretionFractionCumulative=self%accretionLimit
                 else
                    accretionFractionCumulative=accretionFractionCumulative+accretionFraction
                 end if
@@ -830,16 +817,16 @@ contains
                 case (.true.)
                    ! Branching occurs - create two progenitors.
                    !$omp atomic
-                   self_%nodeIndex =  self_%nodeIndex+1
-                   nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                   self%nodeIndex  =  self%nodeIndex+1
+                   nodeNew1        => treeNode(self%nodeIndex,nodeCurrent%hostTree)
                    basicNew1       => nodeNew1%basic(autoCreate=.true.)
                    ! Compute mass of one of the new nodes. The mass is drawn for a parent of the current branch mass, and the resulting
                    ! mass fraction is then applied to the total progenitor mass, which accounts for all accretion since the node.
-                   nodeMass1       =  mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor_,self_%workers(numberWorker)%randomNumberGenerator_,nodeCurrent)
+                   nodeMass1       =  mergerTreeBranchingProbability_%massBranch(branchMassCurrent,branchDeltaCriticalCurrent,time,massResolution,branchingProbability/rootVarianceGrowthFactor_,self%workers(numberWorker)%randomNumberGenerator_,nodeCurrent)
                    nodeMass1       =  nodeMass1/branchMassCurrent*basic_%mass()*(1.0d0-accretionFractionCumulative)
                    nodeMass2       =                              basic_%mass()*(1.0d0-accretionFractionCumulative)-nodeMass1
                    ! Compute the critical overdensity of the first new node.
-                   deltaCritical1 =  self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
+                   deltaCritical1 =  self%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
                    ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                    if (snapEarliestTime.and.Values_Agree(deltaCritical1,deltaCritical_,relTol=toleranceDeltaCritical)) deltaCritical1=deltaCritical_
                    call basicNew1%massSet(nodeMass1     )
@@ -847,33 +834,33 @@ contains
                    ! Create second progenitor if it would be above the mass resolution.
                    if (nodeMass2 > massResolution) then
                       !$omp atomic
-                      self_%nodeIndex =  self_%nodeIndex+1
-                      nodeNew2        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                      self%nodeIndex  =  self%nodeIndex+1
+                      nodeNew2        => treeNode(self%nodeIndex,nodeCurrent%hostTree)
                       basicNew2       => nodeNew2%basic(autoCreate=.true.)
                       ! Compute the critical overdensity of the second new node.
-                      deltaCritical2=self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass2,nodeNew2)
+                      deltaCritical2=self%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass2,nodeNew2)
                       ! If we are to snap halos to the earliest time, and the computed deltaCritical is sufficiently close to that time, snap it.
                       if (snapEarliestTime.and.Values_Agree(deltaCritical2,deltaCritical_,relTol=toleranceDeltaCritical)) deltaCritical2=deltaCritical_
                       call basicNew2%massSet(nodeMass2     )
                       call basicNew2%timeSet(deltaCritical2)
                       ! Inform the build controller of these new nodes.
-                      call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1,nodeNew2,didBranch=.true.)
+                      call self%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1,nodeNew2,didBranch=.true.)
                       ! Create links from old to new nodes and vice-versa. (Ensure that the first child node is the more massive progenitor.)
                       if (nodeMass2 > nodeMass1) then
                          nodeCurrent%firstChild => nodeNew2
                          nodeNew2   %sibling    => nodeNew1
-                         call self_%onBranch(tree,massResolution,nodeNew1)
+                         call self%onBranch(tree,massResolution,nodeNew1)
                       else
                          nodeCurrent%firstChild => nodeNew1
                          nodeNew1   %sibling    => nodeNew2
-                         call self_%onBranch(tree,massResolution,nodeNew2)
+                         call self%onBranch(tree,massResolution,nodeNew2)
                       end if
                       nodeNew1      %parent     => nodeCurrent
                       nodeNew2      %parent     => nodeCurrent
                    else
                       ! Second branch would be subresolution - do not create it.
                       ! Inform the build controller of the new node.
-                      call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1         ,didBranch=.true.)
+                      call self%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1          ,didBranch=.true.)
                       ! Create links from old to new nodes and vice-versa.
                       nodeCurrent   %firstChild => nodeNew1
                       nodeNew1      %sibling    => null()
@@ -882,19 +869,19 @@ contains
                    branchIsDone                 =  .true.
                 case (.false.)
                    ! No branching occurs - create one progenitor.
-                   if (accretionFractionCumulative >= self_%accretionLimit .or. (controlLimited .and. controlInsertNode)) then
+                   if (accretionFractionCumulative >= self%accretionLimit .or. (controlLimited .and. controlInsertNode)) then
                       !$omp atomic
-                      self_%nodeIndex =  self_%nodeIndex+1
-                      nodeNew1        => treeNode(self_%nodeIndex,nodeCurrent%hostTree)
+                      self%nodeIndex  =  self%nodeIndex+1
+                      nodeNew1        => treeNode(self%nodeIndex,nodeCurrent%hostTree)
                       basicNew1       => nodeNew1%basic(autoCreate=.true.)
                       ! Compute new mass accounting for sub-resolution accretion.
                       nodeMass1       =  basic_%mass()*(1.0d0-accretionFractionCumulative)
                       ! Compute the critical overdensity corresponding to this new node.
-                      deltaCritical1  =  self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
+                      deltaCritical1  =  self%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeNew1)
                       call basicNew1%massSet(nodeMass1     )
                       call basicNew1%timeSet(deltaCritical1)
                       ! Inform the build controller of this new node.
-                      call self_%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
+                      call self%workers(numberWorker)%mergerTreeBuildController_%nodesInserted(nodeCurrent,nodeNew1)
                       ! Create links from old to new node and vice-versa.
                       nodeCurrent %firstChild => nodeNew1
                       nodeNew1    %parent     => nodeCurrent
@@ -905,16 +892,16 @@ contains
                       ! branch mass, then mapping back to a critical overdensity at the new branch mass. This ensures that if
                       ! critical overdensity is a function of mass we preserve correct time-ordering along the branch.
                       nodeMass1                 =basic_%mass()*(1.0d0-accretionFractionCumulative)
-                      branchDeltaCriticalCurrent=self_%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeCurrent)
+                      branchDeltaCriticalCurrent=self%criticalOverdensityUpdate(deltaCritical_,branchMassCurrent,nodeMass1,nodeCurrent)
                       branchMassCurrent         =nodeMass1
                    end if
                 end select
                 ! If the timestep was limited by the build controller, allow the build controller to respond.
-                if (controlLimited) branchIsDone=branchIsDone .or. .not.self_%workers(numberWorker)%mergerTreeBuildController_%controlTimeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self_%nodeIndex)
+                if (controlLimited) branchIsDone=branchIsDone .or. .not.self%workers(numberWorker)%mergerTreeBuildController_%controlTimeMaximum(nodeCurrent,branchMassCurrent,branchDeltaCriticalCurrent,self%nodeIndex)
              end if
           end if
        end do
-       if (allocated(treeWalker_)) then
+       if (present(treeWalker)) then
           nodeCurrent => null()
        else
           nodeCurrent => nodeCurrent%firstChild
@@ -923,15 +910,16 @@ contains
     return
   end subroutine cole2000BuildBranch
 
-  recursive subroutine cole2000OnBranch(tree,massResolution,node)
+  recursive subroutine cole2000OnBranch(self,tree,massResolution,node)
     !!{RST
     Act on branching.
     !!}
     implicit none
-    type            (mergerTree), intent(in   )          :: tree
-    double precision            , intent(in   )          :: massResolution
-    type            (treeNode  ), intent(inout), pointer :: node
-    !$GLC attributes unused :: tree, massResolution, node
+    class           (mergerTreeBuilderCole2000), intent(inout), target  :: self
+    type            (mergerTree               ), intent(in   ), target  :: tree
+    double precision                           , intent(in   )          :: massResolution
+    type            (treeNode                 ), intent(inout), pointer :: node
+    !$GLC attributes unused :: self, tree, massResolution, node
     
     return
   end subroutine cole2000OnBranch
@@ -948,24 +936,25 @@ contains
     return
   end subroutine cole2000TimeEarliestSet
 
-  double precision function cole2000CriticalOverdensityUpdate(deltaCritical,massCurrent,massNew,nodeNew) result(criticalOverdensity)
+  double precision function cole2000CriticalOverdensityUpdate(self,deltaCritical,massCurrent,massNew,nodeNew) result(criticalOverdensity)
     !!{RST
     Update the critical overdensity for a new node, given that of the parent,
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
-    double precision          , intent(in   ) :: massCurrent  , massNew, &
-         &                                       deltaCritical
-    type            (treeNode), intent(inout) :: nodeNew
+    class           (mergerTreeBuilderCole2000), intent(inout) :: self
+    double precision                           , intent(in   ) :: massCurrent  , massNew, &
+         &                                                        deltaCritical
+    type            (treeNode                 ), intent(inout) :: nodeNew
     double precision                          :: time
     
-    if (self_%timeParameterIsMassDependent) then
+    if (self%timeParameterIsMassDependent) then
        ! Critical overdensity is mass-dependent, so convert current critical overdensity to a time at the mass of the parent, and
        ! then convert that time back to a critical overdensity at the mass of the new node.
-       time               =+self_%workers(numberWorker)%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=     deltaCritical,mass=massCurrent,node=nodeNew)
-       criticalOverdensity=+self_%workers(numberWorker)%criticalOverdensity_     %value         (time               =     time         ,mass=massNew    ,node=nodeNew) &
-            &              *self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance  (time               =self_%timeNow     ,mass=massNew                 ) &
-            &              /self_%workers(numberWorker)%cosmologicalMassVariance_%rootVariance  (time               =     time         ,mass=massNew                 )
+       time               =+self%workers(numberWorker)%criticalOverdensity_      %timeOfCollapse(criticalOverdensity=     deltaCritical,mass=massCurrent,node=nodeNew)
+       criticalOverdensity=+self%workers(numberWorker)%criticalOverdensity_      %value         (time               =     time         ,mass=massNew    ,node=nodeNew) &
+            &              *self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance   (time               =self%timeNow      ,mass=massNew                 ) &
+            &              /self%workers(numberWorker)%cosmologicalMassVariance_%rootVariance   (time               =     time         ,mass=massNew                 )
     else
        ! Critical overdensity is mass independent, so the critical overdensity for parent and child node is the same.
        criticalOverdensity=                                                                                               deltaCritical
@@ -973,20 +962,21 @@ contains
     return
   end function cole2000CriticalOverdensityUpdate
 
-  recursive subroutine cole2000ConvertTimeNode(nodeTip)
+  recursive subroutine cole2000ConvertTimeNode(self,nodeTip)
     !!{RST
     Convert from critical overdensity to time in a single node.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    type            (treeNode          ), intent(inout) :: nodeTip
-    class           (nodeComponentBasic), pointer       :: basic_
-    double precision                                    :: timeOfCollapse_
+    class           (mergerTreeBuilderCole2000), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: nodeTip
+    class           (nodeComponentBasic       ), pointer       :: basic_
+    double precision                                           :: timeOfCollapse_
     
     ! Get the basic component of the node.
     basic_          => nodeTip                                           %basic         (                                                                 )
     ! Compute the collapse time.
-    timeOfCollapse_ =  self_  %workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic_%time(),mass=basic_%mass(),node=nodeTip)
+    timeOfCollapse_ =  self   %workers(numberWorker)%criticalOverdensity_%timeOfCollapse(criticalOverdensity=basic_%time(),mass=basic_%mass(),node=nodeTip)
     call basic_%timeSet(timeOfCollapse_)
     return
   end subroutine cole2000ConvertTimeNode
@@ -1016,7 +1006,7 @@ contains
     return
   end subroutine cole2000ConvertCriticalOverdensityNode
 
-  recursive subroutine cole2000CheckOrderNode(tree,massResolution,node)
+  recursive subroutine cole2000CheckOrderNode(self,tree,massResolution,node)
     !!{RST
     Check well-ordering of time for the given node.
     !!}
@@ -1025,21 +1015,22 @@ contains
     use :: Display                       , only : displayReset                   , displayMagenta
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Unlink_Parent
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: node
-    double precision                    , intent(in   )          :: massResolution
-    type            (mergerTree        ), intent(in   )          :: tree
-    class           (nodeComponentBasic)               , pointer :: basic_                   , basicParent_
-    logical                                                      :: closeToResolution
-    logical                             , save                   :: warned           =.false.
+    class           (mergerTreeBuilderCole2000), intent(inout)          :: self
+    type            (treeNode                 ), intent(inout), pointer :: node
+    double precision                           , intent(in   )          :: massResolution
+    type            (mergerTree               ), intent(in   )          :: tree
+    class           (nodeComponentBasic       )               , pointer :: basic_                   , basicParent_
+    logical                                                             :: closeToResolution
+    logical                                    , save                   :: warned           =.false.
     
     if (associated(node%parent)) then
        basic_       => node       %basic()
        basicParent_ => node%parent%basic()
        if (basicParent_%time() < basic_%time()) then
-          closeToResolution= basicParent_%mass() < massResolution*(1.0d0+self_%toleranceResolutionParent) &
+          closeToResolution= basicParent_%mass() < massResolution*(1.0d0+self%toleranceResolutionParent)  &
                &            .and.                                                                         &
-               &             basic_      %mass() < massResolution*(1.0d0+self_%toleranceResolutionSelf  )
-          if (self_%ignoreWellOrdering .or. closeToResolution) then
+               &             basic_      %mass() < massResolution*(1.0d0+self%toleranceResolutionSelf  )
+          if (self%ignoreWellOrdering .or. closeToResolution) then
              ! Parent halo is very close to the resolution limit, or we are ignoring well-ordering errors. Simply prune away the remainder of this branch.
              if (.not.closeToResolution.and..not.warned) then
                 !$omp critical(mergerTreeBuilderCole2000WellOrderingWarn)
@@ -1074,9 +1065,9 @@ contains
                message=message//" ->       node mass = "//label//" M☉" //char(10)
                write (label,'(e20.14)')                                                             basicParent_%mass()
                message=message//" ->     parent mass = "//label//" M☉" //char(10)
-               write (label,'(e20.14)') self_%workers(numberWorker)%criticalOverdensity_%value(time=basic_      %time(),mass=basic_      %mass(),node=node       )
+               write (label,'(e20.14)') self%workers(numberWorker)%criticalOverdensity_%value(time=basic_      %time(),mass=basic_      %mass(),node=node       )
                message=message//" ->         node δc = "//label        //char(10)
-               write (label,'(e20.14)') self_%workers(numberWorker)%criticalOverdensity_%value(time=basicParent_%time(),mass=basicParent_%mass(),node=node%parent)
+               write (label,'(e20.14)') self%workers(numberWorker)%criticalOverdensity_%value(time=basicParent_%time(),mass=basicParent_%mass(),node=node%parent)
                message=message//" ->       parent δc = "//label        //char(10)
                basic_ => tree%nodeBase%basic()
                write (label,'(e20.14)')                                   basic_%time()
