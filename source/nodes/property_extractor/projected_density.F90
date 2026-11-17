@@ -30,6 +30,10 @@
 
    A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The line of sight then passes through the center of the mass distribution, where the projected density is finite only if the central logarithmic slope of the density profile exceeds :math:`-1` (an :term:`NFW` profile, for example, gives a logarithmically divergent integral). Where it is finite it is evaluated, by adding to the numerical integral an analytic estimate of the contribution from within some small radius, assuming that the density there follows the asymptotic central power law, and reducing that radius until the result no longer depends on it. Where it is not finite, a radius of zero is by default reported as a fatal error naming the offending specifier; setting ``zeroRadiusIsFatal`` to ``false`` instead writes the undefined-value sentinel in place of the projected density.
    </description>
+   <stateStorable>
+    <!-- Not stored: radii - radius definitions, set by the constructor and never changed afterwards. -->
+    <exclude variables="radii"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorProjectedDensity

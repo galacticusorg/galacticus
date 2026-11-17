@@ -28,6 +28,10 @@
    <description>
    A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output are specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid :ref:`radius specifier &lt;manual-sec-radiusspecifiers&gt;`.
    </description>
+   <stateStorable>
+    <!-- Not stored: radii - radius definitions, set by the constructor and never changed afterwards. -->
+    <exclude variables="radii"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorRotationCurve

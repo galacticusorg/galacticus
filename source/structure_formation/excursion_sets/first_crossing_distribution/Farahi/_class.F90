@@ -184,6 +184,12 @@ Implements a excursion set first crossing statistics class using the algorithm o
 
    The first crossing rate is computed using the same method but with an effective barrier which is offset by the position of the progenitor in the :math:`(\delta,S)` plane, plus a small shift in time. The non-crossing rate, :math:`g(S_\mathrm{max})`, defined as the rate at which trajectories reach the maximum possible variance, :math:`S_\mathrm{max}`, without ever crossing the barrier---is computed directly by integrating over the first crossing rate distribution, i.e. :math:`g(S_\mathrm{max}) = 1 -\int_0^{S_\mathrm{max}} f(\tilde{S}) \mathrm{d}\tilde{S}`. Note that since the numerical integration occurs only up to a finite maximum :math:`S_\mathrm{max}`, a non-zero non-crossing rate will be computed for CDM-like barriers even though in reality they should have zero non-crossing rate. As such, use of this method for such barriers is not recommended.
    </description>
+   <stateStorable>
+    <!-- `fileName` (a varying string) is not state-stored: a restored object keeps the unexpanded name given to its constructor
+         (e.g. "auto"). The flag recording that the name has been expanded must therefore not be restored either, so that the
+         restored object expands its name afresh rather than using that unexpanded name. -->
+    <exclude variables="fileNameInitialized"/>
+   </stateStorable>
   </excursionSetFirstCrossing>
   !!]
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingFarahi

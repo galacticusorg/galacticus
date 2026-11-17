@@ -46,6 +46,10 @@
    the mean and variance of each Gaussian process are transformed back to principal component coefficients, and projected
    onto the bins of the observable, neglecting covariance between components.
    </description>
+   <stateStorable>
+    <!-- Not stored: components - set by the constructor and never changed afterwards. -->
+    <exclude variables="components"/>
+   </stateStorable>
   </emulator>
   !!]
   type, extends(emulatorClass) :: emulatorGaussianProcess

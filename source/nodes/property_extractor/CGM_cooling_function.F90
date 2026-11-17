@@ -36,7 +36,9 @@
     <functionClass variables="radiation"/>
    </deepCopy>
    <stateStorable>
+    <!-- Not stored: radii - radius definitions, set by the constructor and never changed afterwards. -->
     <functionClass variables="radiation"/>
+    <exclude variables="radii"/>
    </stateStorable>
   </nodePropertyExtractor>
   !!]

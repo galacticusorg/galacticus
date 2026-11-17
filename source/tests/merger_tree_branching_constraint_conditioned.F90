@@ -59,83 +59,94 @@ program Tests_Merger_Tree_Branching_Constraint_Conditioned
   &                                                              Unit_Tests_End_Group                                        , &
   &                                                              Unit_Tests_Finish
   implicit none
-  type            (cosmologyParametersSimple                                   )                                                :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                              )                                                :: cosmologyFunctions_
-  type            (linearGrowthCollisionlessMatter                             )                                                :: linearGrowth_
-  type            (powerSpectrumPrimordialPowerLaw                             )                                                :: powerSpectrumPrimordial_
-  type            (transferFunctionIdentity                                    )                                                :: transferFunction_
-  type            (powerSpectrumNormalizerSigma8                               )                                                :: powerSpectrumNormalizer_
-  type            (powerSpectrumPrimordialTransferredSimple                    )                                                :: powerSpectrumPrimordialTransferred_
-  type            (powerSpectrumWindowFunctionSharpKSpace                      )                                                :: powerSpectrumWindowFunction_
-  type            (cosmologicalMassVarianceFilteredPower                       ), target                                        :: cosmologicalMassVariance_
-  type            (darkMatterParticleCDM                                       )                                                :: darkMatterParticle_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                                :: criticalOverdensity_
-  type            (excursionSetBarrierCriticalOverdensity                      )                                                :: excursionSetBarrier_
-  type            (excursionSetFirstCrossingLinearBarrier                      )                                                :: excursionSetFirstCrossing_
-  type            (mergerTreeBranchingProbabilityModifierIdentity              )                                                :: modifier_
-  type            (mergerTreeBranchingProbabilityGeneralizedPressSchechter     )                                                :: wrapped
-  type            (mergerTreeMassResolutionFixed                               )                                                :: massResolution_
-  type            (randomNumberGeneratorGSL                                    )                                                :: randomNumberGenerator_
-  type            (mergerTree                                                  ), target                                        :: tree
-  type            (treeNode                                                    ), target                                        :: node
+  type            (cosmologyParametersSimple                                   )                                                             :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                              )                                                             :: cosmologyFunctions_
+  type            (linearGrowthCollisionlessMatter                             )                                                             :: linearGrowth_
+  type            (powerSpectrumPrimordialPowerLaw                             )                                                             :: powerSpectrumPrimordial_
+  type            (transferFunctionIdentity                                    )                                                             :: transferFunction_
+  type            (powerSpectrumNormalizerSigma8                               )                                                             :: powerSpectrumNormalizer_
+  type            (powerSpectrumPrimordialTransferredSimple                    )                                                             :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumWindowFunctionSharpKSpace                      )                                                             :: powerSpectrumWindowFunction_
+  type            (cosmologicalMassVarianceFilteredPower                       ), target                                                     :: cosmologicalMassVariance_
+  type            (darkMatterParticleCDM                                       )                                                             :: darkMatterParticle_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                                             :: criticalOverdensity_
+  type            (excursionSetBarrierCriticalOverdensity                      )                                                             :: excursionSetBarrier_
+  type            (excursionSetFirstCrossingLinearBarrier                      )                                                             :: excursionSetFirstCrossing_
+  type            (mergerTreeBranchingProbabilityModifierIdentity              )                                                             :: modifier_
+  type            (mergerTreeBranchingProbabilityGeneralizedPressSchechter     )                                                             :: wrapped
+  type            (mergerTreeMassResolutionFixed                               )                                                             :: massResolution_
+  type            (randomNumberGeneratorGSL                                    )                                                             :: randomNumberGenerator_
+  type            (mergerTree                                                  ), target                                                     :: tree
+  type            (treeNode                                                    ), target                                                     :: node
   ! Cases use a wide window at two redshifts, and the default window, which needs a finer tabulation.
-  integer                                                                       , parameter                                     :: countCase                          =3                                   , &
-       &                                                                                                                           countFine                          =20000                               , &
-       &                                                                                                                           countParent                        =3                                   , &
-       &                                                                                                                           countFraction                      =5                                   , &
-       &                                                                                                                           countOffset                        =2
-  double precision                                                              , parameter                                     :: massConstraint                     =1.0d12                              , &
-       &                                                                                                                           massResolutionFixed                =1.0d10                              , &
-       &                                                                                                                           stepDelta                          =0.01d0                              , &
-       &                                                                                                                           massMinimum                        =1.0d6
-  double precision                                                              , dimension(              countCase), parameter :: redshiftConstraint                 =[1.00d0,3.00d0,1.000d0]             , &
-       &                                                                                                                           windowsLogMass                     =[0.30d0,0.30d0,0.050d0]             , &
-       &                                                                                                                           stepsLogMass                       =[0.02d0,0.02d0,0.005d0]
+  integer                                                                       , parameter                                                  :: countCase                          =3                                   , &
+       &                                                                                                                                        countFine                          =20000                               , &
+       &                                                                                                                                        countParent                        =3                                   , &
+       &                                                                                                                                        countFraction                      =5                                   , &
+       &                                                                                                                                        countOffset                        =2                                   , &
+       &                                                                                                                                        countNearTop                       =2
+  double precision                                                              , parameter                                                  :: massConstraint                     =1.0d12                              , &
+       &                                                                                                                                        massResolutionFixed                =1.0d10                              , &
+       &                                                                                                                                        stepDelta                          =0.01d0                              , &
+       &                                                                                                                                        massMinimum                        =1.0d6
+  double precision                                                              , dimension(              countCase             ), parameter :: redshiftConstraint                 =[1.00d0,3.00d0,1.000d0]             , &
+       &                                                                                                                                        windowsLogMass                     =[0.30d0,0.30d0,0.050d0]             , &
+       &                                                                                                                                        stepsLogMass                       =[0.02d0,0.02d0,0.005d0]
   ! Offsets of the critical overdensity from the constraint at which the tabulation is checked. The largest comes first, so that
   ! the table is built only once.
-  double precision                                                              , dimension(countOffset            ), parameter :: deltaOffsets                       =[1.00d0,0.30d0]
+  double precision                                                              , dimension(countOffset                         ), parameter :: deltaOffsets                       =[1.00d0,0.30d0]
   ! For the default window the parents include masses just above the window, where the expectation is hardest to converge.
-  double precision                                                              , dimension(countParent  ,countCase), parameter :: massesParent                       =reshape([3.0d12,1.0d13,3.0d13,3.0d12,1.0d13,3.0d13,1.1d12,2.0d12,1.0d13],[countParent,countCase])
+  double precision                                                              , dimension(countParent  ,countCase             ), parameter :: massesParent                       =reshape([3.0d12,1.0d13,3.0d13,3.0d12,1.0d13,3.0d13,1.1d12,2.0d12,1.0d13],[countParent,countCase])
   ! Each redshift has its own objects, as assigning a constructor result onto an object already in use risks a double finalization
   ! (GCC PR 110626).
-  type            (mergerTreeBranchingProbabilityConstraintConditioned         ), dimension(              countCase)            :: conditioned                                                             , &
-       &                                                                                                                           conditionedFine
-  double precision                                                              , dimension(countFraction          ), parameter :: fractionsSought                    =[1.0d-3,1.0d-2,0.25d0,0.50d0,0.75d0]
-  ! Tolerances. The largest deviations attained are 0.16% (first step), 0.30% (backward equation), 0.39% (grid convergence), and
-  ! 0.005% (inversion of the cumulative rate). A quadrature that does not resolve the default window fails the grid convergence
+  type            (mergerTreeBranchingProbabilityConstraintConditioned         ), dimension(              countCase             )            :: conditioned                                                             , &
+       &                                                                                                                                        conditionedFine
+  type            (mergerTreeBranchingProbabilityConstraintConditioned         )                                                             :: conditionedExtended
+  ! A mass and critical overdensity offset beyond the range of the initial table, used to force it to be extended.
+  double precision                                                              , parameter                                                  :: massExtended                       =1.0d15                              , &
+       &                                                                                                                                        deltaOffsetExtended                =2.00d0
+  ! Masses just below the top of the initial table, which extends to a little above four times the largest parent mass. A
+  ! dependence of the solution on the extent of the table enters at its top, and moves down by one mass step per step in critical
+  ! overdensity, so these masses are within its reach at both offsets.
+  double precision                                                              , dimension(            countNearTop            ), parameter :: massesNearTop                   =[1.1d14,1.2d14]
+  double precision                                                              , dimension(countParent+countNearTop            )            :: massesInitial
+  double precision                                                              , dimension(countParent+countNearTop,countOffset)            :: expectationsInitial
+  double precision                                                              , dimension(countFraction                       ), parameter :: fractionsSought                    =[1.0d-3,1.0d-2,0.25d0,0.50d0,0.75d0]
+  ! Tolerances. The largest deviations attained are 0.16% (first step), 0.57% (backward equation), 0.47% (grid convergence), and
+  ! 0.016% (inversion of the cumulative rate). A quadrature that does not resolve the default window fails the grid convergence
   ! assertions by up to 7%. Omitting the growth factor from the tabulated rates fails 36 of these assertions, and omitting it
   ! from only the sub-resolution mass loss fails 5 of them.
-  double precision                                                              , parameter                                     :: toleranceFirstStep                 =1.0d-2                              , &
-       &                                                                                                                           toleranceResidual                  =2.0d-2                              , &
-       &                                                                                                                           toleranceConvergence               =1.0d-2                              , &
-       &                                                                                                                           toleranceInverse                   =2.0d-2                              , &
-       &                                                                                                                           toleranceExact                     =1.0d-12
-  double precision                                                                                                              :: timePresent                                                             , &
-       &                                                                                                                           timeConstraint                                                          , &
-       &                                                                                                                           deltaConstraint                                                         , &
-       &                                                                                                                           varianceConstraint                                                      , &
-       &                                                                                                                           growthFactor                                                            , &
-       &                                                                                                                           delta                                                                   , &
-       &                                                                                                                           time                                                                    , &
-       &                                                                                                                           massParent                                                              , &
-       &                                                                                                                           expected                                                                , &
-       &                                                                                                                           actual                                                                  , &
-       &                                                                                                                           H                                                                       , &
-       &                                                                                                                           HFine                                                                   , &
-       &                                                                                                                           probability                                                             , &
-       &                                                                                                                           massBranch                                                              , &
-       &                                                                                                                           rateExpected                                                            , &
-       &                                                                                                                           massDrawn                                                               , &
-       &                                                                                                                           drift                                                                   , &
-       &                                                                                                                           gradient                                                                , &
-       &                                                                                                                           derivative                                                              , &
-       &                                                                                                                           windowLogMass                                                           , &
-       &                                                                                                                           stepLogMass
-  double precision                                                              , dimension(countParent            )            :: massParents
-  integer                                                                                                                       :: i                                                                       , &
-       &                                                                                                                           j                                                                       , &
-       &                                                                                                                           k
-  character       (len=16                                                      )                                                :: label
+  double precision                                                              , parameter                                                  :: toleranceFirstStep                 =1.0d-2                              , &
+       &                                                                                                                                        toleranceResidual                  =2.0d-2                              , &
+       &                                                                                                                                        toleranceConvergence               =1.0d-2                              , &
+       &                                                                                                                                        toleranceInverse                   =2.0d-2                              , &
+       &                                                                                                                                        toleranceExact                     =1.0d-12
+  double precision                                                                                                                           :: timePresent                                                             , &
+       &                                                                                                                                        timeConstraint                                                          , &
+       &                                                                                                                                        deltaConstraint                                                         , &
+       &                                                                                                                                        varianceConstraint                                                      , &
+       &                                                                                                                                        growthFactor                                                            , &
+       &                                                                                                                                        delta                                                                   , &
+       &                                                                                                                                        time                                                                    , &
+       &                                                                                                                                        massParent                                                              , &
+       &                                                                                                                                        expected                                                                , &
+       &                                                                                                                                        actual                                                                  , &
+       &                                                                                                                                        H                                                                       , &
+       &                                                                                                                                        HFine                                                                   , &
+       &                                                                                                                                        probability                                                             , &
+       &                                                                                                                                        massBranch                                                              , &
+       &                                                                                                                                        rateExpected                                                            , &
+       &                                                                                                                                        massDrawn                                                               , &
+       &                                                                                                                                        drift                                                                   , &
+       &                                                                                                                                        gradient                                                                , &
+       &                                                                                                                                        derivative                                                              , &
+       &                                                                                                                                        windowLogMass                                                           , &
+       &                                                                                                                                        stepLogMass
+  double precision                                                              , dimension(countParent                         )            :: massParents
+  integer                                                                                                                                    :: i                                                                       , &
+       &                                                                                                                                        j                                                                       , &
+       &                                                                                                                                        k
+  character       (len=16                                                      )                                                             :: label
 
   call displayVerbositySet     (verbosityLevelWorking)
   call Error_Handler_Register  (                     )
@@ -256,6 +267,37 @@ program Tests_Merger_Tree_Branching_Constraint_Conditioned
      call Unit_Tests_End_Group()
      call Unit_Tests_End_Group()
   end do
+  ! Extending the table, to larger masses and to lower critical overdensities, must leave the expectation exactly unchanged where
+  ! it was previously tabulated, so that trees do not depend on the order in which they are built. A step in critical overdensity
+  ! differing from those above gives this object a table of its own.
+  call Unit_Tests_Begin_Group("table extension")
+  i                 =1
+  windowLogMass     =windowsLogMass(i)
+  timeConstraint    =+cosmologyFunctions_      %cosmicTime(expansionFactor=1.0d0/(1.0d0+redshiftConstraint(i)))
+  deltaConstraint   =+criticalOverdensity_     %value     (time=timeConstraint,mass=massConstraint)             &
+       &             /linearGrowth_            %value     (time=timeConstraint                    )
+  varianceConstraint=+cosmologicalMassVariance_%rootVariance(time=timePresent ,mass=massConstraint)**2
+  conditionedExtended=mergerTreeBranchingProbabilityConstraintConditioned(deltaConstraint,varianceConstraint,windowLogMass,stepsLogMass(i),2.0d0*stepDelta,wrapped,massResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+  ! The initial table is built for the largest parent mass and offset, so that all of the values recorded come from that table.
+  massesInitial(1:countParent   )=massesParent (:,i)
+  massesInitial(countParent+1:  )=massesNearTop
+  H=conditionedExtended%progenitorExpectation(massesParent(countParent,i),deltaConstraint-deltaOffsets(1),massResolutionFixed,node)
+  do k=1,countOffset
+     do j=1,countParent+countNearTop
+        expectationsInitial(j,k)=conditionedExtended%progenitorExpectation(massesInitial(j),deltaConstraint-deltaOffsets(k),massResolutionFixed,node)
+     end do
+  end do
+  H=conditionedExtended%progenitorExpectation(massExtended,deltaConstraint-deltaOffsetExtended,massResolutionFixed,node)
+  do k=1,countOffset
+     write (label,'(f4.2)') deltaOffsets(k)
+     call Unit_Tests_Begin_Group("δ₁ - δ = "//trim(adjustl(label)))
+     do j=1,countParent+countNearTop
+        write (label,'(es8.1)') massesInitial(j)
+        call Assert('unchanged by extension, M = '//trim(adjustl(label)),conditionedExtended%progenitorExpectation(massesInitial(j),deltaConstraint-deltaOffsets(k),massResolutionFixed,node),expectationsInitial(j,k))
+     end do
+     call Unit_Tests_End_Group()
+  end do
+  call Unit_Tests_End_Group()
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
 

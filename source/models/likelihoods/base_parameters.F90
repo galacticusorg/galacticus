@@ -48,6 +48,11 @@
    <description>
    A posterior sampling likelihood class which allows arbitrary modification of a base parameter object.
    </description>
+   <stateStorable>
+    <!-- Not stored: modelParametersActive_, modelParametersInactive_ - this class is not used by the evolveForests task, which is
+         the only task that stores and restores state. -->
+    <exclude variables="modelParametersActive_, modelParametersInactive_"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, abstract, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodBaseParameters

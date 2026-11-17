@@ -43,6 +43,11 @@
    <description>
    The standard stellar populations broad band luminosities class.
    </description>
+   <stateStorable>
+    <!-- Not stored: luminosityTables - tables built on demand, and each records whether it has been built, so a restored object
+         rebuilds them when needed. -->
+    <exclude variables="luminosityTables"/>
+   </stateStorable>
   </stellarPopulationBroadBandLuminosities>
   !!]
   type, extends(stellarPopulationBroadBandLuminositiesClass) :: stellarPopulationBroadBandLuminositiesStandard

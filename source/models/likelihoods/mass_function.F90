@@ -47,6 +47,11 @@
 
    The HDF5 file specified by the ``massFunctionFileName`` element should contain a ``mass`` dataset, giving the masses at which the mass function is measured (in units of :math:`\mathrm{M}_\odot`), a ``massFunctionObserved`` dataset giving the observed values of the mass function at those masses (in units of Mpc\ :math:`^{-3}` per :math:`\log M`), and a ``covariance`` dataset, giving the covariance of the mass function (in units of Mpc\ :math:`^{-6}`).
    </description>
+   <stateStorable>
+    <!-- Not stored: covariance, means - this class is not used by the evolveForests task, which is the only task that stores and
+         restores state. -->
+    <exclude variables="covariance, means"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMassFunction

@@ -105,6 +105,10 @@ Implements a property extractor class for broadband stellar luminosities compute
    matches the tabulation's own treatment of metallicity, and which for age is bounded where a linear extrapolation of a steeply
    rising young-population luminosity need not be.
    </description>
+   <stateStorable>
+    <!-- Not stored: postprocessor - set by the constructor and never changed afterwards. -->
+    <exclude variables="postprocessor"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLuminosityStellarFromStarFormationHistory

@@ -2997,7 +2997,7 @@ def test_process_state_storable_class_restore():
         out = serialize(root)
         assert_equal('subroutine baseTClassRestore(self,stateFile)' in out, True,
                      "rank-0 class-restore dispatcher emitted")
-        assert_equal('subroutine baseTClassRestore1D(self,stateFile,storedShape)'
+        assert_equal('subroutine baseTClassRestore1D(self,stateFile,storedBounds)'
                      in out, True,
                      "rank-1 class-restore dispatcher emitted")
         assert_equal('allocate(subT :: self' in out, True,
@@ -3961,13 +3961,15 @@ def test_functionclass_statestore_generate_allocatable():
     assert_equal(sss['dimensionalsFound'], True, "dimensionalsFound flipped")
     assert_equal(sss['stateFileUsed'],     True, "stateFileUsed flipped")
     assert_equal(sss['labelUsed'],         True, "labelUsed flipped")
-    assert_equal('shape(self%arr,kind=c_size_t)' in ss['outputCode'], True,
-                 "shape() line emitted")
-    assert_equal('allocate(storedShape(3))' in ss['inputCode'], True,
-                 "rank-3 storedShape allocation emitted")
-    assert_equal('allocate(self%arr(storedShape(1),storedShape(2),storedShape(3)))'
+    # Bounds, not just the shape, are stored, so that arrays with non-unit
+    # lower bounds are restored correctly (issue #1786).
+    assert_equal('lbound(self%arr,kind=c_size_t),ubound(self%arr,kind=c_size_t)' in ss['outputCode'], True,
+                 "bounds line emitted")
+    assert_equal('allocate(storedBounds(6))' in ss['inputCode'], True,
+                 "rank-3 storedBounds allocation emitted")
+    assert_equal('allocate(self%arr(storedBounds(1):storedBounds(4),storedBounds(2):storedBounds(5),storedBounds(3):storedBounds(6)))'
                  in ss['inputCode'], True,
-                 "rank-3 shaped allocate emitted on restore")
+                 "rank-3 bounded allocate emitted on restore")
 
 
 def test_functionclass_statestore_variables_static_and_restore():
@@ -4019,8 +4021,8 @@ def test_functionclass_statestore_variables_allocatable_intrinsic():
     ss = {}
     sss = {}
     state_store_variables(sss, ss, None, declarations, [], {})
-    assert_equal('allocate(storedShape(1))' in ss['inputCode'], True,
-                 "allocatable intrinsic triggers storedShape(1) allocation")
+    assert_equal('allocate(storedBounds(2))' in ss['inputCode'], True,
+                 "allocatable intrinsic triggers storedBounds(2) allocation")
     assert_equal(sss.get('allocatablesFound'), True,
                  "allocatablesFound flag set")
 

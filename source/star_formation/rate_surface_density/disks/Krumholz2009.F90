@@ -81,6 +81,11 @@
    \right]/4.1`. These differ from the :cite:t:`krumholz_star_2009` definitions above by less than 5% in :math:`s` for
    :math:`0.01 \le Z^\prime \le 3`.
    </description>
+   <stateStorable>
+    <!-- Not stored: abundancesFuelPrevious - part of a memoization key: left at its constructed value it never matches, so the
+         memoized values are recomputed after a restore. -->
+    <exclude variables="abundancesFuelPrevious"/>
+   </stateStorable>
   </starFormationRateSurfaceDensityDisks>
   !!]
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKrumholz2009
