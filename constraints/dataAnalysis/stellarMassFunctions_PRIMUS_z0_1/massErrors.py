@@ -51,7 +51,7 @@ for iField, fileName in enumerate(fileNames):
         mass50    = table['MASS_50' ].astype(float)
         massErr   = table['MASS_ERR'].astype(float)
 
-    # Construct matrices required to optimise the polynomial coefficients.
+    # Construct matrices required to optimize the polynomial coefficients.
     nSeq = len(sequence)
     b = np.zeros(nSeq)
     a = np.zeros((nSeq, nSeq))

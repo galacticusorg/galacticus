@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo mass accretion histories computed from merger tree branching rates.
   !!}
@@ -27,7 +29,11 @@
   !![
   <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryMergerTreeBranching" docformat="rst">
    <description>
-   Dark matter halo mass accretion histories computed from merger tree branching rates.
+   Dark matter halo mass accretion histories computed from merger tree branching rates. The accretion rate of the main branch
+   is taken to be the rate of accretion in progenitors with masses below half of the halo mass, which is correct only if
+   branchings are drawn from the lower half of the distribution function. A
+   :galacticus-class:`mergerTreeBranchingProbabilityGeneralizedPressSchechter` object must therefore have
+   ``[distributionFunctionLowerHalfOnly]``\ :math:`=`\ ``true``.
    </description>
   </darkMatterHaloMassAccretionHistory>
   !!]
@@ -86,6 +92,8 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`darkMatterHaloMassAccretionHistoryMergerTreeBranching` dark matter halo mass accretion history class.
     !!}
+    use :: Error                , only : Error_Report
+    use :: Merger_Tree_Branching, only : mergerTreeBranchingProbabilityGeneralizedPressSchechter
     implicit none
     type (darkMatterHaloMassAccretionHistoryMergerTreeBranching)                        :: self
     class(mergerTreeBranchingProbabilityClass                  ), intent(in   ), target :: mergerTreeBranchingProbability_
@@ -95,6 +103,15 @@ contains
     <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBranchingProbability_"/>
     !!]
 
+    ! The main branch accretion rate is taken to be the rate of accretion of progenitors with masses below half of the halo
+    ! mass. This is correct only if branchings are drawn from the lower half of the distribution function. If the full range is
+    ! used, the main branch also loses mass through draws of the larger progenitor whose complement is discarded, which this
+    ! class does not include.
+    select type (mergerTreeBranchingProbability_)
+    class is (mergerTreeBranchingProbabilityGeneralizedPressSchechter)
+       if (.not.mergerTreeBranchingProbability_%distributionFunctionIsLowerHalfOnly()) &
+            & call Error_Report('the generalized Press-Schechter branching probability object must have [distributionFunctionLowerHalfOnly]=true'//{introspection:location})
+    end select
     return
   end function mergerTreeBranchingConstructorInternal
 

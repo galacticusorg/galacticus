@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a merger remnant size class which uses the :cite:t:`cole_hierarchical_2000` algorithm.
+  Implements a merger remnant size class which uses the :cite:t:`covington_predicting_2008` algorithm.
   !!}
 
   use :: Dark_Matter_Halo_Scales                , only : darkMatterHaloScaleClass

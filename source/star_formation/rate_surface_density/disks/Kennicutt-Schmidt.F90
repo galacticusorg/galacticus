@@ -141,11 +141,11 @@ contains
     <inputParameter docformat="rst">
       <name>velocityDispersionDiskGas</name>
       <defaultSource>
-      :cite:p:`leroy_star_2008`
+      :cite:p:`kennicutt_star_1989`
       </defaultSource>
-      <defaultValue>10.0d0</defaultValue>
+      <defaultValue>6.0d0</defaultValue>
       <description>
-      The velocity dispersion of gas in galactic disks (in km/s), used to compute the critical gas surface density :math:`\Sigma_\mathrm{crit}` for Toomre stability and truncation of the Kennicutt-Schmidt star formation law at low surface densities.
+      The velocity dispersion of gas in galactic disks (in km/s), used to compute the critical gas surface density :math:`\Sigma_\mathrm{crit}` for Toomre stability and truncation of the Kennicutt-Schmidt star formation law at low surface densities. The default is the value adopted by :cite:t:`kennicutt_star_1989` in determining the critical surface density, and so should be changed together with ``[toomreParameterCritical]``.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -154,9 +154,9 @@ contains
       <defaultSource>
       :cite:p:`kennicutt_star_1989`
       </defaultSource>
-      <defaultValue>0.4d0</defaultValue>
+      <defaultValue>0.6264485350908219d0</defaultValue>
       <description>
-      The dimensionless critical Toomre stability parameter :math:`q_\mathrm{crit}` that sets the threshold gas surface density :math:`\Sigma_\mathrm{crit} = q_\mathrm{crit}\kappa\sigma_\mathrm{gas}/(\pi G)` below which star formation is suppressed in disks.
+      The dimensionless critical Toomre stability parameter :math:`q_\mathrm{crit}` that sets the threshold gas surface density :math:`\Sigma_\mathrm{crit} = q_\mathrm{crit}\kappa\sigma_\mathrm{gas}/(\pi G)` below which star formation is suppressed in disks. :cite:t:`kennicutt_star_1989` find :math:`\Sigma_\mathrm{crit} = \alpha \kappa \sigma_\mathrm{gas}/(3.36 G)` with :math:`\alpha=0.67` for :math:`\sigma_\mathrm{gas}=6` km/s, comparing it with the total gas surface density (hydrogen plus other elements), as is done here; the default is the equivalent value, :math:`q_\mathrm{crit} = 0.67 \pi/3.36`. Only the product :math:`q_\mathrm{crit} \sigma_\mathrm{gas}` affects the critical surface density, so this should be changed together with ``[velocityDispersionDiskGas]``.
       </description>
       <source>parameters</source>
     </inputParameter>

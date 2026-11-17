@@ -46,6 +46,11 @@
 
    where :math:`\Delta = \theta - \bar{\theta}`, :math:`\theta` is the state, :math:`\bar{\theta}` is the mean, and :math:`\mathcal{C}` is the covariance matrix.
    </description>
+   <stateStorable>
+    <!-- Not stored: covariance, means - this class is not used by the evolveForests task, which is the only task that stores and
+         restores state. -->
+    <exclude variables="covariance, means"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMultivariateNormal

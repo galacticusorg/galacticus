@@ -30,7 +30,7 @@ def _source_files_recursive(root):
 
 
 # ---------------------------------------------------------------------------
-# Per-file processing (parallelised across files)
+# Per-file processing (parallelized across files)
 # ---------------------------------------------------------------------------
 #
 # Reading each candidate source file (to detect a `program` statement) is the

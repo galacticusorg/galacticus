@@ -15,9 +15,10 @@ from List.ExtraUtils                                         import as_array
 from Galacticus.Build.StateStorables                         import (
     function_class_names    as _shared_function_class_names,
     function_class_instances as _shared_function_class_instances,
+    is_self_storing_type, is_unstored_type,
 )
 from Galacticus.Build.SourceTree.Process.FunctionClass.Utils import (
-    strip_variable_name, declaration_rank,
+    strip_variable_name, declaration_rank, variable_rank,
 )
 
 
@@ -95,6 +96,22 @@ def state_store_explicit_function(non_abstract_class):
 # Allocatable store/restore (shared between functionClass and intrinsic paths)
 # ---------------------------------------------------------------------------
 
+def bounds_expression(variable_name, rank):
+    """Return the expression written to the state file to record the bounds
+    of the allocatable array `self%<variable_name>` of the given rank: its
+    lower bounds followed by its upper bounds, as `c_size_t` integers."""
+    return (f"lbound(self%{variable_name},kind=c_size_t),"
+            f"ubound(self%{variable_name},kind=c_size_t)")
+
+
+def bounds_specification(rank):
+    """Return the bounds specification (`l1:u1,l2:u2,...`) with which to
+    reallocate an array of the given rank from the `storedBounds` array read
+    back from a record written by `bounds_expression`."""
+    return ",".join(f"storedBounds({i}):storedBounds({rank + i})"
+                    for i in range(1, rank + 1))
+
+
 def generate_allocatable_state_store_code(state_store, state_stores,
                                           variable_name, rank,
                                           write_expr, read_expr):
@@ -118,7 +135,10 @@ def generate_allocatable_state_store_code(state_store, state_stores,
         "//trim(adjustl(label))//' bytes')\n"
         "  end if\n"
         "  write (stateFile) .true.\n"
-        f"  write (stateFile) shape(self%{variable_name},kind=c_size_t)\n"
+        # Store the bounds, not just the shape: arrays declared with a
+        # non-unit lower bound (e.g. `dimension(0:n)`) must be restored with
+        # that same lower bound, or every index into them is shifted (#1786).
+        f"  write (stateFile) {bounds_expression(variable_name, rank)}\n"
         f"  write (stateFile) {write_expr}\n"
         " else\n"
         "  write (stateFile) .false.\n"
@@ -130,12 +150,10 @@ def generate_allocatable_state_store_code(state_store, state_stores,
         " if (wasAllocated) then\n"
         f"  call displayMessage('restoring \"{variable_name}\"',"
         "verbosity=verbosityLevelWorking)\n"
-        f"  allocate(storedShape({rank}))\n"
-        "  read (stateFile) storedShape\n"
-        f"  allocate(self%{variable_name}("
-        + ",".join(f"storedShape({i})" for i in range(1, rank + 1))
-        + "))\n"
-        "  deallocate(storedShape)\n"
+        f"  allocate(storedBounds({2 * rank}))\n"
+        "  read (stateFile) storedBounds\n"
+        f"  allocate(self%{variable_name}({bounds_specification(rank)}))\n"
+        "  deallocate(storedBounds)\n"
         f"  read (stateFile) {read_expr}\n"
         " end if\n"
     )
@@ -157,13 +175,20 @@ def state_store_variables(state_stores, state_store, class_record,
         `stateFileUsed`, `gslStateFileUsed`, `labelUsed`, `rankMaximum`,
         `stateRestoreModules`.
       - `state_store`: `outputCode`, `inputCode`, `staticVariables`,
-        `excludes`, `hasCustomStateStore`, `hasCustomStateRestore`.
+        `excludes`, `hasCustomStateStore`, `hasCustomStateRestore`, and
+        `unstored` (a list of `(owner, member, type, source)` for each owned
+        member of a type that is not state-storable, where `owner` and
+        `source` are taken from `state_store['owner']` and
+        `state_store['ownerSource']`).
     `explicit_names_found` is a list appended to when a member is named
     in `class.stateStorable.functionClass.variables`.
     """
-    fc_names       = _function_class_name_set(state_storables)
-    fc_instances   = set(_function_class_instances(state_storables))
-    ss_by_type     = _state_storables_by_type(state_storables)
+    # Fortran is case-insensitive, so match type names case-insensitively
+    # (a member may be declared as, e.g., `type(table1dGeneric)` while its type
+    # is registered as `table1DGeneric`).
+    fc_names       = {n.lower() for n in _function_class_name_set(state_storables)}
+    fc_instances   = {n.lower() for n in _function_class_instances(state_storables)}
+    ss_by_type     = {t.lower(): e for t, e in _state_storables_by_type(state_storables).items() if t}
 
     excludes = [e.lower() for e in state_store.get('excludes') or []]
 
@@ -196,7 +221,7 @@ def state_store_variables(state_stores, state_store, class_record,
         if intrinsic in ('class', 'type'):
             # Pointer to a functionClass.
             if (intrinsic == 'class' and has_pointer
-                    and type_stripped in fc_names):
+                    and type_stripped.lower() in fc_names):
                 for v in variables:
                     name = strip_variable_name(v)
                     if name.lower() in excludes:
@@ -264,11 +289,16 @@ def state_store_variables(state_stores, state_store, class_record,
                 _maybe_flag_custom_hooks(state_store, declaration)
                 continue
 
-            # Explicitly stateStorable or functionClass instance.
-            if (type_stripped in ss_by_type
-                    or type_stripped in fc_instances):
+            # Explicitly stateStorable or functionClass instance, or a type
+            # that stores itself (via `stateStore(stateFile)` and
+            # `stateRestore(stateFile)` procedures).
+            is_self_storing = (intrinsic == 'type'
+                               and is_self_storing_type(type_stripped))
+            if (type_stripped.lower() in ss_by_type
+                    or type_stripped.lower() in fc_instances
+                    or is_self_storing):
                 explicits = _explicit_function_class_variables(class_record)
-                is_function_class = type_stripped in fc_instances
+                is_function_class = type_stripped.lower() in fc_instances
                 for v in variables:
                     name = strip_variable_name(v)
                     if name.lower() in excludes:
@@ -280,7 +310,7 @@ def state_store_variables(state_stores, state_store, class_record,
                     if is_explicit and explicit_names_found is not None:
                         explicit_names_found.append(name.lower())
 
-                    rank = declaration_rank(declaration)
+                    rank = variable_rank(declaration, v)
                     if rank > state_stores['rankMaximum']:
                         state_stores['rankMaximum'] = rank
 
@@ -294,8 +324,7 @@ def state_store_variables(state_stores, state_store, class_record,
                         )
                         if rank > 0:
                             state_store['outputCode'] += (
-                                f"  write (stateFile) shape(self%{name},"
-                                "kind=c_size_t)\n"
+                                f"  write (stateFile) {bounds_expression(name, rank)}\n"
                             )
                         state_store['inputCode'] += (
                             " read (stateFile) wasAllocated\n"
@@ -304,11 +333,11 @@ def state_store_variables(state_stores, state_store, class_record,
                         )
                         if rank > 0:
                             state_store['inputCode'] += (
-                                f"  allocate(storedShape({rank}))\n"
-                                "  read (stateFile) storedShape\n"
+                                f"  allocate(storedBounds({2 * rank}))\n"
+                                "  read (stateFile) storedBounds\n"
                             )
                         if intrinsic == 'class':
-                            storable   = ss_by_type.get(type_stripped, {}) or {}
+                            storable   = ss_by_type.get(type_stripped.lower(), {}) or {}
                             function_name = (
                                 f"{type_stripped}ClassRestore"
                                 + (f"{rank}D" if rank > 0 else '')
@@ -319,23 +348,20 @@ def state_store_variables(state_stores, state_store, class_record,
                             ] = True
                             state_store['inputCode'] += (
                                 f"  call {function_name}(self%{name},stateFile"
-                                + (',storedShape' if rank > 0 else '')
+                                + (',storedBounds' if rank > 0 else '')
                                 + ")\n"
                             )
                         else:
                             if rank > 0:
                                 state_store['inputCode'] += (
-                                    f"  allocate(self%{name}("
-                                    + ",".join(f"storedShape({i})"
-                                               for i in range(1, rank + 1))
-                                    + "))\n"
+                                    f"  allocate(self%{name}({bounds_specification(rank)}))\n"
                                 )
                             else:
                                 state_store['inputCode'] += (
                                     f"  allocate(self%{name})\n"
                                 )
                         if rank > 0:
-                            state_store['inputCode'] += "  deallocate(storedShape)\n"
+                            state_store['inputCode'] += "  deallocate(storedBounds)\n"
 
                     for i in range(1, rank + 1):
                         state_store['outputCode'] += (
@@ -376,25 +402,31 @@ def state_store_variables(state_stores, state_store, class_record,
                         f" call displayMessage('restoring \"{name}{array_element}\"',"
                         "verbosity=verbosityLevelWorking)\n"
                     )
-                    extra_store_arg = (
-                        ',stateOperationID' if is_function_class
-                        else ',storeIdentifier='
-                             + ('.true.' if intrinsic == 'class' else '.false.')
-                    )
-                    extra_restore_arg = (
-                        ',stateOperationID' if is_function_class else ''
-                    )
+                    if is_self_storing:
+                        store_arguments   = "stateFile"
+                        restore_arguments = "stateFile"
+                    else:
+                        store_arguments   = (
+                            "stateFile,gslStateFile"
+                            + (',stateOperationID' if is_function_class
+                               else ',storeIdentifier='
+                               + ('.true.' if intrinsic == 'class'
+                                  else '.false.'))
+                        )
+                        restore_arguments = (
+                            "stateFile,gslStateFile"
+                            + (',stateOperationID' if is_function_class
+                               else '')
+                        )
                     state_store['inputCode'] += (
                         (' ' * rank)
                         + f" call self%{name}{array_element}"
-                        + "%stateRestore(stateFile,gslStateFile"
-                        + extra_restore_arg + ")\n"
+                        + f"%stateRestore({restore_arguments})\n"
                     )
                     state_store['outputCode'] += (
                         (' ' * rank)
                         + f" call self%{name}{array_element}"
-                        + "%stateStore  (stateFile,gslStateFile"
-                        + extra_store_arg + ")\n"
+                        + f"%stateStore  ({store_arguments})\n"
                     )
                     for i in range(1, rank + 1):
                         state_store['outputCode'] += (
@@ -409,11 +441,12 @@ def state_store_variables(state_stores, state_store, class_record,
                             " else\n  write (stateFile) .false.\n end if\n"
                         )
                     state_stores['stateFileUsed']    = True
-                    state_stores['gslStateFileUsed'] = True
+                    if not is_self_storing:
+                        state_stores['gslStateFileUsed'] = True
                 _maybe_flag_custom_hooks(state_store, declaration)
                 continue
 
-            # Unrecognised derived type — deliberately emit nothing (the
+            # Unrecognized derived type — deliberately emit nothing (the
             # `class`/`type` arm has no fall-through into the intrinsic
             # branch).  Without this explicit continue our walk dropped into
             # the `is_allocatable` intrinsic path below and emitted, e.g.,
@@ -421,6 +454,24 @@ def state_store_variables(state_stores, state_store, class_record,
             # `type(stellarPopulationSpectraPostprocessorList), allocatable,
             # dimension(:)` member whose element type carries pointer
             # components — invalid Fortran I/O.
+            #
+            # Record each such member that the object owns (i.e. is not a
+            # pointer — pointers reference objects owned elsewhere), so that
+            # the caller can warn that it is not stored (issue #1786). Handles
+            # (locks, open files, etc.) can never be stored, so are skipped
+            # silently.
+            if not has_pointer and not is_unstored_type(type_stripped):
+                names_original = declaration.get('variableNames') or []
+                for i, v in enumerate(variables):
+                    name = strip_variable_name(v)
+                    if name.lower() in excludes:
+                        continue
+                    if (len(names_original) == len(variables)
+                            and names_original[i].lower() == name.lower()):
+                        name = names_original[i]
+                    state_store.setdefault('unstored', []).append(
+                        (state_store.get('owner'), name, type_stripped,
+                         state_store.get('ownerSource')))
             _maybe_flag_custom_hooks(state_store, declaration)
             continue
 

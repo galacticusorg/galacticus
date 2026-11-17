@@ -550,20 +550,20 @@
         deltaDensityFractional=+1.0d0                      &
              &                 -     density               &
              &                 /self%densitySolitonCentral
-        radiusCoreFreeSquared =+deltaDensityFractional                                    &
-             &                 *(                                                         &
-             &                   +       5.0d0/                24.0d0                     &
-             &                   +deltaDensityFractional                                  &
-             &                   *(                                                       &
-             &                     +     125.0d0/               896.0d0                   &
-             &                     +deltaDensityFractional                                &
-             &                     *(                                                     &
-             &                       +  453125.0d0/           4064256.0d0                 &
-             &                       +deltaDensityFractional                              &
-             &                       *  29078125.0d0/       303464448.0d0                 &
-             &                      )                                                     &
-             &                    )                                                       &
-             &                  )                                                         &
+        radiusCoreFreeSquared =+      deltaDensityFractional     &
+             &                 *(                                &
+             &                   +           5.0d0/       24.0d0 &
+             &                   +    deltaDensityFractional     &
+             &                   *(                              &
+             &                     +       125.0d0/      896.0d0 &
+             &                     +  deltaDensityFractional     &
+             &                     *(                            &
+             &                       +  453125.0d0/  4064256.0d0 &
+             &                       +deltaDensityFractional     &
+             &                       *29078125.0d0/303464448.0d0 &
+             &                      )                            &
+             &                    )                              &
+             &                  )                                &
              &                 /coefficientCore
         radius                =+self%radiusCore              &
              &                 *sqrt(radiusCoreFreeSquared)
@@ -590,23 +590,33 @@
      double precision                            , intent(in   )           :: density
      double precision                            , intent(in   ), optional :: radiusGuess
      double precision                            , parameter               :: epsilonDeltaDensityFractional=1.0d-2
+     double precision                                                      :: deltaDensityFractional              , radiusCoreFreeSquared
      
      if      (density >= self%densitySolitonCentral                                      ) then
         radius=0.0d0
      else if (density >  self%densitySolitonCentral*(1.0d0-epsilonDeltaDensityFractional)) then
-        ! For densities close to, but below the central density, use a series solution.
-        radius=+0.5d0                              &
-             & *self%radiusCore                    &
-             & *sqrt(                              &
-             &       +5.0d0                        &
-             &       /6.0d0                        &
-             &       /coefficientCore              &
-             &       *(                            &
-             &         +1.0d0                      &
-             &         -     density               &
-             &         /self%densitySolitonCentral &
-             &        )                            &
-             &      )
+        ! For densities close to, but below the central density, use the fourth-order series solution described in
+        ! solitonNFWRadiusEnclosingDensity().
+        deltaDensityFractional=+1.0d0                      &
+             &                 -     density               &
+             &                 /self%densitySolitonCentral
+        radiusCoreFreeSquared =+      deltaDensityFractional     &
+             &                 *(                                &
+             &                   +           5.0d0/       24.0d0 &
+             &                   +    deltaDensityFractional     &
+             &                   *(                              &
+             &                     +       125.0d0/      896.0d0 &
+             &                     +  deltaDensityFractional     &
+             &                     *(                            &
+             &                       +  453125.0d0/  4064256.0d0 &
+             &                       +deltaDensityFractional     &
+             &                       *29078125.0d0/303464448.0d0 &
+             &                      )                            &
+             &                    )                              &
+             &                  )                                &
+             &                 /coefficientCore
+        radius                =+self%radiusCore             &
+             &                 *sqrt(radiusCoreFreeSquared)
      else
         radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
      end if

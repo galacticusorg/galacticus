@@ -62,6 +62,11 @@
     Optionally, a parameter ``[logLikelihoodAccept]`` may be specified. Once the likelihood of a chain reaches this value, no further evaluations of the likelihood will be made - the chain is assumed to be sufficiently likely that it is "acceptable".
     </description>
    <linkedList type="posteriorSampleLikelihoodList" variable="modelLikelihoods" next="next" object="modelLikelihood_" objectType="posteriorSampleLikelihoodClass"/>
+   <stateStorable>
+    <!-- Not stored: maps - this class is not used by the evolveForests task, which is the only task that stores and restores
+         state. -->
+    <exclude variables="maps"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodIndependentLikelihoods

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a node operator class that records the index of the branch tip for each node.
+Implements a node operator class that records the unique ID of the branch tip for each node.
 !!}
 
   !![

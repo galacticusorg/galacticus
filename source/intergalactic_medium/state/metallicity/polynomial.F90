@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Niusha Ahvazi
   
   !!{RST
-  An intergalactic medium state decorator class which provides a fixed metallicity for the :term:`IGM`.
+  An intergalactic medium state decorator class which provides a redshift-dependent metallicity, specified by a polynomial, for the :term:`IGM`.
   !!}
 
   !![

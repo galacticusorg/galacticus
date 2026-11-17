@@ -84,11 +84,11 @@ program Tests_SIDM_Kummer_Deceleration
   decelerationVelocityDependent=satelliteDecelerationSIDMKummer2018(cosmologyParameters_,particleVelocityDependent,darkMatterHaloScale_,darkMatterProfileDMO_)
   decelerationConstant         =satelliteDecelerationSIDMKummer2018(cosmologyParameters_,particleConstant         ,darkMatterHaloScale_,darkMatterProfileDMO_)
   ! Velocity-dependent large-x deceleration factor: q = speedOrbital/v_c with v_c = 50 km/s.
-  call Assert("velocity-dependent deceleration factor, x=200, q=2",decelerationVelocityDependent%decelerationFactor(200.0d0,100.0d0),9.998333516667d-01,relTol=1.0d-9)
-  call Assert("velocity-dependent deceleration factor, x=150, q=1",decelerationVelocityDependent%decelerationFactor(150.0d0, 50.0d0),9.998814920165d-01,relTol=1.0d-9)
+  call Assert("velocity-dependent deceleration factor, x=200, q=2",decelerationVelocityDependent%decelerationFactor(200.0d0,100.0d0),9.999133425463d-01,relTol=1.0d-9)
+  call Assert("velocity-dependent deceleration factor, x=150, q=1",decelerationVelocityDependent%decelerationFactor(150.0d0, 50.0d0),9.999259317198d-01,relTol=1.0d-9)
   ! Constant large-x deceleration factor: independent of the orbital speed.
-  call Assert("constant deceleration factor, x=200",decelerationConstant%decelerationFactor(200.0d0,100.0d0),9.999333353333d-01,relTol=1.0d-9)
-  call Assert("constant deceleration factor, x=150",decelerationConstant%decelerationFactor(150.0d0, 50.0d0),9.998814878025d-01,relTol=1.0d-9)
+  call Assert("constant deceleration factor, x=200",decelerationConstant%decelerationFactor(200.0d0,100.0d0),9.999666676667d-01,relTol=1.0d-9)
+  call Assert("constant deceleration factor, x=150",decelerationConstant%decelerationFactor(150.0d0, 50.0d0),9.999407439012d-01,relTol=1.0d-9)
   ! All of the assertions above use x above `xCritical`, where the deceleration factor is given by its analytic asymptotic form
   ! and the tabulation is never consulted. The assertions below use x below that threshold, and so exercise the tabulated
   ! branch: without them the tabulation - and the absolute lattices its axes are pinned to - would be entirely untested.

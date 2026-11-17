@@ -623,6 +623,12 @@ program Test_Math_Special_Functions
   hypergeometric2F1approx(1)=Hypergeometric_2F1([1.5d0,-0.7d0],[2.8d0],0.7d0,toleranceRelative=1.0d-6)
   call Assert("hypergeometric (approximate), ₂F₁([3/2,-7/10],[14/5],7/10)",hypergeometric2F1approx(1),0.7132641626d0,relTol=1.0d-6)
 
+  ! Test that a zero numerator parameter gives exactly 1, including close to x=1 (where GSL's approximate evaluation fails).
+  hypergeometric2F1      (1)=Hypergeometric_2F1([0.0d0,-0.5d0],[1.5d0],0.999d0                        )
+  call Assert("hypergeometric, ₂F₁([0,-1/2],[3/2],0.999)"              ,hypergeometric2F1      (1),1.0d0,absTol=1.0d-12)
+  hypergeometric2F1approx(1)=Hypergeometric_2F1([0.0d0,-0.5d0],[1.5d0],0.999d0,toleranceRelative=1.0d-6)
+  call Assert("hypergeometric (approximate), ₂F₁([0,-1/2],[3/2],0.999)",hypergeometric2F1approx(1),1.0d0,absTol=1.0d-12)
+
   ! Test hypergeometric 2F1 function for x<-1.
   call Assert("hypergeometric, ₂F₁([3/2,7/10],[2],x) (x<-1)", &
        &       hypergeometric2F1NegativeArgument,             &
