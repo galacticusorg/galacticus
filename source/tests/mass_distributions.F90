@@ -263,9 +263,9 @@ program Test_Mass_Distributions
   select type (massDistribution_)
   class is (massDistributionSpherical)
      position=[1.0d0,0.0d0,0.0d0]
-     call Assert("Half mass radius          (        dimensionless)",massDistribution_%radiusHalfMass      (        ), 1.0d0+sqrt(2.0d0)        ,absTol=1.0d-6)
-     call Assert("Mass within scale radius  (        dimensionless)",massDistribution_%massEnclosedBySphere(1.0d0   ), 0.25d0                   ,absTol=1.0d-6)
-     call Assert("Potential at scale radius (        dimensionless)",massDistribution_%potential           (position),-0.50d0                   ,absTol=1.0d-6)
+     call Assert("Half mass radius          (        dimensionless)",massDistribution_%radiusHalfMass        (        ), 1.0d0+sqrt(2.0d0)                                           ,absTol=1.0d-6)
+     call Assert("Mass within scale radius  (        dimensionless)",massDistribution_%massEnclosedBySphere  (1.0d0   ), 0.25d0                                                      ,absTol=1.0d-6)
+     call Assert("Potential at scale radius (        dimensionless)",massDistribution_%potential             (position),-0.50d0                                                      ,absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
   allocate(massDistributionHernquist :: massDistribution_)
@@ -275,11 +275,11 @@ program Test_Mass_Distributions
   end select
   select type (massDistribution_)
   class is (massDistributionSpherical)
-     call Assert("Half mass radius          (        dimensionful )",massDistribution_%radiusHalfMass         (        ),2.0d0     *(+1.0d0+sqrt(2.0d0))                              ,absTol=1.0d-6)
-     call Assert("Mass within scale radius  (        dimensionful )",massDistribution_%massEnclosedBySphere   (2.0d0   ),2.0d0     *(+0.25d0           )                              ,absTol=1.0d-6)
-     call Assert("Mass within cylinder      (r=0.5rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(1.0d0   ),2.0d0/3.0d0*(-1.0d0+2.0d0*log(2.0d0+sqrt(3.0d0))/sqrt(3.0d0)),absTol=1.0d-6)
-     call Assert("Mass within cylinder      (r=1.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(2.0d0   ),2.0d0/3.0d0                                                  ,absTol=1.0d-6)
-     call Assert("Mass within cylinder      (r=2.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(4.0d0   ),8.0d0/3.0d0*(+1.0d0-Pi/3.0d0                    /sqrt(3.0d0)),absTol=1.0d-6)
+     call Assert("Half mass radius          (        dimensionful )",massDistribution_%radiusHalfMass         (       ),2.0d0     *(+1.0d0+sqrt(2.0d0))                              ,absTol=1.0d-6)
+     call Assert("Mass within scale radius  (        dimensionful )",massDistribution_%massEnclosedBySphere   (2.0d0  ),2.0d0     *(+0.25d0           )                              ,absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=0.5rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(1.0d0  ),2.0d0/3.0d0*(-1.0d0+2.0d0*log(2.0d0+sqrt(3.0d0))/sqrt(3.0d0)),absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=1.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(2.0d0  ),2.0d0/3.0d0                                                  ,absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=2.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(4.0d0  ),8.0d0/3.0d0*(+1.0d0-Pi/3.0d0                    /sqrt(3.0d0)),absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
@@ -304,15 +304,15 @@ program Test_Mass_Distributions
   do i=1,truncationTableCount
      write (label,'(f4.2)') truncationTableFraction(i)
      massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,truncationTableFraction(i))
-     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_  %massTotal            (                                                         ),truncationTableFraction            (i),relTol=1.0d-3)
-     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_  %radiusHalfMass       (                                                         ),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
+     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_  %massTotal     (),truncationTableFraction            (i),relTol=1.0d-3)
+     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_  %radiusHalfMass(),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
      !![
      <objectDestructor name="massDistributionTruncated_"/>
      !!]
   end do
   ! A negligible truncation should leave the distribution unchanged.
   massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,1.0d0-1.0d-6)
-  call Assert("Negligible truncation (mass retained)"          ,massDistributionTruncated_  %massTotal            (                                               ),1.0d0,absTol=1.0d-12)
+  call Assert("Negligible truncation (mass retained)"     ,massDistributionTruncated_  %massTotal     (),1.0d0                                 ,absTol=1.0d-12)
   !![
   <objectDestructor name="massDistributionTruncated_"  />
   <objectDestructor name="massDistributionUntruncated_"/>

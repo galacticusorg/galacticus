@@ -347,33 +347,33 @@ contains
     implicit none
     class           (massDistributionSIDMParametricProfile), intent(inout) :: self
     double precision                                       , intent(in   ) :: density
-    integer                                                , parameter     :: countIterationsMaximum=20
-    double precision                                       , parameter     :: toleranceLogarithmic  =1.0d-12
+    integer                                                , parameter     :: countIterationsMaximum  =20
+    double precision                                       , parameter     :: toleranceLogarithmic    =1.0d-12
     integer                                                                :: i
-    double precision                                                       :: densityDeficitFractional, coefficientCore , &
-         &                                                                    coefficientScale        , termCore        , &
-         &                                                                    termScale               , stepLogarithmic
+    double precision                                                       :: densityDeficitFractional        , coefficientCore, &
+         &                                                                    coefficientScale                , termCore       , &
+         &                                                                    termScale                       , stepLogarithmic
 
-    densityDeficitFractional=+1.0d0                         &
-         &                   -density                       &
+    densityDeficitFractional=+1.0d0                      &
+         &                   -density                    &
          &                   /self%densityCentral
-    coefficientCore         =+3.0d0                         &
-         &                   /self%beta                     &
-         &                   /(3.0d0+self%beta)             &
+    coefficientCore         =+3.0d0                      &
+         &                   /self%beta                  &
+         &                   /(3.0d0+self%beta)          &
          &                   /self%radiusCore**self%beta
-    coefficientScale        =+3.0d0                         &
-         &                   /2.0d0                         &
+    coefficientScale        =+3.0d0                      &
+         &                   /2.0d0                      &
          &                   /self%radiusScale
     ! Begin from the smaller of the radii at which each term alone accounts for the deficit.
-    radius=min(                                                                  &
-         &     +densityDeficitFractional/coefficientScale                      , &
-         &     (+densityDeficitFractional/coefficientCore )**(1.0d0/self%beta)   &
+    radius=min(                                                                 &
+         &     +densityDeficitFractional/coefficientScale                     , &
+         &     (+densityDeficitFractional/coefficientCore )**(1.0d0/self%beta)  &
          &    )
     do i=1,countIterationsMaximum
        termCore       =+coefficientCore *radius**self%beta
        termScale      =+coefficientScale*radius
-       stepLogarithmic=-log((termCore+termScale)/densityDeficitFractional) &
-            &          *    (termCore+termScale)                           &
+       stepLogarithmic=-log((termCore          +termScale)/densityDeficitFractional) &
+            &          *    (termCore          +termScale)                           &
             &          /    (termCore*self%beta+termScale)
        radius         =+radius*exp(stepLogarithmic)
        if (abs(stepLogarithmic) < toleranceLogarithmic) return

@@ -223,9 +223,9 @@ contains
                  &               *massDistributionEmbedding%radiusCore           **2 &
                  &               *massDistributionEmbedding%densitySolitonCentral**2 &
                  &               *(                                                  &
-                 &                 - 4.0d0/13.0d0                    /coefficientCore &
-                 &                 + 2.0d0/ 3.0d0*radiusScaleFree**2                  &
-                 &                 -64.0d0/15.0d0*radiusScaleFree**4*coefficientCore  &
+                 &                 - 4.0d0/13.0d0                   /coefficientCore &
+                 &                 + 2.0d0/ 3.0d0*radiusScaleFree**2                 &
+                 &                 -64.0d0/15.0d0*radiusScaleFree**4*coefficientCore &
                  &               )
          else
             ! Full solution.

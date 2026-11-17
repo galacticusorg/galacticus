@@ -227,9 +227,9 @@ contains
     class           (nodeComponentBasic                         )               , pointer :: basic
     double precision                                             , parameter              :: toleranceTimeRelative      =1.0d-6
     integer                                                                               :: status
-    double precision                                                                      :: mass                                            , &
-         &                                                                                   collapseCriticalOverdensity       , timeCollapse, &
-         &                                                                                   massReference                     , variance    , &
+    double precision                                                                      :: mass                                                , &
+         &                                                                                   collapseCriticalOverdensity       , timeCollapse    , &
+         &                                                                                   massReference                     , variance        , &
          &                                                                                   timeNow                           , timeLastIsolated
 
     ! Get the basic component and the halo mass and time.
@@ -289,8 +289,8 @@ contains
     ! time) are reset after each change, so that the reference model sees none computed for the node's own mass and time, and
     ! none computed for the reference mass and time remain once they are restored.
     timeLastIsolated=basic%timeLastIsolated()
-    call basic%massSet            (massReference                                                                                                   )
-    call basic%timeSet            (timeReference_                                                                                                  )
+    call basic%massSet            (                                                                                     massReference     )
+    call basic%timeSet            (                                                                                     timeReference_    )
     call basic%timeLastIsolatedSet(self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeLastIsolated)))
     call Calculations_Reset(node)
     if (mean) then
