@@ -237,8 +237,19 @@ contains
           makeTransferFunction=.true.
        end if
        if (.not.makeTransferFunction) return
-       ! Retrieve the transfer function.
-       call Interface_CLASS_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached,equationOfState0=self%equationOfState0,equationOfStateA=self%equationOfStateA)
+       ! Retrieve the transfer function. It is always computed up to the maximum wavenumber, whatever wavenumber prompted this
+       ! call. Computing it only as far as the wavenumber requested, and extending it when a larger one is requested later, makes
+       ! the transfer function - and everything computed from it - depend on the order in which wavenumbers are requested: an
+       ! integral over the power spectrum (such as that for σ₈, from which the power spectrum normalization is fixed once and for
+       ! all) may be evaluated partly with one tabulation and partly with its replacement (from a fresh CLASS run), while a model
+       ! which finds the extended tabulation already stored on file uses only that. Results then depend on what is already in the
+       ! dynamic data cache. The cost is that a model which needs the transfer function only at small wavenumbers now pays for
+       ! the full calculation the first time it runs with an empty dynamic data cache (the result is stored there for later
+       ! runs). A model which tabulates σ(M) to small masses (see `massTableSeedMinimum` in
+       ! `cosmologicalMassVarianceFilteredPower`) may reach the maximum wavenumber anyway. The wavenumber required is set
+       ! marginally below the maximum, by the same tolerance used to judge whether that maximum has been reached, so that a
+       ! tabulation which ends a fraction short of it is accepted rather than recomputed on every run.
+       call Interface_CLASS_Transfer_Function(self%cosmologyParameters_,[self%redshift],self%wavenumberMaximum*exp(-0.01d0),self%wavenumberMaximum,self%countPerDecade,self%fileName,self%wavenumberMaximumReached,equationOfState0=self%equationOfState0,equationOfStateA=self%equationOfStateA)
        ! Read the newly created file. Any cached copy of the transfer function is invalidated, as it may have been read from this
        ! file before it was extended to larger wavenumbers.
        call self%readFile(char(self%fileName),invalidateCache=.true.)

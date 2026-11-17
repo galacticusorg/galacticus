@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a merger tree builder using the algorithm of :cite:t:`cole_hierarchical_2000` utilizing a recursive construction approach.
   !!}
@@ -230,9 +232,9 @@ contains
     type            (mergerTree                       ), intent(inout), target  :: tree
     type            (treeNode                         )               , pointer :: node                    , nodeChild
     class           (nodeComponentBasic               )               , pointer :: basic                   , basicChild
-    double precision                                                            :: deltaCritical           , deltaCriticalEarliest, &
-         &                                                                         massResolution          , timeNodeBase         , &
-         &                                                                         rootVarianceGrowthFactor, timeOfCollapse
+    double precision                                                            :: deltaCritical           , massResolution, &
+         &                                                                         rootVarianceGrowthFactor, timeNodeBase  , &
+         &                                                                         timeOfCollapse
     integer                                                                     :: countWorkers
     
     ! Begin construction.
@@ -247,14 +249,6 @@ contains
     end if
     ! Get the mass resolution for this tree.
     massResolution=self%mergerTreeMassResolution_%resolution(tree)
-    ! Find the critical overdensity at the earliest time to which we will build this tree. We evaluate this here to ensure that
-    ! δc(t) is already evaluated over the full range of epochs that we will require - this prevents any possible retabulation
-    ! during tree construction which can potentially lead to misordering of branches. The result is deliberately unused: the call
-    ! exists only for that side effect. See the equivalent call in the parent class for why pinning tabulation ranges does not
-    ! remove the need for it.
-    deltaCriticalEarliest   =+self%criticalOverdensity_     %value          (time              =self%timeEarliest/2.0d0,mass=basic%mass(),node=node) &
-         &                   *self%cosmologicalMassVariance_%rootVariance   (time              =self%timeNow           ,mass=basic%mass()          ) &
-         &                   /self%cosmologicalMassVariance_%rootVariance   (time              =self%timeEarliest/2.0d0,mass=basic%mass()          )
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this class).
     timeNodeBase            =                                                                   basic%time        ()
     rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance   (time              =      timeNodeBase     ,mass=basic%mass()          ) &

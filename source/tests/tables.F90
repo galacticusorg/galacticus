@@ -888,10 +888,116 @@ program Test_Tables
   call quinticWide  %destroy()
   call Unit_Tests_End_Group()
 
+  ! Test that interpolation in a table built on an absolute lattice is independent of the range which the table spans. Two
+  ! tables are built on the same lattice but over different ranges, populated with the same function, and evaluated at points
+  ! which are (to within rounding) tabulated points - computed both as the table abscissae themselves and as they would be by
+  ! another tabulation on a commensurate lattice - and between them. Formerly the interval containing such a point was found
+  ! from its offset relative to the first point of the table, the rounding of which depends on where the table begins, so the
+  ! two tables could place the point in adjacent intervals, giving values differing in their final bits and gradients from
+  ! different intervals.
+  call Unit_Tests_Begin_Group("Range-independent interpolation on a lattice")
+  block
+    type(table1DLogarithmicLinear                ) :: logarithmicNarrow, logarithmicWide
+    type(table1DLinearLinear                     ) :: linearNarrow     , linearWide
+    type(table1DLogarithmicMonotoneCSpline       ) :: monotoneNarrow   , monotoneWide
+    type(table1DLogarithmicMonotoneQuinticHermite) :: hermiteNarrow    , hermiteWide
+    type(table2DLogLogLin                        ) :: table2DNarrow    , table2DWide
+    type(rangeLattice                            ) :: latticeNarrow_   , latticeWide_   , &
+         &                                            latticeYNarrow_  , latticeYWide_
+    ! Logarithmic tables on a lattice of 100 points per decade.
+    latticeNarrow_=Range_Pinned([2.0d0,20.0d0],100,gridSchemePerDecade)
+    latticeWide_  =Range_Pinned([1.0d-3,2.0d2],100,gridSchemePerDecade)
+    call logarithmicNarrow%extend  (latticeNarrow_,isComputed)
+    call logarithmicNarrow%populate(logarithmicNarrow%xs()**0.75d0)
+    call logarithmicWide  %extend  (latticeWide_  ,isComputed)
+    call logarithmicWide  %populate(logarithmicWide  %xs()**0.75d0)
+    call Test_Interval_Range_Independence('logarithmic linear',logarithmicNarrow,logarithmicWide,latticeNarrow_,.true.)
+    call monotoneNarrow%extend  (latticeNarrow_,isComputed)
+    call monotoneNarrow%populate(monotoneNarrow%xs()**0.75d0)
+    call monotoneWide  %extend  (latticeWide_  ,isComputed)
+    call monotoneWide  %populate(monotoneWide  %xs()**0.75d0)
+    call Test_Interval_Range_Independence('logarithmic monotone cubic spline',monotoneNarrow,monotoneWide,latticeNarrow_,.true.)
+    call hermiteNarrow%extend  (latticeNarrow_,isComputed)
+    call hermiteNarrow%populate(hermiteNarrow%xs()**0.75d0)
+    call hermiteWide  %extend  (latticeWide_  ,isComputed)
+    call hermiteWide  %populate(hermiteWide  %xs()**0.75d0)
+    call Test_Interval_Range_Independence('logarithmic monotone quintic Hermite',hermiteNarrow,hermiteWide,latticeNarrow_,.true.)
+    ! Linear tables on a lattice of 10 points per unit.
+    latticeNarrow_=Range_Pinned([  2.0d0,20.0d0], 10,gridSchemePerUnit  )
+    latticeWide_  =Range_Pinned([-30.0d0,70.0d0], 10,gridSchemePerUnit  )
+    call linearNarrow%extend  (latticeNarrow_,isComputed)
+    call linearNarrow%populate(sin(linearNarrow%xs()))
+    call linearWide  %extend  (latticeWide_  ,isComputed)
+    call linearWide  %populate(sin(linearWide  %xs()))
+    call Test_Interval_Range_Independence('linear linear',linearNarrow,linearWide,latticeNarrow_,.false.)
+    ! A 2D log-log-linear table, evaluated at tabulated points along each axis in turn.
+    latticeNarrow_ =Range_Pinned([2.0d0,20.0d0],100,gridSchemePerDecade)
+    latticeWide_   =Range_Pinned([1.0d-3,2.0d2],100,gridSchemePerDecade)
+    latticeYNarrow_=Range_Pinned([3.0d0, 9.0d0], 50,gridSchemePerDecade)
+    latticeYWide_  =Range_Pinned([1.0d-2,1.0d2], 50,gridSchemePerDecade)
+    call table2DNarrow%extend(latticeNarrow_,latticeYNarrow_,isComputed2D)
+    do i=1,table2DNarrow%size(1)
+       do j=1,table2DNarrow%size(2)
+          call table2DNarrow%populate(table2DNarrow%x(i)**0.75d0*log(table2DNarrow%y(j)),i,j)
+       end do
+    end do
+    call table2DWide  %extend(latticeWide_  ,latticeYWide_  ,isComputed2D)
+    do i=1,table2DWide%size(1)
+       do j=1,table2DWide%size(2)
+          call table2DWide  %populate(table2DWide  %x(i)**0.75d0*log(table2DWide  %y(j)),i,j)
+       end do
+    end do
+    identical=.true.
+    do i=latticeNarrow_%indexMinimum+4,latticeNarrow_%indexMaximum()-4
+       x=10.0d0**(dble(i)/100.0d0)
+       do j=latticeYNarrow_%indexMinimum+4,latticeYNarrow_%indexMaximum()-4
+          y=10.0d0**(dble(j)/50.0d0)
+          identical=identical .and. table2DNarrow%interpolate(x,y) == table2DWide%interpolate(x,y)
+       end do
+    end do
+    call Assert('2D log-log-linear: interpolation at lattice points is independent of the tabulated range',identical,.true.)
+  end block
+  call Unit_Tests_End_Group()
+
   ! End unit tests.
   call Unit_Tests_Finish   ()
 
 contains
+
+  subroutine Test_Interval_Range_Independence(label,narrow,wide,lattice,logarithmic)
+    !!{RST
+    Assert that the tables ``narrow`` and ``wide``, built on the same absolute lattice but over different ranges (``lattice``
+    being that of ``narrow``), and populated with the same function, interpolate identically---in both value and gradient---at
+    points on, and between, the lattice points. Points within four intervals of either end of ``narrow`` are excluded, since
+    the interpolants of the monotone spline tables there depend on the range by construction.
+    !!}
+    implicit none
+    character       (len=*       ), intent(in   ) :: label
+    class           (table1D     ), intent(inout) :: narrow     , wide
+    type            (rangeLattice), intent(in   ) :: lattice
+    logical                       , intent(in   ) :: logarithmic
+    double precision              , dimension(3)  :: probes
+    logical                                       :: identicalValue, identicalGradient
+    integer                                       :: i             , k
+
+    identicalValue   =.true.
+    identicalGradient=.true.
+    do i=lattice%indexMinimum+4,lattice%indexMaximum()-4
+       ! Probe at the lattice point as another tabulation would compute it, as this table records it, and between points.
+       if (logarithmic) then
+          probes=[10.0d0**(dble(i)/dble(lattice%pointsPer)),narrow%x(i-lattice%indexMinimum+1),10.0d0**((dble(i)+0.37d0)/dble(lattice%pointsPer))]
+       else
+          probes=[        (dble(i)/dble(lattice%pointsPer)),narrow%x(i-lattice%indexMinimum+1),        ((dble(i)+0.37d0)/dble(lattice%pointsPer))]
+       end if
+       do k=1,size(probes)
+          identicalValue   =identicalValue    .and. narrow%interpolate        (probes(k)) == wide%interpolate        (probes(k))
+          identicalGradient=identicalGradient .and. narrow%interpolateGradient(probes(k)) == wide%interpolateGradient(probes(k))
+       end do
+    end do
+    call Assert(label//': interpolated value at lattice points is independent of the tabulated range'   ,identicalValue   ,.true.)
+    call Assert(label//': interpolated gradient at lattice points is independent of the tabulated range',identicalGradient,.true.)
+    return
+  end subroutine Test_Interval_Range_Independence
 
   function Table_Type_Label(i)
     !!{RST

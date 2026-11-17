@@ -260,12 +260,11 @@ contains
     ! range written by another process since our own read is merged rather than overwritten, which is what the second restore
     ! under an upgraded lock used to guard against.
     !
-    ! Note one consequence of merging rather than discarding. A restored point keeps the value it was given by the run which
-    ! computed it, and that run may have held a narrower tabulation of the expansion factor than this one does - that tabulation
-    ! is rebuilt, not extended, when its earliest epoch moves, so its values shift slightly when it grows. A merged table can
-    ! therefore differ from one computed wholly afresh: measured at up to 3e-9 relative, on the restored points only, which is
-    ! of order the 1e-9 relative tolerance to which each point's root is found in the first place. Discarding the cache instead
-    ! would hide this, at the cost of recomputing every point whenever the requested range grows.
+    ! A restored point keeps the value it was given by the run which computed it. The expansion factor and linear growth
+    ! tabulations on which each point depends are independent of the order in which epochs were requested of them (each is
+    ! integrated from a fixed anchor epoch, and extended without changing values already computed), so a merged table agrees
+    ! with one computed wholly afresh by the same code. (Formerly those tabulations were rebuilt whenever their earliest epoch
+    ! moved, and merged tables could differ from fresh ones by up to 3e-9 relative on the restored points.)
     if (tableStore) call Table_Cache_Restore(     table_,fileName       ,status)
     call                 self%tabulate      (time,table_,calculationType       )
     if (tableStore) call Table_Cache_Store  (     table_,fileName              )

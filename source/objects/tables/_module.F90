@@ -1543,6 +1543,44 @@ contains
     return
   end subroutine Table_Linear_1D_Populate_Single
 
+  integer function Table_Uniform_Interval(coordinate,abscissae,inverseDelta,lattice) result(i)
+    !!{RST
+    Return the index, ``i``, of the interval, :math:`[x_i,x_{i+1})`, of a table with uniformly-spaced (internal) ``abscissae``,
+    and inverse spacing ``inverseDelta``, which contains ``coordinate``. The coordinate must lie within the tabulated range; the
+    interval found is limited to those which exist, so that the upper end of the range falls in the final interval.
+
+    Where the table is built on an absolute ``lattice`` the interval is *not* found from the offset relative to the first point
+    of the table, :math:`x-x_1`, since the rounding of that offset depends on the lower limit of the table. When the coordinate
+    is (within rounding) a tabulated point it could then be placed at :math:`h\approx 1` in the interval below in one table, and
+    at :math:`h=0` in its own interval in another table on the same lattice which happens to begin elsewhere. The interpolated
+    value then differs in its final bits, and the interpolated gradient may be that of a different interval altogether. Such
+    coincidences are not rare: another tabulation on a commensurate lattice evaluates this one at exactly its tabulated points.
+    Instead the interval is found from the absolute lattice index of the coordinate, and then corrected against the tabulated
+    points themselves (to account for the product :math:`x/\Delta x` rounding to either side of an integer). The tabulated
+    points are bit-identical in any table on the same lattice, so the interval found depends only on the coordinate, and not on
+    the range spanned by the table.
+    !!}
+    implicit none
+    double precision              , intent(in   )               :: coordinate, inverseDelta
+    double precision              , intent(in   ), dimension(:) :: abscissae
+    type            (rangeLattice), intent(in   )               :: lattice
+    integer                                                     :: count
+
+    count=size(abscissae)
+    if (lattice%isDefined()) then
+       i=floor(coordinate*inverseDelta)-lattice%indexMinimum+1
+       i=max(min(i,count-1),1)
+       if      (i < count-1 .and. coordinate >= abscissae(i+1)) then
+          i=i+1
+       else if (i > 1       .and. coordinate <  abscissae(i  )) then
+          i=i-1
+       end if
+    else
+       i=max(min(int((coordinate-abscissae(1))*inverseDelta)+1,count-1),1)
+    end if
+    return
+  end function Table_Uniform_Interval
+
   double precision function Table_Linear_1D_Interpolate(self,x,table,status)
     !!{RST
     Perform linear interpolation in a linear 1D table.
@@ -1576,7 +1614,7 @@ contains
           end if
           i=self%xCount-1
        else
-          i=max(min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1),1)
+          i=Table_Uniform_Interval(xEffective,self%xv,self%inverseDeltaX,self%lattice)
        end if
        ! Compute the interpolating factor.
        h=(xEffective-self%xv(i))*self%inverseDeltaX
@@ -1629,7 +1667,7 @@ contains
           end if
           i=self%xCount-1
        else
-          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
+          i=Table_Uniform_Interval(xEffective,self%xv,self%inverseDeltaX,self%lattice)
        end if
        ! Interpolate in the table.
        self%dxPrevious    =xEffective
@@ -1884,7 +1922,7 @@ contains
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeLattice
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (table1DLinearCSpline            ), intent(inout)                         :: self
@@ -1897,6 +1935,8 @@ contains
     ! Determine number of tables.
     tableCountActual=1
     if (present(tableCount)) tableCountActual=tableCount
+    ! Discard any lattice on which the table was previously tabulated - the abscissae are being rebuilt from the given range.
+    self%lattice=rangeLattice()
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
     if (allocated(self%xv)) deallocate(self%xv)
@@ -2273,7 +2313,7 @@ contains
        else if (xEffective >= self%xv(self%xCount)) then
           i=                                                      self%xCount-1
        else
-          i=min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1)
+          i=Table_Uniform_Interval(xEffective,self%xv,self%inverseDeltaX,self%lattice)
        end if
        ! Compute offset from tabulated point.
        dx=xEffective-self%xv(i)
@@ -2316,7 +2356,7 @@ contains
        else if (xEffective >= self%xv(self%xCount)) then
           i=                                                      self%xCount-1
        else
-          i=min(int((xEffective-self%xv(1))*self%inverseDeltaX)+1,self%xCount-1)
+          i=Table_Uniform_Interval(xEffective,self%xv,self%inverseDeltaX,self%lattice)
        end if
        ! Compute offset from tabulated point.
        dx=xEffective-self%xv(i)
@@ -3417,30 +3457,32 @@ contains
        self%xPreviousSet        =.true.
        self%xLinearPrevious     =    x
        self%xLogarithmicPrevious=log(x)
-       call Table_2DLogLogLin_Axis_Factors(self%xLogarithmicPrevious,self%xv,self%inverseDeltaX,self%extrapolationTypeX,'x',self%i,self%hx,self%xClamped,self%xZeroed)
+       call Table_2DLogLogLin_Axis_Factors(self%xLogarithmicPrevious,self%xv,self%inverseDeltaX,self%latticeX,self%extrapolationTypeX,'x',self%i,self%hx,self%xClamped,self%xZeroed)
     end if
     ! Update interpolation factors for y if necessary.
     if (.not.self%yPreviousSet .or. y /= self%yLinearPrevious) then
        self%yPreviousSet        =.true.
        self%yLinearPrevious     =    y
        self%yLogarithmicPrevious=log(y)
-       call Table_2DLogLogLin_Axis_Factors(self%yLogarithmicPrevious,self%yv,self%inverseDeltaY,self%extrapolationTypeY,'y',self%j,self%hy,self%yClamped,self%yZeroed)
+       call Table_2DLogLogLin_Axis_Factors(self%yLogarithmicPrevious,self%yv,self%inverseDeltaY,self%latticeY,self%extrapolationTypeY,'y',self%j,self%hy,self%yClamped,self%yZeroed)
     end if
     return
   end subroutine Table_2DLogLogLin_Interpolation_Factors
 
-  subroutine Table_2DLogLogLin_Axis_Factors(coordinate,abscissae,inverseDelta,extrapolationType,label,i,h,isClamped,isZeroed)
+  subroutine Table_2DLogLogLin_Axis_Factors(coordinate,abscissae,inverseDelta,lattice,extrapolationType,label,i,h,isClamped,isZeroed)
     !!{RST
     Find the bracketing index, ``i``, and interpolation factor, ``h``, along one axis of a 2D log-log-linear table at internal
-    coordinate ``coordinate``, applying the extrapolation type of that axis beyond its tabulated range. ``isClamped`` is
-    returned true if the interpolant is independent of the coordinate there (under ``fix`` or ``zero`` extrapolation), and
-    ``isZeroed`` if it is zero (under ``zero`` extrapolation).
+    coordinate ``coordinate``, on (if defined) the absolute ``lattice`` of that axis (see ``Table_Uniform_Interval``), applying
+    the extrapolation type of that axis beyond its tabulated range. ``isClamped`` is returned true if the interpolant is
+    independent of the coordinate there (under ``fix`` or ``zero`` extrapolation), and ``isZeroed`` if it is zero (under
+    ``zero`` extrapolation).
     !!}
     use :: Error       , only : Error_Report
     use :: Table_Labels, only : extrapolationTypeExtrapolate, extrapolationTypeFix, extrapolationTypeZero, extrapolationTypeAbort
     implicit none
     double precision                                  , intent(in   )               :: coordinate       , inverseDelta
     double precision                                  , intent(in   ), dimension(:) :: abscissae
+    type            (rangeLattice                    ), intent(in   )               :: lattice
     type            (enumerationExtrapolationTypeType), intent(in   )               :: extrapolationType
     character       (len=1                           ), intent(in   )               :: label
     integer                                           , intent(  out)               :: i
@@ -3458,7 +3500,7 @@ contains
     else if (coordinate > abscissae(count)) then
        i=count-1
     else
-       i=min(int((coordinate-abscissae(1))*inverseDelta)+1,count-1)
+       i=Table_Uniform_Interval(coordinate,abscissae,inverseDelta,lattice)
     end if
     ! Compute interpolation factor.
     h=(coordinate-abscissae(i))*inverseDelta
@@ -3520,7 +3562,7 @@ contains
     Create a 1-D linear table.
     !!}
     use :: Error            , only : Error_Report
-    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeLattice
     use :: Table_Labels     , only : extrapolationTypeExtrapolate, extrapolationTypeZero
     implicit none
     class           (table1DLinearMonotoneCSpline    ), intent(inout)                         :: self
@@ -3533,6 +3575,8 @@ contains
     ! Determine number of tables.
     tableCountActual=1
     if (present(tableCount)) tableCountActual=tableCount
+    ! Discard any lattice on which the table was previously tabulated - the abscissae are being rebuilt from the given range.
+    self%lattice=rangeLattice()
     ! Allocate arrays and construct the x-range.
     self%xCount=xCount
     allocate(self%xv(xCount                   ))
@@ -3659,7 +3703,7 @@ contains
        else if (xEffective >= self%xv(self%xCount)) then
           i=self%xCount-1
        else
-          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
+          i=Table_Uniform_Interval(xEffective,self%xv,self%inverseDeltaX,self%lattice)
        end if
        ! Compute offset from tabulated point.
        dx=xEffective-self%xv(i)
@@ -3702,7 +3746,7 @@ contains
        else if (xEffective >= self%xv(self%xCount)) then
           i=self%xCount-1
        else
-          i=int((xEffective-self%xv(1))*self%inverseDeltaX)+1
+          i=Table_Uniform_Interval(xEffective,self%xv,self%inverseDeltaX,self%lattice)
        end if
        ! Compute offset from tabulated point.
        dx=xEffective-self%xv(i)

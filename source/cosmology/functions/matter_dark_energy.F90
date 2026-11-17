@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of the cosmological functions class for cosmologies consisting of collisionless matter and dark energy with an equation of state of the form: :math:`P=\rho^w` with :math:`w(a)=w_0+w_1 a (1-a)`.
   !!}
@@ -24,9 +26,9 @@
   use :: Root_Finder, only : rootFinder
 
   integer         , parameter :: ageTableNPointsPerDecade     =300
-  ! Factor by which the earliest epoch of the expansion factor tabulation is placed below the epoch of single component
-  ! domination - see the equivalent tabulation in the parent class for why that bound is seeded rather than left to follow
-  ! the request.
+  ! Epoch (in Gyr) at which the expansion factor tabulation is anchored, and the factor by which that anchor is placed (at
+  ! least) below the epoch of single component domination - see the equivalent tabulation in the parent class.
+  double precision, parameter :: ageTableTimeAnchor           =1.0d-7
   double precision, parameter :: ageTableTimeEarliestFactor   =100.0d0
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
@@ -489,6 +491,7 @@ contains
     Builds a table of expansion factor vs. time for dark energy universes.
     !!}
     use :: Cosmology_Parameters, only : hubbleUnitsTime
+    use :: Error               , only : Error_Report
     use :: Numerical_Ranges    , only : Range_Pinned   , Range_Lattice_Extend, rangeLattice, gridSchemePerDecade
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy)             , intent(inout), target   :: self
@@ -501,12 +504,13 @@ contains
     integer                                             , parameter                            :: ageTableAnchorEvery             =1
     double precision                                    , allocatable, dimension(:)            :: ageTableExpansionFactorTemporary        , ageTableTimeTemporary
     logical                                             , allocatable, dimension(:)            :: isComputed
-    type            (rangeLattice                      )                                       :: latticeTime
-    integer                                                                                    :: iTime
+    type            (rangeLattice                      )                                       :: latticeTime                             , latticeAnchor
+    integer                                                                                    :: iTime                                   , iAnchor
     logical                                                                                    :: carryOver
     double precision                                                                           :: OmegaDominant                           , deltaTime                      , &
          &                                                                                        densityPower                            , timeDominant                   , &
-         &                                                                                        expansionFactorDominant                 , timeActual
+         &                                                                                        expansionFactorDominant                 , timeActual                     , &
+         &                                                                                        timeAnchor
     logical                                                                                    :: solutionFound                           , timeExceeded
     double precision                                                 , dimension(3)            :: timesTarget
 
@@ -531,12 +535,24 @@ contains
     ! computed points pasted back into the new table carried the *old* spacing. The table thereby became a patchwork of spacings
     ! which no single `ageTableInverseDeltaLogTime` could describe, and the index computed from it in `expansionFactor` drifted
     ! further from the truth with every extension.
+    !
+    ! The expansion factor is given by the analytic single component solution at and before a fixed anchor epoch, and is
+    ! integrated forward from there to later epochs, so that the table can be extended without changing any value already
+    ! computed - see the equivalent tabulation in the parent class.
+    timeAnchor   =min(ageTableTimeAnchor,timeDominant/ageTableTimeEarliestFactor)
+    latticeAnchor=Range_Pinned(                                                  &
+         &                                    [timeAnchor,2.0d0*timeAnchor]    , &
+         &                                    ageTableNPointsPerDecade         , &
+         &                                    gridSchemePerDecade              , &
+         &                     marginFactor  =1.0d0                            , &
+         &                     anchorEvery   =ageTableAnchorEvery                &
+         &                    )
     if (present(time)) then
        timeActual=time
     else
        timeActual=timeDominant
     end if
-    timesTarget=[timeActual,timeDominant,timeDominant/ageTableTimeEarliestFactor]
+    timesTarget=[timeActual,timeDominant,latticeAnchor%minimum()]
     if (self%collapsingUniverse) then
        latticeTime=Range_Pinned(                                          &
             &                                   timesTarget             , &
@@ -557,11 +573,8 @@ contains
             &                   latticeCurrent= self%latticeAgeTable      &
             &                  )
     end if
-    ! The expansion factor is integrated forward from an initial condition imposed at the earliest tabulated epoch, so every
-    ! value depends on where that integration began. The tabulation can therefore be carried over only while the earliest epoch
-    ! is unchanged; where it moves, everything is discarded by presenting an undefined lattice to the extension.
+    ! Extend the tabulation onto the new lattice, preserving the values already computed.
     carryOver=self%ageTableInitialized .and. self%latticeAgeTable%isDefined()
-    if (carryOver) carryOver=latticeTime%indexMinimum == self%latticeAgeTable%indexMinimum
     if (.not.carryOver) then
        if (allocated(self%ageTableExpansionFactor)) deallocate(self%ageTableExpansionFactor)
        self%latticeAgeTable=rangeLattice()
@@ -577,21 +590,27 @@ contains
     ! describe the table actually held even where it is truncated at turnaround.
     self%ageTableTimeLogarithmicMinimum=log(self%ageTableTimeMinimum)
     self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
-    ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
+    ! Locate the anchor within the tabulation. The targets above include it, so it always lies within the table.
+    iAnchor=latticeAnchor%indexMinimum-latticeTime%indexMinimum+1
+    if (iAnchor < 1 .or. iAnchor > self%ageTableNumberPoints) call Error_Report('anchor epoch lies outside of the tabulation'//{introspection:location})
+    ! At and before the anchor, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
-    if (.not.isComputed(1))                                             &
-         &    self%ageTableExpansionFactor           (               1) &
-         & =(                                                           &
-         &   -0.5d0                                                     &
-         &   *densityPower                                              &
-         &   *self%ageTableTime                       (              1) &
-         &   *self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
-         &   *sqrt(OmegaDominant)                                       &
-         &  )**(-2.0d0/densityPower)
-    ! Solve ODE to get corresponding expansion factors.
+    do iTime=1,iAnchor
+       if (.not.isComputed(iTime))                                         &
+            &    self%ageTableExpansionFactor           (           iTime) &
+            & =(                                                           &
+            &   -0.5d0                                                     &
+            &   *densityPower                                              &
+            &   *self%ageTableTime                       (          iTime) &
+            &   *self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime) &
+            &   *sqrt(OmegaDominant)                                       &
+            &  )**(-2.0d0/densityPower)
+    end do
+    ! Solve ODE to get the expansion factors after the anchor. The points already computed always form a contiguous block
+    ! containing the anchor, so each point not yet computed is integrated from its predecessor.
     self%iTableTurnaround  =  self%ageTableNumberPoints
     call self%targetSelf()
-    do iTime=2,self%ageTableNumberPoints
+    do iTime=iAnchor+1,self%ageTableNumberPoints
        ! Compute the expansion factor if it is not already computed.
        if (.not.isComputed(iTime)) then
           self%ageTableExpansionFactor(iTime)=matterDarkEnergyExpansionFactorChange(                                       &
