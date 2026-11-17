@@ -157,6 +157,22 @@
    at the lowest point of the grid, :math:`M_\mathrm{res}`, is that of branches which fell below the resolution in the last
    step: they have no count, and are removed in the next step. The densities require the kernel at each
    :math:`\omega` of the grid a second time, so roughly double the cost of the task.
+
+   The negative contributions lie almost entirely (95 percent of them, with 100 points per decade of mass) at
+   :math:`M\gtrsim0.8M_0`. They arise because the primary progenitor of a split with a small mass ratio lies within a fraction
+   of order :math:`M_\mathrm{res}/M` of its parent, so inside one cell of the grid, and the transpose of the cubic interpolation
+   which places it on the grid gives a neighboring point a negative weight. Linear interpolation of these primaries removes
+   the negative values, but shifts the mean count by about :math:`10^{-3}`, thirty to fifty times the error of the cubic scheme. A remedy
+   which avoids this, tested only in a replica of the scheme with a white-noise power spectrum and for statistic ``B``, is a
+   second, finer set of nodes below the root (spaced by a quarter of the step of the mass grid, over 0.7 in :math:`\ln M`),
+   each of which moves along its own characteristic. The secondary progenitors of splits of these nodes are placed on the
+   main grid, as now, while the primaries that land within the span of the nodes are placed on them (by cubic interpolation on
+   their actual positions), and the rest on the main grid. At :math:`\omega=\omega_0+2` the weight of the nodes is handed to
+   the main grid by cubic interpolation (and the solution from the main grid to the nodes in the backward scheme). In the
+   replica this reduced the negative share of the contributions about two hundredfold, changed the mean and variance of the
+   count by less than :math:`10^{-7}`, and kept the identities above exact, for about 6 percent more evaluations of the kernel.
+   It is untested for other power spectra and for statistics ``A`` (whose boundary of support can pass through the nodes) and
+   ``C``.
    </description>
   </task>
   !!]
