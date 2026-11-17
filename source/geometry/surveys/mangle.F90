@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an abstract survey geometry using :term:`mangle` polygons.
 !!}
@@ -29,6 +31,11 @@ Implements an abstract survey geometry using :term:`mangle` polygons.
    <description>
    Implements an abstract survey geometry using :term:`mangle` polygons.
    </description>
+   <stateStorable>
+    <!-- Not stored: mangleWindow, windowInitialized - the window is read from file on demand: it is not state-storable, so the
+         flag recording that it was read is not restored either. -->
+    <exclude variables="mangleWindow, windowInitialized"/>
+   </stateStorable>
   </surveyGeometry>
   !!]
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle

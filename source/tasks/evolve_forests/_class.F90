@@ -43,6 +43,11 @@
    <description>
    A task which evolves galaxies within a set of merger tree forests.
    </description>
+   <stateStorable>
+    <!-- Not stored: universeProcessed, universeWaiting - tasks are not themselves state-stored: evolveForests stores and restores
+         its components directly. -->
+    <exclude variables="universeProcessed, universeWaiting"/>
+   </stateStorable>
   </task>
   !!]
   type, extends(taskClass) :: taskEvolveForests

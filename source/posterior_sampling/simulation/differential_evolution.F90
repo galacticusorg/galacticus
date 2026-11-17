@@ -66,6 +66,11 @@
       The maximum number of states held in the archive. Once it is full, each new state replaces the oldest, so that the archive holds the most recent states of the chains (and forgets those from the prior and from burn-in, which no longer help to construct proposals once the chains have converged). Proposals remain unbiased, as the archive is unchanged during each update. It should be much larger than the number of chains, so that proposals are not constructed only from recent, correlated states.
    </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
+   <stateStorable>
+    <!-- Not stored: modelParametersActive_, modelParametersInactive_ - this class is not used by the evolveForests task, which is
+         the only task that stores and restores state. -->
+    <exclude variables="modelParametersActive_, modelParametersInactive_"/>
+   </stateStorable>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution

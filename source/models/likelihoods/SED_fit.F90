@@ -63,6 +63,11 @@
    <description>
    A posterior sampling likelihood class which evaluates the likelihood of observed broadband spectral energy distributions (SEDs) given modeled stellar populations, including dust attenuation effects. Observed magnitudes and uncertainties are specified via ``[magnitude]`` and ``[error]``, with dust model and star formation history burst count controlled by ``[dustType]`` and ``[burstCount]``.
    </description>
+   <stateStorable>
+    <!-- Not stored: postprocessor - this class is not used by the evolveForests task, which is the only task that stores and
+         restores state. -->
+    <exclude variables="postprocessor"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit

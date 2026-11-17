@@ -60,6 +60,11 @@
    <description>
    Importer for merger tree files in the "Sussing Merger Trees" format :cite:p:`srisawat_sussing_2013`, reading halo properties from N-body simulation snapshots and constructing halo merger histories. Supports spatial subvolume splitting via ``[subvolumeCount]`` and ``[subvolumeIndex]``, with cosmological parameter mismatch handling controlled by ``[fatalMismatches]``.
    </description>
+   <stateStorable>
+    <!-- Not stored: boxLengthUnits, nodes - these describe the open file, which (being a handle) is not stored, and are read from
+         it on demand. -->
+    <exclude variables="boxLengthUnits, nodes"/>
+   </stateStorable>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing

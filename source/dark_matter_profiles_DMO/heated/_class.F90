@@ -34,6 +34,10 @@
    <deepCopy>
      <deallocate variables="pool"/>
    </deepCopy>
+   <stateStorable>
+    <!-- Not stored: pool - a pool of reusable scratch objects, holding no model state. -->
+    <exclude variables="pool"/>
+   </stateStorable>
   </darkMatterProfileDMO>
   !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeated
