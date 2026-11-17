@@ -216,6 +216,7 @@ contains
     !!{RST
     Return the concentration of the dark matter halo profile of ``node`` using the algorithm of :cite:t:`schneider_structure_2015`.
     !!}
+    use :: Calculations_Resets     , only : Calculations_Reset
     use :: Error                   , only : Error_Report      , errorStatusSuccess
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Math, only : Pi
@@ -229,7 +230,7 @@ contains
     double precision                                                                      :: mass                                            , &
          &                                                                                   collapseCriticalOverdensity       , timeCollapse, &
          &                                                                                   massReference                     , variance    , &
-         &                                                                                   timeNow
+         &                                                                                   timeNow                           , timeLastIsolated
 
     ! Get the basic component and the halo mass and time.
     basic => node %basic()
@@ -282,14 +283,25 @@ contains
           if (status /= errorStatusSuccess) call Error_Report('failed to determine reference mass'//{introspection:location})
        end if
     end if
-    ! Compute the concentration of a node of this mass in the reference model.
-    call basic%massSet(massReference)
+    ! Compute the concentration of a node of this mass in the reference model, observed at the same redshift (so both the time
+    ! and the time at which the node was last isolated are mapped into the reference cosmology). The node's own properties are
+    ! changed temporarily for this. Calculations memoized for the node (many are keyed only on its unique ID, not on its mass or
+    ! time) are reset after each change, so that the reference model sees none computed for the node's own mass and time, and
+    ! none computed for the reference mass and time remain once they are restored.
+    timeLastIsolated=basic%timeLastIsolated()
+    call basic%massSet            (massReference                                                                                                   )
+    call basic%timeSet            (timeReference_                                                                                                  )
+    call basic%timeLastIsolatedSet(self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeLastIsolated)))
+    call Calculations_Reset(node)
     if (mean) then
        concentration=self%referenceConcentration%concentrationMean(node)
     else
        concentration=self%referenceConcentration%concentration    (node)
     end if
-    call basic%massSet(mass         )
+    call basic%massSet            (mass            )
+    call basic%timeSet            (time_           )
+    call basic%timeLastIsolatedSet(timeLastIsolated)
+    call Calculations_Reset(node)
     return
   end function schneider2015ConcentrationCompute
 
