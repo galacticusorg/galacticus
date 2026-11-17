@@ -54,6 +54,7 @@ contains
   subroutine iterationReset(self)
     !!{RST
     Discard the previous solve's iteration history without changing the physical radii used as initial guesses.
+    The production solver also overwrites both history entries during its burn-in before enabling damping.
     !!}
     implicit none
     class(equilibriumIterationState), intent(inout) :: self
