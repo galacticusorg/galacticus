@@ -385,6 +385,8 @@ program Test_Dark_Matter_Profiles_Generic
   kinematicsDistribution_ => massDistribution_         %kinematicsDistribution(     )
   select type (massDistribution_)
   class is (massDistributionSpherical)
+     ! The profile is normalized such that the mass of the node is enclosed within the virial radius.
+     call Assert("Mass within virial radius       , M(rᵥ)",massDistribution_%massEnclosedBySphere(radiusVirial),massVirial,relTol=1.0d-6)
      do i=1,size(scaleFractional)
         coordinates                                  =[scaleFractional(i)*radiusScale,0.0d0,0.0d0]
         enclosedMass                              (i)=massDistribution_      %massEnclosedBySphere                      (                                                                                    scaleFractional(i)*radiusScale                                       )
