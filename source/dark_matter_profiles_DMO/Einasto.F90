@@ -29,7 +29,14 @@
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOEinasto" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds :galacticus-class:`massDistributionEinasto` objects to compute the Einasto density profile (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`), normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the characteristic length :math:`r_{-2} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see :galacticus-class:`darkMatterProfileConcentration`). The shape parameter, :math:`\alpha`, is that of the node's dark matter profile component, set using the density profile shape method (see :galacticus-class:`darkMatterProfileShape`). Alternatively, when this class is constructed internally with a :galacticus-class:`darkMatterProfileShape` object, :math:`\alpha` is taken from that object, and the dark matter profile component need not have a shape.
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionEinasto` objects to compute the Einasto density
+   profile (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`), normalized such that the total mass
+   of the :term:`node` is enclosed with the virial radius and with the characteristic length :math:`r_{-2} = r_\mathrm{virial}/c`
+   where :math:`c` is the halo concentration (see :galacticus-class:`darkMatterProfileConcentration`). The shape parameter,
+   :math:`\alpha`, is that of the node's dark matter profile component, set using the density profile shape method (see
+   :galacticus-class:`darkMatterProfileShape`). Alternatively, when this class is constructed internally with a
+   :galacticus-class:`darkMatterProfileShape` object, :math:`\alpha` is taken from that object, and the dark matter profile
+   component need not have a shape.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -94,7 +101,7 @@ contains
     ! by now.
     if (associated(self%darkMatterProfileShape_)) then
        !![
-       <componentPropertyAssert class="darkMatterProfile" properties="scale" require="gettable"/>
+       <componentPropertyAssert class="darkMatterProfile" properties="scale"       require="gettable"/>
        !!]
     else
        !![
@@ -152,7 +159,7 @@ contains
        if (associated(self%darkMatterProfileShape_)) then
           shapeParameter=self%darkMatterProfileShape_%shape(node)
        else
-          shapeParameter=darkMatterProfile           %shape(    )
+          shapeParameter=     darkMatterProfile      %shape(    )
        end if
        !![
        <referenceConstruct object="massDistribution_">
@@ -161,7 +168,7 @@ contains
            &amp;                   mass          =basic            %mass                                     (    ), &amp;
            &amp;                   radiusVirial  =self             %darkMatterHaloScale_%radiusVirial        (node), &amp;
            &amp;                   scaleLength   =self                                  %scaleRadiusValidated(node), &amp;
-           &amp;                   shapeParameter=shapeParameter                                                  , &amp;
+           &amp;                   shapeParameter=                                       shapeParameter            , &amp;
            &amp;                   componentType =                                       componentTypeDarkHalo     , &amp;
            &amp;                   massType      =                                       massTypeDark                &amp;
            &amp;                  )

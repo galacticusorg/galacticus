@@ -41,10 +41,10 @@ program Test_Mass_Distributions
        &                                        massDistributionList                 , massDistributionSymmetryCylindrical   , enumerationMassDistributionSymmetryType, massDistributionSphericalScaler             , &
        &                                        massDistributionCylindricalScaler    , massDistributionCylindrical           , massDistributionPatejLoeb2015          , massDistributionNFW                         , &
        &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
-       &                                        massDistributionDiemerKravtsov2014   , massDistributionSphericalAccretionFlow, &
        &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
        &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
-       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator
+       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator        , &
+       &                                        massDistributionDiemerKravtsov2014   , massDistributionSphericalAccretionFlow
   use :: Numerical_Constants_Math      , only : Pi                                   , e
   use :: Tensors                       , only : assignment(=)
   use :: Unit_Tests                    , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
@@ -225,7 +225,7 @@ program Test_Mass_Distributions
   ! density gradient is compared with a numerical estimate.
   call Unit_Tests_Begin_Group("Accretion flow decorator")
   block
-    class           (massDistributionSpherical), pointer      :: halo_                 , accretionFlow_, &
+    class           (massDistributionSpherical), pointer      :: halo_                                  , accretionFlow_, &
          &                                                       decorated_
     double precision                           , parameter    :: radiusTransition=0.45d0
     double precision                           , dimension(3) :: radii           =[0.15d0,0.45d0,0.90d0]
@@ -258,8 +258,8 @@ program Test_Mass_Distributions
        position  =[radii(j),0.0d0,0.0d0]
        multiplier=1.0d0/(1.0d0+(radii(j)/radiusTransition)**4)**2
        write (label,'(a,f4.2,a)') '(r=',radii(j),' Mpc)'
-       call Assert("Density "                     //trim(label),decorated_%density              (position                 ),multiplier*halo_%density(position)+accretionFlow_%density(position)       ,relTol=1.0d-12)
-       call Assert("Logarithmic density gradient "//trim(label),decorated_%densityGradientRadial(position,logarithmic=.true.),decorated_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-6 )
+       call Assert("Density "                     //trim(label),decorated_%density              (position                   ),multiplier*halo_%density(position)+accretionFlow_%density(position)   ,relTol=1.0d-12)
+       call Assert("Logarithmic density gradient "//trim(label),decorated_%densityGradientRadial(position,logarithmic=.true.),decorated_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-06)
     end do
     !![
     <objectDestructor name="decorated_"    />
@@ -320,15 +320,15 @@ program Test_Mass_Distributions
   do i=1,truncationTableCount
      write (label,'(f4.2)') truncationTableFraction(i)
      massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,truncationTableFraction(i))
-     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_  %massTotal            (                                                         ),truncationTableFraction            (i),relTol=1.0d-3)
-     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_  %radiusHalfMass       (                                                         ),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
+     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_%massTotal     (),truncationTableFraction            (i),relTol=1.0d-3)
+     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_%radiusHalfMass(),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
      !![
      <objectDestructor name="massDistributionTruncated_"/>
      !!]
   end do
   ! A negligible truncation should leave the distribution unchanged.
   massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,1.0d0-1.0d-6)
-  call Assert("Negligible truncation (mass retained)"          ,massDistributionTruncated_  %massTotal            (                                               ),1.0d0,absTol=1.0d-12)
+  call Assert("Negligible truncation (mass retained)",massDistributionTruncated_%massTotal(),1.0d0,absTol=1.0d-12)
   !![
   <objectDestructor name="massDistributionTruncated_"  />
   <objectDestructor name="massDistributionUntruncated_"/>

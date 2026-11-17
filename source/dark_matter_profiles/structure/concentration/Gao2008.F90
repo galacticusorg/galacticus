@@ -73,7 +73,7 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMOEinasto  ), pointer :: darkMatterProfileDMODefinition_  => null()
-     double precision                                      :: scatter
+     double precision                                         :: scatter
    contains
      final     ::                                   gao2008Destructor
      procedure :: concentration                  => gao2008Concentration
