@@ -1238,6 +1238,7 @@ jobs:
                       tests.ODE_solver.exe,
                       tests.random.exe,
                       tests.random.quasi.exe,
+                      tests.random.philox.exe,
                       tests.posterior_sampling.samples_Sobol.exe,
                       tests.model_parameter_descriptors.exe,
                       tests.arrays.exe,
