@@ -1,0 +1,53 @@
+{
+ "description": "Statistics of branches passing through a progenitor of mass 10^12 Msun at z=4 in trees of 10^14 Msun at z=0, found by rejection in unconstrained trees (testSuite/parameters/constrainedMergerTreesRejection.xml) and made by test-constrained-merger-trees.py.",
+ "massConstraint": 1000000000000.0,
+ "redshiftConstraint": 4.0,
+ "countTrees": 2048,
+ "countBranches": 7548,
+ "redshifts": [
+  0.25,
+  0.5,
+  1.0,
+  1.5,
+  2.0,
+  3.0
+ ],
+ "binsMass": [
+  10.0,
+  10.5,
+  11.0,
+  11.5,
+  12.0,
+  15.0
+ ],
+ "massBranchMean": [
+  13.841157704558315,
+  13.666461316297154,
+  13.356099521438361,
+  13.0683932908853,
+  12.801315775122426,
+  12.361555688793691
+ ],
+ "massBranchError": [
+  0.004184289632849482,
+  0.00573634901759029,
+  0.006524981144599378,
+  0.006484609716866009,
+  0.006069193444487053,
+  0.004169737205836724
+ ],
+ "secondaryMean": [
+  89.82525172231054,
+  43.98224695283519,
+  21.94223635400106,
+  10.879835718071012,
+  9.814387917329094
+ ],
+ "secondaryError": [
+  0.5758239565225722,
+  0.30006263792471427,
+  0.17078763014451817,
+  0.0924559648947729,
+  0.06303966043209319
+ ]
+}
