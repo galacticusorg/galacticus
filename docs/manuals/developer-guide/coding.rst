@@ -641,6 +641,16 @@ Galacticus supports storing its internal state to file to allow :ref:`restarts <
 
 This specifies that the ``table`` class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a ``restoreTo`` element placed within an element with the name of the class or subclass (e.g. the ``table1DGeneric`` in the above example). The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
 
+The generated code stores a member of a class according to its type:
+
+* intrinsic-type members (including allocatable arrays, which are restored with their original bounds) and enumerations are stored directly;
+* members whose type is a ``functionClass``, or is itself declared ``stateStorable``, are stored through that type's own state store and restore functions;
+* ``tabulationInverse`` members are stored through that type's ``stateStore(stateFile)`` and ``stateRestore(stateFile)`` type-bound procedures;
+* pointers (other than pointers to ``functionClass`` objects) are not stored, since they reference objects owned elsewhere;
+* members of types which are handles to resources that exist only in the running process (locks, open files, C pointers, timers, and the like), or which are fully configured by their constructor (such as ``rootFinder``), are not stored. Nor are ``varying_string`` members: these are names, labels, and file names set by the constructor from parameters, some of which (output file names, for example) may legitimately differ between the storing and restoring runs. These types are listed in ``UNSTORED_TYPES`` in ``python/Galacticus/Build/StateStorables.py``. A class which changes such a member after construction must make sure it is consistent after a restore---for example, by excluding any flag which records that it has been changed.
+
+Any other member cannot be stored, and so would be left at the value it has in the freshly constructed object after a restore. This silently breaks restarts whenever a member that *is* restored refers to it---for example, a restored "initialized" flag guarding a table that was not restored, or a restored memoization key for a value that was not. The build therefore emits a warning for each such member, naming the class, the member, and its type. To resolve a warning, either make the type state-storable (with a ``stateStorable`` directive), or, if the member need not be stored, list it in an ``exclude`` element as described above (adding a brief comment explaining why). When excluding a member, also exclude (or use ``restoreTo`` to reset) any member whose restored value would be inconsistent with it---such as a flag recording that it has been initialized.
+
 In hand-written state store/restore subroutines (for example, those of node component classes, which are not generated via the ``functionClass`` machinery), the ``stateStore`` and ``stateRestore`` directives emit the necessary per-object serialization code. Each takes a ``variables`` attribute giving a space-separated list of pointers to ``functionClass`` objects. For example:
 
 .. code-block:: none
@@ -1176,7 +1186,16 @@ Constructors:
 Procedures:
    All required procedures (including constructors and destructors) should be given after a line containing the ``contains`` keyword. Galacticus coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, ``simple`` in this case.
 
-Functionality to store and restore the state (see :ref:`here <manual-sec-restarting>`) of classes built via a ``functionClass`` directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element to the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
+Functionality to store and restore the state (see :ref:`here <manual-sec-restarting>`) of classes built via a ``functionClass`` directive are automatically built. Which members are stored, and the build warning emitted for members which cannot be, are described :ref:`here <manual-sec-stateStorable>`. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element within a ``stateStorable`` element of the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element (also within the ``stateStorable`` element)---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute. For example:
+
+.. code-block:: xml
+
+    <stellarAstrophysics name="stellarAstrophysicsFile">
+     <stateStorable>
+      <!-- Data read from file on demand: none of it, including the flag recording that it was read, is restored. -->
+      <exclude variables="readDone, tableMassEjected"/>
+     </stateStorable>
+    </stellarAstrophysics>
 
 .. _manual-sec-capabilities:
 
