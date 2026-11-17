@@ -307,7 +307,7 @@ contains
     double precision, parameter                          :: maximumSpin        =0.99999d0
     ! Coefficients in the expansion of ISCO energy with spin close to maximal spin.
     double precision, parameter                          :: coefficientFirst   =0.9164864242d0, coefficientZeroth=0.5773502693d0
-    double precision                                     :: blackHoleIscoRadius            , spinSigned
+    double precision                                     :: blackHoleIscoRadius               , spinSigned
 
     ! Get black hole ISCO radius.
     blackHoleIscoRadius=Black_Hole_ISCO_Radius(spinBlackHole,orbit)

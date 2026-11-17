@@ -155,7 +155,12 @@ contains
 
        \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
 
-    where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`, :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate, :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``. If there is no star formation the outflow rate is zero.
+    where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`,
+    :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate,
+    :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input
+    rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite
+    time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``. If there is no star formation the
+    outflow rate is zero.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk                     , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
     use :: Galacticus_Nodes          , only : nodeComponentDisk                     , nodeComponentSpheroid

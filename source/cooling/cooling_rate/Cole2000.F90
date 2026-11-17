@@ -109,7 +109,8 @@ contains
 
   double precision function cole2000Rate(self,node)
     !!{RST
-    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for the :cite:t:`cole_hierarchical_2000` cooling rate model.
+    Returns the cooling rate (in :math:`\mathrm{M}_\odot` Gyr\ :math:`^{-1}`) in the hot atmosphere for the
+    :cite:t:`cole_hierarchical_2000` cooling rate model.
     !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic   , nodeComponentHotHalo, treeNode
     use :: Numerical_Constants_Math  , only : Pi

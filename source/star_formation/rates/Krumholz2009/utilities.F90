@@ -39,9 +39,9 @@ contains
     !!}
     implicit none
     double precision, intent(in   ) :: s
-    double precision, parameter     :: sTiny        =1.000000d-06
-    double precision, parameter     :: sHuge        =1.000000d+10
-    double precision, parameter     :: sMaximum     =1.000000d+01
+    double precision, parameter     :: sTiny   =1.000000d-06
+    double precision, parameter     :: sHuge   =1.000000d+10
+    double precision, parameter     :: sMaximum=1.000000d+01
     double precision                :: delta
 
     if      (s <  sTiny   ) then

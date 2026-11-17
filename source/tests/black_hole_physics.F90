@@ -180,10 +180,10 @@ program Test_Black_Hole_Physics
   ! The ISCO specific energy in physical units is E_ISCO c², independent of the black hole mass.
   call blackHole%massSet(1.0d6)
   call blackHole%spinSet(0.6d0)
-  call Assert("specific energy {physical units}"                                                       , &
-       &      Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsPhysical,orbit=orbitPrograde)       , &
-       &      energyISCOReference(3)*speedLightKilometersPerSecond**2                                  , &
-       &      relTol=1.0d-8                                                                              &
+  call Assert("specific energy {physical units}"                                                , &
+       &      Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsPhysical,orbit=orbitPrograde), &
+       &      energyISCOReference(3)*speedLightKilometersPerSecond**2                           , &
+       &      relTol=1.0d-8                                                                       &
        &     )
   call Unit_Tests_End_Group()
 

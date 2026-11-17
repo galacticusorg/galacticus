@@ -57,7 +57,9 @@
 
       \chi = 0.77 \left[ 1 + 3.1 Z^{\prime 0.365} \right],
 
-   and :math:`\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/\mathrm{M}_\odot \hbox{pc}^{-2}` where :math:`\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^\mathrm{NSC}}{4\pi (r^\mathrm{NSC})^2}` is the surface density of the NSC gas reservoir. If :math:`Z^\prime=0` the star formation rate is zero. The timescale is given by
+   and :math:`\Sigma_1= \Sigma_\mathrm{gas}^\mathrm{NSC}/\mathrm{M}_\odot \hbox{pc}^{-2}` where
+   :math:`\Sigma_\mathrm{gas}^\mathrm{NSC}=\frac{M_\mathrm{gas}^\mathrm{NSC}}{4\pi (r^\mathrm{NSC})^2}` is the surface density of
+   the NSC gas reservoir. If :math:`Z^\prime=0` the star formation rate is zero. The timescale is given by
 
    .. math::
 
@@ -176,9 +178,9 @@ contains
            chi              =+0.77d0*(1.0d0+3.1d0*metallicityRelativeToSolar**0.365d0)
            s                =+log(1.0d0+0.6d0*chi)/(0.04d0*metallicityRelativeToSolar*surfaceDensityGasNuclearStarClusterScaled)
        else
-            ! Zero metallicity gas - return zero rate.
-            krumholz2009Rate=+0.0d0
-            return
+          ! Zero metallicity gas - return zero rate.
+          krumholz2009Rate=+0.0d0
+          return
        end if 
        ! Computation of the timescale (in units of Gyr⁻¹) given by Krumholz et al. (2009;
        ! https://ui.adsabs.harvard.edu/abs/2009ApJ...699..850K/abstract) and Sesana et al. (2014,

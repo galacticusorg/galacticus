@@ -348,10 +348,10 @@ contains
        if (temperature /= self%temperaturePrevious1) then
           logarithmic10Temperature=log10(temperature)
           ! The low density limit is a polynomial in log₁₀(T), so its logarithmic slope is the derivative of that polynomial.
-          self%coolingFunctionLowDensityLimitTemperatureLogGradient=                                   &
-               &                    +                                lowDensityLimitCoefficient(1)     &
-               &                    +logarithmic10Temperature*(2.0d0*lowDensityLimitCoefficient(2)     &
-               &                    +logarithmic10Temperature*(3.0d0*lowDensityLimitCoefficient(3)     &
+          self%coolingFunctionLowDensityLimitTemperatureLogGradient=                                  &
+               &                    +                                lowDensityLimitCoefficient(1)    &
+               &                    +logarithmic10Temperature*(2.0d0*lowDensityLimitCoefficient(2)    &
+               &                    +logarithmic10Temperature*(3.0d0*lowDensityLimitCoefficient(3)    &
                &                    +logarithmic10Temperature*(4.0d0*lowDensityLimitCoefficient(4))))
           self%temperaturePrevious1=temperature
        end if
