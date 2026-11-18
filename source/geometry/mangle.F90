@@ -232,7 +232,7 @@ contains
     end if
     do attempt=1,attemptMaximum
        ! Draw a polygon with probability proportional to its solid angle.
-       uniformDeviate=+self%solidAngleCumulative(self%polygonCount)                &
+       uniformDeviate=+self%solidAngleCumulative(self%polygonCount) &
             &         *randomNumberGenerator_%uniformSample()
        ! searchArray() sees the (0:polygonCount) array as 1-based, so the index it returns is already the polygon index.
        indexPolygon  =int(searchArray(self%solidAngleCumulative,uniformDeviate))

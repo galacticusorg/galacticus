@@ -162,7 +162,7 @@ contains
     type            (treeNode                               ), intent(inout) :: node
     type            (treeNode                               ), pointer       :: nodeHost
     class           (nodeComponentBasic                     ), pointer       :: basicHost                 , basic
-    double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
+    double precision                                         , parameter     :: inverseTwoB1=1.169335453d0        !  1/2/B(1).
     double precision                                                         :: massRatio
     !$GLC attributes unused :: self
 

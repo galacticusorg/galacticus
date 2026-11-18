@@ -26,7 +26,11 @@
   !![
   <nodeOperator name="nodeOperatorDiskRadiusPowerLaw" docformat="rst">
    <description>
-   A node operator that sets the disk scale radius using an empirical broken power law in stellar mass, :math:`r_\mathrm{s} = \gamma \left(M_\star/\mathrm{M}_\odot\right)^\alpha \left(1 + M_\star/M_0\right)^{\beta-\alpha}`, calibrated to observations (default parameters from :cite:author:`shen_size_2003` :cite:year:`shen_size_2003` for late-type galaxies). ``alpha`` and ``beta`` are the low- and high-mass exponents, ``gamma`` is the normalization, and ``massPivot`` is the transition mass :math:`M_0`. The radius is updated at node initialization, after mergers, and when the ODE is solved analytically.
+   A node operator that sets the disk scale radius using an empirical broken power law in stellar mass, :math:`r_\mathrm{s} =
+   \gamma \left(M_\star/\mathrm{M}_\odot\right)^\alpha \left(1 + M_\star/M_0\right)^{\beta-\alpha}`, calibrated to observations
+   (default parameters from :cite:author:`shen_size_2003` :cite:year:`shen_size_2003` for late-type galaxies). ``alpha`` and
+   ``beta`` are the low- and high-mass exponents, ``gamma`` is the normalization, and ``massPivot`` is the transition mass
+   :math:`M_0`. The radius is updated at node initialization, after mergers, and when the ODE is solved analytically.
    </description>
   </nodeOperator>
   !!]
@@ -155,11 +159,11 @@ contains
 
     if (.not.node%isOnMainBranch()) return 
     disk          =>  node    %disk   ()
-    radiusStellar =  +self    %gamma                                                &
-         &           *  (disk%massStellar()               )**           self%alpha  &
-         &           *(                                                             &
-         &             +1.0d0                                                       &
-         &             +(disk%massStellar()/self%massPivot)                         &
+    radiusStellar =  +self    %gamma                                     &
+         &           *  (disk%massStellar()               )**self%alpha  &
+         &           *(                                                  &
+         &             +1.0d0                                            &
+         &             +(disk%massStellar()/self%massPivot)              &
          &            )**(self%beta-self%alpha)
     call disk%radiusSet(radiusStellar)
     return  

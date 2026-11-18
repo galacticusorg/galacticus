@@ -119,18 +119,18 @@ contains
     ! Compute the epoch - the transfer function is assumed to be for z=0.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Compute the free-streaming length-like parameter (equation G6 of BBKS), which depends on the physical density, Ωₓh².
-    self%lengthFreeStreaming=+0.2d0                                                                                     &
-         &                                         /(                                                                   &
-         &                                           +degreesOfFreedomEffectiveDecoupling                               &
-         &                                           /100.d0                                                            &
-         &                                          )**(4.0d0/3.0d0)                                                    &
-         &                                         /(                                                                   &
-         &                                           +(                                                                 &
-         &                                             +self%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                             -self%cosmologyParameters_%OmegaBaryon   (                  )    &
-         &                                            )                                                                 &
-         &                                           *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                          )
+    self%lengthFreeStreaming=+0.2d0                                                               &
+         &                   /(                                                                   &
+         &                     +degreesOfFreedomEffectiveDecoupling                               &
+         &                     /100.d0                                                            &
+         &                    )**(4.0d0/3.0d0)                                                    &
+         &                   /(                                                                   &
+         &                     +(                                                                 &
+         &                       +self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                       -self%cosmologyParameters_%OmegaBaryon   (                  )    &
+         &                      )                                                                 &
+         &                     *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                    )
     return
   end function bbksWDMConstructorInternal
 
