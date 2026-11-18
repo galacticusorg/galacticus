@@ -50,14 +50,14 @@
      A dark matter halo profile scale radius class which computes radii from the concentration.
      !!}
      private
-     class           (cosmologyParametersClass                          ), pointer :: cosmologyParameters_              => null()
-     class           (cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_               => null()
-     class           (darkMatterHaloScaleClass                          ), pointer :: darkMatterHaloScale_              => null()
-     class           (darkMatterProfileDMOClass                         ), pointer :: darkMatterProfileDMO_             => null(), darkMatterProfileDMODefinition  => null()
-     class           (virialDensityContrastClass                        ), pointer :: virialDensityContrast_            => null(), virialDensityContrastDefinition => null()
-     class           (darkMatterProfileConcentrationClass               ), pointer :: darkMatterProfileConcentration_   => null()
-     type            (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: darkMatterHaloScaleDefinition     => null()
-     logical                                                                       :: correctForConcentrationDefinition          , useMeanConcentration           , &
+     class           (cosmologyParametersClass                          ), pointer :: cosmologyParameters_                => null()
+     class           (cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_                 => null()
+     class           (darkMatterHaloScaleClass                          ), pointer :: darkMatterHaloScale_                => null()
+     class           (darkMatterProfileDMOClass                         ), pointer :: darkMatterProfileDMO_               => null(), darkMatterProfileDMODefinition  => null()
+     class           (virialDensityContrastClass                        ), pointer :: virialDensityContrast_              => null(), virialDensityContrastDefinition => null()
+     class           (darkMatterProfileConcentrationClass               ), pointer :: darkMatterProfileConcentration_     => null()
+     type            (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: darkMatterHaloScaleDefinition       => null()
+     logical                                                                       :: correctForConcentrationDefinition            , useMeanConcentration                     , &
           &                                                                           tolerateDefinitionConversionFailure
      double precision                                                              :: massRatioPrevious
    contains
@@ -133,7 +133,10 @@ contains
       <name>tolerateDefinitionConversionFailure</name>
       <defaultValue>.false.</defaultValue>
       <description>
-      If true, then when ``[correctForConcentrationDefinition]`` is true and no halo mass in the definition used by the concentration class corresponds to the mass of the halo (as can happen for a definition profile with a finite central density, such as Einasto, at high density contrasts), a warning is issued and the uncorrected concentration is used. Otherwise this is a fatal error.
+      If true, then when ``[correctForConcentrationDefinition]`` is true and no halo mass in the definition used by the
+      concentration class corresponds to the mass of the halo (as can happen for a definition profile with a finite central
+      density, such as Einasto, at high density contrasts), a warning is issued and the uncorrected concentration is
+      used. Otherwise this is a fatal error.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -164,13 +167,13 @@ contains
     fatal.
     !!}
     implicit none
-    type   (darkMatterProfileScaleRadiusConcentration)                        :: self
-    class  (cosmologyParametersClass                 ), intent(in   ), target :: cosmologyParameters_
-    class  (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
-    class  (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
-    class  (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
-    class  (virialDensityContrastClass               ), intent(in   ), target :: virialDensityContrast_
-    class  (darkMatterProfileConcentrationClass      ), intent(in   ), target :: darkMatterProfileConcentration_
+    type   (darkMatterProfileScaleRadiusConcentration)                          :: self
+    class  (cosmologyParametersClass                 ), intent(in   ), target   :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                  ), intent(in   ), target   :: cosmologyFunctions_
+    class  (darkMatterHaloScaleClass                 ), intent(in   ), target   :: darkMatterHaloScale_
+    class  (darkMatterProfileDMOClass                ), intent(in   ), target   :: darkMatterProfileDMO_
+    class  (virialDensityContrastClass               ), intent(in   ), target   :: virialDensityContrast_
+    class  (darkMatterProfileConcentrationClass      ), intent(in   ), target   :: darkMatterProfileConcentration_
     logical                                           , intent(in   )           :: correctForConcentrationDefinition  , useMeanConcentration
     logical                                           , intent(in   ), optional :: tolerateDefinitionConversionFailure
     !![
@@ -217,7 +220,7 @@ contains
     !!}
     use :: Calculations_Resets , only : Calculations_Reset
     use :: Error               , only : Error_Report             , Warn                         , errorStatusSuccess, &
-         &                                  errorStatusOutOfRange
+         &                              errorStatusOutOfRange
     use :: Numerical_Comparison, only : Values_Differ
     use :: Root_Finder         , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
@@ -287,13 +290,13 @@ contains
                   &                                              ))
           end if
           finder => state_(stateCount)%finder
-          call finder%rangeExpand(                                                                          &
-               &                  rangeExpandUpward            =1.0d0*self%massRatioPrevious              , &
-               &                  rangeExpandDownward          =1.0d0/self%massRatioPrevious              , &
-               &                  rangeUpwardLimit             =state_(stateCount)%mass*massRatioMaximum  , &
-               &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive             , &
-               &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative             , &
-               &                  rangeExpandType              =rangeExpandMultiplicative                   &
+          call finder%rangeExpand(                                                                        &
+               &                  rangeExpandUpward            =1.0d0*self%massRatioPrevious            , &
+               &                  rangeExpandDownward          =1.0d0/self%massRatioPrevious            , &
+               &                  rangeUpwardLimit             =state_(stateCount)%mass*massRatioMaximum, &
+               &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive           , &
+               &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative           , &
+               &                  rangeExpandType              =rangeExpandMultiplicative                 &
                &                 )
           ! Check that a solution exists below the largest mass ratio searched. For a definition profile with a finite central
           ! density (e.g. Einasto), the mass enclosed at the density contrast of the halo can stay below the halo mass for every
@@ -311,11 +314,11 @@ contains
           end if
           if (status /= errorStatusSuccess) then
              ! No mass in the concentration definition corresponds to the mass of the halo.
-             if (.not.self%tolerateDefinitionConversionFailure)                                                                                                           &
-                  & call Error_Report(                                                                                                                                    &
-                  &                   'unable to find a halo mass in the concentration definition corresponding to the mass of this halo'//char(10)//                    &
-                  &                   ' HELP: set [tolerateDefinitionConversionFailure]=true to issue a warning and use the uncorrected concentration in such cases'//     &
-                  &                   {introspection:location}                                                                                                            &
+             if (.not.self%tolerateDefinitionConversionFailure)                                                                                                        &
+                  & call Error_Report(                                                                                                                                 &
+                  &                   'unable to find a halo mass in the concentration definition corresponding to the mass of this halo'//char(10)//                  &
+                  &                   ' HELP: set [tolerateDefinitionConversionFailure]=true to issue a warning and use the uncorrected concentration in such cases'// &
+                  &                   {introspection:location}                                                                                                         &
                   &                  )
              call Warn('unable to convert a concentration to the halo definition used here - using the uncorrected concentration')
              concentrationRadius=+self%darkMatterHaloScale_%radiusVirial(node) &

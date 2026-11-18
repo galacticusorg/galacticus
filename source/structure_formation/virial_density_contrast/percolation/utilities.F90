@@ -102,7 +102,10 @@ contains
       <variable>percolationObjects_%tolerateDefinitionConversionFailure</variable>
       <defaultValue>.false.</defaultValue>
       <description>
-      If true, then where the percolation calculation, which converts concentrations to the halo definition it is solving for, finds no halo mass in the definition used by the concentration class corresponding to the mass of the halo (as can happen for a definition profile with a finite central density, such as Einasto, at the high density contrasts it explores), a warning is issued and the uncorrected concentration is used. Otherwise this is a fatal error.
+      If true, then where the percolation calculation, which converts concentrations to the halo definition it is solving for,
+      finds no halo mass in the definition used by the concentration class corresponding to the mass of the halo (as can happen
+      for a definition profile with a finite central density, such as Einasto, at the high density contrasts it explores), a
+      warning is issued and the uncorrected concentration is used. Otherwise this is a fatal error.
       </description>
       <source>parameters</source>
     </inputParameter>
