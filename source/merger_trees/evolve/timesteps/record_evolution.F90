@@ -332,7 +332,7 @@ contains
             call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
           end block
           !$ call hdf5Access%unset()
-          call    self    %reset         (                                                                                                                )
+          call     self    %reset ()
        end if
     class is (functionClass)
        call Error_Report('object is not of [mergerTreeEvolveTimestepRecordEvolution] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
