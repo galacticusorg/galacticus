@@ -74,6 +74,10 @@
 
    .. [#] Note that this will not, in general, be precisely the same as the redshift corresponding to the output time.
    </description>
+   <stateStorable>
+    <!-- Not stored: units_ - set by the constructor and never changed afterwards. -->
+    <exclude variables="units_"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLightcone

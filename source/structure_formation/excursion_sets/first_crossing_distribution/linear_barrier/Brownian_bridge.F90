@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a excursion set first crossing statistics class for linear barriers with constrained branching described by a Brownian bridge solution.
 !!}
@@ -319,11 +321,8 @@ contains
        probability       =+0.0d0
     else
        barrierConstrained=+(                                                                                                    &
-            &               +  self%excursionSetBarrier_%barrier                       (variance,time,node,rateCompute=.false.) &
-            &               -(                                                                                                  &
-            &                 +                          criticalOverdensityConstrained                                         &
-            &                 -self%excursionSetBarrier_%barrier                       (variance,time,node,rateCompute=.false.) &
-            &                )                                                                                                  &
+            &               +self%excursionSetBarrier_%barrier                       (variance,time,node,rateCompute=.false.)   &
+            &               -                          criticalOverdensityConstrained                                           &
             &               *variance                                                                                           &
             &               /varianceConstrained                                                                                &
             &              )                                                                                                    &
@@ -332,31 +331,26 @@ contains
             &               -variance                                                                                           &
             &               /varianceConstrained                                                                                &
             &             )
-       probability       =+     self%excursionSetBarrier_%barrier(   0.0d0,time,node,rateCompute=.false.)                          &
-            &             *exp(                                                                                                    &
-            &                  -0.5d0                                                                                              &
-            &                  *(                                                                                                  &
-            &                    +self%excursionSetBarrier_%barrier                       (variance,time,node,rateCompute=.false.) &
-            &                    -                          criticalOverdensityConstrained                                         &
-            &                    *variance                                                                                         &
-            &                    /varianceConstrained                                                                              &
-            &                   )**2                                                                                               &
-            &                  *(                                                                                                  &
-            &                    +1.0d0                                                                                            &
-            &                    -variance                                                                                         &
-            &                    /varianceConstrained                                                                              &
-            &                   )                                                                                                  &
-            &                   / variance                                                                                         &
-            &                  )                                                                                                   &
-            &                 /sqrt(                                                                                               &
-            &                       +2.0d0                                                                                         &
-            &                       *Pi                                                                                            &
-            &                       *  variance           **3                                                                      &
-            &                       *(                                                                                             &
-            &                         +1.0d0                                                                                       &
-            &                         -variance                                                                                    &
-            &                         /varianceConstrained                                                                         &
-            &                        )                                                                                             &
+       probability       =+  self%excursionSetBarrier_%barrier                       (   0.0d0,time,node,rateCompute=.false.)   &
+            &             *exp(                                                                                                 &
+            &                  -0.5d0                                                                                           &
+            &                  *barrierConstrained**2                                                                           &
+            &                  *(                                                                                               &
+            &                    +1.0d0                                                                                         &
+            &                    -variance                                                                                      &
+            &                    /varianceConstrained                                                                           &
+            &                   )                                                                                               &
+            &                   / variance                                                                                      &
+            &                  )                                                                                                &
+            &                 /sqrt(                                                                                            &
+            &                       +2.0d0                                                                                      &
+            &                       *Pi                                                                                         &
+            &                       *  variance           **3                                                                   &
+            &                       *(                                                                                          &
+            &                         +1.0d0                                                                                    &
+            &                         -variance                                                                                 &
+            &                         /varianceConstrained                                                                      &
+            &                        )                                                                                          &
             &                      )
     end if
     return

@@ -66,6 +66,7 @@ program Test_Tables
   logical                                                                                 :: logarithmic
   type            (table2DLinLinLin                        )                              :: myTable2DLinearExtend
   type            (table1DLinearMonotoneQuinticHermite     )                              :: quinticLinear
+  type            (table1DLinearMonotoneCSpline            )                              :: monotoneMultiple     , monotoneSingle
   type            (table1DLogarithmicMonotoneQuinticHermite)                              :: quinticNarrow        , quinticWide
   double precision                                          , allocatable, dimension(:  ) :: xTest                , interpolatedNarrow  , &
        &                                                                                     gradientNarrow
@@ -320,6 +321,28 @@ program Test_Tables
      call Assert('monotone cubic spline interpolator is monotonic',isMonotonic,.true.)
   end select
   deallocate(myTable)
+
+  ! A monotonic cubic spline table holding two tables must interpolate each exactly as would a table holding it alone. The
+  ! second table is populated first, so that computing the spline of the first can not disturb the second.
+  call monotoneMultiple%create  (1.0d0,6.0d0,11,tableCount=2                                                   )
+  call monotoneMultiple%populate([1.0d0,1.5d0,3.0d0,3.2d0,5.0d0,8.0d0,8.5d0,9.0d0,12.0d0,13.0d0,20.0d0],table=2)
+  call monotoneMultiple%populate([2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0, 9.0d0,11.0d0,12.0d0],table=1)
+  identical=.true.
+  do j=1,2
+     call monotoneSingle%create(1.0d0,6.0d0,11)
+     if (j == 1) then
+        call monotoneSingle%populate([2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0, 9.0d0,11.0d0,12.0d0])
+     else
+        call monotoneSingle%populate([1.0d0,1.5d0,3.0d0,3.2d0,5.0d0,8.0d0,8.5d0,9.0d0,12.0d0,13.0d0,20.0d0])
+     end if
+     do i=1,1001
+        x=1.0d0+5.0d0*dble(i-1)/1000.0d0
+        if (monotoneMultiple%interpolate(x,table=j) /= monotoneSingle%interpolate(x)) identical=.false.
+     end do
+     call monotoneSingle%destroy()
+  end do
+  call monotoneMultiple%destroy()
+  call Assert('monotone cubic spline interpolator with multiple tables matches single tables',identical,.true.)
 
   ! Allocate a table object.
   allocate(table1DNonUniformLinearLogarithmic :: myTable)

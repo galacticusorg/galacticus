@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements various file-related utilities.
 !!}
@@ -224,8 +226,9 @@ module File_Utilities
      Type used to store file lock descriptors.
      !!}
      private
-     type(c_ptr         ) :: lockDescriptorC
-     type(varying_string) :: fileName
+     type   (c_ptr         ) :: lockDescriptorC
+     type   (varying_string) :: fileName
+     logical                 :: isShared       =.false.
   end type lockDescriptor
 
   type   (ompLock) :: posixOpenMPFileLock
@@ -366,7 +369,8 @@ contains
     call syncdir_C(char(parentName)//char(0))
     ! Test for file existence.
     !![
-    <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html" docformat="rst">
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=92836" docformat="rst">
+     <seeAlso type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html"/>
      <description>
      Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existence.
      </description>
@@ -511,29 +515,40 @@ contains
        end select
     end do
     lock%fileName=trim(fileName)
+    lock%isShared=lockIsShared_ == 1
     return
   end subroutine File_Lock_Char
 
   subroutine File_Unlock(lock,sync)
     !!{RST
-    Remove a lock from a file.
+    Remove a lock from a file. If ``sync`` is true the file is first synced to storage. By default it is synced only if the lock was
+    exclusive: a shared lock guards only reads of the file, so there is nothing of ours to sync.
     !!}
-    use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char
+    use :: Error             , only : Error_Report, System_Error_Description
+    use :: ISO_Varying_String, only : char        , operator(//)
     implicit none
     type   (lockDescriptor), intent(inout)           :: lock
     logical                , intent(in   ), optional :: sync
     integer                                          :: fileUnit      , errorStatus, &
          &                                              fileDescriptor
-    !![
-    <optionalArgument name="sync" defaultsTo=".true." />
-    !!]
+    logical                                          :: sync_
+    type   (varying_string)                          :: message
 
+    if (present(sync)) then
+       sync_=sync
+    else
+       sync_=.not.lock%isShared
+    end if
     if (sync_) then
        open(newUnit=fileUnit,file=char(lock%fileName),status='unknown',iostat=errorStatus)
        if (errorStatus == 0) then
           fileDescriptor=fnum(fileUnit)
-          if (fsync(fileDescriptor) /= 0) call Error_Report('error syncing file at unlock'//{introspection:location})
+          if (fsync(fileDescriptor) /= 0) then
+             ! Capture the system error immediately, before any other call can change it.
+             message=System_Error_Description()
+             message="error syncing file '"//lock%fileName//"' at unlock ["//message//"]"
+             call Error_Report(message//{introspection:location})
+          end if
           close(fileUnit)
       end if
     end if

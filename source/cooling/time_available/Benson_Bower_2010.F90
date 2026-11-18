@@ -136,110 +136,21 @@ contains
     !!{RST
     Returns the time available for cooling (in units of Gyr).
     !!}
-    use :: Galacticus_Nodes                 , only : nodeComponentBasic                  , nodeComponentHotHalo
-    use :: Abundances_Structure             , only : abundances
-    use :: Chemical_Abundances_Structure    , only : chemicalAbundances                  , Chemicals_Property_Count
-    use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
-    use :: Mass_Distributions               , only : massDistributionClass               , kinematicsDistributionClass, massDistributionZero
-    use :: Coordinates                      , only : coordinateSpherical                 , assignment(=)
-    use :: Galactic_Structure_Options       , only : componentTypeHotHalo                , massTypeGaseous            , massTypeGalactic
-    use :: Numerical_Constants_Astronomical , only : gigaYear                            , megaParsec
-    use :: Numerical_Constants_Physical     , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes     , only : centi
-    use :: Numerical_Constants_Units        , only : ergs
-    use :: Numerical_Constants_Math         , only : Pi
-    use :: Hot_Halo_Composition             , only : Hydrogen_Number_Density
+    use :: Galacticus_Nodes         , only : nodeComponentHotHalo
+    use :: Cooling_Benson_Bower_2010, only : coolingBensonBower2010Properties
     implicit none
     class           (coolingTimeAvailableBensonBower2010), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
-    class           (nodeComponentBasic                 ), pointer       :: basic
     class           (nodeComponentHotHalo               ), pointer       :: hotHalo
-    class           (massDistributionClass              ), pointer       :: massDistribution_
-    class           (kinematicsDistributionClass        ), pointer       :: kinematicsDistribution_
-    type            (coordinateSpherical                )                :: coordinates
-    double precision                                                     :: density                , temperature          , &
-         &                                                                  massToDensityConversion, numberDensityHydrogen, &
-         &                                                                  numberDensityAllSpecies, coolingFunction      , &
-         &                                                                  countParticles         , massNotional
-    type            (abundances                         )                :: abundances_
-    type            (chemicalAbundances                 )                :: chemicalDensities_     , chemicalMasses_
+    double precision                                                     :: numberDensityHydrogen, coolingFunction, &
+         &                                                                  countParticles
 
-    massDistribution_ =>  node             %massDistribution(massType=massTypeGalactic)
-    basic             =>  node             %basic           (                         )
-    hotHalo           =>  node             %hotHalo         (                         )
-    massNotional      =  +hotHalo          %mass            (                         ) &
-         &               +hotHalo          %outflowedMass   (                         ) &
-         &               +massDistribution_%massTotal       (                         )
-    !![
-    <objectDestructor name="massDistribution_"/>
-    !!]
-    if (massNotional <= 0.0d0) then
+    if (.not.coolingBensonBower2010Properties(node,self%coolingFunction_,self%chemicalState_,self%radiation,coolingFunction,numberDensityHydrogen,countParticles)) then
        bensonBower2010TimeAvailable=0.0d0
        return
     end if
-    ! Get the mass distribution.
-    massDistribution_       => node             %massDistribution      (componentType=componentTypeHotHalo,massType=massTypeGaseous)
-    kinematicsDistribution_ => massDistribution_%kinematicsDistribution(                                                           )
-    select type (massDistribution_)
-    type is (massDistributionZero)
-       ! No mass distribution exists for the hot halo (most likely it is in an unphysical state).
-       bensonBower2010TimeAvailable=0.0d0
-       !![
-       <objectDestructor name="massDistribution_"      />
-       <objectDestructor name="kinematicsDistribution_"/>
-       !!]
-       return
-    end select
-    ! Compute the mean density and temperature of the hot halo.
-    density    =+massNotional             &
-         &      *3.0d0                    &
-         &      /4.0d0                    &
-         &      /Pi                       &
-         &      /hotHalo%outerRadius()**3
-    coordinates=[hotHalo%outerRadius(),0.0d0,0.0d0]
-    temperature=+kinematicsDistribution_%temperature(coordinates)
-    !![
-    <objectDestructor name="massDistribution_"      />
-    <objectDestructor name="kinematicsDistribution_"/>
-    !!]          
-    ! Get the abundances for this node.
-    abundances_=hotHalo%abundances()
-    call abundances_%massToMassFraction(hotHalo%mass())
-    ! Get the chemicals for this node.
-    if (Chemicals_Property_Count () > 0) then
-       chemicalMasses_=hotHalo%chemicals()
-       ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-       call chemicalMasses_%massToNumber(chemicalDensities_)
-       ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm⁻³.
-       if (hotHalo%outerRadius() > 0.0d0) then
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
-       else
-          massToDensityConversion=0.0d0
-       end if
-       ! Convert to number density.
-       chemicalDensities_=chemicalDensities_*massToDensityConversion
-    end if
-    ! Set epoch for radiation field.
-    call self%radiation%timeSet(basic%time())
-    ! Compute number density of hydrogen (in cm⁻³).
-    numberDensityHydrogen  =  Hydrogen_Number_Density                  (           density                    ,abundances_                                  )
-    ! Get the number density of all species, including electrons.
-    numberDensityAllSpecies=+                                                numberDensityHydrogen                                                            &
-         &                  /     abundances_   %hydrogenNumberFraction(                                                                                    ) &
-         &                  +self%chemicalState_%electronDensity       (     numberDensityHydrogen,temperature,abundances_                   ,self%radiation)
-    ! Get the cooling function (in ergs cm³ s⁻¹).
-    coolingFunction        =+self%coolingFunction_%coolingFunction     (node,numberDensityHydrogen,temperature,abundances_,chemicalDensities_,self%radiation)
-    ! Compute the number of particles in the halo.
-    countParticles         =+numberDensityAllSpecies &
-         &                  *4.0d0                   &
-         &                  *Pi                      &
-         &                  /3.0d0                   &
-         &                  *(                       &
-         &                    +hotHalo%outerRadius() &
-         &                    *megaParsec            &
-         &                    /centi                 &
-         &                   )**3
     ! Compute the time available for cooling (Benson & Bower 2010; eqn. 16).
+    hotHalo => node%hotHalo()
     if (coolingFunction > 0.0d0) then
        ! Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and nₕ is the
        ! number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of

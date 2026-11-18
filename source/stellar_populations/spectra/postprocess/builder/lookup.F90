@@ -28,6 +28,10 @@
    </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
    <assignment forceArrayAssign="names"/>
+   <stateStorable>
+    <!-- Not stored: postprocessors - set by the constructor and never changed afterwards. -->
+    <exclude variables="postprocessors"/>
+   </stateStorable>
   </stellarPopulationSpectraPostprocessorBuilder>
   !!]
   type, extends(stellarPopulationSpectraPostprocessorBuilderClass) :: stellarPopulationSpectraPostprocessorBuilderLookup

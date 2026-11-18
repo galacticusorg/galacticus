@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
+!+    Contributions to this file made by: Andrew Benson, Xiaolong Du, Claude.
 
 !!{RST
 Implements a merger tree branching probability class using a generalized Press-Schechter approach.
@@ -55,6 +55,8 @@ Implements a merger tree branching probability class using a generalized Press-S
       \stackrel{\sim}{f} \over \d t},
 
    where :math:`\sigma_\mathrm{max}` is the peak value of :math:`\sigma(M)` (for the lowest mass halos) and :math:`\d \stackrel{\sim}{f}/\d t` is the rate at which excursion set trajectories *fail* to cross the barrier on any mass scale.
+
+   If ``[distributionFunctionLowerHalfOnly]``\ :math:`=`\ ``false`` the branching probability is instead integrated over progenitor masses up to :math:`M`. In that case, if ``[distributionFunctionNormalize]``\ :math:`=`\ ``true``, the branching probability and the rates of subresolution and smooth accretion are all halved, since each binary split is then counted once for each of its two progenitors. A progenitor drawn with a complement below the resolution is kept, and the complement is discarded, so these draws also contribute to the loss of mass in unresolved halos.
    </description>
   </mergerTreeBranchingProbability>
   !!]
@@ -100,19 +102,21 @@ Implements a merger tree branching probability class using a generalized Press-S
    contains
      !![
      <methods docformat="rst">
-       <method description="Compute common factors needed for the calculations." method="computeCommonFactors"/>
-       <method description="Compute common factors needed for the calculations." method="excursionSetTest"    />
+       <method description="Compute common factors needed for the calculations."                      method="computeCommonFactors"               />
+       <method description="Compute common factors needed for the calculations."                      method="excursionSetTest"                   />
+       <method description="Return true if only the lower half of the distribution function is used." method="distributionFunctionIsLowerHalfOnly"/>
      </methods>
      !!]
-     final     ::                          generalizedPressSchechterDestructor
-     procedure :: probability           => generalizedPressSchechterProbability
-     procedure :: probabilityBound      => generalizedPressSchechterProbabilityBound
-     procedure :: fractionSubresolution => generalizedPressSchechterFractionSubresolution
-     procedure :: massBranch            => generalizedPressSchechterMassBranch
-     procedure :: rate                  => generalizedPressSchechterRate
-     procedure :: stepMaximum           => generalizedPressSchechterStepMaximum
-     procedure :: computeCommonFactors  => generalizedPressSchechterComputeCommonFactors
-     procedure :: excursionSetTest      => generalizedPressSchechterExcursionSetTest
+     final     ::                                        generalizedPressSchechterDestructor
+     procedure :: probability                         => generalizedPressSchechterProbability
+     procedure :: probabilityBound                    => generalizedPressSchechterProbabilityBound
+     procedure :: fractionSubresolution               => generalizedPressSchechterFractionSubresolution
+     procedure :: massBranch                          => generalizedPressSchechterMassBranch
+     procedure :: rate                                => generalizedPressSchechterRate
+     procedure :: stepMaximum                         => generalizedPressSchechterStepMaximum
+     procedure :: computeCommonFactors                => generalizedPressSchechterComputeCommonFactors
+     procedure :: excursionSetTest                    => generalizedPressSchechterExcursionSetTest
+     procedure :: distributionFunctionIsLowerHalfOnly => generalizedPressSchechterDistributionFunctionIsLowerHalfOnly
   end type mergerTreeBranchingProbabilityGeneralizedPressSchechter
 
   interface mergerTreeBranchingProbabilityGeneralizedPressSchechter
@@ -189,7 +193,7 @@ contains
       <name>distributionFunctionNormalize</name>
       <defaultValue>.true.</defaultValue>
       <description>
-      If using the full range (:math:`M &lt; M_0`) of the branching rate distribution, if this parameter is ``true`` then divide the branching rate by 2. This is appropriate if two progenitors are to be sampled (i.e. a binary split). If the branching rate applies to only a single branch is it more appropriate to set this parameter to be ``true`` in which case this normalization by a factor 2 is *not* applied.
+      If using the full range (:math:`M &lt; M_0`) of the branching rate distribution, if this parameter is ``true`` then divide the branching probability (as returned by the ``probability`` method, and used by the ``massBranch`` method), and the rate of subresolution accretion, by 2. The ``rate`` method is not affected. This is appropriate if two progenitors are to be sampled (i.e. a binary split). If the branching rate applies to only a single branch it is more appropriate to set this parameter to be ``false`` in which case this normalization by a factor 2 is *not* applied.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -546,11 +550,30 @@ contains
        end if
        generalizedPressSchechterFractionSubresolution=+generalizedPressSchechterFractionSubresolution &
                &                                      +integral
+       ! When the full range of the distribution function is used with normalization, each split into a pair (m,M-m) is drawn
+       ! at rate (1/2)n(m) via m and at rate (1/2)n(M-m) via M-m. For m below the resolution, draws of M-m already shed mass m (the
+       ! complement being discarded) at rate (1/2)n(M-m), so subresolution accretion must supply only the other member of the pair,
+       ! at rate (1/2)n(m). The mass loss rate per unit progenitor mass is then (1/2)[n(m)+n(M-m)] on both sides of the resolution.
+       ! Without this factor it would be discontinuous across the resolution (see https://github.com/galacticusorg/galacticus/issues/1770).
+       if (.not.self%distributionFunctionLowerHalfOnly .and. self%distributionFunctionNormalize)             &
+            & generalizedPressSchechterFractionSubresolution=+0.5d0                                          &
+            &                                                *generalizedPressSchechterFractionSubresolution
     else
        generalizedPressSchechterFractionSubresolution=-1.0d0
     end if
     return
   end function generalizedPressSchechterFractionSubresolution
+
+  logical function generalizedPressSchechterDistributionFunctionIsLowerHalfOnly(self)
+    !!{RST
+    Return true if only the lower half (:math:`M < M_0/2`) of the branching rate distribution function is used.
+    !!}
+    implicit none
+    class(mergerTreeBranchingProbabilityGeneralizedPressSchechter), intent(in   ) :: self
+
+    generalizedPressSchechterDistributionFunctionIsLowerHalfOnly=self%distributionFunctionLowerHalfOnly
+    return
+  end function generalizedPressSchechterDistributionFunctionIsLowerHalfOnly
 
   double precision function generalizedPressSchechterProbabilityIntegrand(childHaloMass)
     !!{RST

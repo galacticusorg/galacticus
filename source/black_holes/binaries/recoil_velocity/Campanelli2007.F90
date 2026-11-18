@@ -30,7 +30,7 @@
 
    .. math::
 
-      V_\mathrm{recoil}=V_\mathrm{m}\mathbf{\hat{e_1}}+V_\perp(\cos\xi\mathbf{\hat{e_1}}+\sin\xi\mathbf{\hat{e_2}})+V_\parallel\mathbf{\hat{e_2}}
+      V_\mathrm{recoil}=V_\mathrm{m}\mathbf{\hat{e_1}}+V_\perp(\cos\xi\mathbf{\hat{e_1}}+\sin\xi\mathbf{\hat{e_2}})+V_\parallel\mathbf{\hat{e_z}}
 
    with:
 
@@ -46,7 +46,7 @@
 
       V_\parallel=K\cos(\theta-\theta_0)\frac{q^2}{(1+q)^5}(\alpha^\perp_2-q\alpha^\perp_1)
 
-   where :math:`\theta` is defined as the angle between the inplane :term:`component` of :math:`\Delta` and the infall direction at merger. :math:`q` is the mass ratio of the black holes as :math:`q=M_{\bullet,1}/M_{\bullet,2}` and :math:`\alpha_i=\mathbf{S_i}/M_{\bullet,i}` depends of the spin and mass of the black hole :math:`\xi` measures the angle between the unequal mass and the spin contribution to the recoil velocity in the orbital plane. :math:`\mathbf{\hat{e_1}} , \mathbf{\hat{e_2}}` are orthogonal unit vectors in the orbital plane. Our method assumes the spin of the second black hole is randomly generated, while that of the first is aligned with the angular momentum of the system. The constants used are retrieved from the articles by: :cite:t:`koppitz_recoil_2007` for :math:`H=(7.3\pm 0.3)10^3` km/s, :cite:t:`gonzalez_maximum_2007` for :math:`A=1.2 \times 10^4` km/s :math:`B=-0.93`, :cite:t:`gonzalez_supermassive_2007` for :math:`K\cos(\delta\theta)=(6,-5.3)10^4` km/s and :math:`K=(6.0\pm 0.1)10^4` km/s.
+   where :math:`\theta` is defined as the angle between the inplane :term:`component` of :math:`\Delta` and the infall direction at merger. :math:`q` is the mass ratio of the black holes as :math:`q=M_{\bullet,1}/M_{\bullet,2}` and :math:`\alpha_i=\mathbf{S_i}/M_{\bullet,i}^2` is the dimensionless spin of black hole :math:`i`, :math:`\xi` measures the angle between the unequal mass and the spin contribution to the recoil velocity in the orbital plane. :math:`\mathbf{\hat{e_1}} , \mathbf{\hat{e_2}}` are orthogonal unit vectors in the orbital plane, and :math:`\mathbf{\hat{e_z}}` is the unit vector along the orbital angular momentum. Our method assumes the spin of the second black hole is randomly generated, while that of the first is aligned with the angular momentum of the system. The constants used are retrieved from the articles by: :cite:t:`koppitz_recoil_2007` for :math:`H=(7.3\pm 0.3)10^3` km/s, :cite:t:`gonzalez_maximum_2007` for :math:`A=1.2 \times 10^4` km/s :math:`B=-0.93`, :cite:t:`gonzalez_supermassive_2007` for :math:`K\cos(\delta\theta)=(6,-5.3)10^4` km/s and :math:`K=(6.0\pm 0.1)10^4` km/s.
    </description>
   </blackHoleBinaryRecoil>
   !!]

@@ -106,11 +106,12 @@
    The standard merger tree outputter which writes galaxy and halo properties to HDF5 output files at each requested output time during galaxy evolution. Output is organized into groups named by ``[outputsGroupName]``, with optional dataset reference output controlled by the ``[outputReferences]`` parameter.
    </description>
    <stateStorable>
+    <!-- Not stored: outputGroups - HDF5 output groups, re-created on demand since outputGroupsCount is restored to zero. -->
     <restoreTo variables="outputsGroupOpened"                                                                                            state=".false."                    />
     <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount, integerBufferCount" state="0"                          />
     <restoreTo variables="doublePropertyCount, integerPropertyCount"                                                                     state="-1"                         />
     <restoreTo variables="integerBufferSize  , doubleBufferSize"                                                                         state="standardBufferSizeIncrement"/>
-    <exclude   variables="doubleProperty     , integerProperty"                                                                                                             />
+    <exclude   variables="doubleProperty     , integerProperty        , outputGroups"                                                                                       />
    </stateStorable>
   </mergerTreeOutputter>
   !!]

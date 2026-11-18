@@ -107,6 +107,12 @@
     <description>
     A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format described :doc:`here &lt;/manuals/user-guide/data/merger-tree-file-format&gt;`. To generate HDF5 files in this format from merger tree data produced by a variety of tree builders (e.g.\ ``Rockstar``/``ConsistentTrees``), the ``astrosylva`` tool (`GitHub &lt;https://github.com/galacticusorg/astrosylva&gt;`_; `PyPI &lt;https://pypi.org/project/astrosylva/&gt;`_; `documentation &lt;https://astrosylva.readthedocs.io/en/latest/&gt;`_) can be used.
     </description>
+   <stateStorable>
+    <!-- Not stored: datasets, lengthUnit, massUnit, timeUnit, velocityUnit, length, areSelfContained, hasSubhalos,
+         includesHubbleFlow, lengthStatus, periodicPositions, angularMomentaAreInclusive, massesAreInclusive - these describe the
+         open file, which (being a handle) is not stored, and are read from it on demand. -->
+    <exclude variables="datasets, lengthUnit, massUnit, timeUnit, velocityUnit, length, areSelfContained, hasSubhalos, includesHubbleFlow, lengthStatus, periodicPositions, angularMomentaAreInclusive, massesAreInclusive"/>
+   </stateStorable>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus

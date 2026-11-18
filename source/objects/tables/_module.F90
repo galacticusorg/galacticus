@@ -2590,8 +2590,8 @@ contains
        end if
     end do
     self%av(size(dx)+1,table)=m(size(m))
-    ! Get degree-2 and degree-3 coefficients.
-    do i=1,size(self%av)-1
+    ! Get degree-2 and degree-3 coefficients, one set per interval of this table.
+    do i=1,size(dx)
        factor=self%av(i,table)+self%av(i+1,table)-2.0d0*m(i)
        self%bv(i,table)=(m(i)-self%av(i,table)-factor)/dx(i)
        self%cv(i,table)=factor/dx(i)**2

@@ -205,6 +205,21 @@ def inspect_valid(gh_root, suffix, results_filename="results.json"):
 
 # --- Aggregators ---------------------------------------------------------
 
+def classify_log_likelihood(ll, threshold):
+    """Classify a log-likelihood against one analysis's thresholds: returns
+    ``ok``, ``warn``, ``fail``, or ``unknown`` if it has no thresholds."""
+    threshold = threshold or {}
+    warn = threshold.get("threshold_warn")
+    fail = threshold.get("threshold_fail")
+    if warn is None or fail is None:
+        return "unknown"
+    if ll >= warn:
+        return "ok"
+    if ll >= fail:
+        return "warn"
+    return "fail"
+
+
 def _agg_standard_log_likelihood(valid, defaults, metric):
     """Classify each analysis individually against its per-analysis
     ``threshold_warn`` / ``threshold_fail`` (sourced from
@@ -230,17 +245,7 @@ def _agg_standard_log_likelihood(valid, defaults, metric):
             ll = float(v)
         except (TypeError, ValueError):
             continue
-        th = analyses_thresh.get(name) or {}
-        warn = th.get("threshold_warn")
-        fail = th.get("threshold_fail")
-        if warn is None or fail is None:
-            statuses.append(("unknown", name, ll))
-        elif ll >= warn:
-            statuses.append(("ok", name, ll))
-        elif ll >= fail:
-            statuses.append(("warn", name, ll))
-        else:
-            statuses.append(("fail", name, ll))
+        statuses.append((classify_log_likelihood(ll, analyses_thresh.get(name)), name, ll))
     if not statuses:
         return "unknown", "no logLikelihood found", None
     thresholded = [s for s in statuses if s[0] != "unknown"]

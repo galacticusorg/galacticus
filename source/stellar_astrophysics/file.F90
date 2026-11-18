@@ -74,6 +74,14 @@
 
    Yields change discontinuously at ``[initialMassForSupernovaeTypeII]``, where the stars that end their lives on the asymptotic giant branch give way to those that end as supernovae, and the two populations are usually tabulated from different sources with a gap between them (from 5 to 9 :math:`\mathrm{M}_\odot` in the standard compilation). Ejected masses and yields are therefore never interpolated across that mass: at each metallicity only the tabulated stars on the same side of it as the requested initial mass are used. Below ``[initialMassForSupernovaeTypeII]``, the tabulation at each metallicity is extended upward to it as described above. A star lying between ``[initialMassForSupernovaeTypeII]`` and the least massive tabulated star above it (at any metallicity) is assigned the ejected mass and yields per unit initial mass of a star of that least massive tabulated mass.
    </description>
+   <stateStorable>
+    <!-- Not stored: readDone, lifetimeLifetime, lifetimeMass, lifetimeMetallicity, atomIndexMap, countYieldElement, countElement,
+         tableMassEjected, tableYieldMetals, tableYieldElement - data read from file on demand: the tables are not state-storable,
+         so none of it (including the flag recording that it was read) is restored, and a restored object reads it afresh. -->
+    <!-- Not stored: interpolationWorkspaceMassInitial, interpolationWorkspaceLifetime, interpolationResetMassInitial,
+         interpolationResetLifetime - interpolation workspaces, together with the flags recording that they need to be reset. -->
+    <exclude variables="readDone, lifetimeLifetime, lifetimeMass, lifetimeMetallicity, atomIndexMap, countYieldElement, countElement, tableMassEjected, tableYieldMetals, tableYieldElement, interpolationWorkspaceMassInitial, interpolationWorkspaceLifetime, interpolationResetMassInitial, interpolationResetLifetime"/>
+   </stateStorable>
    <runTimeFileDependencies paths="fileName"/>
   </stellarAstrophysics>
   !!]
