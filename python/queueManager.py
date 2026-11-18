@@ -97,10 +97,21 @@ class SLURMManager(QueueManager):
             self.options['waitOnSubmit'] = args.waitOnSubmit
         if 'waitOnActive' in vars(args) and args.waitOnActive is not None:
             self.options['waitOnActive'] = args.waitOnActive
-        # The limit on the tasks of an array job running at once, which applies only if `jobMaximum` was set explicitly: its
-        # default above is for jobs submitted one at a time.
-        jobMaximumIsSet       = config.find('jobMaximum') is not None or vars(args).get('jobMaximum') is not None
-        self.arrayTaskMaximum = self.options['jobMaximum'] if jobMaximumIsSet else None
+        # A `jobMaximum` below one would stop jobs submitted one at a time from ever being submitted.
+        if self.options['jobMaximum'] < 1:
+            raise ValueError(f"`jobMaximum` must be at least 1 (got {self.options['jobMaximum']}) - it limits the jobs submitted one at a time; use `arrayTaskMaximum` to limit the tasks of an array job")
+        # The limit on the tasks of an array job running at once. This is set separately from `jobMaximum` (which limits jobs
+        # submitted one at a time), and there is no limit unless it is set. Zero also means no limit.
+        self.arrayTaskMaximum = None
+        optionElement = config.find('arrayTaskMaximum')
+        if optionElement is not None:
+            self.arrayTaskMaximum = int(optionElement.text)
+        if vars(args).get('arrayTaskMaximum') is not None:
+            self.arrayTaskMaximum = args.arrayTaskMaximum
+        if self.arrayTaskMaximum is not None and self.arrayTaskMaximum < 0:
+            raise ValueError(f"`arrayTaskMaximum` must not be negative (got {self.arrayTaskMaximum})")
+        if self.arrayTaskMaximum == 0:
+            self.arrayTaskMaximum = None
 
     def _submitOne(self,job):
         """Prepare a job (defaults, task/memory sizing, launch file) and `sbatch` it.

@@ -387,8 +387,9 @@ class Campaign:
         """Submit the given runs (by default all pending or failed runs) as a Slurm array job, via a queue manager.
 
         ``manager`` is a :mod:`queueManager` manager (e.g. from ``queueManager.factory(args)``); its
-        ``submit_detached(job)`` method is called, and must return the job ID. If its ``arrayTaskMaximum`` is set (that is,
-        if ``jobMaximum`` was set explicitly), at most that many tasks of the array job run at once.
+        ``submit_detached(job)`` method is called, and must return the job ID. If its ``arrayTaskMaximum`` is set (from
+        ``arrayTaskMaximum`` in ``galacticusConfig.xml``, or the option of that name), at most that many tasks of the array
+        job run at once.
         """
         runs = self.select(indices=indices) if indices is not None else self.select(statuses=(PENDING, FAILED))
         if not runs:

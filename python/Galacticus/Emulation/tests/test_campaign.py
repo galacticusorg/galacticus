@@ -420,15 +420,39 @@ def test_array_job_throttled_by_job_maximum(workspace):
     assert manager.jobs[2]['array'] == '0-1,3'
 
 
-@pytest.mark.parametrize('configured, given, expected', [(None, None, None), ('32', None, 32), (None, 5, 5), ('32', 5, 5), ('32', 0, 0)])
-def test_array_task_maximum_needs_explicit_job_maximum(configured, given, expected):
-    """The limit on an array job's tasks comes only from an explicit `jobMaximum`, not from the queue manager's default."""
+@pytest.mark.parametrize('configured, given, expected', [(None, None, None), ('32', None, 32), (None, 5, 5), ('32', 5, 5), ('32', 0, None), ('0', None, None)])
+def test_array_task_maximum_set_separately(configured, given, expected):
+    """The limit on an array job's tasks comes only from `arrayTaskMaximum` (zero meaning no limit), not from `jobMaximum`."""
     import argparse
     import xml.etree.ElementTree as ET
     pytest.importorskip('lxml')
     import queueManager
-    config = ET.fromstring('<host/>' if configured is None else f'<host><jobMaximum>{configured}</jobMaximum></host>')
-    assert queueManager.SLURMManager(config, argparse.Namespace(jobMaximum=given)).arrayTaskMaximum == expected
+    config = '<host><jobMaximum>10</jobMaximum>' + ('' if configured is None else f'<arrayTaskMaximum>{configured}</arrayTaskMaximum>') + '</host>'
+    manager = queueManager.SLURMManager(ET.fromstring(config), argparse.Namespace(arrayTaskMaximum=given, jobMaximum=None))
+    assert manager.arrayTaskMaximum == expected
+    assert manager.options['jobMaximum'] == 10
+
+
+@pytest.mark.parametrize('configured, given', [('0', None), (None, 0), ('10', -1)])
+def test_job_maximum_must_be_positive(configured, given):
+    """A `jobMaximum` below one, which would stop jobs submitted one at a time from ever being submitted, is an error."""
+    import argparse
+    import xml.etree.ElementTree as ET
+    pytest.importorskip('lxml')
+    import queueManager
+    config = '<host>' + ('' if configured is None else f'<jobMaximum>{configured}</jobMaximum>') + '</host>'
+    with pytest.raises(ValueError, match='jobMaximum'):
+        queueManager.SLURMManager(ET.fromstring(config), argparse.Namespace(jobMaximum=given))
+
+
+def test_array_task_maximum_must_not_be_negative():
+    """A negative `arrayTaskMaximum` is an error."""
+    import argparse
+    import xml.etree.ElementTree as ET
+    pytest.importorskip('lxml')
+    import queueManager
+    with pytest.raises(ValueError, match='arrayTaskMaximum'):
+        queueManager.SLURMManager(ET.fromstring('<host/>'), argparse.Namespace(arrayTaskMaximum=-2))
 
 
 class SequentialManager(FakeManager):
