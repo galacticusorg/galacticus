@@ -482,7 +482,7 @@ def slurm_live_jobs():
     running, ``<array job ID>_<task ID>``.
     """
     try:
-        completed = subprocess.run(['squeue', '--me', '--noheader', '--array-unique', '--format=%i'],
+        completed = subprocess.run(['squeue', '--me', '--noheader', '--array', '--format=%i'],
                                    capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired):
         return None

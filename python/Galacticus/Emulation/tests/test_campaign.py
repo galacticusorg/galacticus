@@ -544,6 +544,8 @@ def test_resubmit_refreshes_statuses(workspace, monkeypatch):
     queue_manager = types.ModuleType('queueManager')
     queue_manager.factory = lambda args: resubmitter
     monkeypatch.setitem(sys.modules, 'queueManager', queue_manager)
+    # Slurm reports the array job's other tasks as still pending, whether or not Slurm is available where the test runs.
+    monkeypatch.setattr(cm, 'slurm_live_jobs', lambda: {'12345'} | {f'12345_{index}' for index in (0, 2, 3, 4, 5)})
     script = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'scripts', 'emulation', 'emulatorCalibration.py')
     specification = importlib.util.spec_from_file_location('emulatorCalibration', script)
     module = importlib.util.module_from_spec(specification)
