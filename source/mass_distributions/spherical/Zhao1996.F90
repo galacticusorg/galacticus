@@ -503,7 +503,7 @@ contains
        radialMomentMaximum=+radialMomentIndefinite(radiusScaleFree)
     else
        ! The density falls as r^-β at large radii, so the moment diverges if 1+m ≥ β.
-       if     (                           &
+       if     (                            &
             &   0.0d0        >= self%alpha &
             &  .or.                        &
             &   1.0d0+moment >= self%beta  &

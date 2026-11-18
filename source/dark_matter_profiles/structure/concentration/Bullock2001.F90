@@ -208,27 +208,27 @@ contains
     class           (darkMatterProfileConcentrationBullock2001), intent(inout), target  :: self
     type            (treeNode                                 ), intent(inout), target  :: node
     class           (nodeComponentBasic                       )               , pointer :: basic
-    double precision                                                                    :: massHalo              , massHaloFormation       , &
-         &                                                                                 sigmaFormation        , timeFormation           , &
-         &                                                                                 expansionFactor       , expansionFactorFormation
+    double precision                                                                    :: massHalo       , massHaloFormation       , &
+         &                                                                                 sigmaFormation , timeFormation           , &
+         &                                                                                 expansionFactor, expansionFactorFormation
 
     ! Compute the characteristic mass at formation time. The node mass is used directly - as in other concentration classes,
     ! conversion between the node's mass definition and that of this class (given by the densityContrastDefinition() and
     ! darkMatterProfileDMODefinition() methods) is handled by the darkMatterProfileScaleRadiusConcentration class.
-    basic                  =>  node %basic()
-    massHalo               =   basic%mass ()
-    massHaloFormation      =  +self%F*massHalo
+    basic                    =>  node %basic()
+    massHalo                 =   basic%mass ()
+    massHaloFormation        =  +self%F*massHalo
     ! Compute the corresponding rms fluctuation in the density field (i.e. σ(M)).
-    sigmaFormation          =+self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation,     self%cosmologyFunctions_%cosmicTime(1.0d0))
+    sigmaFormation           =  +self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation,     self%cosmologyFunctions_%cosmicTime(1.0d0))
     ! Get the time at which this equals the critical overdensity for collapse.
-    timeFormation           =+self%criticalOverdensity_     %timeOfCollapse (criticalOverdensity=sigmaFormation   ,mass=massHaloFormation                         )
+    timeFormation            =  +self%criticalOverdensity_     %timeOfCollapse (criticalOverdensity=sigmaFormation   ,mass=massHaloFormation                         )
     ! Get the corresponding expansion factors.
-    expansionFactorFormation=+self%cosmologyFunctions_      %expansionFactor(                    timeFormation                                                    )
-    expansionFactor         =+self%cosmologyFunctions_      %expansionFactor(                    basic%time()                                                     )
+    expansionFactorFormation =  +self%cosmologyFunctions_      %expansionFactor(                    timeFormation                                                    )
+    expansionFactor          =  +self%cosmologyFunctions_      %expansionFactor(                    basic%time()                                                     )
     ! Compute the concentration.
-    bullock2001Concentration=+self%K                   &
-         &                   *expansionFactor          &
-         &                   /expansionFactorFormation
+    bullock2001Concentration =  +self%K                   &
+         &                      *expansionFactor          &
+         &                      /expansionFactorFormation
     return
   end function bullock2001Concentration
 

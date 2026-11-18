@@ -30,7 +30,8 @@
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationScatterShift
      !!{RST
-     A dark matter halo profile concentration class which shifts the mean concentration of another concentration class by a specified number of :math:`\sigma`.
+     A dark matter halo profile concentration class which shifts the mean concentration of another concentration class by a
+     specified number of :math:`\sigma`.
      !!}
      private
      class           (darkMatterProfileConcentrationClass), pointer :: darkMatterProfileConcentration_ => null()

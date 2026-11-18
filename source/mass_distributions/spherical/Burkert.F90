@@ -379,17 +379,17 @@ contains
               &                -0.25d0*log (+1.0d0+radius**2)
       else
          ! Using the partial fraction decomposition 1/[(1+x)(1+x²)] = [1/(1+x) + (1-x)/(1+x²)]/2.
-         radialMomentScaleFree=+0.5d0                                                                                               &
-              &                *(                                                                                                   &
-              &                  +radius**(1.0d0+moment)                                                                            &
-              &                  /       (1.0d0+moment)                                                                             &
-              &                  *(                                                                                                 &
-              &                    +Hypergeometric_2F1([1.0d0,0.5d0*(1.0d0+moment)],[0.5d0*(3.0d0+moment)],-radius**2)              &
-              &                    +Hypergeometric_2F1([1.0d0,      (1.0d0+moment)],[      (2.0d0+moment)],-radius   )              &
-              &                   )                                                                                                 &
-              &                  -radius**(2.0d0+moment)                                                                            &
-              &                  /       (2.0d0+moment)                                                                             &
-              &                  *  Hypergeometric_2F1([1.0d0,0.5d0*(2.0d0+moment)],[0.5d0*(4.0d0+moment)],-radius**2)              &
+         radialMomentScaleFree=+0.5d0                                                                                  &
+              &                *(                                                                                      &
+              &                  +radius**(1.0d0+moment)                                                               &
+              &                  /       (1.0d0+moment)                                                                &
+              &                  *(                                                                                    &
+              &                    +Hypergeometric_2F1([1.0d0,0.5d0*(1.0d0+moment)],[0.5d0*(3.0d0+moment)],-radius**2) &
+              &                    +Hypergeometric_2F1([1.0d0,      (1.0d0+moment)],[      (2.0d0+moment)],-radius   ) &
+              &                   )                                                                                    &
+              &                  -radius**(2.0d0+moment)                                                               &
+              &                  /       (2.0d0+moment)                                                                &
+              &                  *  Hypergeometric_2F1([1.0d0,0.5d0*(2.0d0+moment)],[0.5d0*(4.0d0+moment)],-radius**2) &
               &                 )
       end if
       return
@@ -407,11 +407,11 @@ contains
       if      (Values_Agree(moment,0.0d0,absTol=1.0d-6) .or. Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
          radialMomentScaleFreeInfinite=+0.25d0*Pi
       else
-         radialMomentScaleFreeInfinite=+0.50d0*Pi                       &
-              &                        *(                               &
-              &                          -1.0d0/sin(      Pi*moment)    &
-              &                          +0.5d0/cos(0.5d0*Pi*moment)    &
-              &                          +0.5d0/sin(0.5d0*Pi*moment)    &
+         radialMomentScaleFreeInfinite=+0.50d0*Pi                    &
+              &                        *(                            &
+              &                          -1.0d0/sin(      Pi*moment) &
+              &                          +0.5d0/cos(0.5d0*Pi*moment) &
+              &                          +0.5d0/sin(0.5d0*Pi*moment) &
               &                         )
       end if
       return

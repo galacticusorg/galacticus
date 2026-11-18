@@ -52,7 +52,9 @@
 
       {\Delta(t_\mathrm{form}) \over \Delta_\mathrm{200c}(t_0)} = {c^3 \over 3 [\ln(1+c)-c/(1+c)]},
 
-   where :math:`\Delta_\mathrm{200c}(t_0)` is a density contrast of 200 relative to the critical density, expressed relative to the mean density, such that :math:`c` is the concentration in the :math:`200\rho_\mathrm{crit}` definition used by :cite:t:`navarro_structure_1996`.
+   where :math:`\Delta_\mathrm{200c}(t_0)` is a density contrast of 200 relative to the critical density, expressed relative to
+   the mean density, such that :math:`c` is the concentration in the :math:`200\rho_\mathrm{crit}` definition used by
+   :cite:t:`navarro_structure_1996`.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
