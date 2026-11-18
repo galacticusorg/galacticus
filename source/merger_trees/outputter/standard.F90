@@ -1375,12 +1375,12 @@ contains
           self%outputGroupsCount=max(self%outputGroupsCount+standardOutputGroupsIncrement,(indexOutput/standardOutputGroupsIncrement+1)*standardOutputGroupsIncrement)
           allocate(self%outputGroups(self%outputGroupsCount))
           !![
-	  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
-	    <seeAlso type="gfortran" PR="124012" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=124012"/>
+	  <workaround type="gfortran" PR="93690" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=93690" docformat="rst">
+	    <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696"/>
 	    <description>
-	    Type-bound defined assignment not done because multiple part array references would occur in intermediate expressions.
-
-	    After removing the workaround for PRs 46897/57696, an ICE in `gimplify_var_or_parm_decl` is triggered (see the `seeAlso` above). So the workaround is left in place for now.
+	    In an intrinsic assignment of an array, gfortran does not call the type-bound defined assignment of a component unless
+	    that defined assignment is elemental, so the HDF5 objects held by the output groups would be copied without their
+	    defined assignment. The output groups are therefore assigned one element at a time, which calls ``outputGroupAssign``.
 	    </description>
 	  !!]
           do i=1,size(outputGroupsTemporary)
@@ -1468,8 +1468,16 @@ contains
     to%opened                  =from%opened
     to%hdf5Group               =from%hdf5Group
     to%nodeDataGroup           =from%nodeDataGroup
-    ! The held dataset handles are copied one element at a time, for the same reason that `standardOutputGroupCreate` copies the
-    ! output groups themselves one at a time - see the gfortran workaround recorded there.
+    !![
+    <workaround type="gfortran" PR="93690" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=93690" docformat="rst">
+      <seeAlso type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696"/>
+      <description>
+      gfortran does not call the type-bound defined assignment of a component in an intrinsic assignment of an array (PR
+      93690), nor of an allocatable component (PR 57696), so the held dataset handles are copied one element at a time. If
+      both were fixed, intrinsic assignment would do the work of this procedure and of ``outputDatasetAssign``.
+      </description>
+    </workaround>
+    !!]
     if (allocated(from%integerDataset)) then
        allocate(to%integerDataset(size(from%integerDataset)))
        do i=1,size(from%integerDataset)
