@@ -161,7 +161,7 @@
     <velocityDispersionApproximate value="false"/>
     <toleranceRelativeVelocityDispersion value="1.0e-5"/>
   </darkMatterProfileDMO>
-  <darkMatterProfileHeating value="tidal"/>
+  <darkMatterProfileHeating value="null"/>
 
   <!-- Halo concentration  -->
   <darkMatterProfileScaleRadius value="concentrationLimiter">

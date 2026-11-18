@@ -120,7 +120,7 @@
   </darkMatterProfileDMO>
   <darkMatterProfileHeating value="monotonicWeak">
     <darkMatterProfileHeating value="summation">
-      <darkMatterProfileHeating value="tidal"             />
+      <darkMatterProfileHeating value="null"              />
       <darkMatterProfileHeating value="decayingDarkMatter" >
 	<gamma value="0.5" />
       </darkMatterProfileHeating>
