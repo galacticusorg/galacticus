@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
-        "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles\n",
-        "timestamp": "2026-11-16 15:58:50+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
+        "id": "9d634847e2a6f310e8407eed42144a91ebfc28e4",
+        "message": "Merge pull request #1763 from yzhaoastro/tidal-stripping\n\nFDM granule perturbation\n",
+        "timestamp": "2026-11-17 17:58:36+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/9d634847e2a6f310e8407eed42144a91ebfc28e4"
     },
     "results": [
         {
@@ -291,7 +291,7 @@ window.ANALYSES_DATA = {
         {
             "attributes": {
                 "name": "COZMIC MilkyWay WDM:3keV:f0.6 resolutionX8 z=0.000",
-                "logLikelihood": "-74.56695610598476",
+                "logLikelihood": "-74.56698359231947",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -312,28 +312,28 @@ window.ANALYSES_DATA = {
                     562341325.1903499
                 ],
                 "yDataset": [
-                    12.411675202335868,
-                    9.331033692610346,
-                    7.0705231251579646,
-                    5.961842298900786,
-                    4.7044230433457095,
-                    3.4912452582963667,
-                    2.638120152513305,
-                    2.0047397707151995,
-                    1.5164642743725085,
-                    1.132912612023863
+                    12.411672047252306,
+                    9.331031328971747,
+                    7.070521341265558,
+                    5.961840798933847,
+                    4.7044218650785234,
+                    3.491244390154891,
+                    2.6381195023034607,
+                    2.0047392821038517,
+                    1.5164639100043524,
+                    1.1329123447552196
                 ],
                 "yError": [
-                    1.7058688117709342,
-                    0.9373639353678507,
-                    1.0377288618456906,
-                    0.8979757858021145,
-                    0.5231373568792766,
-                    0.41261199341618504,
-                    0.3335089904049529,
-                    0.2733366089129222,
-                    0.22539030727850376,
-                    0.18600690127049577
+                    1.7058684184145219,
+                    0.9373637253619554,
+                    1.0377286374647936,
+                    0.8979755962548368,
+                    0.523137250370286,
+                    0.41261191371824396,
+                    0.33350892942896054,
+                    0.27333656175259985,
+                    0.22539027072116447,
+                    0.18600687303073413
                 ],
                 "yDatasetTarget": [
                     16.595218414106558,

@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "8e93fe9b49889ee235508313ee4cc76e87af4d7d",
-        "message": "Merge pull request #1792 from galacticusorg/docs/physics-audit-halos\n\nfix(darkMatterProfiles): apply the power-law scale radius scatter, correct the soliton-NFW series, and fix physics-audit docstrings for halo profiles\n",
-        "timestamp": "2026-11-16 15:58:50+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
+        "id": "9d634847e2a6f310e8407eed42144a91ebfc28e4",
+        "message": "Merge pull request #1763 from yzhaoastro/tidal-stripping\n\nFDM granule perturbation\n",
+        "timestamp": "2026-11-17 17:58:36+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/9d634847e2a6f310e8407eed42144a91ebfc28e4"
     },
     "surfaceDensity": {
         "percentageBelow": 3.5714285714285694,
