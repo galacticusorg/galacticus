@@ -702,7 +702,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Remove
     use :: Display           , only : displayIndent, displayMessage, displayUnindent   , verbosityLevelSilent
-    use :: Error             , only : Error_Report
+    use :: Error             , only : Error_Report , System_Error_Clear, System_Error_Description
     use :: HDF5              , only : h5f_obj_all_f, h5fclose_f    , h5fget_obj_count_f, h5fget_obj_ids_f    , &
           &                           h5iget_name_f, hid_t         , size_t
     use :: ISO_Varying_String, only : assignment(=), operator(//)  , char
@@ -761,9 +761,15 @@ contains
           end do
           call displayUnindent('done',verbosityLevelSilent)
        end if
+       ! Clear the system error number so that, if the close fails, we report only a system error that arose during the close. The
+       ! HDF5 stdio driver reports a failed "fclose()" without the system error number, so this is the only record of why it failed.
+       ! (It is the error from the last failing system call made during the close, which need not be the one that caused the
+       ! failure, but is the best evidence available.)
+       call System_Error_Clear()
        call h5fclose_f(self%fileID,errorCode)
        if (errorCode /= 0) then
-          message="unable to close file object '"//self%objectFile//"'"
+          message=System_Error_Description()
+          message="unable to close file object '"//self%objectFile//"' [last system error: "//message//"]"
           call Error_Report(message//{introspection:location})
        end if
        if (self%isTemporary) call File_Remove(char(self%objectFile))

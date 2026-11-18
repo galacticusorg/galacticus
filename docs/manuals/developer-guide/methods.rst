@@ -664,7 +664,7 @@ The chemicals subsystem provides both a interface to a database of known chemica
 Chemical Database
 ^^^^^^^^^^^^^^^^^
 
-The file ``data/Chemical_Database.cml`` contains a database of chemicals that can currently be used by Galacticus. It uses a simplified version of the `Chemical Markup Language <http://www.xml-cml.org>`_ to describe chemicals. An excerpt from the database is shown below:
+The file ``static/abundances/Chemical_Database.cml`` in the Galacticus datasets contains a database of chemicals that can currently be used by Galacticus. It uses a simplified version of the `Chemical Markup Language <http://www.xml-cml.org>`_ to describe chemicals. An excerpt from the database is shown below:
 
 .. code-block:: none
 

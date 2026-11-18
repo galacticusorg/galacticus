@@ -33,6 +33,11 @@
    A posterior sampling simulation class which implements a simple grid search.
    </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
+   <stateStorable>
+    <!-- Not stored: modelParametersActive_, modelParametersInactive_ - this class is not used by the evolveForests task, which is
+         the only task that stores and restores state. -->
+    <exclude variables="modelParametersActive_, modelParametersInactive_"/>
+   </stateStorable>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationGrid

@@ -114,6 +114,11 @@ module Radiation_Fields
      <pass>yes</pass>
    </method>
    <data>type(rateCoefficient), allocatable, dimension(:) :: rateCoefficients</data>
+   <stateStorable>
+    <!-- Not stored: rateCoefficients - a cache of tabulated rate coefficients, keyed by procedure pointers (which cannot be
+         stored), and re-tabulated on demand. -->
+    <exclude variables="rateCoefficients"/>
+   </stateStorable>
   </functionClass>
   !!]
 

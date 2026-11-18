@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree constructor class which builds merger trees after drawing masses at random from a mass distribution.
   !!}
@@ -262,11 +264,10 @@ contains
     ! Retrieve stored internal state if possible.
     call State_Retrieve_()
     if (treeStateStoreSequence > 0_c_size_t) then
-       if (self%processDescending) then
-          self%treeNumberOffset=self%treeCount-treeStateStoreSequence
-       else
-          self%treeNumberOffset=              +treeStateStoreSequence-1_c_size_t
-       end if
+       ! The stored sequence is the tree number (i.e. the position in the processing sequence) of the tree whose state was
+       ! stored, not its index. Offsetting tree numbers by one less than this resumes processing at that tree, in either
+       ! processing order, since tree indices are derived from tree numbers below.
+       self%treeNumberOffset=treeStateStoreSequence-1_c_size_t
     end if
     ! Determine the index of the tree to process.
     if (self%processDescending) then
@@ -297,7 +298,9 @@ contains
        call self                 %randomSequenceNonDeterministicWarn(tree)
        call self%mergerTreeSeeds_%set                               (tree)
        ! Store the internal state.
-       if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
+       ! Record the position of this tree in the full processing sequence (including any offset from `[treeBeginAt]` or from a
+       ! previous state retrieve), so that a retrieve resumes at this tree.
+       if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber+self%treeNumberOffset
        message=var_str('Storing state for tree #')//treeNumber
        call State_Store_(message)
        ! Initialize.

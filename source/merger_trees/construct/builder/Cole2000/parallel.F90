@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a merger tree builder using the algorithm of :cite:t:`cole_hierarchical_2000` utilizing a recursive construction approach.
   !!}
@@ -34,8 +36,8 @@
      !!}
      private
    contains
-     procedure         :: build           => cole2000ParallelBuild
-     procedure, nopass :: onBranch        => cole2000ParallelOnBranch
+     procedure :: build    => cole2000ParallelBuild
+     procedure :: onBranch => cole2000ParallelOnBranch
   end type mergerTreeBuilderCole2000Parallel
 
   interface mergerTreeBuilderCole2000Parallel
@@ -45,16 +47,6 @@
      module procedure cole2000ParallelConstructorParameters
      module procedure cole2000ParallelConstructorInternal
   end interface mergerTreeBuilderCole2000Parallel
-
-  ! Sub-module scope variables used in tree building.
-  !![
-  <workaround type="gfortran" PR="110547" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110547" docformat="rst">
-    <description>
-    We use a pointer to self here rather than have self be passed to various methods (which are defined as "nopass" in the parent class) because otherwise gfortran calls the destructor of self on exit from these functions when using OpenMP task-based parallelism. This may be a compiler bug. Note that we use a separate pointer here that is not threadprivate as threadprivate variables can not be passed as arguments in untied OpenMP tasks.
-    </description>
-  </workaround>
-  !!]  
-  class(mergerTreeBuilderCole2000Parallel), pointer :: self__
   
 contains
 
@@ -236,7 +228,6 @@ contains
     integer                                                                     :: countWorkers
     
     ! Begin construction.
-    self__         => self
     self%nodeIndex =  1               ! Initialize the node index counter to unity.
     node           => tree%nodeBase   ! Point to the base node.
     basic          => node%basic   () ! Get the basic component of the node.
@@ -297,8 +288,6 @@ contains
     end if
     ! Begin parallel tree build.
     !$omp parallel
-    ! Set pointer to self from all threads.
-    self_        => self
     ! Determine our worker number.
     numberWorker =  OMP_Get_Thread_Num()
     ! Copy the random number generator from the tree.
@@ -381,17 +370,27 @@ contains
 
   end subroutine cole2000ParallelBuild
 
-  recursive subroutine cole2000ParallelOnBranch(tree,massResolution,node)
+  recursive subroutine cole2000ParallelOnBranch(self,tree,massResolution,node)
     !!{RST
-    Act on branching.
+    Act on branching, by building the new branch in an OpenMP task.
+
+    This task is orphaned, so the dummy arguments would default to being ``firstprivate``. That would make a copy of
+    ``self`` and of ``tree`` for the task, and finalize those copies when it completes. Nor can they be ``shared``: the task
+    can outlive this procedure, and so the dummy arguments through which it would reference them. Instead, the task is given
+    pointers to them, which are ``firstprivate``: the pointers are copied, but the objects are not.
     !!}
     implicit none
-    type            (mergerTree), intent(in   )          :: tree
-    double precision            , intent(in   )          :: massResolution
-    type            (treeNode  ), intent(inout), pointer :: node
-    
-    !$omp task untied
-    call self__%buildBranch(tree,massResolution,node)
+    class           (mergerTreeBuilderCole2000Parallel), intent(inout), target  :: self
+    type            (mergerTree                       ), intent(in   ), target  :: tree
+    double precision                                   , intent(in   )          :: massResolution
+    type            (treeNode                         ), intent(inout), pointer :: node
+    class           (mergerTreeBuilderCole2000Parallel)               , pointer :: self_
+    type            (mergerTree                       )               , pointer :: tree_
+
+    self_ => self
+    tree_ => tree
+    !$omp task untied default(none) firstprivate(self_,tree_,massResolution,node)
+    call self_%buildBranch(tree_,massResolution,node)
     !$omp end task
     return
   end subroutine cole2000ParallelOnBranch

@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Xiaolong Du
+  !+    Contributions to this file made by: Xiaolong Du, Claude.
   
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`diemer_accurate_2019` algorithm.
@@ -34,7 +34,7 @@
   !![
   <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerJoyce2019" docformat="rst">
    <description>
-   Computes dark matter halo concentrations using the fitting function of :cite:t:`diemer_accurate_2019`, which models concentration as a function of the effective spectral slope of the matter power spectrum. The fitting parameters controlling the normalization and slopes of the concentration-mass relation are ``[kappa]``, ``[a0]``, ``[a1]``, ``[b0]``, and ``[b1]``.
+   Computes dark matter halo concentrations using the fitting function of :cite:t:`diemer_accurate_2019`, which models concentration as a function of the effective spectral slope of the matter power spectrum. The fitting parameters controlling the normalization and slopes of the concentration-mass relation are ``[kappa]``, ``[a0]``, ``[a1]``, ``[b0]``, and ``[b1]``. These, together with ``[cAlpha]``, default to the best-fit values for the median :math:`c_\mathrm{200c}`--:math:`M_\mathrm{200c}` relation given by :cite:t:`diemer_accurate_2019`, :math:`(\kappa,a_0,a_1,b_0,b_1,c_\alpha)=(0.41,2.45,1.82,3.20,2.30,0.21)`; their fit to the mean relation is :math:`(0.42,2.37,1.74,3.39,1.82,0.20)`. (The ``concentrationMean`` method, so named for consistency with other classes, therefore returns the median relation.)
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>

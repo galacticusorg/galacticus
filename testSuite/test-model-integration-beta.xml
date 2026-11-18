@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <parameters formatVersion="2" version="0.9.4">
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
 
   <lastModified/>
   <formatVersion>2</formatVersion>
@@ -37,8 +37,10 @@
     <neutrinoNumberEffective value="3.04"/>
   </transferFunction>
   <powerSpectrumPrimordialTransferred value="simple"/>
-  <cosmologicalMassVariance value="filteredPower">
+  <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.823771931244257"/>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower">
     <tolerance value="1.0e-7"/>
   </cosmologicalMassVariance>
   <powerSpectrumNonlinear value="peacockDodds1996"/>

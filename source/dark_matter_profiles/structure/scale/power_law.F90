@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a dark matter profile scale radius class that uses simple power-law scalings.
   !!}
@@ -39,13 +41,13 @@
 
        y(x) = y_0+(y_1-y_0)/(1+\exp[-(x-x_\nu)/\Delta x]),
 
-    where :math:`r_0=`\ ``[radiusLow]``, :math:`r_1=`\ ``[radiusHigh]``, :math:`r_\nu=`\ ``[radiusTransition]``, :math:`\Delta r=`\ ``[radiusWidth]``, :math:`\alpha_0=`\ ``[massLow]``, :math:`\alpha_1=`\ ``[massHigh]``, :math:`\alpha_\nu=`\ ``[massTransition]``, :math:`\Delta \alpha=`\ ``[massWidth]``, :math:`\beta_0=`\ ``[expansionFactorLow]``, :math:`\beta_1=`\ ``[expansionFactorHigh]``, :math:`\beta_\nu=`\ ``[expansionFactorTransition]``, and :math:`\Delta \beta=`\ ``[expansionFactorWidth]`` , plus a random log-normal scatter of ``[scatter]`` dex.
+    where :math:`r_0=`\ ``[radiusLow]``, :math:`r_1=`\ ``[radiusHigh]``, :math:`r_\nu=`\ ``[radiusTransition]``, :math:`\Delta r=`\ ``[radiusWidth]``, :math:`\alpha_0=`\ ``[massLow]``, :math:`\alpha_1=`\ ``[massHigh]``, :math:`\alpha_\nu=`\ ``[massTransition]``, :math:`\Delta \alpha=`\ ``[massWidth]``, :math:`\beta_0=`\ ``[expansionFactorLow]``, :math:`\beta_1=`\ ``[expansionFactorHigh]``, :math:`\beta_\nu=`\ ``[expansionFactorTransition]``, and :math:`\Delta \beta=`\ ``[expansionFactorWidth]``, and :math:`M_0=10^{12}\,\mathrm{M}_\odot`. A log-normal scatter of :math:`\sigma=`\ ``[scatter]`` dex is then applied, multiplying :math:`r_\mathrm{s}` by :math:`10^{\sigma g}`, with :math:`g` drawn from a standard normal distribution (no random number is drawn if :math:`\sigma=0`).
     </description>
   </darkMatterProfileScaleRadius>
   !!]
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusPowerLaw
      !!{RST
-     A dark matter profile scale radius class that assigns dark matter profile scale radii using the energy-based model of :cite:t:`johnson_random_2021`.
+     A dark matter profile scale radius class that assigns dark matter profile scale radii using simple power-law scalings with mass and expansion factor.
      !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_           => null()
@@ -191,15 +193,15 @@ contains
     </inputParameter>
     <inputParameter docformat="rst">
       <name>scatter</name>
-      <defaultValue>+0.1513d0</defaultValue>
+      <defaultValue>0.0d0</defaultValue>
       <source>parameters</source>
       <description>
       The scatter (in dex) in the scale radius at fixed halo mass and redshift in the power-law scale radius model, representing the intrinsic halo-to-halo variation in concentration.
       </description>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>
-    <objectBuilder class="cosmologicalMassVariance"     name="cosmologicalMassVariance_"     source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
     self=darkMatterProfileScaleRadiusPowerLaw(radiusLow,radiusHigh,radiusTransition,radiusWidth,massLow,massHigh,massTransition,massWidth,expansionFactorLow,expansionFactorHigh,expansionFactorTransition,expansionFactorWidth,scatter,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
@@ -257,9 +259,9 @@ contains
     class           (darkMatterProfileScaleRadiusPowerLaw), intent(inout) , target  :: self
     type            (treeNode                            ), intent(inout) , target  :: node
     class           (nodeComponentBasic                  )                , pointer :: basic
-    double precision                                      , parameter               :: massReference   =1.0d12
-    double precision                                                                :: expansionFactor        , peakHeight  , &
-         &                                                                             radiusNormalization    , exponentMass, &
+    double precision                                      , parameter               :: massReference          =1.0d12
+    double precision                                                                :: expansionFactor               , peakHeight  , &
+         &                                                                             radiusNormalization           , exponentMass, &
          &                                                                             exponentExpansionFactor
     
     basic                   =>  node                          %basic          (                                             )
@@ -272,6 +274,13 @@ contains
     radiusScale             =  + radiusNormalization                                           &
          &                     *(basic%mass         ()/massReference)**exponentMass            &
          &                     * expansionFactor                     **exponentExpansionFactor
+    ! Add scatter if necessary.
+    if (self%scatter > 0.0d0)                                                                 &
+         & radiusScale=+radiusScale                                                           &
+         &             *10.0d0**(                                                             &
+         &                       +self%scatter                                                &
+         &                       *node%hostTree%randomNumberGenerator_%standardNormalSample() &
+         &                      )
     return
 
   contains

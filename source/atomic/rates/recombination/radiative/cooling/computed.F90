@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of atomic recombination cooling rates which computes rates from the corresponding photoionization cross section using detailed balance (i.e. the Milne relation---see for example "Astrophysics of the Diffuse Universe" by Dopita & Sutherland, 2004, Springer Science & Business Media, section 5.3.3).
   !!}
@@ -159,7 +161,9 @@ contains
       double precision                :: energyPhoton    , wavelengthPhoton         , &
            &                             energyIonization, crossSectionRecombination
       
-      energyIonization=self%atomicIonizationPotential_%potential(atomicNumber,ionizationState)*electronVolt
+      ! The ionization potential is that of the recombined ion, as for the photoionization cross section below. The potential is
+      ! given in terms of the number of electrons in that ion, while the cross section takes its ionization state (1 for neutral).
+      energyIonization=self%atomicIonizationPotential_%potential(atomicNumber,atomicNumber+1-ionizationState)*electronVolt
       energyPhoton=0.5d0*electronMass*velocity**2+energyIonization
       wavelengthPhoton=metersToAngstroms*speedLight*plancksConstant/energyPhoton
       if (velocity > 0.0d0) then

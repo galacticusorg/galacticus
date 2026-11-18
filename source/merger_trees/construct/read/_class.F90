@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree constructor class which constructs trees by reading their definitions from file.
   !!}
@@ -3554,7 +3556,7 @@ contains
     positionMagnitude  =Vector_Magnitude(position)
     vectorRadial       =+position          &
          &              /positionMagnitude
-    velocityRadial     =+Dot_Product(velocity,position) &
+    velocityRadial     =+Dot_Product(velocity,vectorRadial) &
          &              *vectorRadial
     velocityTangential =+velocity       &
          &              -velocityRadial

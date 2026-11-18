@@ -22,7 +22,7 @@ jobs:
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
+      - uses: reviewdog/action-depup@a03fa2103b273193becba8cca43a992b9173f5dc # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -39,7 +39,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -62,7 +62,7 @@ jobs:
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
+      - uses: reviewdog/action-depup@a03fa2103b273193becba8cca43a992b9173f5dc # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -79,7 +79,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -102,7 +102,7 @@ jobs:
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
+      - uses: reviewdog/action-depup@a03fa2103b273193becba8cca43a992b9173f5dc # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -120,7 +120,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -143,7 +143,7 @@ jobs:
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
+      - uses: reviewdog/action-depup@a03fa2103b273193becba8cca43a992b9173f5dc # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -160,7 +160,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -206,7 +206,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -229,7 +229,7 @@ jobs:
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
+      - uses: reviewdog/action-depup@a03fa2103b273193becba8cca43a992b9173f5dc # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -246,7 +246,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -290,7 +290,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -334,7 +334,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
@@ -357,7 +357,7 @@ jobs:
         with:
           client-id: ${{ secrets.DEPLOY_APP_ID }}
           private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
-      - uses: reviewdog/action-depup@99f7aecf3e4d06d5a3faf190dae5dc79ac530b5a # v1
+      - uses: reviewdog/action-depup@a03fa2103b273193becba8cca43a992b9173f5dc # v1
         if: ${{ env.appid != '' }}
         id: depup
         with:
@@ -375,7 +375,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.repo }} to ${{ steps.depup.outputs.latest }}"
@@ -420,7 +420,7 @@ jobs:
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"
           commit-message: "fix(deps): update ${{ steps.depup.outputs.branch }} to ${{ steps.depup.outputs.latest }}"

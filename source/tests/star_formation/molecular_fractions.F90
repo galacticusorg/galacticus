@@ -47,9 +47,9 @@ program Test_Star_Formation_Molecular_Fractions
   density are compared with the reference also.
 
   For :cite:t:`krumholz_star_2009` the rate surface density is compared with the reference at five radii, for both the full
-  fitting function of their eqn. (2) and the faster :cite:p:`mckee_atomic--molecular_2010` form, and the limits of zero
-  metallicity, of vanishing molecular fraction at low surface density, and of unit molecular fraction at high surface density are
-  checked. Their eqn. (10) uses the *total* gas surface density, including helium, so the test also confirms that the star
+  fitting function of their eqn. (2) and the faster :cite:p:`mckee_atomic--molecular_2010` form (each with its own definition of
+  :math:`s`), and the limits of zero metallicity, of vanishing molecular fraction at low surface density, and of unit molecular
+  fraction at high surface density are checked. Their eqn. (10) uses the *total* gas surface density, including helium, so the test also confirms that the star
   formation rate reduces to :math:`\nu_\mathrm{SF} f_\mathrm{H_2} \Sigma_\mathrm{gas}` precisely where the *total* gas surface
   density equals the transition surface density of 85 :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`.
   !!}
@@ -96,16 +96,16 @@ program Test_Star_Formation_Molecular_Fractions
   !! Gas surface densities [M☉/pc²] at the Blitz & Rosolowsky (2006) radii.
   double precision                                                  , dimension(6)   :: surfaceDensityGasReference=[1.0725816958895d+02,6.5055368360355d+01,2.3932532557610d+01,8.8042867031108d+00,3.2389160722535d+00,4.3833962401805d-01]
   !! Midplane pressures, P_ext/k_B [K/cm³].
-  double precision                                                  , dimension(6)   :: pressureReference         =[7.3027497000209d+05,3.0513637366315d+05,5.5776059586966d+04,1.0779469858510d+04,2.1797763851529d+03,9.7587490195865d+01]
+  double precision                                                  , dimension(6)   :: pressureReference         =[6.6044200161152d+05,2.7214961511683d+05,4.8415718869748d+04,9.1371558555304d+03,1.8133265986540d+03,7.9343029622054d+01]
   !! Molecular fractions.
-  double precision                                                  , dimension(6)   :: fractionMolecularReference=[9.4240651254240d-01,8.7997335645664d-01,6.0556724446457d-01,2.5284645579126d-01,7.2155830553603d-02,4.4439150381712d-03]
+  double precision                                                  , dimension(6)   :: fractionMolecularReference=[9.3717731982730d-01,8.6840436289688d-01,5.7408027574999d-01,2.2520995404744d-01,6.1608337446642d-02,3.6762577742984d-03]
   !! Star formation rate surface densities [M☉/Gyr/Mpc²].
-  double precision                                                  , dimension(6)   :: rateBlitzReference        =[6.2973793711964d+13,3.3051869160264d+13,7.3823495252989d+12,1.0325201952966d+12,1.0125935377225d+11,7.7738260031637d+08]
+  double precision                                                  , dimension(6)   :: rateBlitzReference        =[8.8577605233278d+13,4.6134847020218d+13,9.8988658674650d+12,1.3007979764355d+12,1.2228798719307d+11,9.0961080545039d+08]
   !! Krumholz et al. (2009) molecular fractions, for the full and fast fitting functions, and rate surface densities
   !! [M☉/Gyr/Mpc²].
-  double precision                                                  , dimension(5)   :: fractionMolecularKrumholzReference    =[9.6184243210179d-01,9.5198615456030d-01,9.3757069811107d-01,8.3682408513234d-01,5.8319551403055d-01], &
-       &                                                                                fractionMolecularKrumholzFastReference=[9.6214522812381d-01,9.5238986128348d-01,9.3809477201003d-01,8.3748636933749d-01,5.9586006438119d-01], &
-       &                                                                                rateKrumholzReference                 =[4.2887311608501d+13,3.1153746907986d+13,2.5649133906021d+13,1.1714548304555d+13,4.1776134042290d+12]
+  double precision                                                  , dimension(5)   :: fractionMolecularKrumholzReference    =[9.6300948599592d-01,9.5344771899717d-01,9.3945732447888d-01,8.4158910617354d-01,5.9520213541592d-01], &
+       &                                                                                fractionMolecularKrumholzFastReference=[9.6220476564152d-01,9.5246449570048d-01,9.3819134649858d-01,8.3773122833461d-01,5.9641720042959d-01], &
+       &                                                                                rateKrumholzReference                 =[4.2939349034124d+13,3.1201576604182d+13,2.5700746368352d+13,1.1781252968237d+13,4.2636206200465d+12]
   ! Tolerances.
   !! The pressure is compared in physical units, so this comparison is sensitive to the values of the physical constants - GSL,
   !! and therefore Galacticus, has used both 6.673×10⁻¹¹ and 6.6743×10⁻¹¹ N m² kg⁻² for the gravitational constant. Since
@@ -179,11 +179,12 @@ program Test_Star_Formation_Molecular_Fractions
      ! The pressure ratio, P_ext/P₀, is available directly from the class, along with the gas surface density.
      pressureRatio    (i)  = blitz2006_%pressureRatio(node,radius,surfaceDensityGas=surfaceDensityGas_)
      surfaceDensityGas(i)  = surfaceDensityGas_
-     ! Recover the molecular fraction from the rate surface density.
+     ! Recover the molecular fraction from the rate surface density. The frequency applies to the total (not just hydrogen) gas
+     ! surface density, while the boost depends on the hydrogen surface density.
      surfaceDensityHydrogen=+hydrogenByMassSolar                                            &
           &                 *surfaceDensityGas(i)
      fractionMolecular(i)  =+rateBlitz        (i)                                           &
-          &                 /surfaceDensityHydrogen                                         &
+          &                 /surfaceDensityGas(i)                                           &
           &                 /frequencyNormalizationBlitz                                    &
           &                 /(                                                              &
           &                   +1.0d0                                                        &
@@ -222,7 +223,7 @@ program Test_Star_Formation_Molecular_Fractions
   end if
   call Assert('R_mol ∝ P_ext^α'                   ,slopePressure                         ,pressureExponent          ,relTol=toleranceSlope         )
   ! In the high pressure limit the disk must be fully molecular. Compressing the disk by a factor of ten raises the midplane
-  ! pressure by four orders of magnitude, leaving a molecular fraction of 1-1.8×10⁻⁵.
+  ! pressure by four orders of magnitude, leaving a molecular fraction of 1-1.9×10⁻⁵.
   radius                =+radiiBlitz(1)                                                      &
        &                 *radiusScale                                                        &
        &                 /10.0d0
@@ -230,7 +231,7 @@ program Test_Star_Formation_Molecular_Fractions
   pressureRatio     (1) = blitz2006_%pressureRatio(nodeCompressedTen,radius,surfaceDensityGas=surfaceDensityGas_)
   surfaceDensityHydrogen=+hydrogenByMassSolar                                                &
        &                 *surfaceDensityGas_
-  rateFullyMolecular    =+surfaceDensityHydrogen                                             &
+  rateFullyMolecular    =+surfaceDensityGas_                                                 &
        &                 *frequencyNormalizationBlitz                                        &
        &                 *(                                                                  &
        &                   +1.0d0                                                            &
@@ -287,11 +288,11 @@ program Test_Star_Formation_Molecular_Fractions
   call disk          %abundancesGasSet(abundancesGas           )
   call krumholz2009_ %calculationReset(node,node%uniqueID()    )
   ! In the high surface density limit the gas is fully molecular, and the rate reduces to ν Σ_gas (Σ_gas/85 M☉ pc⁻²)^0.33. Here
-  ! the disk is compressed by a factor of twenty, leaving a molecular fraction of 1-9.6×10⁻⁵.
-  surfaceDensityGas_=+massGas                                                                                 &
-       &             /2.0d0                                                                                   &
-       &             /Pi                                                                                      &
-       &             /(radiusScale/20.0d0)     **2                                                            &
+  ! the disk is compressed by a factor of twenty, leaving a molecular fraction of 1-9.3×10⁻⁵.
+  surfaceDensityGas_=+massGas                   &
+       &             /2.0d0                     &
+       &             /Pi                        &
+       &             /(radiusScale/20.0d0)  **2 &
        &             *exp(-radiiKrumholz(1))
   call Assert('fully molecular at high surface density',krumholz2009_%rate(nodeCompressedTwenty,radiiKrumholz(1)*radiusScale/20.0d0),frequencyStarFormation*surfaceDensityGas_*(surfaceDensityGas_/surfaceDensityTransition)**0.33d0,relTol=toleranceLimit)
   ! In the low surface density limit the molecular fraction, and so the rate, vanishes.

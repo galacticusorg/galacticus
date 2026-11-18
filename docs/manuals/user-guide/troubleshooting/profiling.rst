@@ -33,7 +33,7 @@ and then do a full recompile. The ``-pg`` option makes the compiler add extra in
 
    gprof ./Galaticus.exe gmon.out > profile.log
 
-which will create a file ``profile.log`` containing profiling information. You can find information `here <https://ftp.gnu.org/old-gnu/Manuals/gprof-2.9.1/html_chapter/gprof_5.html>`_ on how to interpret that output.
+which will create a file ``profile.log`` containing profiling information. You can find information `here <https://ftp.gnu.org/old-gnu/Manuals/gprof-2.9.1/html_chapter/gprof_5.html>`__ on how to interpret that output.
 
 Using ``valgrind``
 ------------------
@@ -58,4 +58,4 @@ on Ubuntu or similar Linux distros, or
 
 on Mac OS.
 
-Open the ``callgrind.out.<pid>`` file in ``kcachegrind``/``qcachegrind`` and you'll get a view of function calls, how many times they were called, what fraction of the total time was spent in each one, etc. More details on how to interpret the information can be found `here <https://kcachegrind.github.io/html/Documentation.html>`_.
+Open the ``callgrind.out.<pid>`` file in ``kcachegrind``/``qcachegrind`` and you'll get a view of function calls, how many times they were called, what fraction of the total time was spent in each one, etc. More details on how to interpret the information can be found `here <https://kcachegrind.github.io/html/Documentation.html>`__.

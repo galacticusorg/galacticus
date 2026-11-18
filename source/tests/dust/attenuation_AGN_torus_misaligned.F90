@@ -58,6 +58,7 @@ program Test_Dust_Attenuation_AGN_Torus_Misaligned
   use :: Input_Parameters                   , only : inputParameters
   use :: Node_Components                    , only : Node_Components_Initialize         , Node_Components_Thread_Initialize
   use :: Numerical_Constants_Math           , only : Pi
+  use :: Numerical_Integration_Tabulated    , only : integrateTrapezoidal
   use :: Unit_Tests                         , only : Assert                             , Unit_Tests_Begin_Group           , Unit_Tests_End_Group   , Unit_Tests_Finish
   implicit none
   ! The V-band wavelength, which is the reference wavelength of the extinction curve.
@@ -164,7 +165,7 @@ program Test_Dust_Attenuation_AGN_Torus_Misaligned
               integrand(k)        =transmissionExpected(1)
            end do
            write (label,'(a,i2,a)') "i=",30*i,"°: independent torus transmits the average over cos(θ)"
-           call Assert(trim(label),transmission(1),trapezoid(cosineInclinationFine,integrand),relTol=2.0d-4)
+           call Assert(trim(label),transmission(1),integrateTrapezoidal(cosineInclinationFine,integrand),relTol=2.0d-4)
         end if
      end do
      !![
@@ -208,18 +209,5 @@ program Test_Dust_Attenuation_AGN_Torus_Misaligned
   <objectDestructor name="dustExtinctionCurve_"           />
   !!]
   call Unit_Tests_Finish()
-
-contains
-
-  double precision function trapezoid(x,y)
-    !!{RST
-    Return the integral of ``y`` over ``x`` by the trapezoidal rule.
-    !!}
-    implicit none
-    double precision, intent(in   ), dimension(:) :: x, y
-
-    trapezoid=sum(0.5d0*(y(2:)+y(:size(y)-1))*(x(2:)-x(:size(x)-1)))
-    return
-  end function trapezoid
 
 end program Test_Dust_Attenuation_AGN_Torus_Misaligned
