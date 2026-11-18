@@ -236,6 +236,12 @@
    .. [#] The units for masses, lengths, and velocities in the input file are specified in their own parameter sub-sections. Conversion from these units to Galacticus's internal units is performed automatically. However, sometimes the input data may have inconsistent units between columns (e.g. positions in units of Mpc, but scale radii in units of kpc). In such cases this additional conversion factor can be applied to bring all quantities into a consistent unit system.
    </description>
     <descriptorSpecial>descriptorSpecial</descriptorSpecial>
+   <stateStorable>
+    <!-- Not stored: metaData, particleProperties, properties, massParticle, dummyHostId, haloMassesIncludeSubhalos,
+         includesHubbleFlow, positionsArePeriodic - tasks are not themselves state-stored: evolveForests stores and restores its
+         components directly. -->
+    <exclude variables="metaData, particleProperties, properties, massParticle, dummyHostId, haloMassesIncludeSubhalos, includesHubbleFlow, positionsArePeriodic"/>
+   </stateStorable>
   </task>
   !!]
   type, extends(taskClass) :: taskMergerTreeFileBuilder

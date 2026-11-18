@@ -256,18 +256,13 @@ contains
     implicit none
     class           (dustEmissionSpectrumBlackBodyModified), intent(inout)                               :: self
     double precision                                       , intent(in   ), dimension(:                ) :: wavelengths
-    double precision                                       , intent(in   )                               :: luminosityAbsorbed         , massDust          , &
+    double precision                                       , intent(in   )                               :: luminosityAbsorbed , massDust          , &
          &                                                                                                  time
     double precision                                                      , dimension(size(wavelengths)) :: luminosity
-    ! Beyond this argument the exponential overflows, and the emission is in any case negligible.
-    double precision                                       , parameter                                   :: argumentMaximum     =700.0d0
-    ! Below this argument the denominator is evaluated by its series, avoiding cancellation in exp(x)-1.
-    double precision                                       , parameter                                   :: argumentSmall       =1.0d-4
-    double precision                                                                                     :: opacityReference           , wavelengthReference, &
-         &                                                                                                  exponent                   , temperature        , &
-         &                                                                                                  temperatureAbsorbed        , luminosityEmitted  , &
-         &                                                                                                  normalization              , argument           , &
-         &                                                                                                  denominator
+    double precision                                                                                     :: opacityReference   , wavelengthReference, &
+         &                                                                                                  exponent           , temperature        , &
+         &                                                                                                  temperatureAbsorbed, luminosityEmitted  , &
+         &                                                                                                  normalization      , argument
     integer                                                                                              :: i
 
     luminosity=0.0d0
@@ -284,13 +279,8 @@ contains
          &            /Zeta_Function (4.0d0+exponent)
     do i=1,size(wavelengths)
        argument=plancksConstant*speedLight*metersToAngstroms/wavelengths(i)/boltzmannsConstant/temperature
-       if (argument > argumentMaximum) cycle
-       if (argument < argumentSmall) then
-          denominator=argument*(1.0d0+argument/2.0d0+argument**2/6.0d0)
-       else
-          denominator=exp(argument)-1.0d0
-       end if
-       luminosity(i)=normalization*argument**(3.0d0+exponent)/denominator
+       if (argument > dustEmissionPlanckArgumentMaximum) cycle
+       luminosity(i)=normalization*argument**(3.0d0+exponent)/dustEmissionPlanckDenominator(argument)
     end do
     return
   end function blackBodyModifiedLuminosity

@@ -47,7 +47,10 @@ def main(argv):
     output_path = argv[2] if len(argv) == 3 else os.path.join(
         source_directory, 'parameters.catalog.json')
 
-    os.environ.setdefault('GALACTICUS_EXEC_PATH', source_directory)
+    # Set, not setdefault: the directive parser finds its schemas through this,
+    # so an environment naming a different checkout would silently drop every
+    # directive which does not validate against that checkout's schemas.
+    os.environ['GALACTICUS_EXEC_PATH'] = os.path.abspath(source_directory)
     source_root = os.path.join(source_directory, 'source')
     if not os.path.isdir(source_root):
         print(f"parameterCatalog.py: no source directory at {source_root}",

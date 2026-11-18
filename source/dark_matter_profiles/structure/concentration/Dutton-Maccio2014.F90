@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`dutton_cold_2014` algorithm.
   !!}
@@ -47,7 +49,8 @@
    <description>
    Enumeration of density contrast methods available in the ``duttonMaccio2014`` dark matter halo profile concentration class.
    </description>
-   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
    <entry label="virial"     />
    <entry label="critical200"/>
   </enumeration>
@@ -60,7 +63,8 @@
    <description>
    Enumeration of density profile methods available in the ``duttonMaccio2014`` dark matter halo profile concentration class.
    </description>
-   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <visibility>public</visibility>
    <entry label="NFW"    />
    <entry label="einasto"/>
   </enumeration>
@@ -73,9 +77,9 @@
 
    .. math::
 
-      \log_{10} c = A + B \log_{10} M_\mathrm{halo}.
+      \log_{10} c = A + B \log_{10} \left( M_\mathrm{halo} / [10^{12} h^{-1} \mathrm{M}_\odot] \right),
 
-   The parameters are a function of redshift, :math:`z`. We use the following fit suggested by :cite:t:`dutton_cold_2014` results:
+   with :math:`h=0.671`, fixed to the value of the Planck cosmology used by :cite:t:`dutton_cold_2014` (not that of the model). The parameters are a function of redshift, :math:`z`. We use the following fit suggested by :cite:t:`dutton_cold_2014` results:
 
    .. math::
 
@@ -106,7 +110,7 @@
         - :math:`+1.080`
         - :math:`-0.097`
         - :math:`+0.024`
-      * - ``nfw200``
+      * - ``nfwCritical200``
         - :term:`NFW`
         - 200
         - :math:`+0.520`
@@ -115,7 +119,7 @@
         - :math:`+1.210`
         - :math:`-0.101`
         - :math:`+0.026`
-      * - ``einasto200``
+      * - ``einastoCritical200``
         - Einasto
         - 200
         - :math:`+0.459`
@@ -175,7 +179,8 @@ contains
     type            (inputParameters                               ), intent(inout) :: parameters
     class           (cosmologyParametersClass                      ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
-    type            (varying_string                                )                :: fitType
+    type            (varying_string                                )                :: fitType             , densityContrastMethod, &
+         &                                                                             densityProfileMethod
     double precision                                                                :: a1                  , a2, &
          &                                                                             a3                  , a4, &
          &                                                                             b1                  , b2
@@ -189,7 +194,7 @@ contains
       <source>parameters</source>
       <defaultValue>var_str('nfwVirial')</defaultValue>
       <description>
-      The type of halo definition for which the concentration-mass relation should be computed. Allowed values are ``nfwVirial``, ``nfwCritical200``, ``einastoCritical200``, and ``userDefined``.
+      The type of halo definition for which the concentration-mass relation should be computed. Allowed values are ``nfwVirial``, ``nfwCritical200``, ``einastoCritical200``, and ``userDefined``. For ``userDefined`` the coefficients ``[a1]``--``[a4]``, ``[b1]``, and ``[b2]`` must be given, and the halo definition to which they refer is set by ``[densityContrastMethod]`` and ``[densityProfileMethod]``.
       </description>
     </inputParameter>
     !!]
@@ -237,8 +242,24 @@ contains
          Parameter :math:`b_2` in the :cite:t:`dutton_cold_2014` halo concentration--mass relation.
          </description>
        </inputParameter>
+       <inputParameter docformat="rst">
+         <name>densityContrastMethod</name>
+         <source>parameters</source>
+         <defaultValue>var_str('virial')</defaultValue>
+         <description>
+         The halo definition to which the user-defined concentration--mass relation refers: ``virial`` (the virial density contrast of spherical collapse) or ``critical200`` (200 times the critical density).
+         </description>
+       </inputParameter>
+       <inputParameter docformat="rst">
+         <name>densityProfileMethod</name>
+         <source>parameters</source>
+         <defaultValue>var_str('NFW')</defaultValue>
+         <description>
+         The density profile, ``NFW`` or ``einasto``, to which the user-defined concentration--mass relation refers.
+         </description>
+       </inputParameter>
        !!]
-       self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_)
+       self=darkMatterProfileConcentrationDuttonMaccio2014(a1,a2,a3,a4,b1,b2,enumerationDuttonMaccio2014DensityContrastMethodEncode(char(densityContrastMethod),includesPrefix=.false.),enumerationDuttonMaccio2014DensityProfileMethodEncode(char(densityProfileMethod),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
     else
        self=darkMatterProfileConcentrationDuttonMaccio2014(enumerationDuttonMaccio2014FitTypeEncode(char(fitType),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_)
     end if
@@ -299,19 +320,21 @@ contains
     return
   end function duttonMaccio2014ConstructorInternalType
 
-  function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,cosmologyParameters_,cosmologyFunctions_) result(self)
+  function duttonMaccio2014ConstructorInternalDefined(a1,a2,a3,a4,b1,b2,densityContrastMethod,densityProfileMethod,cosmologyParameters_,cosmologyFunctions_) result(self)
     !!{RST
-    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDuttonMaccio2014` dark matter halo profile concentration class with user defined parameters.
+    Constructor for the :galacticus-class:`darkMatterProfileConcentrationDuttonMaccio2014` dark matter halo profile concentration class with user defined parameters, which refer to the halo definition given by ``densityContrastMethod`` and ``densityProfileMethod``.
     !!}
     implicit none
-    type            (darkMatterProfileConcentrationDuttonMaccio2014)                        :: self
-    double precision                                                , intent(in   )         :: a1                  , a2, &
-         &                                                                                     a3                  , a4, &
-         &                                                                                     b1                  , b2
-    class           (cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    type            (darkMatterProfileConcentrationDuttonMaccio2014      )                        :: self
+    double precision                                                      , intent(in   )         :: a1                   , a2, &
+         &                                                                                           a3                   , a4, &
+         &                                                                                           b1                   , b2
+    type            (enumerationDuttonMaccio2014DensityContrastMethodType), intent(in   )         :: densityContrastMethod
+    type            (enumerationDuttonMaccio2014DensityProfileMethodType ), intent(in   )         :: densityProfileMethod
+    class           (cosmologyParametersClass                            ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                             ), intent(in   ), target :: cosmologyFunctions_
     !![
-    <constructorAssign variables="a1,a2,a3,a4,b1,b2,*cosmologyParameters_, *cosmologyFunctions_"/>
+    <constructorAssign variables="a1,a2,a3,a4,b1,b2,densityContrastMethod,densityProfileMethod,*cosmologyParameters_, *cosmologyFunctions_"/>
     !!]
 
     self%fitType=duttonMaccio2014FitTypeUserDefined
@@ -325,6 +348,7 @@ contains
     Establish virial density contrast and dark matter profile definitions.
     !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
+    use :: Error                  , only : Error_Report
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
     class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout), target  :: self
@@ -364,6 +388,8 @@ contains
           </referenceConstruct>
           !!]
        end select
+    case default
+       call Error_Report('unrecognized density contrast method'//{introspection:location})
     end select
     allocate(darkMatterHaloScaleDefinition_)
           !![
@@ -407,6 +433,8 @@ contains
           </referenceConstruct> 
           !!]
        end select
+    case default
+       call Error_Report('unrecognized density profile method'//{introspection:location})
     end select
     !![
     <objectDestructor name="darkMatterHaloScaleDefinition_"/>
@@ -480,7 +508,7 @@ contains
 
   function duttonMaccio2014DarkMatterProfileDefinition(self)
     !!{RST
-    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`diemer_universal_2014` algorithm.
+    Return a dark matter density profile object defining that used in the definition of concentration in the :cite:t:`dutton_cold_2014` algorithm.
     !!}
     implicit none
     class(darkMatterProfileDMOClass                     ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition

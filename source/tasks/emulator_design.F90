@@ -51,6 +51,11 @@
    may not select an element of a multi-valued parameter with ``{N}``, which change files can not express.
    </description>
    <descriptorSpecial>descriptorSpecial</descriptorSpecial>
+   <stateStorable>
+    <!-- Not stored: modelParameters_ - tasks are not themselves state-stored: evolveForests stores and restores its components
+         directly. -->
+    <exclude variables="modelParameters_"/>
+   </stateStorable>
   </task>
   !!]
   type, extends(taskClass) :: taskEmulatorDesign

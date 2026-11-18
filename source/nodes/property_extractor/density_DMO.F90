@@ -31,6 +31,10 @@
 
    A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The density is then finite only if the dark matter profile has a finite central density, which is not the case for the cuspy profiles typically used. By default this is reported as a fatal error naming the offending specifier; setting ``zeroRadiusIsFatal`` to ``false`` instead writes the undefined-value sentinel in place of the density.
    </description>
+   <stateStorable>
+    <!-- Not stored: radii - radius definitions, set by the constructor and never changed afterwards. -->
+    <exclude variables="radii"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityDMOProfile

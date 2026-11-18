@@ -101,6 +101,7 @@ module Kepler_Orbits
        <method description="Resets orbit properties. If the optional ``keep`` argument is provided and listed properties will *not* be reset." method="reset" />
        <method description="Destroys an orbit." method="destroy" />
        <method description="Returns true if an orbit is fully defined." method="isDefined" />
+       <method description="Returns true if the given property of an orbit is set." method="isSet" />
        <method description="Asserts that an orbit is fully defined." method="assertIsDefined" />
        <method description="Returns true if the orbit is bound." method="isBound" />
        <method description="Propagates an orbit to a new position." method="propagate" />
@@ -147,6 +148,7 @@ module Kepler_Orbits
      procedure :: reset                 => Kepler_Orbits_Reset
      procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
+     procedure :: isSet                 => Kepler_Orbits_Is_Set
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
      procedure :: isBound               => Kepler_Orbits_Is_Bound
      procedure :: propagate             => Kepler_Orbits_Propagate
@@ -902,6 +904,50 @@ contains
     return
   end function Kepler_Orbits_Is_Defined
 
+  logical function Kepler_Orbits_Is_Set(orbit,property)
+    !!{RST
+    Returns true if the given ``property`` of the orbit is set. Properties that are derived from others (e.g. the energy, from
+    the radius and velocities) are reported as set only if they were set directly, or have already been computed.
+    !!}
+    use :: Error, only : Error_Report
+    implicit none
+    class(keplerOrbit               ), intent(in   ) :: orbit
+    type (enumerationKeplerOrbitType), intent(in   ) :: property
+
+    select case (property%ID)
+    case (keplerOrbitMasses            %ID,keplerOrbitMassSatellite%ID,keplerOrbitMassHost%ID,keplerOrbitSpecificReducedMass%ID)
+       Kepler_Orbits_Is_Set=orbit%massesIsSet
+    case (keplerOrbitRadius            %ID)
+       Kepler_Orbits_Is_Set=orbit%radiusIsSet
+    case (keplerOrbitTheta             %ID)
+       Kepler_Orbits_Is_Set=orbit%thetaIsSet
+    case (keplerOrbitPhi               %ID)
+       Kepler_Orbits_Is_Set=orbit%phiIsSet
+    case (keplerOrbitEpsilon           %ID)
+       Kepler_Orbits_Is_Set=orbit%epsilonIsSet
+    case (keplerOrbitRadiusPericenter  %ID)
+       Kepler_Orbits_Is_Set=orbit%radiusPericenterIsSet
+    case (keplerOrbitRadiusApocenter   %ID)
+       Kepler_Orbits_Is_Set=orbit%radiusApocenterIsSet
+    case (keplerOrbitVelocityRadial    %ID)
+       Kepler_Orbits_Is_Set=orbit%velocityRadialIsSet
+    case (keplerOrbitVelocityTangential%ID)
+       Kepler_Orbits_Is_Set=orbit%velocityTangentialIsSet
+    case (keplerOrbitEnergy            %ID)
+       Kepler_Orbits_Is_Set=orbit%energyIsSet
+    case (keplerOrbitAngularMomentum   %ID)
+       Kepler_Orbits_Is_Set=orbit%angularMomentumIsSet
+    case (keplerOrbitEccentricity      %ID)
+       Kepler_Orbits_Is_Set=orbit%eccentricityIsSet
+    case (keplerOrbitSemiMajorAxis     %ID)
+       Kepler_Orbits_Is_Set=orbit%semimajorAxisIsSet
+    case default
+       Kepler_Orbits_Is_Set=.false.
+       call Error_Report('property is not stored by the orbit'//{introspection:location})
+    end select
+    return
+  end function Kepler_Orbits_Is_Set
+
   subroutine Kepler_Orbits_Assert_Is_Defined(orbit)
     !!{RST
     Assert that an orbit is defined - quit with an error if it is not.
@@ -1081,8 +1127,8 @@ contains
     !!{RST
     Return the position of the orbit in Cartesian coordinates.
     !!}
-    use :: Coordinates, only : assignment(=) , coordinateCartesian
-    use :: Vectors    , only : Vector_Product
+    use :: Coordinates, only : assignment(=)   , coordinateCartesian
+    use :: Vectors    , only : Vector_Magnitude, Vector_Product
     implicit none
     type            (coordinateCartesian)                :: velocity
     class           (keplerOrbit        ), intent(inout) :: orbit
@@ -1095,9 +1141,14 @@ contains
          &        +cos(orbit%theta ())                   &
          &       ]
     velocityRadialVector     =orbit%velocityRadial()*radialVector
-    velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
-    velocityTangentialVector1=velocityTangentialVector1/sqrt(sum(velocityTangentialVector1**2))
-    velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
+    ! Construct the basis for the tangential velocity as defined for this class (and as used by the "propagate" method): the
+    ! direction r×ẑ, which is rotated by ε around r toward (r×ẑ)×r. If r is parallel to ẑ, r×ŷ is used instead.
+    velocityTangentialVector1=Vector_Product(radialVector,[0.0d0,0.0d0,1.0d0])
+    if (Vector_Magnitude(velocityTangentialVector1) <= 0.0d0) &
+         & velocityTangentialVector1=Vector_Product(radialVector,[0.0d0,1.0d0,0.0d0])
+    velocityTangentialVector1=velocityTangentialVector1/Vector_Magnitude(velocityTangentialVector1)
+    velocityTangentialVector2=Vector_Product(velocityTangentialVector1,radialVector)
+    velocityTangentialVector2=velocityTangentialVector2/Vector_Magnitude(velocityTangentialVector2)
     velocityTangentialVector1=velocityTangentialVector1*orbit%velocityTangential()*cos(orbit%epsilon())
     velocityTangentialVector2=velocityTangentialVector2*orbit%velocityTangential()*sin(orbit%epsilon())
     velocity                 =velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2

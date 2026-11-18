@@ -164,6 +164,11 @@
    must be attributed using the chain index rather than the file name.
    </description>
    <linkedList type="emulatedEmulatorList" variable="emulators" next="next" object="emulator_" objectType="emulatorClass"/>
+   <stateStorable>
+    <!-- Not stored: states - this class is not used by the evolveForests task, which is the only task that stores and restores
+         state. -->
+    <exclude variables="states"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodEmulated

@@ -36,6 +36,10 @@
    <deepCopy>
     <ignore variables="deepCopiedFrom, node"/>
    </deepCopy>
+   <stateStorable>
+    <!-- Not stored: propertyHits - profiling statistics, not part of the model state. -->
+    <exclude variables="propertyHits"/>
+   </stateStorable>
   </mergerTreeEvolveProfiler>
   !!]
   type, extends(mergerTreeEvolveProfilerClass) :: mergerTreeEvolveProfilerSimple

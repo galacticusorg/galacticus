@@ -215,13 +215,14 @@ repository root. The ones most likely to be useful when working in this repo:
   attribution* below). It rewrites files in place and leaves `~`-suffixed
   backups — so run it on a clean tree, and remember to delete the backups.
 - **`maintenance/migrateAllParameterFiles.py`** — run from the root of a Galacticus checkout
-  (with `GALACTICUS_EXEC_PATH` set); walks `parameters/`, `constraints/`, and
-  `testSuite/` and runs `scripts/aux/parametersMigrate.py` in place on every XML
-  parameter file. Use this after a change that renames/restructures parameters,
-  rather than editing the bundled parameter files one at a time. It skips
-  `testSuite/.../strictOutdated.xml` and `unstrictOutdated.xml`, which must stay
-  out of date to exercise the "outdated parameter file" paths - do not migrate
-  them by hand either.
+  (with `GALACTICUS_EXEC_PATH` set); runs `scripts/aux/parametersMigrate.py` in
+  place on the root `parameters.xml` and on every XML parameter file under
+  `parameters/`, `constraints/`, and `testSuite/`. Use this after a change that
+  renames/restructures parameters, rather than editing the bundled parameter
+  files one at a time. It skips `testSuite/.../strictOutdated.xml`,
+  `unstrictOutdated.xml`, and `parameterMigration.xml`, which must stay out of
+  date to exercise the "outdated parameter file" and migration paths - do not
+  migrate them by hand either.
 - **`debugging/deltaTestCaseReducer/delta.sh`** — wrapper around the
   [Delta](https://github.com/dsw/delta) debugging tool; reduces a source file to
   a minimal case that still reproduces an error (compiler ICE, runtime crash,

@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements a stellar mass function output analysis class.
+Implements a luminosity function output analysis class for comparison with the :cite:t:`montero-dorta_sdss_2009` SDSS measurements.
 !!}
 
   !![

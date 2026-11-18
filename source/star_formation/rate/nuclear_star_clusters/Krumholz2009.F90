@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Claude.
 
   !!{RST
   Implementation of the :cite:t:`antonini_coevolution_2015` star formation rate law for galactic :term:`NSC`.
@@ -49,7 +49,7 @@
 
    .. math::
 
-      s = {\ln(1+0.6\chi+0.01\chi) \over 0.04 \Sigma_1 Z^\prime},
+      s = {\ln(1+0.6\chi) \over 0.04 \Sigma_1 Z^\prime},
 
    with
 

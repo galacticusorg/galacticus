@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests concentration models.
 !!}
@@ -30,7 +32,8 @@ program Test_Concentrations
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
   use :: Dark_Matter_Profiles_Concentration  , only : darkMatterProfileConcentrationClass               , darkMatterProfileConcentrationDiemerKravtsov2014            , darkMatterProfileConcentrationDuttonMaccio2014, darkMatterProfileConcentrationLudlow2016Fit  , &
-       &                                              darkMatterProfileConcentrationPrada2011           , duttonMaccio2014FitTypeNFWVirial                            , duttonMaccio2014FitTypeNFWCritical200         , darkMatterProfileConcentrationDiemerJoyce2019
+       &                                              darkMatterProfileConcentrationPrada2011           , duttonMaccio2014FitTypeNFWVirial                            , duttonMaccio2014FitTypeNFWCritical200         , darkMatterProfileConcentrationDiemerJoyce2019, &
+       &                                              duttonMaccio2014DensityContrastMethodCritical200  , duttonMaccio2014DensityProfileMethodNFW
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleVirialDensityContrastDefinition
   use :: Dark_Matter_Profile_Scales          , only : darkMatterProfileScaleRadiusConcentration         , darkMatterProfileScaleRadiusLudlow2016Analytic
   use :: Dark_Matter_Profiles_DMO            , only : darkMatterProfileDMONFW
@@ -50,6 +53,7 @@ program Test_Concentrations
   use :: Power_Spectra                       , only : powerSpectrumStandard
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: String_Handling                     , only : String_Split_Words
   use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1998
@@ -69,6 +73,7 @@ program Test_Concentrations
   type            (powerSpectrumPrimordialPowerLaw                             ), pointer                             :: powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionEisensteinHu1998                            ), pointer                             :: transferFunctionEisensteinHu1998_
   type            (powerSpectrumPrimordialTransferredSimple                    ), pointer                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumNormalizerSigma8                               ), pointer                             :: powerSpectrumNormalizerSigma8_
   type            (powerSpectrumStandard                                       ), pointer                             :: powerSpectrumStandard_
   type            (darkMatterParticleCDM                                       ), pointer                             :: darkMatterParticleCDM_
   type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                             :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
@@ -77,7 +82,7 @@ program Test_Concentrations
   type            (darkMatterHaloScaleVirialDensityContrastDefinition          ), pointer                             :: darkMatterHaloScaleVirialDensityContrastDefinition_
   type            (darkMatterProfileDMONFW                                     ), pointer                             :: darkMatterProfileDMONFW_
   type            (varying_string                                              )                                      :: parameterFile                                                   , fileName
-  integer                                                                       , parameter                           :: countModels                                                   =7
+  integer                                                                       , parameter                           :: countModels                                                   =8
   type            (varying_string                                              ), dimension(countModels)              :: modelName                                                       , modelLabel         , &
        &                                                                                                                 modelDensityContrast
   double precision                                                              , dimension(countModels)              :: modelTolerance
@@ -132,6 +137,11 @@ program Test_Concentrations
   modelLabel          (7)='diemer19_vir'
   modelDensityContrast(7)='vir'
   modelTolerance      (7)=1.0d-2
+  ! The Dutton et al. (2014) 200c fit, given as user-defined coefficients, must reproduce the same results.
+  modelName           (8)='Dutton et al. (2014; 200c; user defined)'
+  modelLabel          (8)='dutton14_200c'
+  modelDensityContrast(8)='200c'
+  modelTolerance      (8)=1.0d-3
   ! Set redshifts.
   redshifts=[0.0d0,1.0d0]
   ! Iterate over models.
@@ -196,6 +206,7 @@ program Test_Concentrations
         allocate(powerSpectrumWindowFunctionTopHat_                           )
         allocate(powerSpectrumPrimordialPowerLaw_                             )
         allocate(transferFunctionEisensteinHu1998_                            )
+        allocate(powerSpectrumNormalizerSigma8_                               )
         allocate(powerSpectrumPrimordialTransferredSimple_                    )
         allocate(powerSpectrumStandard_                                       )
         allocate(darkMatterParticleCDM_                                       )
@@ -257,12 +268,25 @@ program Test_Concentrations
              &amp;                                                       )
 	  </constructor>
 	</referenceConstruct>
+	<referenceConstruct object="powerSpectrumNormalizerSigma8_"                                >
+	 <constructor>
+	  powerSpectrumNormalizerSigma8                                  (                                                                                    &amp;
+	   &amp;                                                          sigma8                                  =sigma8                                   , &amp;
+	   &amp;                                                          tolerance                               =1.0d-4                                   , &amp;
+	   &amp;                                                          integrationFailureIsFatal               =.true.                                   , &amp;
+	   &amp;                                                          cosmologyParameters_                    =cosmologyParametersSimple_               , &amp;
+	   &amp;                                                          cosmologyFunctions_                     =cosmologyFunctionsMatterLambda_          , &amp;
+	   &amp;                                                          transferFunction_                       =transferFunctionEisensteinHu1998_          &amp;
+	   &amp;                                                         )
+	 </constructor>
+	</referenceConstruct>
 	<referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"                     >
 	  <constructor>
 	    powerSpectrumPrimordialTransferredSimple                     (                                                                                    &amp;
              &amp;                                                        powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_         , &amp;
              &amp;                                                        transferFunction_                       =transferFunctionEisensteinHu1998_        , &amp;
-             &amp;                                                        linearGrowth_                           =linearGrowthCollisionlessMatter_           &amp;
+             &amp;                                                        linearGrowth_                           =linearGrowthCollisionlessMatter_         , &amp;
+             &amp;                                                        powerSpectrumNormalizer_                =powerSpectrumNormalizerSigma8_             &amp;
              &amp;                                                       )
 	  </constructor>
 	</referenceConstruct>
@@ -276,7 +300,6 @@ program Test_Concentrations
 	<referenceConstruct object="cosmologicalMassVarianceFilteredPower_"                        >
 	  <constructor>
 	    cosmologicalMassVarianceFilteredPower                        (                                                                                    &amp;
-             &amp;                                                        sigma8                                  =sigma8                                   , &amp;
              &amp;                                                        tolerance                               =1.0d-4                                   , &amp;
              &amp;                                                        toleranceTopHat                         =1.0d-4                                   , &amp;
 	     &amp;                                                        rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &amp;
@@ -296,7 +319,6 @@ program Test_Concentrations
 	<referenceConstruct object="powerSpectrumStandard_"                                        >
 	  <constructor>
 	    powerSpectrumStandard                                        (                                                                                    &amp;
-             &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVarianceFilteredPower_   , &amp;
              &amp;                                                        powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredSimple_  &amp;
              &amp;                                                       )
 	  </constructor>
@@ -320,6 +342,8 @@ program Test_Concentrations
         case ('Dutton et al. (2014; 200c)'            )
            allocate(darkMatterProfileConcentrationDuttonMaccio2014   :: darkMatterProfileConcentration_)
         case ('Dutton et al. (2014; vir)'             )
+           allocate(darkMatterProfileConcentrationDuttonMaccio2014   :: darkMatterProfileConcentration_)
+        case ('Dutton et al. (2014; 200c; user defined)')
            allocate(darkMatterProfileConcentrationDuttonMaccio2014   :: darkMatterProfileConcentration_)
         case ('Ludlow et al. (2016)'                  )
            allocate(darkMatterProfileConcentrationLudlow2016Fit      :: darkMatterProfileConcentration_)
@@ -358,10 +382,10 @@ program Test_Concentrations
               !![
 	      <referenceConstruct object="darkMatterProfileConcentration_">
 		<constructor>
-		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                          &amp;
-		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWVirial                              , &amp;
-	 	   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
-	 	   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                                 &amp;
+		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                       &amp;
+		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWVirial                           , &amp;
+	 	   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                 , &amp;
+	 	   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                              &amp;
 	 	   &amp;                                          )
 		</constructor>
 	      </referenceConstruct>
@@ -370,10 +394,29 @@ program Test_Concentrations
               !![
 	      <referenceConstruct object="darkMatterProfileConcentration_">
 		<constructor>
-		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                          &amp;
-		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWCritical200                         , &amp;
-		   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                    , &amp;
-		   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                                 &amp;
+		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                       &amp;
+		   &amp;                                           fitType                  =duttonMaccio2014FitTypeNFWCritical200                      , &amp;
+		   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                 , &amp;
+		   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                              &amp;
+		   &amp;                                          )
+		</constructor>
+	      </referenceConstruct>
+              !!]
+           else if (modelName(iModel) == 'Dutton et al. (2014; 200c; user defined)') then
+              !![
+	      <referenceConstruct object="darkMatterProfileConcentration_">
+		<constructor>
+		  darkMatterProfileConcentrationDuttonMaccio2014  (                                                                                       &amp;
+		   &amp;                                           a1                       =+0.520d0                                                   , &amp;
+		   &amp;                                           a2                       =+0.905d0                                                   , &amp;
+		   &amp;                                           a3                       =-0.617d0                                                   , &amp;
+		   &amp;                                           a4                       =+1.210d0                                                   , &amp;
+		   &amp;                                           b1                       =-0.101d0                                                   , &amp;
+		   &amp;                                           b2                       =+0.026d0                                                   , &amp;
+		   &amp;                                           densityContrastMethod    =duttonMaccio2014DensityContrastMethodCritical200           , &amp;
+		   &amp;                                           densityProfileMethod     =duttonMaccio2014DensityProfileMethodNFW                    , &amp;
+		   &amp;                                           cosmologyParameters_     =cosmologyParametersSimple_                                 , &amp;
+		   &amp;                                           cosmologyFunctions_      =cosmologyFunctionsMatterLambda_                              &amp;
 		   &amp;                                          )
 		</constructor>
 	      </referenceConstruct>
@@ -582,6 +625,7 @@ program Test_Concentrations
 	<objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
 	<objectDestructor name="transferFunctionEisensteinHu1998_"                            />
 	<objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
+	<objectDestructor name="powerSpectrumNormalizerSigma8_"                               />
 	<objectDestructor name="powerSpectrumStandard_"                                       />
 	<objectDestructor name="darkMatterParticleCDM_"                                       />
 	<objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>

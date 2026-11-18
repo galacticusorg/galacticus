@@ -8,7 +8,23 @@
     <powerSpectrumPrimordial/>
     <powerSpectrumWindowFunction/>
     <transferFunction/>
-    <powerSpectrumPrimordialTransferred/>
+    <powerSpectrumNormalizer/>
+    <powerSpectrumPrimordialTransferred>
+      <powerSpectrumPrimordialTransferredSimple>
+	<constructor>
+	  <!-- The transferred primordial power spectrum classes hold their normalizer as an unlimited polymorphic object (to avoid a
+	       circular module dependency). We must provide a concrete type for it here to allow it to be passed via a C-style
+	       interface. -->
+	  <argument name="powerSpectrumNormalizer_" type="powerSpectrumNormalizerClass" module="Power_Spectrum_Normalizers"/>
+	</constructor>
+      </powerSpectrumPrimordialTransferredSimple>
+      <powerSpectrumPrimordialTransferredFile>
+	<constructor>
+	  <!-- As for the simple class above. -->
+	  <argument name="powerSpectrumNormalizer_" type="powerSpectrumNormalizerClass" module="Power_Spectrum_Normalizers"/>
+	</constructor>
+      </powerSpectrumPrimordialTransferredFile>
+    </powerSpectrumPrimordialTransferred>
     <powerSpectrum/>
     <powerSpectrumNonlinear/>
     <linearGrowth/>

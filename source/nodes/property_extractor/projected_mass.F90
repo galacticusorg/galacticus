@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implements a property extractor class for the projected density at a set of radii.
+  Implements a property extractor class for the projected mass at a set of radii.
   !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusDefinitions
@@ -30,6 +30,10 @@
 
    A radius specifier can evaluate to zero---most often because the component on which it is based is absent or empty in the node in question. The projected mass is well defined there: the fraction of each spherical shell lying inside the cylinder vanishes in that limit, leaving only the mass of any central point mass, such as a black hole.
    </description>
+   <stateStorable>
+    <!-- Not stored: radii - radius definitions, set by the constructor and never changed afterwards. -->
+    <exclude variables="radii"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorProjectedMass
