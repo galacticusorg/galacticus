@@ -7,6 +7,9 @@ sections to use the same underlying `gfortranInternalIO_` lock name.
 Andrew Benson (ported to Python 2026)
 """
 
+# <workaround type="gfortran" PR="92836" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=92836"/>
+# This whole pass is the workaround: see the module docstring.
+
 import io
 import os
 import re

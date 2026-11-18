@@ -49,15 +49,22 @@ def _directive(pr, issue=None):
             '  !!]\n')
 
 
-def _run(monkeypatch, tmp_path, source, statuses, issueStates):
+def _run(monkeypatch, tmp_path, source, statuses, issueStates, pythonFiles=None):
     """Run the checker over `source`, with Bugzilla and GitHub stubbed.
 
     `statuses` maps PR number to the Bugzilla status to report, `issueStates`
-    maps issue URL to the state ("open"/"closed") to report.
+    maps issue URL to the state ("open"/"closed") to report. `pythonFiles`
+    optionally maps paths (relative to a Python directory) to their content.
     """
     module = _load()
     (tmp_path / 'test.F90').write_text(source)
     monkeypatch.setattr(module, 'DIRECTORIES', (str(tmp_path),))
+    pythonDirectory = tmp_path / 'python'
+    for name, content in (pythonFiles or {}).items():
+        (pythonDirectory / name).parent.mkdir(parents=True, exist_ok=True)
+        (pythonDirectory / name).write_text(content)
+    monkeypatch.setattr(module, 'PYTHON_DIRECTORIES',
+                        (str(pythonDirectory),) if pythonFiles else ())
     monkeypatch.setattr(module.time, 'sleep', lambda _seconds: None)
     monkeypatch.setattr(module, 'issue_state',
                         lambda url: issueStates.get(url, 'UNKNOWN'))
@@ -100,6 +107,28 @@ def test_staged_workaround_fails_once_its_issue_is_closed(monkeypatch, tmp_path,
     output = capsys.readouterr().out
     assert status == 1
     assert 'issue is CLOSED but workaround remains' in output
+
+
+_PYTHON_DIRECTIVE = ('        # <workaround type="gfortran" PR="88632" '
+                     'url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88632"/>\n'
+                     '        code = "!   generated workaround\\n"\n')
+
+
+def test_python_comment_directive_is_checked(monkeypatch, tmp_path, capsys):
+    # A workaround in the code generator is marked by a directive in a Python
+    # comment, and fails the check like one in the Fortran source.
+    status, module = _run(monkeypatch, tmp_path, '', {'88632': 'RESOLVED'}, {},
+                          pythonFiles={'Build/generate.py': _PYTHON_DIRECTIVE})
+    assert status == 1
+    assert any(name.endswith('generate.py') for name in module.WORKAROUNDS['88632']['files'])
+
+
+def test_python_tests_directories_are_skipped(monkeypatch, tmp_path):
+    # Test fixtures contain example directives, which must not be checked.
+    status, module = _run(monkeypatch, tmp_path, '', {'88632': 'RESOLVED'}, {},
+                          pythonFiles={'Build/tests/test_generate.py': _PYTHON_DIRECTIVE})
+    assert status == 0
+    assert '88632' not in module.WORKAROUNDS
 
 
 def test_unresolved_workaround_never_fails(monkeypatch, tmp_path):

@@ -1499,6 +1499,15 @@ The ``workaround`` directive annotates code that exists only to work around a bu
 
 The ``type`` attribute (required) names the tool containing the bug (e.g. ``gfortran``), while the optional ``PR`` and ``url`` attributes identify the relevant bug report. A ``description`` element should explain the bug being worked around. Optional ``seeAlso`` elements (with the same ``type``/``PR``/``url`` attributes) can reference related bug reports.
 
+A workaround in the code generator (``python/``) or the build scripts (``scripts/``)---including one in the Fortran that the code generator emits---is marked instead by the opening tag of the directive, closed with ``/>``, as a Python comment, followed by comments explaining the bug:
+
+.. code-block:: python
+
+    # <workaround type="gfortran" PR="94446" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94446"/>
+    # Using sizeof() on a treeNode object causes a bogus "type mismatch" error, so the size is reported as zero.
+
+These are checked by ``workaroundChecker.py`` (below) like those in the Fortran source, but do not appear in the list of workarounds in this documentation. Directives in ``tests`` directories are not checked, as test fixtures contain example directives.
+
 The ``Workarounds`` workflow (``.github/workflows/workarounds.yml``) runs ``scripts/aux/workaroundChecker.py`` daily, which looks up the ``PR`` of every ``workaround`` directive in GCC's Bugzilla and fails if any of them has been marked ``RESOLVED``---so that fixed bugs do not leave dead workarounds behind. A bug being fixed upstream does not always mean the workaround can be removed immediately though: typically we must wait until the fix appears in a released compiler that is available on all of the platforms we build for. For such cases, open an issue recording what must happen before the workaround can be removed, and reference it from the directive with the optional ``issue`` attribute:
 
 .. code-block:: none
