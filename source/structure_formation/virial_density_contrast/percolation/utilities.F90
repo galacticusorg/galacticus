@@ -64,6 +64,7 @@ module Virial_Density_Contrast_Percolation_Utilities
      class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_            => null()
      class(darkMatterProfileConcentrationClass), pointer :: darkMatterProfileConcentration_ => null()
      class(darkMatterProfileShapeClass        ), pointer :: darkMatterProfileShape_         => null()
+     logical                                             :: tolerateDefinitionConversionFailure
    contains
      final :: percolationObjectsDestructor
   end type percolationObjects
@@ -96,6 +97,15 @@ contains
     <objectBuilder class="darkMatterHaloScale"            name="percolationObjects_%darkMatterHaloScale_"            source="parameters"/>
     <objectBuilder class="darkMatterProfileConcentration" name="percolationObjects_%darkMatterProfileConcentration_" source="parameters"/>
     <objectBuilder class="darkMatterProfileShape"         name="percolationObjects_%darkMatterProfileShape_"         source="parameters"/>
+    <inputParameter docformat="rst">
+      <name>tolerateDefinitionConversionFailure</name>
+      <variable>percolationObjects_%tolerateDefinitionConversionFailure</variable>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, then where the percolation calculation, which converts concentrations to the halo definition it is solving for, finds no halo mass in the definition used by the concentration class corresponding to the mass of the halo (as can happen for a definition profile with a finite central density, such as Einasto, at the high density contrasts it explores), a warning is issued and the uncorrected concentration is used. Otherwise this is a fatal error.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     self => percolationObjects_
     nullify(percolationObjects_)
@@ -203,6 +213,7 @@ contains
           nullify(destination%darkMatterHaloScale_           )
           nullify(destination%darkMatterProfileConcentration_)
           nullify(destination%darkMatterProfileShape_        )
+          destination%tolerateDefinitionConversionFailure=self%tolerateDefinitionConversionFailure
           if (associated(self%darkMatterProfileDMO_)) then
              if (associated(self%darkMatterProfileDMO_%copiedSelf)) then
                 select type(s => self%darkMatterProfileDMO_%copiedSelf)
@@ -344,6 +355,7 @@ contains
     type            (rootFinder                         )                              :: finder
     double precision                                                                   :: radiusHalo
     integer                                                                            :: i
+    logical                                                                            :: tolerateDefinitionConversionFailure
 
     ! Increment the state stack.
     if (.not.allocated(state)) then
@@ -374,6 +386,7 @@ contains
        cosmologyParameters_                      => percolationObjects_%cosmologyParameters_
        darkMatterHaloScale_                      => percolationObjects_%darkMatterHaloScale_
        darkMatterProfileConcentration_           => percolationObjects_%darkMatterProfileConcentration_
+       tolerateDefinitionConversionFailure       =  percolationObjects_%tolerateDefinitionConversionFailure
     class default
        call Error_Report('percolationObjects_ must be of "percolationObjects" type'//{introspection:location})
     end select
@@ -392,7 +405,8 @@ contains
           &amp;                                    darkMatterHaloScale_             =                  darkMatterHaloScale_           , &amp;
           &amp;                                    darkMatterProfileDMO_            =state(stateCount)%darkMatterProfileDMO_          , &amp;
           &amp;                                    virialDensityContrast_           =                  virialDensityContrast_         , &amp;
-          &amp;                                    darkMatterProfileConcentration_  =                  darkMatterProfileConcentration_  &amp;
+          &amp;                                    darkMatterProfileConcentration_  =                  darkMatterProfileConcentration_, &amp;
+          &amp;                                    tolerateDefinitionConversionFailure=tolerateDefinitionConversionFailure                &amp;
           &amp;                                   )
         </constructor>
        </referenceConstruct>
