@@ -135,7 +135,7 @@ The following libraries are optional. Galacticus will detect them at build time 
 
   * Used only for analysis of N-body point data and when using MCMC chain posteriors as priors on parameters - if you don't plan to do either of these you do not need to install ann.
 
-* matheval (may be available via your distro's package manager) `v1.1.13 <https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.13.tar.gz>`_
+* matheval (may be available via your distro's package manager) `v1.1.14 <https://github.com/galacticusorg/libmatheval/releases/download/latest/libmatheval-1.1.14.tar.gz>`_
 
   * Used only for evaluating of derived parameter expressions when performing simulations of the model posterior - if you don't plan to do this you do not need to install matheval
 

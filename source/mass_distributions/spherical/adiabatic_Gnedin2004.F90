@@ -58,14 +58,14 @@
 
    where the pivot radius :math:`r_0` is set to :math:`f_0 r_\mathrm{vir}` where :math:`f_0=`\ ``[radiusFractionalPivot]``, and :math:`r_\mathrm{vir}` is the virial radius. The original :cite:t:`gnedin_response_2004` assumed :math:`f_0=1`, but the revised model of :cite:t:`gnedin_halo_2011` found that :math:`f_0=0.03` lead to an improved model (less scatter in the best fit values of :math:`(A,\omega)` when comparing to N-body simulations).
 
-   Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark matter profile of their host halo.  The derivative, :math:`\mathrm{d} r_\mathrm{f}/\mathrm{d}d_\mathrm{i}\equiv r^\prime_\mathrm{i}` is found by taking the derivative of eqn. (:eq:`eq-adiabaticContractionGnedinSolution`) to give:
+   Note that we explicitly assume that the initial, uncontracted total density profile has the same shape as the initial dark matter density profile, that contraction of the halo occurs with no shell crossing, and that satellite halos trace the dark matter profile of their host halo.  The derivative, :math:`\mathrm{d} r_\mathrm{i}/\mathrm{d}r_\mathrm{f}\equiv r^\prime_\mathrm{i}` is found by taking the derivative of eqn. (:eq:`eq-adiabaticContractionGnedinSolution`) to give:
 
    .. math::
 
       &amp;  f_\mathrm{i} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) r^\prime_\mathrm{i} + f_\mathrm{i} 4 \pi
       \bar{r}_\mathrm{i}^2 \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}}
       r_\mathrm{i} r^\prime_\mathrm{i} \nonumber \\
-      &amp; = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) + f_\mathrm{i} 4 \pi \bar{r}_\mathrm{i}^2
+      &amp; = f_\mathrm{f} M_\mathrm{total,0}(\bar{r}_\mathrm{i}) + f_\mathrm{f} 4 \pi \bar{r}_\mathrm{i}^2
       \rho_\mathrm{total,0}(\bar{r}_\mathrm{i}) {\mathrm{d} \bar{r}_\mathrm{i}\over\mathrm{d} r_\mathrm{i}} r_\mathrm{f}
       r^\prime_\mathrm{i} \nonumber \\
       &amp; + V^2_\mathrm{b}(\bar{r}_\mathrm{f}) \bar{r}_\mathrm{f} / \mathrm{G} + V^2_\mathrm{b}(\bar{r}_\mathrm{f})
@@ -77,7 +77,7 @@
 
    .. math::
 
-      {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \left({r \over r_0}\right)^{\omega-1},
+      {\mathrm{d}\bar{r} \over \mathrm{d} r} = A \omega \left({r \over r_0}\right)^{\omega-1},
 
    and which can then be solved numerically for :math:`r^\prime_\mathrm{i}`.
 

@@ -54,7 +54,7 @@ _META_TAGS = frozenset({'formatVersion', 'lastModified'})
 # Galacticus does NOT migrate at run time (project policy: users run
 # scripts/aux/parametersMigrate.py and re-verify).  We therefore validate files
 # as-written, but use scripts/aux/migrations.xml to turn an "unknown parameter"
-# or unrecognised selector value into an actionable "obsolete; renamed to ..."
+# or unrecognized selector value into an actionable "obsolete; renamed to ..."
 # message.  Cached per GALACTICUS_EXEC_PATH so tests can override it.
 _migrations_cache = {}
 _XPATH_LEAF_RE = re.compile(r'([A-Za-z_]\w*)(?:\[[^\]]*\])?\s*$')
@@ -704,9 +704,41 @@ def _check_structure(root, findings):
                 f"parameter '{element.tag}' has multiple values"))
 
 
+def _apply_parameter_levels(block):
+    """Move each element of a `parameterGrid` `<parameters>` block which carries a
+    `parameterLevel` attribute to the position at which the model will see it, as
+    `scripts/aux/launch.py` does when expanding the grid: "top" moves it to the
+    root of the block, and a negative integer moves it up that many levels."""
+    parent_of = {child: parent for parent in block.iter() for child in parent}
+    # Visit children before their parents, so that nested moves resolve as in `launch.py`.
+    for element in reversed(list(block.iter())):
+        level = element.get('parameterLevel')
+        if level is None or element is block:
+            continue
+        if level == 'top':
+            target = block
+        else:
+            try:
+                steps = int(level)
+            except ValueError:
+                continue
+            if steps >= 0:
+                continue
+            target = parent_of[element]
+            for _ in range(-steps):
+                target = parent_of.get(target, block)
+        parent_of[element].remove(element)
+        target.append(element)
+        parent_of[element] = target
+        del element.attrib['parameterLevel']
+
+
 def validate_file(path, catalog=None, structural=False):
     """Parse, XInclude-expand, check references, and validate a parameter file;
     return ``(findings, error)`` where `error` is a parse-error string or None.
+
+    For a `parameterGrid` file the catalog checks apply to each of its
+    `<parameters>` blocks, since these are what define the models.
 
     `catalog=None` runs only the catalog-independent checks (XInclude resolution,
     references, and -- if requested -- structural), which is enough to subsume the
@@ -726,5 +758,10 @@ def validate_file(path, catalog=None, structural=False):
         _check_structure(root, findings)
     _check_references(root, findings)
     if catalog is not None:
-        findings.extend(validate_parameters(root, catalog))
+        if root.tag == 'parameterGrid':
+            for block in root.findall('parameters'):
+                _apply_parameter_levels(block)
+                findings.extend(validate_parameters(block, catalog))
+        else:
+            findings.extend(validate_parameters(root, catalog))
     return findings, None

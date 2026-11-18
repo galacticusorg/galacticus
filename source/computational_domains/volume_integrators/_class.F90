@@ -20,12 +20,12 @@
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
-Contains a module which provides computational domains.
+Contains a module which provides volume integrators for computational domains.
 !!}
 
 module Computational_Domain_Volume_Integrators
   !!{RST
-  Provides a class that implements computational domains.
+  Provides a class that implements volume integrators for computational domains.
   !!}
   use :: Coordinates, only : coordinate
   private

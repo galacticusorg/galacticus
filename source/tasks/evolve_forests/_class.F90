@@ -43,6 +43,11 @@
    <description>
    A task which evolves galaxies within a set of merger tree forests.
    </description>
+   <stateStorable>
+    <!-- Not stored: universeProcessed, universeWaiting - tasks are not themselves state-stored: evolveForests stores and restores
+         its components directly. -->
+    <exclude variables="universeProcessed, universeWaiting"/>
+   </stateStorable>
   </task>
   !!]
   type, extends(taskClass) :: taskEvolveForests
@@ -950,6 +955,11 @@ contains
                       deallocate(currentTree)
                       currentTree => nextTree
                       tree        => currentTree
+                      ! The remaining trees in the forest must now point to the new first tree.
+                      do while (associated(nextTree))
+                         nextTree%firstTree => tree
+                         nextTree           => nextTree%nextTree
+                      end do
                    else
                       ! A previous tree exists - simply connect its `next` pointer to the `next` pointer of the current tree, and
                       ! then destroy the current tree.

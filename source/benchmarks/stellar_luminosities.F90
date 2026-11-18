@@ -97,7 +97,8 @@ program Benchmark_Stellar_Populations_Luminosities
        &                                                                                 sigma                                =+0.69d0                                                                                                      &
        &                                                                                )
   stellarAstrophysics_                  =stellarAstrophysicsFile                        (                                                                                                                                                   &
-       &                                                                                 fileName                            =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/stellarPropertiesCompilationStandard.xml'           &
+       &                                                                                 fileName                            =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/stellarPropertiesCompilationStandard.xml'         , &
+       &                                                                                 initialMassForSupernovaeTypeII      =8.0d0                                                                                                         &
        &                                                                                )
   stellarTracks_                        =stellarTracksFile                              (                                                                                                                                                   &
        &                                                                                 fileName                            =char(inputPath(pathTypeDataStatic))//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'                         &
@@ -113,7 +114,6 @@ program Benchmark_Stellar_Populations_Luminosities
        &                                                                                 stellarAstrophysics_                =stellarAstrophysics_                                                                                          &
        &                                                                                )
   stellarFeedback_                      =stellarFeedbackStandard                        (                                                                                                                                                   &
-       &                                                                                 initialMassForSupernovaeTypeII       =8.0d00                                                                                                     , &
        &                                                                                 supernovaEnergy                      =1.0d51                                                                                                     , &
        &                                                                                 supernovaeTypeIa_                    =supernovaeTypeIa_                                                                                          , &
        &                                                                                 supernovaePopulationIII_             =supernovaePopulationIII_                                                                                   , &

@@ -37,6 +37,11 @@
    <description>
    Defines a computational domain on a three-dimensional Cartesian grid, with cell boundaries along each axis specified by ``[xBoundaries]``, ``[yBoundaries]``, and ``[zBoundaries]``, and the number of cells per dimension by ``[countCells]``. Convergence of cell quantities is assessed using a percentile criterion controlled by ``[convergencePercentile]`` and ``[convergenceThreshold]``.
    </description>
+   <stateStorable>
+    <!-- Not stored: boundariesCells, properties - this class is not used by the evolveForests task, which is the only task that
+         stores and restores state. -->
+    <exclude variables="boundariesCells, properties"/>
+   </stateStorable>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainCartesian3D

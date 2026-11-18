@@ -57,3 +57,21 @@ def test_allocatable_scalar_intrinsic_unchanged():
     frag = _process_allocatable_intrinsic(decl, exclude=[])
     assert frag['rank_seen'] == 0
     assert frag['stored_shape_required'] is False
+
+
+def test_allocatable_intrinsic_restores_bounds_not_just_shape():
+    """Bug (#1786): only the shape of an allocatable array was stored, and the
+    array was reallocated with that shape - so with a lower bound of 1. An
+    array declared `dimension(0:n)` then came back shifted by one element, and
+    every index into it read the neighboring entry. The bounds are now stored
+    and the array is reallocated with them."""
+    decl = _decl('double precision',
+                 ['allocatable', 'dimension(:,:)'],
+                 ['table'])
+    frag = _process_allocatable_intrinsic(decl, exclude=[])
+    assert ('write (stateFile) lbound(self%table,kind=c_size_t),'
+            'ubound(self%table,kind=c_size_t)') in frag['output']
+    assert 'shape(self%table' not in frag['output']
+    assert 'allocate(storedBounds(4))' in frag['input']
+    assert ('allocate(self%table(storedBounds(1):storedBounds(3),'
+            'storedBounds(2):storedBounds(4)))') in frag['input']

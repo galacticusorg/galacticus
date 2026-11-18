@@ -29,6 +29,7 @@ from Galacticus.Build                                        import Catalogs
 from Galacticus.Build.StateStorables                         import (
     function_class_names    as _shared_function_class_names,
     function_class_instances as _shared_function_class_instances,
+    warn_unstored_member,
 )
 from Galacticus.Build.SourceTree                             import (
     walk_tree, parse_code, parse_file, insert_after_node,
@@ -1849,6 +1850,21 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
             # the post-contains procedures are siblings of the marker.
             node = node.get('sibling')
 
+        # Objects held as unlimited polymorphic (`class(*)`) pointers are built
+        # by global functions, not by `objectBuilder` directives, so the walk
+        # above cannot see them. The class directive declares them in an
+        # `<allowedParameters>` block instead: each one's parameter name is
+        # allowed, and its own allowed parameters are added by calling the
+        # named global function.
+        allowed_block = class_rec.get('allowedParameters')
+        if isinstance(allowed_block, dict):
+            for held in as_array(allowed_block.get('object')):
+                slot_src = (allowed_parameters[class_name]['parameters']
+                            .setdefault(held['source'], {}))
+                slot_src.setdefault('all',     []).append(held['name'])
+                slot_src.setdefault('classes', []).append(held['name'])
+                slot_src.setdefault('held',    []).append(held)
+
     # --- Emission pass. ---
     allowed_parameters_linked_list_variables = []
     code = "select type (self)\n"
@@ -1994,6 +2010,15 @@ def _build_allowed_parameters_method(directive, classes_ordered, methods):
                             f"call self%{obj_name}%allowedParameters"
                             f"(allowedParameters,'{src}',.true.)\n"
                         )
+                    for held in slot.get('held') or []:
+                        parameters_present = True
+                        code += (
+                            f"  if (associated(self%{held['variable']})) "
+                            f"call {held['function']}(self%{held['variable']},"
+                            f"allowedParameters,'{src}',.true.)\n"
+                        )
+                        if held.get('module'):
+                            modules[held['module']] = True
                     linked_code, linked_module = (
                         allowed_parameters_linked_list(
                             class_rec,
@@ -2539,6 +2564,7 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
     state_store_code   += "select type (self)\n"
     state_restore_code += "select type (self)\n"
 
+    unstored_reported = set()
     for non_abstract in non_abstract_classes:
         state_store = {
             'staticVariables':      [],
@@ -2606,6 +2632,8 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
                 state_store['excludes'] = []
 
             # Walk declarations (descending into `contains` blocks).
+            state_store['owner']       = cls.get('name')
+            state_store['ownerSource'] = cls.get('file')
             walker = node.get('firstChild')
             while walker is not None:
                 if walker.get('type') == 'declaration':
@@ -2658,6 +2686,8 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
             state_store['excludes'] = []
 
         # Base-class <data> declarations.
+        state_store['owner']       = f"{directive['name']}Class"
+        state_store['ownerSource'] = None
         for data in as_array(directive.get('data')):
             declaration_source = None
             if isinstance(data, dict):
@@ -2700,6 +2730,16 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
 
         if state_store['staticVariables']:
             state_stores['stateFileUsed'] = True
+
+        # Warn about owned members that will not be stored (issue #1786).
+        # Members of a parent class are seen once for each of its
+        # descendants, so warn about each only once.
+        for owner, member, type_name, source in state_store.get(
+                'unstored', []):
+            if (owner, member.lower()) in unstored_reported:
+                continue
+            unstored_reported.add((owner, member.lower()))
+            warn_unstored_member(owner, member, type_name, source)
 
         if state_store['hasCustomStateStore']:
             loc_node = non_abstract.get('node') or {}
@@ -2804,7 +2844,7 @@ def _build_state_store_methods(directive, non_abstract_classes, classes,
         if state_stores['dimensionalsFound']:
             prefix += (
                 'integer(c_size_t), allocatable, dimension(:) '
-                ':: storedShape\n')
+                ':: storedBounds\n')
         prefix += ('logical                                      '
                    ':: wasAllocated\n')
         state_restore_code = prefix + state_restore_code

@@ -319,6 +319,11 @@
    An abstract splashback radius class providing the functional forms shared by the :cite:t:`diemer_splashback_2017` and
    :cite:t:`diemer_splashback_2020` models.
    </description>
+   <stateStorable>
+    <!-- Not stored: parametersMass, parametersRadius, parametersMassScatter, parametersRadiusScatter - fit parameters, set by the
+         constructor and never changed afterwards. -->
+    <exclude variables="parametersMass, parametersRadius, parametersMassScatter, parametersRadiusScatter"/>
+   </stateStorable>
   </darkMatterHaloSplashbackRadius>
   !!]
   type, abstract, extends(darkMatterHaloSplashbackRadiusClass) :: darkMatterHaloSplashbackRadiusDiemer

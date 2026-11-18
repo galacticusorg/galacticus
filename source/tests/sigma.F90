@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Sigma
   !!{RST
   Tests calculations of the mass variance, :math:`\sigma(M)`.
@@ -32,6 +34,8 @@ program Tests_Sigma
   use :: Numerical_Ranges                    , only : Make_Range                              , rangeTypeLogarithmic
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
+  use :: Functions_Global_Utilities          , only : Functions_Global_Set
+  use :: Power_Spectrum_Normalizers          , only : powerSpectrumNormalizerSigma8
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionSharpKSpace  , powerSpectrumWindowFunctionTopHat
   use :: Transfer_Functions                  , only : transferFunctionIdentity                , transferFunctionEisensteinHu1999
   use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group           , Unit_Tests_End_Group, Unit_Tests_Finish
@@ -43,22 +47,36 @@ program Tests_Sigma
   ! Masses at which σ(M) is tested for invariance under extension of the tabulation. Each is a whole decade, and so is a point
   ! of the absolute lattice to which the tabulation is pinned - the tabulated values are what extension preserves exactly, so it
   ! is at the tabulated points that invariance is asserted. (Between them the cubic spline interpolant is not preserved: every
-  ! one of its coefficients depends on every tabulated value, so adding points at either end changes it everywhere.)
+  ! one of its coefficients depends on every tabulated value, so adding points at either end changes it - noticeably only near
+  ! the former ends, which a further test below examines.)
   integer                                                                                  , parameter :: massCountExtension                     =3
   double precision                                          , dimension(massCountExtension), parameter :: massExtension(massCountExtension)      =[1.0d11,1.0d12,1.0d13]
   double precision                                          , dimension(massCountExtension)            :: sigmaNarrow                                                   , sigmaExtended
+  ! Masses at which σ(M) is tested for invariance under extension of the tabulation with the (local) monotonic interpolator. The
+  ! seed tabulation (10⁶-10¹⁸ M☉, at 10 points per decade) has usable range x₄=10⁶·³ M☉ to x₋₄=10¹⁷·⁷ M☉. The first four masses
+  ! lie in its fourth and fourth-from-last intervals, the closest to its ends which are used without extension. The fifth lies in
+  ! its third-from-last interval, which is excluded, so requesting it must extend the tabulation upward. The sixth lies below the
+  ! usable range, and extends the tabulation down to the lattice point 10⁵ M☉ just below half of it - the narrowest extension the
+  ! safety margin allows - leaving it in the fourth interval of the extended tabulation. None is on the lattice.
+  integer                                                                                  , parameter :: massCountEdge                          =6
+  double precision                                          , dimension(massCountEdge     ), parameter :: massEdge(massCountEdge)                =[2.0d6,2.3d6,4.0d17,5.0d17,5.5d17,2.02d5]
+  double precision                                          , dimension(massCountEdge     )            :: sigmaEdgeNarrow                                               , sigmaEdgeExtended                              , &
+       &                                                                                                  alphaEdgeNarrow                                               , alphaEdgeExtended
   type            (darkMatterParticleCDM                   )                                           :: darkMatterParticleCDM_
   type            (cosmologyParametersSimple               )                                           :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda          )                                           :: cosmologyFunctions_
   type            (linearGrowthCollisionlessMatter         )                                           :: linearGrowth_
   type            (cosmologicalMassVarianceFilteredPower   )                                           :: cosmologicalMassVarianceLCDM_                                 , cosmologicalMassVarianceFilteredPower_         , &
-       &                                                                                                  cosmologicalMassVarianceExtension_
+       &                                                                                                  cosmologicalMassVarianceExtension_                            , cosmologicalMassVarianceEdge_
   type            (powerSpectrumWindowFunctionSharpKSpace  )                                           :: powerSpectrumWindowFunctionSharpKSpace_
   type            (powerSpectrumWindowFunctionTopHat       )                                           :: powerSpectrumWindowFunctionLCDM_
   type            (powerSpectrumPrimordialPowerLaw         )                                           :: powerSpectrumPrimordialLCDM_                                  , powerSpectrumPrimordialPowerLaw_
   type            (transferFunctionIdentity                )                                           :: transferFunctionIdentity_
   type            (transferFunctionEisensteinHu1999        )                                           :: transferFunctionLCDM_
-  type            (powerSpectrumPrimordialTransferredSimple)                                           :: powerSpectrumPrimordialTransferredLCDM_                       , powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumPrimordialTransferredSimple)                                           :: powerSpectrumPrimordialTransferredLCDM_                       , powerSpectrumPrimordialTransferredSimple_      , &
+       &                                                                                                  powerSpectrumPrimordialTransferredExtension_                  , powerSpectrumPrimordialTransferredEdge_
+  type            (powerSpectrumNormalizerSigma8           )                                           :: powerSpectrumNormalizerLCDM_                                  , powerSpectrumNormalizerSimple_                 , &
+       &                                                                                                  powerSpectrumNormalizerExtension_                             , powerSpectrumNormalizerEdge_
   integer                                                                                              :: iMass
   double precision                                                                                     :: mass8                                                         , radius8                                        , &
        &                                                                                                  sigma8                                                        , sigmaForce
@@ -67,6 +85,7 @@ program Tests_Sigma
   call Error_Handler_Register()
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
+  call Functions_Global_Set()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectrum: σ(M)")
   ! Create an array of masses.
@@ -127,12 +146,25 @@ program Tests_Sigma
      &amp;                                   )
    </constructor>
   </referenceConstruct>
+  <referenceConstruct object="powerSpectrumNormalizerLCDM_"           >
+   <constructor>
+    powerSpectrumNormalizerSigma8            (                                                                                 &amp;
+     &amp;                                    sigma8                                  =0.8111d+0                             , &amp;
+     &amp;                                    tolerance                               =1.0000d-4                             , &amp;
+     &amp;                                    integrationFailureIsFatal               =.true.                                , &amp;
+     &amp;                                    cosmologyParameters_                    =cosmologyParameters_                  , &amp;
+     &amp;                                    cosmologyFunctions_                     =cosmologyFunctions_                   , &amp;
+     &amp;                                    transferFunction_                       =transferFunctionLCDM_                   &amp;
+     &amp;                                   )
+   </constructor>
+  </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordialTransferredLCDM_">
    <constructor>
     powerSpectrumPrimordialTransferredSimple(                                                                                  &amp;
      &amp;                                   powerSpectrumPrimordial_                =powerSpectrumPrimordialLCDM_           , &amp;
      &amp;                                   transferFunction_                       =transferFunctionLCDM_                  , &amp;
-     &amp;                                   linearGrowth_                           =linearGrowth_                            &amp;
+     &amp;                                   linearGrowth_                           =linearGrowth_                          , &amp;
+     &amp;                                   powerSpectrumNormalizer_                =powerSpectrumNormalizerLCDM_             &amp;
      &amp;                                  )
    </constructor>
   </referenceConstruct>
@@ -146,7 +178,6 @@ program Tests_Sigma
   <referenceConstruct object="cosmologicalMassVarianceLCDM_"          >
    <constructor>
     cosmologicalMassVarianceFilteredPower   (                                                                                  &amp;
-     &amp;                                   sigma8                                  =0.8111d+0                              , &amp;
      &amp;                                   tolerance                               =1.0000d-4                              , &amp;
      &amp;                                   toleranceTopHat                         =1.0000d-4                              , &amp;
      &amp;                                   rootVarianceLogarithmicGradientTolerance=1.0d-9                                 , &amp;
@@ -180,37 +211,46 @@ program Tests_Sigma
   radius8=8.0d0   /cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
   mass8  =4.0d0*Pi*cosmologyParameters_%densityCritical()*cosmologyParameters_%OmegaMatter()*radius8**3/3.0d0
   sigma8=cosmologicalMassVarianceLCDM_%rootVariance(mass8,cosmologyFunctions_%cosmicTime(1.0d0))
-  call Assert('σ₈ equals specified value',sigma8,cosmologicalMassVarianceLCDM_%sigma8(),relTol=1.0d-3)
+  call Assert('σ₈ equals specified value',sigma8,0.8111d0                              ,relTol=1.0d-3)
+  call Assert('σ₈ equals value reported' ,sigma8,cosmologicalMassVarianceLCDM_%sigma8(),relTol=1.0d-3)
   ! Check normalization of σ(M) when using a non-top-hat filter. Here, we use a simple power-law power spectrum with index
   ! n=-1, and a sharp k-space filter, and normalize to σ₈=1. For these, the normalization of σ(M₈) can be computed analytically to
   ! be (π√2/3)^{1/3}.
-  powerSpectrumPrimordialPowerLaw_         =powerSpectrumPrimordialPowerLaw         (                                                                               &
-       &                                                                             index_                             =-1.0d0                                   , &
-       &                                                                             running                            =+0.0d0                                   , &
-       &                                                                             runningRunning                     =+0.0d0                                   , &
-       &                                                                             wavenumberReference                =+1.0d0                                   , &
-       &                                                                             runningSmallScalesOnly             =.false.                                    &
+  powerSpectrumPrimordialPowerLaw_         =powerSpectrumPrimordialPowerLaw         (                                                                                    &
+       &                                                                             index_                                  =-1.0d0                                   , &
+       &                                                                             running                                 =+0.0d0                                   , &
+       &                                                                             runningRunning                          =+0.0d0                                   , &
+       &                                                                             wavenumberReference                     =+1.0d0                                   , &
+       &                                                                             runningSmallScalesOnly                  =.false.                                    &
        &                                                                            )
-  transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
-       &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
-       &                                                                             time                               =13.8d0                                     &
+  transferFunctionIdentity_                =transferFunctionIdentity                (                                                                                    &
+       &                                                                             cosmologyParameters_                    =cosmologyParameters_                     , &
+       &                                                                             time                                    =13.8d0                                     &
        &                                                                            )
-  powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple(                                                                               &
-       &                                                                             powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_         , &
-       &                                                                             transferFunction_                  =transferFunctionIdentity_                , &
-       &                                                                             linearGrowth_                      =linearGrowth_                              &
-       &                                                                            )
-  powerSpectrumWindowFunctionSharpKSpace_  =powerSpectrumWindowFunctionSharpKSpace  (                                                                               &
-       &                                                                             cosmologyParameters_               =cosmologyParameters_                     , &
-       &                                                                             normalization                      =0.0d0                                      &
-       &                                                                            )
-  cosmologicalMassVarianceFilteredPower_   =cosmologicalMassVarianceFilteredPower   (                                                                                    &
+  powerSpectrumNormalizerSimple_           =powerSpectrumNormalizerSigma8           (                                                                                    &
        &                                                                             sigma8                                  =1.0d+0                                   , &
        &                                                                             tolerance                               =1.0d-4                                   , &
+       &                                                                             integrationFailureIsFatal               =.true.                                   , &
+       &                                                                             cosmologyParameters_                    =cosmologyParameters_                     , &
+       &                                                                             cosmologyFunctions_                     =cosmologyFunctions_                      , &
+       &                                                                             transferFunction_                       =transferFunctionIdentity_                  &
+       &                                                                            )
+  powerSpectrumPrimordialTransferredSimple_=powerSpectrumPrimordialTransferredSimple(                                                                                    &
+       &                                                                             powerSpectrumPrimordial_                =powerSpectrumPrimordialPowerLaw_         , &
+       &                                                                             transferFunction_                       =transferFunctionIdentity_                , &
+       &                                                                             linearGrowth_                           =linearGrowth_                            , &
+       &                                                                             powerSpectrumNormalizer_                =powerSpectrumNormalizerSimple_             &
+       &                                                                            )
+  powerSpectrumWindowFunctionSharpKSpace_  =powerSpectrumWindowFunctionSharpKSpace  (                                                                                    &
+       &                                                                             cosmologyParameters_                    =cosmologyParameters_                     , &
+       &                                                                             normalization                           =0.0d0                                      &
+       &                                                                            )
+  cosmologicalMassVarianceFilteredPower_   =cosmologicalMassVarianceFilteredPower   (                                                                                    &
+       &                                                                             tolerance                               =1.0d-4                                   , &
        &                                                                             toleranceTopHat                         =1.0d-4                                   , &
-       &                    rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &
-       &                    integrationFailureIsFatal               =.true.                                   , &
-       &                    storeTabulations                        =.true.                                   , &
+       &                                                                             rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &
+       &                                                                             integrationFailureIsFatal               =.true.                                   , &
+       &                                                                             storeTabulations                        =.true.                                   , &
        &                                                                             nonMonotonicIsFatal                     =.true.                                   , &
        &                                                                             monotonicInterpolation                  =.false.                                  , &
        &                                                                             truncateAtParticleHorizon               =.false.                                  , &
@@ -228,36 +268,102 @@ program Tests_Sigma
   ! the requests which happen to have driven the tabulation. Before the tabulation was pinned the grid was laid out afresh
   ! across whatever range was then required, and these values moved by of order a part in a thousand.
   !
-  ! This object exists solely for this test, and differs from that above only in σ₈: the tabulations are cached in memory under a
-  ! name derived from the parameters of the object, so an object identical to one already used would simply adopt the tabulation
-  ! built for it - already spanning the full range - and never extend anything. Storage to file is disabled for the same reason.
-  cosmologicalMassVarianceExtension_       =cosmologicalMassVarianceFilteredPower   (                                                                                    &
-       &                                                                             sigma8                                  =0.9000d+0                                , &
-       &                                                                             tolerance                               =1.0000d-4                                , &
-       &                                                                             toleranceTopHat                         =1.0000d-4                                , &
-       &                                                                             rootVarianceLogarithmicGradientTolerance=1.0d-9                                   , &
-       &                                                                             integrationFailureIsFatal               =.true.                                   , &
-       &                                                                             storeTabulations                        =.false.                                  , &
-       &                                                                             nonMonotonicIsFatal                     =.true.                                   , &
-       &                                                                             monotonicInterpolation                  =.false.                                  , &
-       &                                                                             truncateAtParticleHorizon               =.false.                                  , &
-       &                                                                             cosmologyParameters_                    =cosmologyParameters_                     , &
-       &                                                                             cosmologyFunctions_                     =cosmologyFunctions_                      , &
-       &                                                                             linearGrowth_                           =linearGrowth_                            , &
-       &                                                                             powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredLCDM_  , &
-       &                                                                             powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionLCDM_           &
-       &                                                                            )
+  ! This object exists solely for this test, and differs from that above only in σ₈ (set through the normalizer of its power
+  ! spectrum): the tabulations are cached in memory under a name derived from the parameters of the object, so an object identical
+  ! to one already used would simply adopt the tabulation built for it - already spanning the full range - and never extend
+  ! anything. Storage to file is disabled for the same reason.
+  powerSpectrumNormalizerExtension_          =powerSpectrumNormalizerSigma8            (                                                                                       &
+       &                                                                                sigma8                                  =0.9000d+0                                   , &
+       &                                                                                tolerance                               =1.0000d-4                                   , &
+       &                                                                                integrationFailureIsFatal               =.true.                                      , &
+       &                                                                                cosmologyParameters_                    =cosmologyParameters_                        , &
+       &                                                                                cosmologyFunctions_                     =cosmologyFunctions_                         , &
+       &                                                                                transferFunction_                       =transferFunctionLCDM_                         &
+       &                                                                               )
+  powerSpectrumPrimordialTransferredExtension_=powerSpectrumPrimordialTransferredSimple(                                                                                       &
+       &                                                                                powerSpectrumPrimordial_                =powerSpectrumPrimordialLCDM_                , &
+       &                                                                                transferFunction_                       =transferFunctionLCDM_                       , &
+       &                                                                                linearGrowth_                           =linearGrowth_                               , &
+       &                                                                                powerSpectrumNormalizer_                =powerSpectrumNormalizerExtension_             &
+       &                                                                               )
+  cosmologicalMassVarianceExtension_       =cosmologicalMassVarianceFilteredPower      (                                                                                       &
+       &                                                                                tolerance                               =1.0000d-4                                   , &
+       &                                                                                toleranceTopHat                         =1.0000d-4                                   , &
+       &                                                                                rootVarianceLogarithmicGradientTolerance=1.0000d-9                                   , &
+       &                                                                                integrationFailureIsFatal               =.true.                                      , &
+       &                                                                                storeTabulations                        =.false.                                     , &
+       &                                                                                nonMonotonicIsFatal                     =.true.                                      , &
+       &                                                                                monotonicInterpolation                  =.false.                                     , &
+       &                                                                                truncateAtParticleHorizon               =.false.                                     , &
+       &                                                                                cosmologyParameters_                    =cosmologyParameters_                        , &
+       &                                                                                cosmologyFunctions_                     =cosmologyFunctions_                         , &
+       &                                                                                linearGrowth_                           =linearGrowth_                               , &
+       &                                                                                powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredExtension_, &
+       &                                                                                powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionLCDM_              &
+       &                                                                               )
   ! Tabulate over a narrow range of mass, and record σ(M) across it.
   do iMass=1,massCountExtension
      sigmaNarrow  (iMass)=cosmologicalMassVarianceExtension_%rootVariance(massExtension(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
   end do
-  ! Force the tabulation to be extended, upward in mass and then downward.
-  sigmaForce=cosmologicalMassVarianceExtension_%rootVariance(1.0d14,cosmologyFunctions_%cosmicTime(1.0d0))
-  sigmaForce=cosmologicalMassVarianceExtension_%rootVariance(1.0d08,cosmologyFunctions_%cosmicTime(1.0d0))
+  ! Force the tabulation to be extended, upward in mass and then downward. Every tabulation spans at least the seed range of
+  ! 10⁶-10¹⁸ M☉, so the masses requested must lie beyond it to extend anything.
+  sigmaForce=cosmologicalMassVarianceExtension_%rootVariance(1.0d20,cosmologyFunctions_%cosmicTime(1.0d0))
+  sigmaForce=cosmologicalMassVarianceExtension_%rootVariance(1.0d03,cosmologyFunctions_%cosmicTime(1.0d0))
   do iMass=1,massCountExtension
      sigmaExtended(iMass)=cosmologicalMassVarianceExtension_%rootVariance(massExtension(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
   end do
   call Assert('σ(M) at tabulated masses is unchanged by extension of the tabulation',sigmaNarrow,sigmaExtended,relTol=1.0d-6)
+  ! Check that σ(M) at untabulated masses near the ends of the usable range of the tabulation is unchanged when the tabulation is
+  ! extended beyond them, with the (default) monotonic interpolator. That interpolator is local, so σ(M) in an interval depends
+  ! only on nearby tabulated values - except in the three end intervals, in which the derivatives at the tabulated points can not
+  ! be estimated from the full stencil. Those intervals are never used: a mass falling in one extends the tabulation. The test
+  ! would therefore fail if the usable range included an end interval, or if the safety margin of an extension left the requested
+  ! mass in one. As for the test above, this object differs from the others in σ₈ so that it builds its own tabulation.
+  powerSpectrumNormalizerEdge_          =powerSpectrumNormalizerSigma8            (                                                                                  &
+       &                                                                           sigma8                                  =0.8500d+0                              , &
+       &                                                                           tolerance                               =1.0000d-4                              , &
+       &                                                                           integrationFailureIsFatal               =.true.                                 , &
+       &                                                                           cosmologyParameters_                    =cosmologyParameters_                   , &
+       &                                                                           cosmologyFunctions_                     =cosmologyFunctions_                    , &
+       &                                                                           transferFunction_                       =transferFunctionLCDM_                    &
+       &                                                                          )
+  powerSpectrumPrimordialTransferredEdge_=powerSpectrumPrimordialTransferredSimple(                                                                                  &
+       &                                                                           powerSpectrumPrimordial_                =powerSpectrumPrimordialLCDM_           , &
+       &                                                                           transferFunction_                       =transferFunctionLCDM_                  , &
+       &                                                                           linearGrowth_                           =linearGrowth_                          , &
+       &                                                                           powerSpectrumNormalizer_                =powerSpectrumNormalizerEdge_             &
+       &                                                                          )
+  cosmologicalMassVarianceEdge_          =cosmologicalMassVarianceFilteredPower   (                                                                                  &
+       &                                                                           tolerance                               =1.0000d-4                              , &
+       &                                                                           toleranceTopHat                         =1.0000d-4                              , &
+       &                                                                           rootVarianceLogarithmicGradientTolerance=1.0000d-9                              , &
+       &                                                                           integrationFailureIsFatal               =.true.                                 , &
+       &                                                                           storeTabulations                        =.false.                                , &
+       &                                                                           nonMonotonicIsFatal                     =.true.                                 , &
+       &                                                                           monotonicInterpolation                  =.true.                                 , &
+       &                                                                           truncateAtParticleHorizon               =.false.                                , &
+       &                                                                           cosmologyParameters_                    =cosmologyParameters_                   , &
+       &                                                                           cosmologyFunctions_                     =cosmologyFunctions_                    , &
+       &                                                                           linearGrowth_                           =linearGrowth_                          , &
+       &                                                                           powerSpectrumPrimordialTransferred_     =powerSpectrumPrimordialTransferredEdge_, &
+       &                                                                           powerSpectrumWindowFunction_            =powerSpectrumWindowFunctionLCDM_         &
+       &                                                                          )
+  ! Tabulate over the seed range, and record σ(M), and its logarithmic gradient, near the ends of its usable range. (Requesting
+  ! the last two of these masses extends the tabulation, as described above.)
+  sigmaForce=cosmologicalMassVarianceEdge_%rootVariance(1.0d11,cosmologyFunctions_%cosmicTime(1.0d0))
+  do iMass=1,massCountEdge
+     sigmaEdgeNarrow  (iMass)=cosmologicalMassVarianceEdge_%rootVariance                   (massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     alphaEdgeNarrow  (iMass)=cosmologicalMassVarianceEdge_%rootVarianceLogarithmicGradient(massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+  end do
+  ! Force the tabulation to be extended, upward in mass and then downward, beyond the seed range.
+  sigmaForce=cosmologicalMassVarianceEdge_%rootVariance(1.0d20,cosmologyFunctions_%cosmicTime(1.0d0))
+  sigmaForce=cosmologicalMassVarianceEdge_%rootVariance(1.0d03,cosmologyFunctions_%cosmicTime(1.0d0))
+  do iMass=1,massCountEdge
+     sigmaEdgeExtended(iMass)=cosmologicalMassVarianceEdge_%rootVariance                   (massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+     alphaEdgeExtended(iMass)=cosmologicalMassVarianceEdge_%rootVarianceLogarithmicGradient(massEdge(iMass),cosmologyFunctions_%cosmicTime(1.0d0))
+  end do
+  call Assert('σ(M) near the ends of the usable range is unchanged by extension of the tabulation'       ,all(sigmaEdgeNarrow == sigmaEdgeExtended),.true.)
+  call Assert('dlogσ/dlogM near the ends of the usable range is unchanged by extension of the tabulation',all(alphaEdgeNarrow == alphaEdgeExtended),.true.)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

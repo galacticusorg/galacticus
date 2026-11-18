@@ -108,6 +108,28 @@ def strip_variable_name(text):
     return m.group(1) if m else ''
 
 
+def variable_rank(declaration, variable):
+    """Return the rank of `variable` (an entry of `declaration['variables']`,
+    qualifiers preserved), honoring an inline array specification (e.g.
+    `names(3)`) in preference to the declaration's `dimension(…)` attribute.
+    """
+    m = re.match(r'^[a-zA-Z0-9_]+\s*\(', variable or '')
+    if not m:
+        return declaration_rank(declaration)
+    depth  = 0
+    commas = 0
+    for character in variable[m.end() - 1:]:
+        if character == '(':
+            depth += 1
+        elif character == ')':
+            depth -= 1
+            if depth == 0:
+                break
+        elif character == ',' and depth == 1:
+            commas += 1
+    return commas + 1
+
+
 def declaration_rank(declaration):
     """Return the rank of `declaration` (number of commas in its
     `dimension(…)` attribute, +1).  Scalars → 0.

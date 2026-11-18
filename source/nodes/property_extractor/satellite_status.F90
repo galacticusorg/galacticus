@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Implements an ISM mass output analysis property extractor class.
+Implements a satellite status property extractor class.
 !!}
 
   !![

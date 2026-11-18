@@ -21,7 +21,7 @@
 
 !!{RST
 Tests of the dimensionless drag force for dynamical friction in a gaseous medium. Reference values for the
-:cite:t:`kim_dynamical_2007` class are evaluated directly from their fitting formulae (their eqn. 12b), and for the
+:cite:t:`kim_dynamical_2007` class are evaluated directly from their fitting formulae (their eqn. 14), and for the
 :cite:t:`chandrasekhar_dynamical_1943` class from the collisionless formula. The Chandrasekhar integral of a collisional
 spherical mass distribution is also checked against the drag computed directly from the sound speed of the gas, and that of
 an isothermal distribution flagged as collisionless against the collisionless formula, whichever gaseous drag is supplied.

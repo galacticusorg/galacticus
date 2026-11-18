@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a simple cooling time class.
   !!}
@@ -129,11 +131,10 @@ contains
     !!{RST
     Compute the cooling time (in Gyr) for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
     !!}
-    use :: Numerical_Constants_Astronomical, only : gigaYear          , massSolar, megaParsec
-    use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
+    use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
-    use :: Numerical_Constants_Prefixes    , only : hecto
     use :: Numerical_Constants_Units       , only : ergs
+    use :: Hot_Halo_Composition            , only : Hydrogen_Number_Density
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -148,12 +149,7 @@ contains
     !$GLC attributes unused :: node
 
     ! Compute number density of hydrogen (in cm⁻³).
-    numberDensityHydrogen  =  +density                                    &
-         &                    *gasAbundances   %hydrogenMassFraction()    &
-         &                    *massSolar                                  &
-         &                    /massHydrogenAtom                           &
-         &                    /hecto                                  **3 &
-         &                    /megaParsec                             **3
+    numberDensityHydrogen  =  Hydrogen_Number_Density                  (           density                    ,gasAbundances                            )
     ! Get the number density of all species, including electrons.
     numberDensityAllSpecies=+                                                numberDensityHydrogen                                                        &
          &                  /     gasAbundances %hydrogenNumberFraction(                                                                                ) &
@@ -181,34 +177,48 @@ contains
   double precision function simpleGradientDensityLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{RST
     Return :math:`\d\ln t_\mathrm{cool}/\d\ln \rho` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
+
+    The thermal energy density is assumed to scale as :math:`\rho T`, i.e. the total number density of particles (including electrons) is taken to be proportional to density and independent of temperature, as in fully ionized gas. Any dependence of the electron density on density or temperature (as computed by the ``chemicalState`` object) is ignored, so the result is approximate for partially ionized gas (e.g. near :math:`10^4` K).
     !!}
-   implicit none
+    use :: Hot_Halo_Composition, only : Hydrogen_Number_Density
+    implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
-    double precision                      , intent(in   ) :: density          , temperature
+    double precision                      , intent(in   ) :: density              , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
+    double precision                                      :: numberDensityHydrogen
     !$GLC attributes unused :: node
 
-    simpleGradientDensityLogarithmic=+1.0d0                                                                                                                    &
-         &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(node,density,temperature,gasAbundances,chemicalDensities,radiation)
+    ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
+    numberDensityHydrogen           =Hydrogen_Number_Density                              (           density                    ,gasAbundances                            )
+    simpleGradientDensityLogarithmic=+1.0d0                                                                                                                                  &
+         &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function simpleGradientDensityLogarithmic
 
   double precision function simpleGradientTemperatureLogarithmic(self,node,temperature,density,gasAbundances,chemicalDensities,radiation)
     !!{RST
     Return :math:`\d\ln t_\mathrm{cool}/\d\ln T` for gas at the given ``temperature`` (in Kelvin), ``density`` (in :math:`\mathrm{M}_\odot` Mpc\ :math:`^{-3}`), composition specified by ``gasAbundances`` and experiencing a radiation field as described by ``radiation``.
+
+    The thermal energy density is assumed to scale as :math:`\rho T`, i.e. the total number density of particles (including electrons) is taken to be proportional to density and independent of temperature, as in fully ionized gas. Any dependence of the electron density on density or temperature (as computed by the ``chemicalState`` object) is ignored, so the result is approximate for partially ionized gas (e.g. near :math:`10^4` K).
     !!}
+    use :: Hot_Halo_Composition, only : Hydrogen_Number_Density
     implicit none
     class           (coolingTimeSimple   ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
-    double precision                      , intent(in   ) :: density          , temperature
+    double precision                      , intent(in   ) :: density              , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
     class           (radiationFieldClass ), intent(inout) :: radiation
+    double precision                                      :: numberDensityHydrogen
     !$GLC attributes unused :: node
 
-    simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,density,temperature,gasAbundances,chemicalDensities,radiation)
+    ! Compute number density of hydrogen (in cm⁻³), as required by the cooling function.
+    numberDensityHydrogen               =Hydrogen_Number_Density                                  (           density                    ,gasAbundances                            )
+    ! The thermal energy density is proportional to temperature, contributing +1 to the logarithmic gradient.
+    simpleGradientTemperatureLogarithmic=+1.0d0                                                                                                                                      &
+         &                               -self%coolingFunction_%coolingFunctionTemperatureLogSlope(node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
     return
   end function simpleGradientTemperatureLogarithmic

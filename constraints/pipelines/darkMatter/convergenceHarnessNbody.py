@@ -212,7 +212,11 @@ def _apply_cosmology(params):
     for key, value in COSMOLOGY.items():
         _set_scalar(cosmology, key, value)
     _set_scalar(params.find('powerSpectrumPrimordial'), 'index', POWER_SPECTRUM_INDEX)
-    _set_scalar(params.find('cosmologicalMassVariance'), 'sigma_8', SIGMA_8)
+    normalizer = params.find('powerSpectrumNormalizer')
+    if normalizer is None:
+        normalizer = etree.SubElement(params, 'powerSpectrumNormalizer')
+        normalizer.set('value', 'sigma8')
+    _set_scalar(normalizer, 'sigma_8', SIGMA_8)
 
 
 def _apply_transfer_function(params, transfer_file, pipeline_path):

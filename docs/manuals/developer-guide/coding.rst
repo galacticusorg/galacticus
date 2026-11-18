@@ -641,6 +641,16 @@ Galacticus supports storing its internal state to file to allow :ref:`restarts <
 
 This specifies that the ``table`` class (and all child classes) can and should be stored to file as part of the representation of the internal state. Code to store and restore all data associated with any object of this class (as well as restoring polymorphic objects to the correct type) will be generated. If certain variables of the class or subclass should be restored to specific values this can be specified through a ``restoreTo`` element placed within an element with the name of the class or subclass (e.g. the ``table1DGeneric`` in the above example). The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
 
+The generated code stores a member of a class according to its type:
+
+* intrinsic-type members (including allocatable arrays, which are restored with their original bounds) and enumerations are stored directly;
+* members whose type is a ``functionClass``, or is itself declared ``stateStorable``, are stored through that type's own state store and restore functions;
+* ``tabulationInverse`` members are stored through that type's ``stateStore(stateFile)`` and ``stateRestore(stateFile)`` type-bound procedures;
+* pointers (other than pointers to ``functionClass`` objects) are not stored, since they reference objects owned elsewhere;
+* members of types which are handles to resources that exist only in the running process (locks, open files, C pointers, timers, and the like), or which are fully configured by their constructor (such as ``rootFinder``), are not stored. Nor are ``varying_string`` members: these are names, labels, and file names set by the constructor from parameters, some of which (output file names, for example) may legitimately differ between the storing and restoring runs. These types are listed in ``UNSTORED_TYPES`` in ``python/Galacticus/Build/StateStorables.py``. A class which changes such a member after construction must make sure it is consistent after a restore---for example, by excluding any flag which records that it has been changed.
+
+Any other member cannot be stored, and so would be left at the value it has in the freshly constructed object after a restore. This silently breaks restarts whenever a member that *is* restored refers to it---for example, a restored "initialized" flag guarding a table that was not restored, or a restored memoization key for a value that was not. The build therefore emits a warning for each such member, naming the class, the member, and its type. To resolve a warning, either make the type state-storable (with a ``stateStorable`` directive), or, if the member need not be stored, list it in an ``exclude`` element as described above (adding a brief comment explaining why). When excluding a member, also exclude (or use ``restoreTo`` to reset) any member whose restored value would be inconsistent with it---such as a flag recording that it has been initialized.
+
 In hand-written state store/restore subroutines (for example, those of node component classes, which are not generated via the ``functionClass`` machinery), the ``stateStore`` and ``stateRestore`` directives emit the necessary per-object serialization code. Each takes a ``variables`` attribute giving a space-separated list of pointers to ``functionClass`` objects. For example:
 
 .. code-block:: none
@@ -891,7 +901,7 @@ The ``inputParameter`` directive reads an input parameter and assigns the approp
        return
      end subroutine simpleParametersRead
 
-In this case, the value of the ``HubbleConstant`` parameter is assigned to the ``hubbleConstant`` variable, with a default of :math:`69.7` if no value was specified in the input parameter file. If the ``source`` element is present, the parameter will be read from the named ``inputParameters`` set, otherwise the parameter will be read from the top-level of the parameters file. The ``defaultSource``, ``<description>The``, ``type``, and ``cardinality`` elements are used only for adding an entry for the input parameter to the documentation, and so should be written in LaTeX\ syntax.
+In this case, the value of the ``HubbleConstant`` parameter is assigned to the ``hubbleConstant`` variable, with a default of :math:`69.7` if no value was specified in the input parameter file. If the ``source`` element is present, the parameter will be read from the named ``inputParameters`` set, otherwise the parameter will be read from the top-level of the parameters file. The ``defaultSource``, ``description``, ``type``, and ``cardinality`` elements are used only for adding an entry for the input parameter to the documentation (``defaultSource`` and ``description`` are written in reStructuredText). The ``type`` and ``cardinality`` elements are optional. If they are absent, the type is inferred from the default value or from the declaration of the variable, and the cardinality from the shape of the variable (scalar, fixed-size array, or other array) and from whether the parameter may be omitted: it may be omitted if it has a default value, or if the parameter is read only when ``isPresent()`` reports that it is present. (A test of the form ``if (.not.parameters%isPresent('name')) call Error_Report(...)`` does not count, as it shows that the parameter is required.) Give ``type`` or ``cardinality`` explicitly only when the inferred value would be wrong---for example, for a parameter which may be omitted but is read under some other condition. A cardinality is written as one of ``1``, ``0..1``, ``N``, ``0,N`` (zero or exactly :math:`N`), ``1..*``, or ``0..*``, where a lower bound of 0 means that the parameter may be omitted.
 
 A numeric parameter can declare bounds on its value with ``minimum`` and ``maximum`` elements, for example ``<minimum inclusive="false">0.0</minimum>``. A bound is inclusive (the parameter may equal it) unless ``inclusive="false"`` is given, and must be a number. Bounds are enforced in two places. The parameter file validator (``scripts/build/parameterValidate.py``) reports any literal value in a parameter file which violates a bound. The executable checks the value actually read---after evaluation of any expression, and including the default value---and reports a fatal error naming the parameter, its value, and the bound. Bounds can be declared only for scalar ``integer``, ``integer(kind_int8)``, and ``double precision`` parameters. A condition relating two or more parameters (for example, that one mass is less than another) cannot be expressed as a bound, and must be checked in the constructor.
 
@@ -969,7 +979,27 @@ Each migration is keyed by the **full 40-character hash of the commit that intro
      <translation function="chandrasekhar_suppress_extended_mass"/>
    </migration>
 
-A translation may either rewrite the parameter file declaratively, via an ``xpath`` attribute naming the elements to act on together with an action element (for example ``<remove/>``), or dispatch to a named Python function in ``parametersMigrate.py`` (registered in that script's ``SPECIAL_FUNCTIONS`` table) when the transformation is too involved to express as an XPath rewrite.
+A translation may either rewrite the parameter file declaratively, via an ``xpath`` attribute naming the elements to act on together with an action element, or dispatch to a named Python function in ``parametersMigrate.py`` (registered in that script's ``SPECIAL_FUNCTIONS`` table) when the transformation is too involved to express as an XPath rewrite. The available action elements are:
+
+``<remove/>``
+   Remove the matched parameters.
+
+``<name new="..."/>``
+   Rename the matched parameters.
+
+``<value old="..." new="..."/>``
+   Replace any value of the matched parameters equal to ``old`` with ``new``.
+
+``<scale factor="..." description="..."/>``
+   Multiply every numerical value of the matched parameters by ``factor`` (for example, when the units or the meaning of a parameter change). Values given in ``<value>`` children (as in parameter grids) and space-separated lists of values are scaled also, and Fortran-style exponents (e.g. ``5.25d-10``) are accepted. A parameter any of whose values is not a plain number (e.g. a derived parameter expression) is left entirely unchanged, with a warning, as are parameters with no value. The optional ``description`` is included in the report of each change. (Do not end the ``xpath`` with a predicate on the ``value`` attribute, such as ``name[@value]``, as that would exclude parameters whose values are given in ``<value>`` children.)
+
+For example, the following rescales an explicitly given star formation frequency:
+
+.. code-block:: xml
+
+   <translation xpath="//starFormationRateSurfaceDensityDisks[@value='blitz2006']/starFormationFrequencyNormalization">
+     <scale factor="0.73529411764705882" description="now per unit molecular gas mass including helium"/>
+   </translation>
 
 .. warning::
 
@@ -1156,7 +1186,16 @@ Constructors:
 Procedures:
    All required procedures (including constructors and destructors) should be given after a line containing the ``contains`` keyword. Galacticus coding policy is that all procedures associated with an implementation should be prefixed with the implementation name, ``simple`` in this case.
 
-Functionality to store and restore the state (see :ref:`here <manual-sec-restarting>`) of classes built via a ``functionClass`` directive are automatically built. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element to the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute.
+Functionality to store and restore the state (see :ref:`here <manual-sec-restarting>`) of classes built via a ``functionClass`` directive are automatically built. Which members are stored, and the build warning emitted for members which cannot be, are described :ref:`here <manual-sec-stateStorable>`. If variables of a given implementation should be restored to a specific state, this can be specified by adding a ``restoreTo`` element within a ``stateStorable`` element of the directive declaring the implementation. The ``restoreTo`` element should specify a comma-separated list of one or more variables to set in its ``variables`` attribute, and the state to which they should be restored in its ``state`` attribute. Any variables which should be excluded from state store/restore (e.g. if their values are known to be determined statically at construction) can be specified via a ``exclude`` element (also within the ``stateStorable`` element)---a list of variables to exclude should be given as a comma-separated list in its ``variables`` attribute. For example:
+
+.. code-block:: xml
+
+    <stellarAstrophysics name="stellarAstrophysicsFile">
+     <stateStorable>
+      <!-- Data read from file on demand: none of it, including the flag recording that it was read, is restored. -->
+      <exclude variables="readDone, tableMassEjected"/>
+     </stateStorable>
+    </stellarAstrophysics>
 
 .. _manual-sec-capabilities:
 
@@ -1191,6 +1230,28 @@ An implementation which passes the arguments it is given on to another object of
 Omit ``forwards`` for an object which is always given the argument by the implementation itself.
 
 ``requires`` and ``forwards`` elements follow all other elements of the directive, with every ``requires`` before any ``forwards``. From them a ``requires(method,argument)`` method is generated for every class. It returns true if the object requires that argument, and it is an error to ask about a pair which is not an optional argument of one of the class' methods. Consumers declare the arguments they never supply through the ``withholds`` attribute of the ``objectBuilder`` directive, which calls this method when the object is built. A consumer which receives an object in any other way can call ``requires`` itself in its constructor. The parameter catalog records all three markers, and ``scripts/build/parameterValidate.py`` reports a ``capability`` error for any parameter file which combines an implementation with a consumer that withholds an argument it requires. The validator follows objects inherited from enclosing parameters, ``idRef`` references, forwarding implementations and class defaults, as ``objectBuilder`` does.
+
+.. _manual-sec-allowedParametersHeld:
+
+Allowed Parameters of Unlimited Polymorphic Members
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A generated ``allowedParameters`` method lists the parameter names which an object accepts. Its constructor's input parameters and ``objectBuilder`` directives are added automatically, and each member object adds the names of the objects which it builds. Parameter validation uses this list, so an object built by a member may be placed alongside the object which owns that member, as well as inside it.
+
+An implementation which holds an object as an unlimited polymorphic (``class(*)``) pointer, to avoid a circular module dependency, builds it through a global function rather than an ``objectBuilder`` directive, so the preprocessor cannot see it. Declare such an object with an ``allowedParameters`` element in the directive declaring the implementation:
+
+.. code-block:: none
+
+    !![
+    <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
+     ...
+     <allowedParameters>
+      <object variable="powerSpectrumNormalizer_" name="powerSpectrumNormalizer" source="parameters" function="Power_Spectrum_Normalizer_Allowed_Parameters_" module="Functions_Global"/>
+     </allowedParameters>
+    </powerSpectrumPrimordialTransferred>
+    !!]
+
+The parameter ``name``, read from the ``source`` parameters, is then allowed, and ``function`` (a global function, from ``module``) is called with the member ``variable`` to add the parameters which the held object allows. The global function takes the arguments of the ``allowedParameters`` method, preceded by the ``class(*)`` object, and calls that method on it. The ``allowedParameters`` element follows any ``assignment`` element.
 
 .. _manual-sec-deepCopy:
 

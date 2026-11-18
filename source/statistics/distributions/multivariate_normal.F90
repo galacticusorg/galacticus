@@ -31,6 +31,10 @@
    <description>
    A multivariate normal distribution.
    </description>
+   <stateStorable>
+    <!-- Not stored: covariance_ - set by the constructor and never changed afterwards. -->
+    <exclude variables="covariance_"/>
+   </stateStorable>
   </distributionFunctionMultivariate>
   !!]
   type, extends(distributionFunctionMultivariateClass) :: distributionFunctionMultivariateNormal
