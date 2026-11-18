@@ -105,6 +105,13 @@ The values of all parameters (including those set to defaults) are stored to the
 
 In this example, all parameters that were used to run the ``galacticus.hdf5`` model and that were stored in that file will be extracted and output to the ``extractedParameters.xml`` file.
 
+Parameters which took their default values are included, and so become explicit settings in the extracted file. Some defaults
+are computed from other parameters, and may not be given alongside them (``massEnvironment`` and ``radiusEnvironment`` of
+:galacticus-class:`haloEnvironmentNormal`, for example), in which case a model run from the extracted file will refuse to run.
+The ``--omit-defaulted`` option leaves such parameters out, so that they are defaulted afresh. The same extraction is available
+from Python as ``Galacticus.Parameters.extract.parameters_from_hdf5()``. To compute new properties for the galaxies of an output
+file, see the tutorial on :doc:`postprocessing model outputs <tutorials/postprocessing-model-outputs>`.
+
 Differencing Parameter Files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -2805,6 +2805,7 @@
           <xs:enumeration value="inclination"/>
           <xs:enumeration value="indexBranchTip"/>
           <xs:enumeration value="indexLastHost"/>
+          <xs:enumeration value="indexPostprocessSource"/>
           <xs:enumeration value="indicesHost"/>
           <xs:enumeration value="indicesTree"/>
           <xs:enumeration value="integerList"/>
@@ -4285,6 +4286,7 @@
           <xs:enumeration value="multi"/>
           <xs:enumeration value="posteriorSample"/>
           <xs:enumeration value="postprocessForests"/>
+          <xs:enumeration value="postprocessOutputs"/>
           <xs:enumeration value="powerSpectra"/>
           <xs:enumeration value="radiativeTransfer"/>
           <xs:enumeration value="report"/>

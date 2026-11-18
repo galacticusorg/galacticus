@@ -119,7 +119,9 @@
      Implementation of the standard merger tree outputter.
      !!}
      private
-     logical                                                                   :: outputReferences
+     logical                                                                   :: outputReferences                     , outputComponentProperties
+     integer                                                                   :: countNodesBuffered
+     integer         (c_size_t                    )                            :: indexOutputBuffered
      type            (varying_string              )                            :: outputsGroupName
      type            (hdf5Group                   )                            :: outputsGroup
      logical                                                                   :: outputsGroupOpened
@@ -129,6 +131,11 @@
      integer                                                                   :: doubleBufferCount                    , integerBufferCount
      integer                                                                   :: doubleScalarCount                    , integerScalarCount
      integer                                                                   :: integerBufferSize                    , doubleBufferSize
+     ! State recording for which output, output type, and property counts the names (and other metadata) of properties were last
+     ! established when outputting individual nodes, allowing that (possibly expensive) step to be skipped for subsequent nodes.
+     integer         (c_size_t                    )                            :: namesEstablishedIndexOutput
+     integer                                                                   :: namesEstablishedOutputType           , namesEstablishedCountInteger, &
+          &                                                                       namesEstablishedCountDouble
      type            (outputPropertyInteger       ), allocatable, dimension(:) :: integerProperty
      type            (outputPropertyDouble        ), allocatable, dimension(:) :: doubleProperty
      type            (outputGroup                 ), allocatable, dimension(:) :: outputGroups
@@ -138,16 +145,17 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Make an group in the Galacticus file in which to store ``tree``." method="makeGroup"             />
-       <method description="Dump the contents of the integer properties buffer to the Galacticus output file."    method="dumpIntegerBuffer"     />
-       <method description="Dump the contents of the double properties buffer to the Galacticus output file."     method="dumpDoubleBuffer"      />
-       <method description="Extend the size of the integer buffer."                                          method="extendIntegerBuffer"   />
-       <method description="Extend the size of the double buffer."                                           method="extendDoubleBuffer"    />
-       <method description="Count up the number of properties that will be output."                          method="propertiesCount"       />
-       <method description="Allocate buffers for storage of properties."                                     method="buffersAllocate"       />
-       <method description="Set names for the properties."                                                   method="propertyNamesEstablish"/>
-       <method description="Create a group in which to store this output."                                   method="outputGroupCreate"     />
-       <method description="Perform output of a single node."                                                method="output"                />
+       <method description="Make an group in the Galacticus file in which to store ``tree``."                  method="makeGroup"             />
+       <method description="Dump the contents of the integer properties buffer to the Galacticus output file." method="dumpIntegerBuffer"     />
+       <method description="Dump the contents of the double properties buffer to the Galacticus output file."  method="dumpDoubleBuffer"      />
+       <method description="Extend the size of the integer buffer."                                            method="extendIntegerBuffer"   />
+       <method description="Extend the size of the double buffer."                                             method="extendDoubleBuffer"    />
+       <method description="Count up the number of properties that will be output."                            method="propertiesCount"       />
+       <method description="Write to file any properties of individually output nodes which remain buffered."  method="buffersFlush"          />
+       <method description="Allocate buffers for storage of properties."                                       method="buffersAllocate"       />
+       <method description="Set names for the properties."                                                     method="propertyNamesEstablish"/>
+       <method description="Create a group in which to store this output."                                     method="outputGroupCreate"     />
+       <method description="Perform output of a single node."                                                  method="output"                />
      </methods>
      !!]
      final     ::                           standardDestructor
@@ -163,6 +171,9 @@
      procedure :: propertyNamesEstablish => standardPropertyNamesEstablish
      procedure :: outputGroupCreate      => standardOutputGroupCreate
      procedure :: output                 => standardOutput
+     procedure :: buffersFlush           => standardBuffersFlush
+     procedure :: finalize               => standardFinalize
+     procedure :: reduce                 => standardReduce
   end type mergerTreeOutputterStandard
 
   interface mergerTreeOutputterStandard
@@ -186,7 +197,8 @@ contains
     class  (galacticFilterClass        ), pointer       :: galacticFilter_
     class  (cosmologyFunctionsClass    ), pointer       :: cosmologyFunctions_
     class  (nodePropertyExtractorClass ), pointer       :: nodePropertyExtractor_
-    logical                                             :: outputReferences
+    logical                                             :: outputReferences      , outputComponentProperties
+    integer                                             :: countNodesBuffered
     type   (varying_string             )                :: outputsGroupName
 
     !![
@@ -206,11 +218,38 @@ contains
       Specifies whether or not references to individual merger tree datasets should be output.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>outputComponentProperties</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>
+      Specifies whether the properties of node components (masses, radii, abundances, and so on, as defined by each component
+      implementation) are output. If false, only the properties given by the ``nodePropertyExtractor`` are output. This is
+      useful when postprocessing galaxies with the :galacticus-class:`taskPostprocessOutputs` task, for which node components
+      are only partially reconstructed, so that their properties would duplicate (or misrepresent) those in the original
+      output.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>countNodesBuffered</name>
+      <source>parameters</source>
+      <defaultValue>1</defaultValue>
+      <description>
+      The number of nodes, output individually (as opposed to as part of a tree), whose properties are accumulated before being
+      written to file. The default of 1 writes the properties of each such node as soon as it is output. A larger value reduces
+      the number of writes made, which can substantially speed output of large numbers of individual nodes, but means that the
+      order in which nodes are written is no longer the order in which they were output when more than one thread is writing,
+      so that any extra output made for each node by other classes will not be aligned with these properties. Properties which
+      remain buffered are written when the outputter is finalized or reduced, so a value greater than 1 must be used only where
+      one of those is guaranteed to occur for every copy of the outputter (as it is for the
+      :galacticus-class:`taskPostprocessOutputs` task).
+      </description>
+    </inputParameter>
     <objectBuilder class="galacticFilter"        name="galacticFilter_"        source="parameters"/>
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !!]
-    self=mergerTreeOutputterStandard(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_)
+    self=mergerTreeOutputterStandard(outputsGroupName,outputReferences,outputComponentProperties,countNodesBuffered,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_)
     !![
     <inputParametersValidate source="parameters"   />
     <objectDestructor name="galacticFilter_"       />
@@ -220,7 +259,7 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
+  function standardConstructorInternal(outputsGroupName,outputReferences,outputComponentProperties,countNodesBuffered,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`mergerTreeOutputterStandard` merger tree outputter class.
     !!}
@@ -230,23 +269,29 @@ contains
     class  (galacticFilterClass        ), intent(in   ), target :: galacticFilter_
     class  (cosmologyFunctionsClass    ), intent(in   ), target :: cosmologyFunctions_
     class  (nodePropertyExtractorClass ), intent(in   ), target :: nodePropertyExtractor_
-    logical                             , intent(in   )         :: outputReferences
+    logical                             , intent(in   )         :: outputReferences      , outputComponentProperties
+    integer                             , intent(in   )         :: countNodesBuffered
     !![
-    <constructorAssign variables="outputsGroupName, outputReferences, *galacticFilter_, *cosmologyFunctions_, *nodePropertyExtractor_"/>
+    <constructorAssign variables="outputsGroupName, outputReferences, outputComponentProperties, countNodesBuffered, *galacticFilter_, *cosmologyFunctions_, *nodePropertyExtractor_"/>
     !!]
 
-    self%outputsGroupOpened      =.false.
-    self%outputGroupsCount       = 0
-    self%doublePropertyCount     =-1
-    self%integerPropertyCount    =-1
-    self%doubleScalarCount       =-1
-    self%integerScalarCount      =-1
-    self%doublePropertiesWritten = 0
-    self%integerPropertiesWritten= 0
-    self%doubleBufferCount       = 0
-    self%integerBufferCount      = 0
-    self%integerBufferSize       =standardBufferSizeIncrement
-    self%doubleBufferSize        =standardBufferSizeIncrement
+    self%outputsGroupOpened          =.false.
+    self%outputGroupsCount           = 0
+    self%doublePropertyCount         =-1
+    self%integerPropertyCount        =-1
+    self%doubleScalarCount           =-1
+    self%integerScalarCount          =-1
+    self%doublePropertiesWritten     = 0
+    self%integerPropertiesWritten    = 0
+    self%doubleBufferCount           = 0
+    self%integerBufferCount          = 0
+    self%indexOutputBuffered         =-1_c_size_t
+    self%namesEstablishedIndexOutput =-1_c_size_t
+    self%namesEstablishedOutputType  =-1
+    self%namesEstablishedCountInteger=-1
+    self%namesEstablishedCountDouble =-1
+    self%integerBufferSize           =standardBufferSizeIncrement
+    self%doubleBufferSize            =standardBufferSizeIncrement
     allocate(self%integerProperty(0))
     allocate(self% doubleProperty(0))
     !$omp critical(mergerTreeOutputterStandardInitialize)
@@ -301,6 +346,8 @@ contains
     <optionalArgument name="outputType" defaultsTo="outputGroupTypeTree"/>
     !!]
     
+    ! Write any properties of individually output nodes which remain buffered.
+    call self%buffersFlush()
     ! Create an output group.
     call self%outputGroupCreate(indexOutput,time,outputType_)
     ! Iterate over trees.
@@ -317,6 +364,8 @@ contains
           call self%buffersAllocate        (indexOutput)
           ! Get names for all properties to be output.
           call self%propertyNamesEstablish(time,node)
+          ! Names established here must not be assumed to remain valid for any subsequent output of individual nodes.
+          self%namesEstablishedIndexOutput=-1_c_size_t
           ! Loop over all nodes in the tree.
           self%integerPropertiesWritten=0
           self%doublePropertiesWritten =0
@@ -399,25 +448,83 @@ contains
     integer(c_size_t                      ), intent(in   )           :: indexOutput
     type   (enumerationOutputGroupTypeType), intent(in   ), optional :: outputType
     class  (nodeComponentBasic            ), pointer                 :: basic
+    integer                                                          :: countIntegerPrevious, countDoublePrevious, &
+         &                                                              countInteger        , countDouble
     !![
     <optionalArgument name="outputType" defaultsTo="outputGroupTypeNode"/>
     !!]
 
+    ! Write any buffered properties of nodes which were output to a different output.
+    if (self%indexOutputBuffered /= indexOutput) call self%buffersFlush()
     ! Create an output group.
     basic => node%basic()
     call self%outputGroupCreate(indexOutput,basic%time(),outputType_)
     ! Initialize output buffers.
     ! Count up the number of properties to be output.
-    call self%propertiesCount       (basic%time(),node)
+    countIntegerPrevious=self%integerPropertyCount
+    countDoublePrevious =self% doublePropertyCount
+    call self%propertiesCount(basic%time(),node)
+    if     (                                                     &
+         &   self%indexOutputBuffered  >= 0_c_size_t             &
+         &  .and.                                                &
+         &   (                                                   &
+         &     self%integerPropertyCount /= countIntegerPrevious &
+         &    .or.                                               &
+         &     self% doublePropertyCount /= countDoublePrevious  &
+         &   )                                                   &
+         & ) then
+       ! The number of properties has changed while properties of previously output nodes remain buffered. Write those, using
+       ! the numbers of properties with which they were buffered.
+       countInteger             =self%integerPropertyCount
+       countDouble              =self% doublePropertyCount
+       self%integerPropertyCount=countIntegerPrevious
+       self% doublePropertyCount=countDoublePrevious
+       call self%buffersFlush()
+       self%integerPropertyCount=countInteger
+       self% doublePropertyCount=countDouble
+    end if
     ! Ensure buffers are allocated for temporary property storage.
-    call self%buffersAllocate       (indexOutput      )
-    ! Get names for all properties to be output.
-    call self%propertyNamesEstablish(basic%time(),node)
+    call self%buffersAllocate(indexOutput)
+    ! Get names for all properties to be output. The names, descriptions, units, and other metadata of properties are used only
+    ! when the datasets to which they are written are first created, so need be established only once for each output. As
+    ! establishing them can be expensive (an SED, for example, has a description for each wavelength), and as this function is
+    ! called for each individual node output, they are re-established only if the output, type of output, or number of properties
+    ! has changed since they were last established.
+    if     (                                                                &
+         &   self%namesEstablishedIndexOutput  /= indexOutput               &
+         &  .or.                                                            &
+         &   self%namesEstablishedOutputType   /= outputType_%ID            &
+         &  .or.                                                            &
+         &   self%namesEstablishedCountInteger /= self%integerPropertyCount &
+         &  .or.                                                            &
+         &   self%namesEstablishedCountDouble  /= self%doublePropertyCount  &
+         & ) then
+       call self%propertyNamesEstablish(basic%time(),node)
+       self%namesEstablishedIndexOutput =indexOutput
+       self%namesEstablishedOutputType  =outputType_%ID
+       self%namesEstablishedCountInteger=self%integerPropertyCount
+       self%namesEstablishedCountDouble =self%doublePropertyCount
+    end if
     self%integerPropertiesWritten=0
     self%doublePropertiesWritten =0
     ! Perform our output.
     call self%output(node,indexOutput,basic%time(),outputType_)
-    ! Finished output.
+    ! Finished output. Write the properties to file once sufficiently many nodes have been accumulated.
+    self%indexOutputBuffered=indexOutput
+    if (max(self%integerBufferCount,self%doubleBufferCount) >= self%countNodesBuffered) call self%buffersFlush()
+    ! Ensure that the lock is released, as it may have been acquired while performing extra output for the node.
+    if (treeLock%ownedByThread()) call treeLock%unset()
+    return
+  end subroutine standardOutputNode
+
+  subroutine standardBuffersFlush(self)
+    !!{RST
+    Write to file any properties of individually output nodes which remain buffered.
+    !!}
+    implicit none
+    class(mergerTreeOutputterStandard), intent(inout) :: self
+
+    if (self%indexOutputBuffered < 0_c_size_t) return
     if     (                                                                     &
          &   (                                                                   &
          &     (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) &
@@ -427,11 +534,37 @@ contains
          &  .and.                                                                &
          &   .not.treeLock%ownedByThread()                                       &
          & ) call treeLock%set()
-    if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
-    if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
+    if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(self%indexOutputBuffered)
+    if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (self%indexOutputBuffered)
     if (treeLock%ownedByThread()) call treeLock%unset()
+    self%indexOutputBuffered=-1_c_size_t
     return
-  end subroutine standardOutputNode
+  end subroutine standardBuffersFlush
+
+  subroutine standardFinalize(self)
+    !!{RST
+    Finalize output, writing to file any properties of individually output nodes which remain buffered.
+    !!}
+    implicit none
+    class(mergerTreeOutputterStandard), intent(inout) :: self
+
+    call self%buffersFlush()
+    return
+  end subroutine standardFinalize
+
+  subroutine standardReduce(self,reduced)
+    !!{RST
+    Reduce the object onto another object of the class. Properties are written to file directly, so reduction requires only
+    that any properties of individually output nodes which remain buffered are written.
+    !!}
+    implicit none
+    class(mergerTreeOutputterStandard), intent(inout) :: self
+    class(mergerTreeOutputterClass   ), intent(inout) :: reduced
+    !$GLC attributes unused :: reduced
+
+    call self%buffersFlush()
+    return
+  end subroutine standardReduce
 
   subroutine standardOutput(self,node,indexOutput,time,outputType)
     !!{RST
@@ -491,7 +624,8 @@ contains
           ! Populate the output buffers with properties. We first populate with any "extra" properties that may be
           ! being computed, and then call the standard treeNode output method to populate with all "standard"
           ! properties.
-          call node%output(integerProperty,self%integerBufferCount,self%integerProperty,doubleProperty,self%doubleBufferCount,self%doubleProperty,time,instance)
+          if (self%outputComponentProperties) &
+               & call node%output(integerProperty,self%integerBufferCount,self%integerProperty,doubleProperty,self%doubleBufferCount,self%doubleProperty,time,instance)
           ! Handle any extracted properties.
           select type (extractor_ => self%nodePropertyExtractor_)
           type  is (nodePropertyExtractorNull         )
@@ -1081,7 +1215,7 @@ contains
 
     self%integerPropertyCount=0
     self%doublePropertyCount =0
-    call node%outputCount(self%integerPropertyCount,self%doublePropertyCount,time)
+    if (self%outputComponentProperties) call node%outputCount(self%integerPropertyCount,self%doublePropertyCount,time)
     self%integerScalarCount=self%integerPropertyCount
     self% doubleScalarCount=self% doublePropertyCount
     ! Handle extracted properties.
@@ -1183,7 +1317,7 @@ contains
     end if
     integerProperty=0
     doubleProperty =0
-    call node%outputNames(integerProperty,self%integerProperty,doubleProperty,self%doubleProperty,time)
+    if (self%outputComponentProperties) call node%outputNames(integerProperty,self%integerProperty,doubleProperty,self%doubleProperty,time)
     ! Handle extracted properties.
     select type (extractor_ => self%nodePropertyExtractor_)
     type is (nodePropertyExtractorNull)
