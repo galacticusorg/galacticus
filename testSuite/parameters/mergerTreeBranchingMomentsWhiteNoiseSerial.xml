@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to the white-noise test of the mergerTreeBranchingMoments task for a run on a single thread, whose output must be -->
+<!-- identical to that of the run on many threads. -->
+<changes>
+  <change type="update" path="outputFileName" value="testSuite/outputs/mergerTreeBranchingMomentsWhiteNoiseSerial.hdf5"/>
+</changes>
