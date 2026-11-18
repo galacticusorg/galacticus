@@ -79,6 +79,18 @@
 	    </xs:sequence>
 	  </xs:complexType>
 	</xs:element>
+	<!-- Members of the base class (declared through `data` elements) to exclude from state store/restore. -->
+	<xs:element name="stateStorable"                      minOccurs="0" maxOccurs="1"       >
+	  <xs:complexType>
+	    <xs:sequence>
+	      <xs:element name="exclude" minOccurs="0" maxOccurs="1">
+		<xs:complexType>
+		  <xs:attribute name="variables" use="required"/>
+		</xs:complexType>
+	      </xs:element>
+	    </xs:sequence>
+	  </xs:complexType>
+	</xs:element>
       </xs:sequence>
       <!-- docformat="rst" marks the description as reStructuredText, rendered
            on ReadTheDocs (see scripts/doc/extractDocsRST.py). -->

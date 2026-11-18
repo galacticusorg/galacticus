@@ -42,6 +42,11 @@
 
    This method uses the :term:`Approximate Nearest Neighbor` library to locate ``neighborCount`` nearest neighbor points in the set of converged states found in the given chains. The ``tolerance`` element determines the accuracy of nearest neighbor finding (see the :term:`Approximate Nearest Neighbor` documentation for details).When finding nearest neighbors in the MCMC chains, parameters are mapped using whatever mappings are currently active, and distances in each dimension (as used in the metric to determine nearest neighbors) are scaled by the root-variance in that parameter in the converged MCMC chains. The posterior likelihood of the MCMC chains is then estimated from the nearest neighbors using kernel density estimation with a Gaussian kernel with bandwidth equal to the distance to the furthest of the nearest neighbors.
    </description>
+   <stateStorable>
+    <!-- Not stored: searcher - this class is not used by the evolveForests task, which is the only task that stores and restores
+         state. -->
+    <exclude variables="searcher"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPosteriorAsPrior

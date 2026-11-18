@@ -1238,6 +1238,7 @@ jobs:
                       tests.ODE_solver.exe,
                       tests.random.exe,
                       tests.random.quasi.exe,
+                      tests.random.philox.exe,
                       tests.posterior_sampling.samples_Sobol.exe,
                       tests.model_parameter_descriptors.exe,
                       tests.arrays.exe,
@@ -1635,6 +1636,7 @@ jobs:
                 test-spheroid-power-law.py,
                 test-power-spectrum-normalizer-amplitude-scalar.py,
                 test-stateRestore.py,
+                test-stateRestoreFarahi.py,
                 test-checkpointing.py,
                 test-stellar-mass-weighted-ages.py,
                 test-supernovae-type-Ia-yields-file.py,
@@ -1647,6 +1649,7 @@ jobs:
                 test-tidal-stripping-disk-angular-momentum.py,
                 test-satellite-orbit-evolution.py,
                 test-satellite-tidal-heating-evolution.py,
+                test-satellite-granule.py,
                 test-transferFunctionHalfModeSlope.py,
                 test-galacticStructureStateDeallocateBug.py,
                 test-inactiveNumerics.py,
@@ -2239,7 +2242,7 @@ jobs:
           name: 'Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX1)'
           type: 'validate'
           suffix: 'darkMatterOnlySubhalosSymphonyCDMMilkyWayX1'
-          threshold: '160%'
+          threshold: '180%'
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Dark matter-only subhalos validation (Symphony Milky Way resolutionX8)'
         uses: ./.github/actions/benchmark

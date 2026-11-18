@@ -105,7 +105,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
       - name: Create Pull Request
         if: ${{ ( env.appid != '' ) && ( env.adstoken != '' ) && ( steps.existing.outputs.skip != 'true' ) }}
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           title: "${{ steps.mode.outputs.refresh_all == 'true' && 'fix: Refresh bibliography metadata' || 'fix: Update bibliography records' }}"
           commit-message: "${{ steps.mode.outputs.refresh_all == 'true' && 'fix: Refresh bibliography metadata' || 'fix: Update bibliography records' }}"

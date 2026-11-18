@@ -51,6 +51,11 @@
 
    where :math:`T_\mathrm{max}=`\ ``temperatureMaximum``. During tempered steps, the :math:`\gamma` parameter of the differential evolution algorithm is increased by a factor :math:`T^\alpha`, where :math:`\alpha` is provided by the ``proposalSizeTemperatureExponent`` class. A value of :math:`\alpha=1/2` is optimal for a Gaussian likelihood.
    </description>
+   <stateStorable>
+    <!-- Not stored: temperedStates - this class is not used by the evolveForests task, which is the only task that stores and
+         restores state. -->
+    <exclude variables="temperedStates"/>
+   </stateStorable>
   </posteriorSampleSimulation>
   !!]
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDifferentialEvolution

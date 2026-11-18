@@ -36,9 +36,21 @@ program Test_Cooling_Energy_Radiated_Cap
   derivatives), and that the resulting time available for cooling equals the cooling time at the outer radius, evaluated directly
   from the :galacticus-class:`coolingTime` class using the density and temperature of the hot halo at that radius. The radiated
   energy is then set to half of its limited value, and the test checks that the limiter leaves it, and the node state, unchanged.
+
+  Since the limited time available for cooling equals the cooling time at the outer radius, the entire hot halo is able to cool,
+  so the test also checks that the :galacticus-class:`coolingRadiusSimple` and :galacticus-class:`coolingRadiusBetaProfile`
+  cooling radii equal the outer radius in the limited state, and that their growth rates are zero. This includes halos with
+  almost no hot gas at high redshift, in which Compton cooling off the cosmic microwave background dominates, so that the cooling
+  time is independent of density and therefore of radius. The root function used to find the cooling radius is then zero (up to
+  rounding errors) at all radii, and the cooling times at zero and outer radii, used by the
+  :galacticus-class:`coolingRadiusBetaProfile` class, are equal. Such a state (a satellite with 1.4×10⁻²⁰ M☉ of hot gas at
+  :math:`z \approx 2.4`) caused the failure to find the cooling radius reported in issue #1780, as measured in a rerun of the
+  model of that issue with the failing node's state reported.
   !!}
   use :: Abundances_Structure         , only : zeroAbundances                         , abundances
   use :: Chemical_Abundances_Structure, only : chemicalAbundances
+  use :: Cooling_Radii                , only : coolingRadius                          , coolingRadiusClass               , &
+       &                                       coolingRadiusBetaProfile
   use :: Cooling_Times                , only : coolingTime                            , coolingTimeClass
   use :: Cooling_Times_Available      , only : coolingTimeAvailable                   , coolingTimeAvailableClass
   use :: Coordinates                  , only : coordinateSpherical                    , assignment(=)
@@ -67,6 +79,8 @@ program Test_Cooling_Energy_Radiated_Cap
   class           (darkMatterHaloScaleClass               ), pointer               :: darkMatterHaloScale_
   class           (coolingTimeClass                       ), pointer               :: coolingTime_
   class           (coolingTimeAvailableClass              ), pointer               :: coolingTimeAvailable_
+  class           (coolingRadiusClass                     ), pointer               :: coolingRadius_
+  type            (coolingRadiusBetaProfile               ), pointer               :: coolingRadiusBetaProfile_
   class           (nodeOperatorClass                      ), pointer               :: nodeOperator_
   class           (massDistributionClass                  ), pointer               :: massDistribution_
   class           (kinematicsDistributionClass            ), pointer               :: kinematicsDistribution_
@@ -79,21 +93,25 @@ program Test_Cooling_Energy_Radiated_Cap
   type            (inputParameters                        )                        :: parameters
   type            (abundances                             )                        :: abundancesGas
   type            (chemicalAbundances                     )                        :: densityChemicals
-  ! The fraction of the halo mass placed in the hot atmosphere.
-  double precision                                         , parameter             :: massHotFraction        =1.0d-1
   ! A radiated energy (in units of ergs s⁻¹ Gyr) far in excess of the limit for any halo considered here (for which it is of order
   ! 10⁴³ in these units).
   double precision                                         , parameter             :: energyRadiatedExcessive=1.0d60
-  ! Test cases: halo masses and redshifts.
-  integer                                                  , parameter             :: countCases             =4
-  double precision                                         , dimension(countCases) :: massHalo               =[1.0d11,1.0d12,1.0d12,1.0d13] , &
-       &                                                                              redshift               =[0.0d00,0.0d00,1.0d00,0.0d00]
-  double precision                                         , dimension(countCases) :: timeAvailableLimited          , timeCoolingOuter      , &
-       &                                                                              energyRadiatedUnlimited       , energyRadiatedHalf
+  ! Test cases: halo masses, redshifts, and the fraction of the halo mass placed in the hot atmosphere. The final cases have almost
+  ! no hot gas (around 10⁻²⁰ M☉, as in the node that failed in a rerun of the model of issue #1780), so that Compton cooling
+  ! dominates.
+  integer                                                  , parameter             :: countCases             =7
+  double precision                                         , dimension(countCases) :: massHalo               =[1.0d11,1.0d12,1.0d12,1.0d13,1.0d11,1.0d12,1.0d12] , &
+       &                                                                              redshift               =[0.0d00,0.0d00,1.0d00,0.0d00,2.3d00,2.3d00,4.0d00] , &
+       &                                                                              massHotFraction        =[1.0d-1,1.0d-1,1.0d-1,1.0d-1,1.0d-31,1.0d-32,1.0d-32]
+  double precision                                         , dimension(countCases) :: timeAvailableLimited          , timeCoolingOuter       , &
+       &                                                                              energyRadiatedUnlimited       , energyRadiatedHalf     , &
+       &                                                                              radiusCoolingLimited          , radiusOuterCase        , &
+       &                                                                              radiusCoolingBetaLimited      , radiusGrowthRateLimited, &
+       &                                                                              radiusGrowthRateBetaLimited
   logical                                                  , dimension(countCases) :: limitedStateChanged           , unlimitedStateChanged
-  integer                                                                          :: energyRadiatedID              , status                , &
+  integer                                                                          :: energyRadiatedID              , status                 , &
        &                                                                              i
-  double precision                                                                 :: time                          , radiusOuter           , &
+  double precision                                                                 :: time                          , radiusOuter            , &
        &                                                                              density                       , temperature
 
   ! Establish error handlers, so that errors reported by the GSL are trapped rather than aborting.
@@ -118,11 +136,17 @@ program Test_Cooling_Energy_Radiated_Cap
   <objectBuilder class="coolingTime"          name="coolingTime_"          source="parameters"/>
   <objectBuilder class="nodeOperator"         name="nodeOperator_"         source="parameters"/>
   <objectBuilder class="coolingTimeAvailable" name="coolingTimeAvailable_" source="parameters"/>
+  <objectBuilder class="coolingRadius"        name="coolingRadius_"        source="parameters"/>
   <addMetaProperty component="hotHalo" name="energyRadiatedBensonBower2010" id="energyRadiatedID" isEvolvable="yes"/>
   !!]
   allocate(radiation)
   !![
   <referenceConstruct object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+  !!]
+  ! The hot halo mass distribution is a β-profile with β=2/3, as the coolingRadiusBetaProfile class assumes.
+  allocate(coolingRadiusBetaProfile_)
+  !![
+  <referenceConstruct object="coolingRadiusBetaProfile_" constructor="coolingRadiusBetaProfile(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_)"/>
   !!]
   ! Build a halo with a hot atmosphere at each test mass and redshift.
   do i=1,countCases
@@ -134,7 +158,7 @@ program Test_Cooling_Energy_Radiated_Cap
      call basic  %timeSet            (                time          )
      call basic  %timeLastIsolatedSet(                time          )
      radiusOuter=darkMatterHaloScale_%radiusVirial(node)
-     call hotHalo%massSet            (massHotFraction*massHalo(i)   )
+     call hotHalo%massSet            (massHotFraction(i)*massHalo(i))
      call hotHalo%outerRadiusSet     (                radiusOuter   )
      call hotHalo%abundancesSet      (                zeroAbundances)
      ! Find the cooling time of the hot halo gas at the outer radius directly.
@@ -157,6 +181,11 @@ program Test_Cooling_Energy_Radiated_Cap
      call nodeOperator_%differentialEvolutionPostStep(node,status)
      limitedStateChanged    (i)=status == GSL_Failure
      timeAvailableLimited   (i)=coolingTimeAvailable_%timeAvailable(node)
+     radiusCoolingLimited       (i)=coolingRadius_           %radius          (node)
+     radiusGrowthRateLimited    (i)=coolingRadius_           %radiusGrowthRate(node)
+     radiusCoolingBetaLimited   (i)=coolingRadiusBetaProfile_%radius          (node)
+     radiusGrowthRateBetaLimited(i)=coolingRadiusBetaProfile_%radiusGrowthRate(node)
+     radiusOuterCase            (i)=radiusOuter
      ! Set a radiated energy below the limit, and apply the limiter.
      energyRadiatedHalf     (i)=0.5d0*hotHalo%floatRank0MetaPropertyGet(energyRadiatedID)
      call hotHalo%floatRank0MetaPropertySet(energyRadiatedID,energyRadiatedHalf(i))
@@ -167,21 +196,27 @@ program Test_Cooling_Energy_Radiated_Cap
      call node%destroy()
      deallocate(node)
   end do
-  call Assert("limiter changes the node state"          ,all(limitedStateChanged)  ,.true.                           )
-  call Assert("limited time available = t_cool(r_outer)",timeAvailableLimited      ,timeCoolingOuter  ,relTol=1.0d-06)
-  call Assert("no change to the node state below limit" ,any(unlimitedStateChanged),.false.                          )
-  call Assert("radiated energy unchanged below limit"   ,energyRadiatedUnlimited   ,energyRadiatedHalf,relTol=1.0d-12)
+  call Assert("limiter changes the node state"               ,all(limitedStateChanged)   ,.true.                                   )
+  call Assert("limited time available = t_cool(r_outer)"     ,timeAvailableLimited       ,timeCoolingOuter          ,relTol=1.0d-06)
+  call Assert("no change to the node state below limit"      ,any(unlimitedStateChanged) ,.false.                                  )
+  call Assert("radiated energy unchanged below limit"        ,energyRadiatedUnlimited    ,energyRadiatedHalf        ,relTol=1.0d-12)
+  call Assert("limited cooling radius = r_outer"             ,radiusCoolingLimited       ,radiusOuterCase                          )
+  call Assert("limited cooling radius growth rate = 0"       ,radiusGrowthRateLimited    ,spread(0.0d0,1,countCases)               )
+  call Assert("limited beta-profile cooling radius = r_outer",radiusCoolingBetaLimited   ,radiusOuterCase                          )
+  call Assert("limited beta-profile growth rate = 0"         ,radiusGrowthRateBetaLimited,spread(0.0d0,1,countCases)               )
   ! End unit tests.
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   !![
-  <objectDestructor name="cosmologyFunctions_"  />
-  <objectDestructor name="darkMatterHaloScale_" />
-  <objectDestructor name="coolingTime_"         />
-  <objectDestructor name="coolingTimeAvailable_"/>
-  <objectDestructor name="nodeOperator_"        />
-  <objectDestructor name="radiation"            />
+  <objectDestructor name="cosmologyFunctions_"      />
+  <objectDestructor name="darkMatterHaloScale_"     />
+  <objectDestructor name="coolingTime_"             />
+  <objectDestructor name="coolingTimeAvailable_"    />
+  <objectDestructor name="coolingRadius_"           />
+  <objectDestructor name="coolingRadiusBetaProfile_"/>
+  <objectDestructor name="nodeOperator_"            />
+  <objectDestructor name="radiation"                />
   !!]
 end program Test_Cooling_Energy_Radiated_Cap

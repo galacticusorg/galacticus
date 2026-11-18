@@ -51,6 +51,11 @@
     A task which computes and outputs the differential halo mass function :math:`\mathrm{d}n/\mathrm{d}\log M` and related quantities---including halo bias, concentration, scale radius, dark matter profile, virial density contrasts, and unevolved subhalo mass function---over a grid of halo masses and output times.
     </description>
     <descriptorSpecial>descriptorSpecial</descriptorSpecial>
+   <stateStorable>
+    <!-- Not stored: virialDensityContrasts - tasks are not themselves state-stored: evolveForests stores and restores its
+         components directly. -->
+    <exclude variables="virialDensityContrasts"/>
+   </stateStorable>
   </task>
   !!]
   type, extends(taskClass) :: taskHaloMassFunction

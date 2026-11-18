@@ -377,3 +377,127 @@ def test_validate(workspace):
     # Validation writes no model output and leaves the manifest unchanged.
     assert not any((path / 'models').iterdir())
     assert json.load(open('campaign.json'))['runs'][1]['status'] == 'pending'
+
+
+def _task_list(job):
+    """Extract the task list file name from an array job's command."""
+    for line in job['command'].splitlines():
+        if line.startswith('read -r changeFile logFile'):
+            return line.split(')p" ')[1].rstrip(')"').strip("'")
+    raise AssertionError('no task list in the job command')
+
+
+def test_task_lists_are_per_submission(workspace):
+    """A later submission writes a new task list, leaving that of an earlier (possibly still queued) array job intact."""
+    path, campaign, _ = workspace
+    manager = FakeManager()
+    campaign.submit(manager, indices=[0, 1])
+    first = _task_list(manager.jobs[0])
+    content = open(first).read()
+    campaign.submit(manager, indices=[2])
+    second = _task_list(manager.jobs[1])
+    assert first != second
+    assert open(first).read() == content
+    # The earlier job's tasks still run correctly.
+    environment = dict(os.environ, SLURM_ARRAY_TASK_ID='1')
+    completed = subprocess.run(['bash', '-c', manager.jobs[0]['command']], env=environment, capture_output=True, text=True)
+    assert completed.returncode == 0, completed.stderr
+    campaign.refresh()
+    assert campaign.runs[1].status == 'complete'
+
+
+class SequentialManager(FakeManager):
+    """A stand-in for a queueManager manager which, like Slurm, gives each job its own ID."""
+
+    def submit_detached(self, job):
+        self.jobs.append(job)
+        return str(1000 + len(self.jobs))
+
+
+def _run_task(job, task):
+    """Run one task of an array job, as Slurm would."""
+    environment = dict(os.environ, SLURM_ARRAY_TASK_ID=str(task))
+    completed = subprocess.run(['bash', '-c', job['command']], env=environment, capture_output=True, text=True)
+    assert completed.returncode == 0, completed.stderr
+
+
+def test_task_list_removed_when_job_finishes(workspace):
+    """A task list is kept while its job has unfinished runs, and removed once they have finished, job by job."""
+    path, campaign, _ = workspace
+    manager = SequentialManager()
+    campaign.submit(manager, indices=[0, 1])
+    campaign.submit(manager, indices=[2])
+    first, second = _task_list(manager.jobs[0]), _task_list(manager.jobs[1])
+    assert cm.Campaign.load('campaign.json').task_lists == {'1001': first, '1002': second}
+    _run_task(manager.jobs[0], 0)
+    campaign.refresh()
+    assert os.path.exists(first) and os.path.exists(second)
+    _run_task(manager.jobs[0], 1)
+    campaign.refresh()
+    assert not os.path.exists(first) and os.path.exists(second)
+    assert cm.Campaign.load('campaign.json').task_lists == {'1002': second}
+    _run_task(manager.jobs[1], 2)
+    campaign.refresh()
+    assert not os.path.exists(second)
+    assert cm.Campaign.load('campaign.json').task_lists == {}
+
+
+def test_task_list_removed_when_job_cancelled(workspace):
+    """The task list of a job which Slurm no longer lists is removed, along with its runs being marked as interrupted."""
+    path, campaign, _ = workspace
+    manager = SequentialManager()
+    campaign.submit(manager, indices=[0, 1])
+    task_list = _task_list(manager.jobs[0])
+    campaign.refresh(live_jobs={'1001', '1001_0', '1001_1'})
+    assert os.path.exists(task_list)
+    campaign.refresh(live_jobs=set())
+    assert campaign.runs[0].status == 'failed' and not os.path.exists(task_list)
+
+
+def test_task_list_kept_while_job_is_queued(workspace):
+    """If a job's runs were all submitted again, its list is kept for as long as Slurm still lists the job."""
+    path, campaign, _ = workspace
+    manager = SequentialManager()
+    campaign.submit(manager, indices=[0])
+    campaign.submit(manager, indices=[0])
+    first = _task_list(manager.jobs[0])
+    campaign.refresh(live_jobs={'1001', '1001_0', '1002', '1002_0'})
+    assert os.path.exists(first)
+    campaign.refresh(live_jobs={'1002', '1002_0'})
+    assert not os.path.exists(first)
+
+
+def test_task_list_removed_if_submission_fails(workspace):
+    """A submission which fails leaves no task list behind."""
+    path, campaign, _ = workspace
+
+    class FailingManager:
+        def submit_detached(self, job):
+            raise RuntimeError('sbatch failed')
+
+    with pytest.raises(RuntimeError):
+        campaign.submit(FailingManager(), indices=[0])
+    assert not list(path.glob('*.tasks')) and campaign.task_lists == {}
+
+
+def test_resubmit_refreshes_statuses(workspace, monkeypatch):
+    """`emulatorCalibration.py resubmit` must find runs which failed since the last refresh."""
+    import importlib.util
+    import types
+    path, campaign, _ = workspace
+    _mark(path, 1, 'FAILEXIT')
+    manager = FakeManager()
+    campaign.submit(manager)
+    # Run 1's array task fails; the campaign is not refreshed.
+    environment = dict(os.environ, SLURM_ARRAY_TASK_ID='1')
+    subprocess.run(['bash', '-c', manager.jobs[0]['command']], env=environment, capture_output=True)
+    resubmitter = FakeManager()
+    queue_manager = types.ModuleType('queueManager')
+    queue_manager.factory = lambda args: resubmitter
+    monkeypatch.setitem(sys.modules, 'queueManager', queue_manager)
+    script = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'scripts', 'emulation', 'emulatorCalibration.py')
+    specification = importlib.util.spec_from_file_location('emulatorCalibration', script)
+    module = importlib.util.module_from_spec(specification)
+    specification.loader.exec_module(module)
+    assert module.main(['resubmit', 'campaign.json']) == 0
+    assert len(resubmitter.jobs) == 1 and resubmitter.jobs[0]['array'] == '1'
