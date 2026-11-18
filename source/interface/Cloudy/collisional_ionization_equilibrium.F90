@@ -85,7 +85,6 @@ contains
          &                                                               energyCount                            , iEnergy                              , &
          &                                                               i
     type            (varying_string)                                  :: cloudyPath                             , cloudyVersion                        , &
-         &                                                               versionCloudy                          , &
          &                                                               fileNameTempCooling                    , fileNameTempOverview                 , &
          &                                                               fileNameTempContinuum                  , fileNameCoolingFunctionLock          , &
          &                                                               fileNameChemicalStateLock              , escapedSource
@@ -100,9 +99,6 @@ contains
     
     ! Ensure the requested file format version is compatible.
     if (versionFileFormat /= versionFileFormatCurrent) call Error_Report(var_str("this interface supports file format version ")//versionFileFormatCurrent//" but version "//versionFileFormat//" was requested"//{introspection:location})
-    ! Evaluate the Cloudy version into a local - gfortran leaks the temporary returned by a
-    ! `varying_string`-valued function when it is consumed directly by another function.
-    versionCloudy=dependencyVersion("cloudy")
     ! Determine if we need to compute cooling functions.
     call Directory_Make(File_Path(fileNameCoolingFunction))
     call Directory_Make(File_Path(fileNameChemicalState  ))
@@ -294,7 +290,7 @@ contains
              ! Add attributes.
              call    outputFile%writeAttribute("CIE cooling functions computed by Cloudy "//cloudyVersion,'description'                                             )
              call    outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                                              )
-             call    outputFile%writeAttribute(versionCloudy                                             ,'versionCloudy'                                           )
+             call    outputFile%writeAttribute(dependencyVersion("cloudy")                               ,'versionCloudy'                                           )
              !$ call hdf5Access%unset         (                                                                                                                     )
           end if
           ! Output chemical states to an HDF5 file.
@@ -315,7 +311,7 @@ contains
              ! Add attributes.
              call    outputFile%writeAttribute("CIE ionization states computed by Cloudy "//cloudyVersion,'description'                            )
              call    outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
-             call    outputFile%writeAttribute(versionCloudy                                             ,'versionCloudy'                          )
+             call    outputFile%writeAttribute(dependencyVersion("cloudy")                               ,'versionCloudy'                          )
              !$ call hdf5Access%unset         (                                                                                                    )
           end if
           ! Write message.
@@ -349,8 +345,14 @@ contains
 
     if (.not.tableFile%hasAttribute('versionCloudy')) return
     call tableFile%readAttribute('versionCloudy',versionCloudyFile)
-    ! Evaluate into a local - gfortran leaks the temporary returned by a `varying_string`-valued
-    ! function when it is consumed directly by another function.
+    !![
+    <workaround type="gfortran" PR="128856" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+      <description>
+        The version is evaluated into a local variable: a ``varying_string`` function result used as an operand of the
+        comparison in the ``if`` condition would not be deallocated, and would leak.
+      </description>
+    </workaround>
+    !!]
     versionCloudy=dependencyVersion("cloudy")
     if (versionCloudyFile /= versionCloudy)                                                          &
          & call displayMessage(                                                                      &
