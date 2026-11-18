@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794864085942,
+  "lastUpdate": 1795022843017,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.2; γ=0.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "abenson@obs.carnegiescience.edu",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "distinct": true,
-          "id": "cea6706b1f8fa8096389793fe86ce1e81cdcb6c9",
-          "message": "fix: Make the `darkMatterProfileConcentrationSchneider2015` class robust for collapse times very close to the current epoch\n\nNumerical imprecisions could previously lead to no solution for the halo mass in the reference model. We now catch these and set the halo mass to the maximum allowed (since these are cases where the halo is collapsing very close to the current epoch).",
-          "timestamp": "2024-11-05T13:38:18-08:00",
-          "tree_id": "86aedeafb3fd19bf781aada44b7be7f0be3457fc",
-          "url": "https://github.com/galacticusorg/galacticus/commit/cea6706b1f8fa8096389793fe86ce1e81cdcb6c9"
-        },
-        "date": 1730865570456,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
-            "value": "13.931453284628232",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "6.553744936933258",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "5.00086310866404",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9938,6 +9899,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/8e93fe9b49889ee235508313ee4cc76e87af4d7d"
         },
         "date": 1794864084751,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteBoundMass",
+            "value": -13.93160139811031,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -6.553744266978301,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.2; γ=0.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -5.000983347459435,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9d634847e2a6f310e8407eed42144a91ebfc28e4",
+          "message": "Merge pull request #1763 from yzhaoastro/tidal-stripping\n\nFDM granule perturbation",
+          "timestamp": "2026-11-17T17:58:36Z",
+          "tree_id": "8053328cf784a1ce6f05b2880982bc865b1bcef3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9d634847e2a6f310e8407eed42144a91ebfc28e4"
+        },
+        "date": 1795022842228,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
