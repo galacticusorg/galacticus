@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794863977251,
+  "lastUpdate": 1795022729553,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX8)": [
@@ -5252,6 +5252,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 66.70650137094204,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9d634847e2a6f310e8407eed42144a91ebfc28e4",
+          "message": "Merge pull request #1763 from yzhaoastro/tidal-stripping\n\nFDM granule perturbation",
+          "timestamp": "2026-11-17T17:58:36Z",
+          "tree_id": "8053328cf784a1ce6f05b2880982bc865b1bcef3",
+          "url": "https://github.com/galacticusorg/galacticus/commit/9d634847e2a6f310e8407eed42144a91ebfc28e4"
+        },
+        "date": 1795022728547,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 0.94005120054519,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 0.3985453460235444,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X8 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 66.72236293859805,
             "unit": "-logℒ"
           }
         ]
