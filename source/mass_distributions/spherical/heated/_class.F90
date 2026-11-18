@@ -429,26 +429,39 @@ contains
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     double precision, intent(in   ) :: radiusInitial
-    double precision                :: massEnclosed
-    
-    if (radiusInitial < self_%fractionRadiusFinalSmall*radiusFinal_) then
+    double precision                :: massEnclosed      , energySpecific, &
+         &                             radiusFinalInverse
+
+    massEnclosed  =+self_%massDistribution_       %massEnclosedBySphere(radiusInitial                        )
+    energySpecific=+self_%massDistributionHeating_%specificEnergy      (radiusInitial,self_%massDistribution_)
+    if (radiusInitial < self_%fractionRadiusFinalSmall*radiusFinal_ .and. massEnclosed > 0.0d0) then
        ! The initial radius is a small fraction of the final radius. Check if the assumption of no shell crossing is locally
        ! broken. If the gradient of the heating term is less than that of the gravitational potential term then it is likely that
        ! no root exists. In this case shell crossing is likely to be occurring. Simply return a value of zero, which places the
        ! root at the current radius.
-       if (.not.self_%noShellCrossingIsValid(radiusInitial,radiusFinal_)) then
-          radiusInitialRoot=0.0d0
-          return
+       !
+       ! The test is made at the final radius to which this trial shell itself is mapped, and not at the requested final
+       ! radius. The test assumes that the energy relation is satisfied, which is true only at the root. Making it with the
+       ! requested final radius at a trial radius far from the root can report shell crossing where there is none, and the
+       ! zero returned is then accepted as a (spurious) root. This happens, for example, when the requested final radius lies
+       ! far beyond the outermost bound shell. A trial shell which is unbound (i.e. which is mapped to infinite radius) is not
+       ! tested, as it lies outside of the root.
+       radiusFinalInverse=+1.0d0/radiusInitial                                              &
+            &             -2.0d0*energySpecific/gravitationalConstant_internal/massEnclosed
+       if (radiusFinalInverse > 0.0d0) then
+          if (.not.self_%noShellCrossingIsValid(radiusInitial,1.0d0/radiusFinalInverse)) then
+             radiusInitialRoot=0.0d0
+             return
+          end if
        end if
     end if
-    massEnclosed     =+self_%massDistribution_                         %massEnclosedBySphere(radiusInitial                        )
-    radiusInitialRoot=+self_                  %massDistributionHeating_%specificEnergy      (radiusInitial,self_%massDistribution_) &
-         &            +0.5d0                                                                                                        &
-         &            *gravitationalConstant_internal                                                                               &
-         &            *massEnclosed                                                                                                 &
-         &            *(                                                                                                            &
-         &              +1.0d0/radiusFinal_                                                                                         &
-         &              -1.0d0/radiusInitial                                                                                        &
+    radiusInitialRoot=+energySpecific                 &
+         &            +0.5d0                          &
+         &            *gravitationalConstant_internal &
+         &            *massEnclosed                   &
+         &            *(                              &
+         &              +1.0d0/radiusFinal_           &
+         &              -1.0d0/radiusInitial          &
          &             )
     return
   end function radiusInitialRoot

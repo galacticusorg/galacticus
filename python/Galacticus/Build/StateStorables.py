@@ -3,6 +3,8 @@
 Andrew Benson (ported to Python 2026)
 """
 from __future__ import annotations
+
+import sys
 #
 # `dict_to_xml_string()` writes `stateStorables.xml` in the no-attribute
 # (`NoAttr => 1`) style: every value is a child element rather than an
@@ -30,7 +32,51 @@ __all__ = [
     'function_class_entries', 'function_class_names',
     'function_class_module_map', 'function_class_entry',
     'function_class_instances', 'event_hook_static_names',
+    'warn_unstored_member', 'is_self_storing_type', 'is_unstored_type',
 ]
+
+# Types that are not registered as state-storable, but which provide their own `stateStore(stateFile)` and
+# `stateRestore(stateFile)` type-bound procedures (with no GSL state file and no store identifier). The state store
+# generators store members of these types by calling those procedures. Names are lower case.
+SELF_STORING_TYPES = frozenset({
+    'tabulationinverse',
+})
+
+# Types whose members the state store generators skip without warning, each with the reason. These are either handles to
+# resources that exist only in the running process (a class holding one must make sure that, after a restore, the
+# handle is re-created when needed, e.g. with a `<restoreTo>` that resets an "initialized" flag), or types whose objects
+# are fully configured by their constructor and never change afterwards (so the freshly constructed object in the
+# restoring run already holds the correct value). Names are lower case.
+UNSTORED_TYPES = {
+    'omplock'           : 'an OpenMP lock',
+    'ompreadwritelock'  : 'an OpenMP lock',
+    'lockdescriptor'    : 'a file lock',
+    'hdf5file'          : 'a handle to an open HDF5 file',
+    'hdf5group'         : 'a handle to an open HDF5 group',
+    'file'              : 'a handle to an open file',
+    'c_ptr'             : 'a C pointer',
+    'c_funptr'          : 'a C function pointer',
+    'resourcemanager'   : 'a reference-counted handle to a shared resource',
+    'timer'             : 'a wall-clock timer',
+    'inputparameters'   : 'a handle to a parameter set, fixed at construction',
+    'rootfinder'        : 'configured at construction, holding only settings and GSL handles',
+    'fastexponentiator' : 'a lookup table built by its constructor and never changed',
+    # Strings are names, labels and file names, set by the constructor from parameters. Restoring them would be wrong,
+    # since some may legitimately differ between the storing and restoring runs (e.g. output file names). A class which
+    # changes a string after construction must arrange for it to be consistent after a restore (e.g. by excluding any
+    # flag recording that the string has been changed).
+    'varying_string'    : 'a name, label, or file name, set by the constructor from parameters',
+}
+
+
+def is_self_storing_type(type_name: str | None) -> bool:
+    """True if `type_name` provides its own `stateStore(stateFile)`/`stateRestore(stateFile)` procedures."""
+    return (type_name or '').replace(' ', '').lower() in SELF_STORING_TYPES
+
+
+def is_unstored_type(type_name: str | None) -> bool:
+    """True if members of `type_name` are deliberately not stored (see `UNSTORED_TYPES`)."""
+    return (type_name or '').replace(' ', '').lower() in UNSTORED_TYPES
 
 
 def function_class_entries(state_storables: dict | None) -> list[dict]:
@@ -172,3 +218,21 @@ def event_hook_static_names(state_storables: dict | None) -> list[str]:
             if name:
                 out.append(name)
     return out
+
+
+def warn_unstored_member(owner: str, member: str, type_name: str,
+                         source: str | None = None) -> None:
+    """Report (on standard error) a derived-type member that state store/restore code will not store.
+
+    The generators can store only members whose type is registered as state-storable (a functionClass, or a type with a
+    `stateStorable` directive). A member of any other type is skipped, so after a state restore it keeps whatever value
+    the object had before the restore, which silently breaks reproducibility (see issue #1786). Each such member must
+    therefore either have its type registered, or be listed in the owning class' `<stateStorable><exclude
+    variables="..."/></stateStorable>` to record that it need not be stored.
+    """
+    where = f" ({source})" if source else ''
+    sys.stderr.write(
+        f"Warning: state store for '{owner}'{where} skips member '{member}' of type '{type_name}', which is not "
+        "state-storable - register the type as state-storable, or list the member in "
+        f"<stateStorable><exclude variables=\"{member}\"/></stateStorable> if it need not be stored\n"
+    )

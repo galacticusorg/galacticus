@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides a hot halo mass distribution class.
 !!}
@@ -40,13 +42,14 @@ module Hot_Halo_Mass_Distributions
    <default>betaProfile</default>
    <method name="get" >
     <description>
-    Return the mass distribution of the hot halo.
+    Return the mass distribution of the hot halo. By default the distribution is truncated at the outer radius of the hot halo. If ``untruncated`` is true the same distribution (with the same shape and normalization) is returned without truncation, such that it extends beyond the outer radius. In that case, if the hot halo is empty, implementations should return the distribution normalized as for a hot halo of unit mass, as such requests are used only for the shape of the profile. Implementations which never truncate the distribution need apply only the empty-halo normalization.
     </description>
     <type>class(massDistributionClass)</type>
     <pass>yes</pass>
     <argument>type   (treeNode               ), intent(inout)           :: node       </argument>
     <argument>type   (enumerationWeightByType), intent(in   ), optional :: weightBy   </argument>
     <argument>integer                         , intent(in   ), optional :: weightIndex</argument>
+    <argument>logical                         , intent(in   ), optional :: untruncated</argument>
    </method>
   </functionClass>
   !!]

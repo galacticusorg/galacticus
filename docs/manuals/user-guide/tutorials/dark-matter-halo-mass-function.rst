@@ -77,11 +77,12 @@ In this block we're setting up a cosmological model. The first option specifies 
      <running             value="0.000"/>
    </powerSpectrumPrimordial>
    <powerSpectrumPrimordialTransferred value="simple"/>
-   <cosmologicalMassVariance value="filteredPower">
+   <powerSpectrumNormalizer value="sigma8">
      <sigma_8 value="0.807"/>
-   </cosmologicalMassVariance>
+   </powerSpectrumNormalizer>
+   <cosmologicalMassVariance value="filteredPower"/>
 
-Next we set up the linear theory power spectrum. We choose to use the `Eisenstein & Hu (1999) <http://adsabs.harvard.edu/abs/1999ApJ...511....5E>`_ CDM transfer function, a power-law primordial power spectrum (with no running of the index). The "``powerSpectrumPrimordialTransferred``" options specifies how to combine these into the linear theory power spectrum. The "``simple``" option just multiplies the primordial power spectrum by the transfer function squared. Finally, we specify a normalization for the power spectrum by choosing an option for computing the variance of the mass density field ("``filteredPower``" just means that we integrate the power spectrum under some window function - a top-hat function by default - to compute the variance), and then giving a value for the sigma_8 parameter.
+Next we set up the linear theory power spectrum. We choose to use the `Eisenstein & Hu (1999) <http://adsabs.harvard.edu/abs/1999ApJ...511....5E>`_ CDM transfer function, a power-law primordial power spectrum (with no running of the index). The "``powerSpectrumPrimordialTransferred``" options specifies how to combine these into the linear theory power spectrum. The "``simple``" option just multiplies the primordial power spectrum by the transfer function squared. Finally, we specify a normalization for the power spectrum. The "``powerSpectrumNormalizer``" option "``sigma8``" normalizes the power spectrum such that the root-variance of the linear density field at the present day in spheres of radius :math:`8h^{-1}` Mpc (computed using a real-space top-hat window function) equals the given value of the sigma_8 parameter. We also choose an option for computing the variance of the mass density field ("``filteredPower``" just means that we integrate the power spectrum under some window function - a top-hat function by default - to compute the variance).
 
 .. code-block:: xml
 

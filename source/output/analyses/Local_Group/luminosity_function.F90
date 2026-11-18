@@ -636,14 +636,15 @@ contains
     weightVariance   = sum(covarianceCentrals        )
     if (weight > 0.0d0) then
        self%luminosityFunction=+self%luminosityFunction/weight
-       self%covariance        =+self%covariance        /weight**2
+       self%covariance        =+self%covariance        /weight/weight
        do    i=1_c_size_t,size(self%luminosityFunction)
           do j=1_c_size_t,size(self%luminosityFunction)
              self%covariance(i,j)=+self%covariance        (i,j)    &
                   &               +self%luminosityFunction(i  )    &
                   &               *self%luminosityFunction(  j)    &
                   &               *weightVariance                  &
-                  &               /weight                      **2
+                  &               /weight                          &
+                  &               /weight
           end do
        end do
     end if

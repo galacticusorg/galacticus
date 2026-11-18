@@ -30,6 +30,10 @@
    <description>
    A property extractor class for the velocity dispersion at a set of radii. The radii and types of projected density to output is specified by the ``radiusSpecifiers`` parameter. This parameter's value can contain multiple entries, each of which should be a valid :ref:`radius specifier &lt;manual-sec-radiusspecifiers&gt;`, but with an additional, colon-separated, value at the end indicating the direction in which the velocity dispersion should be computed. This direction should be one of ``radial`` (computes the radial component of velocity dispersion), ``lineOfSight{&lt;luminosity&gt;}`` (computes the line-of-sight velocity dispersion), ``lineOfSightInteriorAverage{&lt;luminosity&gt;}`` (computes the line-of-sight velocity dispersion averaged interior to the given radius), or ``lambdaR{&lt;luminosity&gt;}`` (computes the :math:`\lambda_\mathrm{R}` statistic of :cite:author:`cappellari_sauron_2007` :cite:year:`cappellari_sauron_2007`)---in the latter three cases ``{&lt;luminosity&gt;}`` specifies which band should be used to weight the velocity dispersion, alternatively setting ``{&lt;luminosity&gt;}``\ :math:`=`\ ``mass`` (or just leaving off this specifier entirely) will use mass weighting instead.
    </description>
+   <stateStorable>
+    <!-- Not stored: radii - radius definitions, set by the constructor and never changed afterwards. -->
+    <exclude variables="radii"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorVelocityDispersion

@@ -11,6 +11,8 @@ The configuration is an XML file:
     <foldsCrossValidation value="5"   />      <!-- optional; 0 disables cross-validation -->
     <seed                 value="0"   />      <!-- optional -->
     <storeCholesky        value="true"/>      <!-- optional -->
+    <lengthScaleMinimum   value="0.1" />      <!-- optional; the lower bound on length scales, in prior quantiles -->
+    <noiseLearned         value="true"/>      <!-- optional; learn noise in excess of the runs' stated noise -->
     <collectOnly          value="false"/>     <!-- optional; write the training sets only -->
     <observable label="massFunctionStellarTomczak2014ZFOURGEz0" transform="log10" floor="-6.64" rootVarianceFloored="0.5"/>
     <observable label="massMetallicityBlanc2019" transform="identity" undefined="median" rootVarianceUndefined="5.0"/>
@@ -18,7 +20,9 @@ The configuration is an XML file:
   </emulatorTrain>
 
 Each observable may also give ``rootVarianceZero`` (the root variance given to values whose root variance is zero) and
-``rootVarianceTargetMinimum`` (a floor on the root variance of the target data).
+``rootVarianceTargetMinimum`` (a floor on the root variance of the target data). With ``pattern="true"`` the label is a
+regular expression, matched in full against the labels of the analyses in the first run output found, and the observable
+stands for every analysis it matches (each with the same options).
 
 The outputs of the runs are those named in the design file, resolved relative to the working directory (or to
 --directory). The emulator file format is described in the "Emulator-Assisted Calibration" chapter of the user guide.
@@ -64,6 +68,8 @@ def read_configuration(path):
         'foldsCrossValidation': _value(task, 'foldsCrossValidation', 5    , int  ),
         'seed':                 _value(task, 'seed'                , 0    , int  ),
         'storeCholesky':        _value(task, 'storeCholesky'       , True , bool ),
+        'lengthScaleMinimum':   _value(task, 'lengthScaleMinimum'  , 0.1  , float),
+        'noiseLearned':         _value(task, 'noiseLearned'        , True , bool ),
         'collectOnly':          _value(task, 'collectOnly'         , False, bool ),
     }
     observables = []
@@ -84,11 +90,51 @@ def read_configuration(path):
             root_variance_target_minimum=number('rootVarianceTargetMinimum'),
             likelihood_range_only=element.get('likelihoodRangeOnly', 'false').strip().lower() in ('true', 't', '1', 'yes'),
         )
-        observable.validate()
+        if element.get('pattern', 'false').strip().lower() in ('true', 't', '1', 'yes'):
+            observable.pattern = True
+        else:
+            observable.validate()
         observables.append(observable)
     if not observables:
         raise ValueError('at least one <observable> must be given')
     return options, observables
+
+
+def expand_patterns(observables, design_file, directory='.'):
+    """Replace each observable whose label is a pattern by one observable per matching analysis label, found in the
+    first run output (of the design's runs) which has analyses (the output of a run which failed part way may have none)."""
+    import re
+    from dataclasses import replace
+    import h5py
+    from Galacticus.Emulation.campaign import output_file_path
+    from Galacticus.Emulation.design import read_design
+    if not any(getattr(observable, 'pattern', False) for observable in observables):
+        return observables
+    labels = None
+    for name in read_design(design_file).runs['outputFileName']:
+        path = output_file_path(os.path.join(directory, name))
+        try:
+            with h5py.File(path, 'r') as file:
+                if 'analyses' in file and len(file['analyses']) > 0:
+                    labels = sorted(file['analyses'].keys())
+                    break
+        except OSError:
+            continue
+    if labels is None:
+        raise ValueError('no run output with analyses exists in which to match observable label patterns')
+    expanded = []
+    for observable in observables:
+        if not getattr(observable, 'pattern', False):
+            expanded.append(observable)
+            continue
+        matched = [label for label in labels if re.fullmatch(observable.label, label)]
+        if not matched:
+            raise ValueError(f"no analysis label matches the pattern '{observable.label}'")
+        for label in matched:
+            copy = replace(observable, label=label)
+            copy.validate()
+            expanded.append(copy)
+    return expanded
 
 
 def main(argv=None):
@@ -100,6 +146,7 @@ def main(argv=None):
                         help='the number of processes in which to fit emulators (and cross-validation folds) in parallel')
     args = parser.parse_args(argv)
     options, observables = read_configuration(args.configuration)
+    observables = expand_patterns(observables, options['designFileName'], args.directory)
     design, training_sets, reports = collect(options['designFileName'], observables, directory=args.directory)
     for label, report in reports.items():
         print(f'{label}: {report}')
@@ -112,7 +159,8 @@ def main(argv=None):
     else:
         content = train(design, training_sets, pca_variance_retained=options['pcaVarianceRetained'],
                         restarts=options['restartsOptimizer'], folds=options['foldsCrossValidation'], seed=options['seed'],
-                        store_cholesky=options['storeCholesky'], processes=args.processes)
+                        store_cholesky=options['storeCholesky'], processes=args.processes,
+                        length_scale_minimum=options['lengthScaleMinimum'], learn_noise=options['noiseLearned'])
         for label, emulator in content.emulators.items():
             line = f'{label}: {len(emulator.components)} principal components'
             if label in content.validation:

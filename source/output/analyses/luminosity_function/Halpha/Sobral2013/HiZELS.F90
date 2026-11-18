@@ -20,7 +20,7 @@
 !+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
-Implements a stellar mass function output analysis class.
+Implements an H\ :math:`\alpha` luminosity function output analysis class for comparison with the :cite:t:`sobral_large_2013` HiZELS measurements.
 !!}
 
 

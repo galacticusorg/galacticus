@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.cooling_function_molecular_hydrogen_Galli_Palla to track the atomic and molecular -->
+<!-- hydrogen needed by the Galli & Palla (1998) H-H2 cooling function.                                             -->
+<!-- Andrew Benson (30-October-2026)                                                                                -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="445c6edb4a0939dea25cffc74bcd6c4e78b9564d" time="2026-10-30T12:00:00"/>
+  <componentBasic   value="standard"/>
+  <chemicalsToTrack value="AtomicHydrogen MolecularHydrogen"/>
+</parameters>

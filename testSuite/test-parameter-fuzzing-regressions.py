@@ -271,9 +271,14 @@ cases = [
         1,
     ),
     (
+        # The merging timescale is switched to one which needs no dark matter profile. Otherwise the merging time of the first
+        # satellite, which needs the scale radius, stops the model before the halo spin is computed.
         "halo spin with no dark matter profile",
         """  <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleSet']"/>
   <change type="remove" path="nodeOperator/nodeOperator[@value='darkMatterProfileScaleInterpolate']"/>
+  <change type="replace" path="satelliteMergingTimescales">
+    <satelliteMergingTimescales value="laceyCole1993"/>
+  </change>
 """,
         ("rejected", ["the halo has no dark matter mass distribution, so its angular momentum scale",
                       "[nodeOperator]=darkMatterProfileScaleSet"]),

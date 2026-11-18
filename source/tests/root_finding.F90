@@ -28,7 +28,8 @@ program Test_Root_Finding
   Tests that routine finding routines work.
   !!}
   use :: Display                    , only : displayVerbositySet       , verbosityLevelStandard
-  use :: Error                      , only : errorStatusDivideByZero   , Error_Handler_Register   , errorStatusOutOfRange        , GSL_Error_Handler_Aborting
+  use :: Error                      , only : errorStatusDivideByZero   , Error_Handler_Register   , errorStatusOutOfRange        , GSL_Error_Handler_Aborting, &
+       &                                     errorStatusSuccess
   use :: Root_Finder                , only : rangeExpandAdditive       , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rootFinder                , &
        &                                     stoppingCriterionDelta
   use :: Test_Root_Finding_Functions, only : Root_Function_1           , Root_Function_2          , Root_Function_2_Both         , Root_Function_2_Derivative, &
@@ -37,7 +38,8 @@ program Test_Root_Finding
   use :: Unit_Tests                 , only : Assert                    , Unit_Tests_Begin_Group   , Unit_Tests_End_Group         , Unit_Tests_Finish
   implicit none
   type            (rootFinder)               :: finder1, finder2, &
-       &                                        finder3, finder4
+       &                                        finder3, finder4, &
+       &                                        finder5
   double precision                           :: xGuess , xRoot
   double precision            , dimension(2) :: xRange
   integer                                    :: status
@@ -191,6 +193,18 @@ program Test_Root_Finding
   xRange=[1.0d0,2.0d0]
   xRoot=finder4%find(rootRange=xRange,status=status)
   call Assert('out of range status returned when unlimited expansion can not bracket a root',status,errorStatusOutOfRange)
+
+  ! Test that an exact root at x=0 is accepted when the absolute tolerance is zero. The interval test alone can not accept a
+  ! bracket at x=0 in that case, since the tolerance is then also zero. The first case is that of a root at the lower end of
+  ! the bracket, with the function values there supplied (as in the "simple" cooling radius class, issue #1780). In the
+  ! second, the first secant step lands exactly on the root.
+  finder5=rootFinder(rootFunction=Root_Function_1,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+  xRoot=finder5%find(rootRange=[0.0d0,1.0d0],rootRangeValues=[0.0d0,1.0d0],status=status)
+  call Assert('exact root at x=0 at the lower end of the range, with zero absolute tolerance [status]',status,errorStatusSuccess)
+  call Assert('exact root at x=0 at the lower end of the range, with zero absolute tolerance [root]'  ,xRoot ,0.0d0             )
+  xRoot=finder5%find(rootRange=[-1.0d0,1.0d0]                             ,status=status)
+  call Assert('exact root at x=0 inside the range, with zero absolute tolerance [status]'             ,status,errorStatusSuccess)
+  call Assert('exact root at x=0 inside the range, with zero absolute tolerance [root]'               ,xRoot ,0.0d0             )
 
   ! End unit tests.
   call Unit_Tests_End_Group()

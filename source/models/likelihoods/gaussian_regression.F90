@@ -74,6 +74,11 @@
 
    .. [#] This would be unfortunate as the second emulator to be built would then contain information on only those regions of the state space that were poorly emulated before.
    </description>
+   <stateStorable>
+    <!-- Not stored: regressionMatrixLU - this class is not used by the evolveForests task, which is the only task that stores and
+         restores state. -->
+    <exclude variables="regressionMatrixLU"/>
+   </stateStorable>
   </posteriorSampleLikelihood>
   !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGaussianRegression

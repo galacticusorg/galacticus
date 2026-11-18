@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
+!+    Contributions to this file made by: Andrew Benson, Xiaolong Du, Claude.
 
   !!{RST
   Implements a file-based transfer function class for fuzzy dark matter.
@@ -149,6 +149,7 @@
      private
      class(darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
    contains
+     final     ::                    fileFuzzyDarkMatterDestructor
      procedure :: readFile        => fileFuzzyDarkMatterReadFile
      procedure :: halfModeMass    => fileFuzzyDarkMatterHalfModeMass
      procedure :: quarterModeMass => fileFuzzyDarkMatterQuarterModeMass
@@ -257,6 +258,19 @@ contains
     return
   end function fileFuzzyDarkMatterConstructorInternal
 
+  subroutine fileFuzzyDarkMatterDestructor(self)
+    !!{RST
+    Destructor for the :galacticus-class:`transferFunctionFileFuzzyDarkMatter` transfer function class.
+    !!}
+    implicit none
+    type(transferFunctionFileFuzzyDarkMatter), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterParticle_"/>
+    !!]
+    return
+  end subroutine fileFuzzyDarkMatterDestructor
+
   subroutine fileFuzzyDarkMatterReadFile(self,fileName,invalidateCache,lockCache)
     !!{RST
     Read in the transfer function data from a file.
@@ -273,7 +287,6 @@ contains
     logical                                              , intent(in   ), optional :: invalidateCache, lockCache
     double precision                                                               :: fuzzyDMMass    , fuzzyDMDensityFraction
     type            (lockDescriptor                     )                          :: fileLock
-    !$GLC attributes unused :: invalidateCache, lockCache
     
     ! Open and read the HDF5 data file.
     call File_Lock(self%fileName,fileLock)
@@ -298,8 +311,8 @@ contains
     end block hdf5ReadScope
     !$ call hdf5Access%unset()
     call File_Unlock(fileLock)
-    ! Read the data file.
-    call self%transferFunctionFile%readFile(fileName)
+    ! Read the data file, passing on the cache options.
+    call self%transferFunctionFile%readFile(fileName,invalidateCache,lockCache)
     return
   end subroutine fileFuzzyDarkMatterReadFile
 

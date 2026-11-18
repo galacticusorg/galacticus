@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements a class that manages shared resources.
 !!}
@@ -31,8 +33,16 @@ module Resource_Manager
 
   type :: resourceManager
      !!{RST
-     A class that manages shared resources (typically pointers to objects shared by multiple other objects) via a reference counting approach and destructs them when no more references exist. Similar in approach to a `shared_ptr <https://en.cppreference.com/w/cpp/memory/shared_ptr>`_ in C++.
+     A class that manages shared resources (typically pointers to objects shared by multiple other objects) via a reference
+     counting approach and destructs them when no more references exist. Similar in approach to a `shared_ptr
+     <https://en.cppreference.com/w/cpp/memory/shared_ptr>`_ in C++.
+
+     The components are private so that the structure constructor can not be used outside of this module. Otherwise, a call to
+     ``resourceManager()`` whose argument is not ``class(*)`` does not match the specific constructor, and instead resolves to
+     the structure constructor, silently leaving the reference counter unallocated. (gfortran 16 gives an ICE in this case, GCC
+     PR 105807, but gfortran 17 compiles it.)
      !!}
+     private
      class     (*            ), pointer :: resource  => null()
      integer                  , pointer :: counter   => null()
      !$ integer(omp_lock_kind), pointer :: lock      => null()

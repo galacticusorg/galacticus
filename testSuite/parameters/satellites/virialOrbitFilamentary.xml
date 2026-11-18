@@ -6,12 +6,13 @@
 <!-- mass, M*, on which the filamentary fraction depends.                                                -->
 
 <parameters>
-  <lastModified revision="3f3a89da608c1523c846e36645c955cf980f41a9" time="2026-10-15T17:27:47"/>
+  <lastModified revision="b97be37cd9cbc2a189aa0c8bb027d7d64d390296" time="2026-10-23T19:56:05"/>
   <formatVersion>2</formatVersion>
 
   <!-- Component selection -->
   <componentBasic             value="standard"/>
   <componentDarkMatterProfile value="scale"   />
+  <componentSatellite         value="standard"/>
 
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions  value="matterLambda"/>
@@ -41,6 +42,9 @@
   <linearGrowth                       value="collisionlessMatter"                      />
   <criticalOverdensity                value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   <powerSpectrumPrimordialTransferred value="simple"                                   />
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.8111"/>
+  </powerSpectrumNormalizer>
   <powerSpectrumWindowFunction        value="topHat"                                   />
   <powerSpectrumPrimordial            value="powerLaw">
     <index               value="0.9649"/>
@@ -51,8 +55,9 @@
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed      value="0.000"/>
   </transferFunction>
-  <cosmologicalMassVariance value="filteredPower">
-    <sigma_8 value="0.8111"/>
-  </cosmologicalMassVariance>
+  <cosmologicalMassVariance value="filteredPower"/>
+
+  <!-- Merging times, needed by the node operator which handles satellites moving to a new host. -->
+  <satelliteMergingTimescales value="infinite"/>
 
 </parameters>
