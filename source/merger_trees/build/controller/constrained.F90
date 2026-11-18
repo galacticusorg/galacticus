@@ -29,7 +29,32 @@ Implements a merger tree build controller class which builds constrained trees.
   !![
   <mergerTreeBuildController name="mergerTreeBuildControllerConstrained" docformat="rst">
    <description>
-   A merger tree build controller class which builds constrained merger trees using a Brownian bridge approach, enforcing specified overdensity and mass constraints at a target redshift. Controls which branches are built via the ``[constructionOption]`` parameter, with Brownian bridge endpoints set by ``[criticalOverdensityConstrained]``, ``[varianceConstrained]``, ``[redshiftConstrained]``, and ``[massConstrained]``.
+   A merger tree build controller class which builds constrained merger trees, in which one branch, the constrained branch, is
+   required to pass through a halo of mass :math:`M_1` at redshift :math:`z_1`. The constraint is given either by
+   ``[massConstrained]`` and ``[redshiftConstrained]``, or by the critical overdensity, ``[criticalOverdensityConstrained]``, and
+   the mass variance, ``[varianceConstrained]``, extrapolated to the present epoch.
+
+   Between the root of the tree and :math:`z_1`, branchings of the constrained branch use the
+   ``[mergerTreeBranchingProbabilityConstrained]`` object, and the progenitor which it draws continues the branch. All other
+   branchings (of halos off the constrained branch, and of the constrained halo and its progenitors above :math:`z_1`) use the
+   ``[mergerTreeBranchingProbabilityUnconstrained]`` object. The recommended choice for the constrained branch is
+   :galacticus-class:`mergerTreeBranchingProbabilityConstraintConditioned`, wrapping the same object as is used for
+   unconstrained branchings, which conditions the branching rates on reaching the constraint. With it, constrained branches have
+   the statistics of branches passing through the constraint in unconstrained trees. Using instead a branching rate computed from
+   a constrained first crossing distribution (such as
+   :galacticus-class:`excursionSetFirstCrossingFarahiMidpointBrownianBridge`) gives branches which are too massive below
+   :math:`z_1`, and which have too few halos merging into them.
+
+   When the constrained branch reaches :math:`z_1`, a progenitor of mass exactly :math:`M_1` is inserted. Its critical overdensity
+   is the larger of :math:`\delta_1` and :math:`1.001` times that of the branch, so it lies just above :math:`z_1` (at
+   :math:`z=4.005` for :math:`z_1=4`, for example). Any mass of the branch in excess of :math:`M_1` becomes a second progenitor,
+   inserted at the same time (or is lost, if that mass is below the resolution). Any node of the constrained branch at redshifts
+   below :math:`z_1` whose mass is less than :math:`M_1` is raised to :math:`M_1`, so mass is not conserved if the branch reaches
+   :math:`z_1` with a mass below :math:`M_1`.
+
+   The ``[constructionOption]`` parameter controls which branches are built: ``constrainedBranchOnly`` builds only the constrained
+   branch (halos merging into it are not given progenitors); ``constrainedAndMainBranchOnly`` builds also the main branch of the
+   tree; and ``allBranches`` builds the entire tree.
    </description>
   </mergerTreeBuildController>
   !!]
