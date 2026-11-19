@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a depth-first merger tree walker over all isolated nodes in a given branch.
 !!}
@@ -87,11 +89,11 @@ contains
     !!{RST
     This function will update the given ``node`` to the next node which should be visited in a tree branch to perform a depth-first walk. Once the entire branch has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned indicating that there are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(mergerTreeWalkerIsolatedNodesBranch), intent(inout)          :: self
     type (treeNode                           ), intent(inout), pointer :: node
-    class(nodeComponentBasic                 )               , pointer :: basic
+    type (treeNode                           )               , pointer :: nodeNext
 
     ! If the node is currently pointing to the head node of the branch, then the tree walk is complete.
     if (associated(self%node,self%branchHead)) then
@@ -100,25 +102,24 @@ contains
        isolatedNodesBranchNext =  .false.
        return
     end if
-    ! If the node is currently null, set to the head node of the branch, and descend to children.
+    ! If the node is currently null, set to the head node of the branch, and descend to children. Otherwise, move to the next
+    ! sibling (and descend to its children), or, if there is none, to the parent. If the walk is time limited, nodes which
+    ! precede the earliest time are skipped, so that every node existing at or after that time is visited. (A node's children
+    ! need not all exist at the same time, so stopping the descent at an early first child would miss later siblings and their
+    ! progenitors.)
     if (.not.associated(self%node)) then
        self%node => self%branchHead
-       do while (associated(self%node%firstChild))
-          if (self%timeLimited) then
-             basic => self%node%firstChild%basic()
-             if (basic%time() < self%timeEarliest) exit
-          end if
-          self%node => self%node%firstChild
+       nodeNext  => isolatedNodesBranchNextInTime(self,self%node%firstChild)
+       do while (associated(nodeNext))
+          self%node => nodeNext
+          nodeNext  => isolatedNodesBranchNextInTime(self,self%node%firstChild)
        end do
     else
-       if (associated(self%node%sibling)) then
-          self%node => self%node%sibling
-          do while (associated(self%node%firstChild))
-          if (self%timeLimited) then
-             basic => self%node%firstChild%basic()
-             if (basic%time() < self%timeEarliest) exit
-          end if
-             self%node => self%node%firstChild
+       nodeNext => isolatedNodesBranchNextInTime(self,self%node%sibling)
+       if (associated(nodeNext)) then
+          do while (associated(nodeNext))
+             self%node => nodeNext
+             nodeNext  => isolatedNodesBranchNextInTime(self,self%node%firstChild)
           end do
        else
           self%node => self%node%parent
@@ -128,6 +129,28 @@ contains
     isolatedNodesBranchNext =  .true.
     return
   end function isolatedNodesBranchNext
+
+  function isolatedNodesBranchNextInTime(self,node) result(nodeNext)
+    !!{RST
+    Return a pointer to the first node in the sibling list starting at ``node`` which exists at or after the earliest time of a
+    time-limited walk (or simply to ``node`` if the walk is not time limited). A null pointer is returned if there is no such node.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    implicit none
+    type (treeNode                           ), pointer                :: nodeNext
+    class(mergerTreeWalkerIsolatedNodesBranch), intent(in   )          :: self
+    type (treeNode                           ), intent(in   ), pointer :: node
+    class(nodeComponentBasic                 )               , pointer :: basic
+
+    nodeNext => node
+    if (.not.self%timeLimited) return
+    do while (associated(nodeNext))
+       basic => nodeNext%basic()
+       if (basic%time() >= self%timeEarliest) return
+       nodeNext => nodeNext%sibling
+    end do
+    return
+  end function isolatedNodesBranchNextInTime
 
   logical function isolatedNodesBranchNodesRemain(self)
     !!{RST
