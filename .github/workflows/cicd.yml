@@ -129,7 +129,9 @@ jobs:
           # Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large generated
           # `_class` units peak near the runner's ~16 GB and trigger the OOM killer (exit 137). Measured
           # peaks: -j4 ~10 GB, -j3 ~9 GB, -j2 ~5.7 GB. See Build-Library-Linux for the same backoff.
-          make BUILDPROFILE=yes -j2 Galacticus.exe 2>&1 | tee build.log
+          # First build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/build BUILDPROFILE=yes 2>&1 | tee build.log
+          make BUILDPROFILE=yes -j2 Galacticus.exe 2>&1 | tee -a build.log
           set +o pipefail
           python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
           grep -vqzi error:          build.log || (echo "FAIL: errors found in build.log"          && false)
@@ -188,7 +190,9 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) LTO=disabled preprocess
-          make -j2 LTO=disabled all 2>&1 | tee build.log
+          # Then build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/build LTO=disabled 2>&1 | tee build.log
+          make -j2 LTO=disabled all 2>&1 | tee -a build.log
           set +o pipefail
           ! grep -n Error: build.log
           ! grep -n Warning: build.log
@@ -232,6 +236,8 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) PROFILER=gprof SUFFIX= preprocess
+          # Then build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/buildGProf PROFILER=gprof SUFFIX=
           make -j2 PROFILER=gprof SUFFIX= Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -268,6 +274,8 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) preprocess
+          # Then build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/build
           make -j2 Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -303,6 +311,8 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) MPI=yes SUFFIX= preprocess
+          # Then build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/buildMPI MPI=yes SUFFIX=
           make -j2 MPI=yes SUFFIX= Galacticus.exe tests.MPI.exe tests.radiative_transfer.atomic_matter.state_solver.exe
       - name: Upload Galacticus executable
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -343,6 +353,8 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) DEBUGGING=yes SUFFIX= preprocess
+          # Then build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/buildDebug DEBUGGING=yes SUFFIX=
           make -j2 DEBUGGING=yes SUFFIX= Galacticus.exe tests.debugging.exe
       - name: Upload test code executables
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -387,24 +399,8 @@ jobs:
           # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
           # as the build itself, since they select the build directory and configuration.
           make -j$(nproc) LTO=disabled LIBRARY=yes preprocess
-          # Even at -j2, two of the largest compiles running together can exhaust memory: the largest peaks at
-          # ~14 GiB, and the next eight at 6-10 GiB each. So build each of those first as a make target of its own:
-          # make builds its dependencies two at a time, then compiles it with nothing running beside it.
-          # `hydrogen` comes first because several of the others depend on it. Every other compile peaks at
-          # under ~5.5 GiB, so any two of the rest fit together. (Peak memories were measured with
-          # gfortran 16.0.1 and LTO disabled.)
-          for object in                                                     \
-              chemical/reaction_rates/hydrogen                              \
-              merger_trees/construct/read/_class                            \
-              libgalacticus/mergerTreeImporter                              \
-              objects/nodes/components/spheroid/standard/_class             \
-              libgalacticus/nodeOperator                                    \
-              libgalacticus/starFormationHistory                            \
-              objects/nodes/components/hot_halo/standard/_class             \
-              objects/nodes/components/disk/standard/_class                 \
-              objects/nodes/components/nuclear_star_cluster/standard/_class; do
-            make -j2 LTO=disabled LIBRARY=yes ./work/buildLib/${object}.o
-          done
+          # Then build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/buildLib LTO=disabled LIBRARY=yes
           make -j2 LTO=disabled LIBRARY=yes libgalacticus.so
       - name: Package the code
         run: |
