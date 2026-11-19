@@ -25,7 +25,7 @@ program Tests_Radiation_Fields
   The tests are of the *determinism* of that tabulation: the rate coefficient returned for a given time must not depend on which
   other times have been asked for. Three fields are used, differing only in what they are asked and in what order: one is asked
   for its rate coefficients from the earliest time to the latest, one from the latest to the earliest, and a third is built
-  afresh for each time and asked once, so that its tabulation spans only the neighbourhood of that time. All three must agree
+  afresh for each time and asked once, so that its tabulation spans only the neighborhood of that time. All three must agree
   exactly, which requires that the times tabulated lie on an absolute lattice and that the values already computed be carried
   over exactly when the tabulation is extended.
 

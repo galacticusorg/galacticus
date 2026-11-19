@@ -34,6 +34,13 @@
 
     where :math:`\rho^\prime(\mathbf{x})` is the original mass distribution, and :math:`f_\mathrm{r}=`\ ``[factorScalingLength]``, and :math:`f_\mathrm{M}=`\ ``[factorScalingMass]``.
     </description>
+   <stateStorable>
+    <!-- Not stored: tidalTensorPrevious - the memoized tidal tensor is not state-storable. -->
+    <!-- Reset on restore: positionTidalTensorPrevious - the key for that memoized tensor, reset so that it is recomputed after a
+         restore rather than taken from the unrestored memo. -->
+    <restoreTo variables="positionTidalTensorPrevious" state="-huge(0.0d0)"/>
+    <exclude variables="tidalTensorPrevious"/>
+   </stateStorable>
   </massDistribution>
   !!]
   type, public, extends(massDistributionSpherical) :: massDistributionSphericalScaler

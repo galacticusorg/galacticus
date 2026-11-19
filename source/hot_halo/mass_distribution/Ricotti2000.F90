@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 An implementation of the hot halo mass distribution class which uses the model of :cite:t:`ricotti_feedback_2000`.
 !!}
@@ -129,7 +131,7 @@ contains
     return
   end subroutine ricotti2000Destructor
 
-  function ricotti2000Get(self,node,weightBy,weightIndex) result(massDistribution_)
+  function ricotti2000Get(self,node,weightBy,weightIndex,untruncated) result(massDistribution_)
     !!{RST
     Return the ``ricotti2000`` hot halo mass distribution for the given ``node``.
     !!}
@@ -141,6 +143,7 @@ contains
     type            (treeNode                          ), intent(inout)           :: node
     type            (enumerationWeightByType           ), intent(in   ), optional :: weightBy
     integer                                             , intent(in   ), optional :: weightIndex
+    logical                                             , intent(in   ), optional :: untruncated
     class           (nodeComponentHotHalo              ), pointer                 :: hotHalo
     class           (nodeComponentDarkMatterProfile    ), pointer                 :: darkMatterProfile
     double precision                                    , parameter               :: virialToGasTemperatureRatio=1.0d0
@@ -149,7 +152,8 @@ contains
          &                                                                           radiusCore                       , concentration, &
          &                                                                           b                                , beta
     !![
-    <optionalArgument name="weightBy" defaultsTo="weightByMass" />
+    <optionalArgument name="weightBy"    defaultsTo="weightByMass" />
+    <optionalArgument name="untruncated" defaultsTo=".false."      />
     !!]
 
     ! Assume a null distribution by default.
@@ -161,11 +165,13 @@ contains
     darkMatterProfile =>  node                        %darkMatterProfile(    )
     radiusOuter       =   hotHalo                     %outerRadius      (    )
     mass              =   hotHalo                     %mass             (    )
+    ! For an untruncated profile only the shape is required, so normalize an empty hot halo to unit mass.
+    if (untruncated_ .and. mass <= 0.0d0) mass=1.0d0
     ! If outer radius is non-positive return a null profile.
     if (radiusOuter <= 0.0d0 .or. mass <= 0.0d0) return
     radiusScale       =           darkMatterProfile   %scale            (    )
     radiusVirial      =   self   %darkMatterHaloScale_%radiusVirial     (node)
-    concentration     =  +radiusVirial              &
+    concentration     =  +radiusVirial                  &
          &               /radiusScale
     b                 =  +(                             &
          &                 +2.0d0                       &
@@ -197,14 +203,14 @@ contains
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
-           massDistributionBetaProfile(                                            &amp;
-             &amp;                     beta                 =beta                , &amp;
-             &amp;                     radiusCore           =radiusCore          , &amp;
-             &amp;                     mass                 =mass                , &amp;
-             &amp;                     radiusOuter          =radiusOuter         , &amp;
-             &amp;                     truncateAtOuterRadius=.true.              , &amp;
-             &amp;                     componentType        =componentTypeHotHalo, &amp;
-             &amp;                     massType             =massTypeGaseous       &amp;
+           massDistributionBetaProfile(                                                 &amp;
+             &amp;                     beta                 =     beta                , &amp;
+             &amp;                     radiusCore           =     radiusCore          , &amp;
+             &amp;                     mass                 =     mass                , &amp;
+             &amp;                     radiusOuter          =     radiusOuter         , &amp;
+             &amp;                     truncateAtOuterRadius=.not.untruncated_        , &amp;
+             &amp;                     componentType        =     componentTypeHotHalo, &amp;
+             &amp;                     massType             =     massTypeGaseous       &amp;
              &amp;                    )
 	 </constructor>
        </referenceConstruct>

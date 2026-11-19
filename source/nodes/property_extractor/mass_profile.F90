@@ -31,6 +31,10 @@
    <description>
    A property extractor that returns the enclosed mass profile (in :math:`\mathrm{M}_\odot`) at a user-specified set of radii, supporting a variety of radius definitions (virial radius multiples, disk/spheroid scale radii, half-mass radii, galactic mass or light fractions, and satellite bound-mass fractions). The ``radiusSpecifiers`` parameter specifies the list of radii; if ``includeRadii`` is ``true``, the actual radii in Mpc are also written to the output. The dark matter fraction from cosmological parameters is used to translate satellite bound mass into a corresponding dark matter radius.
    </description>
+   <stateStorable>
+    <!-- Not stored: radii - radius definitions, set by the constructor and never changed afterwards. -->
+    <exclude variables="radii"/>
+   </stateStorable>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorMassProfile

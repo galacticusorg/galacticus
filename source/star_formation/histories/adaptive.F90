@@ -46,6 +46,10 @@
 
    The metallicity bins are arranged logarithmically in metallicity with ``[countMetallicities]`` bins between ``[metallicityMinimum]`` and ``[metallicityMaximum]`` (specified in Solar units). Note that the metallicity associated with each bin is the maximum metallicity for that bin, with the minimum metallicity corresponding to the value associated with the previous bin (or zero metallicity for the first bin). Note that a final bin, extending to infinite metallicity, is always added automatically. If ``[countMetallicities]``\ :math:`=0` is set, then the star formation history is not split by metallicity (i.e. a single metallicity bin encompassing all metallicities from zero to infinity is used). Alternatively, specific metallicity bin boundaries can be set via the ``[metallicityBoundaries]`` parameter---a final boundary corresponding to infinity is always added automatically.
    </description>
+   <stateStorable>
+    <!-- Not stored: intervals - set by the constructor and never changed afterwards. -->
+    <exclude variables="intervals"/>
+   </stateStorable>
   </starFormationHistory>
   !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryAdaptive

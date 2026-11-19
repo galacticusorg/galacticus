@@ -47,6 +47,7 @@
 6d
 ADAF
 ADAFs
+AGB
 AGN
 API
 Ahvazi
@@ -72,6 +73,7 @@ Boylan
 Bruzual
 Bugzilla
 Buser
+Butland
 CAMB
 CCD
 CDF
@@ -85,6 +87,7 @@ Cappellari
 Caputi
 Chandrasekhar
 Charlot
+Chieffi
 Cholesky
 Clopper
 Comptonized
@@ -120,6 +123,7 @@ Fortran90
 Fq
 Frenk
 Friedmann
+Fritsch
 GAMAnear
 GalacticEmu
 Galli
@@ -173,6 +177,7 @@ Latin
 Leitherer
 Levenshtein
 Linder
+Limongi
 Liyan
 Loeb
 Ludlow
@@ -299,6 +304,7 @@ analytical
 angularly
 anisotropic
 anisotropies
+antiderivative
 apocenter
 apocenters
 apocentric
@@ -345,6 +351,7 @@ cardinality
 cartesian
 ccompiler
 cdm
+centroid
 cflags
 chabrier
 changeset
@@ -596,6 +603,7 @@ mpirun
 multi
 multilinear
 multinomial
+multipole
 multiplicatively
 multistream
 nanometers
@@ -689,7 +697,10 @@ profilers
 prograde
 prolate
 pwd
+quadrupole
 quantization
+quasiparticle
+quasiparticles
 quasistatically
 radians
 radiative
@@ -811,6 +822,7 @@ timesteppers
 timestepping
 timesteps
 tokenized
+traceless
 triaxial
 truncations
 heatings
@@ -826,6 +838,7 @@ unclustered
 uncommented
 uncontracted
 underflow
+underflowed
 underflows
 undecorated
 underpredicts
@@ -1223,8 +1236,17 @@ astrodust
 HII
 Balmer
 Helou
+fallbacks
+invariance
+smoothstep
+unregularized
 heteroscedastic
 hyperparameter
 hyperparameters
 scikit
 misalignments
+quintic
+Heun
+subtree
+undamped
+Philox

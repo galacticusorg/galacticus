@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="6470db346a405444ba3218af479c1054625120f9" time="2026-11-13T00:00:00"/>
+
+  <!-- Base parameters for test-stateRestoreFarahi.py, which sets the state file, output file names, and tree processing order.
+       Merger trees are built using generalized Press-Schechter branching rates computed from the Farahi excursion set
+       solver (at low resolution, for speed), whose tables are allocatable arrays with zero lower bounds - these must be
+       restored with their bounds intact for the restored model to reproduce the stored one (issue #1786). -->
+  <verbosityLevel value="standard"/>
+  <errorWaitTime value="0"/>
+  <task value="evolveForests"/>
+  <evolveForestsWorkShare value="cyclic"/>
+  <outputFileName value="testSuite/outputs/stateRestoreFarahi/model.hdf5"/>
+  <randomNumberGenerator value="GSL">
+    <seed value="7007"/>
+  </randomNumberGenerator>
+
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="73.00000"/>
+    <OmegaMatter value=" 0.25000"/>
+    <OmegaDarkEnergy value=" 0.75000"/>
+    <OmegaBaryon value=" 0.00000"/>
+    <temperatureCMB value=" 2.72548"/>
+  </cosmologyParameters>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.9"/>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower">
+    <tolerance value="1.0e-3"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+    <cosmologyParameters value="simple">
+      <HubbleConstant value="73.00000"/>
+      <OmegaMatter value=" 0.25000"/>
+      <OmegaDarkEnergy value=" 0.75000"/>
+      <OmegaBaryon value=" 0.04500"/>
+      <temperatureCMB value=" 2.72548"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <linearGrowth value="collisionlessMatter"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <haloMassFunction value="shethTormen">
+    <a value="0.791"/>
+    <normalization value="0.302"/>
+    <p value="0.218"/>
+  </haloMassFunction>
+
+  <componentBasic value="standard"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentSatellite value="standard"/>
+  <componentSpin value="null"/>
+  <componentBlackHole value="null"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSpheroid value="null"/>
+  <hotHaloMassDistribution value="null"/>
+  <mergerRemnantSize value="null"/>
+
+  <mergerTreeConstructor value="build">
+    <redshiftBase value="0.0"/>
+    <processDescending value="true"/>
+  </mergerTreeConstructor>
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree value="3.0e11"/>
+    <treeCount value="2"/>
+  </mergerTreeBuildMasses>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit value="0.1"/>
+    <mergeProbability value="0.1"/>
+    <branchIntervalStep value="true"/>
+  </mergerTreeBuilder>
+  <mergerTreeBuildController value="uncontrolled">
+    <mergerTreeBranchingProbability value="generalizedPressSchechter">
+      <distributionFunctionLowerHalfOnly value="false"/>
+      <excursionSetFirstCrossing value="farahiMidpoint">
+        <fileName value="none"/>
+        <varianceNumberPerDecade value="10"/>
+        <varianceNumberPerUnit value="5"/>
+        <varianceNumberPerUnitProbability value="50"/>
+        <timeNumberPerDecade value="5"/>
+        <varianceIsUnlimited value="true"/>
+      </excursionSetFirstCrossing>
+    </mergerTreeBranchingProbability>
+  </mergerTreeBuildController>
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e9"/>
+  </mergerTreeMassResolution>
+  <excursionSetBarrier value="criticalOverdensity"/>
+
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+  <mergerTreeEvolver value="nonEvolving"/>
+  <mergerTreeOutputter value="null"/>
+  <mergerTreeOperator value="export">
+    <outputFileName value="testSuite/outputs/stateRestoreFarahi/trees.hdf5"/>
+    <skipSingleNodeTrees value="false"/>
+    <includeSubhalos value="false"/>
+  </mergerTreeOperator>
+
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+  <nodeOperator value="multi">
+    <nodeOperator value="cosmicTime"/>
+    <nodeOperator value="DMOInterpolate"/>
+    <nodeOperator value="darkMatterProfileScaleSet"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  </nodeOperator>
+</parameters>

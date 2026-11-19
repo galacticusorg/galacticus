@@ -31,6 +31,10 @@
    <deepCopy>
      <deallocate variables="pool"/>
    </deepCopy>
+   <stateStorable>
+    <!-- Not stored: pool - a pool of reusable scratch objects, holding no model state. -->
+    <exclude variables="pool"/>
+   </stateStorable>
   </darkMatterProfileHeating>
   !!]
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingTidal

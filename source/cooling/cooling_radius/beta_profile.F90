@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a cooling radius class for :math:`\beta`-profile halos, assuming collisional ionization equilibrium such that cooling time scales as inverse density.
   !!}
@@ -190,8 +192,11 @@ contains
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
-    double precision                                          :: timeAvailable  , outerRadius     , &
-         &                                                       coolingTimeZero, coolingTimeOuter
+    ! Tolerance (relative to the time available for cooling) within which the cooling time at the outer radius is treated as
+    ! equal to the time available (see betaProfileRadius).
+    double precision                          , parameter     :: toleranceRelative=1.0d-6
+    double precision                                          :: timeAvailable            , outerRadius     , &
+         &                                                       coolingTimeZero          , coolingTimeOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -200,8 +205,14 @@ contains
     if (.not.self%radiusGrowthRateComputed) then
        ! Get the time available for cooling, the outer radius, and the cooling times at zero and outer radii.
        call self%coolingTimes(node,timeAvailable,outerRadius,coolingTimeZero,coolingTimeOuter)
-       if (coolingTimeOuter < timeAvailable .or. coolingTimeZero > timeAvailable) then
-          ! Cooling radius is static.
+       if     (                                                                    &
+            &   coolingTimeOuter-timeAvailable <= toleranceRelative*timeAvailable  &
+            &  .or.                                                                &
+            &   coolingTimeZero                >=                   timeAvailable  &
+            & ) then
+          ! Cooling radius is static: it has reached the outer radius (and so is equal to it, see betaProfileRadius), or is
+          ! zero. (When the time available exactly equals the cooling time at zero radius, the growth rate of a cooling radius
+          ! that is just starting to grow is formally infinite, so is taken to be zero here, avoiding a division by zero.)
           self%radiusGrowthRateStored=0.0d0
        else
           ! Cooling radius is between zero and virial radii.
@@ -229,8 +240,11 @@ contains
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout), target :: self
     type            (treeNode                ), intent(inout), target :: node
-    double precision                                                  :: timeAvailable  , outerRadius     , &
-         &                                                               coolingTimeZero, coolingTimeOuter
+    ! Tolerance (relative to the time available for cooling) within which the cooling time at the outer radius is treated as
+    ! equal to the time available. This matches the tolerance used by the coolingRadiusSimple class.
+    double precision                          , parameter             :: toleranceRelative=1.0d-6
+    double precision                                                  :: timeAvailable            , outerRadius     , &
+         &                                                               coolingTimeZero          , coolingTimeOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -238,8 +252,13 @@ contains
     if (.not.self%radiusComputed) then
        ! Get the time available for cooling, the outer radius, and the cooling times at zero and outer radii.
        call self%coolingTimes(node,timeAvailable,outerRadius,coolingTimeZero,coolingTimeOuter)
-       if (coolingTimeOuter < timeAvailable) then
-          ! Cooling time available exceeds cooling time at virial radius, return virial radius.
+       if (coolingTimeOuter-timeAvailable <= toleranceRelative*timeAvailable) then
+          ! Cooling time available reaches the cooling time at the outer radius, return the outer radius. The time available for
+          ! cooling can be limited to the cooling time at the outer radius once the entire hot halo is able to cool (see the
+          ! "coolingEnergyRadiated" node operator), so the two are then equal up to rounding errors. Therefore, any difference
+          ! within the tolerance is treated as the outer radius having been reached. Otherwise, if the cooling times at zero and
+          ! outer radii are also equal (as they are when Compton cooling dominates, such that the cooling time is independent of
+          ! density), the expression for the cooling radius below would evaluate to 0/0.
           self%radiusStored=outerRadius
        else if (coolingTimeZero > timeAvailable) then
           ! Gas at zero radius can not cool.

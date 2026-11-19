@@ -24,7 +24,7 @@
   !!}
   
   use :: Geometry_Lightcones           , only : geometryLightconeClass
-  use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionClass
+  use :: Satellite_Orphan_Distributions, only : satelliteOrphanDistributionClass
   use :: Output_Times                  , only : outputTimesClass
 
   !![

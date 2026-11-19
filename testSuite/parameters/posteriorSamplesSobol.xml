@@ -2,11 +2,11 @@
 <!-- Parameters for the Sobol posterior samples unit test (tests.posterior_sampling.samples_Sobol.exe). -->
 
 <parameters>
-  <lastModified revision="ebf878b24e47058087b7869397d57cc1aea43478" time="2026-10-15T18:40:21"/>
+  <lastModified revision="f88a96423e21da1fe340565b2036399633246e13" time="2026-10-22T05:48:31"/>
   <formatVersion>2</formatVersion>
 
   <!-- A grid simulation, as used to evaluate a design. It is not run: the test builds its model parameters and design. -->
-  <posteriorSampleSimulation value="grid">
+  <posteriorSampleSimulation value="grid" ignoreWarnings="true">
     <!-- One active parameter for each class of prior used in calibrations. The names are arbitrary: they are not applied to -->
     <!-- any model.                                                                                                        -->
     <modelParameter value="active">

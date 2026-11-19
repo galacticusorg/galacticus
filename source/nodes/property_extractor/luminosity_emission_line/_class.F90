@@ -46,6 +46,11 @@
    <description>
    An emission line luminosity property extractor class. The luminosities of the named emission lines (given by the ``lineNames`` parameter) are computed.
    </description>
+   <stateStorable>
+    <!-- Not stored: templates - templates built on demand, and each records whether it has been built, so a restored object
+         rebuilds them when needed. -->
+    <exclude variables="templates"/>
+   </stateStorable>
    <runTimeFileDependencies paths="cloudyTableFileName"/>
   </nodePropertyExtractor>
   !!]

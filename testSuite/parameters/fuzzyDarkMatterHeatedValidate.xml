@@ -12,6 +12,15 @@
     </mergerTreeOutputter>
   </change>
 
+  <!-- Lower the bound mass below which satellites are destroyed from the mass resolution (10^9 M_Solar, set in
+       resolutionM1e9.xml) to 10^8 M_Solar. The solitonic cores of these satellites have masses of order 10^7 M_Solar, and with
+       the reference tidal stripping model (Du et al. 2024) the bound mass of a satellite closely follows the mass within its
+       tidal radius. A satellite must therefore be stripped well below the mass resolution before its tidal radius reaches its
+       soliton radius, and with the destruction threshold at the mass resolution no satellite survives long enough to be left
+       soliton-only. A threshold of 10^8 M_Solar leaves about one hundred soliton-only satellites, at about 2.5 times the run
+       time of the model with the threshold at the mass resolution. -->
+  <change type="update" path="nodeOperator/nodeOperator[@value='satelliteDestructionMassThreshold']/massDestructionAbsolute" value="1.0e8"/>
+
   <!-- Output the solitonic properties, including the halo structural state. -->
   <change type="append" path="">
     <nodePropertyExtractor value="multi">

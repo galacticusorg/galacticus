@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements calculations of satellite merging times using the :cite:t:`jiang_fitting_2008` method.
   !!}
@@ -74,7 +76,7 @@ contains
       <name>timescaleMultiplier</name>
       <defaultValue>0.75d0</defaultValue>
       <description>
-      A multiplier for the merging timescale in dynamical friction timescale calculations.
+      A multiplier for the merging timescale in dynamical friction timescale calculations. The default, 0.75, is a calibration of the Galacticus galaxy formation model, so by default the timescale is 0.75 times that given by the published formula; set this parameter to 1 to recover the published formula.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -160,7 +162,7 @@ contains
        nodeHost => node%parent%firstChild
     end if
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )

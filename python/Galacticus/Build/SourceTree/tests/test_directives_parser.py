@@ -105,13 +105,17 @@ def test_file_based_directive_schemas_are_applied():
     `schema/` directory. The directory was once built as
     `os.path.join(EXEC_PATH, "/schemas")`, which discards `EXEC_PATH` and names
     a directory that does not exist, so every file-based schema was silently
-    skipped. A directive violating its schema must be rejected."""
+    skipped. A directive violating its schema must be rejected.
+
+    `schemas_dir()` resolves on each call rather than at import, so that a
+    caller which knows its tree can set `GALACTICUS_EXEC_PATH` and be obeyed."""
     import os
     import Galacticus.Build.SourceTree.Parse.Directives as directives
     if not directives._HAS_LXML:
         pytest.skip("lxml is not installed")
-    assert directives.SCHEMAS_DIR is not None
-    assert os.path.isfile(os.path.join(directives.SCHEMAS_DIR, 'objectBuilder.xsd'))
+    schemas = directives.schemas_dir()
+    assert schemas is not None
+    assert os.path.isfile(os.path.join(schemas, 'objectBuilder.xsd'))
     context = {'type': 'file', 'name': 'test.F90'}
     directives._validate_directive(
         'objectBuilder',

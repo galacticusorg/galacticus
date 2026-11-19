@@ -131,14 +131,14 @@ contains
     Internal constructor for the :galacticus-class:`dustEmissionSpectrumAGNTorus` dust emission spectrum class. The
     quadrature over temperature is built here, once.
     !!}
-    use :: Dust_Attenuations, only : gaussLegendreRule
-    use :: Error            , only : Error_Report
-    use :: Gamma_Functions  , only : Gamma_Function
-    use :: Zeta_Functions   , only : Zeta_Function
+    use :: Error                              , only : Error_Report
+    use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
+    use :: Gamma_Functions                    , only : Gamma_Function
+    use :: Zeta_Functions                     , only : Zeta_Function
     implicit none
     type            (dustEmissionSpectrumAGNTorus)                            :: self
-    double precision                              , intent(in   )             :: temperatureSublimation  , temperatureMinimum, &
-         &                                                                       exponentTemperature     , exponentEmissivity
+    double precision                              , intent(in   )             :: temperatureSublimation   , temperatureMinimum, &
+         &                                                                       exponentTemperature      , exponentEmissivity
     ! Order of the quadrature over the logarithm of temperature.
     integer                                       , parameter                 :: orderQuadrature       =32
     double precision                              , allocatable, dimension(:) :: abscissae
@@ -165,15 +165,11 @@ contains
     implicit none
     class           (dustEmissionSpectrumAGNTorus), intent(inout)                               :: self
     double precision                              , intent(in   ), dimension(:                ) :: wavelengths
-    double precision                              , intent(in   )                               :: luminosityAbsorbed        , massDust   , &
+    double precision                              , intent(in   )                               :: luminosityAbsorbed, massDust   , &
          &                                                                                         time
     double precision                                             , dimension(size(wavelengths)) :: luminosity
-    ! Beyond this argument the exponential overflows, and the emission is in any case negligible.
-    double precision                              , parameter                                   :: argumentMaximum   =700.0d0
-    ! Below this argument the denominator is evaluated by its series, avoiding cancellation in exp(x)-1.
-    double precision                              , parameter                                   :: argumentSmall     =1.0d-4
-    double precision                                                                            :: argument                  , denominator
-    integer                                                                                     :: i                         , j
+    double precision                                                                            :: argument
+    integer                                                                                     :: i                 , j
     !$GLC attributes unused :: massDust, time
 
     luminosity=0.0d0
@@ -181,17 +177,12 @@ contains
     do i=1,size(wavelengths)
        do j=1,size(self%temperatures)
           argument=plancksConstant*speedLight*metersToAngstroms/wavelengths(i)/boltzmannsConstant/self%temperatures(j)
-          if (argument > argumentMaximum) cycle
-          if (argument < argumentSmall) then
-             denominator=argument*(1.0d0+argument/2.0d0+argument**2/6.0d0)
-          else
-             denominator=exp(argument)-1.0d0
-          end if
+          if (argument > dustEmissionPlanckArgumentMaximum) cycle
           luminosity(i)=+luminosity(i)                                           &
                &        +self%weights(j)                                         &
                &        *plancksConstant/boltzmannsConstant/self%temperatures(j) &
                &        *argument**(3.0d0+self%exponentEmissivity)               &
-               &        /denominator
+               &        /dustEmissionPlanckDenominator(argument)
        end do
     end do
     luminosity=luminosity*luminosityAbsorbed*self%normalizationShape
