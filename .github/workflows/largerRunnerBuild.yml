@@ -1,0 +1,158 @@
+name: 'Larger-Runner Build'
+# Build Galacticus on a GitHub-hosted larger runner, and report how long the build took and how much memory it used.
+#
+# The standard runners used by the CI/CD workflow have 4 cores and 16 GB of memory, which limits its builds to `make -j2` (see
+# `Build-Executable-Linux` in `cicd.yml`). A larger runner lifts that limit, but - unlike the standard runners - is billed by
+# the minute, even for a public repository. So this workflow runs only when dispatched manually, never automatically:
+#
+#   gh workflow run largerRunnerBuild.yml [--ref <branch>] [-f jobs=8] [-f target=libgalacticus.so -f options='LIBRARY=yes' -f static=false]
+#
+# The job summary reports the time taken by the build, and the peak memory in use during it - the two numbers needed to choose
+# a runner size and a `make -j` level. The log of the build, a profile of it (the time and peak memory of each compile), and
+# the target built are uploaded as artifacts.
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: 'Label of the larger runner to build on'
+        type: string
+        default: 'ubuntu-24.04-16core'
+      jobs:
+        description: 'Number of parallel make jobs (0 for one per core)'
+        type: string
+        default: '0'
+      target:
+        description: 'The make target to build'
+        type: string
+        default: 'Galacticus.exe'
+      options:
+        description: 'Build options to pass to make, separated by spaces (e.g. "LTO=disabled", "LIBRARY=yes")'
+        type: string
+        default: ''
+      static:
+        description: 'Link statically (as for the release executable; disable to build the library)'
+        type: boolean
+        default: true
+# Queue rather than cancel: a cancelled run has still been paid for.
+concurrency:
+  group: largerRunnerBuild
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
+permissions:
+  contents: read
+jobs:
+  Build:
+    runs-on: ${{ inputs.runner }}
+    container: ghcr.io/galacticusorg/buildenv:latest
+    # Bounds the cost of a run that stalls. A build at `-j2` on a standard runner takes around 100 minutes, so a build that has
+    # not finished in this time is gaining nothing from the larger runner.
+    timeout-minutes: 90
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        env:
+          STATIC: ${{ inputs.static }}
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+          if [[ "${STATIC}" == "true" ]]; then
+            echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
+          fi
+      - name: "Install build profiling tools"
+        # GNU `time` provides the per-task peak memory measurements used by the build profiler.
+        run: apt-get install --yes time || { apt-get update && apt-get install --yes time ; }
+      - name: Build the code
+        # The inputs are passed through the environment, and checked, rather than substituted into the script: a `run` script
+        # is text handed to a shell, so substituting them directly would let an input containing shell metacharacters run
+        # arbitrary commands.
+        env:
+          JOBS: ${{ inputs.jobs }}
+          TARGET: ${{ inputs.target }}
+          OPTIONS: ${{ inputs.options }}
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          [[ "${JOBS}"   =~ ^[0-9]+$           ]] || { echo "FAILED: 'jobs' must be a non-negative integer";   exit 1; }
+          [[ "${TARGET}" =~ ^[A-Za-z0-9_./-]+$ ]] || { echo "FAILED: 'target' must be a single make target"; exit 1; }
+          read -r -a options <<< "${OPTIONS}"
+          for option in "${options[@]}"; do
+            [[ "${option}" =~ ^[A-Za-z_][A-Za-z0-9_]*=[A-Za-z0-9_.+-]*$ ]] || { echo "FAILED: build option '${option}' is not of the form NAME=value"; exit 1; }
+          done
+          [[ "${JOBS}" -gt 0 ]] || JOBS=$(nproc)
+          echo "${JOBS}" > build.jobs
+          # Record the peak memory in use while the build runs. This is the memory in use across the whole machine, so it
+          # includes whatever else is running on it, but that is small next to the build. It is written to a file as it
+          # changes, so that it survives should the build be killed for exhausting memory - when it matters most.
+          ( peak=0
+            while true; do
+              used=$(awk '/^MemTotal:/ {total=$2} /^MemAvailable:/ {available=$2} END {print total-available}' /proc/meminfo)
+              if [[ "${used}" -gt "${peak}" ]]; then
+                peak=${used}
+                echo "${peak}" > build.memoryPeak
+              fi
+              sleep 5
+            done ) > /dev/null 2>&1 &
+          monitor=$!
+          # Stop the monitor however this step ends, so that it can not outlive (and so hold open) the step.
+          trap 'kill ${monitor} 2> /dev/null || true' EXIT
+          date +%s > build.timeStart
+          set -o pipefail
+          make BUILDPROFILE=yes -j${JOBS} "${options[@]}" "${TARGET}" 2>&1 | tee build.log
+          set +o pipefail
+          date +%s > build.timeEnd
+          python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
+      - name: Report the build
+        # Runs even if the build failed, or was killed: the memory in use when it died is the most useful number of all.
+        if: ${{ always() }}
+        env:
+          RUNNER_LABEL: ${{ inputs.runner }}
+          TARGET: ${{ inputs.target }}
+          OPTIONS: ${{ inputs.options }}
+        run: |
+          cd $GITHUB_WORKSPACE
+          memoryTotal=$(awk '/^MemTotal:/ {printf "%.1f", $2/1048576}' /proc/meminfo)
+          jobs="unknown"
+          [[ -s build.jobs ]] && jobs=$(< build.jobs)
+          memoryPeak="not measured"
+          [[ -s build.memoryPeak ]] && memoryPeak="$(awk '{printf "%.1f", $1/1048576}' build.memoryPeak) GiB"
+          if [[ -s build.timeStart && -s build.timeEnd ]]; then
+            duration="$(( ( $(< build.timeEnd) - $(< build.timeStart) + 30 ) / 60 )) minutes"
+          elif [[ -s build.timeStart ]]; then
+            duration="did not complete (stopped after $(( ( $(date +%s) - $(< build.timeStart) + 30 ) / 60 )) minutes)"
+          else
+            duration="did not start"
+          fi
+          {
+            echo "## Larger-runner build"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Runner | \`${RUNNER_LABEL}\`: $(nproc) cores, ${memoryTotal} GiB |"
+            echo "| Target | \`${TARGET}\` |"
+            echo "| Build options | \`${OPTIONS:-(none)}\` |"
+            echo "| Parallel make jobs | ${jobs} |"
+            echo "| Build time | ${duration} |"
+            echo "| Peak memory in use | ${memoryPeak} |"
+            echo ""
+            echo "The runner is billed for the whole job (rounded up to a minute), not just for the build."
+          } | tee -a "${GITHUB_STEP_SUMMARY}"
+      - name: Upload the build log and profile
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: larger-runner-build-profile
+          path: |
+            build.log
+            buildProfile.html
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Upload the target built
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: larger-runner-build-target
+          path: ${{ inputs.target }}
+          if-no-files-found: ignore
+          retention-days: 3

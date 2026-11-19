@@ -112,6 +112,9 @@ The CI workflows live in ``.github/workflows/``. The two most relevant to
 contributors are described below; the others are scheduled (cron) or utility
 jobs (for example ``linkCheck.yml``, ``bibliographyUpdater.yml``,
 ``cloudyTableUpdate.yml``, ``slocReport.yml``, and ``notarizeMacOS.yml``).
+One, ``largerRunnerBuild.yml``, runs only when dispatched manually: it builds on
+a GitHub-hosted larger runner, which has the memory for a build at high
+parallelism but, unlike the standard runners, is billed by the minute.
 
 Pull-request checks (``prChecks.yml``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
