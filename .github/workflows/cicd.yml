@@ -1371,6 +1371,7 @@ jobs:
                       tests.dark_matter_profiles.projected.exe,
                       tests.dark_matter_profiles.adiabaticGnedin2004.exe,
                       tests.galactic_structure_equilibrium.exe,
+                      tests.galactic_structure_equilibrium_iteration.exe,
                       tests.satellite_orbit_rates.exe,
                       tests.satellite_merging_timescale_Poulton2021.exe,
                       tests.satellite_tidal_heating_rate.exe,
