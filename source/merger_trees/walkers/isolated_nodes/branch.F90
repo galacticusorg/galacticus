@@ -90,7 +90,10 @@ contains
 
   logical function isolatedNodesBranchNext(self,node)
     !!{RST
-    This function will update the given ``node`` to the next node which should be visited in a tree branch to perform a depth-first walk. Once the entire branch has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned indicating that there are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way (or, for a time-limited walk, the branch head and each node existing at or after the earliest time).
+    This function will update the given ``node`` to the next node which should be visited in a tree branch to perform a
+    depth-first walk. Once the entire branch has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned
+    indicating that there are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this
+    way (or, for a time-limited walk, the branch head and each node existing at or after the earliest time).
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none

@@ -29,16 +29,16 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
   every node in the branch that exists at or after that time, including the progenitors of non-primary children whose primary
   sibling precedes the earliest time.
   !!}
-  use :: Display                   , only : displayVerbositySet         , verbosityLevelStandard
+  use :: Display                   , only : displayVerbositySet                , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Nodes          , only : mergerTree                  , nodeClassHierarchyFinalize      , nodeClassHierarchyInitialize       , nodeComponentBasic, &
-       &                                    treeNode                    , treeNodeList
+  use :: Galacticus_Nodes          , only : mergerTree                         , nodeClassHierarchyFinalize       , nodeClassHierarchyInitialize       , nodeComponentBasic          , &
+       &                                    treeNode                           , treeNodeList
   use :: Input_Parameters          , only : inputParameters
   use :: Kind_Numbers              , only : kind_int8
   use :: Merger_Tree_Walkers       , only : mergerTreeWalkerIsolatedNodesBranch
-  use :: Node_Components           , only : Node_Components_Initialize  , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Unit_Tests                , only : Assert                      , Unit_Tests_Begin_Group          , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Node_Components           , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Unit_Tests                , only : Assert                             , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (mergerTree                         ), pointer      :: tree
   type            (treeNodeList                       ), dimension(6) :: nodes
@@ -46,15 +46,15 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
   class           (nodeComponentBasic                 ), pointer      :: basic
   type            (mergerTreeWalkerIsolatedNodesBranch)               :: treeWalker
   type            (inputParameters                    )               :: parameters
-  ! Times (in Gyr) of the five nodes. Node 1 is the branch head. Its primary progenitor (node 2) is early, while its non-primary
+  ! Times (in Gyr) of the six nodes. Node 1 is the branch head. Its primary progenitor (node 2) is early, while its non-primary
   ! progenitor (node 3) is later, and has a single progenitor of its own (node 4) which precedes the earliest time. Node 5 is a
   ! second, early, non-primary progenitor of node 1, and node 6 a third, later, one (so that the walk must skip an early sibling to
   ! reach a later one).
-  double precision                                     , dimension(6) :: times       =[10.0d0,2.0d0,6.0d0,3.0d0,1.0d0,8.0d0]
-  double precision                                     , parameter    :: timeEarliest=4.0d0
-  integer         (kind_int8                          ), dimension(6) :: visitedLimited  , visitedAll
+  double precision                                     , dimension(6) :: times         =[10.0d0,2.0d0,6.0d0,3.0d0,1.0d0,8.0d0]
+  double precision                                     , parameter    :: timeEarliest  =4.0d0
+  integer         (kind_int8                          ), dimension(6) :: visitedLimited, visitedAll
   integer         (kind_int8                          )               :: i
-  integer                                                             :: countLimited    , countAll
+  integer                                                             :: countLimited  , countAll
 
   ! Initialize.
   call displayVerbositySet              (verbosityLevelStandard)
@@ -77,18 +77,18 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
      call basic%timeSet(times(i))
      call basic%massSet(1.0d10/dble(i))
   end do
-  tree%nodeBase                => nodes(1)%node
-  tree%event                   => null()
-  nodes(1)%node%firstChild     => nodes(2)%node
-  nodes(2)%node%parent         => nodes(1)%node
-  nodes(2)%node%sibling        => nodes(3)%node
-  nodes(3)%node%parent         => nodes(1)%node
-  nodes(3)%node%sibling        => nodes(5)%node
-  nodes(5)%node%parent         => nodes(1)%node
-  nodes(5)%node%sibling        => nodes(6)%node
-  nodes(6)%node%parent         => nodes(1)%node
-  nodes(3)%node%firstChild     => nodes(4)%node
-  nodes(4)%node%parent         => nodes(3)%node
+  tree%nodeBase            => nodes(1)%node
+  tree%event               => null()
+  nodes(1)%node%firstChild => nodes(2)%node
+  nodes(2)%node%parent     => nodes(1)%node
+  nodes(2)%node%sibling    => nodes(3)%node
+  nodes(3)%node%parent     => nodes(1)%node
+  nodes(3)%node%sibling    => nodes(5)%node
+  nodes(5)%node%parent     => nodes(1)%node
+  nodes(5)%node%sibling    => nodes(6)%node
+  nodes(6)%node%parent     => nodes(1)%node
+  nodes(3)%node%firstChild => nodes(4)%node
+  nodes(4)%node%parent     => nodes(3)%node
   ! Walk the branch with no time limit. All nodes must be visited, depth-first.
   countAll  =0
   visitedAll=0_kind_int8
@@ -97,8 +97,8 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
      countAll=countAll+1
      if (countAll <= size(visitedAll)) visitedAll(countAll)=node%index()
   end do
-  call Assert('all nodes visited when not time limited'             ,countAll               ,6                                      )
-  call Assert('depth-first order when not time limited'             ,visitedAll             ,[2_kind_int8,4_kind_int8,3_kind_int8,5_kind_int8,6_kind_int8,1_kind_int8])
+  call Assert('all nodes visited when not time limited'      ,countAll         ,6                                                                        )
+  call Assert('depth-first order when not time limited'      ,visitedAll       ,[2_kind_int8,4_kind_int8,3_kind_int8,5_kind_int8,6_kind_int8,1_kind_int8])
   ! Walk the branch with a time limit. Exactly the nodes existing at or after the earliest time (nodes 3, 6 and 1) must be visited.
   countLimited  =0
   visitedLimited=0_kind_int8
@@ -107,10 +107,10 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
      countLimited=countLimited+1
      if (countLimited <= size(visitedLimited)) visitedLimited(countLimited)=node%index()
   end do
-  call Assert('number of nodes visited when time limited'           ,countLimited           ,3                                      )
-  call Assert('non-primary child after earliest time visited'       ,visitedLimited(1)      ,3_kind_int8                            )
-  call Assert('later sibling reached past an early sibling'         ,visitedLimited(2)      ,6_kind_int8                            )
-  call Assert('branch head visited last when time limited'          ,visitedLimited(3)      ,1_kind_int8                            )
+  call Assert('number of nodes visited when time limited'    ,countLimited     ,3                                                                        )
+  call Assert('non-primary child after earliest time visited',visitedLimited(1),3_kind_int8                                                              )
+  call Assert('later sibling reached past an early sibling'  ,visitedLimited(2),6_kind_int8                                                              )
+  call Assert('branch head visited last when time limited'   ,visitedLimited(3),1_kind_int8                                                              )
   ! Clean up.
   call tree%destroy()
   deallocate(tree)
