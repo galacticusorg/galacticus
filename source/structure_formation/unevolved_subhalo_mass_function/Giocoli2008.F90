@@ -178,9 +178,9 @@ contains
       implicit none
       double precision, intent(in   ) :: x
 
-      gammaIncomplete=Gamma_Function_Incomplete_Unnormalized(                                &
-           &                                                 -self%exponent/3.0d0          , &
-           &                                                 +coefficientExponential*x**3    &
+      gammaIncomplete=Gamma_Function_Incomplete_Unnormalized(                              &
+           &                                                 -self%exponent/3.0d0        , &
+           &                                                 +coefficientExponential*x**3  &
            &                                                )
       return
     end function gammaIncomplete
