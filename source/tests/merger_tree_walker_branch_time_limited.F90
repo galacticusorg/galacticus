@@ -41,17 +41,18 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
   use :: Unit_Tests                , only : Assert                      , Unit_Tests_Begin_Group          , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (mergerTree                         ), pointer      :: tree
-  type            (treeNodeList                       ), dimension(5) :: nodes
+  type            (treeNodeList                       ), dimension(6) :: nodes
   type            (treeNode                           ), pointer      :: node
   class           (nodeComponentBasic                 ), pointer      :: basic
   type            (mergerTreeWalkerIsolatedNodesBranch)               :: treeWalker
   type            (inputParameters                    )               :: parameters
   ! Times (in Gyr) of the five nodes. Node 1 is the branch head. Its primary progenitor (node 2) is early, while its non-primary
   ! progenitor (node 3) is later, and has a single progenitor of its own (node 4) which precedes the earliest time. Node 5 is a
-  ! second, early, non-primary progenitor of node 1.
-  double precision                                     , dimension(5) :: times       =[10.0d0,2.0d0,6.0d0,3.0d0,1.0d0]
+  ! second, early, non-primary progenitor of node 1, and node 6 a third, later, one (so that the walk must skip an early sibling to
+  ! reach a later one).
+  double precision                                     , dimension(6) :: times       =[10.0d0,2.0d0,6.0d0,3.0d0,1.0d0,8.0d0]
   double precision                                     , parameter    :: timeEarliest=4.0d0
-  integer         (kind_int8                          ), dimension(5) :: visitedLimited  , visitedAll
+  integer         (kind_int8                          ), dimension(6) :: visitedLimited  , visitedAll
   integer         (kind_int8                          )               :: i
   integer                                                             :: countLimited    , countAll
 
@@ -66,10 +67,10 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
   call Unit_Tests_Begin_Group("Time-limited isolated nodes branch walker")
   ! Build the tree:
   !
-  !   1 (t=10) -> children: 2 (t=2, primary), 3 (t=6), 5 (t=1)
+  !   1 (t=10) -> children: 2 (t=2, primary), 3 (t=6), 5 (t=1), 6 (t=8)
   !   3 (t=6)  -> child   : 4 (t=3)
   allocate(tree)
-  do i=1,5
+  do i=1,6
      nodes(i)%node => treeNode()
      call nodes(i)%node%indexSet(i)
      basic => nodes(i)%node%basic(autoCreate=.true.)
@@ -84,6 +85,8 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
   nodes(3)%node%parent         => nodes(1)%node
   nodes(3)%node%sibling        => nodes(5)%node
   nodes(5)%node%parent         => nodes(1)%node
+  nodes(5)%node%sibling        => nodes(6)%node
+  nodes(6)%node%parent         => nodes(1)%node
   nodes(3)%node%firstChild     => nodes(4)%node
   nodes(4)%node%parent         => nodes(3)%node
   ! Walk the branch with no time limit. All nodes must be visited, depth-first.
@@ -94,9 +97,9 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
      countAll=countAll+1
      if (countAll <= size(visitedAll)) visitedAll(countAll)=node%index()
   end do
-  call Assert('all nodes visited when not time limited'             ,countAll               ,5                                      )
-  call Assert('depth-first order when not time limited'             ,visitedAll             ,[2_kind_int8,4_kind_int8,3_kind_int8,5_kind_int8,1_kind_int8])
-  ! Walk the branch with a time limit. Exactly the nodes existing at or after the earliest time (nodes 3 and 1) must be visited.
+  call Assert('all nodes visited when not time limited'             ,countAll               ,6                                      )
+  call Assert('depth-first order when not time limited'             ,visitedAll             ,[2_kind_int8,4_kind_int8,3_kind_int8,5_kind_int8,6_kind_int8,1_kind_int8])
+  ! Walk the branch with a time limit. Exactly the nodes existing at or after the earliest time (nodes 3, 6 and 1) must be visited.
   countLimited  =0
   visitedLimited=0_kind_int8
   treeWalker    =mergerTreeWalkerIsolatedNodesBranch(nodes(1)%node,timeEarliest=timeEarliest)
@@ -104,9 +107,10 @@ program Tests_Merger_Tree_Walker_Branch_Time_Limited
      countLimited=countLimited+1
      if (countLimited <= size(visitedLimited)) visitedLimited(countLimited)=node%index()
   end do
-  call Assert('number of nodes visited when time limited'           ,countLimited           ,2                                      )
+  call Assert('number of nodes visited when time limited'           ,countLimited           ,3                                      )
   call Assert('non-primary child after earliest time visited'       ,visitedLimited(1)      ,3_kind_int8                            )
-  call Assert('branch head visited last when time limited'          ,visitedLimited(2)      ,1_kind_int8                            )
+  call Assert('later sibling reached past an early sibling'         ,visitedLimited(2)      ,6_kind_int8                            )
+  call Assert('branch head visited last when time limited'          ,visitedLimited(3)      ,1_kind_int8                            )
   ! Clean up.
   call tree%destroy()
   deallocate(tree)

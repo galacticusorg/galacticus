@@ -26,7 +26,9 @@ Implements a depth-first merger tree walker over all isolated nodes in a given b
   !![
   <mergerTreeWalker name="mergerTreeWalkerIsolatedNodesBranch" docformat="rst">
    <description>
-   Provides a merger tree walker which iterates depth-first over all isolated nodes in a given branch.
+   Provides a merger tree walker which iterates depth-first over all isolated nodes in a given branch. If an earliest time is
+   given to the internal constructor, nodes which precede that time are skipped, so that the walk visits the branch head and
+   every node in the branch which exists at or after that time.
    </description>
   </mergerTreeWalker>
   !!]
@@ -70,7 +72,8 @@ contains
 
   function isolatedNodesBranchInternal(branchHead,timeEarliest) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`mergerTreeWalkerIsolatedNodesBranch` merger tree walker class.
+    Internal constructor for the :galacticus-class:`mergerTreeWalkerIsolatedNodesBranch` merger tree walker class. If
+    ``timeEarliest`` is present, nodes which precede that time are skipped (the branch head is always visited).
     !!}
     implicit none
     type            (mergerTreeWalkerIsolatedNodesBranch)                          :: self
@@ -87,7 +90,7 @@ contains
 
   logical function isolatedNodesBranchNext(self,node)
     !!{RST
-    This function will update the given ``node`` to the next node which should be visited in a tree branch to perform a depth-first walk. Once the entire branch has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned indicating that there are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way.
+    This function will update the given ``node`` to the next node which should be visited in a tree branch to perform a depth-first walk. Once the entire branch has been walked, a ``null()`` pointer will be set, and a value of ``false`` returned indicating that there are no more nodes to walk. Each node will be visited once and once only if the branch is walked in this way (or, for a time-limited walk, the branch head and each node existing at or after the earliest time).
     !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
