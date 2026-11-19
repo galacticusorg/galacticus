@@ -29,7 +29,12 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorOutputStructure" docformat="rst">
    <description>
-   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be included in the dump are controlled by a :galacticus-class:`nodePropertyExtractorClass` object provided to this class.  Structures are written to a new group, ``mergerTreeStructures``, in the Galacticus output file. This group will contain groups called ``treeN`` where ``N`` is the merger tree index, one for each forest (the trees of a forest share its index, and are written together). Each such group will contain datasets corresponding to all extracted properties of the isolated nodes of the forest (subhalos are not included).
+   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be included in
+   the dump are controlled by a :galacticus-class:`nodePropertyExtractorClass` object provided to this class.  Structures are
+   written to a new group, ``mergerTreeStructures``, in the Galacticus output file. This group will contain groups called
+   ``treeN`` where ``N`` is the merger tree index, one for each forest (the trees of a forest share its index, and are written
+   together). Each such group will contain datasets corresponding to all extracted properties of the isolated nodes of the forest
+   (subhalos are not included).
    </description>
   </mergerTreeOperator>
   !!]
