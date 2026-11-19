@@ -1064,6 +1064,7 @@ module Mass_Distributions
    <data>double precision                                          :: velocityDispersionRadialRadiusOuter__     =+huge(0.0d0)                                                      </data>
    <data>double precision                                          :: toleranceRelativeVelocityDispersion       =1.0d-6                                                            </data>
    <data>double precision                                          :: toleranceRelativeVelocityDispersionMaximum=1.0d-3                                                            </data>
+   <data>logical                                                   :: tolerateVelocityDispersionFailure         =.false.                                                           </data>
   </functionClass>
   !!]
 
@@ -1649,7 +1650,10 @@ contains
                       end if
                    end if
                 end do
-                if (status /= errorStatusSuccess) then
+                if (status /= errorStatusSuccess .and. self%tolerateVelocityDispersionFailure) then
+                   ! Tolerate the failure, taking this interval to contribute nothing to the Jeans integral.
+                   jeansIntegral=0.0d0
+                else if (status /= errorStatusSuccess) then
                    block
                      integer                   :: line
                      type     (varying_string) :: reason, file
@@ -1688,7 +1692,7 @@ contains
                 ! been asked for the velocity dispersion in a region of zero density, so we simply return zero dispersion as it should have
                 ! no consequence. If the Jeans integral is non-zero however, then something has gone wrong.
                 velocityDispersions(i)=0.0d0
-                if (jeansIntegral+jeansIntegralPrevious > 0.0d0) call Error_Report('undefined velocity dispersion'//{introspection:location})
+                if (jeansIntegral+jeansIntegralPrevious > 0.0d0 .and. .not.self%tolerateVelocityDispersionFailure) call Error_Report('undefined velocity dispersion'//{introspection:location})
              else
                 velocityDispersions(i)=sqrt(                         &
                      &                      +(                       &

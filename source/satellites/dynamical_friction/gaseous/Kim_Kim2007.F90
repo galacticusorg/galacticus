@@ -27,7 +27,7 @@
   !![
   <dynamicalFrictionGaseous name="dynamicalFrictionGaseousKimKim2007" docformat="rst">
    <description>
-   A gaseous dynamical friction class which uses the fitting formula of :cite:t:`kim_dynamical_2007` (their eqn. 12b) for the
+   A gaseous dynamical friction class which uses the fitting formula of :cite:t:`kim_dynamical_2007` (their eqn. 14) for the
    azimuthal drag force on a perturber moving on a circular orbit of radius :math:`R_\mathrm{p}` through a uniform gaseous
    medium:
 
@@ -178,7 +178,7 @@ contains
 
   double precision function kimKim2007ForceFactorSubsonic(self,machNumber) result(forceFactor)
     !!{RST
-    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 12b) for the dimensionless drag force for subsonic perturbers.
+    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 14) for the dimensionless drag force for subsonic perturbers.
     !!}
     implicit none
     class           (dynamicalFrictionGaseousKimKim2007), intent(inout) :: self
@@ -197,7 +197,7 @@ contains
 
   double precision function kimKim2007ForceFactorTransonic(self,machNumber,logarithmCoulomb) result(forceFactor)
     !!{RST
-    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 12b) for the dimensionless drag force for perturbers with
+    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 14) for the dimensionless drag force for perturbers with
     :math:`1 \le \mathcal{M} < 4.4`.
     !!}
     implicit none
@@ -214,7 +214,7 @@ contains
 
   double precision function kimKim2007ForceFactorSupersonic(self,machNumber,logarithmCoulomb) result(forceFactor)
     !!{RST
-    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 12b) for the dimensionless drag force for perturbers with
+    Return the :cite:t:`kim_dynamical_2007` fitting formula (their eqn. 14) for the dimensionless drag force for perturbers with
     :math:`\mathcal{M} \ge 4.4`.
     !!}
     implicit none

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to test-luminosities-from-SFH-lightcone.xml for a model which tabulates the direct route on a deliberately coarse
+     grid of redshifts. Comparing this with the default grid confirms that the test is measuring the interpolation in redshift,
+     and not merely reporting that two routes happen to agree. The top-hat filter is used because, at the redshifts of this
+     lightcone, it samples the spectrum across the Lyman break and so is the case most sensitive to the grid. It is a separate
+     model because the name of an output property carries the component, postprocessor, filter and frame, but nothing of the
+     grid, so two such extractors in one model would write to the same dataset. -->
+<changes>
+
+  <change type="replace" path="nodePropertyExtractor">
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices"/>
+      <nodePropertyExtractor value="redshift"   />
+      <nodePropertyExtractor value="lightcone"  >
+        <atCrossing value="true"/>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="luminosityStellarFromSED">
+        <filterNames value="adaptiveResolutionTopHat_1300_200"/>
+        <frame       value="observed"                  />
+        <nodePropertyExtractor value="SED">
+          <component         value="disk"  />
+          <frame             value="rest"  />
+          <wavelengthMinimum value=" 600.0"/>
+          <wavelengthMaximum value="7300.0"/>
+          <stellarPopulationSpectraPostprocessor value="identity"/>
+        </nodePropertyExtractor>
+      </nodePropertyExtractor>
+      <nodePropertyExtractor value="luminosityStellarFromStarFormationHistory">
+        <filterNames                value="adaptiveResolutionTopHat_1300_200"/>
+        <component                  value="disk"    />
+        <frame                      value="observed"/>
+        <redshiftMinimum            value="0.35"    />
+        <redshiftMaximum            value="0.55"    />
+        <redshiftSpacingLogarithmic value="0.05"    />
+        <stellarPopulationSpectraPostprocessor value="identity"/>
+      </nodePropertyExtractor>
+    </nodePropertyExtractor>
+  </change>
+
+  <change type="update" path="outputFileName" value="testSuite/outputs/test-luminosities-from-SFH-lightcone/galacticusCoarse.hdf5"/>
+
+</changes>

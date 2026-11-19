@@ -37,6 +37,11 @@
    <description>
    Defines a computational domain on a one-dimensional spherical grid, with radial boundaries set by ``[boundaries]`` and the number of radial cells by ``[countCells]``. Convergence of quantities within each shell is assessed using percentile and threshold criteria specified by ``[convergencePercentile]`` and ``[convergenceThreshold]``.
    </description>
+   <stateStorable>
+    <!-- Not stored: boundariesCells, properties - this class is not used by the evolveForests task, which is the only task that
+         stores and restores state. -->
+    <exclude variables="boundariesCells, properties"/>
+   </stateStorable>
   </computationalDomain>
   !!]
   type, extends(computationalDomainClass) :: computationalDomainSpherical

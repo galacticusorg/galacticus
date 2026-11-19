@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{RST
-Contains a module that implements a very simple disk component.
+Contains a module that implements a very simple disk component with a size.
 !!}
 
 module Node_Component_Disk_Very_Simple_Size
   !!{RST
-  Implements a very simple disk component.
+  Implements a very simple disk component with a size.
   !!}
   implicit none
   private

@@ -70,7 +70,7 @@
   },
 
   // ======================================================================
-  // Keep build artefacts out of the file explorer and search
+  // Keep build artifacts out of the file explorer and search
   // ======================================================================
   "files.exclude": {
     "**/*.o": true,

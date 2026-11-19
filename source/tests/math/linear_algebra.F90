@@ -31,7 +31,7 @@ program Test_Math_Linear_Algebra
   use            :: Error                   , only : Error_Handler_Register
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Linear_Algebra          , only : assignment(=)         , matrix                , matrixLU      , matrixRotation, &
-          &                                          operator(*)           , vector                , matrixCholesky
+          &                                          operator(*)           , vector                , matrixCholesky, determinant3x3
   use            :: Interface_GSL           , only : GSL_Success
   use            :: Numerical_Constants_Math, only : Pi
   use            :: Sorting                 , only : sortIndex
@@ -121,6 +121,8 @@ program Test_Math_Linear_Algebra
   call Assert("log determinant" ,matrix_%logarithmicDeterminant(),log(94.0d0),absTol=1.0d-6)
   call Assert("determinant"     ,matrix_%           determinant(),    94.0d0 ,absTol=1.0d-6)
   call Assert("determinant sign",matrix_%       signDeterminant(),     1                   )
+  call Assert("determinant (3×3)",determinant3x3(reshape([6.0d0,1.0d0,1.0d0,4.0d0,8.0d0,5.0d0,2.0d0,8.0d0,7.0d0],[3,3])),94.0d0,absTol=1.0d-12)
+  call Assert("determinant (3×3) of the transpose",determinant3x3(transpose(reshape([6.0d0,1.0d0,1.0d0,4.0d0,8.0d0,5.0d0,2.0d0,8.0d0,7.0d0],[3,3]))),94.0d0,absTol=1.0d-12)
   !! Test transpose function.
   matrixT          =matrix_%transpose()
   matrixComponents =matrixT

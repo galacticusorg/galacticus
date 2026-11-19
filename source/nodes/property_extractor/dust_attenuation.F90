@@ -23,7 +23,8 @@
   Implements a property extractor which applies dust attenuation to the luminosities of other extractors.
   !!}
 
-  use :: Dust_Attenuations, only : dustAttenuationClass, gaussLegendreRule
+  use :: Dust_Attenuations                  , only : dustAttenuationClass
+  use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorDustAttenuation" docformat="rst">

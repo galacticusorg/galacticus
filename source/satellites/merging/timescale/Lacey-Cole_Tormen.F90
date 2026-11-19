@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements calculations of satellite merging times using the :cite:t:`lacey_merger_1993` method with a parameterization of orbital parameters designed to fit the results of :cite:t:`tormen_rise_1997` as described by :cite:t:`cole_hierarchical_2000`.
   !!}
@@ -24,14 +26,14 @@
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesLaceyCole1993Tormen" docformat="rst">
    <description>
-   A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of :cite:t:`lacey_merger_1993` with a parameterization of orbital parameters designed to fit the results of :cite:t:`tormen_rise_1997` as described by :cite:t:`cole_hierarchical_2000`. Timescales are multiplied by the value of the ``mergingTimescaleMultiplier`` input parameter. Specifically, the merging time is taken to be:
+   A satellite merging timescale class which computes merging timescales using the dynamical friction calculation of :cite:t:`lacey_merger_1993` with a parameterization of orbital parameters designed to fit the results of :cite:t:`tormen_rise_1997` as described by :cite:t:`cole_hierarchical_2000`. Timescales are multiplied by the value of the ``[timescaleMultiplier]`` input parameter. Specifically, the merging time is taken to be:
 
    .. math::
 
       \tau_\mathrm{merge} = {f_\tau \Phi \tau_\mathrm{dynamical} \over 2 B(1)} { M_\mathrm{host}/M_\mathrm{satellite} \over \ln
       (M_\mathrm{host}/M_\mathrm{satellite})}
 
-   where :math:`f_\tau=`\ ``mergingTimescaleMultiplier``, :math:`\tau_\mathrm{dynamical}` is the dynamical time of the host halo and :math:`B(x)=\hbox{erf}(x)-2 x \exp(x)/\sqrt{\Pi}`. The orbital factor :math:`\Phi \equiv \epsilon^{0.78} (R_\mathrm{c}/R_\mathrm{virial})^2` is drawn at random from a log-normal distribution with median :math:`-0.14` and dispersion :math:`0.26` as found by :cite:t:`cole_hierarchical_2000`.
+   where :math:`f_\tau=`\ ``[timescaleMultiplier]``, :math:`\tau_\mathrm{dynamical}` is the dynamical time of the host halo and :math:`B(x)=\hbox{erf}(x)-2 x \exp(-x^2)/\sqrt{\pi}`. The orbital factor :math:`\Phi \equiv \epsilon^{0.78} (R_\mathrm{c}/R_\mathrm{virial})^2` is drawn at random from a log-normal distribution, with :math:`\log_{10}\Phi` having mean :math:`-0.14` and dispersion :math:`0.26` (so that the median of :math:`\Phi` is :math:`10^{-0.14}=0.72`), as found by :cite:t:`cole_hierarchical_2000`.
    </description>
   </satelliteMergingTimescales>
   !!]

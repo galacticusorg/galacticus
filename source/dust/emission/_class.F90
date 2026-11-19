@@ -39,7 +39,11 @@ module Dust_Emission_Spectra
   !!}
   implicit none
   private
-  public :: dustEmissionIntegralPowerLaw, dustEmissionLuminosityIntegratedSampled
+  public :: dustEmissionIntegralPowerLaw, dustEmissionLuminosityIntegratedSampled, dustEmissionPlanckDenominator
+
+  ! The value of the argument, x=hν/kT, of the Planck function beyond which its exponential overflows, and the emission is in
+  ! any case negligible. Emission at larger arguments is taken to be zero.
+  double precision, parameter, public :: dustEmissionPlanckArgumentMaximum=700.0d0
 
   !![
   <functionClass docformat="rst">
@@ -93,6 +97,24 @@ module Dust_Emission_Spectra
 
 contains
 
+  elemental double precision function dustEmissionPlanckDenominator(argument) result(denominator)
+    !!{RST
+    Return :math:`\mathrm{e}^x-1`, the denominator of the Planck function, for ``argument`` :math:`x=h\nu/kT`. Below
+    :math:`x=10^{-4}` it is evaluated by its series, avoiding cancellation. It must not be used for arguments above
+    ``dustEmissionPlanckArgumentMaximum``, where the exponential overflows.
+    !!}
+    implicit none
+    double precision, intent(in   ) :: argument
+    double precision, parameter     :: argumentSmall=1.0d-4
+
+    if (argument < argumentSmall) then
+       denominator=argument*(1.0d0+argument/2.0d0+argument**2/6.0d0)
+    else
+       denominator=exp(argument)-1.0d0
+    end if
+    return
+  end function dustEmissionPlanckDenominator
+
   double precision function dustEmissionIntegralPowerLaw(wavelength,luminosityLogarithmic) result(integral)
     !!{RST
     Return :math:`\int L_\nu\,\mathrm{d}\nu` for a spectrum given as :math:`\ln \nu L_\nu` at ``wavelength`` (in Å),
@@ -129,7 +151,7 @@ contains
     ``wavelengthsMaximum`` (in Å), from the spectrum ``luminosity`` of ``self`` given the total ``luminosityAbsorbed``,
     by an eight-point Gauss--Legendre rule in :math:`\ln\lambda` over each interval.
     !!}
-    use :: Dust_Attenuations, only : gaussLegendreRule
+    use :: Numerical_Quadrature_Gauss_Legendre, only : gaussLegendreRule
     implicit none
     class           (dustEmissionSpectrumClass), intent(inout)                                      :: self
     double precision                           , intent(in   ), dimension(:                       ) :: wavelengthsMinimum  , wavelengthsMaximum

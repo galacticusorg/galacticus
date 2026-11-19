@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a simple cooling radius class.
   !!}
@@ -56,12 +58,15 @@
   end interface coolingRadiusSimple
 
   ! Module scope variables used in root finding.
-  class           (coolingRadiusSimple), pointer :: self_
-  type            (treeNode           ), pointer :: node_
-  double precision                               :: coolingTimeAvailable_
-  type            (abundances         )          :: abundancesGas_
-  type            (chemicalAbundances )          :: fractionsChemical_
+  class           (coolingRadiusSimple), pointer   :: self_
+  type            (treeNode           ), pointer   :: node_
+  double precision                                 :: coolingTimeAvailable_
+  type            (abundances         )            :: abundancesGas_
+  type            (chemicalAbundances )            :: fractionsChemical_
   !$omp threadprivate(self_,node_,coolingTimeAvailable_,abundancesGas_,fractionsChemical_)
+
+  ! Tolerances used in root finding.
+  double precision                     , parameter :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6
 
 contains
 
@@ -101,7 +106,6 @@ contains
     class           (cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
     class           (coolingTimeAvailableClass), intent(in   ), target :: coolingTimeAvailable_
     class           (coolingTimeClass         ), intent(in   ), target :: coolingTime_
-    double precision                           , parameter             :: toleranceAbsolute    =0.0d0, toleranceRelative=1.0d-6
     !![
     <constructorAssign variables="*cosmologyFunctions_, *coolingTimeAvailable_, *coolingTime_"/>
     !!]
@@ -251,10 +255,15 @@ contains
        ! Set module-scope pointers.
        self_ => self
        node_ => node
-       ! Check if cooling time at hot halo outer radius is reached.
+       ! Check if cooling time at hot halo outer radius is reached. The time available for cooling can be limited to the cooling time at
+       ! the outer radius once the entire hot halo is able to cool (see the "coolingEnergyRadiated" node operator), so the two are
+       ! then equal up to rounding errors. Therefore, any difference within the tolerance of the root finder is treated as the outer
+       ! radius having been reached. Otherwise, if the cooling time is independent of radius (as it is when Compton cooling
+       ! dominates), the root function would be zero (up to rounding errors) at all radii, and a cooling radius of zero could be
+       ! returned instead.
        outerRadius=hotHalo%outerRadius()
        rootOuter  =coolingRadiusRoot(outerRadius)
-       if (rootOuter < 0.0d0) then
+       if (rootOuter <= toleranceRelative*coolingTimeAvailable_) then
           ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
           self%radiusStored=outerRadius
           simpleRadius     =self%radiusStored

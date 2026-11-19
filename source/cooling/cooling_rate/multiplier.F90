@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{RST
-  Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
+  Implementation of a cooling rate class which modifies another cooling rate by multiplying it by a constant factor.
   !!}
 
 

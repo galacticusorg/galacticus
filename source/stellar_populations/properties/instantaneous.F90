@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a stellar population properties class based on the instantaneous recycling approximation.
   !!}
@@ -37,6 +39,13 @@
 
    In the above :math:`R` is the instantaneous recycled fraction and :math:`p` is the yield, both of which are supplied by the :term:`IMF` subsystem. The rate of energy input from the stellar population is computed assuming that the canonical amount of energy from a single stellar population (as defined by the ``feedbackEnergyInputAtInfinityCanonical``) is input instantaneously.
    </description>
+   <stateStorable>
+    <!-- Not stored: rateLuminosityStellarPrevious - the memoized luminosity rates are not state-storable. -->
+    <!-- Reset on restore: populationIDPrevious - part of the key for those memoized rates, reset so that they are recomputed after
+         a restore rather than taken from the unrestored memo. -->
+    <restoreTo variables="populationIDPrevious" state="-1_c_size_t"/>
+    <exclude variables="rateLuminosityStellarPrevious"/>
+   </stateStorable>
   </stellarPopulationProperties>
   !!]
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesInstantaneous
