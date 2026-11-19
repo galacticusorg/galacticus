@@ -741,6 +741,7 @@ contains
     if (cuspCanForm .and. amplitudeLimitJump) then
        errorFractional=+abs(residualAmplitude) &
             &          /    amplitudeTrial
+       !$omp critical(promptCuspsErrorFractionalAmplitudeMaximum)
        if (errorFractional > errorFractionalAmplitudeMaximum) then
           block
             character(len=12) :: label
@@ -749,6 +750,7 @@ contains
           end block
           errorFractionalAmplitudeMaximum=errorFractional
        end if
+       !$omp end critical(promptCuspsErrorFractionalAmplitudeMaximum)
     end if
     ! Handle halos in which no prompt cusp can form, and which therefore can not themselves have formed. Such nodes are given a
     ! cusp-free (i.e. NFW) profile - for which r₋₂ is simply the scale radius - and are labeled so that they may be pruned from
