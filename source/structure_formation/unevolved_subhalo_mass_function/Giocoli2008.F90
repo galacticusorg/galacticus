@@ -177,11 +177,17 @@ contains
       use :: Gamma_Functions, only : Gamma_Function_Incomplete_Unnormalized
       implicit none
       double precision, intent(in   ) :: x
+      ! Arguments beyond which Γ(-α/3,t) ≈ t^(-α/3-1) exp(-t) underflows, and is negligible compared to the value at the lower
+      ! limit (and GSL would report the underflow as an error).
+      double precision, parameter     :: argumentLarge=7.0d2
+      double precision                :: argument
 
-      gammaIncomplete=Gamma_Function_Incomplete_Unnormalized(                              &
-           &                                                 -self%exponent/3.0d0        , &
-           &                                                 +coefficientExponential*x**3  &
-           &                                                )
+      argument=+coefficientExponential*x**3
+      if (argument > argumentLarge) then
+         gammaIncomplete=0.0d0
+      else
+         gammaIncomplete=Gamma_Function_Incomplete_Unnormalized(-self%exponent/3.0d0,argument)
+      end if
       return
     end function gammaIncomplete
 
