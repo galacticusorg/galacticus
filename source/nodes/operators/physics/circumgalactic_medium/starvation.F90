@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that implements starvation of subhalos by removal of their :term:`CGM`.
   !!}
@@ -290,6 +292,15 @@ contains
              call    hotHaloParent%          abundancesSet( hotHaloParent%abundances          ()*(1.0d0-fractionRemove))
              call    hotHaloParent%          chemicalsSet ( hotHaloParent%chemicals           ()*(1.0d0-fractionRemove))
              if (hotHaloParent%massColdIsSettable()) then
+                ! The same fraction of the cold mode CGM is also moved to the unaccreted reservoir.
+                call hotHaloParent%      unaccretedMassSet(                                                             &
+                     &                                     hotHaloParent%unaccretedMass      ()                        &
+                     &                                    +hotHaloParent%massCold            ()*       fractionRemove  &
+                     &                                   )
+                call hotHaloParent%unaccretedAbundancesSet(                                                             &
+                     &                                     hotHaloParent%unaccretedAbundances()                        &
+                     &                                    +hotHaloParent%abundancesCold      ()*       fractionRemove  &
+                     &                                   )
                 call hotHaloParent%            massColdSet( hotHaloParent%massCold            ()*(1.0d0-fractionRemove))
                 call hotHaloParent% angularMomentumColdSet( hotHaloParent%angularMomentumCold ()*(1.0d0-fractionRemove))
                 call hotHaloParent%      abundancesColdSet( hotHaloParent%abundancesCold      ()*(1.0d0-fractionRemove))
