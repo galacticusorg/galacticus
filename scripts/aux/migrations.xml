@@ -545,6 +545,12 @@
     </translation>
   </migration>
 
+  <migration commit="f601fcf31528f7fe5bbc45b7daa3246fb51c8d76">
+    <!-- The default of `massRatioMajorMerger` in the baugh2005 merger mass movements class changed from 0.25 to 0.3, the value -->
+    <!-- used by Baugh et al. (2005); retain the prior value in existing parameter files.                                       -->
+    <translation function="baugh2005_major_merger_ratio_default"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />
