@@ -40,4 +40,7 @@
     <starFormationFrequencyNormalization value="1.36e-9"/>
   </starFormationRateSurfaceDensityDisks>
 
+  <!-- Baugh (2005) merger mass movements relying on the default major merger mass ratio, whose default changed from 0.25 to 0.3. -->
+  <mergerMassMovements value="baugh2005"/>
+
 <componentHotHalo value="standard"/></parameters>

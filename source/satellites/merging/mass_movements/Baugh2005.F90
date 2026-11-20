@@ -93,10 +93,10 @@ contains
     !![
     <inputParameter docformat="rst">
       <name>massRatioMajorMerger</name>
-      <defaultValue>0.25d0</defaultValue>
+      <defaultValue>0.3d0</defaultValue>
       <description>
-      The mass ratio above which mergers are considered to be "major". (Note that this default differs from the value,
-      :math:`f_\mathrm{ellip}=0.3`, used by :cite:t:`baugh_can_2005`.)
+      The mass ratio above which mergers are considered to be "major". The default is the value, :math:`f_\mathrm{ellip}=0.3`, used
+      by :cite:t:`baugh_can_2005`.
       </description>
       <source>parameters</source>
     </inputParameter>
