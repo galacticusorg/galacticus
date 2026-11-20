@@ -75,21 +75,27 @@ def _emit_deep_copy_action(class_name, classes, directive):
             class_node = classes[cursor]['node']
             scope_directive = directive.get(cursor) if isinstance(directive.get(cursor), dict) else None
 
+            # The actions of a level are emitted once, if the type at that level has any declarations (not once for each
+            # declaration, which repeated every action as many times as the type body has declaration statements).
+            has_declarations = False
             child = class_node.get('firstChild')
             while child is not None:
-                if child.get('type') == 'declaration' and scope_directive is not None:
-                    for set_to in as_array(scope_directive.get('setTo')):
-                        variables = re.split(
-                            r'\s*,\s*', set_to.get('variables', ''))
-                        state = set_to.get('state', '')
-                        for v in variables:
-                            out += f" self%{v}={state}\n"
-                    for method_call in as_array(scope_directive.get('methodCall')):
-                        args = method_call.get('arguments', '')
-                        method_calls.append(
-                            f" call self%{method_call.get('method', '')}({args})"
-                        )
+                if child.get('type') == 'declaration':
+                    has_declarations = True
+                    break
                 child = child.get('sibling')
+            if has_declarations and scope_directive is not None:
+                for set_to in as_array(scope_directive.get('setTo')):
+                    variables = re.split(
+                        r'\s*,\s*', set_to.get('variables', ''))
+                    state = set_to.get('state', '')
+                    for v in variables:
+                        out += f" self%{v}={state}\n"
+                for method_call in as_array(scope_directive.get('methodCall')):
+                    args = method_call.get('arguments', '')
+                    method_calls.append(
+                        f" call self%{method_call.get('method', '')}({args})"
+                    )
             cursor = classes[cursor].get('extends')
 
         if method_calls:
