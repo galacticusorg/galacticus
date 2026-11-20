@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.
 !!}
@@ -305,28 +307,32 @@ contains
     logical                , intent(in   ) :: nodePassesFilter
     type   (ompLock       ), intent(inout) :: treeLock
     type   (varying_string)                :: datasetName
-    type   (hdf5Group     )                :: outputGroup
-    type   (hdf5Dataset   )                :: dataset
     !$GLC attributes unused :: treeLock
 
     select type (self)
     class is (mergerTreeEvolveTimestepRecordEvolution)
        if (nodePassesFilter.and.iOutput == self%outputTimes_%count().and.node%isOnMainBranch()) then
           !$ call hdf5Access%set()
-          outputGroup=outputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
-          if (.not.self%oneTimeDatasetsWritten) then
-             call outputGroup%writeDataset  (self%time           ,"time"           ,"The time of the main progenitor."            ,datasetReturned=dataset)
-             call dataset    %writeAttribute(unitType(gigaYear,"Gyr"         ,"Gyr"    ),"units")
-             call outputGroup%writeDataset  (self%expansionFactor,"expansionFactor","The expansion factor of the main progenitor."                        )
-             self%oneTimeDatasetsWritten=.true.
-          end if
-          datasetName=var_str("stellarMass")//treeIndex
-          call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."           ,datasetReturned=dataset)
-          call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
-          datasetName=var_str("totalMass"  )//treeIndex
-          call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor."    ,datasetReturned=dataset)
-          call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
-          call    self    %reset         (                                                                                                                )
+          ! HDF5 objects are declared within this block so that they are finalized before the HDF5 lock is released.
+          block
+            type(hdf5Group  ) :: outputGroup
+            type(hdf5Dataset) :: dataset
+            outputGroup=outputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
+            if (.not.self%oneTimeDatasetsWritten) then
+               call outputGroup%writeDataset  (self%time           ,"time"           ,"The time of the main progenitor."            ,datasetReturned=dataset)
+               call dataset    %writeAttribute(unitType(gigaYear,"Gyr"         ,"Gyr"    ),"units")
+               call outputGroup%writeDataset  (self%expansionFactor,"expansionFactor","The expansion factor of the main progenitor."                        )
+               self%oneTimeDatasetsWritten=.true.
+            end if
+            datasetName=var_str("stellarMass")//treeIndex
+            call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."           ,datasetReturned=dataset)
+            call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
+            datasetName=var_str("totalMass"  )//treeIndex
+            call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor."    ,datasetReturned=dataset)
+            call dataset    %writeAttribute(unitType(massSolar  ,"Solar masses","solMass"),"units")
+          end block
+          !$ call hdf5Access%unset()
+          call     self    %reset ()
        end if
     class is (functionClass)
        call Error_Report('object is not of [mergerTreeEvolveTimestepRecordEvolution] class, but of ['//char(self%objectType())//'] class'//{introspection:location})
