@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree operator class which dumps pre-evolution tree structure to the output file.
   !!}
@@ -27,7 +29,12 @@
   !![
   <mergerTreeOperator name="mergerTreeOperatorOutputStructure" docformat="rst">
    <description>
-   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be included in the dump are controlled by a :galacticus-class:`nodePropertyExtractorClass` object provided to this class.  Structures are written to a new group, ``mergerTreeStructures``, in the Galacticus output file. This group will contain groups called ``mergerTreeN`` where ``N`` is the merger tree index. Each such group will contain datasets corresponding to all extracted properties.
+   A merger tree operator class which dumps pre-evolution tree structure to the output file. The node properties to be included in
+   the dump are controlled by a :galacticus-class:`nodePropertyExtractorClass` object provided to this class.  Structures are
+   written to a new group, ``mergerTreeStructures``, in the Galacticus output file. This group will contain groups called
+   ``treeN`` where ``N`` is the merger tree index, one for each forest (the trees of a forest share its index, and are written
+   together). Each such group will contain datasets corresponding to all extracted properties of the isolated nodes of the forest
+   (subhalos are not included).
    </description>
   </mergerTreeOperator>
   !!]
@@ -121,7 +128,6 @@ contains
     implicit none
     class           (mergerTreeOperatorOutputStructure), intent(inout) , target      :: self
     type            (mergerTree                       ), intent(inout) , target      :: tree
-    type            (mergerTree                       )                , pointer     :: treeCurrent
     type            (treeNode                         )                , pointer     :: node
     class           (nodeComponentBasic               )                , pointer     :: basic
     double precision                                   , dimension(:,:), allocatable :: propertiesDouble
@@ -140,151 +146,147 @@ contains
     !$ call hdf5Access%set  ()
     if (.not.self%outputGroup%isOpen()) self%outputGroup=outputFile%openGroup("mergerTreeStructures","Pre-evolution structures of merger trees.")
     !$ call hdf5Access%unset()
-    treeCurrent => tree
-    do while (associated(treeCurrent))
-       !$ call hdf5Access%set()
-       treeGroup=self%outputGroup%openGroup(char(var_str('tree')//treeCurrent%index),'Pre-evolution structure of merger tree.')
-       !$ call hdf5Access%unset()
-       ! Walk the tree to count total number of nodes.
-       countNodes =0
-       treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
-       do while (treeWalker%next(node))
-          countNodes=countNodes+1
-       end do
-       ! Determine the number of properties for output.
-       basic                  => treeCurrent%nodeBase%basic()
-       countPropertiesDouble  =  0
-       countPropertiesInteger =  0
-       select type (extractor_ => self%nodePropertyExtractor_)
-       type  is (nodePropertyExtractorNull         )
-          ! Null extractor - pointless.
-          call Error_Report('null extractor is pointless'//{introspection:location})
-       class is (nodePropertyExtractorScalar       )
-          ! Scalar property extractor.
-          countPropertiesDouble=1
-       class is (nodePropertyExtractorTuple        )
-          ! Tuple property extractor.
-          countPropertiesDouble =extractor_%elementCount(                   basic%time())
-       class is (nodePropertyExtractorIntegerScalar)
-          ! Integer scalar property extractor.
-          countPropertiesInteger=1
-       class is (nodePropertyExtractorIntegerTuple )
-          ! Integer tuple property extractor.
-          countPropertiesInteger=extractor_%elementCount(                   basic%time())
-       class is (nodePropertyExtractorMulti        )
-          ! Multi property extractor.
-          countPropertiesDouble =extractor_%elementCount(elementTypeDouble ,basic%time())
-          countPropertiesInteger=extractor_%elementCount(elementTypeInteger,basic%time())
-       class default
-          call Error_Report('unsupported property extractor class'//{introspection:location})
-       end select
-       ! Allocate storage for the properties.
-       allocate(propertiesDouble (countNodes,countPropertiesDouble ))
-       allocate(propertiesInteger(countNodes,countPropertiesInteger))
-       allocate(unitsDouble      (           countPropertiesDouble ))
-       allocate(unitsInteger     (           countPropertiesInteger))
-       ! Retrieve property names, descriptions, and units.
-       select type (extractor_ => self%nodePropertyExtractor_)
-       class is (nodePropertyExtractorScalar       )
-          ! Scalar property extractor.
-          namesDouble        (1)=extractor_%name        (                                                   )
-          descriptionsDouble (1)=extractor_%description (                                                   )
-          unitsDouble        (1)=extractor_%units       (                                                   )
-       class is (nodePropertyExtractorTuple        )
-          ! Tuple property extractor.
-          call extractor_%names                         (                   basic%time(),namesDouble        )
-          call extractor_%descriptions                  (                   basic%time(),descriptionsDouble )
-          unitsDouble        (:)=extractor_%units       (                   basic%time()                    )
-       class is (nodePropertyExtractorIntegerScalar)
-          ! Integer scalar property extractor.
-          namesInteger       (1)=extractor_%name        (                                                   )
-          descriptionsInteger(1)=extractor_%description (                                                   )
-          unitsInteger       (1)=extractor_%units       (                                                   )
-       class is (nodePropertyExtractorIntegerTuple )
-          ! Integer tuple property extractor.
-          call extractor_%names                         (                   basic%time(),namesInteger       )
-          call extractor_%descriptions                  (                   basic%time(),descriptionsInteger)
-          unitsInteger       (:)=extractor_%units       (                   basic%time()                    )
-       class is (nodePropertyExtractorMulti        )
-          ! Multi property extractor.
-          call extractor_%names                         (elementTypeDouble ,basic%time(),namesDouble        )
-          call extractor_%descriptions                  (elementTypeDouble ,basic%time(),descriptionsDouble )
-          unitsDouble        (:)=extractor_%units       (elementTypeDouble ,basic%time()                    )
-          call extractor_%names                         (elementTypeInteger,basic%time(),namesInteger       )
-          call extractor_%descriptions                  (elementTypeInteger,basic%time(),descriptionsInteger)
-          unitsInteger       (:)=extractor_%units       (elementTypeInteger,basic%time()                    )
-       end select
-       ! Walk the tree again accumulating properties for output to arrays.
-       countNodes =0
-       treeWalker=mergerTreeWalkerIsolatedNodes(treeCurrent)
-       do while (treeWalker%next(node))
-          countNodes=countNodes+1
-          select type (extractor_ => self%nodePropertyExtractor_)
-          class is (nodePropertyExtractorScalar       )
-             ! Scalar property extractor.
-             propertiesDouble (countNodes,1)=extractor_%extract       (node             )
-          class is (nodePropertyExtractorTuple        )
-             ! Tuple property extractor.
-             if     ( countPropertiesDouble  /= extractor_%elementCount(                   basic%time())) &
-                  & call Error_Report('unsupported change in number of properties'//{introspection:location})
-             propertiesDouble (countNodes,:)=extractor_%extract       (node,basic%time())
-         class is (nodePropertyExtractorIntegerScalar)
-             ! Integer scalar property extractor.
-             propertiesInteger(countNodes,1)=extractor_%extract       (node,basic%time())
-          class is (nodePropertyExtractorIntegerTuple )
-             ! Integer tuple property extractor.
-             if     ( countPropertiesInteger /= extractor_%elementCount(                   basic%time())) &
-                  & call Error_Report('unsupported change in number of properties'//{introspection:location})
-             propertiesInteger(countNodes,:)=extractor_%extract       (node,basic%time())
-          class is (nodePropertyExtractorMulti        )
-             ! Multi property extractor.
-             if     (                                                                                     &
-                  &   countPropertiesDouble  /= extractor_%elementCount(elementTypeDouble ,basic%time())  &
-                  &  .or.                                                                                 &
-                  &   countPropertiesInteger /= extractor_%elementCount(elementTypeInteger,basic%time())  &
-                  & ) call Error_Report('unsupported change in number of properties'//{introspection:location})
-             doubleProperties =extractor_%extractDouble (node,basic%time())
-             do i=1,size(doubleProperties )
-                select case (doubleProperties (i)%rank())
-                case (0)
-                   propertiesDouble (countNodes,i)=doubleProperties (i)
-                case default
-                   call Error_Report('non-scalar properties are not supported'//{introspection:location})
-                end select
-             end do
-             integerProperties=extractor_%extractInteger(node,basic%time())
-             do i=1,size(integerProperties)
-                select case (integerProperties(i)%rank())
-                case (0)
-                   propertiesInteger(countNodes,i)=integerProperties(i)
-                case default
-                   call Error_Report('non-scalar properties are not supported'//{introspection:location})
-                end select
-             end do
-          end select
-       end do
-       ! Output all accumulated properties.
-       !$ call hdf5Access%set  ()
-       do i=1,countPropertiesDouble
-          call treeGroup%writeDataset  (propertiesDouble (:,i),char(namesDouble (i)),char(descriptionsDouble (i)),datasetReturned=dataset)
-          call dataset  %writeAttribute(unitsDouble      (  i),'units'                                                                   )
-       end do
-       do i=1,countPropertiesInteger
-          call treeGroup%writeDataset  (propertiesInteger(:,i),char(namesInteger(i)),char(descriptionsInteger(i)),datasetReturned=dataset)
-          call dataset  %writeAttribute(unitsInteger     (  i),'units'                                                                   )
-       end do
-       !$ call hdf5Access%unset()
-       ! Free workspace.
-       if (allocated(propertiesDouble   )) deallocate(propertiesDouble   )
-       if (allocated(propertiesInteger  )) deallocate(propertiesInteger  )
-       if (allocated(namesDouble        )) deallocate(namesDouble        )
-       if (allocated(namesInteger       )) deallocate(namesInteger       )
-       if (allocated(descriptionsDouble )) deallocate(descriptionsDouble )
-       if (allocated(descriptionsInteger)) deallocate(descriptionsInteger)
-       if (allocated(unitsDouble        )) deallocate(unitsDouble        )
-       if (allocated(unitsInteger       )) deallocate(unitsInteger       )
-       ! Move to the next tree.
-       treeCurrent => treeCurrent%nextTree
+    ! All trees of a forest share the forest's index, so the structure of the whole forest is written to a single group.
+    !$ call hdf5Access%set()
+    treeGroup=self%outputGroup%openGroup(char(var_str('tree')//tree%index),'Pre-evolution structure of merger tree.')
+    !$ call hdf5Access%unset()
+    ! Walk the tree to count total number of nodes.
+    countNodes =0
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       countNodes=countNodes+1
     end do
+    ! Determine the number of properties for output.
+    basic                  => tree%nodeBase%basic()
+    countPropertiesDouble  =  0
+    countPropertiesInteger =  0
+    select type (extractor_ => self%nodePropertyExtractor_)
+    type  is (nodePropertyExtractorNull         )
+       ! Null extractor - pointless.
+       call Error_Report('null extractor is pointless'//{introspection:location})
+    class is (nodePropertyExtractorScalar       )
+       ! Scalar property extractor.
+       countPropertiesDouble=1
+    class is (nodePropertyExtractorTuple        )
+       ! Tuple property extractor.
+       countPropertiesDouble =extractor_%elementCount(                   basic%time())
+    class is (nodePropertyExtractorIntegerScalar)
+       ! Integer scalar property extractor.
+       countPropertiesInteger=1
+    class is (nodePropertyExtractorIntegerTuple )
+       ! Integer tuple property extractor.
+       countPropertiesInteger=extractor_%elementCount(                   basic%time())
+    class is (nodePropertyExtractorMulti        )
+       ! Multi property extractor.
+       countPropertiesDouble =extractor_%elementCount(elementTypeDouble ,basic%time())
+       countPropertiesInteger=extractor_%elementCount(elementTypeInteger,basic%time())
+    class default
+       call Error_Report('unsupported property extractor class'//{introspection:location})
+    end select
+    ! Allocate storage for the properties.
+    allocate(propertiesDouble (countNodes,countPropertiesDouble ))
+    allocate(propertiesInteger(countNodes,countPropertiesInteger))
+    allocate(unitsDouble      (           countPropertiesDouble ))
+    allocate(unitsInteger     (           countPropertiesInteger))
+    ! Retrieve property names, descriptions, and units.
+    select type (extractor_ => self%nodePropertyExtractor_)
+    class is (nodePropertyExtractorScalar       )
+       ! Scalar property extractor.
+       namesDouble        (1)=extractor_%name        (                                                   )
+       descriptionsDouble (1)=extractor_%description (                                                   )
+       unitsDouble        (1)=extractor_%units       (                                                   )
+    class is (nodePropertyExtractorTuple        )
+       ! Tuple property extractor.
+       call extractor_%names                         (                   basic%time(),namesDouble        )
+       call extractor_%descriptions                  (                   basic%time(),descriptionsDouble )
+       unitsDouble        (:)=extractor_%units       (                   basic%time()                    )
+    class is (nodePropertyExtractorIntegerScalar)
+       ! Integer scalar property extractor.
+       namesInteger       (1)=extractor_%name        (                                                   )
+       descriptionsInteger(1)=extractor_%description (                                                   )
+       unitsInteger       (1)=extractor_%units       (                                                   )
+    class is (nodePropertyExtractorIntegerTuple )
+       ! Integer tuple property extractor.
+       call extractor_%names                         (                   basic%time(),namesInteger       )
+       call extractor_%descriptions                  (                   basic%time(),descriptionsInteger)
+       unitsInteger       (:)=extractor_%units       (                   basic%time()                    )
+    class is (nodePropertyExtractorMulti        )
+       ! Multi property extractor.
+       call extractor_%names                         (elementTypeDouble ,basic%time(),namesDouble        )
+       call extractor_%descriptions                  (elementTypeDouble ,basic%time(),descriptionsDouble )
+       unitsDouble        (:)=extractor_%units       (elementTypeDouble ,basic%time()                    )
+       call extractor_%names                         (elementTypeInteger,basic%time(),namesInteger       )
+       call extractor_%descriptions                  (elementTypeInteger,basic%time(),descriptionsInteger)
+       unitsInteger       (:)=extractor_%units       (elementTypeInteger,basic%time()                    )
+    end select
+    ! Walk the tree again accumulating properties for output to arrays.
+    countNodes =0
+    treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
+    do while (treeWalker%next(node))
+       countNodes=countNodes+1
+       select type (extractor_ => self%nodePropertyExtractor_)
+       class is (nodePropertyExtractorScalar       )
+          ! Scalar property extractor.
+          propertiesDouble (countNodes,1)=extractor_%extract       (node             )
+       class is (nodePropertyExtractorTuple        )
+          ! Tuple property extractor.
+          if     ( countPropertiesDouble  /= extractor_%elementCount(                   basic%time())) &
+               & call Error_Report('unsupported change in number of properties'//{introspection:location})
+          propertiesDouble (countNodes,:)=extractor_%extract       (node,basic%time())
+      class is (nodePropertyExtractorIntegerScalar)
+          ! Integer scalar property extractor.
+          propertiesInteger(countNodes,1)=extractor_%extract       (node,basic%time())
+       class is (nodePropertyExtractorIntegerTuple )
+          ! Integer tuple property extractor.
+          if     ( countPropertiesInteger /= extractor_%elementCount(                   basic%time())) &
+               & call Error_Report('unsupported change in number of properties'//{introspection:location})
+          propertiesInteger(countNodes,:)=extractor_%extract       (node,basic%time())
+       class is (nodePropertyExtractorMulti        )
+          ! Multi property extractor.
+          if     (                                                                                     &
+               &   countPropertiesDouble  /= extractor_%elementCount(elementTypeDouble ,basic%time())  &
+               &  .or.                                                                                 &
+               &   countPropertiesInteger /= extractor_%elementCount(elementTypeInteger,basic%time())  &
+               & ) call Error_Report('unsupported change in number of properties'//{introspection:location})
+          doubleProperties =extractor_%extractDouble (node,basic%time())
+          do i=1,size(doubleProperties )
+             select case (doubleProperties (i)%rank())
+             case (0)
+                propertiesDouble (countNodes,i)=doubleProperties (i)
+             case default
+                call Error_Report('non-scalar properties are not supported'//{introspection:location})
+             end select
+          end do
+          integerProperties=extractor_%extractInteger(node,basic%time())
+          do i=1,size(integerProperties)
+             select case (integerProperties(i)%rank())
+             case (0)
+                propertiesInteger(countNodes,i)=integerProperties(i)
+             case default
+                call Error_Report('non-scalar properties are not supported'//{introspection:location})
+             end select
+          end do
+       end select
+    end do
+    ! Output all accumulated properties.
+    !$ call hdf5Access%set  ()
+    do i=1,countPropertiesDouble
+       call treeGroup%writeDataset  (propertiesDouble (:,i),char(namesDouble (i)),char(descriptionsDouble (i)),datasetReturned=dataset)
+       call dataset  %writeAttribute(unitsDouble      (  i),'units'                                                                   )
+    end do
+    do i=1,countPropertiesInteger
+       call treeGroup%writeDataset  (propertiesInteger(:,i),char(namesInteger(i)),char(descriptionsInteger(i)),datasetReturned=dataset)
+       call dataset  %writeAttribute(unitsInteger     (  i),'units'                                                                   )
+    end do
+    !$ call hdf5Access%unset()
+    ! Free workspace.
+    if (allocated(propertiesDouble   )) deallocate(propertiesDouble   )
+    if (allocated(propertiesInteger  )) deallocate(propertiesInteger  )
+    if (allocated(namesDouble        )) deallocate(namesDouble        )
+    if (allocated(namesInteger       )) deallocate(namesInteger       )
+    if (allocated(descriptionsDouble )) deallocate(descriptionsDouble )
+    if (allocated(descriptionsInteger)) deallocate(descriptionsInteger)
+    if (allocated(unitsDouble        )) deallocate(unitsDouble        )
+    if (allocated(unitsInteger       )) deallocate(unitsInteger       )
     return
   end subroutine outputStructureOperatePreEvolution
