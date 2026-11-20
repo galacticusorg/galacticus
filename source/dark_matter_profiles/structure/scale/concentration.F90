@@ -75,9 +75,18 @@
   ! Container type used to maintain a stack of state. The root finder is built on first use at each depth of the stack and then
   ! retained (it is not released when the stack is popped), so that a root finder is not constructed and destroyed on every
   ! call. It is held by pointer so that it remains at a fixed address when the stack is grown. It is created using
-  ! "allocate(...,source=rootFinder(...))" because gfortran 16 miscompiles intrinsic assignment of a constructor result to a
-  ! pointer target of this type (writing through a null pointer). The bitwise copy made by "source=" bypasses reference counting,
-  ! which is safe here as a newly-constructed root finder holds no managed resources (its GSL objects are created on first use).
+  ! "allocate(...,source=rootFinder(...))" (see the workaround below). The bitwise copy made by "source=" bypasses reference
+  ! counting, which is safe here as a newly-constructed root finder holds no managed resources (its GSL objects are created on
+  ! first use).
+  !![
+  <workaround type="gfortran" PR="128833" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128833" docformat="rst">
+  <description>
+  Intrinsic assignment of a constructor result to a scalar pointer of this type writes through a null pointer (the
+  compiler-generated temporary copy of the old value is itself a pointer that is never allocated), so
+  ``allocate(...,source=rootFinder(...))`` is used instead.
+  </description>
+  </workaround>
+  !!]
   type :: concentrationState
      class           (darkMatterProfileScaleRadiusConcentration), pointer :: self                  => null()
      type            (treeNode                                 ), pointer :: nodeWork              => null(), node => null()

@@ -363,9 +363,11 @@ contains
              call Move_Alloc(self%luminosityTables,luminosityTablesTemporary)
              allocate(self%luminosityTables(populationID))
              !![
-	     <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
+	     <workaround type="gfortran" PR="93690" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=93690" docformat="rst">
 	       <description>
-	       Defined assignment for components not used when those are ALLOCATABLE.
+	       In an intrinsic assignment of an array, gfortran does not call the type-bound defined assignment of a component unless
+	       that defined assignment is elemental, so the interpolators of the tables would be copied without it. The tables are
+	       therefore assigned one element at a time.
 	       </description>
 	     !!]
              do iLuminosity=1,size(luminosityTablesTemporary)

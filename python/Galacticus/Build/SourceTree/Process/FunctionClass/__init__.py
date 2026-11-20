@@ -1574,6 +1574,10 @@ def _build_descriptor_methods(directive, non_abstract_classes, classes,
     }
 
     # --- hashedDescriptor ---
+    # <workaround type="gfortran" PR="102845" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=102845"/>
+    # The threadprivate cache of the previous descriptor and its hash is disabled (commented out
+    # in the generated code below) because of a memory leak with nested OpenMP parallelism, so
+    # the MD5 hash is recomputed on every call.
     directive_name = directive['name']
     hashed = (
         "logical                        :: includeSourceDigest_\n"

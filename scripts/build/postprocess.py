@@ -201,11 +201,8 @@ for line in itertools.chain([_first_line], sys.stdin):
 
     drop_buffer = False
 
-    # gfortran PR#58175
-    if re.search(r'Only array FINAL procedures declared for derived type', line):
-        drop_buffer = True
-
-    # gfortran PR#86117 — struct MEM[] uninitialized
+    # <workaround type="gfortran" PR="86117" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86117"/>
+    # Bogus "MEM[(struct ...)] is/may be used uninitialized" warnings are dropped.
     m = re.search(
         r"Warning:\s+['\u2018\u2019]MEM\[\(struct\s+([a-zA-Z0-9_]+)[a-z0-9_\s*]+\)[a-z0-9_&]+\s+\+\s+\d+B\]['\u2018\u2019] (?:is|may be) used uninitialized",
         line)

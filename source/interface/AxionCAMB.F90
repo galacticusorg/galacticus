@@ -180,8 +180,7 @@ contains
     type            (lockDescriptor          )                                  :: fileLock
     character       (len=255                 )                                  :: axionCambTransferLine
     type            (varying_string          )                                  :: axionCambVersion                        , parameterFile                 , &
-         &                                                                         axionCambPath                           , outputRoot                    , &
-         &                                                                         labelVersionAxionCamb
+         &                                                                         axionCambPath                           , outputRoot
     double precision                                                            :: wavenumberAxionCAMB                     , coldDarkMatterDensityFraction , &
          &                                                                         fuzzyDarkMatterDensityFraction
     double precision                                                            :: transferFunctionUnused
@@ -230,14 +229,10 @@ contains
        call Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
     ! Add the unique label string to the descriptor.
-    ! Evaluate into locals first - gfortran leaks the temporary returned by a `varying_string`-valued
-    ! function when it is consumed directly by another function.
-    axionCambVersion     =dependencyVersion     ("axioncamb")
-    labelVersionAxionCamb=dependencyVersionLabel("axioncamb")
     uniqueLabel=descriptor%serializeToString()            // &
          &      "_sourceDigest:"                          // &
          &      String_C_To_Fortran(axionCambSourceDigest)// &
-         &      labelVersionAxionCamb
+         &      dependencyVersionLabel("axioncamb")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                            // &
@@ -486,9 +481,15 @@ contains
        escapedLogFile      =shellEscape(logFile              )
        call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
        ! A failure is detected by a non-zero exit status, or by the absence of the transfer function file - AxionCAMB stops on
-       ! invalid parameters with a zero exit status. Note that the file name and message are built in assignments, not in the
-       ! argument lists below - `varying_string` expressions passed directly as arguments are not finalized by gfortran, and so
-       ! leak.
+       ! invalid parameters with a zero exit status.
+       !![
+       <workaround type="gfortran" PR="128856" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+         <description>
+           The file name is built in an assignment: a ``varying_string`` expression passed to ``File_Exists`` in the
+           ``if`` condition would not be deallocated, and would leak on every AxionCAMB run.
+         </description>
+       </workaround>
+       !!]
        transferFileName=outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(1)))//'.dat'
        if (status /= 0 .or. .not.File_Exists(transferFileName)) then
           helpMessage=var_str('AxionCAMB most often fails because the cosmological parameters given to it are invalid -')// &
@@ -555,7 +556,7 @@ contains
          axionCambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
          call axionCambOutput%writeAttribute('Transfer functions created by AxionCAMB.','description'     )
          call axionCambOutput%writeAttribute(axionCambFormatVersionCurrent             ,'fileFormat'      )
-         call axionCambOutput%writeAttribute(axionCambVersion                         ,'versionAxionCAMB')
+         call axionCambOutput%writeAttribute(dependencyVersion("axioncamb")            ,'versionAxionCAMB')
          call axionCambOutput%writeDataset(wavenumbers    ,'wavenumber'                                 ,chunkSize=chunkSize,appendTo=.not.axionCambOutput%hasDataset('wavenumber'))
          speciesGroup=axionCambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique

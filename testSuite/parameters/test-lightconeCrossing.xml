@@ -89,7 +89,7 @@
     <darkMatterProfileDMO value="NFW"      />
     <nonAnalyticSolver          value="numerical"/>
   </darkMatterProfileDMO>
-  <darkMatterProfileHeating     value="tidal"              />
+  <darkMatterProfileHeating     value="null"               />
   <darkMatterProfileScaleRadius value="concentrationLimiter">
     <concentrationMinimum value="  4.0"/>
     <concentrationMaximum value="100.0"/>

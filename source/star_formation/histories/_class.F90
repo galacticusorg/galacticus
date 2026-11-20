@@ -167,6 +167,26 @@ module Star_Formation_Histories
      starFormationHistoryAgeDistribution=starFormationHistoryAgesArbitrary
     </code>
    </method>
+   <method name="reconstruct">
+    <description>
+    Reconstruct the star formation history, ``historyStarFormation``, of a component of ``node`` from the ``times`` and ``masses``
+    (indexed by time, then metallicity) which were previously output for it---the inverse of the ``times`` and ``masses``
+    methods. Any state that the class keeps in ``node`` and needs in order to interpret the history is also restored. This is
+    used when postprocessing galaxies read back from a Galacticus output file. If no star formation history was output for the
+    component (``times`` has zero size) the history is left uncreated.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <modules>Error</modules>
+    <argument>type            (treeNode), intent(inout), target         :: node                </argument>
+    <argument>type            (history ), intent(inout)                 :: historyStarFormation</argument>
+    <argument>double precision          , intent(in   ), dimension(:  ) :: times               </argument>
+    <argument>double precision          , intent(in   ), dimension(:,:) :: masses              </argument>
+    <code>
+     !$GLC attributes unused :: self, node, historyStarFormation, times, masses
+     call Error_Report('reconstruction of star formation histories from output is not supported by this class'//{introspection:location})
+    </code>
+   </method>
    <method name="update">
      <description>
      Update the star formation history after an output time is reached.

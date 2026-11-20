@@ -389,6 +389,9 @@ def main(argv):
             'functionsGlobal':      lambda _: ['functionGlobal'],
             'eventHookManager':     lambda _: ['eventHook'],
             'metaPropertyDatabase': lambda _: ['addMetaProperty'],
+            # A `modelRequire` embeds help text naming every provider of
+            # its fact, found from the `modelFact` directives.
+            'modelRequire':         lambda _: ['modelFact'],
             # A static event hook calls every function attached to it by a
             # directive named after the hook.
             'eventHookStatic':      lambda consumer: [
