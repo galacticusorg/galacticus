@@ -9,9 +9,10 @@ import numpy as np
 # et al. 2014), rather than inheriting the default of the Ludlow et al. (2016) class (400) from which it derives. The same small
 # model is run three times: with C left at its default, with C=853 given explicitly, and with C=400 given explicitly. The first
 # two must give the same concentrations, and the third must differ from them (which shows that the concentrations do depend
-# on C in this model, so that the first comparison can fail). Only isolated halos are compared, as the concentration affects
-# the evolution of satellites, and so which satellites survive to be output. Models are run single-threaded, and halos are
-# matched by their indices. Concentrations are compared with a small relative tolerance, as a model that tabulates sigma(M)
+# on C in this model, so that the first comparison can fail). Only isolated halos (the roots of the trees) are compared, as the
+# concentration affects the evolution of satellites, and so which satellites survive to be output. Models are run
+# single-threaded, so that the trees are output in the same order, and the masses of the roots are required to be identical
+# between the runs, which confirms that the halos are paired correctly. Concentrations are compared with a small relative tolerance, as a model that tabulates sigma(M)
 # afresh can differ at the 1e-7 level from one that reads the tabulation back.
 # Andrew Benson, Claude (19-November-2026)
 
@@ -46,19 +47,17 @@ def makeModel(label,C):
         nodeData      = model["Outputs/Output1/nodeData"]
         isolated      = nodeData["nodeIsIsolated"][:] == 1
         concentration = nodeData["concentration" ][:][isolated]
-        indices       = nodeData["nodeIndex"     ][:][isolated]
-    # Order by node index (with a stable sort, as indices may repeat between trees).
-    order = np.argsort(indices,kind="stable")
-    return indices[order], concentration[order]
+        massRoot      = nodeData["basicMass"     ][:][isolated]
+    return massRoot, concentration
 
-indicesDefault , concentrationDefault  = makeModel("Default" ,None )
-indices853     , concentration853      = makeModel("C853"    ,"853")
-indices400     , concentration400      = makeModel("C400"    ,"400")
+massDefault    , concentrationDefault  = makeModel("Default" ,None )
+mass853        , concentration853      = makeModel("C853"    ,"853")
+mass400        , concentration400      = makeModel("C400"    ,"400")
 
 if len(concentrationDefault) == 0:
     print("FAILED: Ludlow2014 concentration models produced no isolated halos")
     sys.exit(0)
-if not (np.array_equal(indicesDefault,indices853) and np.array_equal(indicesDefault,indices400)):
+if not (np.array_equal(massDefault,mass853) and np.array_equal(massDefault,mass400)):
     print("FAILED: Ludlow2014 concentration models do not contain the same isolated halos")
     sys.exit(0)
 toleranceRelative = 1.0e-4
