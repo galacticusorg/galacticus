@@ -4370,7 +4370,7 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
+                do dimensionIndex=1,rank(datasetValue)-1
                    readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=referenceStart(dimensionIndex)-1+mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
@@ -4468,7 +4468,7 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
+                do dimensionIndex=1,rank(datasetValue)-1
                    readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
@@ -4759,7 +4759,7 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
+                do dimensionIndex=1,rank(datasetValue)-1
                    readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=referenceStart(dimensionIndex)-1+mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
@@ -4857,7 +4857,7 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
+                do dimensionIndex=1,rank(datasetValue)-1
                    readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
