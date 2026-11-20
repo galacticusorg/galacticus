@@ -20,7 +20,7 @@
   !+    Contributions to this file made by: Andrew Benson, Claude.
 
   !!{RST
-  An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
+  An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization, with the maximum circular velocity of the halo as the velocity scale.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
@@ -37,7 +37,7 @@
   !!]
   type, extends(accretionHaloSimple) :: accretionHaloBertschinger
      !!{RST
-     A halo accretion class using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
+     A halo accretion class using simple truncation to mimic the effects of reionization, with the maximum circular velocity of the halo as the velocity scale.
      !!}
      private
      class(darkMatterProfileDMOClass), pointer:: darkMatterProfileDMO_ => null()
