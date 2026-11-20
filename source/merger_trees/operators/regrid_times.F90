@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
   !!}
@@ -318,20 +320,13 @@ contains
              ! Get the time of this node and its parent.
              timeNow   =basic      %time()
              timeParent=basicParent%time()
-             ! Locate these times in the list of grid times.
-             if (size(self%timeGrid) > 1) then
-                iNow   =interpolator_%locate(timeNow   )
-                iParent=interpolator_%locate(timeParent)
-             else
-                iNow   =0
-                iParent=0
-                if (timeNow    >= self%timeGrid(1)) iNow   =1
-                if (timeParent >  self%timeGrid(1)) iParent=1
-             end if
-             ! For nodes existing precisely at a grid time, ignore this grid point. (These are,
-             ! typically, nodes which have been created at these points.)
-             if (timeNow    == self%timeGrid(iNow   )) iNow   =iNow   +1
-             if (timeParent == self%timeGrid(iParent)) iParent=iParent-1
+             ! Count the grid times at or before this node (iNow), and strictly before its parent (iParent). The grid times lying
+             ! strictly between the node and its parent are then those numbered iNow+1 to iParent. Grid times coinciding precisely
+             ! with the node or its parent are excluded - these are, typically, nodes which have been created at these points. (The
+             ! interpolator's locate() is not used here as it clamps its result to [1,N-1], which loses the first and last grid
+             ! times for branches extending beyond them.)
+             iNow   =count(self%timeGrid <= timeNow   ,kind=c_size_t)
+             iParent=count(self%timeGrid <  timeParent,kind=c_size_t)
              ! If the branch from node to parent spans one or more grid times, insert new nodes
              ! at those points.
              if (iParent > iNow) then
