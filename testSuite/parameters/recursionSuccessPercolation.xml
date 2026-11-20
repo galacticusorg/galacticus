@@ -74,6 +74,9 @@
     <concentrationMaximum value="100.0"/>
     <darkMatterProfileScaleRadius value="concentration"/>
   </darkMatterProfileScaleRadius>
+  <!-- Concentrations, including those used by the percolation calculation. (The default, gao2008, defines its concentrations -->
+  <!-- with an Einasto profile, which cannot reach the high density contrasts that the percolation calculation explores.)    -->
+  <darkMatterProfileConcentration value="diemerKravtsov2014"/>
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">

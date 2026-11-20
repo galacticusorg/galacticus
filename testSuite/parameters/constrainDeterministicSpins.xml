@@ -114,6 +114,9 @@
       </galacticFilter>
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
+  <!-- Concentrations used by the percolation calculation of the friends-of-friends halo definition in the Bett et al. (2007)  -->
+  <!-- analysis (the same relation, with its default parameters, as is used for scale radii above).                          -->
+  <darkMatterProfileConcentration value="diemerKravtsov2014"/>
 
   <!-- Tree node component selection -->
   <componentBasic value="standard"/>

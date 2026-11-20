@@ -55,6 +55,7 @@ program Test_Concentration_Gao2008
   !!}
   use :: Cosmology_Functions                , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters               , only : cosmologyParametersSimple
+  use :: Cosmological_Density_Field         , only : cosmologicalMassVarianceClass        , criticalOverdensityClass
   use :: Dark_Matter_Profiles_Concentration , only : darkMatterProfileConcentrationGao2008
   use :: Display                            , only : displayVerbositySet                  , verbosityLevelStandard
   use :: Events_Hooks                       , only : eventsHooksInitialize
@@ -69,6 +70,8 @@ program Test_Concentration_Gao2008
   type            (cosmologyParametersSimple            ), pointer       :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda       ), pointer       :: cosmologyFunctions_
   type            (darkMatterProfileConcentrationGao2008), pointer       :: concentrationGao2008_
+  class           (criticalOverdensityClass             ), pointer       :: criticalOverdensity_
+  class           (cosmologicalMassVarianceClass        ), pointer       :: cosmologicalMassVariance_
   type            (mergerTree                           )                :: tree
   type            (treeNode                             ), pointer       :: node
   class           (nodeComponentBasic                   ), pointer       :: basic
@@ -111,8 +114,14 @@ program Test_Concentration_Gao2008
   allocate(concentrationGao2008_)
   cosmologyParameters_ =cosmologyParametersSimple            (OmegaMatter=0.3153d0,OmegaBaryon=0.0493d0,OmegaDarkEnergy=0.6847d0,temperatureCMB=2.72548d0,HubbleConstant=HubbleConstant)
   cosmologyFunctions_  =cosmologyFunctionsMatterLambda       (cosmologyParameters_=cosmologyParameters_)
+  ! The critical overdensity and mass variance are needed only by the definition profile, which is not used here, so the defaults
+  ! suffice.
+  !![
+  <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+  <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+  !!]
   ! Scatter is set to zero so that the mean relation is returned, and no random number generator is required.
-  concentrationGao2008_=darkMatterProfileConcentrationGao2008(scatter=0.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)
+  concentrationGao2008_=darkMatterProfileConcentrationGao2008(scatter=0.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,criticalOverdensity_=criticalOverdensity_,cosmologicalMassVariance_=cosmologicalMassVariance_)
   node  => treeNode(hostTree=tree)
   basic => node    %basic   (autoCreate=.true.)
   ! Recover the fit coefficients at each of the redshifts tabulated by Gao et al. (2008).
@@ -162,6 +171,10 @@ program Test_Concentration_Gao2008
   ! Clean up.
   call node%destroy()
   deallocate(concentrationGao2008_)
+  !![
+  <objectDestructor name="criticalOverdensity_"     />
+  <objectDestructor name="cosmologicalMassVariance_"/>
+  !!]
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
   call nodeClassHierarchyFinalize         ()
