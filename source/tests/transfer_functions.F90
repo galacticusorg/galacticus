@@ -222,17 +222,17 @@ program Tests_Transfer_Functions
        &                                           cambCountPerDecade  =0                          &
        &                                          )
   call Unit_Tests_Begin_Group("In-memory cache")
-  call Assert(                                                                                                               &
-       &      'CAMB transfer function from cache has the same value'                                                       , &
-       &      transferFunctionCAMBCached_%value(wavenumber(1)),transferFunctionCAMB_%value(wavenumber(1))                  , &
-       &      absTol=0.0d0                                                                                                   &
+  call Assert(                                                                                                                    &
+       &      'CAMB transfer function from cache has the same value'                                                            , &
+       &      transferFunctionCAMBCached_%value(wavenumber(1)),transferFunctionCAMB_%value(wavenumber(1))                       , &
+       &      absTol=0.0d0                                                                                                        &
        &     )
-  call Assert(                                                                                                               &
-       &      'CAMB transfer function from cache has the same descriptor, including file modification times'               , &
-       &      char(transferFunctionCAMBCached_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)) &
-       &      ==                                                                                                             &
+  call Assert(                                                                                                                    &
+       &      'CAMB transfer function from cache has the same descriptor, including file modification times'                    , &
+       &      char(transferFunctionCAMBCached_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.))  &
+       &      ==                                                                                                                  &
        &      char(transferFunctionCAMB_      %hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)), &
-       &      .true.                                                                                                         &
+       &      .true.                                                                                                              &
        &     )
   call Unit_Tests_End_Group()
   ! Check that the curvature factor, 1-3K/k², is removed from tabulated transfer functions in a curved universe. For Ω_k=0.1 the
