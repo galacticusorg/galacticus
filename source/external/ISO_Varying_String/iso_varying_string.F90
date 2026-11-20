@@ -497,22 +497,12 @@ contains
 
     character(LEN=*), intent(in)     :: string_a
     type(varying_string), intent(in) :: string_b
-    type(varying_string)             :: concat_string, string_a_vs
+    type(varying_string)             :: concat_string
 
 ! Concatenate a character string and a varying 
 ! string
 
-    !![
-    <workaround type="gfortran"  docformat="rst">
-      <description>
-      Construct ``string_a_vs`` explicitly - using a constructor call as an argument to a function currently causes memory leaks.
-      </description>
-    !!]
-    string_a_vs   = var_str(string_a)
-    concat_string = op_concat_VS_VS(string_a_vs, string_b)
-    !![
-    </workaround>
-    !!]
+    concat_string = op_concat_VS_VS(var_str(string_a), string_b)
 
 ! Finish
 
@@ -526,22 +516,12 @@ contains
 
     type(varying_string), intent(in) :: string_a
     character(LEN=*), intent(in)     :: string_b
-    type(varying_string)             :: concat_string, string_b_vs
+    type(varying_string)             :: concat_string
 
 ! Concatenate a varying string and a character
 ! string
 
-    !![
-    <workaround type="gfortran"  docformat="rst">
-      <description>
-      Construct ``string_a_vs`` explicitly - using a constructor call as an argument to a function currently causes memory leaks.
-      </description>
-    !!]
-    string_b_vs   = var_str(string_b)
-    concat_string = op_concat_VS_VS(string_a, string_b_vs)
-    !![
-    </workaround>
-    !!]
+    concat_string = op_concat_VS_VS(string_a, var_str(string_b))
     
 ! Finish
 
