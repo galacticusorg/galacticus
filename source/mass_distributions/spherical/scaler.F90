@@ -583,8 +583,8 @@ contains
          &                                                                     )                             &
          &                                                               )                                   &
          &             *                                                   sqrt(                             &
-         &                                                                      +self%factorScalingLength**5 &
-         &                                                                      /self%factorScalingMass      &
+         &                                                                      +self%factorScalingMass      &
+         &                                                                      /self%factorScalingLength    &
          &                                                                     )
     return
   end function sphericalScalerRadiusFreefallIncreaseRate
@@ -607,6 +607,7 @@ contains
     !!{RST
     Return the peak velocity in the rotation curve for an spherical scaled mass distribution.
     !!}
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
     class(massDistributionSphericalScaler), intent(inout) :: self
 
@@ -615,6 +616,9 @@ contains
          &         +self%factorScalingMass                          &
          &         /self%factorScalingLength                        &
          &        )
+    if (self%massDistribution_%isDimensionless())                   &
+         & velocity=+velocity                                       &
+         &          *sqrt(gravitationalConstant_internal)
     return
   end function sphericalScalerVelocityRotationCurveMaximum
 
@@ -677,7 +681,7 @@ contains
        if (mass <= 0.0d0) then
           radius=+0.0d0
        else
-          radius=+self%massDistribution_%radiusCylindricalEnclosingMass(mass          =mass          *self%factorScalingMass)
+          radius=+self%massDistribution_%radiusCylindricalEnclosingMass(mass          =mass          /self%factorScalingMass)
        end if
     else
        radius=+0.0d0

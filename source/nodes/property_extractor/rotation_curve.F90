@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a property extractor class for the rotation curve at a set of radii.
   !!}
@@ -294,7 +296,8 @@ contains
     !!{RST
     Return the units of the rotationCurve properties.
     !!}
-    use :: Units_MetaData, only : unitType
+    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Units_MetaData                  , only : unitType
     implicit none
     type            (unitType                          ), dimension(:) , allocatable :: units
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
@@ -307,5 +310,6 @@ contains
     do i=1,size(siValues)
        units(i)=unitType(siValues(i),description='km/s',quantity='km/s')
     end do
+    if (self%includeRadii) units(2)=unitType(megaParsec,description='Mpc',quantity='Mpc')
     return
   end function rotationCurveUnits

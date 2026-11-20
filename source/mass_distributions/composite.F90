@@ -231,7 +231,7 @@ contains
                 self%isCollisionless=.false.
              else
                 toleranceRelativeVelocityDispersion       =max(toleranceRelativeVelocityDispersion,massDistribution_%massDistribution_%kinematicsDistribution_%toleranceRelativeVelocityDispersion       )
-                toleranceRelativeVelocityDispersionMaximum=max(toleranceRelativeVelocityDispersion,massDistribution_%massDistribution_%kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum)
+                toleranceRelativeVelocityDispersionMaximum=max(toleranceRelativeVelocityDispersionMaximum,massDistribution_%massDistribution_%kinematicsDistribution_%toleranceRelativeVelocityDispersionMaximum)
              end if
           else
              haveKinematics=.false.
