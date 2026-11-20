@@ -1422,6 +1422,7 @@ jobs:
                       tests.event_hooks.exe,
                       tests.tree_branch_destroy.exe,
                       tests.binary_search_trees.exe,
+                      tests.merger_remnant_size_Covington2008.exe,
                       tests.orbits.exe,
                       tests.debugging.exe,
                       tests.hashes.cryptographic.exe,
