@@ -139,7 +139,7 @@ contains
     integer                      , intent(in   ), optional     :: field
     type   (varying_string      ), allocatable  , dimension(:) :: mangleFiles
     integer                                                    :: fieldActual
-    type   (varying_string      )                              :: message    , versionMangle
+    type   (varying_string      )                              :: message
 
     ! Validate field.
     if (.not.present(field)) then
@@ -158,10 +158,8 @@ contains
        if (.not.self%solidAnglesInitialized) then
           call self%mangleFiles(mangleFiles)
           ! The mangle version forms part of the cached file name, so that solid angles computed by an earlier mangle are not
-          ! silently reused after the version is changed in `aux/dependencies.yml`. It is evaluated into a local first - gfortran
-          ! leaks the temporary returned by a `varying_string`-valued function when it is consumed directly by another function.
-          versionMangle              =dependencyVersion("mangle")
-          self%solidAngles           =geometryMangleSolidAngle(mangleFiles,char(self%mangleDirectory()//"solidAngles_v"//versionMangle//".hdf5"))
+          ! silently reused after the version is changed in `aux/dependencies.yml`.
+          self%solidAngles           =geometryMangleSolidAngle(mangleFiles,char(self%mangleDirectory()//"solidAngles_v"//dependencyVersion("mangle")//".hdf5"))
           self%solidAnglesInitialized=.true.
        end if
     end if
@@ -294,7 +292,7 @@ contains
     integer                               , intent(in   )               :: i          , j, &
          &                                                                 l
     type            (varying_string      ), allocatable  , dimension(:) :: mangleFiles
-    type            (varying_string      )                              :: message    , versionMangle
+    type            (varying_string      )                              :: message
 
     ! Validate fields.
     if     (                                  &
@@ -310,10 +308,8 @@ contains
     if (.not.self%angularPowerInitialized) then
        if (.not.self%angularPowerInitialized) then
           call self%mangleFiles(mangleFiles)
-          ! As for solid angles, the mangle version forms part of the cached file name, evaluated into a local to avoid the
-          ! gfortran temporary leak.
-          versionMangle               =dependencyVersion("mangle")
-          self%angularPowerSpectra    =geometryMangleAngularPower(mangleFiles,self%angularPowerMaximumDegree(),char(self%mangleDirectory()//"angularPower_v"//versionMangle//".hdf5"))
+          ! As for solid angles, the mangle version forms part of the cached file name.
+          self%angularPowerSpectra    =geometryMangleAngularPower(mangleFiles,self%angularPowerMaximumDegree(),char(self%mangleDirectory()//"angularPower_v"//dependencyVersion("mangle")//".hdf5"))
           self%angularPowerInitialized=.true.
        end if
     end if
