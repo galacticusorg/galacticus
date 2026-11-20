@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the functional forms shared by the :cite:t:`diemer_splashback_2017` and :cite:t:`diemer_splashback_2020`
   splashback radius models. The two models use identical functional forms, and differ only in the values of their fitted
@@ -349,6 +351,7 @@
      !!]
      procedure :: radius        => diemerRadius
      procedure :: radiusRatio   => diemerRadiusRatio
+     procedure :: massIsProvided => diemerMassIsProvided
      procedure :: mass          => diemerMass
      procedure :: massRatio     => diemerMassRatio
      procedure :: radiusScatter => diemerRadiusScatter
@@ -465,6 +468,18 @@ contains
          & *radius200Mean
     return
   end function diemerRadius
+
+  logical function diemerMassIsProvided(self)
+    !!{RST
+    Return true since the splashback mass is predicted by this class.
+    !!}
+    implicit none
+    class(darkMatterHaloSplashbackRadiusDiemer), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    diemerMassIsProvided=.true.
+    return
+  end function diemerMassIsProvided
 
   double precision function diemerMass(self,node,massDistribution_) result(mass)
     !!{RST
