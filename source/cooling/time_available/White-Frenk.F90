@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of the :cite:t:`white_galaxy_1991` time available for cooling class.
   !!}
@@ -125,7 +127,7 @@ contains
     return
   end subroutine whiteFrenk1991Destructor
 
-  double precision function whiteFrenk1991TimeAvailable(self,node)
+  double precision function whiteFrenk1991TimeAvailable(self,node,time)
     !!{RST
     Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the :cite:t:`white_galaxy_1991` model.
     !!}
@@ -133,22 +135,31 @@ contains
     implicit none
     class           (coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ), optional :: time
     class           (nodeComponentBasic                ), pointer       :: basic
     double precision                                                    :: timeNow, timeDynamical
 
     ! Return the appropriate time.
     if (self%ageFactor == 1.0d0) then
-       ! Time available equals the age of the Universe, which is just the time for this node.
-       basic                       => node %basic()
-       whiteFrenk1991TimeAvailable =  basic%time ()
+       ! Time available equals the age of the Universe, which is just the time for this node (or the given time).
+       if (present(time)) then
+          whiteFrenk1991TimeAvailable =  time
+       else
+          basic                       => node %basic()
+          whiteFrenk1991TimeAvailable =  basic%time ()
+       end if
     else if (self%ageFactor == 0.0d0) then
        ! Time available equals the halo dynamical time.
        whiteFrenk1991TimeAvailable =  self%darkMatterHaloScale_%timescaleDynamical(node)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
-       basic                       =>  node %basic                                  (    )
        timeDynamical               =   self %darkMatterHaloScale_%timescaleDynamical(node)
-       timeNow                     =   basic                     %time              (    )
+       if (present(time)) then
+          timeNow                  =   time
+       else
+          basic                    =>  node %basic                                  (    )
+          timeNow                  =   basic                     %time              (    )
+       end if
        whiteFrenk1991TimeAvailable =  +  timeDynamical   &
             &                         *(                 &
             &                           +timeNow         &
@@ -158,14 +169,15 @@ contains
     return
   end function whiteFrenk1991TimeAvailable
 
-  double precision function whiteFrenk1991TimeAvailableIncreaseRate(self,node)
+  double precision function whiteFrenk1991TimeAvailableIncreaseRate(self,node,time)
     !!{RST
     Compute the rate of increase of the time available for cooling using the :cite:t:`white_galaxy_1991` method. We return a rate of 1, even though technically it can depend on halo properties.
     !!}
     implicit none
     class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
+    double precision                         , intent(in   ), optional :: time
+    !$GLC attributes unused :: self, node, time
 
     ! Simply return unit rate.
     whiteFrenk1991TimeAvailableIncreaseRate=1.0d0

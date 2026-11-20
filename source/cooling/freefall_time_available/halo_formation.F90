@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of the :cite:t:`cole_hierarchical_2000` method for computing the time available for freefall in cooling calculations in hot halos.
   !!}
@@ -84,21 +86,22 @@ contains
     return
   end function haloFormationConstructorInternal
   
-  double precision function haloFormationTimeAvailableIncreaseRate(self,node)
+  double precision function haloFormationTimeAvailableIncreaseRate(self,node,time)
     !!{RST
     Compute the rate of increase of the time available for freefall using the :cite:t:`cole_hierarchical_2000` method. We return a rate of 1.
     !!}
     implicit none
     class(freefallTimeAvailableHaloFormation), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
+    double precision                         , intent(in   ), optional :: time
+    !$GLC attributes unused :: self, node, time
 
     ! Simply return unit rate.
     haloFormationTimeAvailableIncreaseRate=1.0d0
     return
   end function haloFormationTimeAvailableIncreaseRate
 
-  double precision function haloFormationTimeAvailable(self,node)
+  double precision function haloFormationTimeAvailable(self,node,time)
     !!{RST
     Compute the time available for freefall using the :cite:t:`cole_hierarchical_2000` method. Specifically, the time available is assumed to be the time since the halo formation event.
     !!}
@@ -106,10 +109,16 @@ contains
     implicit none
     class(freefallTimeAvailableHaloFormation), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
+    double precision                         , intent(in   ), optional :: time
     class(nodeComponentBasic                ), pointer       :: basic
 
     basic                      =>  node %basic                    (                        )
-    haloFormationTimeAvailable =  +basic%time                     (                        ) &
-         &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
+    if (present(time)) then
+       haloFormationTimeAvailable =  +time                                                    &
+            &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
+    else
+       haloFormationTimeAvailable =  +basic%time                     (                        ) &
+            &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
+    end if
     return
   end function haloFormationTimeAvailable

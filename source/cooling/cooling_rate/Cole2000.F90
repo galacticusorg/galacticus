@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a cooling rate class for the :cite:t:`cole_hierarchical_2000` cooling rate calculation.
   !!}
@@ -121,7 +123,7 @@ contains
     class           (coolingRateCole2000  ), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node
     type            (treeNode             ), pointer       :: nodeFormation
-    class           (nodeComponentBasic   ), pointer       :: basicFormation
+    class           (nodeComponentBasic   ), pointer       :: basicFormation        , basic
     class           (nodeComponentHotHalo ), pointer       :: hotHaloFormation
     class           (massDistributionClass), pointer       :: massDistribution_
     type            (coordinateSpherical  )                :: coordinates
@@ -140,8 +142,11 @@ contains
     end if
     ! Get the outer radius of the hot halo.
     radiusOuter =hotHaloFormation%outerRadius()
-    ! Get the infall radius.
-    radiusInfall=self%coolingInfallRadius_%radius(nodeFormation)
+    ! Get the infall radius. Following Cole et al. (2000), the density profile of the hot gas is that of the halo at its formation
+    ! (so the formation node is used), but the time available for cooling continues to grow (so the time of the current node is
+    ! used).
+    basic       =>                                  node         %basic ()
+    radiusInfall=self%coolingInfallRadius_%radius(nodeFormation,basic%time())
     if (radiusInfall >= radiusOuter) then
        ! Infall radius exceeds the outer radius - zero infall rate.
        cole2000Rate=0.0d0
@@ -154,7 +159,7 @@ contains
        <objectDestructor name="massDistribution_"/>
        !!]          
        ! Find infall radius growth rate.
-       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(nodeFormation                       )
+       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(nodeFormation,basic%time()          )
        ! Compute the infall rate.
        cole2000Rate             = +4.0d0                     &
             &                     *Pi                        &

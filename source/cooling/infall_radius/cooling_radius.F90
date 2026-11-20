@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
   !!}
@@ -100,26 +102,28 @@ contains
     return
   end subroutine coolingRadiusDestructor
 
-  double precision function coolingRadiusRadius(self,node)
+  double precision function coolingRadiusRadius(self,node,time)
     !!{RST
     Return the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
     class(coolingInfallRadiusCoolingRadius), intent(inout) :: self
     type (treeNode                        ), intent(inout) :: node
+    double precision                       , intent(in   ), optional :: time
 
-    coolingRadiusRadius=self%coolingRadius_%radius(node)
+    coolingRadiusRadius=self%coolingRadius_%radius(node,time)
     return
   end function coolingRadiusRadius
 
-  double precision function coolingRadiusRadiusIncreaseRate(self,node)
+  double precision function coolingRadiusRadiusIncreaseRate(self,node,time)
     !!{RST
     Return the growth rate of the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
     class(coolingInfallRadiusCoolingRadius), intent(inout) :: self
     type (treeNode                        ), intent(inout) :: node
+    double precision                       , intent(in   ), optional :: time
 
-    coolingRadiusRadiusIncreaseRate=self%coolingRadius_%radiusGrowthRate(node)
+    coolingRadiusRadiusIncreaseRate=self%coolingRadius_%radiusGrowthRate(node,time)
     return
   end function coolingRadiusRadiusIncreaseRate

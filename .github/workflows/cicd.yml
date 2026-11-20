@@ -1578,6 +1578,7 @@ jobs:
                 test-bar-instability-binding-energy.py,
                 test-transfer-functions-axion.py,
                 test-mass-definitions.py,
+                test-cooling-rate-Cole2000.py,
                 test-branchlessTrees.py,
                 test-branchSubsampling.py,
                 test-CGM-mass-cooled.py,

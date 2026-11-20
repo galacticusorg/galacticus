@@ -132,7 +132,7 @@ contains
     return
   end subroutine bensonBower2010Destructor
 
-  double precision function bensonBower2010TimeAvailable(self,node)
+  double precision function bensonBower2010TimeAvailable(self,node,time)
     !!{RST
     Returns the time available for cooling (in units of Gyr).
     !!}
@@ -141,9 +141,11 @@ contains
     implicit none
     class           (coolingTimeAvailableBensonBower2010), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
+    double precision                                     , intent(in   ), optional :: time
     class           (nodeComponentHotHalo               ), pointer       :: hotHalo
     double precision                                                     :: numberDensityHydrogen, coolingFunction, &
          &                                                                  countParticles
+    !$GLC attributes unused :: time
 
     if (.not.coolingBensonBower2010Properties(node,self%coolingFunction_,self%chemicalState_,self%radiation,coolingFunction,numberDensityHydrogen,countParticles)) then
        bensonBower2010TimeAvailable=0.0d0
@@ -167,14 +169,15 @@ contains
     return
   end function bensonBower2010TimeAvailable
 
-  double precision function bensonBower2010TimeAvailableIncreaseRate(self,node)
+  double precision function bensonBower2010TimeAvailableIncreaseRate(self,node,time)
     !!{RST
     Compute the rate of increase of the time available for cooling. We return a rate of 1.
     !!}
     implicit none
     class(coolingTimeAvailableBensonBower2010), intent(inout) :: self
     type (treeNode                           ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
+    double precision                          , intent(in   ), optional :: time
+    !$GLC attributes unused :: self, node, time
 
     bensonBower2010TimeAvailableIncreaseRate=1.0d0
     return

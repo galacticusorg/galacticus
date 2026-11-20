@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
   !!}
@@ -107,36 +109,38 @@ contains
     return
   end subroutine coolingFreefallDestructor
 
-  double precision function coolingFreefallRadius(self,node)
+  double precision function coolingFreefallRadius(self,node,time)
     !!{RST
     Return the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
     class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ), optional :: time
     double precision                                                    :: radiusCooling, radiusFreefall
 
-    radiusCooling =self%coolingRadius_ %radius(node)
-    radiusFreefall=self%freefallRadius_%radius(node)
+    radiusCooling =self%coolingRadius_ %radius(node,time)
+    radiusFreefall=self%freefallRadius_%radius(node,time)
     coolingFreefallRadius=min(radiusCooling,radiusFreefall)
     return
   end function coolingFreefallRadius
 
-  double precision function coolingFreefallRadiusIncreaseRate(self,node)
+  double precision function coolingFreefallRadiusIncreaseRate(self,node,time)
     !!{RST
     Return the growth rate of the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
     class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
+    double precision                                    , intent(in   ), optional :: time
     double precision                                                    :: radiusCooling, radiusFreefall
 
-    radiusCooling =self%coolingRadius_ %radius(node)
-    radiusFreefall=self%freefallRadius_%radius(node)
+    radiusCooling =self%coolingRadius_ %radius(node,time)
+    radiusFreefall=self%freefallRadius_%radius(node,time)
     if (radiusCooling < radiusFreefall) then
-       coolingFreefallRadiusIncreaseRate=self%coolingRadius_ %radiusGrowthRate(node)
+       coolingFreefallRadiusIncreaseRate=self%coolingRadius_ %radiusGrowthRate(node,time)
     else
-       coolingFreefallRadiusIncreaseRate=self%freefallRadius_%radiusGrowthRate(node)
+       coolingFreefallRadiusIncreaseRate=self%freefallRadius_%radiusGrowthRate(node,time)
     end if
     return
   end function coolingFreefallRadiusIncreaseRate
