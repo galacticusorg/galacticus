@@ -59,9 +59,9 @@
      A merger mass movements class which uses the :cite:t:`baugh_can_2005` calculation.
      !!}
      private
-     double precision                                   :: massRatioMajorMerger     , ratioMassBurst, &
-          &                                                fractionGasCriticalBurst
-     type            (enumerationDestinationMergerType) :: destinationGasMinorMerger
+     double precision                                         :: massRatioMajorMerger     , ratioMassBurst, &
+          &                                                      fractionGasCriticalBurst
+     type            (enumerationDestinationMergerType      ) :: destinationGasMinorMerger
      type            (enumerationBaugh2005BurstCriterionType) :: burstCriterion
    contains
      final     ::              baugh2005Destructor
@@ -233,10 +233,10 @@ contains
     <objectDestructor name="massDistributionHostSpheroid"   />
     !!]
     if (mergerIsMajor) then
-       destinationGasSatellite  =    destinationMergerSpheroid
-       destinationStarsSatellite=    destinationMergerSpheroid
-       destinationGasHost       =    destinationMergerSpheroid
-       destinationStarsHost     =    destinationMergerSpheroid
+       destinationGasSatellite     =    destinationMergerSpheroid
+       destinationStarsSatellite   =    destinationMergerSpheroid
+       destinationGasHost          =    destinationMergerSpheroid
+       destinationStarsHost        =    destinationMergerSpheroid
     else
        if (triggersBurst) then
           destinationGasSatellite  =    destinationMergerSpheroid

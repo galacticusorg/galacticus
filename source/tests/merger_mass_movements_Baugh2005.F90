@@ -39,26 +39,26 @@ program Test_Merger_Mass_Movements_Baugh2005
   In a burst the gas of the central moves to its spheroid; otherwise it does not move. A fresh pair of nodes is used for each
   configuration, since the class memoizes its results by node unique ID.
   !!}
-  use :: Display                         , only : displayVerbositySet           , verbosityLevelStandard
+  use :: Display                         , only : displayVerbositySet             , verbosityLevelStandard
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Functions_Global_Utilities      , only : Functions_Global_Set
-  use :: Galacticus_Nodes                , only : nodeClassHierarchyInitialize  , nodeComponentBasic               , nodeComponentDisk                  , nodeComponentSpheroid       , &
+  use :: Galacticus_Nodes                , only : nodeClassHierarchyInitialize    , nodeComponentBasic                 , nodeComponentDisk                     , nodeComponentSpheroid       , &
        &                                          treeNode
-  use :: ISO_Varying_String              , only : assignment(=)                 , varying_string
+  use :: ISO_Varying_String              , only : assignment(=)                   , varying_string
   use :: Input_Parameters                , only : inputParameters
-  use :: Node_Components                 , only : Node_Components_Initialize    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid     , destinationMergerUnmoved         , enumerationDestinationMergerType   , mergerMassMovementsBaugh2005, &
+  use :: Node_Components                 , only : Node_Components_Initialize      , Node_Components_Thread_Initialize  , Node_Components_Thread_Uninitialize   , Node_Components_Uninitialize
+  use :: Satellite_Merging_Mass_Movements, only : destinationMergerSpheroid       , destinationMergerUnmoved           , enumerationDestinationMergerType      , mergerMassMovementsBaugh2005, &
        &                                          baugh2005BurstCriterionMassRatio, baugh2005BurstCriterionBulgeToTotal, enumerationBaugh2005BurstCriterionType
-  use :: Unit_Tests                      , only : Assert                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Unit_Tests                      , only : Assert                          , Unit_Tests_Begin_Group             , Unit_Tests_End_Group                  , Unit_Tests_Finish
   implicit none
-  type   (varying_string                        )               :: parameterFile
-  type   (inputParameters                       )               :: parameters
-  type   (enumerationBaugh2005BurstCriterionType), dimension(2) :: criteria             =[baugh2005BurstCriterionMassRatio,baugh2005BurstCriterionBulgeToTotal]
-  character(len=14                              ), dimension(2) :: criteriaLabel        =['mass ratio    ','bulge-to-total']
+  type   (varying_string                        )                 :: parameterFile
+  type   (inputParameters                       )                 :: parameters
+  type   (enumerationBaugh2005BurstCriterionType), dimension(2  ) :: criteria     =[baugh2005BurstCriterionMassRatio,baugh2005BurstCriterionBulgeToTotal]
+  character(len=14                              ), dimension(2  ) :: criteriaLabel=['mass ratio    ','bulge-to-total']
   ! Expected outcomes (burst or not) for each criterion (first index) and configuration (second index).
-  logical                                        , dimension(2,2) :: burstExpected      =reshape([.true.,.false.,.false.,.true.],[2,2])
-  integer                                                       :: i                    , j
-  logical                                                       :: burst
+  logical                                        , dimension(2,2) :: burstExpected=reshape([.true.,.false.,.false.,.true.],[2,2])
+  integer                                                         :: i            , j
+  logical                                                         :: burst
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -75,10 +75,10 @@ program Test_Merger_Mass_Movements_Baugh2005
   do i=1,2
      do j=1,2
         burst=triggersBurst(criteria(i),j)
-        call Assert(                                                                           &
+        call Assert(                                                                          &
              &      trim(criteriaLabel(i))//' criterion: configuration '//char(ichar('0')+j), &
-             &      burst                                                                    , &
-             &      burstExpected(i,j)                                                         &
+             &      burst                                                                   , &
+             &      burstExpected(i,j)                                                        &
              &     )
      end do
   end do
