@@ -183,8 +183,11 @@ contains
        radiusCooling=self                     %      radius(node,time)
        ! Get the virial radius.
        radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
-       ! Check if cooling radius has reached virial radius.
-       if (radiusCooling >= radiusVirial) then
+       ! Check if cooling radius has reached virial radius. Also, at the instant of halo formation the time available, and so
+       ! the cooling radius, is zero - the growth rate (proportional to the cooling radius divided by the time available) is then
+       ! taken to be zero, as the cooling rate (proportional to the square of the cooling radius times its growth rate) tends to
+       ! zero there.
+       if (radiusCooling >= radiusVirial .or. radiusCooling <= 0.0d0) then
           self%radiusGrowthRateStored=0.0d0
        else
           ! Compute the growth rate of the cooling radius.

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that computes the formation time for each node using the definition of :cite:t:`cole_hierarchical_2000`.
   !!}
@@ -199,6 +201,10 @@ contains
     
     ! Trigger a halo formation event.
     call Event_Halo_Formation(node)
+    ! Record the formation time. This is done before the formation node is copied, so that the formation node carries its own
+    ! formation time (rather than that of the previous formation event).
+    basic                              => node%basic()
+    call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,basic%time())
     ! Make a copy of the formation node, and decouple it from the tree, using the parentNode pointer to point to the node of which
     ! it is the formation node.
     if (associated(node%formationNode)) then
@@ -215,7 +221,5 @@ contains
     node %formationNode%mergeTarget    => null()
     node %formationNode%siblingMergee  => null()
     node %formationNode%formationNode  => null()
-    basic                              => node%basic()
-    call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,basic%time())
     return
   end subroutine nodeFormationTimeCole2000Reform
