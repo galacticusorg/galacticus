@@ -193,7 +193,7 @@
 
   ! Cached copies of tabulated solutions. These are used to avoid re-reading from file if the same transfer function is requested multiple times.
   type :: cachedTransferFunction
-     type            (varying_string                  )                            :: hashedDescriptor
+     type            (varying_string                  )                            :: hashedDescriptor        , fileName
      type            (enumerationExtrapolationTypeType)                            :: extrapolateWavenumberLow, extrapolateWavenumberHigh
      double precision                                  , allocatable, dimension(:) :: wavenumber              , transfer
   end type cachedTransferFunction
@@ -335,6 +335,7 @@ contains
     use :: File_Utilities              , only : File_Name_Expand                , File_Lock                         , File_Unlock
     use :: Table_Labels                , only : enumerationExtrapolationTypeType, enumerationExtrapolationTypeEncode, extrapolationTypeExtrapolate
     use :: String_Handling             , only : stringXMLFormat
+    use :: ISO_Varying_String          , only : assignment(=)
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
@@ -534,6 +535,7 @@ contains
           deallocate(cachedTransferFunctions(useCache)%transfer  )
        end if
        cachedTransferFunctions(useCache)%hashedDescriptor         =self%hashedDescriptor()
+       cachedTransferFunctions(useCache)%fileName                 =fileName
        cachedTransferFunctions(useCache)%wavenumber               =wavenumber
        cachedTransferFunctions(useCache)%transfer                 =transfer
        cachedTransferFunctions(useCache)%extrapolateWavenumberLow =extrapolateWavenumberLow
