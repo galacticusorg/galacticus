@@ -13,6 +13,8 @@ import re
 import subprocess
 import sys
 
+import pytest
+
 _AUX = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
 
@@ -27,6 +29,7 @@ def _decoy(tmp_path):
     return environment
 
 
+@pytest.mark.slow
 def test_docBlockAudit_audits_own_tree(tmp_path):
     environment = _decoy(tmp_path)
     result = subprocess.run([sys.executable, os.path.join(_AUX, 'docBlockAudit.py')], cwd=tmp_path, env=environment,
