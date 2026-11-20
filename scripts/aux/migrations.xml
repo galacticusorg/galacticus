@@ -545,6 +545,18 @@
     </translation>
   </migration>
 
+  <migration commit="a3c242fa9e041118f139f38760420590c28645e9">
+    <!-- The baugh2005 merger mass movements class now decides whether a minor merger triggers a burst from the satellite-to-  -->
+    <!-- central mass ratio, as Baugh et al. (2005) do, by default; retain the prior bulge-to-total criterion in existing files. -->
+    <translation function="baugh2005_burst_criterion_default"/>
+  </migration>
+
+  <migration commit="f601fcf31528f7fe5bbc45b7daa3246fb51c8d76">
+    <!-- The default of `massRatioMajorMerger` in the baugh2005 merger mass movements class changed from 0.25 to 0.3, the value -->
+    <!-- used by Baugh et al. (2005); retain the prior value in existing parameter files.                                       -->
+    <translation function="baugh2005_major_merger_ratio_default"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

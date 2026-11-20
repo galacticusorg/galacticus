@@ -108,5 +108,17 @@ elif force[0].find("hotHaloMassDistribution") is not None:
     print("FAILED: unremoved parameter 'hotHaloMassDistribution' in 'hotHaloRamPressureForce'")
     failures += 1
 
+# The Baugh (2005) merger mass movements must retain the major merger mass ratio that predates the change of the default of
+# `massRatioMajorMerger` from 0.25 to 0.3.
+ratio = root.findall("mergerMassMovements[@value='baugh2005']/massRatioMajorMerger")
+if len(ratio) != 1 or float(ratio[0].get("value")) != 0.25:
+    print("FAILED: missing 'massRatioMajorMerger' set to 0.25 in the baugh2005 merger mass movements")
+    failures += 1
+# ... and the bulge-to-total burst criterion that predates the `burstCriterion` parameter.
+criterion = root.findall("mergerMassMovements[@value='baugh2005']/burstCriterion")
+if len(criterion) != 1 or criterion[0].get("value") != "bulgeToTotal":
+    print("FAILED: missing 'burstCriterion' set to 'bulgeToTotal' in the baugh2005 merger mass movements")
+    failures += 1
+
 if failures == 0:
     print("SUCCESS: migrated parameter file has the expected content")

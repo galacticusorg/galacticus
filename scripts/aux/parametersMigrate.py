@@ -1597,6 +1597,51 @@ def satellite_deferral_default(input_doc, parameters, is_grid):
         append_indented(evolver, fraction)
 
 
+def _baugh2005_pin_default(parameters, is_grid, name, value, description):
+    """Set `name=value` explicitly in every `baugh2005` merger mass movements element which does not set `name`."""
+    for node in parameters.xpath(".//mergerMassMovements[@value='baugh2005']"):
+        # A model that stated its choice explicitly already means what it says - leave it alone.
+        if len(node.xpath(f"./{name}[@value]")) > 0:
+            continue
+        print(f"   insert {name} {value} into 'baugh2005' to retain {description}")
+        pin_node = etree.Element(name)
+        pin_node.set("value", value)
+        if is_grid:
+            pin_node.set("iterable", "no")
+        # Append as the final child, preserving the indentation of the existing children.
+        children = list(node)
+        if children:
+            pin_node.tail = children[-1].tail
+            children[-1].tail = node.text
+        else:
+            # The indentation of this node is carried by the whitespace which precedes it.
+            previous = node.getprevious()
+            indentation = (previous.tail if previous is not None else node.getparent().text) or "\n  "
+            pin_node.tail = indentation
+            node.text = indentation + "  "
+        node.append(pin_node)
+
+
+def baugh2005_burst_criterion_default(input_doc, parameters, is_grid):
+    """Retain the minor merger burst criterion of the Baugh (2005) merger mass movements across its introduction.
+
+    The `baugh2005` merger mass movements class previously decided whether a minor merger triggers a burst from the
+    bulge-to-total ratio of the central galaxy. It now uses, by default, the satellite-to-central mass ratio criterion of
+    Baugh et al. (2005), selected by the new `burstCriterion` parameter. Parameter files predating that change expect the
+    prior criterion, so we explicitly set `burstCriterion=bulgeToTotal` in any such class which does not set it.
+    """
+    _baugh2005_pin_default(parameters, is_grid, "burstCriterion", "bulgeToTotal", "the prior burst criterion")
+
+
+def baugh2005_major_merger_ratio_default(input_doc, parameters, is_grid):
+    """Retain the major merger mass ratio of the Baugh (2005) merger mass movements across the change of its default.
+
+    The default of `massRatioMajorMerger` in the `baugh2005` merger mass movements class changed from 0.25 to 0.3, the value
+    (f_ellip) used by Baugh et al. (2005). Parameter files predating that change expect the prior value, so we explicitly set
+    `massRatioMajorMerger=0.25` in any such class which does not set it.
+    """
+    _baugh2005_pin_default(parameters, is_grid, "massRatioMajorMerger", "0.25", "the prior default")
+
 def interstellar_medium_kinematics(input_doc, parameters, is_grid):
     """Retain the collisionless treatment of dynamical friction from the interstellar medium.
 
@@ -2297,6 +2342,8 @@ SPECIAL_FUNCTIONS = {
     "chandrasekhar_suppress_extended_mass": chandrasekhar_suppress_extended_mass,
     "dynamical_friction_gaseous": dynamical_friction_gaseous,
     "satellite_deferral_default": satellite_deferral_default,
+    "baugh2005_burst_criterion_default": baugh2005_burst_criterion_default,
+    "baugh2005_major_merger_ratio_default": baugh2005_major_merger_ratio_default,
     "interstellar_medium_kinematics": interstellar_medium_kinematics,
     "power_spectrum_normalizer": power_spectrum_normalizer,
     "supernovae_type_ii_mass_stellar_astrophysics": supernovae_type_ii_mass_stellar_astrophysics,
