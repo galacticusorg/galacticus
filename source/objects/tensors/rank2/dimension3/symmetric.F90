@@ -63,19 +63,15 @@ contains
     return
   end procedure tensorRank2Dimension3SymmetricNull
 
-  function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
+  module procedure tensorRank2Dimension3SymmetricInternal
     !!{RST
     Constructor for ``tensorRank2Dimension3Symmetric`` objects.
     !!}
     implicit none
-    type            (tensorRank2Dimension3Symmetric)                :: self
-    double precision                                , intent(in   ) :: x00 , x01, &
-         &                                                             x02 , x11, &
-         &                                                             x12 , x22
 
     self%c=[x00,x01,x02,x11,x12,x22]
     return
-  end function tensorRank2Dimension3SymmetricInternal
+  end procedure tensorRank2Dimension3SymmetricInternal
 
   module procedure Tensor_R2_D3_Sym_Destroy
     !!{RST
