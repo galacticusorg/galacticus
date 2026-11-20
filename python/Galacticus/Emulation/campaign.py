@@ -353,11 +353,12 @@ class Campaign:
                 handle.write(f'{run.change_file} {run.log_file}\n')
         return task_list
 
-    def array_script(self, runs, task_list, job_options=None):
+    def array_script(self, runs, task_list, job_options=None, throttle=None):
         """Return a Slurm job description (for :mod:`queueManager`) which runs the given runs as one array job.
 
         The array index is the run index. Each array task reads its change and log file from ``task_list`` (see
-        :meth:`_write_task_list`), runs Galacticus, and appends the exit status to its log.
+        :meth:`_write_task_list`), runs Galacticus, and appends the exit status to its log. If ``throttle`` is given (and
+        non-zero), at most that many tasks of the array run at once.
         """
         base = shlex.quote(self.base_parameters)
         executable = shlex.quote(self.executable)
@@ -375,7 +376,7 @@ class Campaign:
             'label': label,
             'launchFile': os.path.splitext(os.path.abspath(self.manifest_file))[0] + '.slurm',
             'command': command,
-            'array': _array_specification([run.index for run in runs]),
+            'array': _array_specification([run.index for run in runs], throttle),
             'logOutput': os.path.splitext(os.path.abspath(self.manifest_file))[0] + '_%A_%a.out',
         }
         if job_options:
@@ -386,14 +387,16 @@ class Campaign:
         """Submit the given runs (by default all pending or failed runs) as a Slurm array job, via a queue manager.
 
         ``manager`` is a :mod:`queueManager` manager (e.g. from ``queueManager.factory(args)``); its
-        ``submit_detached(job)`` method is called, and must return the job ID.
+        ``submit_detached(job)`` method is called, and must return the job ID. If its ``arrayTaskMaximum`` is set (from
+        ``arrayTaskMaximum`` in ``galacticusConfig.xml``, or the option of that name), at most that many tasks of the array
+        job run at once.
         """
         runs = self.select(indices=indices) if indices is not None else self.select(statuses=(PENDING, FAILED))
         if not runs:
             return None
         task_list = self._write_task_list()
         try:
-            job = self.array_script(runs, task_list, job_options)
+            job = self.array_script(runs, task_list, job_options, throttle=getattr(manager, 'arrayTaskMaximum', None))
             # Remove any log from an earlier attempt, so that its exit sentinel is not mistaken for this attempt's. This must
             # be done before submitting, as an array task may start (and open its log) before submission returns.
             for run in runs:
@@ -479,7 +482,7 @@ def slurm_live_jobs():
     running, ``<array job ID>_<task ID>``.
     """
     try:
-        completed = subprocess.run(['squeue', '--me', '--noheader', '--array-unique', '--format=%i'],
+        completed = subprocess.run(['squeue', '--me', '--noheader', '--array', '--format=%i'],
                                    capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -543,8 +546,11 @@ def _resolve(directory, path):
     return path if os.path.isabs(path) else os.path.join(directory, path)
 
 
-def _array_specification(indices):
-    """Compress a list of indices into a Slurm ``--array`` specification, e.g. ``0-3,7,9-10``."""
+def _array_specification(indices, throttle=None):
+    """Compress a list of indices into a Slurm ``--array`` specification, e.g. ``0-3,7,9-10``.
+
+    If ``throttle`` is given and non-zero, the specification limits the tasks running at once, e.g. ``0-3,7,9-10%4``.
+    """
     indices = sorted(set(indices))
     ranges = []
     start = previous = indices[0]
@@ -555,7 +561,8 @@ def _array_specification(indices):
         ranges.append((start, previous))
         start = previous = index
     ranges.append((start, previous))
-    return ','.join(str(a) if a == b else f'{a}-{b}' for a, b in ranges)
+    specification = ','.join(str(a) if a == b else f'{a}-{b}' for a, b in ranges)
+    return f'{specification}%{throttle}' if throttle else specification
 
 
 def _fatal_message(output):
