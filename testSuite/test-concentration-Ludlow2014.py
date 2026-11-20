@@ -11,9 +11,10 @@ import numpy as np
 # two must give the same concentrations, and the third must differ from them (which shows that the concentrations do depend
 # on C in this model, so that the first comparison can fail). Only isolated halos (the roots of the trees) are compared, as the
 # concentration affects the evolution of satellites, and so which satellites survive to be output. Models are run
-# single-threaded, so that the trees are output in the same order, and the masses of the roots are required to be identical
-# between the runs, which confirms that the halos are paired correctly. Concentrations are compared with a small relative tolerance, as a model that tabulates sigma(M)
-# afresh can differ at the 1e-7 level from one that reads the tabulation back.
+# single-threaded, so that the trees are output in the same order, and the masses of the roots are required to agree between
+# the runs (to a relative tolerance of 1e-6, far smaller than the differences between the masses of different roots), which
+# confirms that the halos are paired correctly. Concentrations are compared with a small relative tolerance, as a model that
+# tabulates sigma(M) afresh can differ at the 1e-7 level from one that reads the tabulation back.
 # Andrew Benson, Claude (19-November-2026)
 
 subprocess.run("mkdir -p outputs/", shell=True)
@@ -57,7 +58,7 @@ mass400        , concentration400      = makeModel("C400"    ,"400")
 if len(concentrationDefault) == 0:
     print("FAILED: Ludlow2014 concentration models produced no isolated halos")
     sys.exit(0)
-if not (np.array_equal(massDefault,mass853) and np.array_equal(massDefault,mass400)):
+if not (len(massDefault) == len(mass853) == len(mass400) and np.allclose(mass853,massDefault,rtol=1.0e-6,atol=0.0) and np.allclose(mass400,massDefault,rtol=1.0e-6,atol=0.0)):
     print("FAILED: Ludlow2014 concentration models do not contain the same isolated halos")
     sys.exit(0)
 toleranceRelative = 1.0e-4
