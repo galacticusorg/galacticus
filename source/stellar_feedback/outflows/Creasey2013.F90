@@ -137,6 +137,7 @@ contains
     !!{RST
     Internal constructor for the :galacticus-class:`stellarFeedbackOutflowsCreasey2013` stellar feedback class.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type            (stellarFeedbackOutflowsCreasey2013       )                        :: self
     class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
@@ -146,6 +147,7 @@ contains
     <constructorAssign variables="mu, nu, beta0, radiusOuterDimensionless, *starFormationRateSurfaceDensityDisks_"/>
     !!]
 
+    if (radiusOuterDimensionless <= 0.0d0) call Error_Report('`radiusOuterDimensionless` must be positive'//{introspection:location})
     return
   end function creasey2013ConstructorInternal
 
