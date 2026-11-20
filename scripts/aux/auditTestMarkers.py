@@ -186,14 +186,15 @@ def auditScript(path):
 
 def main():
     parser = argparse.ArgumentParser(description="Audit testSuite scripts against the outcome-marker convention")
-    parser.add_argument("root" , nargs="?", default=None, help="directory holding the test scripts (default: $GALACTICUS_EXEC_PATH/testSuite)")
+    parser.add_argument("root" , nargs="?", default=None, help="directory holding the test scripts (default: the testSuite directory of the tree holding this script)")
     parser.add_argument("--check", action="store_true"  , help="exit with status 1 if any issue is reported")
     parser.add_argument("--json" , type=str, default=None, help="also write a machine-readable report to this file")
     arguments = parser.parse_args()
 
     root = arguments.root
     if root is None:
-        root = os.path.join(os.environ.get("GALACTICUS_EXEC_PATH", "."), "testSuite")
+        # Use the tree in which this script lives, not the one named by GALACTICUS_EXEC_PATH, which may be another checkout.
+        root = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir, "testSuite")
     scripts = sorted(glob.glob(os.path.join(root, "test-*.py")) + glob.glob(os.path.join(root, "validate-*.py")))
     scripts = [script for script in scripts if os.path.basename(script) not in scriptsExempt]
     if not scripts:
