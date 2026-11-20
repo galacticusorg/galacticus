@@ -149,6 +149,38 @@ program Test_Parameters
   call testParameters%value('derivedValue2',valueNumerical)
   call Assert('derived value [recursive; post-reset]',valueNumerical,-1.344442852d2,absTol=1.0d-6)
   call Unit_Tests_End_Group()
+  ! Test the model fact registry.
+  call Unit_Tests_Begin_Group("Model facts")
+  call Assert('fact not provided initially'                        ,testParameters%modelFactIsProvided('test:fact:a'),.false.)
+  ! Facts recorded through sub-parameters are recorded for the whole model (the registry is held by the shared document).
+  allocate(wrapper1)
+  wrapper1=testParameters%subParameters('wrapper1')
+  call wrapper1      %modelFactProvide('test:fact:a')
+  call wrapper1      %modelFactProvide('test:fact:a')
+  call Assert('fact provided through sub-parameters is seen by root',testParameters%modelFactIsProvided('test:fact:a'),.true. )
+  call Assert('fact provided through sub-parameters is seen by self',wrapper1      %modelFactIsProvided('test:fact:a'),.true. )
+  call Assert('other fact not provided'                            ,testParameters%modelFactIsProvided('test:fact:b'),.false.)
+  ! A requirement which is met passes validation (an unmet one would be a fatal error).
+  call testParameters%modelFactRequire('test:fact:a','a test requires fact a','provide fact a','test location')
+  call testParameters%modelFactRequire('test:fact:a','a test requires fact a','provide fact a','test location')
+  call testParameters%modelFactsValidate()
+  call Assert('met requirement passes validation'                  ,.true.                                            ,.true. )
+  ! Resetting the parameters (as is done at the end of each task) must not clear the facts, since a later task (e.g. in a
+  ! taskMulti) belongs to the same model.
+  deallocate(wrapper1)
+  call testParameters%reset()
+  call Assert('fact survives parameter reset'                      ,testParameters%modelFactIsProvided('test:fact:a'),.true. )
+  ! Resetting the facts (as is done between models built from the same document, e.g. by likelihoods) clears facts and
+  ! requirements, so that validation of the next model is not affected by the previous one.
+  call testParameters%modelFactsReset()
+  call Assert('fact cleared by fact reset'                         ,testParameters%modelFactIsProvided('test:fact:a'),.false.)
+  call testParameters%modelFactsValidate()
+  call Assert('requirement cleared by fact reset'                  ,.true.                                            ,.true. )
+  ! Facts can be recorded again after a reset.
+  call testParameters%modelFactProvide('test:fact:a')
+  call Assert('fact can be provided again after reset'             ,testParameters%modelFactIsProvided('test:fact:a'),.true. )
+  call testParameters%modelFactsReset()
+  call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()

@@ -1656,6 +1656,7 @@ jobs:
                 test-galacticStructureStateDeallocateBug.py,
                 test-inactiveNumerics.py,
                 test-impulsiveHeating.py,
+                test-modelFacts.py,
                 test-haloTriaxiality.py,
                 test-parallelTreeBuild.py,
                 test-duplicatedOutputPropertyName.py,
@@ -2022,6 +2023,15 @@ jobs:
     uses: ./.github/workflows/testModel.yml
     with:
       file: test-posteriorSampleDifferentialEvolution_MPI.py
+      artifact: galacticus-exec-MPI
+      runPath: ./testSuite
+      options: --processesPerNode 4 --allowRunAsRoot yes
+    secrets: inherit
+  MPI-Model-Facts-Posterior-Sample:
+    needs: Build-Executables-MPI-Linux
+    uses: ./.github/workflows/testModel.yml
+    with:
+      file: test-modelFacts-posteriorSample_MPI.py
       artifact: galacticus-exec-MPI
       runPath: ./testSuite
       options: --processesPerNode 4 --allowRunAsRoot yes
