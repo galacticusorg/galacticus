@@ -174,20 +174,20 @@ contains
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(  out) :: radius                                      , velocityCircular   , &
+    double precision                                , intent(  out) :: radius                                      , velocityCircular         , &
          &                                                             angularMomentumSpecific
     type            (treeNode                      ), pointer       :: nodeHost
     double precision                                , parameter     :: formFactorEnergyBinding             =0.5d+00
     double precision                                , parameter     :: toleranceMassAbsolute               =1.0d-06
     double precision                                , parameter     :: toleranceMassRelative               =1.0d-09
     double precision                                , parameter     :: fractionAngularMomentumSpecificSmall=1.0d-12
-    double precision                                                :: factorAngularMomentum                       , energyFinal        , &
-         &                                                             fractionGasInitial                          , massHost           , &
-         &                                                             radiusHost                                  , massSpheroidHost   , &
-         &                                                             massSpheroidHostPreMerger                   , energyProgenitors  , &
-         &                                                             energyRadiated                              , radiusVirial       , &
-         &                                                             massGasSpheroidRemnant                      , massSpheroidRemnant, &
-         &                                                             massSatellite                               , radiusSatellite    , &
+    double precision                                                :: factorAngularMomentum                       , energyFinal              , &
+         &                                                             fractionGasInitial                          , massHost                 , &
+         &                                                             radiusHost                                  , massSpheroidHost         , &
+         &                                                             massSpheroidHostPreMerger                   , energyProgenitors        , &
+         &                                                             energyRadiated                              , radiusVirial             , &
+         &                                                             massGasSpheroidRemnant                      , massSpheroidRemnant      , &
+         &                                                             massSatellite                               , radiusSatellite          , &
          &                                                             massSpheroidSatellite                       , velocityVirial
     type            (enumerationDestinationMergerType)              :: destinationGasSatellite                     , destinationStarsSatellite, &
          &                                                             destinationGasHost                          , destinationStarsHost

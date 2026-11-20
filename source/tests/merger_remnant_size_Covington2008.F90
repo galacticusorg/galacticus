@@ -52,20 +52,20 @@ program Test_Merger_Remnant_Size_Covington2008
   use :: Satellite_Merging_Remnant_Sizes        , only : mergerRemnantSizeCovington2008
   use :: Unit_Tests                             , only : Assert                            , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
-  type            (varying_string                    )          :: parameterFile
-  type            (inputParameters                   )          :: parameters
-  class           (darkMatterHaloScaleClass          ), pointer :: darkMatterHaloScale_
-  type            (mergerMassMovementsSimple         )          :: mergerMassMovements_
-  type            (mergerProgenitorPropertiesStandard)          :: mergerProgenitorProperties_
+  type            (varying_string                    )            :: parameterFile
+  type            (inputParameters                   )            :: parameters
+  class           (darkMatterHaloScaleClass          ), pointer   :: darkMatterHaloScale_
+  type            (mergerMassMovementsSimple         )            :: mergerMassMovements_
+  type            (mergerProgenitorPropertiesStandard)            :: mergerProgenitorProperties_
   ! Radiative efficiency, and progenitor properties: spheroid stellar and gas masses [M☉] of the host, the stellar mass of the
   ! satellites in the major and minor mergers, the gas fraction of all progenitor spheroids, and spheroid scale radii [Mpc].
-  double precision                                    , parameter :: efficiencyRadiative=2.75d0   , massStellarHost        =1.0d10, &
-       &                                                             massSatelliteMajor =0.5d10   , massSatelliteMinor     =1.0d07, &
-       &                                                             fractionGas        =0.2d0    , radiusHost             =1.0d-3, &
-       &                                                             radiusSatellite    =5.0d-4
+  double precision                                    , parameter :: efficiencyRadiative        =2.75d0        , massStellarHost     =1.0d10, &
+       &                                                             massSatelliteMajor         =0.5d10        , massSatelliteMinor  =1.0d07, &
+       &                                                             fractionGas                =0.2d0         , radiusHost          =1.0d-3, &
+       &                                                             radiusSatellite            =5.0d-4
   ! The half mass radius of a Hernquist profile in units of its scale radius.
-  double precision                                    , parameter :: radiusHalfMassHernquist=2.4142135624d0
-  double precision                                                :: radiusDissipative           , radiusNonDissipative
+  double precision                                    , parameter :: radiusHalfMassHernquist    =2.4142135624d0
+  double precision                                                :: radiusDissipative                         , radiusNonDissipative
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -115,12 +115,12 @@ contains
     Compute the remnant radius for a merger with a satellite of the given stellar mass, using the given radiative efficiency.
     !!}
     implicit none
-    double precision                                , intent(in   ) :: efficiencyRadiative    , massSatellite
+    double precision                                , intent(in   ) :: efficiencyRadiative, massSatellite
     type            (mergerRemnantSizeCovington2008)                :: mergerRemnantSize_
-    type            (treeNode                      ), pointer       :: nodeHost               , nodeSatellite
+    type            (treeNode                      ), pointer       :: nodeHost           , nodeSatellite
     class           (nodeComponentBasic            ), pointer       :: basic
-    class           (nodeComponentSpheroid         ), pointer       :: spheroidHost           , spheroidSatellite
-    double precision                                                :: velocityCircular       , angularMomentumSpecific
+    class           (nodeComponentSpheroid         ), pointer       :: spheroidHost       , spheroidSatellite
+    double precision                                                :: velocityCircular   , angularMomentumSpecific
 
     mergerRemnantSize_=mergerRemnantSizeCovington2008(energyOrbital=1.0d0,efficiencyRadiative=efficiencyRadiative,darkMatterHaloScale_=darkMatterHaloScale_,mergerProgenitorProperties_=mergerProgenitorProperties_,mergerMassMovements_=mergerMassMovements_)
     nodeHost                  => treeNode              (                 )
@@ -130,14 +130,14 @@ contains
     spheroidHost              => nodeHost     %spheroid(autoCreate=.true.)
     spheroidSatellite         => nodeSatellite%spheroid(autoCreate=.true.)
     nodeSatellite%mergeTarget => nodeHost
-    call spheroidHost     %massStellarSet    (massStellarHost                           )
+    call spheroidHost     %massStellarSet    (massStellarHost                                )
     call spheroidHost     %massGasSet        (massStellarHost*fractionGas/(1.0d0-fractionGas))
-    call spheroidHost     %radiusSet         (radiusHost                                )
-    call spheroidHost     %angularMomentumSet(0.0d0                                     )
-    call spheroidSatellite%massStellarSet    (massSatellite                             )
+    call spheroidHost     %radiusSet         (radiusHost                                     )
+    call spheroidHost     %angularMomentumSet(0.0d0                                          )
+    call spheroidSatellite%massStellarSet    (massSatellite                                  )
     call spheroidSatellite%massGasSet        (massSatellite  *fractionGas/(1.0d0-fractionGas))
-    call spheroidSatellite%radiusSet         (radiusSatellite                           )
-    call spheroidSatellite%angularMomentumSet(0.0d0                                     )
+    call spheroidSatellite%radiusSet         (radiusSatellite                                )
+    call spheroidSatellite%angularMomentumSet(0.0d0                                          )
     call mergerRemnantSize_%get(nodeSatellite,remnantRadius,velocityCircular,angularMomentumSpecific)
     call nodeSatellite%destroy()
     call nodeHost     %destroy()
