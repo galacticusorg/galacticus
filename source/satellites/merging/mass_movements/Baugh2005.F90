@@ -95,7 +95,8 @@ contains
       <name>massRatioMajorMerger</name>
       <defaultValue>0.25d0</defaultValue>
       <description>
-      The mass ratio above which mergers are considered to be "major".
+      The mass ratio above which mergers are considered to be "major". (Note that this default differs from the value,
+      :math:`f_\mathrm{ellip}=0.3`, used by :cite:t:`baugh_can_2005`.)
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -103,7 +104,8 @@ contains
       <name>ratioMassBurst</name>
       <defaultValue>0.05d0</defaultValue>
       <description>
-      The mass ratio above which mergers are considered to trigger a burst.
+      If ``[burstCriterion]`` is ``massRatio``, the satellite to central galaxy mass ratio above which minor mergers trigger a
+      burst; if ``bulgeToTotal``, the bulge-to-total mass ratio of the central galaxy below which minor mergers trigger a burst.
       </description>
       <source>parameters</source>
     </inputParameter>
