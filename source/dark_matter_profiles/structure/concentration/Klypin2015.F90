@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`klypin_multidark_2014` algorithm.
   !!}
@@ -785,8 +787,8 @@ contains
             &                  )                                     &
             &                  /  (massLittleH/massReference)**gamma
     case (klypin2015FittingFunctionEqn25%ID)
-       ! Find σ(M).
-       sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%cosmologyFunctions_%cosmicTime(1.0d0))
+       ! Find σ(M,z) - Klypin et al. (2016) define ν=δ_c/σ(M,z) in their equation (25), with σ evaluated at the redshift of the halo.
+       sigma         =self%cosmologicalMassVariance_%rootVariance(basic%mass(),basic%time())
        ! Evaluate fitting function parameters.
        a0            =self%fitParameters%interpolate(redshift,table=1)
        b0            =self%fitParameters%interpolate(redshift,table=2)

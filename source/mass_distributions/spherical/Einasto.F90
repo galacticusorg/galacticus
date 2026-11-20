@@ -135,7 +135,8 @@ contains
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The total mass (in :math:`\mathrm{M}_\odot`) of the Einasto profile, used to set the density normalization :math:`\rho_{-2}` when ``densityNormalization`` is not supplied.
+      The mass (in :math:`\mathrm{M}_\odot`) of the Einasto profile enclosed within ``radiusVirial``, used to set the density
+      normalization :math:`\rho_{-2}` when ``densityNormalization`` is not supplied.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -199,17 +200,17 @@ contains
     !!}
     use :: Error                   , only : Error_Report
     use :: Numerical_Constants_Math, only : Pi
-    use :: Gamma_Functions         , only : Gamma_Function
+    use :: Gamma_Functions         , only : Gamma_Function, Gamma_Function_Incomplete_Complementary
     implicit none
     type            (massDistributionEinasto     )                          :: self
     double precision                              , intent(in   )           :: shapeParameter
-    double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
-         &                                                                     densityNormalization, mass         , &
+    double precision                              , intent(in   ), optional :: scaleLength         , concentration     , &
+         &                                                                     densityNormalization, mass              , &
          &                                                                     radiusVirial
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType
     type            (enumerationMassTypeType     ), intent(in   ), optional :: massType
-    double precision                                                        :: radiusScaleFree
+    double precision                                                        :: radiusScaleFree     , fractionMassVirial
     !![
     <constructorAssign variables="shapeParameter, componentType, massType"/>
     !!]
@@ -238,9 +239,12 @@ contains
          &   present(mass                ).and. &
          &   present(radiusVirial        )      &
          &  ) then
+       ! The given mass is that enclosed within the virial radius - this is a fraction P(3/α,2x^α/α) of the total mass, where
+       ! x=r_virial/r₋₂ and P is the regularized lower incomplete gamma function (Cardone et al. 2005).
        radiusScaleFree          =+radiusVirial/self%scaleLength
-       self%densityNormalization=+mass/4.0d0/Pi/self%scaleLength**3*shapeParameter*exp(-2.0d0/shapeParameter)*(2.0d0/shapeParameter)**(3.0d0/shapeParameter)/Gamma_Function(3.0d0/shapeParameter)
-       self%massTotal_          =+mass
+       fractionMassVirial       =+Gamma_Function_Incomplete_Complementary(3.0d0/shapeParameter,2.0d0*radiusScaleFree**shapeParameter/shapeParameter)
+       self%densityNormalization=+mass/fractionMassVirial/4.0d0/Pi/self%scaleLength**3*shapeParameter*exp(-2.0d0/shapeParameter)*(2.0d0/shapeParameter)**(3.0d0/shapeParameter)/Gamma_Function(3.0d0/shapeParameter)
+       self%massTotal_          =+mass/fractionMassVirial
     else
        self%densityNormalization=+0.0d0
        self%massTotal_          =+0.0d0

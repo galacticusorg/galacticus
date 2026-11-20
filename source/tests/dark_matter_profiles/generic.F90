@@ -385,6 +385,8 @@ program Test_Dark_Matter_Profiles_Generic
   kinematicsDistribution_ => massDistribution_         %kinematicsDistribution(     )
   select type (massDistribution_)
   class is (massDistributionSpherical)
+     ! The profile is normalized such that the mass of the node is enclosed within the virial radius.
+     call Assert("Mass within virial radius       , M(rᵥ)",massDistribution_%massEnclosedBySphere(radiusVirial),massVirial,relTol=1.0d-6)
      do i=1,size(scaleFractional)
         coordinates                                  =[scaleFractional(i)*radiusScale,0.0d0,0.0d0]
         enclosedMass                              (i)=massDistribution_      %massEnclosedBySphere                      (                                                                                    scaleFractional(i)*radiusScale                                       )
@@ -466,6 +468,11 @@ program Test_Dark_Matter_Profiles_Generic
      call Assert("Radial moment                   , ℛ₁  ",massDistribution_%densityRadialMomentNumerical       (1.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (1.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₂  ",massDistribution_%densityRadialMomentNumerical       (2.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (2.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₃  ",massDistribution_%densityRadialMomentNumerical       (3.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (3.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
+     ! Non-integer moments use the general (hypergeometric) form of the moment, and the moment to infinite radius uses its
+     ! limit, both of which are tested here.
+     call Assert("Radial moment                   , ℛ½  ",massDistribution_%densityRadialMomentNumerical       (0.5d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (0.5d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
+     call Assert("Radial moment                   , ℛ₃⸝₂ ",massDistribution_%densityRadialMomentNumerical       (1.5d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (1.5d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
+     call Assert("Radial moment (to infinity)     , ℛ½  ",massDistribution_%densityRadialMomentNumerical       (0.5d0,0.0d0,1.0d4*radiusVirial            ),massDistribution_%densityRadialMoment       (0.5d0,0.0d0                               ),relTol=1.0d-4              )
      call Assert("Radius of peak circular velocity, Rmax",massDistribution_%radiusRotationCurveMaximumNumerical(                                          ),massDistribution_%radiusRotationCurveMaximum(                                          ),relTol=1.0d-3              )
      call Assert("Enclosed mass                   , M(r)",                  enclosedMassNumerical                                                          ,                  enclosedMass                                                          ,relTol=2.5d-3              )
      call Assert("Potential                       , Φ(r)",                  potentialNumerical                                                             ,                  potential                                                             ,relTol=1.0d-3              )
@@ -589,6 +596,8 @@ program Test_Dark_Matter_Profiles_Generic
      call Assert("Radial moment                   , ℛ₁  ",massDistribution_%densityRadialMomentNumerical       (1.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (1.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₂  ",massDistribution_%densityRadialMomentNumerical       (2.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (2.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
      call Assert("Radial moment                   , ℛ₃  ",massDistribution_%densityRadialMomentNumerical       (3.0d0,0.0d0,radiusVirial                  ),massDistribution_%densityRadialMoment       (3.0d0,0.0d0,radiusVirial                  ),relTol=1.0d-6              )
+     ! The moment to infinite radius uses the limit of the indefinite moment.
+     call Assert("Radial moment (to infinity)     , ℛ½  ",massDistribution_%densityRadialMomentNumerical       (0.5d0,0.0d0,1.0d4*radiusVirial            ),massDistribution_%densityRadialMoment       (0.5d0,0.0d0                               ),relTol=1.0d-4              )
      call Assert("Radius of peak circular velocity, Rmax",massDistribution_%radiusRotationCurveMaximumNumerical(                                          ),massDistribution_%radiusRotationCurveMaximum(                                          ),relTol=1.0d-3              )
      call Assert("Enclosed mass                   , M(r)",                  enclosedMassNumerical                                                          ,                  enclosedMass                                                          ,relTol=2.5d-3              )
      call Assert("Potential                       , Φ(r)",                  potentialNumerical                                                             ,                  potential                                                             ,relTol=1.0d-3              )
