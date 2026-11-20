@@ -28,7 +28,7 @@
   !![
   <satelliteDynamicalFriction name="satelliteDynamicalFrictionPetts2015" docformat="rst">
    <description>
-   A satellite dynamical friction class which computes the Coulomb logarithm following the model of :cite:t:`petts_semi-analytic_2015`. The minimum impact parameter is taken to be :math:`b_\mathrm{min} = \max(r_{1/2,\mathrm{sat}}, G M_\mathrm{sat} / v_\mathrm{orbital}^2)`, where :math:`r_{1/2,\mathrm{sat}}` is the half-mass radius of the dark matter component of the satellite, and the maximum is :math:`b_\mathrm{max} = r_\mathrm{orbital}/|\gamma|` for :math:`|\gamma| &gt; 1` (where :math:`\gamma` is the logarithmic density slope of the host at the satellite position), or :math:`r_\mathrm{orbital}` otherwise. The ``[logarithmCoulombApproximate]`` parameter controls whether the Coulomb logarithm is evaluated as :math:`\ln\Lambda` (for :math:`\Lambda \geq 1`, else zero) or the approximate form :math:`\frac{1}{2}\ln(1+\Lambda^2)`.
+   A satellite dynamical friction class which computes the Coulomb logarithm following the model of :cite:t:`petts_semi-analytic_2015`. The minimum impact parameter is taken to be :math:`b_\mathrm{min} = \max(r_{1/2,\mathrm{sat}}, G M_\mathrm{sat} / v_\mathrm{orbital}^2)`, where :math:`r_{1/2,\mathrm{sat}}` is the half-mass radius of the dark matter component of the satellite, and the maximum is :math:`b_\mathrm{max} = r_\mathrm{orbital}/|\gamma|` for :math:`|\gamma| &gt; 1` (where :math:`\gamma` is the logarithmic density slope of the host at the satellite position), or :math:`r_\mathrm{orbital}` otherwise. The Coulomb logarithm is evaluated as :math:`\frac{1}{2}\ln(1+\Lambda^2)`, where :math:`\Lambda=b_\mathrm{max}/b_\mathrm{min}`, unless the ``[logarithmCoulombApproximate]`` parameter is true, in which case its large-:math:`\Lambda` approximation, :math:`\ln\Lambda`, is used instead (set to zero for :math:`\Lambda &lt; 1`, the form used by :cite:t:`petts_semi-analytic_2015`).
    </description>
   </satelliteDynamicalFriction>
   !!]
@@ -73,7 +73,7 @@ contains
       <name>logarithmCoulombApproximate</name>
       <defaultValue>.false.</defaultValue>
       <description>
-      If true, the Coulomb logarithm term is evaluated as :math:`\frac{1}{2}\log(1+\Lambda^2)`. Otherwise, it is evaluated as :math:`\log\Lambda` for :math:`\Lambda \ge 1` and set to zero otherwise.
+      If true, the Coulomb logarithm term is evaluated using the large-:math:`\Lambda` approximation, :math:`\log\Lambda`, for :math:`\Lambda \ge 1`, and set to zero otherwise (the form used by :cite:t:`petts_semi-analytic_2015`). Otherwise, it is evaluated as :math:`\frac{1}{2}\log(1+\Lambda^2)`.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -192,7 +192,7 @@ contains
        impactParameterMaximum=radiusOrbital
     end if
     impactParameterMinimum=max(radiusHalfMassSatellite,gravitationalConstant_internal*massSatellite/speedOrbital**2)
-    ! Evaluate the Coulomb logarithm, using either the approximate or full expression.
+    ! Evaluate the Coulomb logarithm, using either the approximate (ln(Lambda), floored at zero) or full (0.5 ln[1+Lambda^2]) expression.
     if (impactParameterMinimum <= 0.0d0) then
        coulombLogarithm=0.0d0
     else
