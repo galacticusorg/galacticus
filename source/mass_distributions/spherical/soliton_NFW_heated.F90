@@ -39,7 +39,7 @@
      private
      double precision                                 :: densitySolitonCentral             , radiusCore            , &
           &                                              radiusSoliton                     , massSolitionTransition, &
-          &                                              massNFWTransition                 , densityTransition
+          &                                              massNFWTransition
      class           (massDistributionClass), pointer :: massDistributionSoliton_ => null()
      class           (massDistributionClass), pointer :: massDistributionHeated_  => null()
    contains
@@ -152,7 +152,6 @@ contains
     !!}
      use :: Error                     , only : Error_Report
      use :: Galactic_Structure_Options, only : componentTypeDarkHalo
-     use :: Coordinates               , only : coordinateSpherical  , assignment(=)
      implicit none
      type            (massDistributionSolitonNFWHeated)                       :: self
      class           (massDistributionSpherical       ), intent(in), target   :: massDistributionHeated_
@@ -161,7 +160,6 @@ contains
      logical                                           , intent(in), optional :: dimensionless
      type            (enumerationComponentTypeType    ), intent(in), optional :: componentType
      type            (enumerationMassTypeType         ), intent(in), optional :: massType
-     type            (coordinateSpherical             )                       :: coordinates
      type            (kinematicsDistributionSoliton   ), pointer              :: kinematicsDistribution_
      !![
      <constructorAssign variables="radiusCore,radiusSoliton,densitySolitonCentral,toleranceRelativePotential,dimensionless,*massDistributionHeated_,componentType,massType"/>
@@ -218,10 +216,8 @@ contains
         !!]
      end select
      ! Determine the masses of soliton profiles at the soliton radius.
-     coordinates                =[self%radiusSoliton,0.0d0,0.0d0]
      self%massSolitionTransition=+self%massDistributionSoliton_%massEnclosedBySphere(self%radiusSoliton)
      self%massNFWTransition     =+self%massDistributionHeated_ %massEnclosedBySphere(self%radiusSoliton)
-     self%densityTransition     =+self%massDistributionSoliton_%density             (coordinates       )
      return
   end function massDistributionSolitonNFWHeatedConstructorInternal
 
@@ -294,6 +290,26 @@ contains
     return
   end function solitonNFWHeatedMassEnclosedBySphere
   
+  double precision function solitonNFWHeatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
+    !!{RST
+    Computes the radius enclosing a given mean density for soliton+heated NFW mass distributions. The mean density can not
+    exceed the central density of the soliton, so a radius of zero is returned for higher densities. Otherwise, the radius is
+    found numerically from the enclosed mass (which includes the offset between the soliton and heated NFW masses at the
+    soliton radius).
+    !!}
+    implicit none
+    class           (massDistributionSolitonNFWHeated), intent(inout), target   :: self
+    double precision                                  , intent(in   )           :: density
+    double precision                                  , intent(in   ), optional :: radiusGuess
+
+    if (density >= self%densitySolitonCentral) then
+       radius=0.0d0
+    else
+       radius=massDistributionRadiusEnclosingDensityNumerical(self,density,radiusGuess)
+    end if
+    return
+  end function solitonNFWHeatedRadiusEnclosingDensity
+
   double precision function solitonNFWHeatedRadiusEnclosingMass(self,mass,massFractional) result(radius)
     !!{RST
     Computes the radius enclosing a given mass or mass fraction for soliton+heated NFW mass distributions.
@@ -314,23 +330,6 @@ contains
     return
   end function solitonNFWHeatedRadiusEnclosingMass
   
-  double precision function solitonNFWHeatedRadiusEnclosingDensity(self,density,radiusGuess) result(radius)
-    !!{RST
-    Computes the radius enclosing a given mean density for soliton+heated NFW mass distributions.
-    !!}
-    implicit none
-    class           (massDistributionSolitonNFWHeated), intent(inout), target   :: self
-    double precision                                  , intent(in   )           :: density
-    double precision                                  , intent(in   ), optional :: radiusGuess
-
-    if (density > +self%densityTransition) then
-        radius = +self%massDistributionSoliton_%radiusEnclosingDensity(density,radiusGuess)
-    else
-        radius = +self%massDistributionHeated_%radiusEnclosingDensity(density,radiusGuess)
-    end if
-    return    
-  end function solitonNFWHeatedRadiusEnclosingDensity
-
   double precision function solitonNFWHeatedDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
     !!{RST
     Returns a radial density moment for the solitonNFWHeated mass distribution.

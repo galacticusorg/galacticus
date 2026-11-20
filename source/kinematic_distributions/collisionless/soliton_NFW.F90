@@ -218,12 +218,14 @@ contains
               &          /massDistributionEmbedding%radiusCore
          if (radiusScaleFree < radiusScaleFreeTiny) then
             ! Series solution for small radii.
-            jeansIntegralSoliton=+Pi                                                                                        &
-                 &               *massDistributionEmbedding%densitySolitonCentral**2                                        &
-                 &               *(                                                                                         &
-                 &                - 4.0d0/13.0d0*massDistributionEmbedding%radiusCore**2                   /coefficientCore &
-                 &                + 2.0d0/ 3.0d0                                        *radiusScaleFree**2                 &
-                 &                -64.0d0/15.0d0/massDistributionEmbedding%radiusCore**2*radiusScaleFree**4*coefficientCore &
+            jeansIntegralSoliton=+Pi                                                 &
+                 &               *gravitationalConstant_internal                     &
+                 &               *massDistributionEmbedding%radiusCore           **2 &
+                 &               *massDistributionEmbedding%densitySolitonCentral**2 &
+                 &               *(                                                  &
+                 &                 - 4.0d0/13.0d0                   /coefficientCore &
+                 &                 + 2.0d0/ 3.0d0*radiusScaleFree**2                 &
+                 &                 -64.0d0/15.0d0*radiusScaleFree**4*coefficientCore &
                  &               )
          else
             ! Full solution.

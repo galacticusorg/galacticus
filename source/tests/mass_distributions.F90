@@ -43,7 +43,8 @@ program Test_Mass_Distributions
        &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
        &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
        &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
-       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator
+       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator, &
+       &                                        massDistributionSolitonNFWHeated     , kinematicsDistributionSolitonNFWHeated
   use :: Numerical_Constants_Math      , only : Pi                                   , e
   use :: Tensors                       , only : assignment(=)
   use :: Unit_Tests                    , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
@@ -75,6 +76,12 @@ program Test_Mass_Distributions
   double precision                                         , dimension(truncationTableCount  )              :: truncationTableFraction              =[0.90d0           ,0.50d0           ,0.10d0           ,0.01d0           ], &
        &                                                                                                        truncationTableRadiusHalfMassTarget  =[2.0378552605d+00,1.0000000000d+00,2.8800715553d-01,7.6092056823d-02]
   type            (massDistributionList                   )                                    , pointer     :: massDistributions
+  class           (massDistributionSpherical              )                                    , pointer     :: massDistributionSolitonEnvelope_
+  type            (massDistributionSIDMParametricProfile  )                                                  :: sidmParametricBetaNearUnity
+  integer                                                  , parameter                                       :: solitonHeatedTableCount              =8
+  double precision                                         , dimension(solitonHeatedTableCount)              :: solitonHeatedTableRadiusFactor       =[0.1d0,0.5d0,0.9d0,0.99d0,1.01d0,1.5d0,3.0d0,10.0d0], &
+       &                                                                                                        solitonHeatedTableRadius                                                               , &
+       &                                                                                                        solitonHeatedTableRadiusDensity
   integer                                                  , parameter                                       :: sidmParametricTableCount              =7
   double precision                                         , dimension(sidmParametricTableCount)             :: sidmParametricTableRadius             =[+0.125000000000000d+0,+0.250000000000000d+0,+0.500000000000000d+0,+1.000000000000000d+0,+2.000000000000000d+0,+4.000000000000000d+0,+8.000000000000000d+0], &
        &                                                                                                        sidmParametricTableDensityTarget      =[+1.578707460302960d+0,+1.260746394893958d+0,+7.474634802255240d-1,+2.462395302527262d-1,+5.550143415127595d-2,+9.999389741552710d-3,+1.543203989720854d-3], &
@@ -199,9 +206,52 @@ program Test_Mass_Distributions
      call Assert("Radius enclosing density",sidmParametricTableRadiusDensity,sidmParametricTableRadius             ,relTol=1.0d-2)
      ! Also test the central density is respected when seeking the radius enclosing a density that exceeds the central density.
      call Assert("Radius enclosing density (central)",massDistribution_%radiusEnclosingDensity(1.0d2),0.0d0,absTol=1.0d-6)
+     ! Test the near-central series solution for the radius enclosing a mean density just below the central density
+     ! (ρ̅=0.9995ρc, with ρc=2 here). The target radius was found by numerical quadrature and root finding.
+     call Assert("Radius enclosing density (near-central)",massDistribution_%radiusEnclosingDensity(1.999d0),3.334667239620318d-4,relTol=1.0d-3)
+     ! Repeat for β=1.1, for which neither of the two leading terms of the series can be neglected.
+     sidmParametricBetaNearUnity=massDistributionSIDMParametricProfile(beta=1.1d0,densityNormalization=1.0d0,radiusScale=1.0d0,radiusCore=0.5d0)
+     call Assert("Radius enclosing density (near-central; β=1.1)",sidmParametricBetaNearUnity%radiusEnclosingDensity(1.999d0),2.360935730598397d-4,relTol=1.0d-3)
   end select
   nullify   (kinematicsDistribution_)
   deallocate(massDistribution_      )
+  call Unit_Tests_End_Group()
+
+  ! Soliton-NFW (heated) profile. Parameters are those of the Chowdhury et al. (2021) halo used in the fuzzy dark matter tests,
+  ! with a plain NFW envelope.
+  call Unit_Tests_Begin_Group("Soliton-NFW (heated) profile")
+  allocate(massDistributionNFW :: massDistributionSolitonEnvelope_)
+  select type (massDistributionSolitonEnvelope_)
+  type is (massDistributionNFW)
+     massDistributionSolitonEnvelope_=massDistributionNFW(scaleLength=1.0d-2,densityNormalization=5.5d14,dimensionless=.false.)
+  end select
+  allocate(massDistributionSolitonNFWHeated :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionSolitonNFWHeated)
+     massDistribution_=massDistributionSolitonNFWHeated(radiusCore=0.720d-3,radiusSoliton=1.944d-3,densitySolitonCentral=1.040d17,dimensionless=.false.,massDistributionHeated_=massDistributionSolitonEnvelope_)
+     allocate(kinematicsDistributionSolitonNFWHeated :: kinematicsDistribution_)
+     select type (kinematicsDistribution_)
+     type is (kinematicsDistributionSolitonNFWHeated)
+        kinematicsDistribution_=kinematicsDistributionSolitonNFWHeated(toleranceRelativeVelocityDispersion=1.0d-6,toleranceRelativeVelocityDispersionMaximum=1.0d-3)
+     end select
+     call massDistribution_%setKinematicsDistribution(kinematicsDistribution_)
+     ! Test that the radius enclosing a mean density recovers the radius at which that mean density was computed, both inside
+     ! and outside of the soliton radius.
+     do i=1,solitonHeatedTableCount
+        solitonHeatedTableRadius       (i)=solitonHeatedTableRadiusFactor(i)*1.944d-3
+        solitonHeatedTableRadiusDensity(i)=massDistribution_%radiusEnclosingDensity(density=3.0d0*massDistribution_%massEnclosedBySphere(solitonHeatedTableRadius(i))/4.0d0/Pi/solitonHeatedTableRadius(i)**3)
+     end do
+     call Assert("Radius enclosing density",solitonHeatedTableRadiusDensity,solitonHeatedTableRadius,relTol=3.0d-3)
+     ! Also test the central density is respected when seeking the radius enclosing a density that exceeds the central density.
+     call Assert("Radius enclosing density (central)",massDistribution_%radiusEnclosingDensity(2.0d0*1.040d17),0.0d0,absTol=1.0d-12)
+     ! Test that the velocity dispersion well inside the core (where the soliton density is constant) agrees with a direct
+     ! numerical solution of the Jeans equation.
+     position=[1.0d-3*0.720d-3,0.0d0,0.0d0]
+     call Assert("Velocity dispersion in the core",kinematicsDistribution_%velocityDispersion1D(position,massDistribution_,massDistribution_),kinematicsDistribution_%velocityDispersion1DNumerical(position,massDistribution_,massDistribution_),relTol=1.0d-2)
+  end select
+  nullify   (kinematicsDistribution_         )
+  nullify   (massDistributionSolitonEnvelope_)
+  deallocate(massDistribution_               )
   call Unit_Tests_End_Group()
 
   ! Hernquist profile.
@@ -214,9 +264,9 @@ program Test_Mass_Distributions
   select type (massDistribution_)
   class is (massDistributionSpherical)
      position=[1.0d0,0.0d0,0.0d0]
-     call Assert("Half mass radius          (        dimensionless)",massDistribution_%radiusHalfMass      (        ), 1.0d0+sqrt(2.0d0)        ,absTol=1.0d-6)
-     call Assert("Mass within scale radius  (        dimensionless)",massDistribution_%massEnclosedBySphere(1.0d0   ), 0.25d0                   ,absTol=1.0d-6)
-     call Assert("Potential at scale radius (        dimensionless)",massDistribution_%potential           (position),-0.50d0                   ,absTol=1.0d-6)
+     call Assert("Half mass radius          (        dimensionless)",massDistribution_%radiusHalfMass        (        ), 1.0d0+sqrt(2.0d0)                                           ,absTol=1.0d-6)
+     call Assert("Mass within scale radius  (        dimensionless)",massDistribution_%massEnclosedBySphere  (1.0d0   ), 0.25d0                                                      ,absTol=1.0d-6)
+     call Assert("Potential at scale radius (        dimensionless)",massDistribution_%potential             (position),-0.50d0                                                      ,absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
   allocate(massDistributionHernquist :: massDistribution_)
@@ -226,11 +276,11 @@ program Test_Mass_Distributions
   end select
   select type (massDistribution_)
   class is (massDistributionSpherical)
-     call Assert("Half mass radius          (        dimensionful )",massDistribution_%radiusHalfMass         (        ),2.0d0     *(+1.0d0+sqrt(2.0d0))                              ,absTol=1.0d-6)
-     call Assert("Mass within scale radius  (        dimensionful )",massDistribution_%massEnclosedBySphere   (2.0d0   ),2.0d0     *(+0.25d0           )                              ,absTol=1.0d-6)
-     call Assert("Mass within cylinder      (r=0.5rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(1.0d0   ),2.0d0/3.0d0*(-1.0d0+2.0d0*log(2.0d0+sqrt(3.0d0))/sqrt(3.0d0)),absTol=1.0d-6)
-     call Assert("Mass within cylinder      (r=1.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(2.0d0   ),2.0d0/3.0d0                                                  ,absTol=1.0d-6)
-     call Assert("Mass within cylinder      (r=2.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(4.0d0   ),8.0d0/3.0d0*(+1.0d0-Pi/3.0d0                    /sqrt(3.0d0)),absTol=1.0d-6)
+     call Assert("Half mass radius          (        dimensionful )",massDistribution_%radiusHalfMass         (       ),2.0d0     *(+1.0d0+sqrt(2.0d0))                              ,absTol=1.0d-6)
+     call Assert("Mass within scale radius  (        dimensionful )",massDistribution_%massEnclosedBySphere   (2.0d0  ),2.0d0     *(+0.25d0           )                              ,absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=0.5rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(1.0d0  ),2.0d0/3.0d0*(-1.0d0+2.0d0*log(2.0d0+sqrt(3.0d0))/sqrt(3.0d0)),absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=1.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(2.0d0  ),2.0d0/3.0d0                                                  ,absTol=1.0d-6)
+     call Assert("Mass within cylinder      (r=2.0rₛ; dimensionful )",massDistribution_%massEnclosedByCylinder(4.0d0  ),8.0d0/3.0d0*(+1.0d0-Pi/3.0d0                    /sqrt(3.0d0)),absTol=1.0d-6)
   end select
   deallocate(massDistribution_)
   call Unit_Tests_End_Group()
@@ -255,15 +305,15 @@ program Test_Mass_Distributions
   do i=1,truncationTableCount
      write (label,'(f4.2)') truncationTableFraction(i)
      massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,truncationTableFraction(i))
-     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_  %massTotal            (                                                         ),truncationTableFraction            (i),relTol=1.0d-3)
-     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_  %radiusHalfMass       (                                                         ),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
+     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_  %massTotal     (),truncationTableFraction            (i),relTol=1.0d-3)
+     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_  %radiusHalfMass(),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
      !![
      <objectDestructor name="massDistributionTruncated_"/>
      !!]
   end do
   ! A negligible truncation should leave the distribution unchanged.
   massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,1.0d0-1.0d-6)
-  call Assert("Negligible truncation (mass retained)"          ,massDistributionTruncated_  %massTotal            (                                               ),1.0d0,absTol=1.0d-12)
+  call Assert("Negligible truncation (mass retained)"     ,massDistributionTruncated_  %massTotal     (),1.0d0                                 ,absTol=1.0d-12)
   !![
   <objectDestructor name="massDistributionTruncated_"  />
   <objectDestructor name="massDistributionUntruncated_"/>

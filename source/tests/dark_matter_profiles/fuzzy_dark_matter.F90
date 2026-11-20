@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Claude.
+
 !!{RST
 Contains a program to test calculations for fuzzy dark matter halo density profiles.
 !!}
@@ -88,7 +90,8 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
        &                                                                                                         radiusCore_                              , radiusSoliton_                     , &
        &                                                                                                         densityCore_                             , densityScale_                      , &
        &                                                                                                         massCore_                                , radius                             , &
-       &                                                                                                         densityEnclosed
+       &                                                                                                         densityEnclosed                          , velocityDispersionSeries           , &
+       &                                                                                                         velocityDispersionFull
   type            (coordinateSpherical                                           )                            :: coordinates                              , coordinatesReference
   type            (varying_string                                                )                            :: fileName
 
@@ -263,6 +266,13 @@ program Test_Dark_Matter_Profiles_Fuzzy_Dark_Matter
   call Assert("Radius enclosing density",radiusRecovered   ,radiusTarget               ,relTol=5.0d-2)
   call Assert("Mass enclosed by sphere" ,massEnclosed      ,massEnclosedNumerical      ,relTol=5.0d-2)
   call Assert("Velocity dispersion"     ,velocityDispersion,velocityDispersionNumerical,relTol=8.5d-2)
+  ! Test that the velocity dispersion is continuous where the small-radius series solution for the soliton Jeans integral (used
+  ! below 10⁻⁶ core radii) meets the full solution.
+  coordinates             =[0.99d-6*radiusCoreChowdhury,0.0d0,0.0d0]
+  velocityDispersionSeries=kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_)
+  coordinates             =[1.01d-6*radiusCoreChowdhury,0.0d0,0.0d0]
+  velocityDispersionFull  =kinematicsDistribution_%velocityDispersion1D(coordinates,massDistribution_,massDistribution_)
+  call Assert("Velocity dispersion continuous at small-radius series switch",velocityDispersionSeries,velocityDispersionFull,relTol=1.0d-6)
   call Unit_Tests_End_Group               ()
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
