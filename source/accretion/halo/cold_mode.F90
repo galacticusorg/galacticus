@@ -65,10 +65,10 @@
    contains
      !![
      <methods docformat="rst">
-       <method description="Initialize after construction."                                                           method="initialize"      />
-       <method description="Reset memoized calculations."                                                             method="calculationReset"/>
+       <method description="Initialize after construction."                                                                                                                                         method="initialize"      />
+       <method description="Reset memoized calculations."                                                                                                                                           method="calculationReset"/>
        <method description="Returns the masses of chemicals in the part, accreted in the given accretion mode, of a given total mass (summed over all modes) of gas accreted from the :term:`IGM`." method="chemicalMasses"  />
-       <method description="Returns the fraction of accretion occurring in the given accretion mode."                                       method="coldModeFraction"/>
+       <method description="Returns the fraction of accretion occurring in the given accretion mode."                                                                                               method="coldModeFraction"/>
      </methods>
      !!]
      final     ::                              coldModeDestructor
