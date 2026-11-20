@@ -58,8 +58,11 @@ module Nearest_Neighbors
      <methods docformat="rst">
        <method description="Compute indices and distances to the approximate nearest neighbors." method="search" />
        <method description="Compute indices and distances to the approximate nearest neighbors." method="searchFixedRadius" />
+       <method description="Assign nearest neighbor search objects, sharing the tree."             method="assignment(=)"     />
      </methods>
      !!]
+     procedure ::                      nearestNeighborsAssign
+     generic   :: assignment(=)     => nearestNeighborsAssign
      procedure :: search            => nearestNeighborsSearch
      procedure :: searchFixedRadius => nearestNeighborsSearchFixedRadius
   end type nearestNeighbors
@@ -161,6 +164,21 @@ contains
     !!]
     return
   end function nearestNeighborsConstructor
+
+  subroutine nearestNeighborsAssign(self,from)
+    !!{RST
+    Assign a nearest neighbor search object. The tree is shared (and its reference count incremented), and any tree previously
+    held by ``self`` is released. A defined assignment is used, rather than intrinsic assignment, since gfortran releases the
+    previously held tree twice when intrinsic assignment is made onto an object which already holds one (GCC PR 110626).
+    !!}
+    implicit none
+    class(nearestNeighbors), intent(inout) :: self
+    class(nearestNeighbors), intent(in   ) :: from
+
+    self%manager =  from%manager
+    self%tree    => from%tree
+    return
+  end subroutine nearestNeighborsAssign
 
   subroutine nearestNeighborsANNDestructor(self)
     !!{RST

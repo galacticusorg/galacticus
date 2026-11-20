@@ -51,6 +51,12 @@ program Test_Nearest_Neighbors
   double precision         , dimension(:)            , allocatable   :: neighborDistance
   type            (nearestNeighbors)                                 :: neighborFinder
   type            (nearestNeighbors)                 , allocatable   :: neighborFinderPrivate
+  type            (nearestNeighbors)                                 :: neighborFinderCopy
+  type            (nearestNeighbors)                 , save          :: neighborFinderThread
+  !$omp threadprivate(neighborFinderThread)
+  integer                  , dimension(countNeighbors,countQueries)  :: indexCopy         , indexThread
+  integer                  , dimension(               countQueries)  :: countThread
+  double precision         , dimension(3,countPoints   )             :: pointsOther
   integer                                                            :: i                 , j
   integer         (kind_int8      )                                  :: seed              =12345_kind_int8
 
@@ -107,6 +113,29 @@ program Test_Nearest_Neighbors
   call Assert('concurrent search of per-thread trees: indices',all(indexPrivate == indexSerial),.true.)
   call Assert('concurrent search of per-thread trees: distances',all(distancePrivate == distanceSerial),.true.)
   call Assert('concurrent search of per-thread trees: fixed radius counts',all(countPrivate == countSerial),.true.)
+  ! A copy of a search object must remain usable after the original is assigned a new tree.
+  neighborFinderCopy=neighborFinder
+  pointsOther       =1.0d0-points
+  neighborFinder    =nearestNeighbors(transpose(pointsOther))
+  do i=1,countQueries
+     call neighborFinderCopy%search(queries(:,i),countNeighbors,0.0d0,indexCopy(:,i),distanceShared(:,i))
+  end do
+  call Assert('copy unaffected by reassignment of the original',all(indexCopy == indexSerial),.true.)
+  ! A thread-private search object assigned a tree in each of two consecutive parallel regions (as when an N-body operator
+  ! processes more than one simulation).
+  do j=1,2
+     !$omp parallel private(neighborIndex,neighborDistance)
+     neighborFinderThread=nearestNeighbors(transpose(points))
+     !$omp do schedule(dynamic,1)
+     do i=1,countQueries
+        call neighborFinderThread%search           (queries(:,i),countNeighbors,0.0d0,indexThread(:,i),distancePrivate(:,i)                )
+        call neighborFinderThread%searchFixedRadius(queries(:,i),radius        ,0.0d0,countThread(  i),neighborIndex       ,neighborDistance)
+     end do
+     !$omp end do
+     !$omp end parallel
+     call Assert('thread-private object reassigned in parallel region '//char(ichar('0')+j)//': indices'            ,all(indexThread == indexSerial),.true.)
+     call Assert('thread-private object reassigned in parallel region '//char(ichar('0')+j)//': fixed radius counts',all(countThread == countSerial),.true.)
+  end do
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish()

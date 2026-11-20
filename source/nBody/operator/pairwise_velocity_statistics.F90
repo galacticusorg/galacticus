@@ -263,8 +263,8 @@ contains
          &                                                                                      iSample                                      , bootstrapSampleCount                , &
          &                                                                                      iSimulation                                  , jSimulation                         , &
          &                                                                                      jStart                                       , jEnd
-    type            (nearestNeighbors                       ), save                          :: neighborFinder
-    !$omp threadprivate(neighborFinder)
+    type            (nearestNeighbors                       ), allocatable                   :: neighborFinder
+    class           (darkMatterHaloScaleClass               ), pointer                       :: darkMatterHaloScale_
     integer                                                                                  :: neighborCount
     type            (varying_string                         )                                :: label
     
@@ -355,7 +355,7 @@ contains
        velocityRadialInflowingBin              =0.0d0
        velocityDispersionRadialInflowingBin    =0.0d0
        velocityDispersionTangentialInflowingBin=0.0d0
-       !$omp parallel private(node,basic,radiusVirial,velocityVirial,iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
+       !$omp parallel private(node,basic,radiusVirial,velocityVirial,neighborFinder,darkMatterHaloScale_,iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
        allocate(weightPair                 (bootstrapSampleCount,size(position2,dim=2)))
@@ -373,7 +373,19 @@ contains
        basic => node    %basic(autoCreate=.true.)
        call basic%timeSet            (self%time)
        call basic%timeLastIsolatedSet(self%time)
-       ! Construct the nearest neighbor finder object.
+       ! Make a copy of the halo scale object for this thread, as it memoizes its results.
+       allocate(darkMatterHaloScale_,mold=self%darkMatterHaloScale_)
+       !$omp critical(nBodyOperatorPairwiseVelocityStatisticsDeepCopy)
+       !![
+       <deepCopyReset variables="self%darkMatterHaloScale_"/>
+       <deepCopy source="self%darkMatterHaloScale_" destination="darkMatterHaloScale_"/>
+       <deepCopyFinalize variables="darkMatterHaloScale_"/>
+       !!]
+       !$omp end critical(nBodyOperatorPairwiseVelocityStatisticsDeepCopy)
+       !$omp barrier
+       ! Construct the nearest neighbor finder object. It is allocatable, as gfortran does not initialize the private copies of a
+       ! non-allocatable derived type, and would finalize garbage on first assignment.
+       allocate(neighborFinder)
        neighborFinder=nearestNeighbors(transpose(position2))
        ! Iterate over particles.
        !$omp do schedule(dynamic)
@@ -385,8 +397,8 @@ contains
           ! Get virial properties of the target halo.
           call basic%massSet(massVirial(i))
           call Calculations_Reset(node)
-          radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (node)
-          velocityVirial=self%darkMatterHaloScale_%velocityVirial(node)
+          radiusVirial  =darkMatterHaloScale_%radiusVirial  (node)
+          velocityVirial=darkMatterHaloScale_%velocityVirial(node)
           ! Locate particles nearby.
           call neighborFinder%searchFixedRadius(position1(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
           ! Find weights of paired particles.
@@ -490,6 +502,10 @@ contains
           !$ end if
        end do
        !$omp end do
+       deallocate(neighborFinder)
+       !![
+       <objectDestructor name="darkMatterHaloScale_"/>
+       !!]
        call node%destroy()
        call Node_Components_Thread_Uninitialize()
        !$omp end parallel
