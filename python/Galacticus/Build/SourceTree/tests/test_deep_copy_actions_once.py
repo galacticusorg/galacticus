@@ -1,10 +1,10 @@
 """Regression test for repeated actions in generated `deepCopyActions` procedures.
 
-Bug: `DeepCopyActions` emitted a level's `setTo` and `methodCall` actions once for every declaration statement in the type body,
-rather than once for the level. So `interpolator`, whose body has three declaration statements, called `GSLReallocate` three
-times on every deep copy (and `interpolator2D` twice). The calls are idempotent, but each does a redundant allocation and
-initialization of the GSL interpolator. Each action must be emitted exactly once for each level of the type hierarchy which has
-any declarations.
+Bug: `DeepCopyActions` emitted a level's `setTo` and `methodCall` actions once for every declaration node in the type body (each
+run of declarations broken by a comment or directive), rather than once for the level. So `interpolator`, whose body has three
+such nodes, called `GSLReallocate` three times on every deep copy (and `interpolator2D` twice). The calls are idempotent, but each
+does a redundant allocation and initialization of the GSL interpolator. Each action must be emitted exactly once for each level
+of the type hierarchy - including a level whose type body has no declarations.
 
 Andrew Benson, Claude (19-November-2026).
 """
@@ -41,15 +41,26 @@ _SOURCE = """module m
   type, public, extends(holder) :: holderChild
      integer :: m
   end type holderChild
+  type, public, extends(holder) :: holderEmpty
+  end type holderEmpty
 end module m
 """
+
+
+def _branches(code):
+    # Split the generated code into its `type is` branches, keyed by type name.
+    branches = {}
+    for branch in code.split('type is (')[1:]:
+        branches[branch.split(')')[0]] = branch
+    # One branch for each concrete type: holder, holderChild, holderEmpty.
+    assert sorted(branches) == ['holder', 'holderChild', 'holderEmpty'], code
+    return branches
 
 
 def test_method_call_is_emitted_once_per_level():
     directive = {'class': 'holder', 'holder': {'methodCall': {'method': 'reallocate'}}}
     code = _emit(_SOURCE, 'holder', directive)
-    branches = code.split('type is (')
-    for branch in branches[1:]:
+    for branch in _branches(code).values():
         # Each concrete type inherits the one action declared for the `holder` level, once.
         assert branch.count('call self%reallocate()') == 1, code
 
@@ -57,6 +68,26 @@ def test_method_call_is_emitted_once_per_level():
 def test_set_to_is_emitted_once_per_level():
     directive = {'class': 'holder', 'holder': {'setTo': {'variables': 'initialized', 'state': '.false.'}}}
     code = _emit(_SOURCE, 'holder', directive)
-    branches = code.split('type is (')
-    for branch in branches[1:]:
+    for branch in _branches(code).values():
         assert branch.count('self%initialized=.false.') == 1, code
+
+
+def test_child_level_actions_are_emitted_once_and_only_for_the_child():
+    directive = {
+        'class'      : 'holder',
+        'holder'     : {'methodCall': {'method': 'reallocate'}},
+        'holderChild': {'methodCall': {'method': 'resetChild'}, 'setTo': {'variables': 'm', 'state': '0'}},
+        'holderEmpty': {'methodCall': {'method': 'resetEmpty'}},
+    }
+    branches = _emit_branches(directive)
+    assert branches['holderChild'].count('call self%resetChild()') == 1
+    assert branches['holderChild'].count('self%m=0'              ) == 1
+    assert branches['holderChild'].count('call self%reallocate()') == 1
+    assert 'resetChild' not in branches['holder'     ]
+    assert 'resetChild' not in branches['holderEmpty']
+    # A level whose type body has no declarations still has its actions emitted.
+    assert branches['holderEmpty'].count('call self%resetEmpty()') == 1
+
+
+def _emit_branches(directive):
+    return _branches(_emit(_SOURCE, 'holder', directive))

@@ -67,24 +67,16 @@ def _emit_deep_copy_action(class_name, classes, directive):
         out += f" type is ({sub_name})\n"
 
         # For each ancestor level (including sub_name itself), pull setTo /
-        # methodCall actions declared at that level, provided the target
-        # class has any declarations in its body.
+        # methodCall actions declared at that level.
         method_calls = []
         cursor = sub_name
         while cursor is not None:
-            class_node = classes[cursor]['node']
             scope_directive = directive.get(cursor) if isinstance(directive.get(cursor), dict) else None
 
-            # The actions of a level are emitted once, if the type at that level has any declarations (not once for each
-            # declaration, which repeated every action as many times as the type body has declaration statements).
-            has_declarations = False
-            child = class_node.get('firstChild')
-            while child is not None:
-                if child.get('type') == 'declaration':
-                    has_declarations = True
-                    break
-                child = child.get('sibling')
-            if has_declarations and scope_directive is not None:
+            # The actions of a level are emitted once for that level (previously they were emitted once for each declaration node
+            # in the type body - i.e. for each run of declarations broken by a comment or directive - repeating every action).
+            # They are emitted whether or not the type at that level has any declarations of its own.
+            if scope_directive is not None:
                 for set_to in as_array(scope_directive.get('setTo')):
                     variables = re.split(
                         r'\s*,\s*', set_to.get('variables', ''))
