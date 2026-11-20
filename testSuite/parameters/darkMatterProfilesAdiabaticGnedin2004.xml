@@ -8,7 +8,11 @@
   <componentBasic value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentBlackHole value="null"/>
-  <componentDisk value="null"/>
+  <componentDisk value="standard">
+    <massDistributionDisk value="exponentialDisk">
+      <dimensionless value="true"/>
+    </massDistributionDisk>
+  </componentDisk>
   <componentHotHalo value="null"/>
   <componentSatellite value="null"/>
   <componentSpheroid value="standard">

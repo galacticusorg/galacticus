@@ -81,7 +81,28 @@
 
    and which can then be solved numerically for :math:`r^\prime_\mathrm{i}`.
 
-   .. [#] In Galacticus the "node mass" refers to the total mass of the node, assuming it has the universal complement of baryons. Since some halos may contain less than the complete complement of baryons it is possible that :math:`f_\mathrm{i}&lt;1`.
+   Because eqn. (:eq:`eq-adiabaticContractionGnedinSolution`) conserves :math:`M(\bar{r}) r` rather than :math:`M(r)`, the
+   solution does not, in general, give :math:`r_\mathrm{i}=r_\mathrm{f}` at the virial radius: this would require the baryonic
+   mass enclosed within :math:`\bar{r}(r_\mathrm{vir})` to be exactly the fraction :math:`f_\mathrm{i}-f_\mathrm{f}` of the
+   initial mass enclosed there. Instead, eqn. (:eq:`eq-adiabaticContractionGnedinSolution`) is solved out to the matching radius,
+   :math:`r_\mathrm{m}`, defined by :math:`\bar{r}(r_\mathrm{m})=r_\mathrm{vir}`, i.e.
+
+   .. math::
+
+      r_\mathrm{m} = r_0 \left({r_\mathrm{vir} \over A r_0}\right)^{1/\omega},
+
+   and :math:`r_\mathrm{i}=r_\mathrm{f}` is assumed beyond that radius. At :math:`r_\mathrm{i}=r_\mathrm{f}=r_\mathrm{m}` both the
+   initial and final mean radii equal :math:`r_\mathrm{vir}`, so eqn. (:eq:`eq-adiabaticContractionGnedinSolution`) is satisfied
+   exactly provided that :math:`(f_\mathrm{i}-f_\mathrm{f}) M_\mathrm{total,0}(r_\mathrm{vir}) = V^2_\mathrm{b}(r_\mathrm{vir})
+   r_\mathrm{vir}/\mathrm{G}`. The initial mass fraction, :math:`f_\mathrm{i}`, is therefore computed using
+   :math:`V^2_\mathrm{b}(r_\mathrm{vir}) r_\mathrm{vir}/\mathrm{G}` as the baryonic mass of the halo (for spherical components
+   this is the baryonic mass within the virial radius; for non-spherical components, such as disks, it differs). The mapping
+   between initial and final radii, and therefore the enclosed mass, is then continuous at :math:`r_\mathrm{m}`. (Its derivative,
+   and so the density, may be discontinuous there.)
+
+   .. [#] In Galacticus the "node mass" refers to the total mass of the node, assuming it has the universal complement of
+      baryons. Since some halos may contain less than the complete complement of baryons it is possible that
+      :math:`f_\mathrm{i}&lt;1`.
    </description>
   </massDistribution>
   !!]
@@ -102,7 +123,8 @@
           &                                                                                                                 darkMatterDistributedFraction          , massFractionInitial                 , &
           &                                                                                                                 radiusFinal                            , radiusFinalMean                     , &
           &                                                                                                                 darkMatterFraction                     , radiusVirial                        , &
-          &                                                                                                                 toleranceRelative                      , massTotal_
+          &                                                                                                                 toleranceRelative                      , massTotal_                          , &
+          &                                                                                                                 radiusMatch
      ! Call-back function and arguments used for as-needed initialization of the baryonic component.
      logical                                                                                                              :: initialized
      procedure       (sphericalAdiabaticGnedin2004Initializor), pointer                                          , nopass :: initializationFunction
@@ -332,7 +354,12 @@ contains
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Error_Report('invalid non-analytic solver type'//{introspection:location})
     ! Evaluate the original total mass.
     self%massTotal_   =self%massDistribution_%massEnclosedBySphere(radiusVirial)
-    self%dimensionless=self%massDistribution_%isDimensionless     (            )
+    ! Find the matching radius, beyond which the initial and final radii are equal. This is the radius whose orbit-averaged radius
+    ! equals the virial radius.
+    self%radiusMatch  =+radiusFractionalPivot                    &
+         &             *radiusVirial                             &
+         &             /(A*radiusFractionalPivot)**(1.0d0/omega)
+    self%dimensionless=self%massDistribution_%isDimensionless()
     ! Initialize state.
     self%radiusPreviousIndex       = 0
     self%radiusPreviousIndexMaximum= 0
@@ -447,8 +474,8 @@ contains
        end do
        return
     end if
-    ! Return radius unchanged if larger than the virial radius.
-    if (radius >= self%radiusVirial) then
+    ! Return radius unchanged if larger than the matching radius.
+    if (radius >= self%radiusMatch) then
        sphericalAdiabaticGnedin2004RadiusInitial=radius
        return
     end if
@@ -457,9 +484,12 @@ contains
     !! Note that even if no baryons are present at this radius we can not assume that the initial radius is unchanged because it
     !! is possible that the initial fraction of baryons and the fraction of mass distributed as the dark matter are not equal, fᵢ
     !! ≠ fᵪ.
-    ! Check that solution is within bounds.
-    if (sphericalAdiabaticGnedin2004Solver(self%radiusVirial) < 0.0d0) then
-       sphericalAdiabaticGnedin2004RadiusInitial=self%radiusVirial
+    ! Check that solution is within bounds. The initial radius can not exceed the matching radius, as beyond that radius the initial
+    ! and final radii are equal. If the mass budget is consistent the solution at the matching radius is exactly the matching radius,
+    ! so this limit is reached only through small inconsistencies (e.g. numerical noise, or a dark matter profile whose mass within the
+    ! virial radius differs slightly from the node mass).
+    if (sphericalAdiabaticGnedin2004Solver(self%radiusMatch) < 0.0d0) then
+       sphericalAdiabaticGnedin2004RadiusInitial=self%radiusMatch
        return
     end if
     j=-1
@@ -560,8 +590,8 @@ contains
     call self%setBaryonicComponent()
     ! Compute the various factors needed by this calculation.
     call self%computeFactors(radius,computeGradientFactors=.true.)
-    ! Return unit derivative if radius is larger than the virial radius.
-    if (radius >= self%radiusVirial) then
+    ! Return unit derivative if radius is larger than the matching radius.
+    if (radius >= self%radiusMatch) then
        radiusInitialDerivative=1.0d0
        return
     end if

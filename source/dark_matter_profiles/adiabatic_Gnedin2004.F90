@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of :cite:t:`gnedin_response_2004` non-dark-matter-only dark matter halo profiles.
   !!}
@@ -304,10 +306,11 @@ contains
     !!{RST
     Initialize the dark matter mass distribution for the given ``node``.
     !!}
-    use :: Galacticus_Nodes          , only : nodeComponentBasic
-    use :: Galactic_Structure_Options, only : massTypeBaryonic
-    use :: Mass_Distributions        , only : massDistributionSphericalAdiabaticGnedin2004
-    use :: Error                     , only : Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentBasic
+    use :: Galactic_Structure_Options      , only : massTypeBaryonic
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Mass_Distributions              , only : massDistributionSphericalAdiabaticGnedin2004
+    use :: Error                           , only : Error_Report
     implicit none
     class           (*                    ), intent(inout), target  :: self                         , node
     class           (massDistributionClass), intent(  out), pointer :: massDistributionBaryonic
@@ -315,15 +318,25 @@ contains
     type            (treeNode             )               , pointer :: nodeCurrent
     class           (nodeComponentBasic   )               , pointer :: basic
     double precision                                                :: massBaryonicSelf             , massBaryonicTotal  , &
-         &                                                             massBaryonicSubhalos
+         &                                                             massBaryonicSubhalos         , radiusVirial
     
     select type (self)
     type is (darkMatterProfileAdiabaticGnedin2004)
        select type (node)
        type is (treeNode)
-          ! Compute the initial baryonic contribution from this halo, and any satellites.
+          ! Compute the initial baryonic contribution from this halo, and any satellites. The baryonic mass of this halo is taken to
+          ! be the effective mass, V²ᵦ(rᵥ) rᵥ / G, implied by the baryonic rotation curve at the virial radius (rather than, for
+          ! example, the total baryonic mass of the node). This is precisely the baryonic term that enters the solution for the
+          ! initial radius at the matching radius (at which the orbit-averaged radius equals the virial radius), and so ensures that
+          ! the adiabatic solution joins continuously onto the unperturbed profile there. For spherical components this effective
+          ! mass equals the mass enclosed within the virial radius - for non-spherical components (e.g. disks) it differs. Notably,
+          ! it excludes any baryons that are not part of the mass distribution (e.g. gas ejected from the halo into an outflowed
+          ! reservoir).
           massDistributionBaryonic => node%massDistribution(massType=massTypeBaryonic)
-          massBaryonicSelf         =  node%massBaryonic    (                         )
+          radiusVirial             =  self%darkMatterHaloScale_%radiusVirial (node        )
+          massBaryonicSelf         =  +massDistributionBaryonic%rotationCurve(radiusVirial)**2 &
+               &                      *                                       radiusVirial     &
+               &                      /gravitationalConstant_internal
           ! Compute baryonic mass in subhalos.
           massBaryonicSubhalos     =  0.0d0
           nodeCurrent              => node
