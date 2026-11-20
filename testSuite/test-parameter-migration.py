@@ -114,6 +114,11 @@ ratio = root.findall("mergerMassMovements[@value='baugh2005']/massRatioMajorMerg
 if len(ratio) != 1 or float(ratio[0].get("value")) != 0.25:
     print("FAILED: missing 'massRatioMajorMerger' set to 0.25 in the baugh2005 merger mass movements")
     failures += 1
+# ... and the bulge-to-total burst criterion that predates the `burstCriterion` parameter.
+criterion = root.findall("mergerMassMovements[@value='baugh2005']/burstCriterion")
+if len(criterion) != 1 or criterion[0].get("value") != "bulgeToTotal":
+    print("FAILED: missing 'burstCriterion' set to 'bulgeToTotal' in the baugh2005 merger mass movements")
+    failures += 1
 
 if failures == 0:
     print("SUCCESS: migrated parameter file has the expected content")
