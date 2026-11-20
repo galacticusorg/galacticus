@@ -65,6 +65,7 @@ parser.add_argument('--processes'       ,action='store',default=1               
 parser.add_argument('--foldOffset'    ,action='store',default=None                  ,type=int              ,help='assign trees to folds by (forest index + this offset) modulo the number of folds, rather than by their order; with the base random number seed as the offset this matches the folds of the branchingVariance merger tree operator, which assigns trees by their seed (this identifies a realization only when tree seeds are the base seed plus the tree index, as under the default mergerTreeSeeds=incremental)')
 parser.add_argument('--omegaTable'    ,action='store',default=None                                         ,help='an output file of the branchingVariance merger tree operator, from whose "redshift" and "omega" datasets ω(z) is interpolated, in place of δc0/D(z)')
 parser.add_argument('--cumulativeOmegaTable',action='store',default=None                                     ,help='an output file of the branchingVariance merger tree operator, whose "omegaCumulative" dataset gives the ω at which the cumulative variance identity is checked, in place of the default grid (overrides --cumulativeCount; its ω are on the operator\'s scale, so --omegaTable defaults to the same file; for statistic A, E[N|ω]=N at ω≥ω₁)')
+parser.add_argument('--nodeOmegaFile' ,action='store',default=None                                         ,help='an output file of the branchingVariance merger tree operator run with outputNodeOmegas=true on the same trees, from whose "nodes" group the ω of each node is taken (matched by tree and node index) in place of ω interpolated in redshift; every node must be present')
 parser.add_argument('--chunkNodes'      ,action='store',default=20000000              ,type=int              ,help='approximate number of nodes processed at once (whole forests are always kept together); peak memory scales with this'                                                       )
 args = parser.parse_args()
 
@@ -81,6 +82,31 @@ if args.cumulativeOmegaTable is not None:
     args.cumulativeCount = len(omegaCumulativeTable)
     if args.omegaTable is None:
         args.omegaTable = args.cumulativeOmegaTable
+
+# The ω of each node as evaluated by the branchingVariance merger tree operator, if given, keyed by (tree index, node index).
+nodeOmegaKeys = None
+if args.nodeOmegaFile is not None:
+    with h5py.File(args.nodeOmegaFile,'r') as nodeOmegaFile:
+        nodesGroup         = nodeOmegaFile['branchingVariance/nodes']
+        nodeOmegaTree      = nodesGroup['treeIndex'][:].astype(np.int64)
+        nodeOmegaNode      = nodesGroup['nodeIndex'][:].astype(np.int64)
+        nodeOmegaValues    = nodesGroup['omega'    ][:]
+    nodeOmegaStride = int(nodeOmegaNode.max())+1
+    nodeOmegaKeys   = nodeOmegaTree*nodeOmegaStride+nodeOmegaNode
+    order           = np.argsort(nodeOmegaKeys)
+    nodeOmegaKeys   = nodeOmegaKeys  [order]
+    nodeOmegaValues = nodeOmegaValues[order]
+    if np.any(np.diff(nodeOmegaKeys) == 0):
+        sys.exit('mergerTreeVariance.py: nodes repeated in "'+args.nodeOmegaFile+'"')
+    del nodeOmegaTree, nodeOmegaNode, order
+
+def nodeOmegaLookup(forestIndex,nodeIndex):
+    # Return the ω of the given nodes as evaluated by the branchingVariance merger tree operator.
+    keys     = forestIndex*nodeOmegaStride+nodeIndex
+    position = np.minimum(np.searchsorted(nodeOmegaKeys,keys),len(nodeOmegaKeys)-1)
+    if np.any(nodeIndex >= nodeOmegaStride) or np.any(nodeOmegaKeys[position] != keys):
+        sys.exit('mergerTreeVariance.py: nodes not found in "'+args.nodeOmegaFile+'" - it must be from a run on the same trees')
+    return nodeOmegaValues[position]
 
 omegaSpline = None
 if args.omegaTable is not None:
@@ -217,8 +243,13 @@ class chunkOfTrees:
         countNodesTotal = len(nodeIndex)
         self.countNodes = countNodesTotal
         forest          = np.repeat(np.arange(len(firstNode),dtype=np.int64),numberOfNodes)
-        # Compute ω for each node.
-        self.omega   = omegaOfRedshift(self.redshift)
+        # Compute ω for each node, or take it from the operator.
+        if nodeOmegaKeys is not None:
+            forestIndex = treeFile['forestIndex/forestIndex'][forestStart:forestEnd].astype(np.int64)
+            self.omega  = nodeOmegaLookup(forestIndex[forest],nodeIndex)
+            del forestIndex
+        else:
+            self.omega  = omegaOfRedshift(self.redshift)
         self.logMass = np.log10(mass)
         omega        = self.omega
         # Build the tree structure. Node indices are unique only within a forest, so key on (forest, node index).

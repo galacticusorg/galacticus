@@ -128,7 +128,12 @@
    :math:`N=n_1(\mathrm{root})+\sum\Delta+\sum\mathrm{drift}`. Also written are sums for a check of the Markov property (the
    mean of the count minus :math:`n_1` must vanish for roots, for primary and non-primary progenitors created at splits, and
    for nodes created by accretion alone). In both modes the relation between redshift and :math:`\omega` used is written to
-   the datasets ``redshift`` and ``omega``.
+   the datasets ``redshift`` and ``omega``. If ``[outputNodeOmegas]`` is true, the :math:`\omega` of every node processed,
+   as evaluated by the operator, is written (in either mode) to the subgroup ``nodes``, in the datasets ``omega``,
+   ``treeIndex`` and ``nodeIndex``. Analyses of the same trees (exported by the :galacticus-class:`mergerTreeOperatorExport`
+   operator in the same run, say) can use these values in place of :math:`\omega` interpolated in redshift from the
+   tabulation in ``redshift`` and ``omega``, which differs from them by up to :math:`\sim 10^{-6}` (enough to place a node
+   lying close to a bin edge in a different bin).
 
    The splits at or after formation (``sumDeltaSquaredAfterFormation``) are those at :math:`\omega\le\tau`, where
    :math:`\tau` is the :math:`\omega` of the first main-branch node below half of the root mass. They include the split at
@@ -258,6 +263,11 @@
      integer         (kind_int8                    ), allocatable, dimension(:        ) :: evaluationsEmpty                   , evaluationsOutside
      integer         (kind_int8                    )                                    :: countSplits                        , countMultiple            , &
           &                                                                                countPrimaryMismatch               , countNodesOutside
+     ! Per-node ω, accumulated if requested.
+     logical                                                                            :: outputNodeOmegas
+     integer         (c_size_t                     )                                    :: countNodesStored
+     integer         (kind_int8                    ), allocatable, dimension(:        ) :: nodesTreeIndex                     , nodesNodeIndex
+     double precision                               , allocatable, dimension(:        ) :: nodesOmega
    contains
      !![
      <methods docformat="rst">
@@ -461,6 +471,7 @@ contains
          &                                                                                binWidthMass             , binWidthOmega       , &
          &                                                                                binWidthOmegaBinned      , redshiftTarget
     integer                                                                            :: countBinsPerDecadeBinned , treeStrideSplits
+    logical                                                                            :: outputNodeOmegas
 
     !![
     <inputParameter docformat="rst">
@@ -477,6 +488,15 @@ contains
       <defaultValue>var_str('branchingVariance')</defaultValue>
       <description>
       The name of the :term:`HDF5` group to which results are written (and, in ``jumps`` mode, from which tables are read).
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>outputNodeOmegas</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>
+      If true, the :math:`\omega` of every node processed is written to the subgroup ``nodes`` of the output group, with the
+      index of the node and of its tree, so that analyses of the same trees can use exactly the values used by the operator.
       </description>
     </inputParameter>
     !!]
@@ -637,7 +657,7 @@ contains
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     !!]
-    self=mergerTreeOperatorBranchingVariance(mode_,char(statistics),massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,redshiftTarget,binWidthMass,binWidthOmega,binWidthOmegaBinned,countBinsPerDecadeBinned,redshiftsCumulative,treeStrideSplits,char(tableFileName),char(outputGroupName),cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
+    self=mergerTreeOperatorBranchingVariance(mode_,char(statistics),massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,redshiftTarget,binWidthMass,binWidthOmega,binWidthOmegaBinned,countBinsPerDecadeBinned,redshiftsCumulative,treeStrideSplits,outputNodeOmegas,char(tableFileName),char(outputGroupName),cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -647,7 +667,7 @@ contains
     return
   end function branchingVarianceConstructorParameters
 
-  function branchingVarianceConstructorInternal(mode,statistics,massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,redshiftTarget,binWidthMass,binWidthOmega,binWidthOmegaBinned,countBinsPerDecadeBinned,redshiftsCumulative,treeStrideSplits,tableFileName,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function branchingVarianceConstructorInternal(mode,statistics,massThresholds,massTableMinimum,massTableMaximum,redshiftTableMinimum,redshiftTableMaximum,redshiftTarget,binWidthMass,binWidthOmega,binWidthOmegaBinned,countBinsPerDecadeBinned,redshiftsCumulative,treeStrideSplits,outputNodeOmegas,tableFileName,outputGroupName,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !!{RST
     Internal constructor for the branching variance merger tree operator class. In ``jumps`` mode the statistics, thresholds
     and binning of the tables are read from the table file, and the arguments giving them are ignored. In ``table`` mode the
@@ -669,6 +689,7 @@ contains
          &                                                                                         binWidthMass             , binWidthOmega           , &
          &                                                                                         binWidthOmegaBinned      , redshiftTarget
     integer                                               , intent(in   )                       :: countBinsPerDecadeBinned , treeStrideSplits
+    logical                                               , intent(in   )                       :: outputNodeOmegas
     class           (cosmologyFunctionsClass             ), intent(in   ), target               :: cosmologyFunctions_
     class           (criticalOverdensityClass            ), intent(in   ), target               :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass       ), intent(in   ), target               :: cosmologicalMassVariance_
@@ -682,7 +703,7 @@ contains
     double precision                                                                            :: logMassEdgeMinimumRead   , omegaEdgeMinimumRead    , &
          &                                                                                         omegaRecomputed
     !![
-    <constructorAssign variables="massTableMinimum, massTableMaximum, redshiftTableMinimum, redshiftTableMaximum, redshiftTarget, binWidthMass, binWidthOmega, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="massTableMinimum, massTableMaximum, redshiftTableMinimum, redshiftTableMaximum, redshiftTarget, binWidthMass, binWidthOmega, outputNodeOmegas, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
     !!]
 
     self%outputGroupName=var_str(outputGroupName)
@@ -855,6 +876,7 @@ contains
     self%evaluationsOutside  =0_kind_int8
     self%countNodesOutside   =0_kind_int8
     self%countTrees          =0_c_size_t
+    self%countNodesStored    =0_c_size_t
     self%countSplits         =0_kind_int8
     self%countMultiple       =0_kind_int8
     self%countPrimaryMismatch=0_kind_int8
@@ -1306,6 +1328,16 @@ contains
              parent(i) =  0
           end if
        end do
+       ! Record the ω of each node, if requested.
+       if (self%outputNodeOmegas) then
+          call nodesReserve(self%countNodesStored+int(countNodes,c_size_t))
+          do i=1,countNodes
+             self%nodesTreeIndex(self%countNodesStored+int(i,c_size_t))=treeCurrent%index
+             self%nodesNodeIndex(self%countNodesStored+int(i,c_size_t))=nodes(i)%node%index()
+             self%nodesOmega    (self%countNodesStored+int(i,c_size_t))=omega(i)
+          end do
+          self%countNodesStored=self%countNodesStored+int(countNodes,c_size_t)
+       end if
        ! Identify the primary (most massive) progenitor of each node, and sum progenitor masses.
        primaryChild =0
        countChildren=0
@@ -1808,6 +1840,39 @@ contains
       return
     end subroutine splitsReserve
 
+    subroutine nodesReserve(countRequired)
+      !!{RST
+      Ensure that the per-node storage can hold at least ``countRequired`` nodes, growing it geometrically.
+      !!}
+      implicit none
+      integer         (c_size_t ), intent(in   )               :: countRequired
+      integer         (kind_int8), allocatable, dimension(:  ) :: treeIndexTmp  , nodeIndexTmp
+      double precision           , allocatable, dimension(:  ) :: omegaTmp
+      integer         (c_size_t )                              :: countAllocated
+
+      if (.not.allocated(self%nodesOmega)) then
+         countAllocated=max(countRequired,treeCountIncrement)
+         allocate(self%nodesTreeIndex(countAllocated))
+         allocate(self%nodesNodeIndex(countAllocated))
+         allocate(self%nodesOmega    (countAllocated))
+      else if (countRequired > size(self%nodesOmega,kind=c_size_t)) then
+         countAllocated=max(countRequired,2_c_size_t*size(self%nodesOmega,kind=c_size_t))
+         call move_alloc(self%nodesTreeIndex,treeIndexTmp)
+         call move_alloc(self%nodesNodeIndex,nodeIndexTmp)
+         call move_alloc(self%nodesOmega    ,omegaTmp    )
+         allocate(self%nodesTreeIndex(countAllocated))
+         allocate(self%nodesNodeIndex(countAllocated))
+         allocate(self%nodesOmega    (countAllocated))
+         self%nodesTreeIndex(1:size(treeIndexTmp))=treeIndexTmp
+         self%nodesNodeIndex(1:size(nodeIndexTmp))=nodeIndexTmp
+         self%nodesOmega    (1:size(omegaTmp    ))=omegaTmp
+         deallocate(treeIndexTmp)
+         deallocate(nodeIndexTmp)
+         deallocate(omegaTmp    )
+      end if
+      return
+    end subroutine nodesReserve
+
   end subroutine branchingVarianceOperatePreEvolution
 
   subroutine branchingVarianceFinalize(self)
@@ -1858,7 +1923,7 @@ contains
     !$ call hdf5Access%set()
     block
        type(hdf5Group) :: outputGroup, caseGroup  , treesGroup, statisticGroup, &
-            &             binnedGroup, splitsGroup
+            &             binnedGroup, splitsGroup, nodesGroup
        outputGroup=outputFile%openGroup(char(self%outputGroupName),'Decomposition of the variance of counts in merger trees into contributions from splits.',objectsOverwritable=.true.,overwriteOverride=.true.)
        preexisting=outputGroup%hasAttribute('statistics')
        if (.not.preexisting) then
@@ -1935,6 +2000,13 @@ contains
           call treesGroup%writeDataset(self%massRoot         (1:self%countTrees),'massRoot'         ,'Mass of the root node [M☉].'                                            ,appendTo=.true.,chunkSize=chunkSize)
           call treesGroup%writeDataset(self%omegaFormation   (1:self%countTrees),'omegaFormation'   ,'ω at which the main branch first falls below half the root mass.'       ,appendTo=.true.,chunkSize=chunkSize)
           call treesGroup%writeDataset(self%redshiftFormation(1:self%countTrees),'redshiftFormation','Redshift at which the main branch first falls below half the root mass.',appendTo=.true.,chunkSize=chunkSize)
+       end if
+       ! Per-node ω.
+       if (self%outputNodeOmegas .and. self%countNodesStored > 0) then
+          nodesGroup=outputGroup%openGroup('nodes','Per-node ω, as evaluated by the operator.')
+          call nodesGroup%writeDataset(self%nodesTreeIndex(1:self%countNodesStored),'treeIndex','Index of the tree containing the node.',appendTo=.true.,chunkSize=chunkSize)
+          call nodesGroup%writeDataset(self%nodesNodeIndex(1:self%countNodesStored),'nodeIndex','Index of the node.'                    ,appendTo=.true.,chunkSize=chunkSize)
+          call nodesGroup%writeDataset(self%nodesOmega    (1:self%countNodesStored),'omega'    ,'ω of the node.'                        ,appendTo=.true.,chunkSize=chunkSize)
        end if
        ! Per-case quantities.
        do iStatistic=1,self%countStatistics
