@@ -215,26 +215,24 @@ contains
     double precision                                , intent(in   )                            :: time
     double precision                                , intent(  out), allocatable, dimension(:) :: mass                     , weight     , &
          &                                                                                        massMinimum              , massMaximum
-    type            (rootFinder                    ), save                                     :: finder
-    logical                                         , save                                     :: finderConstructed=.false.
-    !$omp threadprivate(finder,finderConstructed)
+    type            (rootFinder                    )                                           :: finder
     type            (mergerTree                    )                                           :: tree
     type            (treeNode                      ), pointer                                  :: node
     class           (nodeComponentBasic            ), pointer                                  :: basic
     integer                                                                                    :: indexStart               , i
     !$GLC attributes unused :: weight
 
-    if (.not.finderConstructed) then 
-       finder           =rootFinder(                                               &
-            &                       rootFunction       =massEnclosed             , &
-            &                       toleranceAbsolute  =1.0d-6                   , &
-            &                       toleranceRelative  =1.0d-6                   , &
-            &                       rangeExpandUpward  =2.0d+0                   , &
-            &                       rangeExpandDownward=0.5d+0                   , &
-            &                       rangeExpandType    =rangeExpandMultiplicative  &
-            &                      )
-       finderConstructed=.true.
-    end if
+    ! Build the root finder. This is done on every call (not once, and saved) because the root function is an internal procedure,
+    ! which accesses variables of this host instance. A procedure pointer to it becomes undefined once this host returns, so a
+    ! finder saved from an earlier call would call it in the context of that earlier (and no longer existing) instance.
+    finder=rootFinder(                                               &
+         &            rootFunction       =massEnclosed             , &
+         &            toleranceAbsolute  =1.0d-6                   , &
+         &            toleranceRelative  =1.0d-6                   , &
+         &            rangeExpandUpward  =2.0d+0                   , &
+         &            rangeExpandDownward=0.5d+0                   , &
+         &            rangeExpandType    =rangeExpandMultiplicative  &
+         &           )
     ! Restart the random number sequence.
     tree%index=1
     allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
