@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that computes the formation time for each node using the definition of :cite:t:`cole_hierarchical_2000`.
   !!}
@@ -139,7 +141,6 @@ contains
     type (treeNode                             ), intent(inout) :: node
     class(nodeComponentBasic                   ), pointer       :: basicFormation, basicParent
 
-    if (self%reformationOnPromotionOnly) return
     basicParent    => node%parent       %basic()
     basicFormation => node%formationNode%basic()
     if (basicParent%mass() > self%massFactorReformation*basicFormation%mass())  call self%reform(node)

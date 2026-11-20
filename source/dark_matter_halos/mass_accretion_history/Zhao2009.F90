@@ -162,9 +162,10 @@ contains
     ! Get σ(M) and its logarithmic derivative.
     call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(baseMass,baseTime,sigmaObserved,dSigmadMassLogarithmicObserved)
     ! Compute σ proxy.
-    sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved ! Equation 8 from Zhao et al. (2009).
-    ! Compute critical overdensities for collapse.
-    deltaCriticalObserved=self%criticalOverdensity_%value(time=baseTime,mass=baseMass,node=node)
+    sObserved=sigmaObserved*10.0d0**dSigmadMassLogarithmicObserved/self%linearGrowth_%value(time=baseTime) ! Equation 8 from Zhao et al. (2009).
+    ! Compute critical overdensities for collapse. As for σ above, these are scaled to z=0 by dividing by the linear growth factor,
+    ! matching the convention used for the corresponding quantities within the ODE below.
+    deltaCriticalObserved=self%criticalOverdensity_%value(time=baseTime,mass=baseMass,node=node)/self%linearGrowth_%value(time=baseTime)
     ! Compute w factors.
     wObserved=deltaCriticalObserved/sObserved ! Equation 7 from Zhao et al. (2009).
     ! Compute p factors.
