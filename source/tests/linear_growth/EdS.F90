@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 program Tests_Linear_Growth_EdS
   !!{RST
   Tests linear growth calculations.
@@ -82,9 +84,9 @@ program Tests_Linear_Growth_EdS
   ! lattice, so a request beyond the latest of them adds points to the tabulation and resumes the integration of the growth
   ! factor from the state in which it was left, rather than laying a fresh grid across the enlarged range and integrating it
   ! again from the start - so the growth factor at every epoch already tabulated must be reproduced bit for bit. The values are
-  ! recorded only after the loop above, so that the comparison is across the extension alone: the tabulation reaches its final
-  ! range during that loop, and a request for an epoch *earlier* than any tabulated does rebuild it - the growth factor is
-  ! integrated forward from the earliest tabulated epoch, so moving that epoch necessarily changes every value.
+  ! recorded only after the loop above, so that the comparison is across this extension alone. (Extension to *earlier* epochs
+  ! also leaves existing values unchanged, since the growth factor is integrated forward from a fixed anchor epoch rather than
+  ! from the earliest tabulated epoch. That is tested in `tests.linear_growth.cosmological_constant`.)
   do iExpansion=1,size(redshift)
      expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshift(iExpansion))
      linearGrowthFactorBefore(iExpansion)=linearGrowth_%value(expansionFactor=expansionFactor,component=componentDarkMatter)

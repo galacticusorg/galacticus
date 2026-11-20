@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests the :cite:t:`tinker_towardhalo_2008` mass function by comparing to Jeremy Tinker's `code <http://web.archive.org/web/20220313133942/https://cosmo.nyu.edu/~tinker/massfunction/MF_code.tar>`_.
 !!}
@@ -219,13 +221,14 @@ program Tests_Halo_Mass_Function_Tinker
   ! Tinker's code.
   call Assert('critical density consistency'                 ,cosmologyParameters_%densityCritical(    )/cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2,2.7751950000000000d11,relTol=1.0d-6)
   ! The critical overdensity is sensitive to the linear growth tabulation from which it is computed. Before that tabulation was
-  ! pinned to an absolute lattice its value depended on the epochs which happened to be requested first, and the value asserted
-  ! here was simply whichever one that history produced; it is not a converged result. Refining the tabulation by a factor of
-  ! eight moves the value below by under 2e-7, so it is converged with respect to the grid, and moving the epoch at which the
-  ! growth integration begins deeper into matter domination moves it by ~1e-5 - away from, not toward, the value asserted
-  ! previously. That last figure is the accuracy to which this quantity is determined at all, being a modeling choice rather
-  ! than a numerical one, so do not tighten the tolerance below it.
-  call Assert('critical overdensity for collapse consistency',criticalOverdensity_%value          (time)                                                           ,1.6755410082306628d00,relTol=1.0d-6)
+  ! pinned to an absolute lattice its value depended on the epochs which happened to be requested first. Since the growth
+  ! integration was also made to begin at a fixed epoch (10⁻⁷ Gyr, deep in matter domination) its value is independent of that
+  ! history, and the value asserted here is the one which that fixed epoch produces - it moved from 1.6755410 to 1.6755377 when
+  ! the epoch was fixed. Refining the tabulation by a factor of eight moves the value by under 2e-7, so it is converged with
+  ! respect to the grid, but moving the epoch at which the growth integration begins moves it by ~1e-5. That last figure is the
+  ! accuracy to which this quantity is determined at all, being a modeling choice rather than a numerical one. The tighter
+  ! tolerance used here therefore checks only that the calculation is unchanged, not that it is accurate to that level.
+  call Assert('critical overdensity for collapse consistency',criticalOverdensity_%value          (time)                                                           ,1.6755376969148634d00,relTol=1.0d-6)
   ! Compute mass function for each reference mass.
   open(newUnit=fUnit,file='testSuite/data/haloMassFunction/tinker.txt',status='old',form='formatted')
   do i=1,massCount

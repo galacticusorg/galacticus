@@ -29,10 +29,13 @@
 
   integer         , parameter :: ageTableNPointsPerDecade     =300
   integer         , parameter :: distanceTableNPointsPerDecade=100
-  ! Factor by which the earliest epoch of the expansion factor tabulation is placed below the epoch of single component
-  ! domination - see `matterLambdaMakeExpansionFactorTable` for why that bound is seeded rather than left to follow the
-  ! request. Two decades of headroom cost a few hundred additional steps of an ordinary differential equation which is
-  ! integrated across a far larger range in any case.
+  ! Epoch (in Gyr) at which the expansion factor tabulation is anchored - see `matterLambdaMakeExpansionFactorTable`. It is
+  ! early enough that the tables of other classes which are tabulated against cosmic time (e.g. the critical overdensity for
+  ! collapse, which merger tree builders with their default earliest redshift require to about 10⁻⁷ Gyr) rarely need the
+  ! expansion factor table to be extended to earlier times. The anchor is placed no later than a factor
+  ! `ageTableTimeEarliestFactor` below the epoch of single component domination, so that the analytic single component solution
+  ! imposed there is accurate.
+  double precision, parameter :: ageTableTimeAnchor           =1.0d-7
   double precision, parameter :: ageTableTimeEarliestFactor   =100.0d0
 
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
@@ -68,7 +71,7 @@
           &                                                                   interpolatorLuminosityDistanceKCorrected
      logical                                                               :: distanceTableInitialized                        =.false.
      type            (rangeLattice            )                            :: latticeDistanceTable
-     integer                                                               :: distanceTableNumberPoints                                , distanceTableAgeTableIndexMinimum
+     integer                                                               :: distanceTableNumberPoints
      double precision                                                      :: distanceTableTimeMaximum                                 , distanceTableTimeMinimum                            =1.0d+0
      double precision                          , allocatable, dimension(:) :: distanceTableComovingDistance                            , distanceTableComovingDistanceNegated                       , &
           &                                                                   distanceTableLuminosityDistanceNegated                   , distanceTableTime                                          , &
@@ -910,6 +913,7 @@ contains
     Builds a table of expansion factor vs. time.
     !!}
     use :: Cosmology_Parameters , only : hubbleUnitsTime
+    use :: Error                , only : Error_Report
     use :: Numerical_ODE_Solvers, only : odeSolver
     use :: Numerical_Ranges     , only : Range_Pinned   , Range_Lattice_Extend, gridSchemePerDecade
     implicit none
@@ -923,11 +927,12 @@ contains
     logical                                         , allocatable  , dimension(:) :: isComputed
     type            (rangeLattice                  )                              :: latticeTime
     double precision                                               , dimension(1) :: expansionFactor
-    integer                                                                       :: iTime
+    type            (rangeLattice                  )                              :: latticeAnchor
+    integer                                                                       :: iTime                         , iAnchor
     logical                                                                       :: carryOver
     double precision                                                              :: OmegaDominant                 , densityPower               , &
          &                                                                           tDominant                     , timeActual                 , &
-         &                                                                           expansionFactorDominant
+         &                                                                           expansionFactorDominant       , timeAnchor
     double precision                                               , dimension(3) :: timesTarget
     type            (odeSolver                     )                              :: solver
 
@@ -945,18 +950,35 @@ contains
     ! which no single `ageTableInverseDeltaLogTime` could describe, and the index computed from it in `expansionFactor` drifted
     ! further from the truth with every extension - far enough, after sufficiently many, to fall beyond the end of the table.
     !
-    ! The earliest epoch tabulated is seeded to a fixed fraction of the epoch of single component domination rather than being
-    ! left to follow the request. Two things depend on that bound. The expansion factor is integrated forward from an initial
-    ! condition imposed there, so moving it invalidates the whole tabulation - and a consumer which integrates over a range of
-    ! epochs, or compares quantities evaluated either side of the move, sees the tabulation shift beneath it. And that condition
-    ! is the analytic single component solution, which is the more accurate the earlier it is applied: imposed at the epoch of
-    ! domination itself it is in error by of order one part in a thousand at redshifts of a few hundred.
+    ! The expansion factor is given by the analytic single component solution at and before an anchor epoch, and is found at
+    ! later epochs by integrating an ordinary differential equation forward from the anchor, one lattice interval at a time. The
+    ! anchor is a fixed point of the lattice, determined by the cosmology alone, so the value at every lattice point is
+    ! independent of the order in which epochs are requested, and the table can always be extended (to earlier or later epochs)
+    ! without changing any value already computed. (Integrating backward from the anchor instead would be inaccurate: the
+    ! relative error in the expansion factor so found grows in proportion to the inverse of the time.)
+    !
+    ! Formerly the initial condition was imposed at the earliest epoch tabulated, which moved whenever an earlier epoch was
+    ! requested. The whole table was then rebuilt, shifting every expansion factor slightly. Since the earliest epoch requested
+    ! depended on, for example, which other tables had been read from file rather than computed, results depended on the
+    ! contents of the dynamic data cache, and on which trees a thread had previously evolved (see issue #1780).
+    !
+    ! The anchor is placed no later than a factor `ageTableTimeEarliestFactor` below the epoch of single component domination,
+    ! as the analytic solution is the more accurate the earlier it is applied: imposed at the epoch of domination itself it is in
+    ! error by of order one part in a thousand at redshifts of a few hundred.
+    timeAnchor   =min(ageTableTimeAnchor,tDominant/ageTableTimeEarliestFactor)
+    latticeAnchor=Range_Pinned(                                              &
+         &                                    [timeAnchor,2.0d0*timeAnchor], &
+         &                                    ageTableNPointsPerDecade     , &
+         &                                    gridSchemePerDecade          , &
+         &                     marginFactor  =1.0d0                        , &
+         &                     anchorEvery   =ageTableAnchorEvery            &
+         &                    )
     if (present(time)) then
        timeActual=time
     else
        timeActual=tDominant
     end if
-    timesTarget=[timeActual,tDominant,tDominant/ageTableTimeEarliestFactor]
+    timesTarget=[timeActual,tDominant,latticeAnchor%minimum()]
     if (self%collapsingUniverse) then
        latticeTime=Range_Pinned(                                          &
             &                                   timesTarget             , &
@@ -977,11 +999,8 @@ contains
             &                   latticeCurrent= self%latticeAgeTable      &
             &                  )
     end if
-    ! The expansion factor is integrated forward from an initial condition imposed at the earliest tabulated epoch, so every
-    ! value depends on where that integration began. The tabulation can therefore be carried over only while the earliest epoch
-    ! is unchanged; where it moves, everything is discarded by presenting an undefined lattice to the extension.
+    ! Extend the tabulation onto the new lattice, preserving the values already computed.
     carryOver=self%ageTableInitialized .and. self%latticeAgeTable%isDefined()
-    if (carryOver) carryOver=latticeTime%indexMinimum == self%latticeAgeTable%indexMinimum
     if (.not.carryOver) then
        if (allocated(self%ageTableExpansionFactor)) deallocate(self%ageTableExpansionFactor)
        self%latticeAgeTable=rangeLattice()
@@ -997,20 +1016,26 @@ contains
     ! index computed from these in `expansionFactor` is now exact rather than a guess needing correction.
     self%ageTableTimeLogarithmicMinimum=log(self%ageTableTimeMinimum)
     self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
-    ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the Universe
-    ! and use the appropriate analytic solution. Note that we use the absolute value of the Hubble parameter here - in cases where
-    ! the universe is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at the equivalent
-    ! expansion factor during the expansion phase.
-    if (.not.isComputed(1))                                                  &
-         &    self%ageTableExpansionFactor                (               1) &
-         & =(                                                                &
-         &   -0.5d0                                                          &
-         &   *densityPower                                                   &
-         &   *self%ageTableTime                            (              1) &
-         &   *abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)) &
-         &   *sqrt(OmegaDominant)                                            &
-         &  )**(-2.0d0/densityPower)
-    ! Solve ODE to get corresponding expansion factors.
+    ! Locate the anchor within the tabulation. The targets above include it, so it always lies within the table.
+    iAnchor=latticeAnchor%indexMinimum-latticeTime%indexMinimum+1
+    if (iAnchor < 1 .or. iAnchor > self%ageTableNumberPoints) call Error_Report('anchor epoch lies outside of the tabulation'//{introspection:location})
+    ! At and before the anchor, we approximate that we are at sufficiently early times that a single component dominates the
+    ! Universe and use the appropriate analytic solution. Note that we use the absolute value of the Hubble parameter here - in
+    ! cases where the universe is collapsing at the present epoch we need to know the expansion rate (i.e. Hubble parameter) at
+    ! the equivalent expansion factor during the expansion phase.
+    do iTime=1,iAnchor
+       if (.not.isComputed(iTime))                                              &
+            &    self%ageTableExpansionFactor                (           iTime) &
+            & =(                                                                &
+            &   -0.5d0                                                          &
+            &   *densityPower                                                   &
+            &   *self%ageTableTime                            (          iTime) &
+            &   *abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)) &
+            &   *sqrt(OmegaDominant)                                            &
+            &  )**(-2.0d0/densityPower)
+    end do
+    ! Solve ODE to get the expansion factors after the anchor. The points already computed always form a contiguous block
+    ! containing the anchor, so each point not yet computed is integrated from its predecessor.
     self%iTableTurnaround =  self%ageTableNumberPoints
     self_                 => self
     solver                =  odeSolver(1_c_size_t,matterLambdaAgeTableODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative)    
@@ -1024,7 +1049,7 @@ contains
             &   self%ageTableTime(iTime  ) >= self%timeTurnaround &
             & ) self%iTableTurnaround=iTime
        ! Compute the expansion factor if it is not already computed.
-       if (.not.isComputed(iTime)) then
+       if (iTime > iAnchor .and. .not.isComputed(iTime)) then
           timeActual        =self%ageTableTime           (iTime-1)
           expansionFactor(1)=self%ageTableExpansionFactor(iTime-1)
           call solver%solve(timeActual,self%ageTableTime(iTime),expansionFactor)
@@ -1323,7 +1348,7 @@ contains
     integer                                         , parameter                   :: distanceTableAnchorEvery=1
     logical                                         , allocatable  , dimension(:) :: isComputed
     type            (rangeLattice                  )                              :: latticeTime
-    integer                                                                       :: iTime                          , ageTableIndexMinimum
+    integer                                                                       :: iTime
     logical                                                                       :: carryOver
     type            (integrator                    )                              :: integrator_
 
@@ -1336,36 +1361,26 @@ contains
     ! present day age of the universe, in which the present day is the lattice point of index zero, exactly, on any lattice. (The
     ! same device is used for the electron scattering optical depth of the intergalactic medium state class.)
     !
-    ! Both that unit and the limits of each integral are interpolated from the expansion factor table, so this tabulation is only
-    ! as stable as that one: extending the expansion factor table downward restarts its integration from a new earliest epoch,
-    ! and so changes every value in it. The loop below therefore establishes the expansion factor table across the whole range
-    ! about to be tabulated *before* any distance is computed, and repeats if doing so rebuilt it. The tabulation which follows
-    ! then cannot be undermined part way through, and previously computed distances are carried over only while that table has
-    ! not been rebuilt since they were computed.
-    do
-       self%distanceTableTimeMaximum=self%cosmicTime(1.0d0)
-       ageTableIndexMinimum         =self%latticeAgeTable%indexMinimum
-       latticeTime=Range_Pinned(                                                            &
-            &                                  [time/self%distanceTableTimeMaximum,1.0d0] , &
-            &                                   distanceTableNPointsPerDecade             , &
-            &                                   gridSchemePerDecade                       , &
-            &                   marginFactor  = 2.0d0                                     , &
-            &                   anchorEvery   = distanceTableAnchorEvery                  , &
-            &                   limitMaximum  = 1.0d0                                     , &
-            &                   latticeCurrent= self%latticeDistanceTable                   &
-            &                  )
-       call self%expansionFactorTabulate(latticeTime%minimum()*self%distanceTableTimeMaximum)
-       if (self%latticeAgeTable%indexMinimum == ageTableIndexMinimum) exit
-    end do
+    ! Both that unit and the limits of each integral are interpolated from the expansion factor table. Values in that table are
+    ! never changed once computed (extending it to earlier or later epochs leaves existing values unchanged - see
+    ! `matterLambdaMakeExpansionFactorTable`), so previously computed distances can always be carried over.
+    self%distanceTableTimeMaximum=self%cosmicTime(1.0d0)
+    latticeTime=Range_Pinned(                                                           &
+         &                                  [time/self%distanceTableTimeMaximum,1.0d0], &
+         &                                   distanceTableNPointsPerDecade            , &
+         &                                   gridSchemePerDecade                      , &
+         &                   marginFactor  = 2.0d0                                    , &
+         &                   anchorEvery   = distanceTableAnchorEvery                 , &
+         &                   limitMaximum  = 1.0d0                                    , &
+         &                   latticeCurrent= self%latticeDistanceTable                  &
+         &                  )
     carryOver=self%distanceTableInitialized .and. self%latticeDistanceTable%isDefined()
-    if (carryOver) carryOver=self%distanceTableAgeTableIndexMinimum == ageTableIndexMinimum
     if (.not.carryOver) then
        if (allocated(self%distanceTableComovingDistance)) deallocate(self%distanceTableComovingDistance)
        self%latticeDistanceTable=rangeLattice()
     end if
     call Range_Lattice_Extend(self%latticeDistanceTable,latticeTime,self%distanceTableComovingDistance,isComputed)
     self%latticeDistanceTable             =latticeTime
-    self%distanceTableAgeTableIndexMinimum=ageTableIndexMinimum
     self%distanceTableNumberPoints        =latticeTime%count
     if (allocated(self%distanceTableTime)) deallocate(self%distanceTableTime)
     self%distanceTableTime                =latticeTime%values()*self%distanceTableTimeMaximum
@@ -1390,8 +1405,8 @@ contains
     end do
     ! Make negated copies of the distances so that we have increasing arrays for use in interpolation routines. The luminosity
     ! distances are simple functions of the comoving distance and of the expansion factor, so they are evaluated afresh at every
-    ! point rather than being carried over: the expansion factor is interpolated from a table which has not been rebuilt, so for
-    ! the points carried over this gives back exactly the values they had.
+    ! point rather than being carried over: the expansion factor is interpolated from a table whose values never change once
+    ! computed, so for the points carried over this gives back exactly the values they had.
     if (allocated(self%distanceTableComovingDistanceNegated            )) deallocate(self%distanceTableComovingDistanceNegated            )
     if (allocated(self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
     if (allocated(self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
