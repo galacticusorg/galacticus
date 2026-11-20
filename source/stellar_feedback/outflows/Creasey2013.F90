@@ -32,10 +32,15 @@
 
    .. math::
 
-      \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0
+      \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^{x_\mathrm{outer} r_\mathrm{d}} \beta_0
       \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
 
-   where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`, :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate, :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``.
+   where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`, :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate, :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``. :cite:t:`creasey_how_2013` integrate
+   to infinite radius, but here the integral is truncated at :math:`x_\mathrm{outer}=`\ ``[radiusOuterDimensionless]`` disk scale
+   lengths, :math:`r_\mathrm{d}`: for star formation laws whose effective slope in gas surface density is :math:`\le \mu` the
+   integral diverges at large radii, so some truncation is needed. For example, for an untruncated Kennicutt-Schmidt law with :math:`N=1.4`
+   and a gas fraction independent of radius, truncating at 30 (the default) scale lengths omits 0.5% of the outflow rate, and
+   truncating at 10 omits 29%.
    </description>
   </stellarFeedbackOutflows>
   !!]
@@ -46,7 +51,7 @@
      private
      class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                     :: nu                                             , mu, &
-          &                                                                  beta0
+          &                                                                  beta0                                          , radiusOuterDimensionless
    contains
      final     ::                creasey2013Destructor
      procedure :: outflowRate => creasey2013OutflowRate
@@ -72,7 +77,7 @@ contains
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
     double precision                                                           :: mu                                   , nu, &
-         &                                                                        beta0
+         &                                                                        beta0                                , radiusOuterDimensionless
 
     !![
     <inputParameter docformat="rst">
@@ -108,9 +113,19 @@ contains
       The parameter :math:`\beta_0` appearing in the :cite:t:`creasey_how_2013` model for supernovae feedback.
       </description>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>radiusOuterDimensionless</name>
+      <source>parameters</source>
+      <defaultValue>30.0d0</defaultValue>
+      <description>
+      The outer radius, in units of the disk scale length, to which the outflow rate is integrated. :cite:t:`creasey_how_2013`
+      integrate to infinite radius, but for star formation laws whose effective slope in gas surface density is :math:`\le \mu` the
+      integral diverges, so some truncation is needed.
+      </description>
+    </inputParameter>
     <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     !!]
-    self=stellarFeedbackOutflowsCreasey2013(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
+    self=stellarFeedbackOutflowsCreasey2013(mu,nu,beta0,radiusOuterDimensionless,starFormationRateSurfaceDensityDisks_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
@@ -118,7 +133,7 @@ contains
     return
   end function creasey2013ConstructorParameters
 
-  function creasey2013ConstructorInternal(mu,nu,beta0,starFormationRateSurfaceDensityDisks_) result(self)
+  function creasey2013ConstructorInternal(mu,nu,beta0,radiusOuterDimensionless,starFormationRateSurfaceDensityDisks_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`stellarFeedbackOutflowsCreasey2013` stellar feedback class.
     !!}
@@ -126,9 +141,9 @@ contains
     type            (stellarFeedbackOutflowsCreasey2013       )                        :: self
     class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
     double precision                                           , intent(in   )         :: mu                                   , nu, &
-         &                                                                                beta0
+         &                                                                                beta0                                , radiusOuterDimensionless
     !![
-    <constructorAssign variables="mu, nu, beta0, *starFormationRateSurfaceDensityDisks_"/>
+    <constructorAssign variables="mu, nu, beta0, radiusOuterDimensionless, *starFormationRateSurfaceDensityDisks_"/>
     !!]
 
     return
@@ -153,13 +168,14 @@ contains
 
     .. math::
 
-       \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^\infty \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
+       \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^{x_\mathrm{outer} r_\mathrm{d}} \beta_0 \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
 
     where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`,
     :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate,
     :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input
     rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite
-    time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``. If there is no star formation the
+    time, :math:`r_\mathrm{d}` is the disk scale length, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``,
+    :math:`\nu=`\ ``[nu]``, and :math:`x_\mathrm{outer}=`\ ``[radiusOuterDimensionless]``. If there is no star formation the
     outflow rate is zero.
     !!}
     use :: Galactic_Structure_Options, only : componentTypeDisk                     , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
@@ -174,7 +190,7 @@ contains
     double precision                                    , intent(in   ) :: rateEnergyInput               , rateStarFormation
     double precision                                    , intent(  out) :: rateOutflowEjective           , rateOutflowExpulsive
     class           (massDistributionClass             ), pointer       :: massDistributionGaseous       , massDistributionStellar
-    double precision                                    , parameter     :: radiusInnerDimensionless=0.0d0, radiusOuterDimensionless=10.0d0
+    double precision                                    , parameter     :: radiusInnerDimensionless=0.0d0
     double precision                                                    :: radiusScale                   , massGas                        , &
          &                                                                 radiusInner                   , radiusOuter                    , &
          &                                                                 massStellar
@@ -207,7 +223,7 @@ contains
     end if
     ! Compute suitable limits for the integration.
     radiusInner=radiusScale*radiusInnerDimensionless
-    radiusOuter=radiusScale*radiusOuterDimensionless
+    radiusOuter=radiusScale*self%radiusOuterDimensionless
     ! Compute the outflow rate.
     massDistributionGaseous => component%hostNode%massDistribution(componentType=componentTypeDisk,massType=massTypeGaseous)
     massDistributionStellar => component%hostNode%massDistribution(componentType=componentTypeDisk,massType=massTypeStellar)

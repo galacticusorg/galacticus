@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.stellar_feedback_outflows_Creasey2013 to check the outer radius to which the Creasey et al. -->
+<!-- (2013) outflow rate is integrated. Nodes have only basic, disk, and spheroid components.                                -->
+<!-- Andrew Benson, Claude (19-November-2026)                                                                                -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="a9511c71c4fcc7ef84ecc50201d3fc51fab25086" time="2026-11-19T12:00:00"/>
+  <componentBasic             value="standard"/>
+  <componentDisk              value="standard"/>
+  <componentSpheroid          value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpin              value="null"    />
+  <!-- An untruncated Kennicutt-Schmidt law, for which the outflow rate integrand falls off only slowly with radius. -->
+  <starFormationRateSurfaceDensityDisks value="kennicuttSchmidt">
+    <truncate value="false"/>
+    <exponent value="1.4"  />
+  </starFormationRateSurfaceDensityDisks>
+  <!-- The Creasey et al. (2013) outflow model with all parameters at their defaults. -->
+  <stellarFeedbackOutflows value="creasey2013"/>
+</parameters>
