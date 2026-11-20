@@ -618,6 +618,37 @@ This expands to a call which registers a meta-property named ``nodeFormationTime
 
 The error reporting described under ``isCreator`` is supported by the ``metaPropertyDatabase`` directive, which appears exactly once (in ``source/objects/nodes/_class.F90``) and synthesizes a database mapping each known meta-property name to the ``functionClass`` implementations that create it. It is internal build infrastructure, and never needs to be used when defining or using meta-properties.
 
+.. _manual-sec-modelFacts:
+
+Model Facts: Dependencies Between Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An object builds and owns the objects it needs (via ``objectBuilder``), but sometimes an object gives correct results only if some *other* object, which it neither owns nor builds, is also part of the model. For example, :galacticus-class:`galacticDiskHeatingImpulsive` reads the ``tidalHeatingNormalized`` property of satellites, which is evolved only if a :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator is present. Without it the property stays zero, and disks are silently never heated. Such dependencies are declared with the ``modelFact`` and ``modelRequire`` directives. The class which establishes something declares a *fact*, named by a colon-separated token:
+
+.. code-block:: none
+
+    !![
+    <modelFact name="satellite:tidalHeatingNormalized:evolved"/>
+    !!]
+
+and the class which depends on it declares a *requirement* on that fact:
+
+.. code-block:: none
+
+    !![
+    <modelRequire name="satellite:tidalHeatingNormalized:evolved" reason="heating of disks requires that the tidal heating of satellites is evolved"/>
+    !!]
+
+Both directives belong in the class's *parameters* constructor, and accept an optional ``source`` attribute naming the ``inputParameters`` object to use (default ``parameters``). Facts and requirements are recorded in a registry held by the root parameter document, so they are shared by every object (and every OpenMP thread) built from one parameter file, and a new model built from a new parameter file starts with an empty registry. Recording a fact or requirement more than once has no further effect.
+
+Requirements are checked by ``inputParameters%modelFactsValidate()``, called at points where every object that might establish a fact has been built. :galacticus-class:`taskEvolveForests` checks at the end of its parameters constructor (so the check runs under ``--dry-run``), and again after node components have been initialized (so objects owned by components are included). The check therefore does not depend on the order in which objects are built, and costs nothing once it has been made. An unmet requirement is reported as an error giving the ``reason``, the class and implementation which would establish the fact, and the XML which selects it. That help text is generated at build time from every ``modelFact`` directive in the source, and a ``modelRequire`` naming a fact which no ``modelFact`` provides fails the build, so a misspelled token cannot go unnoticed.
+
+Some points to note:
+
+* Only objects built from parameters register. Code which builds objects with their internal constructors (e.g. unit tests) neither records nor checks facts, and must call ``modelFactProvide``, ``modelFactRequire`` and ``modelFactsValidate`` itself if it needs them.
+* A fact means only that some object establishing it was built. An object should declare a fact only if building it really does establish it.
+* Code which builds a new model from a parameter document that it reuses (as the posterior sampling likelihoods do) must call ``inputParameters%modelFactsReset()`` between models.
+
 .. _manual-sec-stateStorable:
 
 State Storing

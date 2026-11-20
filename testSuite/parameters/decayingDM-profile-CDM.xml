@@ -115,7 +115,7 @@
     <fractionRadiusFinalSmall value="0.0"/>
   </darkMatterProfileDMO>
   <darkMatterProfileHeating value="monotonic">
-    <darkMatterProfileHeating value="tidal"/>
+    <darkMatterProfileHeating value="null"/>
   </darkMatterProfileHeating>
 
   <!-- Halo concentration  --> 

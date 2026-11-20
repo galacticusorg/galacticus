@@ -149,7 +149,7 @@
     <darkMatterProfileDMO value="NFW"/>
     <nonAnalyticSolver value="numerical"/>
   </darkMatterProfileDMO>
-  <darkMatterProfileHeating value="tidal"/>
+  <darkMatterProfileHeating value="null"/>
   <!-- Halo concentration  --> 
   <darkMatterProfileScaleRadius value="ludlow2016">
     <C value="625.0"/>

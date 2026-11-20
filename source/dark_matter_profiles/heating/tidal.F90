@@ -107,6 +107,7 @@ contains
     !!]
     self=darkMatterProfileHeatingTidal(coefficientSecondOrder0,coefficientSecondOrder1,coefficientSecondOrder2,correlationVelocityRadius)
     !![
+    <modelRequire name="satellite:tidalHeatingNormalized:evolved" reason="tidal heating of dark matter halos requires that the tidal heating of satellites is evolved"/>
     <inputParametersValidate source="parameters"/>
     !!]
     return

@@ -35,6 +35,7 @@ import Galacticus.Build.SourceTree.Process.HDF5FCInterop            # noqa: F401
 import Galacticus.Build.SourceTree.Process.InputParameter           # noqa: F401
 import Galacticus.Build.SourceTree.Process.InputParametersValidate  # noqa: F401
 import Galacticus.Build.SourceTree.Process.MetaPropertyDatabase     # noqa: F401
+import Galacticus.Build.SourceTree.Process.ModelFacts               # noqa: F401
 import Galacticus.Build.SourceTree.Process.NonProcessed             # noqa: F401
 import Galacticus.Build.SourceTree.Process.ObjectBuilder            # noqa: F401
 import Galacticus.Build.SourceTree.Process.OptionalArgument         # noqa: F401
