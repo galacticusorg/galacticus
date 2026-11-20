@@ -213,13 +213,13 @@ contains
     implicit none
     class           (mergerTreeBuildMassesFixedMass), intent(inout)                            :: self
     double precision                                , intent(in   )                            :: time
-    double precision                                , intent(  out), allocatable, dimension(:) :: mass                     , weight     , &
-         &                                                                                        massMinimum              , massMaximum
+    double precision                                , intent(  out), allocatable, dimension(:) :: mass       , weight     , &
+         &                                                                                        massMinimum, massMaximum
     type            (rootFinder                    )                                           :: finder
     type            (mergerTree                    )                                           :: tree
     type            (treeNode                      ), pointer                                  :: node
     class           (nodeComponentBasic            ), pointer                                  :: basic
-    integer                                                                                    :: indexStart               , i
+    integer                                                                                    :: indexStart , i
     !$GLC attributes unused :: weight
 
     ! Build the root finder. This is done on every call (not once, and saved) because the root function is an internal procedure,
