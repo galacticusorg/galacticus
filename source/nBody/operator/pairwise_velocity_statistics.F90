@@ -259,6 +259,7 @@ contains
     type            (treeNode                               ), pointer                       :: node
     class           (nodeComponentBasic                     ), pointer                       :: basic
     double precision                                                                         :: radiusVirial                                 , velocityVirial
+    double precision                                                                         :: hubbleParameter
     integer         (c_size_t                               )                                :: i                                            , j                                   , &
          &                                                                                      iSample                                      , bootstrapSampleCount                , &
          &                                                                                      iSimulation                                  , jSimulation                         , &
@@ -355,6 +356,9 @@ contains
        velocityRadialInflowingBin              =0.0d0
        velocityDispersionRadialInflowingBin    =0.0d0
        velocityDispersionTangentialInflowingBin=0.0d0
+       ! Evaluate the Hubble parameter at this epoch once, outside of the parallel region, as the cosmology functions object is
+       ! shared between threads and memoizes its results.
+       hubbleParameter=self%cosmologyFunctions_%hubbleParameterEpochal(self%time)
        !$omp parallel private(node,basic,radiusVirial,velocityVirial,neighborFinder,darkMatterHaloScale_,iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
@@ -457,7 +461,7 @@ contains
           if (self%addHubbleFlow)                                                                                                      &
                & velocityRadialVirialSquared(1:neighborCount)=+                           velocityRadialVirialSquared(1:neighborCount) &
                &                                              +(                                                                       &
-               &                                                +self%cosmologyFunctions_%hubbleParameterEpochal     (  self%time    ) &
+               &                                                +hubbleParameter &
                &                                                *                         separations                (1:neighborCount) &
                &                                                /                         velocityVirial                               &
                &                                               )**2
@@ -470,7 +474,7 @@ contains
              if (jStart == jEnd) cycle
              do iSample=1,bootstrapSampleCount
                 if (weight1(iSample,i) == 0_c_size_t) cycle
-                mask(1:jEnd-jStart)= velocitiesRadial           (jStart+1:jEnd) <  self%cosmologyFunctions_%hubbleParameterEpochal(self%time)*separations(jStart+1:jEnd) &
+                mask(1:jEnd-jStart)= velocitiesRadial           (jStart+1:jEnd) <  hubbleParameter*separations(jStart+1:jEnd) &
                      &              .and.                                                                                                                                &
                      &               velocityRadialVirialSquared(jStart+1:jEnd) >= 0.0d0
                 pairCountBin                            (j,iSample)=+pairCountBin                            (j,iSample)+     weight1(iSample,i) *sum(     weightPair(iSample,jStart+1:jEnd)                                                            )
@@ -566,10 +570,10 @@ contains
           do iSample=1,bootstrapSampleCount
              velocityRadialBin         (:,iSample)=+velocityRadialBin         (:,iSample)                      &
                   &                                +separationCentralBin                                       &
-                  &                                *self%cosmologyFunctions_%hubbleParameterEpochal(self%time)
+                  &                                *hubbleParameter
              velocityRadialInflowingBin(:,iSample)=+velocityRadialInflowingBin(:,iSample)                      &
                   &                                +separationCentralBin                                       &
-                  &                                *self%cosmologyFunctions_%hubbleParameterEpochal(self%time)
+                  &                                *hubbleParameter
           end do
        end if
        ! Output results.

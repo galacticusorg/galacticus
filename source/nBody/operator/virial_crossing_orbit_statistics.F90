@@ -294,6 +294,7 @@ contains
     double precision                                                                            :: separationMinimum                  , separationMaximum                , &
          &                                                                                         radiusVirial                       , velocityVirial                   , &
          &                                                                                         velocityWidthBin
+    double precision                                                                            :: hubbleParameter
 
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
@@ -386,6 +387,9 @@ contains
        velocityTangentialMean           =0.0d0
        velocityRadialDispersion         =0.0d0
        velocityTangentialDispersion     =0.0d0
+       ! Evaluate the Hubble parameter at this epoch once, outside of the parallel region, as the cosmology functions object is
+       ! shared between threads and memoizes its results.
+       hubbleParameter=self%cosmologyFunctions_%hubbleParameterEpochal(self%time)
        !$omp parallel private(iSample,j,jStart,jEnd,node,basic,weightPair,maskRadial,maskTangential,separations,positions,velocities,velocitiesRadial,velocitiesTangential,separationsVirial,angularMomentumVirial,energyVirial,neighborCount,neighborIndex,neighborDistanceSquared,neighborFinder,radiusVirial,velocityVirial,separationMinimum,separationMaximum,darkMatterHaloScale_) reduction(+:distributionVelocityRadialBin,distributionVelocityTangentialBin,pairCountRadial,pairCountTangential,velocityRadialMean,velocityTangentialMean,velocityRadialDispersion,velocityTangentialDispersion)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
@@ -472,7 +476,7 @@ contains
              velocitiesTangential(1:neighborCount)=+sqrt(sum(velocities(:,1:neighborCount)**2,dim=1))
           end where
           ! Add Hubble flow if requested.
-          if (self%addHubbleFlow) velocitiesRadial(1:neighborCount)=velocitiesRadial(1:neighborCount)+self%cosmologyFunctions_%hubbleParameterEpochal(self%time)*separations(1:neighborCount)
+          if (self%addHubbleFlow) velocitiesRadial(1:neighborCount)=velocitiesRadial(1:neighborCount)+hubbleParameter*separations(1:neighborCount)
           ! Scale velocities to the virial velocity for the halo. Change the sign of radial velocities here so that infalling
           ! halos have positive radial velocity.
           velocitiesRadial    (1:neighborCount)=-velocitiesRadial    (1:neighborCount)/velocityVirial
