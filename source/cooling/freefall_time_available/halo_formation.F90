@@ -30,7 +30,7 @@
 
       t_\mathrm{available} = t - t_\mathrm{form},
 
-   where :math:`t_\mathrm{form}` is the time at which the halo formed (see Section ).
+   where :math:`t_\mathrm{form}` is the time at which the halo formed.
    </description>
   </freefallTimeAvailable>
   !!]
