@@ -73,7 +73,7 @@ program Tests_IO_HDF5
   double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5d
   double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
   double precision                 , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread        , doubleValueArray5dRereadExpect
-  type            (varying_string )             , dimension(27)             :: datasetNamesReference
+  type            (varying_string )             , dimension(29)             :: datasetNamesReference
   type            (hdf5VarDouble  ), allocatable, dimension( :)             :: varDoubleArray2D                , varDoubleDataset2DArrayReread
   type            (hdf5VarDouble2D), allocatable, dimension( :)             :: varDoubleArray3D                , varDoubleDataset3DArrayReread
   type            (hdf5VarInteger8), allocatable, dimension( :)             :: varInteger8Array2D              , varInteger8Dataset2dArrayReread
@@ -333,6 +333,14 @@ program Tests_IO_HDF5
        ! Read part of an integer 1-D array dataset from the group into an allocatable array.
        call groupObject%readDataset("myReference",integerValueArrayReread,int([2],kind=HSIZE_T),int([1],kind=HSIZE_T))
        call Assert("re-read part of referenced 1-D array integer dataset to allocatable array",integerValueArray(4:4),integerValueArrayReread(1:1))
+       deallocate(integerValueArrayReread)
+       ! Read a selection (out of order) of a referenced integer 1-D array dataset. The selection is relative to the referenced
+       ! region.
+       integerValueArrayRereadStatic=0
+       call groupObject%readDatasetStatic("myReference",integerValueArrayRereadStatic,readSelection=int([2,1],kind=HSIZE_T))
+       call Assert("re-read selection of referenced 1-D array integer dataset to static array"     ,integerValueArray([4,3]),integerValueArrayRereadStatic(1:2))
+       call groupObject%readDataset("myReference",integerValueArrayReread,readSelection=int([2,1],kind=HSIZE_T))
+       call Assert("re-read selection of referenced 1-D array integer dataset to allocatable array",integerValueArray([4,3]),integerValueArrayReread           )
        deallocate(integerValueArrayReread)
 
        ! Write zero-sized 1-D array datasets to the file (unchunked, as chunked datasets require chunk sizes of at least 1),
@@ -851,6 +859,20 @@ program Tests_IO_HDF5
             &      ]                                                                      , &
             &      spread(.true.,1,10)                                                      &
             &     )
+       ! Read a selection (out of order, and with repeats) of a referenced variable-length double dataset. The selection is
+       ! relative to the referenced region.
+       block
+         type(hdf5Dataset) :: datasetObject
+         datasetObject=groupObject%openDataset("varDoubleDataset2dArray")
+         call groupObject%createReference1D(datasetObject,"varDoubleReference",int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+       end block
+       call groupObject%readDataset("varDoubleReference",varDoubleDataset2dArrayReread,readSelection=int([4,1,4],kind=HSIZE_T))
+       call Assert(                                                                                           &
+            &      "re-read selection of referenced 2-D array varDouble dataset"                            , &
+            &      [size(varDoubleDataset2dArrayReread) == 3                                                , &
+            &       (all(varDoubleArray2D(3+3*mod(i,2))%row == varDoubleDataset2dArrayReread(i)%row),i=1,3)], &
+            &      spread(.true.,1,4)                                                                         &
+            &     )
        deallocate(varDoubleDataset2dArrayReread)
        deallocate(varDoubleArray2D             )
      
@@ -882,6 +904,20 @@ program Tests_IO_HDF5
             &       all(varDoubleArray3D(10)%row == varDoubleDataset3dArrayReread(10)%row)  &
             &      ]                                                                      , &
             &      spread(.true.,1,10)                                                      &
+            &     )
+       ! Read a selection (out of order, and with repeats) of a referenced variable-length 2D double dataset. The selection is
+       ! relative to the referenced region.
+       block
+         type(hdf5Dataset) :: datasetObject
+         datasetObject=groupObject%openDataset("varDoubleDataset3dArray")
+         call groupObject%createReference1D(datasetObject,"varDouble2DReference",int([3],kind=HSIZE_T),int([4],kind=HSIZE_T))
+       end block
+       call groupObject%readDataset("varDouble2DReference",varDoubleDataset3dArrayReread,readSelection=int([4,1,4],kind=HSIZE_T))
+       call Assert(                                                                                           &
+            &      "re-read selection of referenced 3-D array varDouble dataset"                            , &
+            &      [size(varDoubleDataset3dArrayReread) == 3                                                , &
+            &       (all(varDoubleArray3D(3+3*mod(i,2))%row == varDoubleDataset3dArrayReread(i)%row),i=1,3)], &
+            &      spread(.true.,1,4)                                                                         &
             &     )
        deallocate(varDoubleDataset3DArrayReread)
        deallocate(varDoubleArray3D             )
@@ -932,6 +968,28 @@ program Tests_IO_HDF5
             &      [((all(varDoubleArrayGrid(i,j)%row == varDoubleDatasetGridReread(i,j)%row),i=1,4),j=1,3)], &
             &      spread(.true.,1,12)                                                                        &
             &     )
+       deallocate(varDoubleDatasetGridReread)
+       ! Read a subsection of the 2-D array of variable-length double rows back.
+       call groupObject%readDataset("varDoubleDatasetGrid",varDoubleDatasetGridReread,readBegin=[2_HSIZE_T,2_HSIZE_T],readCount=[2_HSIZE_T,2_HSIZE_T])
+       call Assert(                                                                                               &
+            &      "re-read subsection of 2-D grid varDouble dataset"                                           , &
+            &      [shape(varDoubleDatasetGridReread)==[2,2],                                                     &
+            &       ((all(varDoubleArrayGrid(i+1,j+1)%row == varDoubleDatasetGridReread(i,j)%row),i=1,2),j=1,2)], &
+            &      spread(.true.,1,6)                                                                             &
+            &     )
+       deallocate(varDoubleDatasetGridReread)
+       ! Read a selection (applied to the final dimension, in any order, and with repeats) of the 2-D array of variable-length
+       ! double rows back.
+       block
+         integer(HSIZE_T), dimension(3), parameter :: selection=[3_HSIZE_T,1_HSIZE_T,3_HSIZE_T]
+         call groupObject%readDataset("varDoubleDatasetGrid",varDoubleDatasetGridReread,readSelection=selection)
+         call Assert(                                                                                                      &
+              &      "re-read selection of 2-D grid varDouble dataset"                                                   , &
+              &      [shape(varDoubleDatasetGridReread)==[4,3],                                                            &
+              &       ((all(varDoubleArrayGrid(i,selection(j))%row == varDoubleDatasetGridReread(i,j)%row),i=1,4),j=1,3)], &
+              &      spread(.true.,1,14)                                                                                   &
+              &     )
+       end block
        deallocate(varDoubleDatasetGridReread)
        deallocate(varDoubleArrayGrid        )
 
@@ -992,16 +1050,18 @@ program Tests_IO_HDF5
                  &                 "integerDataset3dArray     ", &
                  &                 "integerShortDataset1dArray", &
                  &                 "myReference               ", &
+                 &                 "varDouble2DReference      ", &
                  &                 "varDoubleDataset2dArray   ", &
                  &                 "varDoubleDataset3dArray   ", &
                  &                 "varDoubleDatasetGrid      ", &
+                 &                 "varDoubleReference        ", &
                  &                 "varInteger8Dataset2dArray ", &
                  &                 "varStringDataset1dArray   "  &
                  &                ]
             do i=1,size(datasetNamesReference)
                datasetNamesReference(i)=trim(datasetNamesReference(i))
             end do
-            call Assert("recover correct number of datasets in group",size(datasetNames),27)
+            call Assert("recover correct number of datasets in group",size(datasetNames),29)
             call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
           end block
        end if
