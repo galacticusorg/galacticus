@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Claude.
 
   !!{RST
   Implements a node operator class that creates black hole seeds in nodes.
@@ -148,6 +148,8 @@ contains
        call        blackHole%integerRank0MetaPropertySet(self%blackHoleSeedsFormationChannelID,formationChannel                %ID        )
        if (blackHole%spinIsSettable()) &
             & call blackHole%spinSet                    (                                      self            %blackHoleSeeds_%spin(node))
+       ! Apply any changes that follow from the seed having formed.
+       call self%blackHoleSeeds_%seedFormed(node)
     end if
     return
   end subroutine blackHolesSeedNodeInitialize
@@ -204,6 +206,9 @@ contains
     call        blackHole%integerRank0MetaPropertySet(self_%blackHoleSeedsFormationChannelID,formationChannel%ID)
     if (blackHole%spinIsSettable()) &
          & call blackHole%                    spinSet(                                       spinSeed_          )
+    ! Apply any changes that follow from the seed having formed. This is done here, rather than when the seed mass is computed
+    ! during differential evolution, since changes made there would be overwritten by the evolution.
+    call self_%blackHoleSeeds_%seedFormed(node)
     return 
   end subroutine blackHoleCreate
 

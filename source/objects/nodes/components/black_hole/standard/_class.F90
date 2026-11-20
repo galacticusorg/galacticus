@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements the standard black hole node component.
 !!}
@@ -455,6 +457,8 @@ contains
                 ! Note that "status" is not set to failure as this change in state of the black hole should not change any
                 ! calculation of differential evolution rates as the mass was in an unphysical regime anyway.
                 call blackHole%massSet(blackHoleSeeds_%mass(node))
+                ! Apply any changes that follow from the seed having formed.
+                call blackHoleSeeds_%seedFormed(node)
                 ! Indicate that ODE evolution should continue after this state change.
                 if (status == GSL_Success) status=GSL_Continue
              end if
