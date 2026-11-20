@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an N-body data operator which computes pairwise velocity statistics in bins of separation.
 !!}
@@ -353,7 +355,7 @@ contains
        velocityRadialInflowingBin              =0.0d0
        velocityDispersionRadialInflowingBin    =0.0d0
        velocityDispersionTangentialInflowingBin=0.0d0
-       !$omp parallel private(iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
+       !$omp parallel private(node,basic,radiusVirial,velocityVirial,iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
        allocate(weightPair                 (bootstrapSampleCount,size(position2,dim=2)))
