@@ -81,13 +81,13 @@
        <method method="propertiesGet" description="Return the properties of the halo needed to evaluate the splashback fitting functions."/>
      </methods>
      !!]
-     final     ::                  shi2016Destructor
-     procedure :: radius        => shi2016Radius
-     procedure :: radiusRatio   => shi2016RadiusRatio
+     final     ::                   shi2016Destructor
+     procedure :: radius         => shi2016Radius
+     procedure :: radiusRatio    => shi2016RadiusRatio
      procedure :: massIsProvided => shi2016MassIsProvided
-     procedure :: mass          => shi2016Mass
-     procedure :: massRatio     => shi2016MassRatio
-     procedure :: propertiesGet => shi2016PropertiesGet
+     procedure :: mass           => shi2016Mass
+     procedure :: massRatio      => shi2016MassRatio
+     procedure :: propertiesGet  => shi2016PropertiesGet
   end type darkMatterHaloSplashbackRadiusShi2016
 
   interface darkMatterHaloSplashbackRadiusShi2016

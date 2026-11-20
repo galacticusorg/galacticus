@@ -349,14 +349,14 @@
        <method method="propertiesGet" description="Return the properties of the halo needed to evaluate the splashback fitting functions."/>
      </methods>
      !!]
-     procedure :: radius        => diemerRadius
-     procedure :: radiusRatio   => diemerRadiusRatio
+     procedure :: radius         => diemerRadius
+     procedure :: radiusRatio    => diemerRadiusRatio
      procedure :: massIsProvided => diemerMassIsProvided
-     procedure :: mass          => diemerMass
-     procedure :: massRatio     => diemerMassRatio
-     procedure :: radiusScatter => diemerRadiusScatter
-     procedure :: massScatter   => diemerMassScatter
-     procedure :: propertiesGet => diemerPropertiesGet
+     procedure :: mass           => diemerMass
+     procedure :: massRatio      => diemerMassRatio
+     procedure :: radiusScatter  => diemerRadiusScatter
+     procedure :: massScatter    => diemerMassScatter
+     procedure :: propertiesGet  => diemerPropertiesGet
   end type darkMatterHaloSplashbackRadiusDiemer
 
 contains
