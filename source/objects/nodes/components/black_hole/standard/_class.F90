@@ -435,7 +435,7 @@ contains
     class           (nodeComponentBlackHole)               , pointer :: blackHole
     double precision                        , parameter              :: spinMaximum=0.9999d0
     integer                                                          :: i                   , instanceCount
-    double precision                                                 :: spin
+    double precision                                                 :: spin                , massSeed
     ! Check if the standard component is active.
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get a count of the number of black holes associated with this node.
@@ -456,9 +456,12 @@ contains
              if (blackHole%mass() < 0.0d0) then
                 ! Note that "status" is not set to failure as this change in state of the black hole should not change any
                 ! calculation of differential evolution rates as the mass was in an unphysical regime anyway.
-                call blackHole%massSet(blackHoleSeeds_%mass(node))
-                ! Apply any changes that follow from the seed having formed.
-                call blackHoleSeeds_%seedFormed(node)
+                massSeed=blackHoleSeeds_%mass(node)
+                call blackHole%massSet(massSeed)
+                ! Apply any changes that follow from the seed having formed. (Note that, as this occurs after an ODE step, the step
+                ! may yet be rewound, which would restore the properties of the node evolved by the ODE solver, but not those
+                ! set by `seedFormed()` which are not evolved.)
+                if (massSeed > 0.0d0) call blackHoleSeeds_%seedFormed(node)
                 ! Indicate that ODE evolution should continue after this state change.
                 if (status == GSL_Success) status=GSL_Continue
              end if

@@ -56,8 +56,7 @@
 
   ! Submodule-scope variable used in create function.
   class           (nodeOperatorBlackHolesSeed), pointer :: self_     => null()
-  double precision                                      :: massSeed_          , spinSeed_
-  !$omp threadprivate(self_,massSeed_,spinSeed_)
+  !$omp threadprivate(self_)
 
 contains
 
@@ -166,18 +165,15 @@ contains
     procedure       (interruptTask             ), intent(inout), pointer :: functionInterrupt
     integer                                     , intent(in   )          :: propertyType
     class           (nodeComponentBlackHole    )               , pointer :: blackHole
-    double precision                                                     :: massSeed         , spinSeed
+    double precision                                                     :: massSeed
     
     blackHole => node%blackHole()
     select type (blackHole)
     type is (nodeComponentBlackHole)
        massSeed=self%blackHoleSeeds_%mass(node)
-       spinSeed=self%blackHoleSeeds_%spin(node)
        ! Create a black hole component only if the seed mass is non-zero and no black hole currently exists.
        if (massSeed > 0.0d0) then
           self_             => self
-          massSeed_         =  massSeed
-          spinSeed_         =  spinSeed
           interrupt         =  .true.
           functionInterrupt => blackHoleCreate
        end if
@@ -198,14 +194,22 @@ contains
     double precision                                          , intent(in   ), optional:: timeEnd
     class           (nodeComponentBlackHole                  ),                pointer :: blackHole
     type            (enumerationBlackHoleFormationChannelType)                         :: formationChannel
+    double precision                                                                   :: massSeed        , spinSeed
     !$GLC attributes unused :: timeEnd
 
+    ! Recompute the seed mass for the state of the node to which the interrupt is applied. (The mass found when the interrupt was
+    ! triggered may have been computed at a different, trial, state of the ODE solver, and the changes made by `seedFormed()` must
+    ! be consistent with the seed placed.) If no seed forms in this state then do nothing - any later formation will trigger a new
+    ! interrupt.
+    massSeed=self_%blackHoleSeeds_%mass(node)
+    if (massSeed <= 0.0d0) return
+    spinSeed=self_%blackHoleSeeds_%spin(node)
     blackHole        => node                 %blackHole       (autoCreate=.true.)
     formationChannel =  self_%blackHoleSeeds_%formationChannel(           node  )
-    call        blackHole%                    massSet(                                       massSeed_          )
+    call        blackHole%                    massSet(                                       massSeed           )
     call        blackHole%integerRank0MetaPropertySet(self_%blackHoleSeedsFormationChannelID,formationChannel%ID)
     if (blackHole%spinIsSettable()) &
-         & call blackHole%                    spinSet(                                       spinSeed_          )
+         & call blackHole%                    spinSet(                                       spinSeed           )
     ! Apply any changes that follow from the seed having formed. This is done here, rather than when the seed mass is computed
     ! during differential evolution, since changes made there would be overwritten by the evolution.
     call self_%blackHoleSeeds_%seedFormed(node)

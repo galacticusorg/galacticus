@@ -302,7 +302,7 @@ contains
     call blackHole1%massSet(massBlackHoleNew)
     call blackHole1%spinSet(spinBlackHoleNew)
     ! If the binary escaped, and a seed was placed in its stead, apply any changes that follow from the seed having formed.
-    if (escaped) call self_%blackHoleSeeds_%seedFormed(node)
+    if (escaped .and. massBlackHoleNew > 0.0d0) call self_%blackHoleSeeds_%seedFormed(node)
     ! Remove the merging black hole from the list.
     call node%blackHoleRemove(mergingInstance)
     return
