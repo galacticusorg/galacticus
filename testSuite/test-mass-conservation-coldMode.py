@@ -92,6 +92,9 @@ checkConservation("outputs/test-mass-conservation-coldMode/galacticus_0:1/galact
 # hot and cold mode CGM in proportion, moving it to the unaccreted reservoir, so mass must still be conserved. Starvation is
 # limited to outflowed gas, which is then moved to the host's CGM (rather than being removed from the model, as is all CGM of
 # satellites otherwise).
+# Note that this model does not in fact require any trimming of the cold mode CGM: mass is conserved to ~1e-10 whether or not the
+# trimmed cold mode gas is moved to the unaccreted reservoir (and also with starveOutflowsOnly=false). So this checks only that the
+# CGM starvation operator can be used with the cold mode CGM (which requires the beta profile to have a total mass).
 tree       = ET.parse("parameters/test-mass-conservation-coldMode.xml")
 grid       = tree.getroot()
 grid.find("modelRootDirectory").text = "testSuite/outputs/test-mass-conservation-coldMode-starvation"

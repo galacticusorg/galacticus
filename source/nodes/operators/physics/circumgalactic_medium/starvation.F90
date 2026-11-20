@@ -28,7 +28,7 @@
   !![
   <nodeOperator name="nodeOperatorCGMStarvation" docformat="rst">
    <description>
-   A node operator class that removes :term:`CGM` gas from subhalos at node merger events, simulating environmental gas starvation. ``starveOutflowsOnly`` limits removal to outflowing gas only, transferring it to the host halo's :term:`CGM` instead of destroying it. ``fractionBaryonLimitInNodeMerger`` optionally trims the merged halo's :term:`CGM` hot gas (and associated angular momentum, abundances, and chemicals proportionally) to enforce the universal baryon fraction at node mergers.
+   A node operator class that removes :term:`CGM` gas from subhalos at node merger events, simulating environmental gas starvation. ``starveOutflowsOnly`` limits removal to outflowing gas only, transferring it to the host halo's :term:`CGM` instead of destroying it. ``fractionBaryonLimitInNodeMerger`` optionally trims the merged halo's :term:`CGM` gas (hot-mode gas, with its angular momentum, abundances, and chemicals proportionally, and any cold-mode gas, with its abundances) to enforce the universal baryon fraction at node mergers.
    </description>
   </nodeOperator>
   !!]
@@ -79,7 +79,7 @@ contains
       <name>fractionBaryonLimitInNodeMerger</name>
       <defaultValue>.false.</defaultValue>
       <description>
-      Controls whether the :term:`CGM` gas content of nodes should be limited to not exceed the universal baryon fraction at node merger events. If set to ``true``, :term:`CGM` hot gas (and angular momentum, abundances, and chemicals proportionally) will be removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon fraction where possible.
+      Controls whether the :term:`CGM` gas content of nodes should be limited to not exceed the universal baryon fraction at node merger events. If set to ``true``, :term:`CGM` gas (hot-mode gas, with its angular momentum, abundances, and chemicals proportionally, and any cold-mode gas, with its abundances) will be removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon fraction where possible.
       </description>
       <source>parameters</source>
     </inputParameter>

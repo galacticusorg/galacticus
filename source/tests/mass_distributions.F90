@@ -624,6 +624,12 @@ program Test_Mass_Distributions
           &      +(4.0d0-Pi)*Pi                                              , &
           &      absTol=1.0d-6                                                 &
           &     )
+     ! For β ≤ 1 the untruncated profile has infinite mass.
+     call Assert(                                                              &
+          &      "Total mass, unbounded, is infinite"                        , &
+          &      massDistribution_%massTotal() == huge(0.0d0)                , &
+          &      .true.                                                        &
+          &     )
      call Assert(                                                              &
           &      "Potential at scale radius"                                 , &
           &      +massDistribution_%potential            (position          )  &
@@ -697,6 +703,13 @@ program Test_Mass_Distributions
           &      +1.0d0/4.0d0                                                , &
           &      absTol=1.0d-6                                                 &
           &     )
+     ! Total mass, π^{3/2} Γ(3β/2-3/2)/Γ(3β/2) = π²/4 for β=2 in dimensionless units.
+     call Assert(                                                              &
+          &      "Total mass, unbounded"                                     , &
+          &      +massDistribution_%massTotal            (                 ) , &
+          &      +Pi**2/4.0d0                                                , &
+          &      relTol=1.0d-9                                                 &
+          &     )
   end select
   call Unit_Tests_End_Group()
   ! Ensure that a dimensionful profile produces the correct mass inside of its outer radius.
@@ -710,6 +723,14 @@ program Test_Mass_Distributions
   class is (massDistributionSpherical)
      call Assert("Mass within outer radius",massDistribution_%massEnclosedBySphere(0.12829569846196026d0),182582297.19568533d0,relTol=1.0d-6)
   end select
+  deallocate(massDistribution_)
+  ! Ensure that the total mass of a profile truncated at its outer radius is the mass within that radius.
+  allocate(massDistributionBetaProfile :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionBetaProfile)
+     massDistribution_=massDistributionBetaProfile(beta=2.0d0/3.0d0,radiusCore=3.8492316686261747d-002,mass=182582297.19568533d0,radiusOuter=0.12829569846196026d0,truncateAtOuterRadius=.true.)
+  end select
+  call Assert("Total mass, truncated at outer radius",massDistribution_%massTotal(),182582297.19568533d0,relTol=1.0d-6)
   deallocate(massDistribution_)
   ! Ensure that the potential of a dimensionful profile truncated at its outer radius matches (Φ(r)-Φ(0))/G=∫₀ʳ M(r′)/r′² dr′,
   ! found by direct numerical integration of the density (using mpmath), at radii well inside the core, inside the outer radius,
