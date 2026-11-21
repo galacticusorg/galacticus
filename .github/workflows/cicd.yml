@@ -1298,6 +1298,7 @@ jobs:
                       tests.root_finding.exe,
                       tests.multi_dimensional_minimizer.exe,
                       tests.search.exe,
+                      tests.nearest_neighbors.exe,
                       tests.Roman_numerals.exe,
                       tests.SI_prefixes.exe,
                       tests.sort.exe,
