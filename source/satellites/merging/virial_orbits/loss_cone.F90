@@ -351,7 +351,8 @@ contains
     !!{RST
     Return lossCone orbital parameters for a satellite.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Numerical_Comparison, only : Values_Agree
     implicit none
     type            (keplerOrbit        )                        :: orbit
     class           (virialOrbitLossCone), intent(inout), target :: self
@@ -359,6 +360,7 @@ contains
     logical                              , intent(in   )         :: acceptUnboundOrbits
     class           (nodeComponentBasic ), pointer               :: basicSatellite               , basicHost
     double precision                     , parameter             :: boundTolerance        =1.0d-4 ! Tolerence to ensure that orbits are sufficiently bound.
+    double precision                     , parameter             :: toleranceRadius       =1.0d-3
     integer         (c_size_t           ), dimension(    2)      :: indicesMass
     integer         (c_size_t           ), dimension(    4)      :: indicesOrbit
     double precision                     , dimension(0:1,2)      :: weightsMass
@@ -411,12 +413,17 @@ contains
        call orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
        radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
+       ! Reject the orbit (and draw again) unless it reaches the virial radius under the default density contrast definition. If
+       ! that radius agrees with the virial radius under this class' own definition to within the precision of the tabulations
+       ! from which the two are computed, the orbit is already at the required radius, and is accepted as it is.
        if (orbit%radiusApocenter() >= radiusHost .and. orbit%radiusPericenter() <= radiusHost) then
           foundOrbit     =  .true.
           basicHost      => host%basic()
           basicSatellite => node%basic()
           call orbit%propagate(radiusHost           ,infalling=.true.)
           call orbit%massesSet(basicSatellite%mass(),basicHost%mass())
+       else
+          foundOrbit=Values_Agree(radiusHost,radiusHostSelf,relTol=toleranceRadius)
        end if
     end do
     return
