@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of cosmological density field mass variance which modifies another member of the class by offsetting for the peak-background split.
   !!}
@@ -53,6 +55,7 @@
      procedure :: sigma8                             => variancePeakBackgroundSplitSigma8
      procedure :: rootVariance                       => variancePeakBackgroundSplitRootVariance
      procedure :: rootVarianceLogarithmicGradient    => variancePeakBackgroundSplitRootVarianceLogarithmicGradient
+     procedure :: rootVarianceLogarithmicGradientTime=> variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime
      procedure :: rootVarianceAndLogarithmicGradient => variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient
      procedure :: mass                               => variancePeakBackgroundSplitMass
      procedure :: growthIsMassDependent              => variancePeakBackgroundSplitGrowthIsMassDependent
@@ -221,6 +224,42 @@ contains
     end if
     return
   end function variancePeakBackgroundSplitRootVarianceLogarithmicGradient
+
+  double precision function variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime(self,mass,time)
+    !!{RST
+    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
+    region containing the given ``mass`` on average. Since :math:`\sigma_\mathrm{c}^2 = \sigma^2(M) - \sigma^2(M_\mathrm{b})`, this is
+    :math:`[\sigma^2(M) \gamma(M) - \sigma^2(M_\mathrm{b}) \gamma(M_\mathrm{b})]/[\sigma^2(M) - \sigma^2(M_\mathrm{b})]`, where
+    :math:`\gamma = \mathrm{d}\log\sigma/\mathrm{d}\log t` for the decorated class.
+    !!}
+    implicit none
+    class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
+    double precision                                             , intent(in   ) :: mass         , time
+    double precision                                                             :: varianceTotal, varianceBackground, &
+         &                                                                          gradientTimeBackground
+
+    varianceTotal     =self%cosmologicalMassVariance_%rootVariance      (mass,time)**2
+    varianceBackground=self                          %varianceBackground(     time)
+    if (varianceTotal > varianceBackground) then
+       ! The background term is absent for an infinite environment (zero background variance).
+       if (varianceBackground > 0.0d0) then
+          gradientTimeBackground=self%cosmologicalMassVariance_%rootVarianceLogarithmicGradientTime(self%massBackground,time)
+       else
+          gradientTimeBackground=0.0d0
+       end if
+       variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime=+(                                                                                 &
+            &                                                           +varianceTotal         *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradientTime(mass,time) &
+            &                                                           -varianceBackground    *gradientTimeBackground                                                        &
+            &                                                          )                                                                                 &
+            &                                                         /(                                                                                 &
+            &                                                           +varianceTotal                                                                   &
+            &                                                           -varianceBackground                                                              &
+            &                                                          )
+    else
+       variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime=+0.0d0
+    end if
+    return
+  end function variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime
 
   subroutine variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
     !!{RST

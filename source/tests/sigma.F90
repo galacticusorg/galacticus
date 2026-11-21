@@ -23,7 +23,8 @@ program Tests_Sigma
   !!{RST
   Tests calculations of the mass variance, :math:`\sigma(M)`.
   !!}
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower   , cosmologicalMassVarianceArtificialHalos, cosmologicalMassVariancePeakBackgroundSplit, &
+       &                                                haloEnvironmentFixed
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple               , hubbleUnitsLittleH
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
@@ -77,6 +78,16 @@ program Tests_Sigma
        &                                                                                                  powerSpectrumPrimordialTransferredExtension_                  , powerSpectrumPrimordialTransferredEdge_
   type            (powerSpectrumNormalizerSigma8           )                                           :: powerSpectrumNormalizerLCDM_                                  , powerSpectrumNormalizerSimple_                 , &
        &                                                                                                  powerSpectrumNormalizerExtension_                             , powerSpectrumNormalizerEdge_
+  ! Masses at which the time gradient of the root-variance of the peak-background split class is tested against a finite
+  ! difference. All are below the environment mass, so that the conditional variance is non-zero.
+  integer                                                                                  , parameter :: massCountTime                          =3
+  double precision                                          , dimension(massCountTime     ), parameter :: massTime(massCountTime)                =[1.0d10,1.0d12,1.0d13]
+  double precision                                                                         , parameter :: stepLogarithmicTime                    =1.0d-2
+  double precision                                          , dimension(massCountTime     )            :: gradientTimeAnalytic                                          , gradientTimeNumerical
+  type            (cosmologicalMassVarianceArtificialHalos )                                           :: cosmologicalMassVarianceArtificialHalos_
+  type            (cosmologicalMassVariancePeakBackgroundSplit)                                        :: cosmologicalMassVariancePeakBackgroundSplit_
+  type            (haloEnvironmentFixed                    )                                           :: haloEnvironmentFixed_
+  double precision                                                                                     :: timeGradient
   integer                                                                                              :: iMass
   double precision                                                                                     :: mass8                                                         , radius8                                        , &
        &                                                                                                  sigma8                                                        , sigmaForce
@@ -364,6 +375,43 @@ program Tests_Sigma
   end do
   call Assert('σ(M) near the ends of the usable range is unchanged by extension of the tabulation'       ,all(sigmaEdgeNarrow == sigmaEdgeExtended),.true.)
   call Assert('dlogσ/dlogM near the ends of the usable range is unchanged by extension of the tabulation',all(alphaEdgeNarrow == alphaEdgeExtended),.true.)
+  ! Check the logarithmic gradient with respect to time of the conditional root-variance of the peak-background split class,
+  ! against a centered finite difference of the root-variance itself. The class decorated is an artificial halos variance with a
+  ! growth exponent β≠1, so that the growth of the variance is mass-dependent and the gradients of the total and background
+  ! variances differ; the zero-point mass is chosen so that the artificial term is comparable to the LCDM variance at the masses
+  ! tested.
+  cosmologicalMassVarianceArtificialHalos_    =cosmologicalMassVarianceArtificialHalos    (                                                                  &
+       &                                                                                   massZeroPoint            =1.0d13                                , &
+       &                                                                                   exponentMass             =-0.8d0                                , &
+       &                                                                                   exponentGrowthFactor     =+2.0d0                                , &
+       &                                                                                   cosmologicalMassVariance_=cosmologicalMassVarianceLCDM_         , &
+       &                                                                                   cosmologyFunctions_      =cosmologyFunctions_                   , &
+       &                                                                                   linearGrowth_            =linearGrowth_                           &
+       &                                                                                  )
+  haloEnvironmentFixed_                       =haloEnvironmentFixed                       (                                                                  &
+       &                                                                                   cosmologyFunctions_      =cosmologyFunctions_                   , &
+       &                                                                                   linearGrowth_            =linearGrowth_                         , &
+       &                                                                                   overdensity              =0.0d0                                 , &
+       &                                                                                   massEnvironment          =1.0d14                                  &
+       &                                                                                  )
+  cosmologicalMassVariancePeakBackgroundSplit_=cosmologicalMassVariancePeakBackgroundSplit(                                                                  &
+       &                                                                                   factorMassEnvironment    =1.0d0                                 , &
+       &                                                                                   haloEnvironment_         =haloEnvironmentFixed_                 , &
+       &                                                                                   cosmologicalMassVariance_=cosmologicalMassVarianceArtificialHalos_, &
+       &                                                                                   cosmologyParameters_     =cosmologyParameters_                  , &
+       &                                                                                   cosmologyFunctions_      =cosmologyFunctions_                     &
+       &                                                                                  )
+  timeGradient=cosmologyFunctions_%cosmicTime(1.0d0/(1.0d0+0.5d0))
+  do iMass=1,massCountTime
+     gradientTimeAnalytic (iMass)=+cosmologicalMassVariancePeakBackgroundSplit_%rootVarianceLogarithmicGradientTime(massTime(iMass),timeGradient                         )
+     gradientTimeNumerical(iMass)=+(                                                                                                                                 &
+          &                         +log(cosmologicalMassVariancePeakBackgroundSplit_%rootVariance                 (massTime(iMass),timeGradient*exp(+stepLogarithmicTime))) &
+          &                         -log(cosmologicalMassVariancePeakBackgroundSplit_%rootVariance                 (massTime(iMass),timeGradient*exp(-stepLogarithmicTime))) &
+          &                        )                                                                                                                                 &
+          &                       /2.0d0                                                                                                                             &
+          &                       /stepLogarithmicTime
+  end do
+  call Assert('dlogσ/dlogt of the peak-background split conditional variance matches a finite difference',gradientTimeAnalytic,gradientTimeNumerical,relTol=1.0d-3)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
