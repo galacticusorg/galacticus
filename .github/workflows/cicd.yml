@@ -1357,6 +1357,7 @@ jobs:
                       tests.cooling_chain.exe,
                       tests.cooling_energy_radiated_cap.exe,
                       tests.hot_halo_outflow_stripping.exe,
+                      tests.hot_halo_cold_mode_mass_distribution.exe,
                       tests.bett2007_spin_distribution.exe,
                       tests.bug745815.exe,
                       tests.gaunt_factors.exe,
