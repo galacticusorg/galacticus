@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Andrew Benson, Claude.
+!+    Contributions to this file made by: Andrew Benson, Claude.
 
 !!{RST
 Implements an N-body data operator which computes pairwise velocity statistics in bins of separation.
@@ -458,12 +458,12 @@ contains
              velocitiesTangential       (1:neighborCount)=+sqrt(sum(velocities(:,1:neighborCount)**2,dim=1))
              velocityRadialVirialSquared(1:neighborCount)=-huge(0.0d0)
           end where
-          if (self%addHubbleFlow)                                                                                                      &
-               & velocityRadialVirialSquared(1:neighborCount)=+                           velocityRadialVirialSquared(1:neighborCount) &
-               &                                              +(                                                                       &
-               &                                                +hubbleParameter &
-               &                                                *                         separations                (1:neighborCount) &
-               &                                                /                         velocityVirial                               &
+          if (self%addHubbleFlow)                                                                             &
+               & velocityRadialVirialSquared(1:neighborCount)=+  velocityRadialVirialSquared(1:neighborCount) &
+               &                                              +(                                              &
+               &                                                +hubbleParameter                              &
+               &                                                *separations                (1:neighborCount) &
+               &                                                /velocityVirial                               &
                &                                               )**2
           ! Accumulate particles into bins.
           jEnd=0
@@ -475,7 +475,7 @@ contains
              do iSample=1,bootstrapSampleCount
                 if (weight1(iSample,i) == 0_c_size_t) cycle
                 mask(1:jEnd-jStart)= velocitiesRadial           (jStart+1:jEnd) <  hubbleParameter*separations(jStart+1:jEnd) &
-                     &              .and.                                                                                                                                &
+                     &              .and.                                                                                     &
                      &               velocityRadialVirialSquared(jStart+1:jEnd) >= 0.0d0
                 pairCountBin                            (j,iSample)=+pairCountBin                            (j,iSample)+     weight1(iSample,i) *sum(     weightPair(iSample,jStart+1:jEnd)                                                            )
                 velocityRadialBin                       (j,iSample)=+velocityRadialBin                       (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesRadial    (jStart+1:jEnd)                       )
@@ -493,13 +493,13 @@ contains
           if (mpiSelf%isMaster()) then
 #endif
              call displayCounter(                                                 &
-                  &                          int(                                             &
-                  &                              +100.0d0                                     &
-                  &                              *float(i                                  )  &
-                  &                              /float(size(position1,dim=2,kind=c_size_t))  &
-                  &                             )                                           , &
-                  &                          .false.                                          &
-                  &                         )
+                  &              int(                                             &
+                  &                  +100.0d0                                     &
+                  &                  *float(i                                  )  &
+                  &                  /float(size(position1,dim=2,kind=c_size_t))  &
+                  &                 )                                           , &
+                  &              .false.                                          &
+                  &             )
 #ifdef USEMPI
           end if
 #endif
@@ -568,11 +568,11 @@ contains
        ! Add Hubble flow if requested.
        if (self%addHubbleFlow) then
           do iSample=1,bootstrapSampleCount
-             velocityRadialBin         (:,iSample)=+velocityRadialBin         (:,iSample)                      &
-                  &                                +separationCentralBin                                       &
+             velocityRadialBin         (:,iSample)=+velocityRadialBin         (:,iSample) &
+                  &                                +separationCentralBin                  &
                   &                                *hubbleParameter
-             velocityRadialInflowingBin(:,iSample)=+velocityRadialInflowingBin(:,iSample)                      &
-                  &                                +separationCentralBin                                       &
+             velocityRadialInflowingBin(:,iSample)=+velocityRadialInflowingBin(:,iSample) &
+                  &                                +separationCentralBin                  &
                   &                                *hubbleParameter
           end do
        end if

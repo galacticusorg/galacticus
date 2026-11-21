@@ -29,36 +29,36 @@ program Test_Nearest_Neighbors
   and of a tree built by each thread, as the N-body operators do), and the results compared. The ANN library keeps its working
   state in global variables, so concurrent use gives wrong results or crashes unless calls to it are serialized.
   !!}
-  use :: Display          , only : displayVerbositySet, verbosityLevelStandard
+  use :: Display          , only : displayVerbositySet  , verbosityLevelStandard
   use :: Events_Hooks     , only : eventsHooksInitialize
   use :: Kind_Numbers     , only : kind_int8
   use :: Nearest_Neighbors, only : nearestNeighbors
   use :: OMP_Lib          , only : OMP_Set_Num_Threads
-  use :: Unit_Tests       , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests       , only : Assert               , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  integer                  , parameter                               :: countPoints      =4000, countQueries=4000, &
-       &                                                                countNeighbors   =   8, countThreads=   8
-  double precision         , parameter                               :: radius           =0.1d0
-  double precision         , dimension(3,countPoints   )             :: points
-  double precision         , dimension(3,countQueries  )             :: queries
-  integer                  , dimension(countNeighbors,countQueries)  :: indexSerial       , indexShared       , &
-       &                                                                indexPrivate
-  double precision         , dimension(countNeighbors,countQueries)  :: distanceSerial    , distanceShared    , &
-       &                                                                distancePrivate
-  integer                  , dimension(               countQueries)  :: countSerial       , countShared       , &
-       &                                                                countPrivate
-  integer                  , dimension(:)            , allocatable   :: neighborIndex
-  double precision         , dimension(:)            , allocatable   :: neighborDistance
-  type            (nearestNeighbors)                                 :: neighborFinder
-  type            (nearestNeighbors)                 , allocatable   :: neighborFinderPrivate
-  type            (nearestNeighbors)                                 :: neighborFinderCopy
-  type            (nearestNeighbors)                 , save          :: neighborFinderThread
+  integer                           , parameter                                           :: countPoints          =4000           , countQueries  =4000, &
+       &                                                                                     countNeighbors       =   8           , countThreads  =   8
+  double precision                  , parameter                                           :: radius               =0.1d0
+  double precision                  , dimension(3             ,countPoints )              :: points
+  double precision                  , dimension(3             ,countQueries)              :: queries
+  integer                           , dimension(countNeighbors,countQueries)              :: indexSerial                          , indexShared        , &
+       &                                                                                     indexPrivate
+  double precision                  , dimension(countNeighbors,countQueries)              :: distanceSerial                       , distanceShared     , &
+       &                                                                                     distancePrivate
+  integer                           , dimension(               countQueries)              :: countSerial                          , countShared        , &
+       &                                                                                     countPrivate
+  integer                           , dimension(:                          ), allocatable :: neighborIndex
+  double precision                  , dimension(:                          ), allocatable :: neighborDistance
+  type            (nearestNeighbors)                                                      :: neighborFinder
+  type            (nearestNeighbors)                                        , allocatable :: neighborFinderPrivate
+  type            (nearestNeighbors)                                                      :: neighborFinderCopy
+  type            (nearestNeighbors)                                        , save        :: neighborFinderThread
   !$omp threadprivate(neighborFinderThread)
-  integer                  , dimension(countNeighbors,countQueries)  :: indexCopy         , indexThread
-  integer                  , dimension(               countQueries)  :: countThread
-  double precision         , dimension(3,countPoints   )             :: pointsOther
-  integer                                                            :: i                 , j
-  integer         (kind_int8      )                                  :: seed              =12345_kind_int8
+  integer                           , dimension(countNeighbors,countQueries)              :: indexCopy                            , indexThread
+  integer                           , dimension(               countQueries)              :: countThread
+  double precision                  , dimension(3             ,countPoints )              :: pointsOther
+  integer                                                                                 :: i                                    , j
+  integer         (kind_int8      )                                                       :: seed                 =12345_kind_int8
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -85,34 +85,34 @@ program Test_Nearest_Neighbors
      call neighborFinder%searchFixedRadius(queries(:,i),radius        ,0.0d0,countSerial(  i)                    )
   end do
   ! Check the serial searches against a brute-force search for the first few queries.
-  call Assert('serial search matches brute force',all([(bruteForceNearest(queries(:,i)) == indexSerial(1,i),i=1,100)]),.true.)
-  call Assert('serial fixed radius count matches brute force',all([(bruteForceCount(queries(:,i)) == countSerial(i),i=1,100)]),.true.)
+  call Assert('serial search matches brute force'            ,all([(bruteForceNearest(queries(:,i)) == indexSerial(1,i),i=1,100)]),.true.)
+  call Assert('serial fixed radius count matches brute force',all([(bruteForceCount  (queries(:,i)) == countSerial(  i),i=1,100)]),.true.)
   ! Concurrent searches of a shared tree.
   call OMP_Set_Num_Threads(countThreads)
   !$omp parallel do private(neighborIndex,neighborDistance) schedule(dynamic,1)
   do i=1,countQueries
-     call neighborFinder%search           (queries(:,i),countNeighbors,0.0d0,indexShared(:,i),distanceShared(:,i)                )
+     call neighborFinder%search           (queries(:,i),countNeighbors,0.0d0,indexShared(:,i),distanceShared(:,i)                 )
      call neighborFinder%searchFixedRadius(queries(:,i),radius        ,0.0d0,countShared(  i),neighborIndex      ,neighborDistance)
   end do
   !$omp end parallel do
-  call Assert('concurrent search of a shared tree: indices',all(indexShared == indexSerial),.true.)
-  call Assert('concurrent search of a shared tree: distances',all(distanceShared == distanceSerial),.true.)
-  call Assert('concurrent search of a shared tree: fixed radius counts',all(countShared == countSerial),.true.)
+  call Assert('concurrent search of a shared tree: indices'            ,all(indexShared    == indexSerial   ),.true.)
+  call Assert('concurrent search of a shared tree: distances'          ,all(distanceShared == distanceSerial),.true.)
+  call Assert('concurrent search of a shared tree: fixed radius counts',all(countShared    == countSerial   ),.true.)
   ! Concurrent searches of trees built by each thread.
   !$omp parallel private(neighborFinderPrivate,neighborIndex,neighborDistance)
   allocate(neighborFinderPrivate)
   neighborFinderPrivate=nearestNeighbors(transpose(points))
   !$omp do schedule(dynamic,1)
   do i=1,countQueries
-     call neighborFinderPrivate%search           (queries(:,i),countNeighbors,0.0d0,indexPrivate(:,i),distancePrivate(:,i)                )
+     call neighborFinderPrivate%search           (queries(:,i),countNeighbors,0.0d0,indexPrivate(:,i),distancePrivate(:,i)                 )
      call neighborFinderPrivate%searchFixedRadius(queries(:,i),radius        ,0.0d0,countPrivate(  i),neighborIndex       ,neighborDistance)
   end do
   !$omp end do
   deallocate(neighborFinderPrivate)
   !$omp end parallel
-  call Assert('concurrent search of per-thread trees: indices',all(indexPrivate == indexSerial),.true.)
-  call Assert('concurrent search of per-thread trees: distances',all(distancePrivate == distanceSerial),.true.)
-  call Assert('concurrent search of per-thread trees: fixed radius counts',all(countPrivate == countSerial),.true.)
+  call Assert('concurrent search of per-thread trees: indices'            ,all(indexPrivate    == indexSerial   ),.true.)
+  call Assert('concurrent search of per-thread trees: distances'          ,all(distancePrivate == distanceSerial),.true.)
+  call Assert('concurrent search of per-thread trees: fixed radius counts',all(countPrivate    == countSerial   ),.true.)
   ! A copy of a search object must remain usable after the original is assigned a new tree.
   neighborFinderCopy=neighborFinder
   pointsOther       =1.0d0-points
@@ -128,7 +128,7 @@ program Test_Nearest_Neighbors
      neighborFinderThread=nearestNeighbors(transpose(points))
      !$omp do schedule(dynamic,1)
      do i=1,countQueries
-        call neighborFinderThread%search           (queries(:,i),countNeighbors,0.0d0,indexThread(:,i),distancePrivate(:,i)                )
+        call neighborFinderThread%search           (queries(:,i),countNeighbors,0.0d0,indexThread(:,i),distancePrivate(:,i)                 )
         call neighborFinderThread%searchFixedRadius(queries(:,i),radius        ,0.0d0,countThread(  i),neighborIndex       ,neighborDistance)
      end do
      !$omp end do

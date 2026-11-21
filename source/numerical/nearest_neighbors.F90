@@ -56,9 +56,9 @@ module Nearest_Neighbors
    contains
      !![
      <methods docformat="rst">
-       <method description="Compute indices and distances to the approximate nearest neighbors." method="search" />
+       <method description="Compute indices and distances to the approximate nearest neighbors." method="search"            />
        <method description="Compute indices and distances to the approximate nearest neighbors." method="searchFixedRadius" />
-       <method description="Assign nearest neighbor search objects, sharing the tree."             method="assignment(=)"     />
+       <method description="Assign nearest neighbor search objects, sharing the tree."           method="assignment(=)"     />
      </methods>
      !!]
      procedure ::                      nearestNeighborsAssign
