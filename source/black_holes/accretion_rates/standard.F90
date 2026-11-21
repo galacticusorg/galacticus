@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements the standard black hole accretion rate calculation.
   !!}
@@ -358,8 +360,9 @@ contains
        kinematicsDistribution_  => massDistributionHotHalo_%kinematicsDistribution(                                                           )
        coordinates              =  [0.0d0,0.0d0,0.0d0]
        temperatureHotHalo       =  kinematicsDistribution_%temperature(coordinates)
-       ! Get the accretion radius.
-       radiusAccretion=Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,temperatureHotHalo)
+       ! Get the accretion radius. This must include the relative velocity, as the flux form of the accretion rate used below
+       ! equals the Bondi-Hoyle-Lyttleton rate only when evaluated at the Bondi-Hoyle-Lyttleton radius, G M/(c_s²+v²).
+       radiusAccretion=Bondi_Hoyle_Lyttleton_Accretion_Radius(massBlackHole,temperatureHotHalo,velocityRelative)
        radiusAccretion=min(radiusAccretion,hotHalo%outerRadius())
        ! Set the position.
        coordinates=[radiusAccretion,0.0d0,0.0d0]
