@@ -92,6 +92,8 @@ program Test_Star_Formation_Molecular_Fractions
   ! radius at which the gas surface density equals the transition surface density.
   integer                                                           , parameter      :: countRadiiBlitz           =6          , countRadiiKrumholz        =5
   double precision                                                  , dimension(6)   :: radiiBlitz                =[0.5d0,1.0d0,2.0d0,3.0d0,4.0d0,6.0d0]
+  ! Radii, in units of the disk scale length, at which the Blitz & Rosolowsky (2006) law is tested at very low pressure ratio.
+  double precision                                                  , dimension(2)   :: radiiBlitzLowPressure     =[9.0d0,12.0d0]
   double precision                                                  , dimension(5)   :: radiiKrumholz             =[0.5d0,0.7325874717403015d0,1.0d0,2.0d0,3.0d0]
   ! Reference values computed by referenceMolecularFractions.py.
   !! Gas surface densities [M☉/pc²] at the Blitz & Rosolowsky (2006) radii.
@@ -113,11 +115,12 @@ program Test_Star_Formation_Molecular_Fractions
   !! P ∝ G^¾ here that is a 5×10⁻⁴ effect, so we allow 2×10⁻³. The error which this test exists to catch - the characteristic
   !! pressure being used as though it were a logarithm - is a factor of 7,700.
   double precision                                                  , parameter      :: tolerancePressure         =2.0d-3
-  !! The molecular fraction of the Blitz & Rosolowsky (2006) law is tabulated by a `fastExponentiator` over a pressure ratio of
-  !! [0,1] at a spacing of 10⁻³, which is exact above unity and accurate to 2×10⁻⁶ down to a ratio of 0.06 - but only to 9×10⁻⁴
-  !! at the ratio of 0.003 reached at six scale lengths. Relative to the reference the rate is subject to the pressure
-  !! uncertainty above also, amplified by α(1-f_H₂) ≤ 0.92.
+  !! The molecular fraction of the Blitz & Rosolowsky (2006) law is tabulated by a `fastExponentiator` over pressure ratios of
+  !! [0.05,1] at a spacing of 10⁻³, which is accurate to 4×10⁻⁶, and is computed exactly outside that range. Relative to the
+  !! reference the rate is subject to the pressure uncertainty above also, amplified by α(1-f_H₂) ≤ 0.92.
   double precision                                                  , parameter      :: toleranceBlitz            =3.0d-3
+  !! At low pressure R_mol is compared with (P_ext/P₀)^α formed from the class' own pressure ratio, so only round-off enters.
+  double precision                                                  , parameter      :: toleranceLowPressure      =1.0d-6
   !! The logarithmic slope of R_mol with pressure is formed from the class' own pressures, so only the tabulation enters.
   double precision                                                  , parameter      :: toleranceSlope            =1.0d-5
   !! The Krumholz et al. (2009) law involves no physical constants beyond the definition of a parsec, and its molecular fraction
@@ -129,6 +132,7 @@ program Test_Star_Formation_Molecular_Fractions
   double precision                                                  , parameter      :: toleranceLimit            =1.0d-3
   double precision                                                  , dimension(6)   :: surfaceDensityGas                     , pressureRatio                        , &
        &                                                                                rateBlitz                             , fractionMolecular
+  double precision                                                  , dimension(2)   :: pressureRatioLowPressure              , ratioMolecularLowPressure
   double precision                                                  , dimension(5)   :: rateKrumholz                          , rateKrumholzFast                     , &
        &                                                                                fractionMolecularKrumholz             , fractionMolecularKrumholzFast
   double precision                                                                   :: frequencyNormalizationBlitz           , surfaceDensityHydrogen               , &
@@ -223,6 +227,33 @@ program Test_Star_Formation_Molecular_Fractions
      slopePressure=-1.0d0
   end if
   call Assert('R_mol ∝ P_ext^α'                   ,slopePressure                         ,pressureExponent          ,relTol=toleranceSlope         )
+  ! Far out in the disk, where the pressure ratio is 10⁻⁵-10⁻⁷ and the gas almost entirely atomic, R_mol must still be
+  ! (P_ext/P₀)^α. These ratios lie well below the first interval of a table of P^α on [0,1] at a spacing of 10⁻³, within which
+  ! linear interpolation would make R_mol ∝ P_ext instead (and too small by a factor (P_ext/P₀/10⁻³)^{1-α}).
+  do i=1,size(radiiBlitzLowPressure)
+     radius                     =+radiiBlitzLowPressure(i)                                    &
+          &                      *radiusScale
+     pressureRatioLowPressure(i)= blitz2006_%pressureRatio(node,radius,surfaceDensityGas=surfaceDensityGas_)
+     surfaceDensityHydrogen     =+hydrogenByMassSolar                                         &
+          &                      *surfaceDensityGas_
+     fractionMolecular       (i)=+blitz2006_%rate         (node,radius                          ) &
+          &                      /surfaceDensityGas_                                          &
+          &                      /frequencyNormalizationBlitz                                 &
+          &                      /(                                                           &
+          &                        +1.0d0                                                     &
+          &                        +(                                                         &
+          &                          +surfaceDensityHydrogen                                  &
+          &                          /surfaceDensityCritical                                  &
+          &                          /mega                  **2                               &
+          &                         )                       **surfaceDensityExponent          &
+          &                       )
+     ratioMolecularLowPressure(i)=+       fractionMolecular(i)  &
+          &                       /(1.0d0-fractionMolecular(i))
+  end do
+  slopePressure=+log(ratioMolecularLowPressure(1)/ratioMolecularLowPressure(2)) &
+       &        /log(pressureRatioLowPressure (1)/pressureRatioLowPressure (2))
+  call Assert('R_mol ∝ P_ext^α at low pressure'    ,slopePressure                         ,pressureExponent                         ,relTol=toleranceSlope      )
+  call Assert('R_mol = (P_ext/P₀)^α at low pressure',ratioMolecularLowPressure            ,pressureRatioLowPressure**pressureExponent,relTol=toleranceLowPressure)
   ! In the high pressure limit the disk must be fully molecular. Compressing the disk by a factor of ten raises the midplane
   ! pressure by four orders of magnitude, leaving a molecular fraction of 1-1.9×10⁻⁵.
   radius                =+radiiBlitz(1)                                                      &
