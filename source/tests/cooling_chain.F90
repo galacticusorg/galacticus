@@ -83,7 +83,8 @@ program Test_Cooling_Chain
   !!}
   use            :: Abundances_Structure       , only : zeroAbundances
   use            :: Cooling_Radii              , only : coolingRadius                      , coolingRadiusClass
-  use            :: Cooling_Rates              , only : coolingRate                        , coolingRateClass
+  use            :: Cooling_Rates              , only : coolingRate                        , coolingRateClass                 , &
+       &                                                     coolingRateMainBranchOnly
   use            :: Coordinates                , only : coordinateSpherical                , assignment(=)
   use            :: Cosmology_Functions        , only : cosmologyFunctions                 , cosmologyFunctionsClass
   use            :: Dark_Matter_Halo_Scales    , only : darkMatterHaloScale                , darkMatterHaloScaleClass
@@ -107,8 +108,10 @@ program Test_Cooling_Chain
   class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
   class           (coolingRadiusClass      ), pointer                   :: coolingRadius_
   class           (coolingRateClass        ), pointer                   :: coolingRate_
+  type            (coolingRateMainBranchOnly)                           :: coolingRateMainBranchOnly_
   class           (massDistributionClass   ), pointer                   :: massDistribution_
-  type            (treeNode                ), pointer                   :: node
+  type            (treeNode                ), pointer                   :: node                        , nodeParent                       , &
+       &                                                                   nodeSibling
   class           (nodeComponentBasic      ), pointer                   :: basic
   class           (nodeComponentHotHalo    ), pointer                   :: hotHalo
   type            (coordinateSpherical     )                            :: coordinates
@@ -136,7 +139,9 @@ program Test_Cooling_Chain
        &                                                                   densityCoolingComputed                                                                                                                                               , &
        &                                                                   radiusCoolingComputed                                                                                                                                                , &
        &                                                                   radiusCoolingGrowthComputed                                                                                                                                          , &
-       &                                                                   rateCoolingComputed
+       &                                                                   rateCoolingComputed                                                                                                                                                  , &
+       &                                                                   rateCoolingMainBranch                                                                                                                                                , &
+       &                                                                   rateCoolingSideBranch
   double precision                                                      :: time
   integer                                                               :: i
 
@@ -163,6 +168,8 @@ program Test_Cooling_Chain
   <objectBuilder class="coolingRadius"       name="coolingRadius_"       source="parameters"/>
   <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
   !!]
+  ! A cooling rate limited to the main branch, wrapping the cooling rate under test.
+  coolingRateMainBranchOnly_=coolingRateMainBranchOnly(coolingRate_)
 
   ! Build a halo with a hot atmosphere at each test mass and redshift, and evaluate the chain.
   do i=1,countCases
@@ -187,6 +194,22 @@ program Test_Cooling_Chain
      radiusCoolingComputed      (i)=coolingRadius_%radius          (node)
      radiusCoolingGrowthComputed(i)=coolingRadius_%radiusGrowthRate(node)
      rateCoolingComputed        (i)=coolingRate_  %rate            (node)
+     ! The same rate limited to the main branch. This node has no parent, and so is on the main branch, where the rate must pass
+     ! through unchanged.
+     rateCoolingMainBranch      (i)=coolingRateMainBranchOnly_%rate(node)
+     ! Give the node a parent of which it is not the primary progenitor. This places it on a side branch, where the rate must be
+     ! zero.
+     nodeParent            => treeNode()
+     nodeSibling           => treeNode()
+     nodeParent%firstChild => nodeSibling
+     node      %parent     => nodeParent
+     rateCoolingSideBranch      (i)=coolingRateMainBranchOnly_%rate(node)
+     node      %parent     => null()
+     nodeParent%firstChild => null()
+     call nodeSibling%destroy()
+     call nodeParent %destroy()
+     deallocate(nodeSibling)
+     deallocate(nodeParent )
      ! The hot gas density at the cooling radius. This exercises the beta-profile built by the hot halo component itself, rather
      ! than any object constructed by this test.
      if (radiusCoolingComputed(i) > 0.0d0) then
@@ -219,6 +242,11 @@ program Test_Cooling_Chain
   call Assert("cooling radius"               ,radiusCoolingComputed      ,radiusCoolingReference      ,relTol=1.0d-3)
   call Assert("cooling radius growth rate"   ,radiusCoolingGrowthComputed,radiusCoolingGrowthReference,relTol=1.0d-3)
   call Assert("mass cooling rate"            ,rateCoolingComputed        ,rateCoolingReference        ,relTol=1.0d-3)
+  call Unit_Tests_End_Group()
+  ! Cooling limited to the main branch.
+  call Unit_Tests_Begin_Group("Cooling limited to the main branch")
+  call Assert("main branch: rate is unchanged",rateCoolingMainBranch     ,rateCoolingComputed         ,relTol=1.0d-12)
+  call Assert("side branch: rate is zero"     ,rateCoolingSideBranch     ,spread(0.0d0,1,countCases)  ,absTol=0.0d0  )
   call Unit_Tests_End_Group()
 
   ! End unit tests.
