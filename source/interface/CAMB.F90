@@ -475,7 +475,7 @@ contains
              ! A failure is detected by a non-zero exit status, or by the absence of the transfer function file - some versions of
              ! CAMB stop on invalid parameters with a zero exit status.
              !![
-             <workaround type="gfortran" PR="128856" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+             <workaround type="gfortran" PR="128856" issue="1845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
                <description>
                  The file name is built in an assignment: a ``varying_string`` expression passed to ``File_Exists`` in the
                  ``if`` condition would not be deallocated, and would leak on every CAMB run.

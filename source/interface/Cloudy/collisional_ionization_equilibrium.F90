@@ -346,7 +346,7 @@ contains
     if (.not.tableFile%hasAttribute('versionCloudy')) return
     call tableFile%readAttribute('versionCloudy',versionCloudyFile)
     !![
-    <workaround type="gfortran" PR="128856" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+    <workaround type="gfortran" PR="128856" issue="1845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
       <description>
         The version is evaluated into a local variable: a ``varying_string`` function result used as an operand of the
         comparison in the ``if`` condition would not be deallocated, and would leak.

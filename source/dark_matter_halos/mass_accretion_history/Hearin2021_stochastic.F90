@@ -774,7 +774,7 @@ contains
             &         )
        ! Compute the parameters.
        !![
-       <workaround type="gfortran" PR="128856" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+       <workaround type="gfortran" PR="128856" issue="1845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
 	 <seeAlso type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=37336"/>
 	 <description>
 	 A function result passed directly as an actual argument is not finalized when its type has a component with a type-bound

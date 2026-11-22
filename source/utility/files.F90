@@ -364,7 +364,7 @@ contains
     parentName  =      fileName_
     lengthParent=len(parentName)
     !![
-    <workaround type="gfortran" PR="128856" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+    <workaround type="gfortran" PR="128856" issue="1845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
       <description>
       A ``varying_string`` function result used in an operand of an expression in an ``if`` condition is not deallocated, so
       the last character is extracted into a local variable first. Otherwise every call leaks one byte.
