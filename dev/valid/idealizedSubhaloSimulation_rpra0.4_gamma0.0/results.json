@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "9d634847e2a6f310e8407eed42144a91ebfc28e4",
-        "message": "Merge pull request #1763 from yzhaoastro/tidal-stripping\n\nFDM granule perturbation\n",
-        "timestamp": "2026-11-17 17:58:36+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/9d634847e2a6f310e8407eed42144a91ebfc28e4"
+        "id": "84c0ff625920c3d87efce19a5fe16adc0650dbd4",
+        "message": "Merge pull request #1832 from galacticusorg/ccr-78b2c9eb-bvd1b9\n\nci: build the library with link-time optimization for versioned releases\n",
+        "timestamp": "2026-11-20 21:59:16+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/84c0ff625920c3d87efce19a5fe16adc0650dbd4"
     },
     "results": [
         {
