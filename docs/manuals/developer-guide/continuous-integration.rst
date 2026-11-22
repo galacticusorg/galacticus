@@ -39,6 +39,22 @@ by the ``testSuite/regressions/`` matrix, and
 ``validate-concentrationConvergence.py`` and ``validate-mergerTreeConvergence.py``,
 which are long validation runs submitting jobs through a queue manager.
 
+Those two convergence validations build merger trees at very high resolution,
+needing tens of gigabytes of memory per tree and around two weeks to complete,
+so they are run on a cluster. ``scripts/aux/convergenceValidation.sh`` does a
+whole run unattended: it updates the checkout it is in, builds
+``Galacticus.exe`` as a SLURM job, runs the validations (which submit their
+models as further SLURM jobs), and publishes the results of those that succeed.
+It is intended to be run monthly from ``scrontab``, from a checkout kept for
+that purpose; the comments at the top of the script give an example entry and
+describe its options.
+
+Results are published by ``scripts/aux/publishValidationResults.sh``, which
+copies a validation's ``results.json`` to its directory under ``dev/valid/`` on
+the ``gh-pages`` branch and regenerates the validation dashboard there, as the
+CI/CD workflow does for the validations it runs. It can also be used on its own
+to publish the results of a validation run by hand.
+
 .. _test-outcome-markers:
 
 Test outcome markers

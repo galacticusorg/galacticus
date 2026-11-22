@@ -168,7 +168,9 @@ change that.
   `test-all.py`) only: `testSuite/test-regressions.py` (superseded by the
   `testSuite/regressions/` matrix), `testSuite/validate-concentrationConvergence.py`
   and `testSuite/validate-mergerTreeConvergence.py` (both are long validation
-  runs that submit jobs through a queue manager).
+  runs that submit jobs through a queue manager). The two convergence
+  validations are run on a cluster by `scripts/aux/convergenceValidation.sh`,
+  which also publishes their results to the `gh-pages` dashboard.
 
 ## Editing Fortran source
 
