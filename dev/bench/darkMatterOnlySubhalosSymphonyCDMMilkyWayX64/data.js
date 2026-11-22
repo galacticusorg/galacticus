@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795022735967,
+  "lastUpdate": 1795317078919,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Dark matter-only subhalos benchmarks (Symphony Milky Way resolutionX64)": [
@@ -5291,6 +5291,45 @@ window.BENCHMARK_DATA = {
           {
             "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
             "value": 174.6069525149111,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "84c0ff625920c3d87efce19a5fe16adc0650dbd4",
+          "message": "Merge pull request #1832 from galacticusorg/ccr-78b2c9eb-bvd1b9\n\nci: build the library with link-time optimization for versioned releases",
+          "timestamp": "2026-11-20T21:59:16Z",
+          "tree_id": "dbbfbd4731a317e218690ae57c24941f35317077",
+          "url": "https://github.com/galacticusorg/galacticus/commit/84c0ff625920c3d87efce19a5fe16adc0650dbd4"
+        },
+        "date": 1795317078158,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloMassFunction",
+            "value": 2.7055670279529513,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloRadialDistribution",
+            "value": 2.176104784281457,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Dark Matter Only Subhalos (Symphony CDM resolution X64 Milky Way) - Likelihood - subhaloVelocityMaximumMean",
+            "value": 180.3158796340277,
             "unit": "-logℒ"
           }
         ]
