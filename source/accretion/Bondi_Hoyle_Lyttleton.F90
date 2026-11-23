@@ -69,7 +69,7 @@ contains
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
     implicit none
-    double precision, intent(in   )           :: mass             , temperature
+    double precision, intent(in   )           :: mass           , temperature
     double precision, intent(in   ), optional :: velocity
     double precision                          :: velocitySquared
 
