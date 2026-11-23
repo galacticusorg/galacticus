@@ -72,8 +72,8 @@ contains
     class(darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
     class(satelliteTidalFieldClass         ), pointer       :: satelliteTidalField_
 
-    call tidalHeatingSpheroidsExclusivityCheck(parameters)
     !![
+    <modelExclusive name="spheroid:tidalHeating" description="tidal heating of spheroids by the `tidalHeatingSpheroids` node operator (&lt;nodeOperator value=&quot;tidalHeatingSpheroids&quot;/&gt;)"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
     !!]
@@ -85,42 +85,6 @@ contains
     !!]
     return
   end function tidalHeatingSpheroidsConstructorParameters
-
-  subroutine tidalHeatingSpheroidsExclusivityCheck(parameters)
-    !!{RST
-    Check that heating of spheroids by a :galacticus-class:`galacticComponentHeatingClass` is not also in use. Heating by this
-    node operator and by such a class would double count the heating.
-    !!}
-    use :: Error             , only : Error_Report
-    use :: Input_Parameters  , only : inputParameters
-    use :: ISO_Varying_String, only : varying_string , operator(/=)   , assignment(=)
-    implicit none
-    type(inputParameters), intent(inout) :: parameters
-    type(inputParameters), pointer       :: parametersRoot
-    type(inputParameters)                :: parametersSpheroid
-    type(varying_string )                :: galacticComponentHeating
-
-    ! Find the root parameters. The spheroid component finds its heating class in its own parameters, or, failing that, in the root
-    ! parameters, so check both in that order.
-    parametersRoot => parameters%parent
-    if (.not.associated(parametersRoot)) return
-    do while (associated(parametersRoot%parent))
-       parametersRoot => parametersRoot%parent
-    end do
-    galacticComponentHeating='none'
-    if (parametersRoot%isPresent('componentSpheroid')) then
-       parametersSpheroid=parametersRoot%subParameters('componentSpheroid')
-       if (parametersSpheroid%isPresent('galacticComponentHeating')) then
-          call parametersSpheroid%value('galacticComponentHeating',galacticComponentHeating)
-       else if (parametersRoot%isPresent('galacticComponentHeating')) then
-          call parametersRoot    %value('galacticComponentHeating',galacticComponentHeating)
-       end if
-    else if (parametersRoot%isPresent('galacticComponentHeating')) then
-       call parametersRoot%value('galacticComponentHeating',galacticComponentHeating)
-    end if
-    if (galacticComponentHeating /= 'none') call Error_Report('this node operator can not be used together with heating of the spheroid by a `galacticComponentHeating` class'//{introspection:location})
-    return
-  end subroutine tidalHeatingSpheroidsExclusivityCheck
 
   function tidalHeatingSpheroidsConstructorInternal(darkMatterHaloScale_,satelliteTidalField_) result(self)
     !!{RST
