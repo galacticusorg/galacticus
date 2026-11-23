@@ -84,7 +84,7 @@ program Test_Cooling_Chain
   use            :: Abundances_Structure       , only : zeroAbundances
   use            :: Cooling_Radii              , only : coolingRadius                      , coolingRadiusClass
   use            :: Cooling_Rates              , only : coolingRate                        , coolingRateClass                 , &
-       &                                                     coolingRateMainBranchOnly
+       &                                                coolingRateMainBranchOnly
   use            :: Coordinates                , only : coordinateSpherical                , assignment(=)
   use            :: Cosmology_Functions        , only : cosmologyFunctions                 , cosmologyFunctionsClass
   use            :: Dark_Matter_Halo_Scales    , only : darkMatterHaloScale                , darkMatterHaloScaleClass
