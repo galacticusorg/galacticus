@@ -6,19 +6,19 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "84c0ff625920c3d87efce19a5fe16adc0650dbd4",
-        "message": "Merge pull request #1832 from galacticusorg/ccr-78b2c9eb-bvd1b9\n\nci: build the library with link-time optimization for versioned releases\n",
-        "timestamp": "2026-11-20 21:59:16+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/84c0ff625920c3d87efce19a5fe16adc0650dbd4"
+        "id": "4c4a6ef0184e639b8d82c319dfd4a70967390dbd",
+        "message": "Merge pull request #1839 from galacticusorg/ci/dependency-bot-no-repush\n\nci: stop dependencyBot re-pushing branches with pending PRs\n",
+        "timestamp": "2026-11-23 00:25:03+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/4c4a6ef0184e639b8d82c319dfd4a70967390dbd"
     },
     "surfaceDensity": {
-        "percentageBelow": 3.5714285714285694,
-        "percentageAbove": 96.42857142857143,
+        "percentageBelow": 10.714285714285708,
+        "percentageAbove": 89.28571428571429,
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 50.0,
-        "percentageAbove": 50.0,
+        "percentageBelow": 47.61904761904762,
+        "percentageAbove": 52.38095238095238,
         "target": 0.85
     }
 }
