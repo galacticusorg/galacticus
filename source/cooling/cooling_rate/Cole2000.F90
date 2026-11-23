@@ -145,8 +145,8 @@ contains
     ! Get the infall radius. Following Cole et al. (2000), the density profile of the hot gas is that of the halo at its formation
     ! (so the formation node is used), but the time available for cooling continues to grow (so the time of the current node is
     ! used).
-    basic       =>                                  node         %basic ()
-    radiusInfall=self%coolingInfallRadius_%radius(nodeFormation,basic%time())
+    basic        => node                     %basic (                          )
+    radiusInfall =  self%coolingInfallRadius_%radius(nodeFormation,basic%time())
     if (radiusInfall >= radiusOuter) then
        ! Infall radius exceeds the outer radius - zero infall rate.
        cole2000Rate=0.0d0
@@ -159,7 +159,7 @@ contains
        <objectDestructor name="massDistribution_"/>
        !!]          
        ! Find infall radius growth rate.
-       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(nodeFormation,basic%time()          )
+       radiusInfallGrowthRate   =  self             %coolingInfallRadius_%radiusIncreaseRate(nodeFormation       ,basic%time()   )
        ! Compute the infall rate.
        cole2000Rate             = +4.0d0                     &
             &                     *Pi                        &

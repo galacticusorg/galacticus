@@ -115,11 +115,11 @@ contains
     !!}
     use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    class           (freefallRadiusDarkMatterHalo ), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
+    class           (freefallRadiusDarkMatterHalo ), intent(inout)           :: self
+    type            (treeNode                     ), intent(inout)           :: node
     double precision                               , intent(in   ), optional :: time
-    class           (massDistributionClass        ), pointer       :: massDistribution_
-    double precision                                               :: timeAvailable    , timeAvailableIncreaseRate
+    class           (massDistributionClass        ), pointer                 :: massDistribution_
+    double precision                                                         :: timeAvailable    , timeAvailableIncreaseRate
 
     ! Get the time available for freefall.
     timeAvailable                 =  +self             %freefallTimeAvailable_    %timeAvailable            (node,time                )
@@ -141,11 +141,11 @@ contains
     !!}
     use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    class           (freefallRadiusDarkMatterHalo ), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
+    class           (freefallRadiusDarkMatterHalo ), intent(inout)           :: self
+    type            (treeNode                     ), intent(inout)           :: node
     double precision                               , intent(in   ), optional :: time
-    class           (massDistributionClass        ), pointer       :: massDistribution_
-    double precision                                               :: timeAvailable
+    class           (massDistributionClass        ), pointer                 :: massDistribution_
+    double precision                                                         :: timeAvailable
 
     ! Get the time available for freefall.
     timeAvailable     =  self             %freefallTimeAvailable_%timeAvailable(node,time    )

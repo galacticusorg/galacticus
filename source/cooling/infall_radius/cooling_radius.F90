@@ -107,9 +107,9 @@ contains
     Return the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
-    class(coolingInfallRadiusCoolingRadius), intent(inout) :: self
-    type (treeNode                        ), intent(inout) :: node
-    double precision                       , intent(in   ), optional :: time
+    class           (coolingInfallRadiusCoolingRadius), intent(inout)           :: self
+    type            (treeNode                        ), intent(inout)           :: node
+    double precision                                  , intent(in   ), optional :: time
 
     coolingRadiusRadius=self%coolingRadius_%radius(node,time)
     return
@@ -120,9 +120,9 @@ contains
     Return the growth rate of the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
-    class(coolingInfallRadiusCoolingRadius), intent(inout) :: self
-    type (treeNode                        ), intent(inout) :: node
-    double precision                       , intent(in   ), optional :: time
+    class           (coolingInfallRadiusCoolingRadius), intent(inout)           :: self
+    type            (treeNode                        ), intent(inout)           :: node
+    double precision                                  , intent(in   ), optional :: time
 
     coolingRadiusRadiusIncreaseRate=self%coolingRadius_%radiusGrowthRate(node,time)
     return

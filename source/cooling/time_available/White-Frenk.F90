@@ -133,11 +133,11 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
-    class           (coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
+    class           (coolingTimeAvailableWhiteFrenk1991), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
     double precision                                    , intent(in   ), optional :: time
-    class           (nodeComponentBasic                ), pointer       :: basic
-    double precision                                                    :: timeNow, timeDynamical
+    class           (nodeComponentBasic                ), pointer                 :: basic
+    double precision                                                              :: timeNow, timeDynamical
 
     ! Return the appropriate time.
     if (self%ageFactor == 1.0d0) then
@@ -174,9 +174,9 @@ contains
     Compute the rate of increase of the time available for cooling using the :cite:t:`white_galaxy_1991` method. We return a rate of 1, even though technically it can depend on halo properties.
     !!}
     implicit none
-    class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
-    double precision                         , intent(in   ), optional :: time
+    class           (coolingTimeAvailableWhiteFrenk1991), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
+    double precision                                    , intent(in   ), optional :: time
     !$GLC attributes unused :: self, node, time
 
     ! Simply return unit rate.

@@ -114,10 +114,10 @@ contains
     Return the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
-    class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
+    class           (coolingInfallRadiusCoolingFreefall), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
     double precision                                    , intent(in   ), optional :: time
-    double precision                                                    :: radiusCooling, radiusFreefall
+    double precision                                                              :: radiusCooling, radiusFreefall
 
     radiusCooling =self%coolingRadius_ %radius(node,time)
     radiusFreefall=self%freefallRadius_%radius(node,time)
@@ -130,13 +130,13 @@ contains
     Return the growth rate of the infall radius in the "cooling radius" model in Mpc/Gyr.
     !!}
     implicit none
-    class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
+    class           (coolingInfallRadiusCoolingFreefall), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
     double precision                                    , intent(in   ), optional :: time
-    double precision                                                    :: radiusCooling, radiusFreefall
+    double precision                                                              :: radiusCooling, radiusFreefall
 
-    radiusCooling =self%coolingRadius_ %radius(node,time)
-    radiusFreefall=self%freefallRadius_%radius(node,time)
+    radiusCooling                       =self%coolingRadius_ %radius          (node,time)
+    radiusFreefall                      =self%freefallRadius_%radius          (node,time)
     if (radiusCooling < radiusFreefall) then
        coolingFreefallRadiusIncreaseRate=self%coolingRadius_ %radiusGrowthRate(node,time)
     else

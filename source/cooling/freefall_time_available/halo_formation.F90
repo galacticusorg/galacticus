@@ -91,9 +91,9 @@ contains
     Compute the rate of increase of the time available for freefall using the :cite:t:`cole_hierarchical_2000` method. We return a rate of 1.
     !!}
     implicit none
-    class(freefallTimeAvailableHaloFormation), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
-    double precision                         , intent(in   ), optional :: time
+    class           (freefallTimeAvailableHaloFormation), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
+    double precision                                    , intent(in   ), optional :: time
     !$GLC attributes unused :: self, node, time
 
     ! Simply return unit rate.
@@ -107,14 +107,14 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(freefallTimeAvailableHaloFormation), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
-    double precision                         , intent(in   ), optional :: time
-    class(nodeComponentBasic                ), pointer       :: basic
+    class           (freefallTimeAvailableHaloFormation), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
+    double precision                                    , intent(in   ), optional :: time
+    class           (nodeComponentBasic                ), pointer                 :: basic
 
-    basic                      =>  node %basic                    (                        )
+    basic                         =>  node %basic                    (                        )
     if (present(time)) then
-       haloFormationTimeAvailable =  +time                                                    &
+       haloFormationTimeAvailable =  +time                                                      &
             &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
     else
        haloFormationTimeAvailable =  +basic%time                     (                        ) &

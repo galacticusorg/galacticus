@@ -41,21 +41,27 @@ module Freefall_Radii
    <default>darkMatterHalo</default>
    <method name="radius" >
     <description>
-    Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in ``node`` in units of Mpc. If ``time`` is given, quantities which depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a formation node, whose structure is frozen at its formation time, while the time available for cooling continues to grow.
+    Returns the freefall radius for gas in the hot atmosphere surrounding the galaxy in ``node`` in units of Mpc. If ``time`` is
+    given, quantities which depend on the current epoch are evaluated at that time rather than at the time of ``node``---this
+    allows ``node`` to be a formation node, whose structure is frozen at its formation time, while the time available for cooling
+    continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
-    <argument>double precision, intent(in   ), optional :: time</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
    <method name="radiusGrowthRate" >
     <description>
-    Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in ``node`` in units of Mpc/Gyr. If ``time`` is given, quantities which depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a formation node, whose structure is frozen at its formation time, while the time available for cooling continues to grow.
+    Returns the rate of increase of the freefall radius for gas in the hot atmosphere surrounding the galaxy in ``node`` in units
+    of Mpc/Gyr. If ``time`` is given, quantities which depend on the current epoch are evaluated at that time rather than at the
+    time of ``node``---this allows ``node`` to be a formation node, whose structure is frozen at its formation time, while the
+    time available for cooling continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
-    <argument>double precision, intent(in   ), optional :: time</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
   </functionClass>
   !!]

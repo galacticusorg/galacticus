@@ -151,8 +151,8 @@ contains
     use :: Kind_Numbers, only : kind_int8
     implicit none
     class           (coolingRadiusIsothermal), intent(inout)           :: self
-    type            (treeNode        ), intent(inout)           :: node
-    double precision                  , intent(in   ), optional :: time
+    type            (treeNode               ), intent(inout)           :: node
+    double precision                         , intent(in   ), optional :: time
 
     if (present(time)) then
        call self%calculationReset(node,-1_kind_int8)
@@ -169,10 +169,10 @@ contains
     Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     !!}
     implicit none
-    class           (coolingRadiusIsothermal), intent(inout) :: self
-    type            (treeNode               ), intent(inout) :: node
+    class           (coolingRadiusIsothermal), intent(inout)           :: self
+    type            (treeNode               ), intent(inout)           :: node
     double precision                         , intent(in   ), optional :: time
-    double precision                                         :: radiusCooling, radiusVirial
+    double precision                                                   :: radiusCooling, radiusVirial
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -180,9 +180,9 @@ contains
     ! Check if cooling radius growth rate is already computed.
     if (.not.self%radiusGrowthRateComputed) then
       ! Get the cooling radius.
-       radiusCooling=self                     %      radius(node,time)
+       radiusCooling=self                     %radius      (node,time)
        ! Get the virial radius.
-       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
+       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node     )
        ! Check if cooling radius has reached virial radius. Also, at the instant of halo formation the time available, and so
        ! the cooling radius, is zero - the growth rate (proportional to the cooling radius divided by the time available) is then
        ! taken to be zero, as the cooling rate (proportional to the square of the cooling radius times its growth rate) tends to
@@ -191,8 +191,8 @@ contains
           self%radiusGrowthRateStored=0.0d0
        else
           ! Compute the growth rate of the cooling radius.
-          self%radiusGrowthRateStored=+0.5d0                                                      &
-               &                      *radiusCooling                                              &
+          self%radiusGrowthRateStored=+0.5d0                                                           &
+               &                      *radiusCooling                                                   &
                &                      *self%coolingTimeAvailable_%timeAvailableIncreaseRate(node,time) &
                &                      /self%coolingTimeAvailable_%timeAvailable            (node,time)
        end if
@@ -212,8 +212,8 @@ contains
     use :: Kind_Numbers, only : kind_int8
     implicit none
     class           (coolingRadiusIsothermal), intent(inout), target   :: self
-    type            (treeNode        ), intent(inout), target   :: node
-    double precision                  , intent(in   ), optional :: time
+    type            (treeNode               ), intent(inout), target   :: node
+    double precision                         , intent(in   ), optional :: time
 
     if (present(time)) then
        call self%calculationReset(node,-1_kind_int8)
@@ -236,18 +236,18 @@ contains
     use :: Coordinates                  , only : coordinateSpherical  , assignment(=)
     use :: Galactic_Structure_Options   , only : componentTypeHotHalo , massTypeGaseous
     implicit none
-    class           (coolingRadiusIsothermal    ), intent(inout), target  :: self
-    type            (treeNode                   ), intent(inout), target  :: node
-    double precision                             , intent(in   ), optional  :: time
-    class           (nodeComponentBasic         )               , pointer :: basic
-    class           (massDistributionClass      )               , pointer :: massDistribution_
-    class           (kinematicsDistributionClass)               , pointer :: kinematicsDistribution_
-    type            (coordinateSpherical        )                         :: coordinates
-    double precision                                                      :: coolingTime            , timeAvailable, &
-         &                                                                   density                , temperature  , &
-         &                                                                   radiusVirial
-    type            (abundances                 )                         :: hotAbundances
-    type            (chemicalAbundances         )                         :: chemicalFractions
+    class           (coolingRadiusIsothermal    ), intent(inout), target   :: self
+    type            (treeNode                   ), intent(inout), target   :: node
+    double precision                             , intent(in   ), optional :: time
+    class           (nodeComponentBasic         )               , pointer  :: basic
+    class           (massDistributionClass      )               , pointer  :: massDistribution_
+    class           (kinematicsDistributionClass)               , pointer  :: kinematicsDistribution_
+    type            (coordinateSpherical        )                          :: coordinates
+    double precision                                                       :: coolingTime            , timeAvailable, &
+         &                                                                    density                , temperature  , &
+         &                                                                    radiusVirial
+    type            (abundances                 )                          :: hotAbundances
+    type            (chemicalAbundances         )                          :: chemicalFractions
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())

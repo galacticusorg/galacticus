@@ -147,15 +147,15 @@ contains
     use :: Kind_Numbers, only : kind_int8
     implicit none
     class           (coolingRadiusSimple), intent(inout)           :: self
-    type            (treeNode        ), intent(inout)           :: node
-    double precision                  , intent(in   ), optional :: time
+    type            (treeNode           ), intent(inout)           :: node
+    double precision                     , intent(in   ), optional :: time
 
     if (present(time)) then
        call self%calculationReset(node,-1_kind_int8)
        simpleRadiusGrowthRate=simpleRadiusGrowthRateEvaluate(self,node,time)
        call self%calculationReset(node,-1_kind_int8)
     else
-       simpleRadiusGrowthRate=simpleRadiusGrowthRateEvaluate(self,node)
+       simpleRadiusGrowthRate=simpleRadiusGrowthRateEvaluate(self,node     )
     end if
     return
   end function simpleRadiusGrowthRate
@@ -169,20 +169,20 @@ contains
     use :: Coordinates               , only : coordinateSpherical  , assignment(=)
     use :: Galactic_Structure_Options, only : componentTypeHotHalo , massTypeGaseous
     implicit none
-    class           (coolingRadiusSimple        ), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
+    class           (coolingRadiusSimple        ), intent(inout)           :: self
+    type            (treeNode                   ), intent(inout)           :: node
     double precision                             , intent(in   ), optional :: time
-    class           (nodeComponentBasic         ), pointer       :: basic
-    class           (nodeComponentHotHalo       ), pointer       :: hotHalo
-    class           (massDistributionClass      ), pointer       :: massDistribution_
-    class           (kinematicsDistributionClass), pointer       :: kinematicsDistribution_
-    type            (coordinateSpherical        )                :: coordinates
-    double precision                                             :: coolingRadius                   , coolingTimeAvailable      , &
-         &                                                          coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
-         &                                                          coolingTimeTemperatureLogSlope  , density                   , &
-         &                                                          densityLogSlope                 , outerRadius               , &
-         &                                                          temperature                     , temperatureLogSlope       , &
-         &                                                          slope
+    class           (nodeComponentBasic         ), pointer                 :: basic
+    class           (nodeComponentHotHalo       ), pointer                 :: hotHalo
+    class           (massDistributionClass      ), pointer                 :: massDistribution_
+    class           (kinematicsDistributionClass), pointer                 :: kinematicsDistribution_
+    type            (coordinateSpherical        )                          :: coordinates
+    double precision                                                       :: coolingRadius                   , coolingTimeAvailable      , &
+         &                                                                    coolingTimeAvailableIncreaseRate, coolingTimeDensityLogSlope, &
+         &                                                                    coolingTimeTemperatureLogSlope  , density                   , &
+         &                                                                    densityLogSlope                 , outerRadius               , &
+         &                                                                    temperature                     , temperatureLogSlope       , &
+         &                                                                    slope
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -230,9 +230,9 @@ contains
              slope                      =+    densityLogSlope*coolingTimeDensityLogSlope     &
                   &                      +temperatureLogSlope*coolingTimeTemperatureLogSlope
              if (slope /= 0.0d0) then
-                self%radiusGrowthRateStored=+coolingRadius                                      &
-                     &                      /coolingTimeAvailable                               &
-                     &                      *coolingTimeAvailableIncreaseRate                   &
+                self%radiusGrowthRateStored=+coolingRadius                                   &
+                     &                      /coolingTimeAvailable                            &
+                     &                      *coolingTimeAvailableIncreaseRate                &
                      &                      /slope
              else
                 ! The slope of the cooling radius vs. time available curve can be zero in cases where there are discontinuities in
@@ -257,8 +257,8 @@ contains
     use :: Kind_Numbers, only : kind_int8
     implicit none
     class           (coolingRadiusSimple), intent(inout), target   :: self
-    type            (treeNode        ), intent(inout), target   :: node
-    double precision                  , intent(in   ), optional :: time
+    type            (treeNode           ), intent(inout), target   :: node
+    double precision                     , intent(in   ), optional :: time
 
     if (present(time)) then
        call self%calculationReset(node,-1_kind_int8)
@@ -276,14 +276,14 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     implicit none
-    class           (coolingRadiusSimple ), intent(inout), target :: self
-    type            (treeNode            ), intent(inout), target :: node
+    class           (coolingRadiusSimple ), intent(inout), target   :: self
+    type            (treeNode            ), intent(inout), target   :: node
     double precision                      , intent(in   ), optional :: time
-    class           (nodeComponentBasic  ), pointer               :: basic
-    class           (nodeComponentHotHalo), pointer               :: hotHalo
-    double precision                      , parameter             :: zeroRadius =0.0d0
-    double precision                                              :: outerRadius      , rootZero, &
-         &                                                           rootOuter
+    class           (nodeComponentBasic  ), pointer                 :: basic
+    class           (nodeComponentHotHalo), pointer                 :: hotHalo
+    double precision                      , parameter               :: zeroRadius =0.0d0
+    double precision                                                :: outerRadius      , rootZero, &
+         &                                                             rootOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -317,23 +317,23 @@ contains
        rootOuter  =coolingRadiusRoot(outerRadius)
        if (rootOuter <= toleranceRelative*coolingTimeAvailable_) then
           ! Cooling time available exceeds cooling time at outer radius radius, return outer radius.
-          self%radiusStored=outerRadius
-          simpleRadiusEvaluate     =self%radiusStored
+          self%radiusStored   =     outerRadius
+          simpleRadiusEvaluate=self%radiusStored
           return
        end if
        ! Check if cooling time at halo center is reached.
        rootZero=coolingRadiusRoot(zeroRadius)
        if (rootZero > 0.0d0) then
           ! Cooling time at halo center exceeds the time available, return zero radius.
-          self%radiusStored=zeroRadius
-          simpleRadiusEvaluate     =self%radiusStored
+          self%radiusStored   =     zeroRadius
+          simpleRadiusEvaluate=self%radiusStored
           return
        end if
        ! Cooling radius is between zero and outer radii. Search for the cooling radius.
-       self%radiusStored=self%finder      %find(rootRange=[zeroRadius,outerRadius],rootRangeValues=[rootZero,rootOuter])
-       simpleRadiusEvaluate     =self%radiusStored
+       self%radiusStored      =self%finder      %find(rootRange=[zeroRadius,outerRadius],rootRangeValues=[rootZero,rootOuter])
+       simpleRadiusEvaluate   =self%radiusStored
     else
-       simpleRadiusEvaluate     =self%radiusStored
+       simpleRadiusEvaluate   =self%radiusStored
     end if
     return
   end function simpleRadiusEvaluate

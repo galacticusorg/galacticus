@@ -327,26 +327,26 @@ contains
           ! but at the current time (as for the cooling rate itself, e.g. for the Cole et al. (2000) model).
           select case (self%coolingFrom%ID)
           case (coolingFromFormationNode%ID)
-             basic        =>                 node                                            %basic                      (                        )
-             radiusInfall =  +self          %coolingInfallRadius_           %radius                     (nodeCooling,basic%time())
+             basic                   =>  node                                          %basic                      (                        )
+             radiusInfall            =  +self          %coolingInfallRadius_           %radius                     (nodeCooling,basic%time())
           case default
-             radiusInfall =  +self          %coolingInfallRadius_           %radius                     (node                    )
+             radiusInfall            =  +self          %coolingInfallRadius_           %radius                     (node                    )
           end select
           ! Find the fraction of angular momentum lost during infall.
-          fractionLossAngularMomentum=self          %coolingInfallTorque_           %fractionAngularMomentumLoss(node                    )
+          fractionLossAngularMomentum =  self          %coolingInfallTorque_           %fractionAngularMomentumLoss(node                    )
           ! Calculate cooling rates of other quantities.
-          rateAngularMomentumCooling=+                                               rateMassCooling                                       &
-               &                     *self          %coolingSpecificAngularMomentum_%angularMomentumSpecific    (nodeCooling,radiusInfall)
+          rateAngularMomentumCooling =  +                                               rateMassCooling                                       &
+               &                        *self          %coolingSpecificAngularMomentum_%angularMomentumSpecific    (nodeCooling,radiusInfall)
        else
-          rateAngularMomentumCooling=+0.0d0
+          rateAngularMomentumCooling =  +0.0d0
        end if
        !! Abundances.
-       rateMassAbundancesCooling    =+                                               rateMassCooling                                       &
-            &                        *hotHaloCooling                                %abundances                 (                        ) &
-            &                        /hotHaloCooling                                %mass                       (                        )
+       rateMassAbundancesCooling     =  +                                               rateMassCooling                                       &
+            &                           *hotHaloCooling                                %abundances                 (                        ) &
+            &                           /hotHaloCooling                                %mass                       (                        )
        !! Chemicals.
        if (hasChemicals      ) then
-          rateMassChemicalsCooling  = hotHaloCooling                                %chemicals                  (                        )
+          rateMassChemicalsCooling   =   hotHaloCooling                                %chemicals                  (                        )
           call rateMassChemicalsCooling%scale(                                  &
                &                              -               rateMassCooling   &
                &                              /hotHaloCooling%mass           () &

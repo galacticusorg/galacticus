@@ -139,12 +139,12 @@ contains
     use :: Galacticus_Nodes         , only : nodeComponentHotHalo
     use :: Cooling_Benson_Bower_2010, only : coolingBensonBower2010Properties
     implicit none
-    class           (coolingTimeAvailableBensonBower2010), intent(inout) :: self
-    type            (treeNode                           ), intent(inout) :: node
+    class           (coolingTimeAvailableBensonBower2010), intent(inout)           :: self
+    type            (treeNode                           ), intent(inout)           :: node
     double precision                                     , intent(in   ), optional :: time
-    class           (nodeComponentHotHalo               ), pointer       :: hotHalo
-    double precision                                                     :: numberDensityHydrogen, coolingFunction, &
-         &                                                                  countParticles
+    class           (nodeComponentHotHalo               ), pointer                 :: hotHalo
+    double precision                                                               :: numberDensityHydrogen, coolingFunction, &
+         &                                                                            countParticles
     !$GLC attributes unused :: time
 
     if (.not.coolingBensonBower2010Properties(node,self%coolingFunction_,self%chemicalState_,self%radiation,coolingFunction,numberDensityHydrogen,countParticles)) then
@@ -174,9 +174,9 @@ contains
     Compute the rate of increase of the time available for cooling. We return a rate of 1.
     !!}
     implicit none
-    class(coolingTimeAvailableBensonBower2010), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
-    double precision                          , intent(in   ), optional :: time
+    class           (coolingTimeAvailableBensonBower2010), intent(inout)           :: self
+    type            (treeNode                           ), intent(inout)           :: node
+    double precision                                     , intent(in   ), optional :: time
     !$GLC attributes unused :: self, node, time
 
     bensonBower2010TimeAvailableIncreaseRate=1.0d0

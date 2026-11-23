@@ -41,21 +41,26 @@ module Cooling_Freefall_Times_Available
    <default>haloFormation</default>
    <method name="timeAvailable" >
     <description>
-    Returns the time available for freefall in cooling calculations in ``node``. If ``time`` is given, quantities which depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a formation node, whose structure is frozen at its formation time, while the time available for cooling continues to grow.
+    Returns the time available for freefall in cooling calculations in ``node``. If ``time`` is given, quantities which depend on
+    the current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a formation
+    node, whose structure is frozen at its formation time, while the time available for cooling continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
-    <argument>double precision, intent(in   ), optional :: time</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
    <method name="timeAvailableIncreaseRate" >
     <description>
-    Returns the rate at which the time available for freefall in cooling calculations increases in ``node``. If ``time`` is given, quantities which depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a formation node, whose structure is frozen at its formation time, while the time available for cooling continues to grow.
+    Returns the rate at which the time available for freefall in cooling calculations increases in ``node``. If ``time`` is given,
+    quantities which depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows
+    ``node`` to be a formation node, whose structure is frozen at its formation time, while the time available for cooling
+    continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
-    <argument>double precision, intent(in   ), optional :: time</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
   </functionClass>
   !!]

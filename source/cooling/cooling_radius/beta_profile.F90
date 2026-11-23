@@ -142,20 +142,20 @@ contains
     use :: Coordinates                  , only : coordinateSpherical  , assignment(=)
     use :: Galactic_Structure_Options   , only : componentTypeHotHalo , massTypeGaseous
     implicit none
-    class           (coolingRadiusBetaProfile   ), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
+    class           (coolingRadiusBetaProfile   ), intent(inout)           :: self
+    type            (treeNode                   ), intent(inout)           :: node
     double precision                             , intent(in   ), optional :: time
-    double precision                             , intent(  out) :: timeAvailable          , outerRadius            , &
-         &                                                          coolingTimeZero        , coolingTimeOuter
-    class           (nodeComponentBasic         ), pointer       :: basic
-    class           (nodeComponentHotHalo       ), pointer       :: hotHalo
-    class           (massDistributionClass      ), pointer       :: massDistribution_
-    class           (kinematicsDistributionClass), pointer       :: kinematicsDistribution_
-    type            (coordinateSpherical        )                :: coordinates
-    double precision                                             :: densityZero            , densityOuter           , &
-         &                                                          temperature
-    type            (abundances                 )                :: hotAbundances
-    type            (chemicalAbundances         )                :: chemicalFractions
+    double precision                             , intent(  out)           :: timeAvailable          , outerRadius            , &
+         &                                                                    coolingTimeZero        , coolingTimeOuter
+    class           (nodeComponentBasic         ), pointer                 :: basic
+    class           (nodeComponentHotHalo       ), pointer                 :: hotHalo
+    class           (massDistributionClass      ), pointer                 :: massDistribution_
+    class           (kinematicsDistributionClass), pointer                 :: kinematicsDistribution_
+    type            (coordinateSpherical        )                          :: coordinates
+    double precision                                                       :: densityZero            , densityOuter           , &
+         &                                                                    temperature
+    type            (abundances                 )                          :: hotAbundances
+    type            (chemicalAbundances         )                          :: chemicalFractions
 
     ! Get the time available for cooling in node.
     timeAvailable=self%coolingTimeAvailable_%timeAvailable(node,time)
@@ -198,8 +198,8 @@ contains
     use :: Kind_Numbers, only : kind_int8
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout)           :: self
-    type            (treeNode        ), intent(inout)           :: node
-    double precision                  , intent(in   ), optional :: time
+    type            (treeNode                ), intent(inout)           :: node
+    double precision                          , intent(in   ), optional :: time
 
     if (present(time)) then
        call self%calculationReset(node,-1_kind_int8)
@@ -216,14 +216,14 @@ contains
     Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     !!}
     implicit none
-    class           (coolingRadiusBetaProfile), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
+    class           (coolingRadiusBetaProfile), intent(inout)           :: self
+    type            (treeNode                ), intent(inout)           :: node
     double precision                          , intent(in   ), optional :: time
     ! Tolerance (relative to the time available for cooling) within which the cooling time at the outer radius is treated as
     ! equal to the time available (see betaProfileRadius).
-    double precision                          , parameter     :: toleranceRelative=1.0d-6
-    double precision                                          :: timeAvailable            , outerRadius     , &
-         &                                                       coolingTimeZero          , coolingTimeOuter
+    double precision                          , parameter               :: toleranceRelative=1.0d-6
+    double precision                                                    :: timeAvailable            , outerRadius     , &
+         &                                                                 coolingTimeZero          , coolingTimeOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
@@ -243,13 +243,13 @@ contains
           self%radiusGrowthRateStored=0.0d0
        else
           ! Cooling radius is between zero and virial radii.
-          self%radiusGrowthRateStored=+0.5d0                                                      &
-               &                      *outerRadius                                                &
-               &                      /coolingTimeZero                                            &
-               &                      /sqrt(                                                      &
-               &                            +(timeAvailable   /coolingTimeZero-1.0d0)             &
-               &                            *(coolingTimeOuter/coolingTimeZero-1.0d0)             &
-               &                           )                                                      &
+          self%radiusGrowthRateStored=+0.5d0                                                           &
+               &                      *outerRadius                                                     &
+               &                      /coolingTimeZero                                                 &
+               &                      /sqrt(                                                           &
+               &                            +(timeAvailable   /coolingTimeZero-1.0d0)                  &
+               &                            *(coolingTimeOuter/coolingTimeZero-1.0d0)                  &
+               &                           )                                                           &
                &                      *self%coolingTimeAvailable_%timeAvailableIncreaseRate(node,time)
        end if
        ! Flag that cooling radius is now computed.
@@ -268,8 +268,8 @@ contains
     use :: Kind_Numbers, only : kind_int8
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout), target   :: self
-    type            (treeNode        ), intent(inout), target   :: node
-    double precision                  , intent(in   ), optional :: time
+    type            (treeNode                ), intent(inout), target   :: node
+    double precision                          , intent(in   ), optional :: time
 
     if (present(time)) then
        call self%calculationReset(node,-1_kind_int8)
@@ -286,14 +286,14 @@ contains
     Return the cooling radius in the :math:`\beta`-profile model.
     !!}
     implicit none
-    class           (coolingRadiusBetaProfile), intent(inout), target :: self
-    type            (treeNode                ), intent(inout), target :: node
+    class           (coolingRadiusBetaProfile), intent(inout), target   :: self
+    type            (treeNode                ), intent(inout), target   :: node
     double precision                          , intent(in   ), optional :: time
     ! Tolerance (relative to the time available for cooling) within which the cooling time at the outer radius is treated as
     ! equal to the time available. This matches the tolerance used by the coolingRadiusSimple class.
-    double precision                          , parameter             :: toleranceRelative=1.0d-6
-    double precision                                                  :: timeAvailable            , outerRadius     , &
-         &                                                               coolingTimeZero          , coolingTimeOuter
+    double precision                          , parameter               :: toleranceRelative=1.0d-6
+    double precision                                                    :: timeAvailable           , outerRadius     , &
+         &                                                                 coolingTimeZero         , coolingTimeOuter
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
