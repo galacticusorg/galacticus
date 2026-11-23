@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements an N-body data operator which computes pairwise velocity statistics in bins of separation.
 !!}
@@ -257,12 +259,13 @@ contains
     type            (treeNode                               ), pointer                       :: node
     class           (nodeComponentBasic                     ), pointer                       :: basic
     double precision                                                                         :: radiusVirial                                 , velocityVirial
+    double precision                                                                         :: hubbleParameter
     integer         (c_size_t                               )                                :: i                                            , j                                   , &
          &                                                                                      iSample                                      , bootstrapSampleCount                , &
          &                                                                                      iSimulation                                  , jSimulation                         , &
          &                                                                                      jStart                                       , jEnd
-    type            (nearestNeighbors                       ), save                          :: neighborFinder
-    !$omp threadprivate(neighborFinder)
+    type            (nearestNeighbors                       ), allocatable                   :: neighborFinder
+    class           (darkMatterHaloScaleClass               ), pointer                       :: darkMatterHaloScale_
     integer                                                                                  :: neighborCount
     type            (varying_string                         )                                :: label
     
@@ -353,7 +356,10 @@ contains
        velocityRadialInflowingBin              =0.0d0
        velocityDispersionRadialInflowingBin    =0.0d0
        velocityDispersionTangentialInflowingBin=0.0d0
-       !$omp parallel private(iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
+       ! Evaluate the Hubble parameter at this epoch once, outside of the parallel region, as the cosmology functions object is
+       ! shared between threads and memoizes its results.
+       hubbleParameter=self%cosmologyFunctions_%hubbleParameterEpochal(self%time)
+       !$omp parallel private(node,basic,radiusVirial,velocityVirial,neighborFinder,darkMatterHaloScale_,iSample,j,jStart,jEnd,weightPair,mask,separations,positions,velocities,velocitiesRadial,velocitiesTangential,velocityRadialVirialSquared,neighborCount,neighborIndex,neighborDistanceSquared) reduction(+:pairCountBin,velocityRadialBin,velocityDispersionRadialBin,velocityDispersionTangentialBin,pairCountInflowingBin,velocityRadialInflowingBin,velocityDispersionRadialInflowingBin,velocityDispersionTangentialInflowingBin)
        call Node_Components_Thread_Initialize(self%parameters)
        ! Allocate workspace.
        allocate(weightPair                 (bootstrapSampleCount,size(position2,dim=2)))
@@ -371,7 +377,19 @@ contains
        basic => node    %basic(autoCreate=.true.)
        call basic%timeSet            (self%time)
        call basic%timeLastIsolatedSet(self%time)
-       ! Construct the nearest neighbor finder object.
+       ! Make a copy of the halo scale object for this thread, as it memoizes its results.
+       allocate(darkMatterHaloScale_,mold=self%darkMatterHaloScale_)
+       !$omp critical(nBodyOperatorPairwiseVelocityStatisticsDeepCopy)
+       !![
+       <deepCopyReset variables="self%darkMatterHaloScale_"/>
+       <deepCopy source="self%darkMatterHaloScale_" destination="darkMatterHaloScale_"/>
+       <deepCopyFinalize variables="darkMatterHaloScale_"/>
+       !!]
+       !$omp end critical(nBodyOperatorPairwiseVelocityStatisticsDeepCopy)
+       !$omp barrier
+       ! Construct the nearest neighbor finder object. It is allocatable, as gfortran does not initialize the private copies of a
+       ! non-allocatable derived type, and would finalize garbage on first assignment.
+       allocate(neighborFinder)
        neighborFinder=nearestNeighbors(transpose(position2))
        ! Iterate over particles.
        !$omp do schedule(dynamic)
@@ -383,8 +401,8 @@ contains
           ! Get virial properties of the target halo.
           call basic%massSet(massVirial(i))
           call Calculations_Reset(node)
-          radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (node)
-          velocityVirial=self%darkMatterHaloScale_%velocityVirial(node)
+          radiusVirial  =darkMatterHaloScale_%radiusVirial  (node)
+          velocityVirial=darkMatterHaloScale_%velocityVirial(node)
           ! Locate particles nearby.
           call neighborFinder%searchFixedRadius(position1(:,i),self%separationMaximum,toleranceZero,neighborCount,neighborIndex,neighborDistanceSquared)
           ! Find weights of paired particles.
@@ -440,12 +458,12 @@ contains
              velocitiesTangential       (1:neighborCount)=+sqrt(sum(velocities(:,1:neighborCount)**2,dim=1))
              velocityRadialVirialSquared(1:neighborCount)=-huge(0.0d0)
           end where
-          if (self%addHubbleFlow)                                                                                                      &
-               & velocityRadialVirialSquared(1:neighborCount)=+                           velocityRadialVirialSquared(1:neighborCount) &
-               &                                              +(                                                                       &
-               &                                                +self%cosmologyFunctions_%hubbleParameterEpochal     (  self%time    ) &
-               &                                                *                         separations                (1:neighborCount) &
-               &                                                /                         velocityVirial                               &
+          if (self%addHubbleFlow)                                                                             &
+               & velocityRadialVirialSquared(1:neighborCount)=+  velocityRadialVirialSquared(1:neighborCount) &
+               &                                              +(                                              &
+               &                                                +hubbleParameter                              &
+               &                                                *separations                (1:neighborCount) &
+               &                                                /velocityVirial                               &
                &                                               )**2
           ! Accumulate particles into bins.
           jEnd=0
@@ -456,8 +474,8 @@ contains
              if (jStart == jEnd) cycle
              do iSample=1,bootstrapSampleCount
                 if (weight1(iSample,i) == 0_c_size_t) cycle
-                mask(1:jEnd-jStart)= velocitiesRadial           (jStart+1:jEnd) <  self%cosmologyFunctions_%hubbleParameterEpochal(self%time)*separations(jStart+1:jEnd) &
-                     &              .and.                                                                                                                                &
+                mask(1:jEnd-jStart)= velocitiesRadial           (jStart+1:jEnd) <  hubbleParameter*separations(jStart+1:jEnd) &
+                     &              .and.                                                                                     &
                      &               velocityRadialVirialSquared(jStart+1:jEnd) >= 0.0d0
                 pairCountBin                            (j,iSample)=+pairCountBin                            (j,iSample)+     weight1(iSample,i) *sum(     weightPair(iSample,jStart+1:jEnd)                                                            )
                 velocityRadialBin                       (j,iSample)=+velocityRadialBin                       (j,iSample)+dble(weight1(iSample,i))*sum(dble(weightPair(iSample,jStart+1:jEnd))*velocitiesRadial    (jStart+1:jEnd)                       )
@@ -475,19 +493,23 @@ contains
           if (mpiSelf%isMaster()) then
 #endif
              call displayCounter(                                                 &
-                  &                          int(                                             &
-                  &                              +100.0d0                                     &
-                  &                              *float(i                                  )  &
-                  &                              /float(size(position1,dim=2,kind=c_size_t))  &
-                  &                             )                                           , &
-                  &                          .false.                                          &
-                  &                         )
+                  &              int(                                             &
+                  &                  +100.0d0                                     &
+                  &                  *float(i                                  )  &
+                  &                  /float(size(position1,dim=2,kind=c_size_t))  &
+                  &                 )                                           , &
+                  &              .false.                                          &
+                  &             )
 #ifdef USEMPI
           end if
 #endif
           !$ end if
        end do
        !$omp end do
+       deallocate(neighborFinder)
+       !![
+       <objectDestructor name="darkMatterHaloScale_"/>
+       !!]
        call node%destroy()
        call Node_Components_Thread_Uninitialize()
        !$omp end parallel
@@ -546,12 +568,12 @@ contains
        ! Add Hubble flow if requested.
        if (self%addHubbleFlow) then
           do iSample=1,bootstrapSampleCount
-             velocityRadialBin         (:,iSample)=+velocityRadialBin         (:,iSample)                      &
-                  &                                +separationCentralBin                                       &
-                  &                                *self%cosmologyFunctions_%hubbleParameterEpochal(self%time)
-             velocityRadialInflowingBin(:,iSample)=+velocityRadialInflowingBin(:,iSample)                      &
-                  &                                +separationCentralBin                                       &
-                  &                                *self%cosmologyFunctions_%hubbleParameterEpochal(self%time)
+             velocityRadialBin         (:,iSample)=+velocityRadialBin         (:,iSample) &
+                  &                                +separationCentralBin                  &
+                  &                                *hubbleParameter
+             velocityRadialInflowingBin(:,iSample)=+velocityRadialInflowingBin(:,iSample) &
+                  &                                +separationCentralBin                  &
+                  &                                *hubbleParameter
           end do
        end if
        ! Output results.

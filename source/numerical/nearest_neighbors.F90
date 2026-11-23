@@ -30,23 +30,39 @@ module Nearest_Neighbors
   !!{RST
   Wraps the `ANN <http://www.cs.umd.edu/~mount/ANN/>`_ (Approximate Nearest Neighbor) library.
   !!}
-  use, intrinsic :: ISO_C_Binding, only : C_Null_Ptr, c_ptr, c_int, c_double
+  use, intrinsic :: ISO_C_Binding   , only : C_Null_Ptr     , c_ptr, c_int, c_double
+  use            :: Resource_Manager, only : resourceManager
   private
   public :: nearestNeighbors
 
-  type :: nearestNeighbors
+  type :: nearestNeighborsANN
      !!{RST
-     Wrapper object for nearest neighbor searching.
+     Owner of an ``ANNkd_tree``, which it destroys when finalized.
      !!}
      type(c_ptr) :: ANNkd_tree=C_Null_Ptr
    contains
+     final :: nearestNeighborsANNDestructor
+  end type nearestNeighborsANN
+
+  type :: nearestNeighbors
+     !!{RST
+     Wrapper object for nearest neighbor searching. The ``ANNkd_tree`` is held through a reference-counted
+     ``nearestNeighborsANN`` object, so that copies of this object (including the copy made when the result of the constructor is
+     assigned) share the tree, which is destroyed only when the last of them is.
+     !!}
+     private
+     type(resourceManager    )          :: manager
+     type(nearestNeighborsANN), pointer :: tree    => null()
+   contains
      !![
      <methods docformat="rst">
-       <method description="Compute indices and distances to the approximate nearest neighbors." method="search" />
+       <method description="Compute indices and distances to the approximate nearest neighbors." method="search"            />
        <method description="Compute indices and distances to the approximate nearest neighbors." method="searchFixedRadius" />
+       <method description="Assign nearest neighbor search objects, sharing the tree."           method="assignment(=)"     />
      </methods>
      !!]
-     final     ::                      nearestNeighborsDestructor
+     procedure ::                      nearestNeighborsAssign
+     generic   :: assignment(=)     => nearestNeighborsAssign
      procedure :: search            => nearestNeighborsSearch
      procedure :: searchFixedRadius => nearestNeighborsSearchFixedRadius
   end type nearestNeighbors
@@ -123,42 +139,69 @@ contains
     implicit none
     type            (nearestNeighbors)                                :: self
     double precision                  , intent(in   ), dimension(:,:) :: points
+    class           (*               ), pointer                       :: dummyPointer_
 
+    allocate(self%tree)
 #ifdef ANNAVAIL
-    self%ANNkd_tree=nearestNeighborsConstructorC(size(points,dim=1),size(points,dim=2),points)
+    ! The ANN library keeps its working state in global variables, so calls to it must be serialized.
+    !$omp critical (nearestNeighborsANN)
+    self%tree%ANNkd_tree=nearestNeighborsConstructorC(size(points,dim=1),size(points,dim=2),points)
+    !$omp end critical (nearestNeighborsANN)
 #else
     !$GLC attributes unused :: points
-    self%ANNkd_tree=C_Null_Ptr
     call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
+    !![
+    <workaround type="gfortran" PR="105807" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=105807" docformat="rst">
+      <description>
+      ICE when passing a derived type component to a class(*) function argument.
+      </description>
+    !!]
+    dummyPointer_ => self%tree
+    self%manager  =  resourceManager(dummyPointer_)
+    !![
+    </workaround>
+    !!]
     return
   end function nearestNeighborsConstructor
 
-  subroutine nearestNeighborsDestructor(self)
+  subroutine nearestNeighborsAssign(self,from)
     !!{RST
-    Destroys a nearest neighbor search object.
+    Assign a nearest neighbor search object. The tree is shared (and its reference count incremented), and any tree previously
+    held by ``self`` is released. A defined assignment is used, rather than intrinsic assignment, since gfortran releases the
+    previously held tree twice when intrinsic assignment is made onto an object which already holds one (GCC PR 110626).
+    !!}
+    implicit none
+    class(nearestNeighbors), intent(inout) :: self
+    class(nearestNeighbors), intent(in   ) :: from
+
+    self%manager =  from%manager
+    self%tree    => from%tree
+    return
+  end subroutine nearestNeighborsAssign
+
+  subroutine nearestNeighborsANNDestructor(self)
+    !!{RST
+    Destroys an ``ANNkd_tree``.
     !!}
 #ifdef ANNAVAIL
     use, intrinsic :: ISO_C_Binding, only : c_associated, C_Null_Ptr
-#else
-    use            :: Error        , only : Error_Report
 #endif
     implicit none
-    type(nearestNeighbors), intent(inout) :: self
+    type(nearestNeighborsANN), intent(inout) :: self
 
 #ifdef ANNAVAIL
-    ! Nullify after destroying, so that the guard above makes a second
-    ! finalization of the same object a no-op rather than a double free.
     if (c_associated(self%ANNkd_tree)) then
+       !$omp critical (nearestNeighborsANN)
        call nearestNeighborsDestructorC(self%ANNkd_tree)
+       !$omp end critical (nearestNeighborsANN)
        self%ANNkd_tree=C_Null_Ptr
     end if
 #else
     !$GLC attributes unused :: self
-    call Error_Report('ANN library is required but was not found'//{introspection:location})
 #endif
     return
-  end subroutine nearestNeighborsDestructor
+  end subroutine nearestNeighborsANNDestructor
 
   subroutine nearestNeighborsSearch(self,point,neighborCount,tolerance,neighborIndex,neighborDistance)
     !!{RST
@@ -176,8 +219,10 @@ contains
     double precision                  , dimension(:), intent(  out) :: neighborDistance
 
 #ifdef ANNAVAIL
-    ! Perform the search.
-    call nearestNeighborsSearchC(self%ANNkd_tree,point,neighborCount,tolerance,neighborIndex,neighborDistance)
+    ! Perform the search. The ANN library keeps its search state in global variables, so searches must be serialized.
+    !$omp critical (nearestNeighborsANN)
+    call nearestNeighborsSearchC(self%tree%ANNkd_tree,point,neighborCount,tolerance,neighborIndex,neighborDistance)
+    !$omp end critical (nearestNeighborsANN)
     ! Adjust indices to Fortran standard.
     neighborIndex=neighborIndex+1
 #else
@@ -212,11 +257,13 @@ contains
 
     ! Get the squared radius.
     radiusSquared=radius**2
-    ! Call once with current array sizes.
+    ! Call once with current array sizes. The ANN library keeps its search state in global variables, so searches must be
+    ! serialized.
     arraySize=0
+    !$omp critical (nearestNeighborsANN)
     if (present(neighborIndex)) then
        if (allocated(neighborIndex)) arraySize=size(neighborIndex)
-       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
+       neighborCount=nearestNeighborsSearchFixedRadiusC(self%tree%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex,neighborDistance,tolerance)
        ! Resize arrays if necessary.
        if (neighborCount > arraySize) then
           if (allocated(neighborIndex   )) deallocate(neighborIndex   )
@@ -224,11 +271,12 @@ contains
           allocate(neighborIndex   (neighborCount))
           allocate(neighborDistance(neighborCount))
           ! Call again to get all neighbors.
-          neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
+          neighborCount=nearestNeighborsSearchFixedRadiusC(self%tree%ANNkd_tree,point,radiusSquared,neighborCount,neighborIndex,neighborDistance,tolerance)
        end if
     else
-       neighborCount=nearestNeighborsSearchFixedRadiusC(self%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex0,neighborDistance0,tolerance)
+       neighborCount=nearestNeighborsSearchFixedRadiusC(self%tree%ANNkd_tree,point,radiusSquared,arraySize,neighborIndex0,neighborDistance0,tolerance)
     end if
+    !$omp end critical (nearestNeighborsANN)
     ! Adjust indices to Fortran standard.
     if (neighborCount > 0 .and. present(neighborIndex)) neighborIndex=neighborIndex+1
 #else
