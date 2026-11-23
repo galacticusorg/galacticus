@@ -335,3 +335,43 @@ ignored" lead.
 
 **How to apply:** check for the `analyses` group in the output before concluding an analysis ran, and grep the log for that
 warning after adding parameters.
+
+## `perf report` and `valgrind` hang at 0% CPU when `DEBUGINFOD_URLS` is set
+*Added 2026-07; verified 2026-10-20*
+
+Where `DEBUGINFOD_URLS` is set system-wide (common on recent Linux distributions), `perf report`/`script`/`annotate`
+block forever trying to fetch debug symbols, and so does `valgrind`, which sits waiting on a child `debuginfod-find`
+(`wchan=poll_schedule_timeout`; seen 2026-10-16 on a memory-leak run). An agent's sandbox often cannot reach the
+server, so the fetch never completes.
+
+**How to apply:** clear it for the command: `DEBUGINFOD_URLS= perf report ...`, or `export DEBUGINFOD_URLS=` before
+`valgrind` (including `testSuite/test-memory-leaks.py`).
+
+## Profiling without `perf`: sample stacks with `eu-stack`
+*Added 2026-10-23; verified 2026-10-23*
+
+Where `perf` is not installed (common on clusters), a poor-man's profiler needs no root as long as
+`/proc/sys/kernel/yama/ptrace_scope` is `0`. Run the model in the background, then loop
+`eu-stack -p $pid >> stacks.txt` with `sleep 1` between samples (`eu-stack`, `gstack` and `pstack` are in elfutils).
+`eu-stack` fully symbolizes a `-flto` Galacticus binary, including the OpenMP outlined frames (`..._omp_fn.0`) and GSL,
+at well under a second per sample. Aggregate by counting, over samples, the innermost frame (self cost) and the samples
+whose stack contains a symbol anywhere (inclusive cost). About 180 samples was ample to separate an 80%-inclusive symbol
+from a 17% one.
+
+**Why:** without `perf` the run looks unprofilable, which invites a `-pg` rebuild (slow, and it perturbs the hot path)
+or guessing.
+
+**How to apply:** use this to find where a model's time goes before optimizing it. Prefer `OMP_NUM_THREADS=1`, so each
+sample is one stack.
+
+## On a shared node, an oversubscribed OpenMP run looks deadlocked
+*Added 2026-11-10; verified 2026-11-10*
+
+A run with more threads than the node's free CPUs spins at its OpenMP barriers: a 2 s solve at 96-128 threads ran for
+over 9 minutes (8.5 CPU-hours), and `eu-stack` showed threads waiting at different, consecutive barriers. With
+`OMP_WAIT_POLICY=passive` it finished in 27 s.
+
+**Why:** threads at different barriers look like a worksharing mismatch in the code, which invites a hunt for a bug.
+
+**How to apply:** check the load (`top`, or `ps -eo pcpu,user,comm --sort=-pcpu | head`) before a thread-scaling test,
+and stay below the free CPUs or set `OMP_WAIT_POLICY=passive`. A real deadlock still hangs with passive waiting.

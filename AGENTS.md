@@ -332,7 +332,7 @@ date it was last verified. Read the matching file before the task:
 | [`building.md`](docs/agents/building.md) | debugging a build failure; build options (MPI, profilers, library); editing the `Makefile` |
 | [`fortran.md`](docs/agents/fortran.md) | adding a class, parameter or directive; changing object copying, assignment, OpenMP or error handling |
 | [`committing.md`](docs/agents/committing.md) | committing, updating a branch, changing a parameter, pushing |
-| [`testing.md`](docs/agents/testing.md) | writing or trusting a test; comparing model outputs; benchmarking |
+| [`testing.md`](docs/agents/testing.md) | writing or trusting a test; comparing model outputs; benchmarking or profiling |
 | [`ci.md`](docs/agents/ci.md) | diagnosing a CI failure; editing a workflow; working with stacked PRs |
 
 A knowledge entry records what was true when it was written: if it names a

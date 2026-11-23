@@ -187,3 +187,17 @@ prerequisite, with a target-specific `export`), which thousands of targets depen
 
 **How to apply:** always run master as the control first. For a macOS-only parallel problem, compare CI logs (PR
 against master) and let macOS CI judge the fix.
+
+## Building a 2022-era commit
+*Added 2026-11-04; verified 2026-11-04*
+
+Commit `5ea7873f` (Dec 2022) builds in a separate clone with gcc 11.2, Perl 5.38.2, HDF5 1.8.20 and FoX 4.1.0, and
+`PERL5LIB=$(pwd)/perl:$PERL5LIB`. HDF5 1.14 does not work: it lacks `H5T_NATIVE_INTEGER_8`. Perl 5.38 needs two fixes:
+apply `ce768da780` (regex captures; without it, `type is` fails on abstract types), and delete the `!!{...!!}` doc
+blocks in `perl/.../Process/EventHooks.pm`, which `Text::Template` parses as Perl code. Removing a generated file also
+needs its `.p.F90.up` removed.
+
+**Why:** neither failure is about the compiler or the source, yet both surface as Fortran errors.
+
+**How to apply:** give each binary its own `GALACTICUS_DYNAMIC_DATA_PATH` when comparing old and new code: table file
+names in that era hash the parameters, not the code, so differing code would otherwise share cached tables.

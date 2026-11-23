@@ -129,3 +129,29 @@ Each of these passed every local hook and then failed a PR in CI:
   logs for `Warning:` as well as errors (gfortran quotes names with curly quotes: `‘name’`).
 
 **How to apply:** run the "Before you push" checklist in `AGENTS.md`.
+
+## `git cherry-pick` runs no pre-commit hook
+*Added 2026-10-22; verified 2026-10-22*
+
+`git cherry-pick` (like `git am` and a rebase) creates commits without running `pre-commit`, so a cherry-picked commit
+has had none of the static-analysis, schema or spelling checks, even in a checkout whose hooks are installed. The same
+is true of any checkout whose `.git/hooks` symlink points at a directory that does not exist on that machine: every
+commit and push then succeeds silently with no checks at all.
+
+**Why:** a commit that "passed the hooks" was never checked.
+
+**How to apply:** after cherry-picking, or in a checkout where `ls -l .git/hooks/pre-commit` shows a dangling or missing
+hook, run the PR checks by hand on the changed files before pushing: `scripts/aux/staticAnalyzer.py`,
+`scripts/aux/embeddedAnalyzer.py <file> warnings.md` (with `PYTHONPATH=$(pwd)/python`), `docBlockAudit.py --check`,
+`scripts/doc/extractContributors.py --check`, `auditTestMarkers.py --check`, `xmllint --noout` and `py_compile`.
+
+## Never run `pre-commit install` when `.git/hooks` is a symlink to gitHooks
+*Added 2026-09-15; verified 2026-09-15*
+
+`CONTRIBUTING.md` installs the hooks by symlinking `.git/hooks` to a clone of
+[`gitHooks`](https://github.com/galacticusorg/gitHooks). `pre-commit install` (from the Python `pre-commit` framework)
+writes its own `pre-commit` script into `.git/hooks`, which here means *into the gitHooks clone*, replacing the shared
+dispatcher for every repository linked to it. The same applies to any repository whose hooks come from a git
+`init.templateDir` that links to the gitHooks clone.
+
+**How to apply:** in such a repository, run `pre-commit run --all-files` (or run it in CI) instead of installing it.
