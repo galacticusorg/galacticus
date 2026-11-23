@@ -127,7 +127,7 @@ contains
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
     self=virialDensityContrastPercolation(linkingLength,cosmologyFunctions_,percolationObjects_)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="tolerateDefinitionConversionFailure"/>
     <objectDestructor name="cosmologyFunctions_"/>
     !!]
     return

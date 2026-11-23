@@ -100,7 +100,7 @@ contains
     percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
     self                =  outputAnalysisSpinDistributionBett2007(logNormalRange,errorTolerant,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileScaleRadius_,virialDensityContrast_,outputTimes_,percolationObjects_)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="tolerateDefinitionConversionFailure"/>
     <objectDestructor name="cosmologyParameters_"         />
     <objectDestructor name="cosmologyFunctions_"          />
     <objectDestructor name="outputTimes_"                 />

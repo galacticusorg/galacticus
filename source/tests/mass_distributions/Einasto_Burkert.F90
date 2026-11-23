@@ -61,6 +61,7 @@ program Test_Mass_Distributions_Einasto_Burkert
   use :: Events_Hooks                    , only : eventsHooksInitialize
   use :: Mass_Distributions              , only : massDistributionEinasto       , massDistributionBurkert
   use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+  use :: Numerical_Constants_Math        , only : Pi
   use :: Unit_Tests                      , only : Assert                        , Unit_Tests_Begin_Group , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (massDistributionEinasto)                              :: massDistributionEinasto_
@@ -119,6 +120,7 @@ program Test_Mass_Distributions_Einasto_Burkert
   ! finds the right radius; the closed form itself is checked to `tolerance` by evaluating the mass at the reference radius.
   double precision                         , parameter                   :: toleranceTabulated       =1.0d-3
   integer                                                                :: i                                  , j
+  double precision                                                       :: densityTarget                      , radiusTarget
 
   call displayVerbositySet  (verbosityLevelStandard)
   call eventsHooksInitialize(                      )
@@ -143,6 +145,12 @@ program Test_Mass_Distributions_Einasto_Burkert
      call Assert('density, ρ(r)'      ,densityEinasto                               ,densityEinastoReference  (j,:)*densityNormalization                                              ,relTol=tolerance)
      call Assert('enclosed mass, M(r)',massEinasto                                  ,massEinastoReference     (j,:)*densityNormalization*radiusScale**3                               ,relTol=tolerance)
      call Assert('potential, Φ(r)'    ,potentialEinasto                             ,potentialEinastoReference(j,:)*densityNormalization*radiusScale**2*gravitationalConstant_internal,relTol=tolerance)
+     ! The mean enclosed density falls from the central density, ρ₋₂ exp(2/α), so a radius enclosing half of it must enclose that
+     ! mean density, and no radius encloses a mean density above it (a zero radius is returned).
+     densityTarget =+0.5d0*densityNormalization*exp(2.0d0/shapeParameters(j))
+     radiusTarget  =+massDistributionEinasto_%radiusEnclosingDensity(densityTarget)
+     call Assert('r(ρ̄) encloses ρ̄'          ,3.0d0*massDistributionEinasto_%massEnclosedBySphere(radiusTarget)/4.0d0/Pi/radiusTarget**3,densityTarget,relTol=toleranceTabulated)
+     call Assert('r(ρ̄) = 0 for ρ̄ > ρ(0)'    ,massDistributionEinasto_%radiusEnclosingDensity(1.5d0*densityNormalization*exp(2.0d0/shapeParameters(j))),0.0d0,absTol=0.0d0)
   end do
   call Assert('total mass, M(∞)',massTotalEinasto,massTotalEinastoReference*densityNormalization*radiusScale**3,relTol=tolerance)
   ! The closed form and the total mass together: half of the total must be enclosed by the independently-located half-mass radius.
