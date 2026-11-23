@@ -1693,6 +1693,7 @@ jobs:
                 test-virial-orbit-loss-cone.py,
                 test-CGM-ram-pressure-outer-radius.py,
                 test-ram-pressure-history.py,
+                test-position-interpolated-trace-edge-cases.py,
                 test-ram-pressure-koppen2018.py,
                 test-parameter-resolver.py,
                 test-prompt-cusps-unformed.py,
