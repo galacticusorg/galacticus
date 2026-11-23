@@ -23,12 +23,20 @@
   An implementation of "Einasto" dark matter halo profiles.
   !!}
 
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_Shape, only : darkMatterProfileShapeClass
   
   !![
   <darkMatterProfileDMO name="darkMatterProfileDMOEinasto" docformat="rst">
    <description>
-   A dark matter profile DMO class which builds :galacticus-class:`massDistributionEinasto` objects to compute the Einasto density profile (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`), normalized such that the total mass of the :term:`node` is enclosed with the virial radius and with the characteristic length :math:`r_{-2} = r_\mathrm{virial}/c` where :math:`c` is the halo concentration (see :galacticus-class:`darkMatterProfileConcentration`). The shape parameter, :math:`\alpha`, is set using the density profile shape method (see :galacticus-class:`darkMatterProfileShape`).
+   A dark matter profile DMO class which builds :galacticus-class:`massDistributionEinasto` objects to compute the Einasto density
+   profile (e.g. :cite:author:`cardone_spherical_2005` :cite:year:`cardone_spherical_2005`), normalized such that the total mass
+   of the :term:`node` is enclosed with the virial radius and with the characteristic length :math:`r_{-2} = r_\mathrm{virial}/c`
+   where :math:`c` is the halo concentration (see :galacticus-class:`darkMatterProfileConcentration`). The shape parameter,
+   :math:`\alpha`, is that of the node's dark matter profile component, set using the density profile shape method (see
+   :galacticus-class:`darkMatterProfileShape`). Alternatively, when this class is constructed internally with a
+   :galacticus-class:`darkMatterProfileShape` object, :math:`\alpha` is taken from that object, and the dark matter profile
+   component need not have a shape.
    </description>
   </darkMatterProfileDMO>
   !!]
@@ -36,7 +44,8 @@
      !!{RST
      A dark matter halo profile class implementing "Einasto" dark matter halos.
      !!}
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class(darkMatterHaloScaleClass   ), pointer :: darkMatterHaloScale_    => null()
+     class(darkMatterProfileShapeClass), pointer :: darkMatterProfileShape_ => null()
    contains
      final     ::        einastoDestructor
      procedure :: get => einastoGet
@@ -73,22 +82,32 @@ contains
     return
   end function einastoConstructorParameters
 
-  function einastoConstructorInternal(darkMatterHaloScale_) result(self)
+  function einastoConstructorInternal(darkMatterHaloScale_,darkMatterProfileShape_) result(self)
     !!{RST
-    Internal constructor for the :galacticus-class:`darkMatterProfileDMOEinasto` dark matter halo profile class.
+    Internal constructor for the :galacticus-class:`darkMatterProfileDMOEinasto` dark matter halo profile class. If
+    ``darkMatterProfileShape_`` is given, the shape parameter is taken from it, rather than from the node's dark matter profile
+    component.
     !!}
     implicit none
-    type (darkMatterProfileDMOEinasto)                        :: self
-    class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
+    type (darkMatterProfileDMOEinasto)                                  :: self
+    class(darkMatterHaloScaleClass   ), intent(in   ), target           :: darkMatterHaloScale_
+    class(darkMatterProfileShapeClass), intent(in   ), target, optional :: darkMatterProfileShape_
     !![
-    <constructorAssign variables="*darkMatterHaloScale_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileShape_"/>
     !!]
 
-    ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
-    ! a treeNode to process, it should have been initialized by now.
-    !![
-    <componentPropertyAssert class="darkMatterProfile" properties="scale shape" require="gettable"/>
-    !!]
+    ! Ensure that the dark matter profile component supports the "scale" property, and the "shape" property unless the shape
+    ! is to be taken from a shape object. Since we've been called with a treeNode to process, it should have been initialized
+    ! by now.
+    if (associated(self%darkMatterProfileShape_)) then
+       !![
+       <componentPropertyAssert class="darkMatterProfile" properties="scale"       require="gettable"/>
+       !!]
+    else
+       !![
+       <componentPropertyAssert class="darkMatterProfile" properties="scale shape" require="gettable"/>
+       !!]
+    end if
     return
   end function einastoConstructorInternal
 
@@ -100,7 +119,8 @@ contains
     type(darkMatterProfileDMOEinasto), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterHaloScale_"   />
+    <objectDestructor name="self%darkMatterProfileShape_"/>
     !!]
     return
   end subroutine einastoDestructor
@@ -121,6 +141,7 @@ contains
     integer                                              , intent(in   ), optional :: weightIndex
     class           (nodeComponentBasic                 ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile     ), pointer                 :: darkMatterProfile
+    double precision                                                               :: shapeParameter
     !![
     <optionalArgument name="weightBy" defaultsTo="weightByMass" />
     !!]
@@ -135,6 +156,11 @@ contains
     type is (massDistributionEinasto)
        basic             => node%basic            ()
        darkMatterProfile => node%darkMatterProfile()
+       if (associated(self%darkMatterProfileShape_)) then
+          shapeParameter=self%darkMatterProfileShape_%shape(node)
+       else
+          shapeParameter=     darkMatterProfile      %shape(    )
+       end if
        !![
        <referenceConstruct object="massDistribution_">
 	 <constructor>
@@ -142,7 +168,7 @@ contains
            &amp;                   mass          =basic            %mass                                     (    ), &amp;
            &amp;                   radiusVirial  =self             %darkMatterHaloScale_%radiusVirial        (node), &amp;
            &amp;                   scaleLength   =self                                  %scaleRadiusValidated(node), &amp;
-           &amp;                   shapeParameter=darkMatterProfile                     %shape               (    ), &amp;
+           &amp;                   shapeParameter=                                       shapeParameter            , &amp;
            &amp;                   componentType =                                       componentTypeDarkHalo     , &amp;
            &amp;                   massType      =                                       massTypeDark                &amp;
            &amp;                  )

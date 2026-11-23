@@ -473,6 +473,8 @@ contains
        <objectDestructor name="self%outputAnalysis_"/>
        !!]
        call self%parametersModel%parametersModel%reset()
+       ! Clear the facts recorded for this model, so that the next model (built from the same parameter document) starts afresh.
+       call self%parametersModel%parametersModel%modelFactsReset()
     end do
     ! If we use multiple collaborative groups, join the MPI communicator here.
     if (self%countCollaborativeGroups > 1) then

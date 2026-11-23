@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the algorithm of :cite:t:`smith_stable_2003`.
 !!}
@@ -295,7 +297,7 @@ contains
             &  ) then
           ! Zero cosmological constant.
           self%f1=self%cosmologyFunctions_%omegaMatterEpochal(time=time)**(-0.0732d0)
-          self%f2=self%cosmologyFunctions_%omegaMatterEpochal(time=time)**(-0.1432d0)
+          self%f2=self%cosmologyFunctions_%omegaMatterEpochal(time=time)**(-0.1423d0)
           self%f3=self%cosmologyFunctions_%omegaMatterEpochal(time=time)**(+0.0725d0)
        else
           call Error_Report('no fitting functions available for this cosmology'//{introspection:location})

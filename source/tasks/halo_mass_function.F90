@@ -739,7 +739,7 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,scaleIsSettable,shapeIsSettable,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_,criticalOverdensityHalo)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,scaleIsSettable,shapeIsSettable,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_,criticalOverdensityHalo,statusIntegrated)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )

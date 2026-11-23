@@ -1146,6 +1146,15 @@ contains
     return
   end subroutine table1dGenericObjectsDestructor
   
+  !![
+  <workaround type="gfortran" PR="57696" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=57696" docformat="rst">
+    <description>
+    gfortran does not call the defined assignment of an allocatable component in an intrinsic assignment, so the
+    ``interpolator_`` component would be copied without it. This procedure does the assignment by hand; once the PR is
+    fixed, it can be removed and intrinsic assignment used.
+    </description>
+  </workaround>
+  !!]
   subroutine table1dGenericObjectsAssignment(to,from)
     !!{RST
     Assignment operator for :galacticus-class:`table1dGenericObjects` objects.

@@ -183,6 +183,8 @@ contains
     disk => node%disk()
     ! Compute the disk mass.
     massDisk=disk%massGas()+disk%massStellar()
+    ! Return if disk has no mass - a massless disk can not be bar unstable (and the gas fraction below would be undefined).
+    if (massDisk               <= 0.0d0                            ) return
     ! Return if disk has unphysical angular momentum.
     if (disk%angularMomentum() <= 0.0d0                            ) return
     ! Return if disk has unphysical velocity or radius.

@@ -87,6 +87,7 @@ def main(argv=None):
         if name == 'submit':
             subparser.add_argument('--runs', help='runs to submit, e.g. `0,3,5-7` (default: all pending or failed runs)')
         subparser.add_argument('--partition', help='the Slurm partition (default: from galacticusConfig.xml)')
+        subparser.add_argument('--arrayTaskMaximum', type=int, help='the most runs to have running at once, or 0 for no limit (default: `arrayTaskMaximum` from galacticusConfig.xml, otherwise no limit)')
         subparser.add_argument('--walltime', help='the walltime of each run, e.g. `40:00:00`')
         subparser.add_argument('--cpus', type=int, help='CPUs (and OpenMP threads) per run')
         subparser.add_argument('--memory', type=int, help='memory per run, in MB')

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a posterior sampling state class which stores history.
   !!}
@@ -107,6 +109,7 @@ contains
     class  (posteriorSampleStateHistory), intent(inout) :: self
     integer                             , intent(in   ) :: parameterCount
 
+    call self%posteriorSampleStateSimple%parameterCountSet(parameterCount)
     allocate(self%stateSum       (parameterCount))
     allocate(self%stateSquaredSum(parameterCount))
     self%stateSum       =0.0d0

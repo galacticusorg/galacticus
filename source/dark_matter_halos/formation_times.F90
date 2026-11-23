@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements calculations of dark matter halo formation times.
 !!}
@@ -53,8 +55,8 @@ contains
     if     (                                                                                            &
          &   formationMassFraction <= 0.0d0                                                             &
          &  .or.                                                                                        &
-         &   formationMassFraction >  1.0d0                                                             &
-         & ) call Error_Report('`formationMassFraction` ∈ [0,1) is required'//{introspection:location}) 
+         &   formationMassFraction >= 1.0d0                                                             &
+         & ) call Error_Report('`formationMassFraction` ∈ (0,1) is required'//{introspection:location}) 
     ! Get the mass of the starting node.
     basic    => node %basic()
     massNode =  basic%mass ()

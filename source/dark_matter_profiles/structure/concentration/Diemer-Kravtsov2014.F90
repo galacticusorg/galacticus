@@ -42,6 +42,13 @@
       \left({\nu\over\nu_\mathrm{min}}\right)^{\beta} \right],
 
    where :math:`c_\mathrm{min}=\max(\phi_0+\phi_1 n,2)`, :math:`\nu_\mathrm{min}=\max(\eta_0+\eta_1 n,1)` (the floors, not part of the fit of :cite:t:`diemer_universal_2014`, avoid unphysical concentrations for very steep power spectrum slopes, e.g. below a small-scale cutoff; with the default parameters they apply for :math:`n&lt;-3.34` and :math:`n&lt;-4.10` respectively, so do not affect cold dark matter spectra), :math:`n` is the logarithmic slope of the linear power spectrum at wavenumber :math:`k = \kappa 2 \pi / R`, :math:`R` is the comoving Lagrangian radius of the halo, :math:`R=[3 M / 4 \pi \rho_\mathrm{M}(z=0)]^{1/3}`, and :math:`\nu=\delta_\mathrm{crit}(t)/\sigma(M)` is the peak height parameter. The numerical parameters :math:`(\kappa,\phi_0,\phi_1,\eta_0,\eta_1,\alpha,\beta)` are set by the parameters ``[kappa]``, ``[phi0]``, ``[phi1]``, ``[eta0]``, ``[eta1]``, ``[alpha]``, ``[beta]``, respectively, and default to the values given in Table 3 of :cite:t:`diemer_universal_2014` for the median relation, namely :math:`(0.69,6.58,1.37,6.82,1.42,1.12,1.69)`.
+
+   Note that :cite:t:`diemer_universal_2014` computed :math:`n` from the power spectrum of :cite:t:`eisenstein_baryonic_1998`
+   without baryon acoustic oscillations, to avoid oscillations in :math:`n` for the most massive halos, and calibrated their fit
+   accordingly. Here :math:`n` is computed from the ``powerSpectrum`` used by this class. If the power spectrum used elsewhere in
+   the model includes baryon acoustic oscillations (for example, a transfer function from :cite:t:`eisenstein_baryonic_1998`,
+   CAMB, CLASS, or a file), give this class its own ``powerSpectrum``, with a smooth transfer function (such as that of
+   :cite:t:`eisenstein_power_1999`), to match their calibration.
    </description>
    <deepCopy>
     <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>

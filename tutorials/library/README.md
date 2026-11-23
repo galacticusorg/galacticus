@@ -35,7 +35,8 @@ Two options:
 
 2. **Download a binary distribution** — CI publishes
    `libgalacticus.tar.bz2` with each
-   [bleeding-edge release](https://github.com/galacticusorg/galacticus/releases/tag/bleeding-edge),
+   [bleeding-edge release](https://github.com/galacticusorg/galacticus/releases/tag/bleeding-edge)
+   and, built with link-time optimization, with each new versioned release,
    containing a `galacticus/` folder with `lib/libgalacticus.so` and
    `python/galacticus.py`. Unpack it anywhere and set
 

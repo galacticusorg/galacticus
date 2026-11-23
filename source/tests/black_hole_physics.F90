@@ -50,7 +50,9 @@ program Test_Black_Hole_Physics
   &                                              Black_Hole_ISCO_Specific_Angular_Momentum, &
   &                                              Black_Hole_ISCO_Specific_Energy          , &
   &                                              orbitPrograde                            , &
-  &                                              unitsGravitational
+  &                                              orbitRetrograde                          , &
+  &                                              unitsGravitational                       , &
+  &                                              unitsPhysical
   use :: Bondi_Hoyle_Lyttleton_Accretion, only : Bondi_Hoyle_Lyttleton_Accretion_Radius   , &
   &                                              Bondi_Hoyle_Lyttleton_Accretion_Rate
   use :: Display                        , only : displayVerbositySet                      , &
@@ -81,6 +83,22 @@ program Test_Black_Hole_Physics
        &                                                                                           3.4641016151d+0 , 3.1535982815d+0 , 2.7559862886d+0 , 2.0997847561d+0 , &
        &                                                                                           1.5683649770d+0 , 1.3418378381d+0 , 1.1861513528d+0 , 1.1547005384d+0   &
        &                                                                                          ]
+  ! Kerr ISCO properties for retrograde orbits (gravitational units; the magnitude of the angular momentum) from Bardeen, Press &
+  ! Teukolsky (1972; their equations 2.12, 2.13, and 2.21 with the lower signs).
+  double precision                                   , dimension(4) :: spinISCORetrograde        =[                                                                        &
+       &                                                                                           0.300000d+0     , 0.600000d+0     , 0.900000d+0     , 1.000000d+0       &
+       &                                                                                          ]
+  double precision                                   , dimension(4) :: radiusISCORetrogradeReference=[                                                                     &
+       &                                                                                           6.9492725270d+0 , 7.8506861853d+0 , 8.7173522796d+0 , 9.0000000000d+0   &
+       &                                                                                          ]
+  double precision                                   , dimension(4) :: energyISCORetrogradeReference=[                                                                     &
+       &                                                                                           9.5082421984d-1 , 9.5659904499d-1 , 9.6100165435d-1 , 9.6225044865d-1   &
+       &                                                                                          ]
+  double precision                                   , dimension(3) :: angularMomentumISCORetrogradeReference=[                                                            &
+       &                                                                                           3.7269170982d+0 , 3.9586363554d+0 , 4.1680641963d+0                     &
+       &                                                                                          ]
+  ! Speed of light (in km/s), used to check the ISCO specific energy in physical units, E_ISCO c².
+  double precision                                   , parameter    :: speedLightKilometersPerSecond=2.99792458d5
   ! Thin disk spin-up function, s=L_ISCO-2jE_ISCO, for the closed-form spins.
   double precision                                   , dimension(6) :: spinUpReference           =[                                                                        &
        &                                                                                           3.4641016151d+0 , 2.5952132531d+0 , 1.6654422308d+0 , 5.8014014171d-1 , &
@@ -106,6 +124,9 @@ program Test_Black_Hole_Physics
        &                                                                                           1.9276168747d+13, 1.2791545693d+14, 3.9816621869d+14, 4.2887547845d+14, &
        &                                                                                           4.5746762679d+14                                                        &
        &                                                                                          ]
+  double precision                                   , dimension(4) :: radiusISCORetrograde                                                                       , &
+       &                                                               energyISCORetrograde
+  double precision                                   , dimension(3) :: angularMomentumISCORetrograde
   double precision                                   , dimension(8) :: radiusISCO                                                                                 , &
        &                                                               energyISCO                                                                                 , &
        &                                                               angularMomentumISCO                                                                        , &
@@ -144,6 +165,26 @@ program Test_Black_Hole_Physics
   ! The standard black hole component limits spin to 0.9999, so the specific angular momentum (which takes a black hole
   ! component, not a spin) for spins above that limit must equal that at j=0.9999.
   call Assert("specific angular momentum {spin limited}" ,angularMomentumISCO(7:8),[1.2405842000d+0,1.2405842000d+0]  ,relTol=1.0d-8)
+  do i=1,size(spinISCORetrograde)
+     spin                    =spinISCORetrograde(i)
+     radiusISCORetrograde (i)=Black_Hole_ISCO_Radius         (spin,orbit=orbitRetrograde)
+     energyISCORetrograde (i)=Black_Hole_ISCO_Specific_Energy(spin,orbit=orbitRetrograde)
+     if (i > size(angularMomentumISCORetrograde)) cycle
+     call blackHole%massSet(1.0d0)
+     call blackHole%spinSet(spin )
+     angularMomentumISCORetrograde(i)=Black_Hole_ISCO_Specific_Angular_Momentum(blackHole,orbit=orbitRetrograde,units=unitsGravitational)
+  end do
+  call Assert("radius {retrograde}"                      ,radiusISCORetrograde         ,radiusISCORetrogradeReference         ,relTol=1.0d-8)
+  call Assert("specific energy {retrograde}"             ,energyISCORetrograde         ,energyISCORetrogradeReference         ,relTol=1.0d-8)
+  call Assert("specific angular momentum {retrograde}"   ,angularMomentumISCORetrograde,angularMomentumISCORetrogradeReference,relTol=1.0d-8)
+  ! The ISCO specific energy in physical units is E_ISCO c², independent of the black hole mass.
+  call blackHole%massSet(1.0d6)
+  call blackHole%spinSet(0.6d0)
+  call Assert("specific energy {physical units}"                                                , &
+       &      Black_Hole_ISCO_Specific_Energy(blackHole,units=unitsPhysical,orbit=orbitPrograde), &
+       &      energyISCOReference(3)*speedLightKilometersPerSecond**2                           , &
+       &      relTol=1.0d-8                                                                       &
+       &     )
   call Unit_Tests_End_Group()
 
   ! Kerr frame-dragging frequency in the equatorial plane, ω=-g_tφ/g_φφ in Boyer-Lindquist coordinates. This tests the metric

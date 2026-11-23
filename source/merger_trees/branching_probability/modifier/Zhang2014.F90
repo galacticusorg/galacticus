@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger tree branching probability rate modifier which uses the model of :cite:t:`zhang_dark-matter_2014` to account for environmental-dependence.
   !!}
@@ -199,7 +201,7 @@ contains
     end if
     ! Evaluate other parameters needed for the rate modifier.
     peakHeight=+self%overdensityCriticalParent  &
-         &     /sqrt(sigmaParent              )    
+         &     /     sigmaParent
     alpha     =(             &
          &      +sigmaParent &
          &      /sigmaChild  &

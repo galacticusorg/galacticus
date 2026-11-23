@@ -245,6 +245,13 @@ repository root. The ones most likely to be useful when working in this repo:
   PR's metric pages can be inspected before merge. Requires the `gh` CLI, and
   must be run from a directory with Galacticus' `gh-pages` branch checked out
   (not this working tree). It opens pages in a browser at the end.
+- **`codeAudits/auditLoop/`** — tooling for a scheduled, unattended code audit.
+  It provides a `galacticus-audit` Claude Code skill, which audits prioritized
+  source files and stages verified fixes on local `audit/*` branches. It also
+  provides scripts that track findings and review coverage in a state
+  directory, rank files for the next audit, and gate runs on plan usage. If a
+  checkout has `audit/*` branches, they belong to that loop: leave them alone
+  unless the user asks. Its `ReadMe.md` describes the setup and the formats.
 
 Two further tools are for data/model maintenance rather than day-to-day work:
 `dataPreparation/extractSDSSBPTData.py` (rebuilds the SDSS DR8 emission-line

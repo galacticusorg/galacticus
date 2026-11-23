@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements the standard black hole node component.
 !!}
@@ -265,7 +267,7 @@ contains
     implicit none
     class           (*                     ), intent(inout) :: self
     type            (treeNode              ), intent(inout) :: node
-    type            (treeNode              ), pointer       :: hostNode
+    type            (treeNode              ), pointer       :: nodeHost
     class           (nodeComponentBlackHole), pointer       :: blackHoleHostCentral, blackHole         , &
          &                                                     blackHolePrimary    , blackHoleSecondary
     integer                                                 :: instance
@@ -276,13 +278,13 @@ contains
     !$GLC attributes unused :: self
     
     ! Find the node to merge with.
-    hostNode => node%mergesWith()
+    nodeHost => node%mergesWith()
     ! Find the initial radius of the satellite black hole in the remnant.
-    radiusInitial=blackHoleBinaryInitialSeparation_%separationInitial(node,hostNode)
+    radiusInitial=blackHoleBinaryInitialSeparation_%separationInitial(node,nodeHost)
     ! If the separation is non-positive, assume that the black holes merge instantaneously.
     if (radiusInitial <= 0.0d0) then
        ! Get the central black hole of the host galaxy.
-       blackHoleHostCentral => hostNode%blackHole(instance=1,autoCreate=.true.)
+       blackHoleHostCentral => nodeHost%blackHole(instance=1,autoCreate=.true.)
        ! Loop over all black holes in the satellite galaxy.
        do instance=1,node%blackHoleCount()
           ! Get the black hole.
@@ -313,7 +315,7 @@ contains
           call Event_Black_Hole_Merger(blackHolePrimary,blackHoleSecondary,blackHoleHostCentral)
           ! Now calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy.
           velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
-          if (Node_Component_Black_Hole_Standard_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
+          if (Node_Component_Black_Hole_Standard_Recoil_Escapes(nodeHost,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
              massBlackHoleNew=0.0d0
              spinBlackHoleNew=0.0d0
           end if
@@ -333,7 +335,7 @@ contains
           if (blackHole%mass() <= 0.0d0) call node%blackHoleRemove(instance)
        end do
        ! Move black holes from the satellite to the host.
-       call node%blackHoleMove(hostNode)
+       call node%blackHoleMove(nodeHost)
     end if
     return
   end subroutine satelliteMerger

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests the implementation of the :cite:t:`gnedin_response_2004` dark matter profile.
 !!}
@@ -38,32 +40,39 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Display                   , only : displayVerbositySet                                           , verbosityLevelStandard
   use :: Galacticus_Nodes          , only : nodeClassHierarchyFinalize                                    , nodeClassHierarchyInitialize     , nodeComponentBasic                          , nodeComponentDarkMatterProfile, &
-          &                                 treeNode                                                      , nodeComponentSPheroid
+          &                                 treeNode                                                      , nodeComponentSPheroid            , nodeComponentDisk
   use :: Input_Parameters          , only : inputParameters
   use :: Input_Paths               , only : inputPath                                                     , pathTypeExec
   use :: ISO_Varying_String        , only : varying_string                                                , assignment(=)                    , char                                        , var_str                       , &
        &                                    operator(//)
   use :: Node_Components           , only : Node_Components_Initialize                                    , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize         , Node_Components_Uninitialize
-  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                        , Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                                                        , Unit_Tests_Begin_Group           , Unit_Tests_End_Group                        , Unit_Tests_Finish             , &
+       &                                    compareGreaterThan
   implicit none
   type            (treeNode                                                      ), pointer                   :: node
   class           (nodeComponentBasic                                            ), pointer                   :: basic
   class           (nodeComponentDarkMatterProfile                                ), pointer                   :: dmProfile
   class           (nodeComponentSpheroid                                         ), pointer                   :: spheroid
-  double precision                                                                , parameter                 :: concentration                        =10.0d0, massVirial              =1.0d12, &
-       &                                                                                                         fractionBaryons                      =0.15d0, radiusFractionalBaryons =0.03d0
+  class           (nodeComponentDisk                                             ), pointer                   :: disk
+  double precision                                                                , parameter                 :: concentration                        =10.0d0, massVirial                                  =1.0d12, &
+       &                                                                                                         fractionBaryons                      =0.15d0, radiusFractionalBaryons                     =0.03d0
   type            (darkMatterProfileDMONFW                                       ), pointer                   :: darkMatterProfileDMONFW_
-  type            (darkMatterProfileAdiabaticGnedin2004                          ), pointer                   :: darkMatterProfileAdiabaticGnedin2004_
+  type            (darkMatterProfileAdiabaticGnedin2004                          ), pointer                   :: darkMatterProfileAdiabaticGnedin2004_       , darkMatterProfileAdiabaticGnedin2004Precise_
   type            (cosmologyParametersSimple                                     ), pointer                   :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                                ), pointer                   :: cosmologyFunctions_
   type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer                   :: darkMatterHaloScale_
   type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                   :: virialDensityContrast_
   class           (massDistributionClass                                         ), pointer                   :: massDistribution_
   type            (inputParameters                                               )                            :: parameters
-  double precision                                                                                            :: radiusScale                                  , radiusVirial                  , &
-       &                                                                                                         radiusFractionalFinalContra
+  double precision                                                                , parameter                 :: A                                    =0.85d0, omega                                       =0.80d0, &
+       &                                                                                                         radiusFractionalOffset               =1.0d-6, fractionDisk                                =0.05d0
+  double precision                                                                                            :: radiusScale                                  , radiusVirial                                      , &
+       &                                                                                                         radiusFractionalFinalContra                  , radiusMatch                                       , &
+       &                                                                                                         massInner                                    , massOuter                                         , &
+       &                                                                                                         radiusFractionalDisk
+  character       (len=3                                                         )                            :: label
   double precision                                                                , allocatable, dimension(:) :: radiusFractionalInitialContra                , radiusFractionalInitial
-  integer                                                                                                     :: i                                            , fileUnit                      , &
+  integer                                                                                                     :: i                                            , fileUnit                                          , &
        &                                                                                                         countLines                                   , countRadii
   type            (varying_string                                                )                            :: fileName
   
@@ -78,12 +87,13 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
   ! Build required objects. Use a cosmology with a baryon fraction of 0.15 to match what was assumed in the reference run of the "contra" code.
-  allocate(cosmologyParameters_                 )
-  allocate(cosmologyFunctions_                  )
-  allocate(virialDensityContrast_               )
-  allocate(darkMatterHaloScale_                 )
-  allocate(darkMatterProfileDMONFW_             )
-  allocate(darkMatterProfileAdiabaticGnedin2004_)
+  allocate(cosmologyParameters_                        )
+  allocate(cosmologyFunctions_                         )
+  allocate(virialDensityContrast_                      )
+  allocate(darkMatterHaloScale_                        )
+  allocate(darkMatterProfileDMONFW_                    )
+  allocate(darkMatterProfileAdiabaticGnedin2004_       )
+  allocate(darkMatterProfileAdiabaticGnedin2004Precise_)
   !![
   <referenceConstruct object="cosmologyParameters_"                 >
    <constructor>
@@ -131,10 +141,24 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   <referenceConstruct object="darkMatterProfileAdiabaticGnedin2004_">
    <constructor>
      darkMatterProfileAdiabaticGnedin2004                         (                                                                            &amp;
-     &amp;                                                         A                                   =0.85d0                               , &amp;
-     &amp;                                                         omega                               =0.80d0                               , &amp;
+     &amp;                                                         A                                   =A                                    , &amp;
+     &amp;                                                         omega                               =omega                                , &amp;
      &amp;                                                         radiusFractionalPivot               =1.00d0                               , &amp;
      &amp;                                                         toleranceRelative                   =1.0d-2                               , &amp;
+     &amp;                                                         nonAnalyticSolver                   =nonAnalyticSolversNumerical          , &amp;
+     &amp;                                                         cosmologyParameters_                =cosmologyParameters_                 , &amp;
+     &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_                 , &amp;
+     &amp;                                                         darkMatterProfileDMO_               =darkMatterProfileDMONFW_               &amp;
+     &amp;                                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileAdiabaticGnedin2004Precise_">
+   <constructor>
+     darkMatterProfileAdiabaticGnedin2004                         (                                                                            &amp;
+     &amp;                                                         A                                   =A                                    , &amp;
+     &amp;                                                         omega                               =omega                                , &amp;
+     &amp;                                                         radiusFractionalPivot               =1.00d0                               , &amp;
+     &amp;                                                         toleranceRelative                   =1.0d-12                              , &amp;
      &amp;                                                         nonAnalyticSolver                   =nonAnalyticSolversNumerical          , &amp;
      &amp;                                                         cosmologyParameters_                =cosmologyParameters_                 , &amp;
      &amp;                                                         darkMatterHaloScale_                =darkMatterHaloScale_                 , &amp;
@@ -149,6 +173,7 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   basic     => node    %basic            (autoCreate=.true.)
   dmProfile => node    %darkMatterProfile(autoCreate=.true.)
   spheroid  => node    %spheroid         (autoCreate=.true.)
+  disk      => node    %disk             (autoCreate=.true.)
   ! Set properties.
   call basic%timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic%timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
@@ -190,6 +215,68 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   !!]
   ! Use a tolerance of 2% in the assertion, as our solver for the initial radius uses a tolerance of 1%.
   call Assert('initial radii',radiusFractionalInitialContra,radiusFractionalInitial,relTol=2.0d-2)
+  ! Test continuity of the adiabatic solution at the boundaries (see https://github.com/galacticusorg/galacticus/issues/1796). The
+  ! solution is applied out to the matching radius, rₘ, at which the orbit-averaged radius equals the virial radius. Beyond that
+  ! radius the initial and final radii are equal.
+  radiusMatch=+radiusVirial     &
+       &      /A**(1.0d0/omega)
+  massDistribution_ => darkMatterProfileAdiabaticGnedin2004Precise_%get(node)
+  select type (massDistribution_)
+  type is (massDistributionSphericalAdiabaticGnedin2004)
+     ! At the matching radius the initial and final radii must coincide.
+     call Assert('initial radius equals final radius at matching radius',massDistribution_%radiusInitial(radiusMatch*(1.0d0-radiusFractionalOffset))/radiusMatch,1.0d0,relTol=1.0d-5)
+     ! Enclosed mass must be continuous across the matching radius.
+     massInner=massDistribution_%massEnclosedBySphere(radiusMatch *(1.0d0-radiusFractionalOffset))
+     massOuter=massDistribution_%massEnclosedBySphere(radiusMatch *(1.0d0+radiusFractionalOffset))
+     call Assert('enclosed mass continuous at matching radius',massOuter/massInner,1.0d0,relTol=1.0d-5)
+     ! Enclosed mass must be continuous across the virial radius.
+     massInner=massDistribution_%massEnclosedBySphere(radiusVirial*(1.0d0-radiusFractionalOffset))
+     massOuter=massDistribution_%massEnclosedBySphere(radiusVirial*(1.0d0+radiusFractionalOffset))
+     call Assert('enclosed mass continuous at virial radius'  ,massOuter/massInner,1.0d0,relTol=1.0d-5)
+     ! The halo is contracted at the virial radius in this model. Previously, the initial radius was capped at the virial radius,
+     ! producing a shell just inside the virial radius (spanning approximately 0.996 to 1 virial radii in this model) containing no
+     ! dark matter. Check that the halo remains contracted at the virial radius, and that the enclosed mass increases across that
+     ! region.
+     call Assert('halo contracted at virial radius',massDistribution_%radiusInitial(radiusVirial)/radiusVirial,1.0d0,compare=compareGreaterThan)
+     massInner=massDistribution_%massEnclosedBySphere(0.999d0*radiusVirial)
+     massOuter=massDistribution_%massEnclosedBySphere(1.00d0*radiusVirial)
+     call Assert('enclosed mass increases just inside virial radius',massOuter/massInner,1.0d0,compare=compareGreaterThan)
+  end select
+  !![
+  <objectDestructor name="massDistribution_"/>
+  !!]
+  ! Test continuity at the matching radius for exponential disks. For a disk the effective mass, V²(r) r / G, differs from the mass
+  ! enclosed within a sphere, so these test that the initial mass budget is consistent with the baryonic term used in the
+  ! solution. Two disks are tested: one with a scale length of 0.3 virial radii (for which an inconsistent budget leads to a shell
+  ! just inside the matching radius containing no dark matter), and one with a scale length of 2 virial radii (for which an
+  ! inconsistent budget leads to a discontinuity in the enclosed mass at the matching radius).
+  call spheroid%massStellarSet(0.0d0)
+  do i=1,2
+     select case (i)
+     case (1)
+        radiusFractionalDisk=0.3d0
+     case (2)
+        radiusFractionalDisk=2.0d0
+     end select
+     write (label,'(f3.1)') radiusFractionalDisk
+     call disk%massGasSet(fractionDisk        *massVirial  )
+     call disk%radiusSet (radiusFractionalDisk*radiusVirial)
+     call Calculations_Reset(node)
+     massDistribution_ => darkMatterProfileAdiabaticGnedin2004Precise_%get(node)
+     select type (massDistribution_)
+     type is (massDistributionSphericalAdiabaticGnedin2004)
+        call Assert('disk (r_s='//trim(label)//' r_vir): initial radius equals final radius at matching radius',massDistribution_%radiusInitial(radiusMatch*(1.0d0-radiusFractionalOffset))/radiusMatch,1.0d0,relTol=1.0d-5)
+        massInner=massDistribution_%massEnclosedBySphere(radiusMatch*(1.0d0-radiusFractionalOffset))
+        massOuter=massDistribution_%massEnclosedBySphere(radiusMatch*(1.0d0+radiusFractionalOffset))
+        call Assert('disk (r_s='//trim(label)//' r_vir): enclosed mass continuous at matching radius',massOuter/massInner,1.0d0,relTol=1.0d-5)
+        massInner=massDistribution_%massEnclosedBySphere(radiusMatch*0.999d0)
+        massOuter=massDistribution_%massEnclosedBySphere(radiusMatch        )
+        call Assert('disk (r_s='//trim(label)//' r_vir): enclosed mass increases just inside matching radius',massOuter/massInner,1.0d0,compare=compareGreaterThan)
+     end select
+     !![
+     <objectDestructor name="massDistribution_"/>
+     !!]
+  end do
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
@@ -201,11 +288,12 @@ program Test_Dark_Matter_Profiles_Gnedin2004
   call node%destroy()
   deallocate(radiusFractionalInitialContra,radiusFractionalInitial,node)
   !![
-  <objectDestructor name="cosmologyParameters_"                 />
-  <objectDestructor name="cosmologyFunctions_"                  />
-  <objectDestructor name="virialDensityContrast_"               />
-  <objectDestructor name="darkMatterHaloScale_"                 />
-  <objectDestructor name="darkMatterProfileDMONFW_"             />
-  <objectDestructor name="darkMatterProfileAdiabaticGnedin2004_"/>
+  <objectDestructor name="cosmologyParameters_"                        />
+  <objectDestructor name="cosmologyFunctions_"                         />
+  <objectDestructor name="virialDensityContrast_"                      />
+  <objectDestructor name="darkMatterHaloScale_"                        />
+  <objectDestructor name="darkMatterProfileDMONFW_"                    />
+  <objectDestructor name="darkMatterProfileAdiabaticGnedin2004_"       />
+  <objectDestructor name="darkMatterProfileAdiabaticGnedin2004Precise_"/>
   !!]
 end program Test_Dark_Matter_Profiles_Gnedin2004

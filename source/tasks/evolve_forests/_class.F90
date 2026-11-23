@@ -276,6 +276,9 @@ contains
     <objectBuilder class="randomNumberGenerator"  name="randomNumberGenerator_"  source="parameters"/>
     <objectBuilder class="mergerTreeSeeds"        name="mergerTreeSeeds_"        source="parameters"/>
     !!]
+    ! Check that every fact required by the objects built so far is established. Objects owned by node components are built
+    ! later (in node component initialization) and are checked in the "perform" method.
+    call parameters%modelFactsValidate()
     if (associated(parametersRoot)) then
        self=taskEvolveForests(tolerateFailures,evolveForestsInParallel,countForestsMaximum,walltimeMaximum,timeIntervalReportProgress,estimateRunTimeOnly,suspendToRAM,suspendPath,timeIntervalCheckpoint,fileNameCheckpoint,mergerTreeConstructor_,metaTreeProcessingTime_,mergerTreeOperator_,nodeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,randomNumberGenerator_,mergerTreeSeeds_,parametersRoot)
     else
@@ -656,6 +659,11 @@ contains
        !$omp end critical(evolveForestsInitialize)
     end if
     !$omp barrier
+    ! Every object in the model now exists (including those owned by node components, built just above), so check that every
+    ! fact required in the model is established. The registry is shared by all threads, so this need be done only once.
+    !$omp masked
+    call parameters%modelFactsValidate()
+    !$omp end masked
     ! Compute the tree census and (if a cost model is available) the total predicted work, then report the start-of-run estimate.
     ! This is performed on the master constructor, before the per-thread deep copies below, so that each thread's copy inherits the
     ! already-constructed set of tree masses---rather than re-constructing it, which for some mass distributions both duplicates work

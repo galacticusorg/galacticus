@@ -43,7 +43,8 @@ program Test_Mass_Distributions
        &                                        massDistributionSIDMParametricProfile, massDistributionBlackHole             , massDistributionSoliton                , massDistributionSolitonNFW                  , &
        &                                        massDistributionIsothermal           , kinematicsDistributionSphericalScaler , kinematicsDistributionNFW              , kinematicsDistributionCollisionlessTabulated, &
        &                                        kinematicsDistributionClass          , kinematicsDistributionLocal           , massDistributionSphericalHeated        , massDistributionHeatingTidal                , &
-       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator
+       &                                        massDistributionHeatingClass         , massDistributionSphericalHeatedTracer , nonAnalyticSolversNumerical            , massDistributionSphericalAccelerator        , &
+       &                                        massDistributionDiemerKravtsov2014   , massDistributionSphericalAccretionFlow
   use :: Numerical_Constants_Math      , only : Pi                                   , e
   use :: Tensors                       , only : assignment(=)
   use :: Unit_Tests                    , only : Assert                               , Unit_Tests_Begin_Group                , Unit_Tests_End_Group                   , Unit_Tests_Finish                           , &
@@ -204,6 +205,70 @@ program Test_Mass_Distributions
   deallocate(massDistribution_      )
   call Unit_Tests_End_Group()
 
+  ! Diemer & Kravtsov (2014) accretion flow profile, with and without the mean density. The logarithmic density gradient is
+  ! compared with a numerical estimate.
+  call Unit_Tests_Begin_Group("Diemer & Kravtsov (2014) accretion flow profile")
+  position=[2.0d0,0.0d0,0.0d0]
+  allocate(massDistributionDiemerKravtsov2014 :: massDistribution_)
+  select type (massDistribution_)
+  type is (massDistributionDiemerKravtsov2014)
+     massDistribution_=massDistributionDiemerKravtsov2014(densityMean=1.0d0,radius200Mean=1.0d0,includeMean=.true. ,b=1.0d0,s=1.5d0)
+     call Assert("Logarithmic density gradient (mean included)",massDistribution_%densityGradientRadial(position,logarithmic=.true.),massDistribution_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-6)
+     massDistribution_=massDistributionDiemerKravtsov2014(densityMean=1.0d0,radius200Mean=1.0d0,includeMean=.false.,b=1.0d0,s=1.5d0)
+     call Assert("Logarithmic density gradient (mean excluded)",massDistribution_%densityGradientRadial(position,logarithmic=.true.),massDistribution_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-6)
+  end select
+  deallocate(massDistribution_)
+  call Unit_Tests_End_Group()
+
+  ! Accretion flow decorator. Following Diemer & Kravtsov (2014; eqn. 4), the density is that of the halo multiplied by the
+  ! transition function, plus that of the accretion flow, which is not suppressed by the transition function. The logarithmic
+  ! density gradient is compared with a numerical estimate.
+  call Unit_Tests_Begin_Group("Accretion flow decorator")
+  block
+    class           (massDistributionSpherical), pointer      :: halo_                                  , accretionFlow_, &
+         &                                                       decorated_
+    double precision                           , parameter    :: radiusTransition=0.45d0
+    double precision                           , dimension(3) :: radii           =[0.15d0,0.45d0,0.90d0]
+    double precision                                          :: multiplier
+    character       (len=32                   )               :: label
+    integer                                                   :: j
+
+    allocate(massDistributionNFW :: halo_)
+    select type (halo_)
+    type is (massDistributionNFW)
+       !![
+       <referenceConstruct object="halo_" constructor="massDistributionNFW(scaleLength=30.0d-3,radiusVirial=300.0d-3,mass=1.0d12,dimensionless=.false.)"/>
+       !!]
+    end select
+    allocate(massDistributionDiemerKravtsov2014 :: accretionFlow_)
+    select type (accretionFlow_)
+    type is (massDistributionDiemerKravtsov2014)
+       !![
+       <referenceConstruct object="accretionFlow_" constructor="massDistributionDiemerKravtsov2014(densityMean=4.0d10,radius200Mean=0.3d0,includeMean=.false.,b=1.0d0,s=1.5d0)"/>
+       !!]
+    end select
+    allocate(massDistributionSphericalAccretionFlow :: decorated_)
+    select type (decorated_)
+    type is (massDistributionSphericalAccretionFlow)
+       !![
+       <referenceConstruct object="decorated_" constructor="massDistributionSphericalAccretionFlow(radiusTransition=radiusTransition,nonAnalyticSolver=nonAnalyticSolversNumerical,massDistribution_=halo_,massDistributionAccretionFlow_=accretionFlow_)"/>
+       !!]
+    end select
+    do j=1,size(radii)
+       position  =[radii(j),0.0d0,0.0d0]
+       multiplier=1.0d0/(1.0d0+(radii(j)/radiusTransition)**4)**2
+       write (label,'(a,f4.2,a)') '(r=',radii(j),' Mpc)'
+       call Assert("Density "                     //trim(label),decorated_%density              (position                   ),multiplier*halo_%density(position)+accretionFlow_%density(position)   ,relTol=1.0d-12)
+       call Assert("Logarithmic density gradient "//trim(label),decorated_%densityGradientRadial(position,logarithmic=.true.),decorated_%densityGradientRadialNumerical(position,logarithmic=.true.),relTol=1.0d-06)
+    end do
+    !![
+    <objectDestructor name="decorated_"    />
+    <objectDestructor name="accretionFlow_"/>
+    <objectDestructor name="halo_"         />
+    !!]
+  end block
+  call Unit_Tests_End_Group()
+
   ! Hernquist profile.
   call Unit_Tests_Begin_Group("Hernquist profile")
   allocate(massDistributionHernquist :: massDistribution_)
@@ -255,15 +320,15 @@ program Test_Mass_Distributions
   do i=1,truncationTableCount
      write (label,'(f4.2)') truncationTableFraction(i)
      massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,truncationTableFraction(i))
-     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_  %massTotal            (                                                         ),truncationTableFraction            (i),relTol=1.0d-3)
-     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_  %radiusHalfMass       (                                                         ),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
+     call Assert("Mass retained           (f="//label//")",massDistributionTruncated_%massTotal     (),truncationTableFraction            (i),relTol=1.0d-3)
+     call Assert("Half-mass radius        (f="//label//")",massDistributionTruncated_%radiusHalfMass(),truncationTableRadiusHalfMassTarget(i),relTol=1.0d-3)
      !![
      <objectDestructor name="massDistributionTruncated_"/>
      !!]
   end do
   ! A negligible truncation should leave the distribution unchanged.
   massDistributionTruncated_ => galacticComponentTruncation_%massDistribution(massDistributionUntruncated_,1.0d0-1.0d-6)
-  call Assert("Negligible truncation (mass retained)"          ,massDistributionTruncated_  %massTotal            (                                               ),1.0d0,absTol=1.0d-12)
+  call Assert("Negligible truncation (mass retained)",massDistributionTruncated_%massTotal(),1.0d0,absTol=1.0d-12)
   !![
   <objectDestructor name="massDistributionTruncated_"  />
   <objectDestructor name="massDistributionUntruncated_"/>

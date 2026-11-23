@@ -475,6 +475,12 @@ contains
 
     densityScaleFree=+density                   &
          &           /self%densityNormalization
+    ! The mean enclosed density falls monotonically from the central density, ρ₋₂ exp(2/α), at r=0, so no radius encloses a
+    ! greater mean density. Return a zero radius in that case, rather than expanding the tabulation without end.
+    if (densityScaleFree >= exp(2.0d0/self%shapeParameter)) then
+       radius=0.0d0
+       return
+    end if
     do while (.not.self%densityScaleFree_%brackets(densityScaleFree))
        call self%densityScaleFree_%expand(densityScaleFree)
        radii=self%densityScaleFree_%abscissae()
