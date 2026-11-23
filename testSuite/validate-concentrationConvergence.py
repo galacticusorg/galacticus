@@ -468,9 +468,13 @@ for massTrees in massesTree:
             change                 = ET.SubElement(parameters,'change')
             change.attrib['type' ] = "remove"
             change.attrib['path' ] = "nodeOperator/nodeOperator[@value='subsubhaloPromotion']"
+            # Satellite orbits must be initialized (the Johnson et al. (2021) model uses them), but need not be evolved. This
+            # node operator is responsible for the initialization, so it must be kept.
             change                 = ET.SubElement(parameters,'change')
-            change.attrib['type' ] = "remove"
+            change.attrib['type' ] = "append"
             change.attrib['path' ] = "nodeOperator/nodeOperator[@value='satelliteOrbit']"
+            initializeOnly         = ET.SubElement(change,"initializeOnly")
+            initializeOnly.attrib['value'] = "true"
             change                 = ET.SubElement(parameters,'change')
             change.attrib['type' ] = "remove"
             change.attrib['path' ] = "nodeOperator/nodeOperator[@value='satelliteDynamicalFriction']"
@@ -615,7 +619,7 @@ for massTrees in massesTree:
             if args.acceptUnboundOrbits        is not None:
                 change                 = ET.SubElement(parameters,'change')
                 change.attrib['type' ] = "update"
-                change.attrib['path' ] = "componentSatellite/acceptUnboundOrbits"
+                change.attrib['path' ] = "nodeOperator/nodeOperator[@value='satelliteOrbit']/acceptUnboundOrbits"
                 change.attrib['value'] = args.acceptUnboundOrbits
                 change                 = ET.SubElement(parameters,'change')
                 change.attrib['type' ] = "update"
@@ -724,8 +728,6 @@ for massTrees in massesTree:
                 expansionFactorTransition_                   = ET.SubElement(darkMatterProfileScaleRadius,'expansionFactorTransition'      )
                 expansionFactorWidth_                        = ET.SubElement(darkMatterProfileScaleRadius,'expansionFactorWidth'           )
                 scatter_                                     = ET.SubElement(darkMatterProfileScaleRadius,'scatter'                        )
-                correlationRateDecay_                        = ET.SubElement(darkMatterProfileScaleRadius,'correlationRateDecay'           )
-                correlationExponent_                         = ET.SubElement(darkMatterProfileScaleRadius,'correlationExponent'            )
                 change                      .attrib['path' ] = 'darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/darkMatterProfileScaleRadius'
                 change                      .attrib['type' ] = 'replace'
                 darkMatterProfileScaleRadius.attrib['value'] = "powerLaw"
@@ -742,12 +744,18 @@ for massTrees in massesTree:
                 expansionFactorTransition_  .attrib['value'] = str(expansionFactorTransition)
                 expansionFactorWidth_       .attrib['value'] = str(expansionFactorWidth     )
                 scatter_                    .attrib['value'] = "0.000"
-                correlationRateDecay_       .attrib['value'] = str(correlationRateDecay     )
-                correlationExponent_        .attrib['value'] = str(correlationExponent      )
                 change                                       = ET.SubElement(parameters,'change')
                 change                      .attrib['path' ] = 'darkMatterProfileScaleRadius/darkMatterProfileScaleRadius/scatter'
                 change                      .attrib['type' ] = 'update'
                 change                      .attrib['value'] = str(modelScatter)
+                # The correlation of scatter along a branch is likewise a parameter of the `johnson2021` class.
+                change                                       = ET.SubElement(parameters,'change')
+                change                      .attrib['path' ] = 'darkMatterProfileScaleRadius/darkMatterProfileScaleRadius'
+                change                      .attrib['type' ] = 'append'
+                correlationRateDecay_                        = ET.SubElement(change,'correlationRateDecay')
+                correlationExponent_                         = ET.SubElement(change,'correlationExponent' )
+                correlationRateDecay_       .attrib['value'] = str(correlationRateDecay)
+                correlationExponent_        .attrib['value'] = str(correlationExponent )
 
             id = re.sub("/"         ,":",id)
             id = re.sub("\[@value='","-",id)
@@ -801,7 +809,7 @@ for massTrees in massesTree:
                 "logError":           path+"convergenceConcentration_"+id+".err"  ,
                 "nodes":               1,
                 "memoryPerThread":    memoryPerTree,
-                "walltime":           "1-00:00:00",
+                "walltime":           "7-00:00:00",
                 "command":            timeCommand+" -v ./Galacticus.exe testSuite/parameters/validate_concentrationConvergence.xml "+parameterFileName,
                 "onCompletion":       extractResults,
                 "optimizeFor":        "nodes",
