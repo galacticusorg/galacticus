@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a triaxiality modifier for power spectra in the halo model of clustering based on the results of :cite:t:`smith_triaxial_2005`.
   !!}
@@ -170,7 +172,7 @@ contains
     select case (term%ID)
     case (haloModelTermOneHalo%ID)
        tableIndex=1
-       do while (mass*self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) < massTable(tableIndex))
+       do while (mass*self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) > massTable(tableIndex))
           tableIndex=tableIndex+1
        end do
     case (haloModelTermTwoHalo%ID)

@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Test of the mergerTreeBranchingMoments task with a white-noise power spectrum and the EPS branching rates, for which the -->
+<!-- process is exactly that of extended Press-Schechter theory, so that the progenitor mass function and the density of -->
+<!-- branches are known analytically. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="5d45e8a8fccdc5e6e4d3c638c9291d92759489b3" time="2026-11-18T10:17:21"/>
+  <verbosityLevel value="standard"/>
+  <task value="mergerTreeBranchingMoments">
+    <massRoot           value="1.0e12"     />
+    <redshiftRoot       value="0.0"        />
+    <massResolution     value="1.0e9"      />
+    <redshiftMaximum    value="10.0"       />
+    <redshiftTarget     value="1.0"        />
+    <statistics         value="ABC"        />
+    <massThresholds     value="1.0e10 1.0e11"/>
+    <countMassPerDecade value="50"         />
+    <countOmega         value="1000"       />
+    <outputStrideOmega  value="10"         />
+    <decomposeVariance  value="true"       />
+  </task>
+  <outputFileName value="testSuite/outputs/mergerTreeBranchingMomentsWhiteNoise.hdf5"/>
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0"    />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <!-- White noise: a primordial power spectrum with index zero, and no transfer function. -->
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.0"  />
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.14"/>
+  </powerSpectrumNormalizer>
+  <cosmologicalMassVariance value="filteredPower">
+    <tolerance value="1.0e-4"/>
+  </cosmologicalMassVariance>
+  <transferFunction value="identity"/>
+  <linearGrowth value="collisionlessMatter"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <componentBasic value="standard"/>
+  <!-- EPS branching rates: the Parkinson, Cole and Helly rates with no modification. -->
+  <mergerTreeBranchingProbability value="parkinsonColeHelly">
+    <G0                 value="+1.00"/>
+    <gamma1             value="+0.00"/>
+    <gamma2             value="+0.00"/>
+    <accuracyFirstOrder value="+0.10"/>
+  </mergerTreeBranchingProbability>
+</parameters>

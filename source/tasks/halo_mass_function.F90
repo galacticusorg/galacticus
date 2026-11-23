@@ -222,7 +222,8 @@ contains
       <name>includeSplashbackRadius</name>
       <defaultValue>.false.</defaultValue>
       <description>
-      If true then also compute and output the splashback radius and mass of the halos.
+      If true then also compute and output the splashback radius of the halos, and their splashback mass if the
+      :galacticus-class:`darkMatterHaloSplashbackRadius` class used predicts it.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -739,7 +740,7 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,scaleIsSettable,shapeIsSettable,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_,criticalOverdensityHalo)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,scaleIsSettable,shapeIsSettable,massHaloBinMinimum,massHaloBinMaximum,virialDensityContrasts,integrator_,criticalOverdensityHalo,statusIntegrated)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )
@@ -908,7 +909,8 @@ contains
                & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%nodeBase                        )
           if (self%includeSplashbackRadius ) then
              radiusSplashback                           (iMass,iOutput)=darkMatterHaloSplashbackRadius_    %radius                         (                                                                                               node=tree%nodeBase                        )
-             massSplashback                             (iMass,iOutput)=darkMatterHaloSplashbackRadius_    %mass                           (                                                                                               node=tree%nodeBase                        )
+             if (darkMatterHaloSplashbackRadius_%massIsProvided()) &
+                  & massSplashback                      (iMass,iOutput)=darkMatterHaloSplashbackRadius_    %mass                           (                                                                                               node=tree%nodeBase                        )
           end if
           ! Compute alternate mass definitions for halos.
           do iAlternate=1,size(self%virialDensityContrasts)
@@ -1067,8 +1069,10 @@ contains
        if (self%includeSplashbackRadius ) then
           call outputGroup%writeDataset  (radiusSplashback                              (:,iOutput),'haloSplashbackRadius'          ,'The splashback radius of halos.'                                            ,datasetReturned=dataset)
           call dataset%writeAttribute(unitType(megaParsec                ,"Mpc"       ,"Mpc"                     ),'units')
-          call outputGroup%writeDataset  (massSplashback                                (:,iOutput),'haloSplashbackMass'            ,'The splashback mass of halos.'                                              ,datasetReturned=dataset)
-          call dataset%writeAttribute(unitType(massSolar                 ,"M☉"        ,"solMass"                 ),'units')
+          if (self%darkMatterHaloSplashbackRadius_%massIsProvided()) then
+             call outputGroup%writeDataset  (massSplashback                             (:,iOutput),'haloSplashbackMass'            ,'The splashback mass of halos.'                                              ,datasetReturned=dataset)
+             call dataset%writeAttribute(unitType(massSolar              ,"M☉"        ,"solMass"                 ),'units')
+          end if
        end if
        call    outputGroup%writeDataset  (biasHalo                                      (:,iOutput),'haloBias'                      ,'The large scale linear bias of halos.'                                                              )
        call    outputGroup%writeDataset  (densityFieldRootVariance                      (:,iOutput),'haloSigma'                     ,'The mass fluctuation on the scale of the halo.'                                                     )

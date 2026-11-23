@@ -16,7 +16,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -29,13 +29,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: camb
           repo: cmbant/CAMB
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -56,7 +55,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -69,13 +68,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: forutils
           repo: cmbant/forutils
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -96,7 +94,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -110,13 +108,12 @@ jobs:
           version_name: class
           repo: lesgourg/class_public
           tag: true
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -137,7 +134,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -150,13 +147,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: fsps
           repo: cconroy20/fsps
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -177,7 +173,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -196,13 +192,12 @@ jobs:
           fi
           echo "latest=${versionFull}" >> "$GITHUB_OUTPUT"
           echo "branch=cloudy" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -223,7 +218,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -236,13 +231,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: mangle
           repo: galacticusorg/mangle
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -263,7 +257,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -280,13 +274,12 @@ jobs:
           fi
           echo "latest=${latest}" >> "$GITHUB_OUTPUT"
           echo "branch=dgrin1/axionCAMB" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -307,7 +300,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -324,13 +317,12 @@ jobs:
           fi
           echo "latest=${latest}" >> "$GITHUB_OUTPUT"
           echo "branch=lanl/CosmicEmu" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -351,7 +343,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -365,13 +357,12 @@ jobs:
           version_name: euclidemulator2
           repo: miknab/EuclidEmulator2
           tag: true
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -392,7 +383,7 @@ jobs:
       appid: ${{ secrets.DEPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+      - uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3
         if: ${{ env.appid != '' }}
         id: generate-token
         with:
@@ -410,13 +401,12 @@ jobs:
           fi
           echo "latest=${latest}" >> "$GITHUB_OUTPUT"
           echo "branch=ngenhalofitteam/ngenhalofitpublic" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}

@@ -1539,6 +1539,51 @@ def chandrasekhar_suppress_extended_mass(input_doc, parameters, is_grid):
     _suppress_extended_mass_disable(profile)
 
 
+def nuclear_star_cluster_star_formation_timescale(input_doc, parameters, is_grid):
+    """Retain the previous default star formation timescale of nuclear star clusters.
+
+    Commit 166c47742b changed the default `frequencyStarFormation` (the star formation timescale, in Gyr) of the
+    `krumholz2009` nuclear star cluster star formation rate from 2.36 to 2.6, the value used by Krumholz et al. (2009) and
+    Antonini et al. (2015). Parameter files predating that commit used the old default, so it is set explicitly wherever the
+    class is used without the parameter. Since `krumholz2009` is the default `starFormationRateNuclearStarClusters`, a file
+    which evolves nuclear star clusters (a `componentNSC` other than `null`, which is the default) but does not name a
+    `starFormationRateNuclearStarClusters` has one inserted so that the parameter can be attached.
+    """
+    def add_timescale(element):
+        if len(element.xpath("./frequencyStarFormation[@value]")) > 0:
+            return
+        print(f"   append frequencyStarFormation 2.36 to <{element.tag} value=\"{element.get('value')}\">")
+        timescale = etree.Element("frequencyStarFormation")
+        timescale.set("value", "2.36")
+        if len(element) > 0:
+            append_indented(element, timescale)
+        else:
+            # Indent the new child one level deeper than the element itself, and its closing tag as the element.
+            previous = element.getprevious()
+            whitespace = previous.tail if previous is not None else element.getparent().text
+            indent = whitespace[whitespace.rfind("\n"):] if whitespace is not None and "\n" in whitespace else "\n  "
+            element.text = indent + "  "
+            timescale.tail = indent
+            element.append(timescale)
+
+    for element in parameters.xpath(".//starFormationRateNuclearStarClusters[@value='krumholz2009']"):
+        add_timescale(element)
+    # If no star formation rate is named, the default (`krumholz2009`) is used, but only matters where nuclear star clusters
+    # are evolved - otherwise adding it would only add noise to every migrated file.
+    if len(parameters.xpath(".//starFormationRateNuclearStarClusters[@value]")) > 0:
+        return
+    components = parameters.xpath(".//componentNSC[@value]")
+    if len(components) == 0 or all(component.get("value") == "null" for component in components):
+        return
+    print("   insert starFormationRateNuclearStarClusters krumholz2009 (default) to carry frequencyStarFormation")
+    rate = etree.Element("starFormationRateNuclearStarClusters")
+    rate.set("value", "krumholz2009")
+    if is_grid:
+        rate.set("iterable", "no")
+    append_indented(parameters, rate)
+    add_timescale(rate)
+
+
 def dynamical_friction_gaseous(input_doc, parameters, is_grid):
     """Retain the collisionless treatment of dynamical friction from gaseous components.
 
@@ -2347,6 +2392,7 @@ SPECIAL_FUNCTIONS = {
     "interstellar_medium_kinematics": interstellar_medium_kinematics,
     "power_spectrum_normalizer": power_spectrum_normalizer,
     "supernovae_type_ii_mass_stellar_astrophysics": supernovae_type_ii_mass_stellar_astrophysics,
+    "nuclear_star_cluster_star_formation_timescale": nuclear_star_cluster_star_formation_timescale,
 }
 
 

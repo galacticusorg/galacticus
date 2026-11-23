@@ -31,7 +31,8 @@
    definition of the formation time: following :cite:t:`ludlow_mass-concentration-redshift_2014`, it is the time at which the
    mass of the main progenitor equals the characteristic mass, :math:`M_{-2}`, rather than that at which the collapsed mass
    in all progenitors more massive than :math:`f` times the halo mass does so. The parameter :math:`f` is used only to bound
-   the search for the formation time.
+   the search for the formation time. The parameter :math:`C` defaults to the value found by
+   :cite:t:`ludlow_mass-concentration-redshift_2014` for this definition of the formation time.
    </description>
   </darkMatterProfileScaleRadius>
   !!]
@@ -59,14 +60,62 @@ contains
     !!{RST
     Default constructor for the ``ludlow2014`` dark matter halo profile concentration class.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Error           , only : Error_Report
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(darkMatterProfileScaleRadiusLudlow2014)                :: self
-    type(inputParameters                       ), intent(inout) :: parameters
+    type            (darkMatterProfileScaleRadiusLudlow2014)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
+    class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
+    class           (virialDensityContrastClass            ), pointer       :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
+    double precision                                                        :: C                            , f, &
+         &                                                                     timeFormationSeekDelta
 
-    self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(parameters)
+    if (.not.parameters%isPresent('darkMatterProfileScaleRadius')) call Error_Report('a fallback scale radius method must be specified'//{introspection:location})
+    !![
+    <inputParameter docformat="rst">
+      <name>C</name>
+      <source>parameters</source>
+      <defaultValue>853.0d0</defaultValue>
+      <description>
+      The parameter :math:`C` appearing in the halo concentration algorithm of :cite:t:`ludlow_mass-concentration-redshift_2014`, such that the mean density within the radius :math:`r_{-2}` is :math:`C` times the critical density at the formation time. The default is the value found by :cite:t:`ludlow_mass-concentration-redshift_2014` (their Fig. 3) for their definition of the formation time, which differs from the value of :math:`C` found by :cite:t:`ludlow_mass-concentration-redshift_2016` for theirs.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>f</name>
+      <source>parameters</source>
+      <defaultValue>0.02d0</defaultValue>
+      <description>
+      The parameter :math:`f` of the halo concentration algorithm of :cite:t:`ludlow_mass-concentration-redshift_2016`. In this class it is used only to bound the search for the formation time.
+      </description>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>timeFormationSeekDelta</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>
+      The parameter :math:`\Delta \log t` by which the logarithm of the trial formation time is incremented when stepping through the formation history of a node to find the formation time. If set to zero (or a negative value) the cumulative mass histories of nodes are assumed to be monotonic functions of time, and the formation time is instead found by a root finding algorithm.
+      </description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    !!]
+    self=darkMatterProfileScaleRadiusLudlow2014(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,virialDensityContrast_,darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"          />
+    <objectDestructor name="cosmologyParameters_"         />
+    <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    <objectDestructor name="virialDensityContrast_"       />
+    <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="darkMatterHaloScale_"         />
     !!]
     return
   end function ludlow2014ConstructorParameters

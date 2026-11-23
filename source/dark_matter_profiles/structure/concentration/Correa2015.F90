@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo profile concentrations using the :cite:t:`correa_accretion_2015` algorithm.
   !!}
@@ -200,7 +202,7 @@ contains
     double precision                                          , parameter              :: toleranceAbsolute=0.0d+0
     type            (rootFinder                              ), save                   :: finder
     logical                                                   , save                   :: finderConstructed=.false.
-    !$omp threadprivate(finder)
+    !$omp threadprivate(finder,finderConstructed)
     double precision                                                                   :: mass                     , time           , &
          &                                                                                aTilde                   , bTilde         , &
          &                                                                                redshift                 , expansionFactor

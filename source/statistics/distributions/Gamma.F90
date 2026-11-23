@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a 1D gamma distribution function.
   !!}
@@ -112,7 +114,8 @@ contains
     !!{RST
     Constructor for the :galacticus-class:`distributionFunction1DGamma` 1D distribution function class.
     !!}
-    use :: Error, only : Error_Report
+    use :: Error          , only : Error_Report
+    use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
     implicit none
     type            (distributionFunction1DGamma)                                  :: self
     double precision                             , intent(in   )                   :: shape                 , rate
@@ -130,14 +133,15 @@ contains
     if (present(limitLower)) then
        if (limitLower < 0.0d0) call Error_Report('limitLower≥0 is required'//{introspection:location})
        self%limitLower     =limitLower
-       self%cdfAtLowerLimit=self%cumulative(limitLower)
+       ! Use the untruncated cumulative distribution function here - self%cumulative() would apply the truncation.
+       self%cdfAtLowerLimit=Gamma_Function_Incomplete_Complementary(shape,rate*limitLower)
     else
        self%cdfAtLowerLimit=0.0d0
     end if
     if (present(limitUpper)) then
        if (limitUpper < 0.0d0) call Error_Report('limitUpper≥0 is required'//{introspection:location})
        self%limitUpper     =limitUpper
-       self%cdfAtUpperLimit=self%cumulative(limitUpper)
+       self%cdfAtUpperLimit=Gamma_Function_Incomplete_Complementary(shape,rate*limitUpper)
     else
        self%cdfAtUpperLimit=1.0d0
     end if

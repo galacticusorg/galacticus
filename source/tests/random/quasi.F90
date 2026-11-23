@@ -54,8 +54,16 @@ program Test_Quasi_Random
   call Assert('Sobol sequence (1D)',r,rSobol,absTol=1.0d-6)
   ! Three-dimensional sequence. The first two dimensions are common to all Sobol constructions (and agree with, for example,
   ! SciPy's implementation, after its leading origin). The third depends on the choice of direction numbers, and is GSL's.
-  ! Each sequence is held in its own variable: assigning a new sequence onto a used one double-finalizes its resource manager
-  ! (GCC PR 110626).
+  ! Each sequence is held in its own variable, rather than assigning a new sequence onto a used one.
+  !![
+  <workaround type="gfortran" PR="110626" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110626" docformat="rst">
+  <description>
+  Assigning a new value to an object of this type that is already in use finalizes the old value of its resource-manager
+  component twice. The fix for PR 110626 in gfortran 16.2 covers only types with no pointer or allocatable components, and
+  the PR was reopened for the remaining case.
+  </description>
+  </workaround>
+  !!]
   quasiRandomSequence3D=quasiRandomNumberGenerator(gsl_qrng_sobol,countDimensions=3)
   call Assert('Sobol sequence (3D): dimension',quasiRandomSequence3D%dimensions(),3)
   do i=1,7

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of dark matter halo splashback radii using the fitting functions of :cite:t:`shi_outer_2016`.
   !!}
@@ -79,12 +81,13 @@
        <method method="propertiesGet" description="Return the properties of the halo needed to evaluate the splashback fitting functions."/>
      </methods>
      !!]
-     final     ::                  shi2016Destructor
-     procedure :: radius        => shi2016Radius
-     procedure :: radiusRatio   => shi2016RadiusRatio
-     procedure :: mass          => shi2016Mass
-     procedure :: massRatio     => shi2016MassRatio
-     procedure :: propertiesGet => shi2016PropertiesGet
+     final     ::                   shi2016Destructor
+     procedure :: radius         => shi2016Radius
+     procedure :: radiusRatio    => shi2016RadiusRatio
+     procedure :: massIsProvided => shi2016MassIsProvided
+     procedure :: mass           => shi2016Mass
+     procedure :: massRatio      => shi2016MassRatio
+     procedure :: propertiesGet  => shi2016PropertiesGet
   end type darkMatterHaloSplashbackRadiusShi2016
 
   interface darkMatterHaloSplashbackRadiusShi2016
@@ -252,6 +255,18 @@ contains
          &    *shi2016RadiusRatioEvaluate    (accretionRate,omegaMatter)**3
     return
   end function shi2016MassRatio
+
+  logical function shi2016MassIsProvided(self)
+    !!{RST
+    Return true since the splashback mass is predicted by this class.
+    !!}
+    implicit none
+    class(darkMatterHaloSplashbackRadiusShi2016), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    shi2016MassIsProvided=.true.
+    return
+  end function shi2016MassIsProvided
 
   double precision function shi2016Mass(self,node,massDistribution_) result(mass)
     !!{RST

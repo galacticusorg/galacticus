@@ -119,7 +119,13 @@ module Input_Parameters
      Wrapper class for managing XML documents.
      !!}
      private
-     type(node), pointer, public :: document => null()
+     type(node          ), pointer    , public       :: document              => null()
+     ! Model-scoped fact registry (see the ``modelFact`` and ``modelRequire`` directives). It is held here, by the root
+     ! document, so that it is shared by every parameters object (and every per-thread copy) derived from one parameter file,
+     ! and so that each model built from a fresh parameter file gets a fresh registry.
+     type(varying_string), allocatable, dimension(:) :: factsProvided                  , factsRequired    , &
+          &                                             factsRequiredReason            , factsRequiredHelp, &
+          &                                             factsRequiredLocation
    contains
      final :: documentWrapperDestructor
   end type documentWrapper
@@ -161,6 +167,11 @@ module Input_Parameters
        <method description="Return the path to this parameters object." method="path" />
        <method description="Mark a parameter, in the output file, as having taken a default value." method="markDefaulted" />
        <method description="Assign input parameter objects." method="assignment(=)"/>
+       <method description="Record that the model establishes the named fact. Normally called via the ``modelFact`` directive." method="modelFactProvide" />
+       <method description="Record that the model requires the named fact, with the reason it is needed, help text naming its providers, and the location of the requirement. Normally called via the ``modelRequire`` directive." method="modelFactRequire" />
+       <method description="Return true if the named fact has been established in this model." method="modelFactIsProvided" />
+       <method description="Check that every fact required in this model has been established, reporting an error if not." method="modelFactsValidate" />
+       <method description="Clear all facts and requirements recorded for this model." method="modelFactsReset" />
      </methods>
      !!]
      procedure :: buildTree            => inputParametersBuildTree
@@ -187,6 +198,11 @@ module Input_Parameters
      procedure :: reset                => inputParametersReset
      procedure :: path                 => inputParametersPath
      procedure :: markDefaulted        => inputParametersMarkDefaulted
+     procedure :: modelFactProvide     => inputParametersModelFactProvide
+     procedure :: modelFactRequire     => inputParametersModelFactRequire
+     procedure :: modelFactIsProvided  => inputParametersModelFactIsProvided
+     procedure :: modelFactsValidate   => inputParametersModelFactsValidate
+     procedure :: modelFactsReset      => inputParametersModelFactsReset
      procedure ::                         inputParametersAssignment
      generic   :: assignment(=)        => inputParametersAssignment
   end type inputParameters
@@ -2972,5 +2988,182 @@ contains
     return
   end subroutine inputParametersReset
 
+  subroutine inputParametersModelFactProvide(self,name)
+    !!{RST
+    Record that the model described by this parameter set establishes the fact ``name``. Recording the same fact more than once
+    (e.g. once per OpenMP thread) has no further effect.
+    !!}
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: name
+
+    ! A null parameter set has no document, and so no registry.
+    if (.not.associated(self%document)) return
+    !$omp critical (inputParametersModelFacts)
+    if (.not.inputParametersModelFactFind(self%document%factsProvided,name)) &
+         & call inputParametersModelFactAppend(self%document%factsProvided,name)
+    !$omp end critical (inputParametersModelFacts)
+    return
+  end subroutine inputParametersModelFactProvide
+
+  subroutine inputParametersModelFactRequire(self,name,reason,help,location)
+    !!{RST
+    Record that the model described by this parameter set requires the fact ``name``. The requirement is checked by
+    ``modelFactsValidate``. ``reason`` explains why the fact is needed, ``help`` (generated at build time by
+    the ``modelRequire`` directive) names the classes that would provide it, and ``location`` identifies the code that requires it.
+    Recording an identical requirement more than once has no further effect.
+    !!}
+    use :: ISO_Varying_String, only : operator(==)
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: name    , reason  , &
+         &                                       help    , location
+    integer                                   :: i
+    logical                                   :: isPresent
+
+    if (.not.associated(self%document)) return
+    !$omp critical (inputParametersModelFacts)
+    isPresent=.false.
+    if (allocated(self%document%factsRequired)) then
+       do i=1,size(self%document%factsRequired)
+          if     (                                                    &
+               &   self%document%factsRequired        (i) == name     &
+               &  .and.                                               &
+               &   self%document%factsRequiredLocation(i) == location &
+               & ) then
+             isPresent=.true.
+             exit
+          end if
+       end do
+    end if
+    if (.not.isPresent) then
+       call inputParametersModelFactAppend(self%document%factsRequired        ,name    )
+       call inputParametersModelFactAppend(self%document%factsRequiredReason  ,reason  )
+       call inputParametersModelFactAppend(self%document%factsRequiredHelp    ,help    )
+       call inputParametersModelFactAppend(self%document%factsRequiredLocation,location)
+    end if
+    !$omp end critical (inputParametersModelFacts)
+    return
+  end subroutine inputParametersModelFactRequire
+
+  logical function inputParametersModelFactIsProvided(self,name) result(isProvided)
+    !!{RST
+    Return true if the fact ``name`` has been established in the model described by this parameter set.
+    !!}
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: name
+
+    isProvided=.false.
+    if (.not.associated(self%document)) return
+    !$omp critical (inputParametersModelFacts)
+    isProvided=inputParametersModelFactFind(self%document%factsProvided,name)
+    !$omp end critical (inputParametersModelFacts)
+    return
+  end function inputParametersModelFactIsProvided
+
+  subroutine inputParametersModelFactsValidate(self)
+    !!{RST
+    Check that every fact required in the model described by this parameter set has been established, and report an error naming
+    each unmet requirement (and the classes that would satisfy it) if not. This should be called at points at which every object
+    that might establish a fact has been built---for example, after node component initialization when evolving forests.
+    !!}
+    use :: Display           , only : displayGreen, displayReset
+    use :: Error             , only : Error_Report
+    use :: ISO_Varying_String, only : char        , operator(//), var_str
+    implicit none
+    class  (inputParameters), intent(inout) :: self
+    type     (varying_string )                :: message
+    character(len=:          ), allocatable   :: nameRequired
+    integer                                   :: i           , countUnmet
+
+    if (.not.associated(self%document)) return
+    countUnmet=0
+    message   =var_str('')
+    !$omp critical (inputParametersModelFacts)
+    if (allocated(self%document%factsRequired)) then
+       do i=1,size(self%document%factsRequired)
+          ! Convert to a local variable rather than passing a function result as an argument, which gfortran can leak.
+          nameRequired=char(self%document%factsRequired(i))
+          if (inputParametersModelFactFind(self%document%factsProvided,nameRequired)) cycle
+          countUnmet=countUnmet+1
+          if (countUnmet > 1) message=message//char(10)//char(10)
+          message=message                                                 // &
+               &  self%document%factsRequiredReason(i)                    // &
+               &  char(10)//displayGreen()//'  HELP:'//displayReset()//' '// &
+               &  self%document%factsRequiredHelp  (i)                    // &
+               &  self%document%factsRequiredLocation(i)
+       end do
+    end if
+    !$omp end critical (inputParametersModelFacts)
+    if (countUnmet > 0) call Error_Report(message)
+    return
+  end subroutine inputParametersModelFactsValidate
+
+  subroutine inputParametersModelFactsReset(self)
+    !!{RST
+    Clear all facts and requirements recorded for the model described by this parameter set. This must be called at model
+    boundaries when a parameter document is reused to build a new model (e.g. between likelihood evaluations).
+    !!}
+    implicit none
+    class(inputParameters), intent(inout) :: self
+
+    if (.not.associated(self%document)) return
+    !$omp critical (inputParametersModelFacts)
+    if (allocated(self%document%factsProvided        )) deallocate(self%document%factsProvided        )
+    if (allocated(self%document%factsRequired        )) deallocate(self%document%factsRequired        )
+    if (allocated(self%document%factsRequiredReason  )) deallocate(self%document%factsRequiredReason  )
+    if (allocated(self%document%factsRequiredHelp    )) deallocate(self%document%factsRequiredHelp    )
+    if (allocated(self%document%factsRequiredLocation)) deallocate(self%document%factsRequiredLocation)
+    !$omp end critical (inputParametersModelFacts)
+    return
+  end subroutine inputParametersModelFactsReset
+
+  logical function inputParametersModelFactFind(facts,name) result(found)
+    !!{RST
+    Return true if ``name`` appears in the list of ``facts``.
+    !!}
+    use :: ISO_Varying_String, only : operator(==)
+    implicit none
+    type     (varying_string), intent(in   ), allocatable, dimension(:) :: facts
+    character(len=*         ), intent(in   )                            :: name
+    integer                                                             :: i
+
+    found=.false.
+    if (.not.allocated(facts)) return
+    do i=1,size(facts)
+       if (facts(i) == name) then
+          found=.true.
+          return
+       end if
+    end do
+    return
+  end function inputParametersModelFactFind
+
+  subroutine inputParametersModelFactAppend(list,item)
+    !!{RST
+    Append ``item`` to the ``list`` of strings. ``item`` is taken as a character string, and converted by assignment, so that
+    callers need not pass a function result (e.g. from ``var_str()``) as an argument, which gfortran can leak.
+    !!}
+    use :: ISO_Varying_String, only : assignment(=)
+    implicit none
+    type     (varying_string), intent(inout), allocatable, dimension(:) :: list
+    character(len=*         ), intent(in   )                            :: item
+    type     (varying_string)               , allocatable, dimension(:) :: listTemporary
+    integer                                                             :: i
+
+    if (allocated(list)) then
+       allocate(listTemporary(size(list)+1))
+       do i=1,size(list)
+          listTemporary(i)=list(i)
+       end do
+       listTemporary(size(list)+1)=item
+       call move_alloc(listTemporary,list)
+    else
+       allocate(list(1))
+       list(1)=item
+    end if
+    return
+  end subroutine inputParametersModelFactAppend
 
 end module Input_Parameters

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   An implementation of a dark matter density profile which includes the accretion flow surrounding the halo.
   !!}
@@ -137,6 +139,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"                />
     <objectDestructor name="self%darkMatterHaloSplashbackRadius_"    />
     <objectDestructor name="self%darkMatterProfileDMO_"              />
+    <objectDestructor name="self%darkMatterHaloScale_"               />
     <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
     <objectDestructor name="self%sphericalCollapseSolver_"           />
     !!]

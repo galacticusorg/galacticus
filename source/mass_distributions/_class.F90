@@ -1146,10 +1146,18 @@ module Mass_Distributions
   ! the stack and then retained (they are not released by "solverUnset"), so that the numerical radius solvers do not construct
   ! and destroy a root finder (and its GSL solver) on every call. A finder is only ever used at its own depth, so this is safe
   ! under recursion. They are held by pointer so that they remain at fixed addresses when the stack is grown. They are created
-  ! using "allocate(...,source=rootFinder(...))" because gfortran 16 miscompiles intrinsic assignment of a constructor result to
-  ! a pointer target of this type (writing through a null pointer). The bitwise copy made by "source=" bypasses reference
-  ! counting, which is safe here as a newly-constructed root finder holds no managed resources (its GSL objects are created on
-  ! first use).
+  ! using "allocate(...,source=rootFinder(...))" (see the workaround below). The bitwise copy made by "source=" bypasses
+  ! reference counting, which is safe here as a newly-constructed root finder holds no managed resources (its GSL objects are
+  ! created on first use).
+  !![
+  <workaround type="gfortran" PR="128833" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128833" docformat="rst">
+  <description>
+  Intrinsic assignment of a constructor result to a scalar pointer of this type writes through a null pointer (the
+  compiler-generated temporary copy of the old value is itself a pointer that is never allocated), so
+  ``allocate(...,source=rootFinder(...))`` is used instead.
+  </description>
+  </workaround>
+  !!]
   type :: massSolver
      class           (massDistributionClass), pointer      :: self                          => null()
      double precision                       , dimension(3) :: position1                               , position2                              , &

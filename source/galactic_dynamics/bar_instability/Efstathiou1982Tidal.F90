@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of the :cite:t:`efstathiou_stability_1982` model for galactic disk bar instability, but including the effects of tidal forces.
   !!}
@@ -206,11 +208,11 @@ contains
     type (treeNode                                         ), intent(inout) :: node
     class(nodeComponentBasic                               ), pointer       :: basicParent
 
+    ! Only satellites experience a tidal field here. (Test this first, as non-satellites may have no parent.)
+    efstathiou1982TidalTidalTensorRadial=0.0d0
+    if (.not.node%isSatellite()) return
     basicParent => node%parent%basic()
-    if (node%isSatellite() .and. basicParent%mass() > self%massThresholdHarrassment) then
-       efstathiou1982TidalTidalTensorRadial=self%satelliteTidalField_%tidalTensorRadial(node)
-    else
-       efstathiou1982TidalTidalTensorRadial=0.0d0
-    end if
+    if (basicParent%mass() > self%massThresholdHarrassment) &
+         & efstathiou1982TidalTidalTensorRadial=self%satelliteTidalField_%tidalTensorRadial(node)
     return
   end function efstathiou1982TidalTidalTensorRadial

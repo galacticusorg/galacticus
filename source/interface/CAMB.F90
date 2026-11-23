@@ -206,9 +206,7 @@ contains
     type            (lockDescriptor                  )                                  :: fileLock
     character       (len=255                         )                                  :: cambTransferLine
     type            (varying_string                  )                                  :: cambPath                                , cambVersion             , &
-         &                                                                                 parameterFile                           , outputRoot              , &
-         &                                                                                 versionCamb                             , versionForUtils         , &
-         &                                                                                 labelVersionCamb                        , labelVersionForUtils
+         &                                                                                 parameterFile                           , outputRoot
     double precision                                                                    :: wavenumberCAMB
     integer                                                                             :: status                                  , cambParameterFile       , &
          &                                                                                 i                                       , cambTransferFile        , &
@@ -245,18 +243,12 @@ contains
     ! Add wavenumber resolution to descriptor.
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
-    ! Add the unique label string to the descriptor. The dependency version labels are evaluated into
-    ! local variables first - gfortran leaks the temporary returned by a `varying_string`-valued
-    ! function when it is consumed directly by another function.
-    versionCamb         =dependencyVersion     ("camb"    )
-    versionForUtils     =dependencyVersion     ("forutils")
-    labelVersionCamb    =dependencyVersionLabel("camb"    )
-    labelVersionForUtils=dependencyVersionLabel("forutils")
+    ! Add the unique label string to the descriptor.
     uniqueLabel=descriptor%serializeToString()       // &
          &      "_sourceDigest:"                     // &
          &      String_C_To_Fortran(cambSourceDigest)// &
-         &      labelVersionCamb                     // &
-         &      labelVersionForUtils
+         &      dependencyVersionLabel("camb"    )   // &
+         &      dependencyVersionLabel("forutils")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=inputPath(pathTypeDataDynamic)               // &
@@ -481,9 +473,15 @@ contains
              escapedLogFile      =shellEscape(logFile         )
              call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
              ! A failure is detected by a non-zero exit status, or by the absence of the transfer function file - some versions of
-             ! CAMB stop on invalid parameters with a zero exit status. Note that the file name and message are built in
-             ! assignments, not in the argument lists below - `varying_string` expressions passed directly as arguments are
-             ! not finalized by gfortran, and so leak.
+             ! CAMB stop on invalid parameters with a zero exit status.
+             !![
+             <workaround type="gfortran" PR="128856" issue="1845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+               <description>
+                 The file name is built in an assignment: a ``varying_string`` expression passed to ``File_Exists`` in the
+                 ``if`` condition would not be deallocated, and would leak on every CAMB run.
+               </description>
+             </workaround>
+             !!]
              transferFileName=outputRoot//'_transfer_'//trim(adjustl(redshiftLabelsCombined(1)))//'.dat'
              if (status /= 0 .or. .not.File_Exists(transferFileName)) then
                 helpMessage=var_str('CAMB most often fails because the cosmological parameters given to it are invalid -')// &
@@ -514,7 +512,7 @@ contains
                          read (cambTransferLine,*) wavenumbers(i),transferFunctions(i,cambSpeciesDarkMatter%ID,j),transferFunctions(i,cambSpeciesBaryons%ID,j)
                       end if
                    else
-                      allEpochsFound=.false.
+                      call Error_Report('CAMB transfer function file "'//char(transferFileName)//'" is shorter than expected'//{introspection:location})
                    end if
                 end do
                 close(cambTransferFile)
@@ -538,10 +536,10 @@ contains
                     &              extrapolationGroup, extrapolationWavenumberGroup
                cambOutput=hdf5File(fileName_,readOnly=.false.,objectsOverwritable=.true.)
                call cambOutput%writeAttribute('Transfer functions created by CAMB.','description')
-               call cambOutput%writeAttribute(cambFormatVersionCurrent,'fileFormat')
-               call cambOutput%writeAttribute(versionCamb                 ,'versionCAMB'    )
-               call cambOutput%writeAttribute(versionForUtils             ,'versionForUtils')
-               call cambOutput%writeDataset  (wavenumbers             ,'wavenumber'                                  ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
+               call cambOutput%writeAttribute(cambFormatVersionCurrent     ,'fileFormat'     )
+               call cambOutput%writeAttribute(dependencyVersion("camb"    ),'versionCAMB'    )
+               call cambOutput%writeAttribute(dependencyVersion("forutils"),'versionForUtils')
+               call cambOutput%writeDataset     (wavenumbers                  ,'wavenumber'                 ,chunkSize=chunkSize,appendTo=.not.  cambOutput%hasDataset('wavenumber'))
                speciesGroup=cambOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
                do i=1,countRedshiftsUnique
                   datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))

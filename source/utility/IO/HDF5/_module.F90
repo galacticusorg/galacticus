@@ -4370,11 +4370,11 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
-                   readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=mod(pointRemainder,datasetDimensions(dimensionIndex))+1
+                do dimensionIndex=1,rank(datasetValue)-1
+                   readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=referenceStart(dimensionIndex)-1+mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
-                readSelectionMap(rank(datasetValue),(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=readSelection(pointIndex)
+                readSelectionMap(rank(datasetValue),(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=referenceStart(rank(datasetValue))-1+readSelection(pointIndex)
              end do
           end do
           ! Create selection.
@@ -4468,7 +4468,7 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
+                do dimensionIndex=1,rank(datasetValue)-1
                    readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
@@ -4759,11 +4759,11 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
-                   readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=mod(pointRemainder,datasetDimensions(dimensionIndex))+1
+                do dimensionIndex=1,rank(datasetValue)-1
+                   readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=referenceStart(dimensionIndex)-1+mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
-                readSelectionMap(rank(datasetValue),(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=readSelection(pointIndex)
+                readSelectionMap(rank(datasetValue),(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=referenceStart(rank(datasetValue))-1+readSelection(pointIndex)
              end do
           end do
           ! Create selection.
@@ -4857,7 +4857,7 @@ attributeValue=trim(attributeValue)
           do pointIndex=1,size(readSelection)
              do pointLeadingIndex=1,pointLeadingCount
                 pointRemainder=pointLeadingIndex-1
-                do dimensionIndex=rank(datasetValue)-1,1,-1
+                do dimensionIndex=1,rank(datasetValue)-1
                    readSelectionMap(dimensionIndex,(pointIndex-1)*pointLeadingCount+pointLeadingIndex)=mod(pointRemainder,datasetDimensions(dimensionIndex))+1
                    pointRemainder=pointRemainder/datasetDimensions(dimensionIndex)
                 end do
@@ -6242,7 +6242,7 @@ attributeValue=trim(attributeValue)
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
           forall(i=1:size(readSelection))
-             readSelectionMap(:,i)=[readSelection(i)]
+             readSelectionMap(:,i)=[referenceStart(1)-1+readSelection(i)]
           end forall
           ! Create selection.
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
@@ -6254,7 +6254,7 @@ attributeValue=trim(attributeValue)
           ! Set the size of the data to read in.
           datasetDimensions(1)=size(readSelection)
           ! Construct a suitable memory space ID to read this data into.
-          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6343,7 +6343,7 @@ attributeValue=trim(attributeValue)
           ! Set the size of the data to read in.
           datasetDimensions(1)=size(readSelection)
           ! Construct a suitable memory space ID to read this data into.
-          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6604,7 +6604,7 @@ attributeValue=trim(attributeValue)
           ! Create a map for selecting elements if necessary.
           allocate(readSelectionMap(1,size(readSelection)))
           forall(i=1:size(readSelection))
-             readSelectionMap(:,i)=[readSelection(i)]
+             readSelectionMap(:,i)=[referenceStart(1)-1+readSelection(i)]
           end forall
           ! Create selection.
           call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
@@ -6616,7 +6616,7 @@ attributeValue=trim(attributeValue)
           ! Set the size of the data to read in.
           datasetDimensions(1)=size(readSelection)
           ! Construct a suitable memory space ID to read this data into.
-          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6705,7 +6705,7 @@ attributeValue=trim(attributeValue)
           ! Set the size of the data to read in.
           datasetDimensions(1)=size(readSelection)
           ! Construct a suitable memory space ID to read this data into.
-          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          call h5screate_simple_f(1,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6735,7 +6735,9 @@ attributeValue=trim(attributeValue)
        call Error_Report(message//self%locationReport()//{introspection:location})
     end if
     do i=1,datasetDimensions(1)
-       call c_f_pointer(datasetValueC1(i)%p,datasetValueC2,shape=[datasetValueC1%length])
+       ! An empty entry has no data to which to point - leave its row unassociated.
+       if (datasetValueC1(i)%length == 0) cycle
+       call c_f_pointer(datasetValueC1(i)%p,datasetValueC2,shape=[datasetValueC1(i)%length])
        allocate(datasetValue(i)%row(datasetValueC2(1)%length,datasetValueC1(i)%length))
        do j=1,datasetValueC1(i)%length
           call c_f_pointer(datasetValueC2(j)%p,datasetRow,shape=[datasetValueC2(j)%length])
@@ -6762,6 +6764,19 @@ attributeValue=trim(attributeValue)
           message="unable to close memory dataspace for dataset '"//datasetObject%objectName//"'"
           call Error_Report(message//self%locationReport()//{introspection:location})
        end if
+    end if
+
+    ! Determine how to close the object. Use the reference flag recorded above: the object identifier has since been replaced by
+    ! the dereferenced region, so a live reference test would no longer report the original dataset as a reference.
+    if (isReference) then
+       ! It was, so close the referenced dataset.
+       call h5dclose_f(datasetObject%objectID,errorCode)
+       if (errorCode < 0) then
+          message="unable to close referenced dataset for '"//datasetObject%objectName//"'"
+          call Error_Report(message//self%locationReport()//{introspection:location})
+       end if
+       ! Restore the object ID of the original dataset.
+       self%objectID=storedDatasetID
     end if
     return
   end subroutine IO_HDF5_Read_Dataset_VarVarDouble_1D_Array_Allocatable_Self
@@ -6937,7 +6952,7 @@ attributeValue=trim(attributeValue)
           ! Set the size of the data to read in.
           datasetDimensions=readCount
           ! Construct a suitable memory space ID to read this data into.
-          call h5screate_simple_f(1,readCount,memorySpaceID,errorCode)
+          call h5screate_simple_f(2,readCount,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
@@ -6950,28 +6965,32 @@ attributeValue=trim(attributeValue)
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
-          ! A selection is to be read - create a suitable dataspace selection.
+          ! A selection is to be read - create a suitable dataspace selection. As for arrays of other types, the selection applies
+          ! to the final dimension of the dataset - all elements of the first dimension are read for each selected index of the
+          ! final dimension.
           ! Check that the selection is valid.
-          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
-          ! Create a map for selecting elements if necessary.
-          allocate(readSelectionMap(1,size(readSelection)))
-          forall(i=1:size(readSelection))
-             readSelectionMap(:,i)=[readSelection(i)]
-          end forall
+          ! Create a map for selecting elements, ordered such that elements are read into the memory space in array order.
+          allocate(readSelectionMap(2,int(size(readSelection),kind=HSIZE_T)*datasetDimensions(1)))
+          do i=1,size(readSelection)
+             do j=1,datasetDimensions(1)
+                readSelectionMap(:,(i-1)*datasetDimensions(1)+j)=[referenceStart(1)-1+j,referenceStart(2)-1+readSelection(i)]
+             end do
+          end do
           ! Create selection.
-          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
-          datasetDimensions(1)=size(readSelection)
+          datasetDimensions(2)=size(readSelection)
           ! Construct a suitable memory space ID to read this data into.
-          call h5screate_simple_f(1,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7039,28 +7058,32 @@ attributeValue=trim(attributeValue)
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
        else if (present(readSelection)) then
-          ! A selection is to be read - create a suitable dataspace selection.
+          ! A selection is to be read - create a suitable dataspace selection. As for arrays of other types, the selection applies
+          ! to the final dimension of the dataset - all elements of the first dimension are read for each selected index of the
+          ! final dimension.
           ! Check that the selection is valid.
-          if (any(readSelection < 1 .or. readSelection > datasetDimensions(1))) then
+          if (any(readSelection < 1 .or. readSelection > datasetDimensions(2))) then
              message="requested selection extends outside of bounds of dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
-          ! Create a map for selecting elements if necessary.
-          allocate(readSelectionMap(1,size(readSelection)))
-          forall(i=1:size(readSelection))
-             readSelectionMap(:,i)=[readSelection(i)]
-          end forall
+          ! Create a map for selecting elements, ordered such that elements are read into the memory space in array order.
+          allocate(readSelectionMap(2,int(size(readSelection),kind=HSIZE_T)*datasetDimensions(1)))
+          do i=1,size(readSelection)
+             do j=1,datasetDimensions(1)
+                readSelectionMap(:,(i-1)*datasetDimensions(1)+j)=[j,readSelection(i)]
+             end do
+          end do
           ! Create selection.
-          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,1,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
+          call h5sselect_elements_f(datasetDataspaceID,H5S_SELECT_SET_F,2,size(readSelectionMap,dim=2,kind=size_t),readSelectionMap,errorCode)
           if (errorCode < 0) then
              message="could not select filespace selection for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
           end if
           deallocate(readSelectionMap)
           ! Set the size of the data to read in.
-          datasetDimensions(1)=size(readSelection)
+          datasetDimensions(2)=size(readSelection)
           ! Construct a suitable memory space ID to read this data into.
-          call h5screate_simple_f(2,int(shape(datasetValue),kind=HSIZE_T),memorySpaceID,errorCode)
+          call h5screate_simple_f(2,datasetDimensions,memorySpaceID,errorCode)
           if (errorCode < 0) then
              message="unable to get create memory dataspace for dataset '"//datasetObject%objectName//"'"
              call Error_Report(message//self%locationReport()//{introspection:location})
@@ -7091,6 +7114,8 @@ attributeValue=trim(attributeValue)
     end if
     do i=1,datasetDimensions(1)
        do j=1,datasetDimensions(2)
+          ! An empty entry has no data to which to point - leave its row unassociated.
+          if (datasetValueC(i,j)%length == 0) cycle
           call c_f_pointer(datasetValueC(i,j)%p,datasetValue(i,j)%row,shape=[datasetValueC(i,j)%length])
        end do
     end do

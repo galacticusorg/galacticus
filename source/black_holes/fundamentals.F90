@@ -292,7 +292,7 @@ contains
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Node&
-         &*gravitationalConstant_internal*blackHole%mass()**2/Black_Hole_Gravitational_Radius(blackHole)
+         &*gravitationalConstant_internal*blackHole%mass()/Black_Hole_Gravitational_Radius(blackHole)
     return
   end function Black_Hole_ISCO_Specific_Energy_Node
 
@@ -307,18 +307,23 @@ contains
     double precision, parameter                          :: maximumSpin        =0.99999d0
     ! Coefficients in the expansion of ISCO energy with spin close to maximal spin.
     double precision, parameter                          :: coefficientFirst   =0.9164864242d0, coefficientZeroth=0.5773502693d0
-    double precision                                     :: blackHoleIscoRadius
+    double precision                                     :: blackHoleIscoRadius               , spinSigned
 
     ! Get black hole ISCO radius.
     blackHoleIscoRadius=Black_Hole_ISCO_Radius(spinBlackHole,orbit)
+    ! Retrograde orbits are described by the prograde expressions with j → -j (Bardeen, Press & Teukolsky 1972).
+    spinSigned=spinBlackHole
+    if (present(orbit)) then
+       if (orbit == orbitRetrograde) spinSigned=-spinBlackHole
+    end if
 
     ! Compute the specific energy in gravitational units.
-    if (spinBlackHole >= maximumSpin) then
+    if (spinSigned >= maximumSpin) then
        Black_Hole_ISCO_Specific_Energy_Spin=coefficientZeroth+coefficientFirst*(1.0d0-spinBlackHole)**(1.0d0/3.0d0)
     else
-       Black_Hole_ISCO_Specific_Energy_Spin=(blackHoleIscoRadius**2-2.0d0*blackHoleIscoRadius+spinBlackHole &
+       Black_Hole_ISCO_Specific_Energy_Spin=(blackHoleIscoRadius**2-2.0d0*blackHoleIscoRadius+spinSigned &
             &*sqrt(blackHoleIscoRadius))/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0*blackHoleIscoRadius+2.0d0 &
-            &*spinBlackHole*sqrt(blackHoleIscoRadius))
+            &*spinSigned*sqrt(blackHoleIscoRadius))
     end if
 
     return
@@ -338,7 +343,8 @@ contains
     ! Coefficients in the expansion of ISCO energy with spin close to maximal spin.
     double precision                        , parameter                          :: coefficientFirst   =1.832972849d0, coefficientZeroth=1.154700538d0
     integer                                                                      :: orbitActual                      , unitsActual
-    double precision                                                             :: blackHoleIscoRadius              , spinBlackHole
+    double precision                                                             :: blackHoleIscoRadius              , spinBlackHole, &
+         &                                                                          spinSigned
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -357,14 +363,21 @@ contains
     ! Get black hole spin and ISCO radius.
     spinBlackHole      =blackHole%spin()
     blackHoleIscoRadius=Black_Hole_ISCO_Radius(blackHole,units=unitsGravitational,orbit=orbitActual)
+    ! Retrograde orbits are described by the prograde expressions with j → -j (Bardeen, Press & Teukolsky 1972). The magnitude
+    ! of the angular momentum is returned in both cases.
+    if (orbitActual == orbitRetrograde) then
+       spinSigned=-spinBlackHole
+    else
+       spinSigned=+spinBlackHole
+    end if
 
     ! Compute the specific angular momentum in gravitational units.
-    if (spinBlackHole > maximumSpin) then
+    if (spinSigned > maximumSpin) then
        Black_Hole_ISCO_Specific_Angular_Momentum=coefficientZeroth+coefficientFirst*(1.0d0-spinBlackHole)**(1.0d0/3.0d0)
     else
-       Black_Hole_ISCO_Specific_Angular_Momentum=sqrt(blackHoleIscoRadius)*(blackHoleIscoRadius**2-2.0d0*spinBlackHole &
-            &*sqrt(blackHoleIscoRadius)+spinBlackHole**2)/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0 &
-            &*blackHoleIscoRadius+2.0d0*spinBlackHole*sqrt(blackHoleIscoRadius))
+       Black_Hole_ISCO_Specific_Angular_Momentum=sqrt(blackHoleIscoRadius)*(blackHoleIscoRadius**2-2.0d0*spinSigned &
+            &*sqrt(blackHoleIscoRadius)+spinSigned**2)/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0 &
+            &*blackHoleIscoRadius+2.0d0*spinSigned*sqrt(blackHoleIscoRadius))
     end if
 
     ! Convert to physical units if necessary.

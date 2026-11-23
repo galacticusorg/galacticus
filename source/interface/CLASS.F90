@@ -199,8 +199,7 @@ contains
          &                                                                         extrapolationGroup                  , speciesGroup
     character       (len=32                  )                                  :: parameterLabel                      , datasetName                 , &
          &                                                                         redshiftLabel
-    type            (varying_string          )                                  :: uniqueLabel                         , fileName_    , &
-         &                                                                     versionClass                        , labelVersionClass
+    type            (varying_string          )                                  :: uniqueLabel                         , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -224,14 +223,10 @@ contains
     write (parameterLabel,'(i4)'  ) countPerDecade_
     call descriptor%addParameter("countPerDecade",parameterLabel)
     ! Add the unique label string to the descriptor.
-    ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
-    ! function when it is consumed directly by another function.
-    versionClass     =dependencyVersion     ("class")
-    labelVersionClass=dependencyVersionLabel("class")
     uniqueLabel=descriptor%serializeToString()        // &
          &      "_sourceDigest:"                      // &
          &      String_C_To_Fortran(classSourceDigest)// &
-         &      labelVersionClass
+         &      dependencyVersionLabel("class")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                    // &
@@ -324,7 +319,7 @@ contains
          classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
          call    classOutput %writeAttribute('Perturbations created by CLASS.','description' )
          call    classOutput %writeAttribute(classFormatVersionCurrent        ,'fileFormat'  )
-         call    classOutput %writeAttribute(versionClass                     ,'versionCLASS')
+         call    classOutput %writeAttribute(dependencyVersion("class")       ,'versionCLASS')
          call    classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing perturbations for dark matter.')
          do i=1,countRedshiftsUnique
@@ -512,8 +507,7 @@ contains
          &                                                                         extrapolationGroup                      , speciesGroup
     character       (len=32                  )                                  :: parameterLabel                          , datasetName                 , &
          &                                                                         redshiftLabel
-    type            (varying_string          )                                  :: uniqueLabel                             , fileName_, &
-         &                                                                     versionClass                            , labelVersionClass
+    type            (varying_string          )                                  :: uniqueLabel                             , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     !![
@@ -549,14 +543,10 @@ contains
        end if
     end if
     ! Add the unique label string to the descriptor.
-    ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
-    ! function when it is consumed directly by another function.
-    versionClass     =dependencyVersion     ("class")
-    labelVersionClass=dependencyVersionLabel("class")
     uniqueLabel=descriptor%serializeToString()        // &
          &      "_sourceDigest:"                      // &
          &      String_C_To_Fortran(classSourceDigest)// &
-         &      labelVersionClass
+         &      dependencyVersionLabel("class")
     call descriptor%destroy()
     ! Build the file name.
     fileName_=char(inputPath(pathTypeDataDynamic))                        // &
@@ -647,19 +637,19 @@ contains
        !$ call hdf5Access%set()
        hdf5WriteScope: block
          classOutput=hdf5File(fileName_,objectsOverwritable=.true.)
-         call classOutput %writeAttribute('Transfer functions created by CLASS.','description' )
-         call classOutput %writeAttribute(classFormatVersionCurrent             ,'fileFormat'  )
-         call classOutput %writeAttribute(versionClass                          ,'versionCLASS')
-         call classOutput %writeDataset(wavenumbers ,'wavenumber'                               ,chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
+         call classOutput%writeAttribute('Transfer functions created by CLASS.','description' )
+         call classOutput%writeAttribute(classFormatVersionCurrent             ,'fileFormat'  )
+         call classOutput%writeAttribute(dependencyVersion("class")            ,'versionCLASS')
+         call classOutput    %writeDataset(wavenumbers                                     ,'wavenumber',chunkSize=chunkSize,appendTo=.not. classOutput%hasDataset('wavenumber'))
          speciesGroup=classOutput%openGroup('darkMatter','Group containing transfer functions for dark matter.')
          do i=1,countRedshiftsUnique
             datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-            call speciesGroup%writeDataset(transferFunctions(:,classSpeciesDarkMatter%ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+            call speciesGroup%writeDataset(transferFunctions(:,classSpeciesDarkMatter%ID,i),datasetName ,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
          end do
          speciesGroup=classOutput%openGroup('baryons'   ,'Group containing transfer functions for baryons.'    )
          do i=1,countRedshiftsUnique
             datasetName='transferFunctionZ'//trim(adjustl(redshiftLabelsCombined(i)))
-            call speciesGroup%writeDataset(transferFunctions(:,classSpeciesBaryons   %ID,i),datasetName,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
+            call speciesGroup%writeDataset(transferFunctions(:,classSpeciesBaryons   %ID,i),datasetName ,chunkSize=chunkSize,appendTo=.not.speciesGroup%hasDataset(datasetName ))
          end do
          parametersGroup=classOutput%openGroup('parameters')
          call parametersGroup%writeAttribute(cosmologyParameters_%HubbleConstant (),'HubbleConstant' )
@@ -855,8 +845,7 @@ contains
     type            (lockDescriptor          )                                  :: fileLock
     type            (hdf5File                )                                  :: classOutput
     character       (len=32                  )                                  :: parameterLabel
-    type            (varying_string          )                                  :: uniqueLabel         , fileName            , &
-         &                                                                         versionClass        , labelVersionClass
+    type            (varying_string          )                                  :: uniqueLabel         , fileName
     type            (inputParameters         )                                  :: descriptor
   
     ! Get a constructor descriptor for this object.
@@ -878,14 +867,10 @@ contains
     write (parameterLabel,'(e24.16)') equationOfStateA
     call descriptor%addParameter("wa_fld" ,trim(adjustl(parameterLabel)))
     ! Add the unique label string to the descriptor.
-    ! Evaluate into a local first - gfortran leaks the temporary returned by a `varying_string`-valued
-    ! function when it is consumed directly by another function.
-    versionClass     =dependencyVersion     ("class")
-    labelVersionClass=dependencyVersionLabel("class")
     uniqueLabel=descriptor%serializeToString()        // &
          &      "_sourceDigest:"                      // &
          &      String_C_To_Fortran(classSourceDigest)// &
-         &      labelVersionClass
+         &      dependencyVersionLabel("class")
     call descriptor%destroy()
     ! Build the file name.
     fileName=char(inputPath(pathTypeDataDynamic))                    // &
@@ -911,8 +896,8 @@ contains
        !$ call hdf5Access%set  ()
        hdf5WriteScope: block
          classOutput=hdf5File(fileName,objectsOverwritable=.true.)
-         call classOutput%writeAttribute(normalization,'normalization')
-         call classOutput%writeAttribute(versionClass ,'versionCLASS' )
+         call classOutput%writeAttribute(normalization             ,'normalization')
+         call classOutput%writeAttribute(dependencyVersion("class"),'versionCLASS' )
        end block hdf5WriteScope
        !$ call hdf5Access%unset()
     end if
@@ -1077,8 +1062,6 @@ contains
     escapedParameterFile=shellEscape(parameterFile         )
     escapedLogFile      =shellEscape(workPath//"/class.log")
     call System_Command_Do(escapedExecutable//" "//escapedParameterFile//" > "//escapedLogFile//" 2>&1",status)
-    ! Note that the log file name and message are built in assignments, not in the argument list below - `varying_string`
-    ! expressions passed directly as arguments are not finalized by gfortran, and so leak.
     if (status /= 0) then
        logFileName=workPath//"/class.log"
        helpMessage=var_str('CLASS most often fails because the cosmological parameters given to it are invalid. Its')// &

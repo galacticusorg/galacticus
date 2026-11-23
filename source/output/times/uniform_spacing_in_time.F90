@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !![
   <outputTimes name="outputTimesUniformSpacingInTime" docformat="rst">
    <description>
@@ -117,7 +119,7 @@ contains
        !!]
        timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
     else
-       call Error_Report("must specify either 'timeMinimum' or 'redshiftMaximum'"//{introspection:location})
+       call Error_Report("must specify either 'timeMaximum' or 'redshiftMinimum'"//{introspection:location})
     end if
     !![
     <inputParameter docformat="rst">

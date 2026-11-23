@@ -774,9 +774,13 @@ contains
             &         )
        ! Compute the parameters.
        !![
-       <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=37336" docformat="rst">
+       <workaround type="gfortran" PR="128856" issue="1845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+	 <seeAlso type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=37336"/>
 	 <description>
-	 Function results are not finalized after use. So, we must store the result of "cholesky*randoms" in a variable here (instead of just using this directly in the expression for "sample") to avoid a memory leak. The variable "offsets" will be finalized when leaving this function scope.
+	 A function result passed directly as an actual argument is not finalized when its type has a component with a type-bound
+	 defined assignment, as ``vector`` does (its ``resourceManager``). So, we must store the result of "cholesky*randoms" in a
+	 variable here (instead of just using this directly in the expression for "sample") to avoid a memory leak. The variable
+	 "offsets" will be finalized when leaving this function scope.
 	 </description>
        </workaround>
        !!]   

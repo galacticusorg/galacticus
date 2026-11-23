@@ -11,9 +11,14 @@ import time
 
 WORKAROUNDS = {}
 DIRECTORIES = ("./source",)
+# Directories of the code generator and build scripts. Workarounds in the Fortran that these generate, or in the scripts
+# themselves, are marked by a `<workaround …>` directive written as a Python comment, e.g.
+#   # <workaround type="gfortran" PR="94446" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94446"/>
+# Their `tests` directories are skipped, as test fixtures contain example directives.
+PYTHON_DIRECTORIES = ("./python", "./scripts")
 # Match the opening tag of a `<workaround …>` directive, capturing its
 # attributes.  The tag may be preceded by a `#` (workarounds inside
-# preprocessor-conditional code).
+# preprocessor-conditional code, or in Python comments).
 PATTERN = re.compile(r'^\s*#?\s*<workaround\s([^>]*)')
 # Attribute extraction from the captured attribute string.
 ATTRIBUTE = r'\b{name}="([^"]*)"'
@@ -38,35 +43,45 @@ def issue_url(issue: str) -> str:
     return issue
 
 
-def file_matcher() -> None:
+def files_to_scan():
+    """Yield the files to scan for directives: Fortran sources, and the Python of the code generator and build scripts."""
     for directory in DIRECTORIES:
         for root, _, files in os.walk(directory):
             for file_name in files:
-                if not file_name.endswith((".F90", ".Inc")):
-                    continue
-                full_name = os.path.join(root, file_name)
-                print(f"Scanning {full_name}")
-                try:
-                    with open(full_name, "r", encoding="utf-8", errors="replace") as file_handle:
-                        for line in file_handle:
-                            match = PATTERN.search(line)
-                            if not match:
-                                continue
-                            attributes = match.group(1)
-                            pr = attribute(attributes, "PR")
-                            if pr is None:
-                                continue
-                            if pr not in WORKAROUNDS:
-                                WORKAROUNDS[pr] = {"files": set(), "issues": set(), "status": "UNKNOWN"}
-                            WORKAROUNDS[pr]["files"].add(full_name)
-                            # An `issue` attribute records that removal of this
-                            # workaround has already been staged as an issue in
-                            # our own repository — see `check_issues()`.
-                            issue = attribute(attributes, "issue")
-                            if issue:
-                                WORKAROUNDS[pr]["issues"].add(issue_url(issue))
-                except OSError:
-                    continue
+                if file_name.endswith((".F90", ".Inc")):
+                    yield os.path.join(root, file_name)
+    for directory in PYTHON_DIRECTORIES:
+        for root, directories, files in os.walk(directory):
+            directories[:] = [name for name in directories if name != "tests"]
+            for file_name in files:
+                if file_name.endswith(".py"):
+                    yield os.path.join(root, file_name)
+
+
+def file_matcher() -> None:
+    for full_name in files_to_scan():
+        print(f"Scanning {full_name}")
+        try:
+            with open(full_name, "r", encoding="utf-8", errors="replace") as file_handle:
+                for line in file_handle:
+                    match = PATTERN.search(line)
+                    if not match:
+                        continue
+                    attributes = match.group(1)
+                    pr = attribute(attributes, "PR")
+                    if pr is None:
+                        continue
+                    if pr not in WORKAROUNDS:
+                        WORKAROUNDS[pr] = {"files": set(), "issues": set(), "status": "UNKNOWN"}
+                    WORKAROUNDS[pr]["files"].add(full_name)
+                    # An `issue` attribute records that removal of this
+                    # workaround has already been staged as an issue in
+                    # our own repository — see `check_issues()`.
+                    issue = attribute(attributes, "issue")
+                    if issue:
+                        WORKAROUNDS[pr]["issues"].add(issue_url(issue))
+        except OSError:
+            continue
 
 
 def check_links() -> None:

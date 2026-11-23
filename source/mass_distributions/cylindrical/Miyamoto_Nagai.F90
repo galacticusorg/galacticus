@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of an Miyamoto-Nagai model :cite:p:`miyamoto_three-dimensional_1975` mass distribution class.
   !!}
@@ -592,8 +594,8 @@ contains
          &                        )**2          &
          &                      )**0.75d0
     ! Make dimensionfull if necessary.
-    if (.not.self%dimensionless)                                      &
-         & miyamotoNagaiRotationCurve=+gravitationalConstant_internal &
+    if (.not.self%dimensionless)                                            &
+         & miyamotoNagaiRotationCurve=+sqrt(gravitationalConstant_internal) &
          &                            *miyamotoNagaiRotationCurve
     return
   end function miyamotoNagaiRotationCurve

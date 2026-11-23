@@ -34,9 +34,12 @@
    .. math::
 
       \delta_\mathrm{c}(z_\mathrm{c}) = \left( {\pi \over 2} \left[ \sigma^2(f M) - \sigma^2(M) \right]
-      \right)^{1/2}+\delta_\mathrm{c})(z_0),
+      \right)^{1/2}+\delta_\mathrm{c}(z_0),
 
-   where :math:`\delta_\mathrm{c}(z)` is the critical overdensity for collapse at redshift :math:`z`, and :math:`f` is the fraction of a halo's mass assembled at formation time (given by the ``[massFractionFormation]`` parameter. From this, the mass of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to compute the concentration of a halo of that mass.
+   where :math:`\delta_\mathrm{c}(z)` is the critical overdensity for collapse at redshift :math:`z`, and :math:`f` is the
+   fraction of a halo's mass assembled at formation time (given by the ``[massFractionFormation]`` parameter). From this, the mass
+   of a halo in the reference model with the same redshift of collapse is found, and the reference model is used to compute the
+   concentration of a halo of that mass.
    </description>
   </darkMatterProfileConcentration>
   !!]

@@ -474,6 +474,7 @@ contains
     !!{RST
     Computes radial moments of the density in an Zhao1996 :cite:p:`zhao_analytical_1996` mass distribution.
     !!}
+    use :: Gamma_Functions, only : Gamma_Function
     implicit none
     class           (massDistributionZhao1996), intent(inout)           :: self
     double precision                          , intent(in   )           :: moment
@@ -501,16 +502,24 @@ contains
             &              /self%scaleLength
        radialMomentMaximum=+radialMomentIndefinite(radiusScaleFree)
     else
-       radialMomentMaximum=+0.0d0
-       if     (                                          &
-            &         self%alpha  > 0.0d0                &
-            &  .and.                                     &
-            &   1.0d0+     moment > self%alpha+self%beta &
-            &  .and.                                     &
-            &   1.0d0+     moment > self%gamma           &
-            &  .and.                                     &
-            &         self%beta   > self%gamma           &
-            & ) call Error_Report('radial moment is undefined'//{introspection:location})
+       ! The density falls as r^-β at large radii, so the moment diverges if 1+m ≥ β.
+       if     (                            &
+            &   0.0d0        >= self%alpha &
+            &  .or.                        &
+            &   1.0d0+moment >= self%beta  &
+            & ) then
+          if (present(isInfinite)) then
+             isInfinite=.true.
+             return
+          else
+             call Error_Report('radial moment is infinite'//{introspection:location})
+          end if
+       end if
+       ! The indefinite moment is the integral from zero, which tends to B([1+m-γ]/α,[β-1-m]/α)/α at infinite radius.
+       radialMomentMaximum=+Gamma_Function((1.0d0+moment-self%gamma)/self%alpha) &
+            &              *Gamma_Function((self%beta-1.0d0-moment )/self%alpha) &
+            &              /Gamma_Function((self%beta-self%gamma   )/self%alpha) &
+            &              /                                         self%alpha
     end if
     densityRadialMoment=+(                                         &
          &                +radialMomentMaximum                     &

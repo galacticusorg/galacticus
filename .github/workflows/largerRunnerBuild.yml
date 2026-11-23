@@ -3,9 +3,19 @@ name: 'Larger-Runner Build'
 #
 # The standard runners used by the CI/CD workflow have 4 cores and 16 GB of memory, which limits its builds to `make -j2` (see
 # `Build-Executable-Linux` in `cicd.yml`). A larger runner lifts that limit, but - unlike the standard runners - is billed by
-# the minute, even for a public repository. So this workflow runs only when dispatched manually, never automatically:
+# the minute, even for a public repository. So this workflow never runs on a push or a pull request. It runs when dispatched
+# manually:
 #
-#   gh workflow run largerRunnerBuild.yml [--ref <branch>] [-f jobs=8] [-f target=libgalacticus.so -f options='LIBRARY=yes' -f static=false]
+#   gh workflow run largerRunnerBuild.yml [-f ref=<branch>] [-f jobs=8] [-f target=libgalacticus.so -f options='LIBRARY=yes' -f static=false]
+#
+# or when called by another workflow (see `libraryRelease.yml`, which builds the library for each versioned release).
+#
+# The branch (or tag, or commit) to build is given by the `ref` input, rather than by dispatching the workflow on that branch,
+# so that access to the runner can be limited to this workflow as it is on `master` - which is what a runner group's "workflow
+# access" setting, where available, pins it to. Without that the runner would build whatever any branch's copy of this file
+# (or any other workflow) asked of it. For the same reason a workflow which needs a build on the larger runner calls this one
+# as `galacticusorg/galacticus/.github/workflows/largerRunnerBuild.yml@master`, rather than naming the runner itself: the
+# runner then accepts the job because it is defined here, whatever branch or tag the calling workflow runs on.
 #
 # The job summary reports the time taken by the build, and the peak memory in use during it - the two numbers needed to choose
 # a runner size and a `make -j` level. The log of the build, a profile of it (the time and peak memory of each compile), and
@@ -17,6 +27,10 @@ on:
         description: 'Label of the larger runner to build on'
         type: string
         default: 'ubuntu-24.04-16core'
+      ref:
+        description: 'Branch, tag or commit to build (empty for the ref dispatched on)'
+        type: string
+        default: ''
       jobs:
         description: 'Number of parallel make jobs (0 for one per core)'
         type: string
@@ -33,10 +47,41 @@ on:
         description: 'Link statically (as for the release executable; disable to build the library)'
         type: boolean
         default: true
-# Queue rather than cancel: a cancelled run has still been paid for.
-concurrency:
-  group: largerRunnerBuild
-  cancel-in-progress: false
+      upload:
+        description: 'A further file to upload along with the target (e.g. "galacticus.py", which the library build generates)'
+        type: string
+        default: ''
+  # The same inputs, for a calling workflow. Keep the two lists in step.
+  workflow_call:
+    inputs:
+      runner:
+        description: 'Label of the larger runner to build on'
+        type: string
+        default: 'ubuntu-24.04-16core'
+      ref:
+        description: 'Branch, tag or commit to build (empty for the ref of the calling workflow)'
+        type: string
+        default: ''
+      jobs:
+        description: 'Number of parallel make jobs (0 for one per core)'
+        type: string
+        default: '0'
+      target:
+        description: 'The make target to build'
+        type: string
+        default: 'Galacticus.exe'
+      options:
+        description: 'Build options to pass to make, separated by spaces (e.g. "LTO=disabled", "LIBRARY=yes")'
+        type: string
+        default: ''
+      static:
+        description: 'Link statically (as for the release executable; disable to build the library)'
+        type: boolean
+        default: true
+      upload:
+        description: 'A further file to upload along with the target (e.g. "galacticus.py", which the library build generates)'
+        type: string
+        default: ''
 defaults:
   run:
     shell: bash
@@ -46,12 +91,19 @@ jobs:
   Build:
     runs-on: ${{ inputs.runner }}
     container: ghcr.io/galacticusorg/buildenv:latest
+    # Queue rather than cancel: a cancelled build has still been paid for. This is set on the job, not the workflow, so that it
+    # also applies (and applies only to this job) when the workflow is called by another.
+    concurrency:
+      group: largerRunnerBuild
+      cancel-in-progress: false
     # Bounds the cost of a run that stalls. A build at `-j2` on a standard runner takes around 100 minutes, so a build that has
     # not finished in this time is gaining nothing from the larger runner.
     timeout-minutes: 90
     steps:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref }}
       - name: "Set environmental variables"
         env:
           STATIC: ${{ inputs.static }}
@@ -113,6 +165,7 @@ jobs:
           OPTIONS: ${{ inputs.options }}
         run: |
           cd $GITHUB_WORKSPACE
+          commit=$(git rev-parse HEAD 2> /dev/null || echo "unknown")
           memoryTotal=$(awk '/^MemTotal:/ {printf "%.1f", $2/1048576}' /proc/meminfo)
           jobs="unknown"
           [[ -s build.jobs ]] && jobs=$(< build.jobs)
@@ -131,6 +184,7 @@ jobs:
             echo "| | |"
             echo "|---|---|"
             echo "| Runner | \`${RUNNER_LABEL}\`: $(nproc) cores, ${memoryTotal} GiB |"
+            echo "| Commit | \`${commit}\` |"
             echo "| Target | \`${TARGET}\` |"
             echo "| Build options | \`${OPTIONS:-(none)}\` |"
             echo "| Parallel make jobs | ${jobs} |"
@@ -153,6 +207,8 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: larger-runner-build-target
-          path: ${{ inputs.target }}
+          path: |
+            ${{ inputs.target }}
+            ${{ inputs.upload }}
           if-no-files-found: ignore
           retention-days: 3

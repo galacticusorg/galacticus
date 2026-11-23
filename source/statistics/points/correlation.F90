@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which computes correlation statistics from point distributions.
 !!}
@@ -141,6 +143,7 @@ contains
           toPoints   => randomPosition
        end select
        pointCount=0
+       pairCount =0
        !$omp parallel private(iBin,jBin,iPoint,jPoint,neighborCount,neighborIndex,neighborDistance,separationProjected,radialPositionFrom,radialPositionTo,separationRadial,cosTheta)
        ! Construct nearest neighbor object.
        allocate(nearestNeighbors :: neighborFinder)
@@ -148,7 +151,6 @@ contains
        type is (nearestNeighbors)
           neighborFinder=nearestNeighbors(transpose(toPoints))
        end select
-       pairCount=0
        !$omp do reduction(+:pairCount)
        do iPoint=1,size(fromPoints,dim=2)
           !$omp atomic

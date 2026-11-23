@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Constrained branches of merger trees, built with constraint-conditioned branching rates, for comparison with a reference -->
+<!-- summary of branches found by rejection in unconstrained trees (testSuite/data/constrainedMergerTreesRejection.json).     -->
+<!--  (M0,z0) = (10^14,0.0)                                                                                                  -->
+<!--  (M1,z1) = (10^12,4.0)                                                                                                  -->
+<!-- Only the constrained branch is built. The structure of each tree is output, after which the tree is pruned, as it does  -->
+<!-- not need to be evolved.                                                                                                  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="08dd92810acf63975e0549b550147fc949feaac1" time="2026-11-17T08:30:00"/>
+
+  <verbosityLevel value="standard"/>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="2711"/>
+  </randomNumberGenerator>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="scale"/>
+  <componentDisk value="null"/>
+  <componentHotHalo value="null"/>
+  <componentSatellite value="null"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.0"   />
+    <OmegaMatter     value=" 0.286" />
+    <OmegaDarkEnergy value=" 0.714" />
+    <OmegaBaryon     value=" 0.0"   />
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVariance value="filteredPower"/>
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed      value="0.000"/>
+    <cosmologyParameters value="simple">
+      <HubbleConstant  value="70.0"   />
+      <OmegaMatter     value=" 0.286" />
+      <OmegaDarkEnergy value=" 0.714" />
+      <OmegaBaryon     value=" 0.047" />
+      <temperatureCMB  value=" 2.72548"/>
+    </cosmologyParameters>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="0.96"  />
+    <wavenumberReference value="1.0000"/>
+    <running             value="0.0000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <powerSpectrumNormalizer value="sigma8">
+    <sigma_8 value="0.82"/>
+  </powerSpectrumNormalizer>
+
+  <!-- Structure formation options -->
+  <linearGrowth         value="collisionlessMatter"                     />
+  <criticalOverdensity  value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Barrier remapping  -->
+  <excursionSetBarrier value="remapScale">
+    <factor value="1.1965"/>
+    <applyTo value="nonRates"/>
+    <excursionSetBarrier value="remapShethMoTormen">
+      <a value="0.707"/>
+      <b value="0.500"/>
+      <c value="0.600"/>
+      <applyTo value="nonRates"/>
+      <excursionSetBarrier value="criticalOverdensity"/>
+    </excursionSetBarrier>
+  </excursionSetBarrier>
+
+  <task value="evolveForests"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="build"/>
+  <mergerTreeBuilder value="cole2000">
+    <accretionLimit        value=" 0.1"       />
+    <mergeProbability      value=" 0.1"       />
+    <redshiftMaximum       value="15.0"       />
+    <toleranceTimeEarliest value="8.00000e-6" />
+    <mergerTreeBuildController value="constrained">
+      <massConstrained     value="1.0e12" ignoreWarnings="true"/>
+      <redshiftConstrained value="4.0"    ignoreWarnings="true"/>
+      <constructionOption  value="constrainedBranchOnly"/>
+      <mergerTreeBranchingProbabilityConstrained value="constraintConditioned">
+        <massConstrained     value="=[mergerTreeBuilder/mergerTreeBuildController/massConstrained]"    />
+        <redshiftConstrained value="=[mergerTreeBuilder/mergerTreeBuildController/redshiftConstrained]"/>
+        <mergerTreeBranchingProbability value="generalizedPressSchechter">
+          <distributionFunctionLowerHalfOnly value="false"/>
+          <excursionSetFirstCrossing idRef="excursionUnconstrained"/>
+        </mergerTreeBranchingProbability>
+      </mergerTreeBranchingProbabilityConstrained>
+      <mergerTreeBranchingProbabilityUnconstrained value="generalizedPressSchechter">
+        <distributionFunctionLowerHalfOnly value="false"/>
+        <excursionSetFirstCrossing value="farahiMidpoint" id="excursionUnconstrained">
+          <fileName                value="auto"/>
+          <varianceNumberPerDecade value="100" />
+          <varianceNumberPerUnit   value=" 25" />
+          <timeNumberPerDecade     value=" 25" />
+          <varianceIsUnlimited     value="true"/>
+        </excursionSetFirstCrossing>
+      </mergerTreeBranchingProbabilityUnconstrained>
+      <mergerTreeBranchingProbabilityModifier value="PCHPlus">
+        <G0     value="+1.14"/>
+        <gamma1 value="-0.33"/>
+        <gamma2 value="+0.06"/>
+        <gamma3 value="+0.65"/>
+      </mergerTreeBranchingProbabilityModifier>
+    </mergerTreeBuildController>
+  </mergerTreeBuilder>
+
+  <mergerTreeBuildMasses value="fixedMass">
+    <massTree  value="1.0e14"/>
+    <treeCount value="128"   />
+  </mergerTreeBuildMasses>
+
+  <mergerTreeMassResolution value="fixed">
+    <massResolution value="1.0e10"/>
+  </mergerTreeMassResolution>
+
+  <!-- Output the structure of each tree, then prune it to its root, so that there is nothing to evolve -->
+  <mergerTreeOperator value="sequence">
+    <mergerTreeOperator value="outputStructure">
+      <nodePropertyExtractor value="multi">
+        <nodePropertyExtractor value="nodeIndices"      />
+        <nodePropertyExtractor value="constrainedStatus"/>
+        <nodePropertyExtractor value="redshift"         />
+        <nodePropertyExtractor value="massBasic"        />
+      </nodePropertyExtractor>
+    </mergerTreeOperator>
+    <mergerTreeOperator value="pruneByMass">
+      <massThreshold value="1.0e20"/>
+    </mergerTreeOperator>
+  </mergerTreeOperator>
+
+  <!-- Output options -->
+  <outputFileName value="testSuite/outputs/constrainedMergerTreesRegression.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.0"/>
+  </outputTimes>
+
+</parameters>

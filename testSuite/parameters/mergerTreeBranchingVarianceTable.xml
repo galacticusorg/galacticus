@@ -95,6 +95,8 @@
       <redshiftTarget value="1.0"/>
       <binWidthMass value="0.0125"/>
       <binWidthOmega value="0.025"/>
+      <!-- Write the omega of each node, so that the analysis script bins nodes exactly as the operator does. -->
+      <outputNodeOmegas value="true"/>
     </mergerTreeOperator>
   </mergerTreeOperator>
   <nodeOperator value="multi">

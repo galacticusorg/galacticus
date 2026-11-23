@@ -34,7 +34,10 @@
 
    .. math::
 
-      f(x) = [1-(2^{1/3}-1) x^{-1}]^{-3}.
+      f(x) = [1+8(2^{1/3}-1) x^{-1}]^{-3},
+
+   where the factor of 8 arises because the filtering mass of :cite:t:`naoz_formation_2007` is one eighth of that defined by
+   :cite:t:`gnedin_effect_2000`.
 
    The accretion rate onto the halo is therefore assumed to be
 

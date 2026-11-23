@@ -90,6 +90,7 @@ contains
 
     self=galacticDiskHeatingImpulsive()
     !![
+    <modelRequire name="satellite:tidalHeatingNormalized:evolved" reason="heating of disks requires that the tidal heating of satellites is evolved"/>
     <inputParametersValidate source="parameters"/>
     !!]
     return
@@ -111,21 +112,12 @@ contains
     !!{RST
     Return the heating parameter, :math:`s=\sqrt{3Q/5} R_\mathrm{d}/V_\mathrm{d}`, of the disk.
     !!}
-    use :: Display                       , only : displayGreen                  , displayReset
-    use :: Error                         , only : Error_Report
-    use :: Satellite_Tidal_Heating_Status, only : satelliteTidalHeatingIsEvolved
     implicit none
     class           (galacticDiskHeatingImpulsive), intent(inout) :: self
     double precision                              , intent(in   ) :: tidalHeatingNormalized, radius, &
          &                                                           velocity
     !$GLC attributes unused :: self
 
-    if (.not.satelliteTidalHeatingIsEvolved)                                                                                               &
-         & call Error_Report(                                                                                                              &
-         &                   'heating of disks requires that the tidal heating of satellites is evolved'//char(10)//                       &
-         &                   displayGreen()//'  HELP:'//displayReset()//' include a `satelliteTidalHeating` node operator in your model'// &
-         &                   {introspection:location}                                                                                      &
-         &                  )
     if (tidalHeatingNormalized > 0.0d0 .and. radius > 0.0d0 .and. velocity > 0.0d0) then
        heating=+sqrt(                       &
             &        +3.0d0                 &

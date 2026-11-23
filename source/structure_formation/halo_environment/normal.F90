@@ -209,9 +209,8 @@ contains
     self%redshift                       =self%cosmologyFunctions_      %redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%time))
     ! Find the root-variance in the linear density field on the given scale.
     self%variance                       =self%cosmologicalMassVariance_%rootVariance               (time=time,mass=self%massEnvironment)**2
-    ! Build the distribution function.
-    overdensityVariance                 =+self%variance                                                                                     &
-         &                               *self%linearGrowth_           %value                      (time=time                          )**2
+    ! Build the distribution function. The root-variance found above already includes the linear growth factor at this time.
+    overdensityVariance                 =+self%variance
     ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact that the
     ! region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White (1996; MNRAS;
     ! 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors. 

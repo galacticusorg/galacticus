@@ -53,38 +53,39 @@ program Test_Star_Formation_Molecular_Fractions
   formation rate reduces to :math:`\nu_\mathrm{SF} f_\mathrm{H_2} \Sigma_\mathrm{gas}` precisely where the *total* gas surface
   density equals the transition surface density of 85 :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`.
   !!}
-  use :: Abundances_Structure                     , only : abundances
-  use :: Display                                  , only : displayVerbositySet                          , verbosityLevelStandard
-  use :: Events_Hooks                             , only : eventsHooksInitialize
-  use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Nodes                         , only : mergerTree                                   , nodeClassHierarchyFinalize                     , nodeClassHierarchyInitialize      , nodeComponentBasic          , &
-       &                                                   nodeComponentDisk                            , treeNode
-  use :: Input_Parameters                         , only : inputParameters
-  use :: Node_Components                          , only : Node_Components_Initialize                    , Node_Components_Thread_Initialize              , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
-  use :: Numerical_Constants_Astronomical         , only : hydrogenByMassSolar                          , metallicitySolar
-  use :: Numerical_Constants_Math                 , only : Pi
-  use :: Numerical_Constants_Prefixes             , only : giga                                         , mega
-  use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksBlitz2006, starFormationRateSurfaceDensityDisksKrumholz2009
-  use :: Unit_Tests                               , only : Assert                                       , Unit_Tests_Begin_Group                         , Unit_Tests_End_Group              , Unit_Tests_Finish
+  use :: Abundances_Structure                      , only : abundances
+  use :: Display                                   , only : displayVerbositySet                          , verbosityLevelStandard
+  use :: Events_Hooks                              , only : eventsHooksInitialize
+  use :: Functions_Global_Utilities                , only : Functions_Global_Set
+  use :: Galacticus_Nodes                          , only : mergerTree                                   , nodeClassHierarchyFinalize                      , nodeClassHierarchyInitialize       , nodeComponentBasic          , &
+       &                                                    nodeComponentDisk                            , treeNode
+  use :: Input_Parameters                          , only : inputParameters
+  use :: Node_Components                           , only : Node_Components_Initialize                    , Node_Components_Thread_Initialize              , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Numerical_Constants_Astronomical          , only : hydrogenByMassSolar                          , metallicitySolar
+  use :: Numerical_Constants_Math                  , only : Pi
+  use :: Numerical_Constants_Prefixes              , only : giga                                         , mega
+  use :: Star_Formation_Rate_Surface_Density_Disks , only : starFormationRateSurfaceDensityDisksBlitz2006, starFormationRateSurfaceDensityDisksKrumholz2009
+  use :: Star_Formation_Rate_Krumholz2009_Utilities, only : krumholz2009MolecularFractionSlow
+  use :: Unit_Tests                                , only : Assert                                       , Unit_Tests_Begin_Group                          , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (inputParameters                                 )                 :: parameters                            , parametersDefault
   type            (starFormationRateSurfaceDensityDisksBlitz2006   ), pointer        :: blitz2006_
   type            (starFormationRateSurfaceDensityDisksKrumholz2009), pointer        :: krumholz2009_                         , krumholz2009Fast_
   type            (mergerTree                                      )                 :: tree
-  type            (treeNode                                        ), pointer        :: node                                  , nodeCompressedTen                    , &
+  type            (treeNode                                        ), pointer        :: node                                  , nodeCompressedTen                , &
        &                                                                                nodeCompressedTwenty
   class           (nodeComponentBasic                              ), pointer        :: basic
   class           (nodeComponentDisk                               ), pointer        :: disk
   type            (abundances                                      )                 :: abundancesGas
   ! Disk properties. These, and the Solar metallicity of the gas, must match those assumed by the reference script.
-  double precision                                                  , parameter      :: massGas                   =1.0d10     , massStellar               =5.0d10 , & ! [M☉]
+  double precision                                                  , parameter      :: massGas                   =1.0d10     , massStellar               =5.0d10, & ! [M☉]
        &                                                                                radiusScale               =3.0d-3                                            ! [Mpc]
   ! Parameters of the two star formation laws. Each is the default of the corresponding class, and is used here only to recover
   ! the molecular fraction from the star formation rate - the classes themselves are built from their defaults.
-  double precision                                                  , parameter      :: surfaceDensityCritical    =2.0d+02    , surfaceDensityExponent    =0.4d0  , & ! [M☉/pc²]
-       &                                                                                frequencyNormalization    =5.25d-10                                        , & ! [yr⁻¹]
-       &                                                                                pressureCharacteristic    =3.5d+04    , pressureExponent          =0.92d0 , & ! [K/cm³]
-       &                                                                                frequencyStarFormation    =0.385d0    , clumpingFactor            =5.0d0      ! [Gyr⁻¹]
+  double precision                                                  , parameter      :: surfaceDensityCritical    =2.0d+02    , surfaceDensityExponent    =0.4d0 , & ! [M☉/pc²]
+       &                                                                                frequencyNormalization    =5.25d-10                                      , & ! [yr⁻¹]
+       &                                                                                pressureCharacteristic    =3.5d+04    , pressureExponent          =0.92d0, & ! [K/cm³]
+       &                                                                                frequencyStarFormation    =0.385d0    , clumpingFactor            =5.0d0     ! [Gyr⁻¹]
   ! The transition surface density of eqn. (10) of Krumholz et al. (2009), in Galacticus' internal units.
   double precision                                                  , parameter      :: surfaceDensityTransition  =85.0d12                                           ! [M☉/Mpc²]
   ! Radii at which each law is tested, in units of the disk scale length. For the Krumholz et al. (2009) law the second is the
@@ -297,6 +298,15 @@ program Test_Star_Formation_Molecular_Fractions
   call Assert('fully molecular at high surface density',krumholz2009_%rate(nodeCompressedTwenty,radiiKrumholz(1)*radiusScale/20.0d0),frequencyStarFormation*surfaceDensityGas_*(surfaceDensityGas_/surfaceDensityTransition)**0.33d0,relTol=toleranceLimit)
   ! In the low surface density limit the molecular fraction, and so the rate, vanishes.
   call Assert('vanishing molecular fraction at low surface density',krumholz2009_%rate(node,20.0d0*radiusScale),0.0d0,absTol=1.0d-3)
+  call Unit_Tests_End_Group()
+  ! At large s (s≥10) the molecular fraction is computed from the leading term of the series expansion of the full expression.
+  ! It must be continuous with the full expression at s=10, and agree with the full expression beyond (reference values from
+  ! the full expression evaluated with mpmath at 30 digits; the neglected terms are of relative order 10⁻⁴ at s=10).
+  call Unit_Tests_Begin_Group("Krumholz et al. (2009) molecular fraction at large s")
+  call Assert('continuous at s=10'             ,krumholz2009MolecularFractionSlow(10.0d0*(1.0d0+1.0d-12)),krumholz2009MolecularFractionSlow(10.0d0*(1.0d0-1.0d-12)),relTol=1.0d-3)
+  call Assert('full expression at s=10 (below)',krumholz2009MolecularFractionSlow(10.0d0*(1.0d0-1.0d-12)),2.144399168887882d-5                                     ,relTol=1.0d-6)
+  call Assert('large-s form at s=20'           ,krumholz2009MolecularFractionSlow(20.0d0                ),6.820825633365173d-7                                     ,relTol=1.0d-5)
+  call Assert('large-s form at s=50'           ,krumholz2009MolecularFractionSlow(50.0d0                ),7.060258861563530d-9                                     ,relTol=1.0d-5)
   call Unit_Tests_End_Group()
   ! Clean up.
   call node                %destroy()

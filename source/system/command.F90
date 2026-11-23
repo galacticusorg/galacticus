@@ -50,18 +50,11 @@ contains
     that are special to the shell. This should be applied to any path substituted into a command passed to
     ``System_Command_Do``.
 
-    Note that the result of ``shellEscape`` must first be assigned to a local variable, which is then used in building the
-    command string. The result of ``shellEscape`` must **not** be used directly as an actual argument (for
-    example inline within a ``System_Command_Do`` argument, or as an operand of a concatenation that is passed as an actual
-    argument), as gfortran leaks the function result in that case.
-
-    For the same reason, the ``token`` argument passed to ``shellEscape`` must not contain a call to a
-    function that returns a ``varying_string`` (such as ``inputPath``), whether as the
-    bare argument (``shellEscape(inputPath(...))``) or nested within a concatenation
-    (``shellEscape(inputPath(...)//"...")``), since gfortran leaks that nested function result. Assign the
-    argument to a local variable first, then escape the variable, e.g. ``localVar=inputPath(...)//"..."``
-    followed by ``localVar=shellEscape(localVar)``. Building the value in an assignment is safe; only a
-    ``varying_string``-returning function call that appears inside another call's argument list leaks.
+    Note that gfortran does not deallocate a ``varying_string`` function result (such as that of ``shellEscape`` or
+    ``inputPath``) that is an actual argument of a function referenced in an ``if`` condition or in an operand of a larger
+    expression (`GCC PR 128856 <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=128856>`_), so build such a value in an
+    assignment first. Passing it in a ``call`` statement (for example ``call System_Command_Do(...//shellEscape(...)//...)``),
+    or as the whole right-hand side of an assignment (``escaped=shellEscape(inputPath(...)//"...")``), does not leak.
     !!}
     use :: ISO_Varying_String, only : varying_string, replace, operator(//)
     implicit none
@@ -124,9 +117,6 @@ contains
     Report a fatal error for a failed run of an external ``program``, quoting the last lines of the output it wrote to
     ``logFile`` (skipping any backtrace), which usually give its reason for failing. ``help`` is appended as advice to the
     user, followed by the name of the log file.
-
-    Build ``logFile`` and ``help`` in assignments and pass the variables: a ``varying_string`` expression written directly in
-    an argument list is not finalized by gfortran, and so leaks (see ``shellEscape``).
     !!}
     use :: Display           , only : displayGreen  , displayReset
     use :: Error             , only : Error_Report
