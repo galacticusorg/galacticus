@@ -53,7 +53,10 @@ program Test_Zhao2009_Dark_Energy
   type            (treeNode                                                    ), pointer                 :: node
   class           (nodeComponentBasic                                          ), pointer                 :: basic
   integer                                                                       , dimension(2), parameter :: logarithmicHaloMasses              =[12,15]
-  double precision                                                              , dimension(2), parameter :: concentrationDifferenceTolerance   =[3.1d-2,7.9d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
+  ! The 10¹² M⊙ concentration tolerance allows for a known difference from mandc: the mass accretion history scales δc(z_obs) by
+  ! the growth factor in equation 10 of Zhao et al. (2009), as the paper defines it, which shifts concentrations of halos
+  ! identified at z≈1-4 by up to ~4% relative to mandc.
+  double precision                                                              , dimension(2), parameter :: concentrationDifferenceTolerance   =[5.0d-2,7.9d-4], timeDifferenceTolerance=[2.5d-2,2.0d-2]
   type            (cosmologyParametersSimple                                   )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda                              )                          :: cosmologyFunctions_
   type            (cosmologicalMassVarianceFilteredPower                       )                          :: cosmologicalMassVariance_

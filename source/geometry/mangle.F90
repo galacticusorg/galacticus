@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which implements functions utilizing :term:`mangle` survey geometry definitions.
 !!}
@@ -230,9 +232,10 @@ contains
     end if
     do attempt=1,attemptMaximum
        ! Draw a polygon with probability proportional to its solid angle.
-       uniformDeviate=+self%solidAngleCumulative(self%polygonCount)                &
+       uniformDeviate=+self%solidAngleCumulative(self%polygonCount) &
             &         *randomNumberGenerator_%uniformSample()
-       indexPolygon  =int(searchArray(self%solidAngleCumulative,uniformDeviate))+1
+       ! searchArray() sees the (0:polygonCount) array as 1-based, so the index it returns is already the polygon index.
+       indexPolygon  =int(searchArray(self%solidAngleCumulative,uniformDeviate))
        indexPolygon  =max(1,min(indexPolygon,self%polygonCount))
        ! Find the smallest positive (i.e. non-complemented) bounding cap of the polygon; the polygon is the intersection
        ! of its caps, so it is contained within any positive cap. Fall back to the full sphere if no positive cap exists.
