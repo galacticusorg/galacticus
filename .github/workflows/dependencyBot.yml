@@ -29,13 +29,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: camb
           repo: cmbant/CAMB
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -69,13 +68,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: forutils
           repo: cmbant/forutils
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -110,13 +108,12 @@ jobs:
           version_name: class
           repo: lesgourg/class_public
           tag: true
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -150,13 +147,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: fsps
           repo: cconroy20/fsps
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -196,13 +192,12 @@ jobs:
           fi
           echo "latest=${versionFull}" >> "$GITHUB_OUTPUT"
           echo "branch=cloudy" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -236,13 +231,12 @@ jobs:
           file: aux/dependencies.yml
           version_name: mangle
           repo: galacticusorg/mangle
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -280,13 +274,12 @@ jobs:
           fi
           echo "latest=${latest}" >> "$GITHUB_OUTPUT"
           echo "branch=dgrin1/axionCAMB" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -324,13 +317,12 @@ jobs:
           fi
           echo "latest=${latest}" >> "$GITHUB_OUTPUT"
           echo "branch=lanl/CosmicEmu" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -365,13 +357,12 @@ jobs:
           version_name: euclidemulator2
           repo: miknab/EuclidEmulator2
           tag: true
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.repo }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
@@ -410,13 +401,12 @@ jobs:
           fi
           echo "latest=${latest}" >> "$GITHUB_OUTPUT"
           echo "branch=ngenhalofitteam/ngenhalofitpublic" >> "$GITHUB_OUTPUT"
-      - name: Guard against overwriting human commits
+      - name: Skip if the dependency branch (and so its PR) already exists
         if: ${{ env.appid != '' }}
         id: guard
         uses: ./.github/actions/dependencyBranchGuard
         with:
           branch: depup/${{ steps.depup.outputs.branch }}
-          base: ${{ github.ref_name }}
           token: ${{ steps.generate-token.outputs.token }}
       - name: Create Pull Request
         if: ${{ env.appid != '' && steps.guard.outputs.skip != 'true' }}
