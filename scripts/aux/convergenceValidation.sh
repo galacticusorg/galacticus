@@ -243,7 +243,7 @@ CONFIG
     for validation in ${validations}; do
         [[ -f "testSuite/validate-${validation}.py" ]] || fail "there is no validation 'testSuite/validate-${validation}.py'"
         echo "Running the ${validation} validation (log: ${pathRun}/logs/${validation}.log)"
-        python3 "testSuite/validate-${validation}.py" --outputPath "${pathRun}/${validation}" ${optionsPartition[@]+"${optionsPartition[@]}"} \
+        python3 -u "testSuite/validate-${validation}.py" --outputPath "${pathRun}/${validation}" ${optionsPartition[@]+"${optionsPartition[@]}"} \
                                                       --jobMaximum "${jobMaximum}" --waitOnSubmit 1 --waitOnActive 60                         \
                                                       > "${pathRun}/logs/${validation}.log" 2>&1 &
         pids+=("$!")

@@ -370,8 +370,9 @@ radiiScaleDelta   =      radiiScale[1   ]-radiiScale[0 ]
 radiiScaleCentral = 0.5*(radiiScale[0:-1]+radiiScale[1:])
 
 # Initialize job and result arrays.
-jobs    = []
-results = {}
+jobs      = []
+results   = {}
+modelsAll = []
 
 # Iterate over tree masses.
 for massTrees in massesTree:
@@ -648,7 +649,7 @@ for massTrees in massesTree:
             if args.orbitModel                  is not None:
                 if args.orbitModel == "unchanged":
                     # Nothing to do.
-                    continue
+                    pass
                 elif args.orbitModel == "li2020":
                     change                 = ET.SubElement(parameters,'change')
                     change.attrib['type' ] = "replace"
@@ -809,13 +810,21 @@ for massTrees in massesTree:
                 "id":                 id,
                 "model":              model
             }
+            modelsAll.append(id)
             if os.path.exists(galacticusFileName):
                 extractResults(job)
             else:
                 jobs.append(job)
 
-                # Submit all jobs and wait for completion.
+# Submit all jobs and wait for completion.
 manager.submitJobs(jobs)
+
+# Verify that every model ran and had its results extracted. Without this check the validation would go on to fit, plot, and
+# write out a results file from whatever subset of the models happened to complete - or from none at all.
+modelsMissing = [id for id in modelsAll if not results.get(id)]
+if not modelsAll or modelsMissing:
+    print("FAILED: no results were extracted for "+("any model" if not modelsAll else "model(s): "+", ".join(modelsMissing)))
+    sys.exit(0)
 
 # Fit a scale radius model to the full output results.
 ## Perform the fit.
