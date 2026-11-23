@@ -190,7 +190,8 @@ contains
   subroutine vergara2023SeedFormed(self,node)
     !!{RST
     Apply the changes that follow from the collapse of the nuclear star cluster into a black hole seed: record the properties of
-    the nuclear star cluster at collapse, mark it as collapsed, and remove the mass of the seed from its stars.
+    the nuclear star cluster at collapse, mark it as collapsed, and remove the mass of the seed from its stars, reducing their
+    abundances and luminosities in proportion.
     !!}
     implicit none
     class           (blackHoleSeedsVergara2023), intent(inout) :: self
@@ -209,6 +210,7 @@ contains
       !!}
     use :: Galacticus_Nodes                , only : nodeComponentNSC               , nodeComponentBasic, nodeComponentNSCStandard, treeNode
     use :: Abundances_Structure            , only : operator(*)
+    use :: Stellar_Luminosities_Structure  , only : operator(*)
     use :: Numerical_Constants_Math        , only : Pi
     use :: Galactic_Structure_Options      , only : componentTypenuclearStarCluster, massTypeStellar
     use :: Numerical_Constants_Prefixes    , only : mega                           , kilo
@@ -355,6 +357,14 @@ contains
                     &                                              -self%massEfficiency                   &
                     &                                             )                                       &
                     &                                            *nuclearStarCluster%abundancesStellar()  &
+                    &                                           )
+               ! Adjust stellar luminosities of the nuclear star cluster
+               call nuclearStarCluster%   luminositiesStellarSet(                                         &
+                    &                                            +(                                       &
+                    &                                              +1.0d0                                 &
+                    &                                              -self%massEfficiency                   &
+                    &                                             )                                       &
+                    &                                            *nuclearStarCluster%luminositiesStellar()&
                     &                                           )
             end if
           else

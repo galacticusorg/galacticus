@@ -14,6 +14,10 @@
     <massEfficiency   value="0.1" />
     <radiusEfficiency value="0.01"/>
   </blackHoleSeeds>
+  <!-- A single luminosity, so that the scaling of the nuclear star cluster's luminosities can be tested. -->
+  <luminosityFilter   value="SDSS_r"/>
+  <luminosityType     value="rest"  />
+  <luminosityRedshift value="0.0"   />
   <cosmologyParameters value="simple">
     <HubbleConstant  value="67.36"/>
     <OmegaMatter     value=" 0.3153"/>

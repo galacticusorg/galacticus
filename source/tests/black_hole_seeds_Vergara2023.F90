@@ -29,7 +29,7 @@ program Tests_Black_Hole_Seeds_Vergara2023
   differential evolution, so must not change the nuclear star cluster: any change made there is overwritten by the evolution
   (or, for the collapse flag, persists even if the trial state at which it was made is never reached). The changes that follow
   from the collapse (marking the cluster as collapsed, recording its properties, and removing the mass of the seed from its
-  stars) must instead be made by ``seedFormed``, which is called once the seed has been placed.
+  stars, with their abundances and luminosities) must instead be made by ``seedFormed``, which is called once the seed has been placed.
   !!}
   use :: Abundances_Structure      , only : abundances                  , Abundances_Property_Count   , operator(*)
   use :: Black_Hole_Seeds          , only : blackHoleSeedsClass
@@ -42,6 +42,7 @@ program Tests_Black_Hole_Seeds_Vergara2023
   use :: Input_Parameters          , only : inputParameters
   use :: ISO_Varying_String        , only : assignment(=)               , operator(//)                , varying_string                   , var_str
   use :: Node_Components           , only : Node_Components_Initialize  , Node_Components_Uninitialize, Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+  use :: Stellar_Luminosities_Structure, only : stellarLuminosities
   use :: Unit_Tests                , only : Assert                      , Unit_Tests_Begin_Group      , Unit_Tests_End_Group             , Unit_Tests_Finish
   implicit none
   type            (treeNode           ), pointer                   :: node
@@ -51,6 +52,7 @@ program Tests_Black_Hole_Seeds_Vergara2023
   type            (inputParameters    )                            :: parameters
   type            (varying_string     )                            :: parameterFile
   type            (abundances         )                            :: abundancesStellar
+  type            (stellarLuminosities)                            :: luminositiesStellar
   ! Mass [M☉] of the nuclear star cluster, the time [Gyr] at which it is tested, and the mean time [Gyr] at which its stars formed
   ! (giving an age of 1 Gyr). With the radius efficiency of the parameter file the critical mass for collapse is about 10⁶ M☉, so
   ! the cluster collapses.
@@ -58,7 +60,7 @@ program Tests_Black_Hole_Seeds_Vergara2023
        &                                                              timeFormation      =9.0d0
   ! The seed mass efficiency, as set in the parameter file.
   double precision                     , parameter                 :: massEfficiency     =0.1d0
-  double precision                     , allocatable, dimension(:) :: arrayAbundances
+  double precision                     , allocatable, dimension(:) :: arrayAbundances           , arrayLuminosities
   double precision                                                 :: massSeed                 , massSeedRepeat
   integer                                                          :: stellarMassFormedID      , timeStellarMassFormedID       , &
        &                                                              blackHoleSeedMassID
@@ -89,8 +91,12 @@ program Tests_Black_Hole_Seeds_Vergara2023
   allocate(arrayAbundances(Abundances_Property_Count()))
   arrayAbundances=massStellar
   call abundancesStellar%deserialize(arrayAbundances)
+  allocate(arrayLuminosities(luminositiesStellar%serializeCount()))
+  arrayLuminosities=massStellar
+  call luminositiesStellar%deserialize(arrayLuminosities)
   call nuclearStarCluster%massStellarSet           (massStellar                                    )
   call nuclearStarCluster%abundancesStellarSet     (abundancesStellar                              )
+  call nuclearStarCluster%luminositiesStellarSet   (luminositiesStellar                            )
   call nuclearStarCluster%floatRank0MetaPropertySet(stellarMassFormedID    ,massStellar              )
   call nuclearStarCluster%floatRank0MetaPropertySet(timeStellarMassFormedID,massStellar*timeFormation)
   call Unit_Tests_Begin_Group("Vergara et al. (2023) black hole seeds")
@@ -106,9 +112,13 @@ program Tests_Black_Hole_Seeds_Vergara2023
   call blackHoleSeeds_%seedFormed(node)
   abundancesStellar=nuclearStarCluster%abundancesStellar()
   call abundancesStellar%serialize(arrayAbundances)
+  luminositiesStellar=nuclearStarCluster%luminositiesStellar()
+  call luminositiesStellar%serialize(arrayLuminosities)
   call Assert('placing the seed marks the cluster as collapsed'              ,nuclearStarCluster%isCollapsed()                                 ,.true.                                                                           )
   call Assert('placing the seed removes its mass from the stars'             ,nuclearStarCluster%massStellar()                                 ,       (1.0d0-massEfficiency)*massStellar                         ,relTol=1.0d-12)
   call Assert('placing the seed removes its share of the stellar abundances' ,arrayAbundances                                                  ,spread((1.0d0-massEfficiency)*massStellar,1,size(arrayAbundances)),relTol=1.0d-12)
+  call Assert('one stellar luminosity is tracked'                           ,size(arrayLuminosities)                                         ,1                                                                                )
+  call Assert('placing the seed removes its share of the stellar luminosities',arrayLuminosities                                              ,spread((1.0d0-massEfficiency)*massStellar,1,size(arrayLuminosities)),relTol=1.0d-12)
   call Assert('placing the seed records the seed mass'                       ,nuclearStarCluster%floatRank0MetaPropertyGet(blackHoleSeedMassID),massSeed                                                          ,relTol=1.0d-12)
   call Assert('no further seed forms once the cluster has collapsed'         ,blackHoleSeeds_%mass(node)                                       ,0.0d0                                                                            )
   call Unit_Tests_End_Group()
