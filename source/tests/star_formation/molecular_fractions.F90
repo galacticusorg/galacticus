@@ -231,21 +231,21 @@ program Test_Star_Formation_Molecular_Fractions
   ! (P_ext/P₀)^α. These ratios lie well below the first interval of a table of P^α on [0,1] at a spacing of 10⁻³, within which
   ! linear interpolation would make R_mol ∝ P_ext instead (and too small by a factor (P_ext/P₀/10⁻³)^{1-α}).
   do i=1,size(radiiBlitzLowPressure)
-     radius                     =+radiiBlitzLowPressure(i)                                    &
+     radius                     =+radiiBlitzLowPressure(i)                                                   &
           &                      *radiusScale
      pressureRatioLowPressure(i)= blitz2006_%pressureRatio(node,radius,surfaceDensityGas=surfaceDensityGas_)
-     surfaceDensityHydrogen     =+hydrogenByMassSolar                                         &
+     surfaceDensityHydrogen     =+hydrogenByMassSolar                                                        &
           &                      *surfaceDensityGas_
-     fractionMolecular       (i)=+blitz2006_%rate         (node,radius                          ) &
-          &                      /surfaceDensityGas_                                          &
-          &                      /frequencyNormalizationBlitz                                 &
-          &                      /(                                                           &
-          &                        +1.0d0                                                     &
-          &                        +(                                                         &
-          &                          +surfaceDensityHydrogen                                  &
-          &                          /surfaceDensityCritical                                  &
-          &                          /mega                  **2                               &
-          &                         )                       **surfaceDensityExponent          &
+     fractionMolecular       (i)=+blitz2006_%rate         (node,radius                                     ) &
+          &                      /surfaceDensityGas_                                                         &
+          &                      /frequencyNormalizationBlitz                                                &
+          &                      /(                                                                          &
+          &                        +1.0d0                                                                    &
+          &                        +(                                                                        &
+          &                          +surfaceDensityHydrogen                                                 &
+          &                          /surfaceDensityCritical                                                 &
+          &                          /mega                  **2                                              &
+          &                         )                       **surfaceDensityExponent                         &
           &                       )
      ratioMolecularLowPressure(i)=+       fractionMolecular(i)  &
           &                       /(1.0d0-fractionMolecular(i))

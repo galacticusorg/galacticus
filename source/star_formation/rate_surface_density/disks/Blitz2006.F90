@@ -378,12 +378,8 @@ contains
     pressureRatio=self%pressureRatio(node,radius,surfaceDensityGas)
     ! Compute the ratio of molecular to atomic hydrogen, R_mol=Σ_H₂/Σ_HI=(P_ext/P₀)^α (eqn. 11 of Blitz & Rosolowsky 2006), and
     ! from it the molecular fraction, f_H₂=R_mol/(1+R_mol) (their eqn. 21). The fast exponentiator is tabulated over the range
-    ! [0.05,1] only (computing R_mol exactly below that range), so is used only for ratios below unity.
-    if (pressureRatio >= 1.0d0) then
-       ratioMolecular   =+                                             pressureRatio **self%pressureExponent
-    else
-       ratioMolecular   =+self%pressureRatioExponentiator%exponentiate(pressureRatio)
-    end if
+    ! [0.05,1] only, and computes R_mol exactly outside that range.
+    ratioMolecular      =+self%pressureRatioExponentiator%exponentiate(pressureRatio)
     molecularFraction   =+       ratioMolecular  &
          &               /(1.0d0+ratioMolecular)
     ! Compute the star formation rate surface density. The frequency, following Leroy et al. (2008), is per unit mass of molecular
