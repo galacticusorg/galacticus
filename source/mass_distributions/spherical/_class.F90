@@ -781,7 +781,7 @@ contains
     type            (enumerationStructureErrorCodeType), intent(  out), optional :: status
     double precision                                   , parameter               :: toleranceRelative=1.0d-3
     type            (integrator                       )                          :: integrator_
-    double precision                                                         :: radius1                 , radius2
+    double precision                                                             :: radius1                 , radius2
 
     if (present(status)) status=structureErrorCodeSuccess
     ! Map the physical radii to the radius variable in which the potential integrand is written (which need not be the physical
@@ -790,7 +790,7 @@ contains
     radius2    =self%potentialSolverRadius(coordinates2%rSpherical())
     integrator_=integrator(integrandPotential,toleranceRelative=toleranceRelative)
     call self%solverSet  ()
-    potential =  integrator_%integrate(radius1,radius2)
+    potential  =integrator_%integrate(radius1,radius2)
     call self%solverUnset()
     ! Convert to dimensionful units.    
     if (.not.self%isDimensionless()) potential=+gravitationalConstant_internal &

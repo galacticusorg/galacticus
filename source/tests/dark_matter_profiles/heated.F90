@@ -99,10 +99,10 @@ program Test_Dark_Matter_Profiles_Heated
        &                                                                                            massEnclosed                                                    , velocityDispersion        , &
        &                                                                                            potential                                                       , potentialAnalytic         , &
        &                                                                                            potentialZeroPoint                                              , potentialAnalyticZeroPoint, &
-       &                                                                                            potentialDifference                                             , &
+       &                                                                                            potentialDifference                                             , density                   , &
        &                                                                                            radius                                                          , toleranceRelative         , &
        &                                                                                            velocityDispersionAnalytic                                      , radiusScaled              , &
-       &                                                                                            toleranceRelativeVelocityDispersionAssert                       , density
+       &                                                                                            toleranceRelativeVelocityDispersionAssert
   integer                                                                                        :: i                                                               , profileType
   character       (len=5                                                         )               :: radiusLabel
   character       (len=128                                                       )               :: profileName
@@ -390,13 +390,13 @@ program Test_Dark_Matter_Profiles_Heated
              &                          )
     
         if (profileType == 1) &
-             & call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius'     ,radiusInitial     ,radiusInitialAnalytic     ,relTol=toleranceRelative                        )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass'      ,massEnclosed      ,massEnclosedAnalytic      ,relTol=toleranceRelative                        )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; density'            ,density           ,densityAnalytic           ,relTol=toleranceRelative                        )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; potential'          ,potential         ,potentialAnalytic         ,relTol=toleranceRelativePotentialDifference     )
+             & call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius'      ,radiusInitial      ,radiusInitialAnalytic     ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass'       ,massEnclosed       ,massEnclosedAnalytic      ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; density'             ,density            ,densityAnalytic           ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; potential'           ,potential          ,potentialAnalytic         ,relTol=toleranceRelativePotentialDifference     )
         if (i > 1) &
-             & call Assert('r='//trim(radiusLabel)//'rᵥ; potential difference',potentialDifference,potentialAnalytic   ,relTol=toleranceRelativePotentialDifference     )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion',velocityDispersion,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
+             & call Assert('r='//trim(radiusLabel)//'rᵥ; potential difference',potentialDifference,potentialAnalytic         ,relTol=toleranceRelativePotentialDifference     )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion' ,velocityDispersion ,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
      end do
      call Unit_Tests_End_Group()
      !![
