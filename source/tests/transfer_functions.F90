@@ -43,12 +43,14 @@ program Tests_Transfer_Functions
   use :: Numerical_Constants_Math            , only : Pi
   use :: Cosmology_Parameters                , only : hubbleUnitsLittleH
   use :: Transfer_Functions                  , only : transferFunctionAccelerator             , transferFunctionEnvelope
+  use :: ISO_Varying_String                  , only : char
   implicit none
   type            (cosmologyParametersSimple               )                                             :: cosmologyParameters_                             , cosmologyParametersOpen_
   type            (cosmologyFunctionsMatterLambda          )                                             :: cosmologyFunctions_                              , cosmologyFunctionsOpen_
   type            (transferFunctionEisensteinHu1999        )                                             :: transferFunctionEisensteinHu1999_                , transferFunctionEisensteinHu1999Massless_
   type            (transferFunctionEisensteinHu1998        )                                             :: transferFunctionEisensteinHu1998_
-  type            (transferFunctionCAMB                    )                                             :: transferFunctionCAMB_                            , transferFunctionCAMBOpen_
+  type            (transferFunctionCAMB                    )                                             :: transferFunctionCAMB_                            , transferFunctionCAMBOpen_          , &
+       &                                                                                                    transferFunctionCAMBCached_
   type            (darkMatterParticleCDM                   )                                             :: darkMatterParticle_
   type            (linearGrowthCollisionlessMatter         )                                             :: linearGrowthCollisionlessMatter_
   type            (powerSpectrumPrimordialTransferredSimple)                                             :: powerSpectrumPrimordialTransferredSimple_
@@ -207,6 +209,31 @@ program Tests_Transfer_Functions
   call Assert('Eisenstein-Hu 1999'                    ,transferFunctionEisensteinHu1999_        %value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
   call Assert('Eisenstein-Hu 1999, massless neutrinos',transferFunctionEisensteinHu1999Massless_%value(wavenumberLargeScale),1.0d0,relTol=1.0d-5)
   call Assert('CAMB'                                  ,transferFunctionCAMB_                    %value(wavenumberLargeScale),1.0d0,relTol=1.0d-6)
+  call Unit_Tests_End_Group()
+  ! Check that a CAMB transfer function which is found in the in-memory cache (since an identical one has already been computed
+  ! above) has the same descriptor, including the modification time of the file from which it was read, as the one which read
+  ! that file.
+  transferFunctionCAMBCached_=transferFunctionCAMB(                                                &
+       &                                           darkMatterParticle_ =darkMatterParticle_      , &
+       &                                           cosmologyParameters_=cosmologyParameters_     , &
+       &                                           cosmologyFunctions_ =cosmologyFunctions_      , &
+       &                                           transferFunctionType=transferFunctionTypeTotal, &
+       &                                           redshift            =0.0d0                    , &
+       &                                           cambCountPerDecade  =0                          &
+       &                                          )
+  call Unit_Tests_Begin_Group("In-memory cache")
+  call Assert(                                                                                                                    &
+       &      'CAMB transfer function from cache has the same value'                                                            , &
+       &      transferFunctionCAMBCached_%value(wavenumber(1)),transferFunctionCAMB_%value(wavenumber(1))                       , &
+       &      absTol=0.0d0                                                                                                        &
+       &     )
+  call Assert(                                                                                                                    &
+       &      'CAMB transfer function from cache has the same descriptor, including file modification times'                    , &
+       &      char(transferFunctionCAMBCached_%hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.))  &
+       &      ==                                                                                                                  &
+       &      char(transferFunctionCAMB_      %hashedDescriptor(includeSourceDigest=.true.,includeFileModificationTimes=.true.)), &
+       &      .true.                                                                                                              &
+       &     )
   call Unit_Tests_End_Group()
   ! Check that the curvature factor, 1-3K/k², is removed from tabulated transfer functions in a curved universe. For Ω_k=0.1 the
   ! curvature scale is |K|^½ ≈ 7×10⁻⁵ Mpc⁻¹, and the CAMB tabulation begins just above this. Including the curvature factor, the

@@ -213,7 +213,10 @@ contains
           end do
        end if
        if (useCache /= 0 .and. wavenumber <= cachedTransferFunctions(useCache)%wavenumber(size(cachedTransferFunctions(useCache)%wavenumber))) then
-          ! We have a cached entry with sufficient extent, so "read" it.
+          ! We have a cached entry with sufficient extent, so "read" it. Set the name of the file from which it was read, so that
+          ! this object's descriptor (which can include the modification time of that file) is the same as that of an object
+          ! which read the file itself.
+          self%fileName=cachedTransferFunctions(useCache)%fileName
           call self%readFile(char(self%fileName),invalidateCache=.false.,lockCache=.false.)
           cacheUsed=.true.
        end if
