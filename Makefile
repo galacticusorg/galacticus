@@ -497,6 +497,7 @@ APPLE_SILICON := $(shell defs=`$(CCOMPILER) -dM -E - < /dev/null 2>/dev/null`; e
 # after the global -O3, and so takes precedence). This is gated on Apple Silicon so that other
 # architectures retain full optimization. Add further object files to this list if they are found to
 # trigger the same ICE; these overrides (and the gate) can be removed once the upstream bug is fixed.
+# <workaround type="gfortran" PR="124146" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124146"/>
 ifeq ($(APPLE_SILICON),yes)
 FCFLAGS_AARCH64_ICE_OBJECTS = \
 	$(BUILDPATH)/output.analyses.volume_function_1d.o
