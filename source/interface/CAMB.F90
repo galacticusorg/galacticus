@@ -512,7 +512,7 @@ contains
                          read (cambTransferLine,*) wavenumbers(i),transferFunctions(i,cambSpeciesDarkMatter%ID,j),transferFunctions(i,cambSpeciesBaryons%ID,j)
                       end if
                    else
-                      allEpochsFound=.false.
+                      call Error_Report('CAMB transfer function file "'//char(transferFileName)//'" is shorter than expected'//{introspection:location})
                    end if
                 end do
                 close(cambTransferFile)

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
   !!}
@@ -377,6 +379,8 @@ contains
              allocate(self%mass        (massCountReduced                ))
              allocate(self%massFunction(massCountReduced,size(redshifts)))
              allocate(self%countHalos  (massCountReduced,size(redshifts)))
+          else if (massCountReduced /= size(self%mass)) then
+             call Error_Report("mass function from file '"//trim(fileNames(iRedshift))//"' has a different number of usable bins from that of the first redshift - all redshifts must use the same bins"//{introspection:location})
           end if
           ii=0
           do i=1,size(massOriginal)
@@ -386,7 +390,7 @@ contains
                   &   massOriginal(i) > massRangeMaximum &
                   & ) cycle
              ii=ii+1
-             self%mass        (ii          )=massOriginal             (i)
+             call haloMassFunctionMassSet(ii,massOriginal(i))
              self%massFunction(ii,iRedshift)=massFunctionOriginal     (i)
              self%countHalos  (ii,iRedshift)=massFunctionCountOriginal(i)
           end do
@@ -425,6 +429,9 @@ contains
              allocate(self%mass            (massCountReduced                                 ))
              allocate(self%massFunction    (massCountReduced                 ,size(redshifts)))
              allocate(self%covarianceMatrix(massCountReduced,massCountReduced,size(redshifts)))
+             allocate(self%covariance      (                                  size(redshifts)))
+          else if (massCountReduced /= size(self%mass)) then
+             call Error_Report("mass function from file '"//trim(fileNames(iRedshift))//"' has a different number of usable bins from that of the first redshift - all redshifts must use the same bins"//{introspection:location})
           end if
           ii=0
           do i=1,size(massOriginal)
@@ -433,7 +440,7 @@ contains
              if (massOriginal             (i) >  massRangeMaximum) cycle
              if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
              ii=ii+1
-             self%mass        (ii          )=massOriginal        (i)
+             call haloMassFunctionMassSet(ii,massOriginal(i))
              self%massFunction(ii,iRedshift)=massFunctionOriginal(i)
              jj=0
              do j=1,size(massOriginal)
@@ -445,10 +452,11 @@ contains
                 self%covarianceMatrix(ii,jj,iRedshift)=massFunctionCovarianceOriginal(i,j)
              end do
           end do
+          deallocate(massFunctionCovarianceOriginal)
           ! Find the covariance matrices.
           self%covariance(iRedshift)=self%covarianceMatrix(:,:,iRedshift)
           ! Get eigenvalues and vectors of the covariance matrix.
-          if (iRedshift == 1) allocate(eigenValueArray(size(self%mass)))
+          allocate(eigenValueArray(size(self%mass)))
           call self%covariance(iRedshift)%eigenSystem(eigenVectors,eigenValues)
           eigenValueArray=eigenValues
           if (any(eigenValueArray < 0.0d0)) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' inverse covariance matrix is not semi-positive definite')
@@ -495,6 +503,27 @@ contains
        end do
     end if
     return
+
+  contains
+
+    subroutine haloMassFunctionMassSet(indexBin,mass)
+      !!{RST
+      Set the mass of a bin of the reduced mass function. All redshifts share the masses of the bins, so for later redshifts check
+      that the mass is that of the first (to within a tolerance, as files may differ in the last digits).
+      !!}
+      use :: Numerical_Comparison, only : Values_Differ
+      implicit none
+      integer         , intent(in   ) :: indexBin
+      double precision, intent(in   ) :: mass
+
+      if (iRedshift == 1) then
+         self%mass(indexBin)=mass
+      else if (Values_Differ(mass,self%mass(indexBin),relTol=1.0d-6)) then
+         call Error_Report("mass function from file '"//trim(fileNames(iRedshift))//"' uses different bins from that of the first redshift - all redshifts must use the same bins"//{introspection:location})
+      end if
+      return
+    end subroutine haloMassFunctionMassSet
+
   end function haloMassFunctionConstructorInternal
 
   subroutine haloMassFunctionDestructor(self)

@@ -536,9 +536,6 @@ contains
          &                                                                                                    )          , &
          &                                                                                        photonPacket             &
          &                                                                                  )
-    ! Reset the second index to indicate that no boundary was just crossed and so we should consider both boundaries on the next
-    ! "length-to-boundary" calculation.
-    indices(2)=-1_c_size_t
     return
   end function sphericalInteractWithPhotonPacket
   
@@ -546,11 +543,11 @@ contains
     !!{RST
     Solve for the state of matter in the computational domain.
     !!}
-    use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
-          &                         displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
-    use :: Error, only : errorStatusSuccess
-    use :: MPI_Utilities   , only : mpiBarrier        , mpiSelf
-    use :: Timers          , only : timer
+    use :: Display      , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
+          &                      displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
+    use :: Error        , only : errorStatusSuccess
+    use :: MPI_Utilities, only : mpiBarrier        , mpiSelf
+    use :: Timers       , only : timer
     implicit none
     class    (computationalDomainSpherical), intent(inout) :: self
     integer  (c_size_t                    )                :: i     , countFail
