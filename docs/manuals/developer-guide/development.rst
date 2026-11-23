@@ -72,6 +72,11 @@ The following make variables (settable on the command line or from the environme
 ``LTO``
    ``enabled`` (default) or ``disabled``. Link-time optimization uses ``-flto=jobserver`` so that the parallelism of the link-time recompilation is governed by make's job server rather than the machine's CPU count; disable on platforms where LTO causes problems (e.g. ``dsymutil`` memory exhaustion on Apple Silicon).
 
+``CONSOLIDATE_USES``
+   ``yes`` (default) or ``no``. Whether ``USE`` statements are consolidated before compilation. Galacticus code places ``USE`` statements in each procedure, but gfortran reads a module, and creates new copies of every symbol that the names imported reach, for every ``USE`` statement (`GCC PR 117474 <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117474>`_). For a class module, those symbols are the closure of every type and type-bound procedure reachable from it, so a single ``USE`` can cost hundreds of megabytes; the copies persist until the whole file is compiled, and the time taken to build the file's derived types grows as the square of their number. Before each preprocessed source is compiled, ``scripts/build/consolidateUses.py`` therefore moves ``USE`` statements from its procedures to its specification part (or removes them, where the module's specification part, or a submodule's parent, already provides the same entity), writing the result to ``*.pc.F90``, which is compiled in place of ``*.p.F90``. This reduced the time to compile the largest files by factors of up to 20, and their peak memory from 9--15 GB to under 1 GB. It also shrinks the module files that modules write.
+
+   A name is moved only where that cannot change what any name means: each procedure (or the specification part) which mentions the name must itself import the same entity, or be contained in a procedure which does. Imports which are conditional (inside a preprocessor conditional, or behind an OpenMP ``!$`` sentinel), in interface bodies, or from ``USE`` statements without an ``ONLY`` list are never moved, nor are ``assignment(=)`` and intrinsic operators, whose visibility can change the meaning of a statement which does not name them. Moved names are declared ``PRIVATE`` in a module whose default accessibility is public, so its interface is unchanged. Line numbers are preserved (moved statements are joined to the ``module`` or ``submodule`` statement with ``;``), so compiler diagnostics are mapped back to the original source as before. Any file whose structure the script does not understand is compiled unchanged. Set ``CONSOLIDATE_USES=no`` to compile the preprocessed sources as they are, for example to check that a problem is not caused by consolidation.
+
 ``LOCKMD5``
    ``yes`` (default) or ``no``. Whether the source-digest computation takes ``flock`` locks on its per-file ``.md5`` sidecar caches. Locks are only actually used under parallel make (``-j``); they serialize concurrent builds sharing a build directory (e.g. several executables linking at once, each running ``sourceDigests.py``). The Makefile forces ``no`` when only a single target was named on the command line.
 
@@ -321,7 +326,7 @@ Before being compiled, all Fortran source files are passed through a tree-based 
 
 marking the start of a run of lines in the preprocessed file that maps back to the given original location. The full set of source-tree process hooks is registered by importing ``Galacticus.Build.SourceTree.Process.all`` — every driver that runs the preprocessor imports this one module, so a new Process submodule is added in exactly one place.
 
-Every Fortran source file can be preprocessed, without compiling anything, with ``make preprocess``. Preprocessing needs only ~100 MB per process, whereas compiling the large generated ``_class`` units can take gigabytes each, so a build limited by memory can preprocess at much higher parallelism than it compiles — for example ``make -j$(nproc) preprocess`` followed by ``make -j2 Galacticus.exe``, as the CI builds do. Pass the same build options (e.g. ``DEBUGGING=yes``) to both commands, since they select the build directory and the build configuration.
+Every Fortran source file can be preprocessed, without compiling anything, with ``make preprocess``. Preprocessing needs only ~100 MB per process, whereas compiling the large generated ``_class`` units can take gigabytes each, so a build limited by memory can preprocess at much higher parallelism than it compiles — for example ``make -j$(nproc) preprocess`` followed by ``make -j2 Galacticus.exe``, as the CI library build does. Pass the same build options (e.g. ``DEBUGGING=yes``) to both commands, since they select the build directory and the build configuration.
 
 .. _manual-sec-buildPreprocessorSources:
 
@@ -332,6 +337,8 @@ The two granularities are deliberately different. The *digest rule* is triggered
 Unlike the source-scanning rules above, this rule does **not** list the directories containing its prerequisites. Those rules use directory mtimes to notice a *deleted* source, but the interpreter writes ``__pycache__`` into every directory it imports from — including during the build's own ~1800 ``preprocess.py`` invocations — so listing them would bump their mtimes mid-build and leave the rule permanently out of date, re-running its recipe on every build. And not only on every build: because the preprocessed ``_class.p.F90`` is a prerequisite of the generated ``Makefile_Use_Dependencies``, this digest is remade inside make's *makefile-remaking* phase, so a rule that re-arms itself there runs again in every restart pass. Nothing is lost by omitting them: deleting a module the preprocessor imports fails loudly at the next ``preprocess.py`` run, and deleting one it does not import changes nothing to catch.
 
 Without this, editing a generator and rebuilding regenerated nothing: make reported success, the binary relinked, and the stale preprocessed Fortran was compiled — which also made "change a generator, rebuild, and diff the generated code", the natural way to verify a code-generation change, report a false "no change".
+
+Unless ``CONSOLIDATE_USES=no``, the ``%.o`` rule first runs ``consolidateUses.py`` (see :galacticus-ref:`buildKnobs`) on the preprocessed source, and compiles its output, ``*.pc.F90``. Its line numbers are those of the ``*.p.F90``, and file names in the diagnostics are rewritten to the ``*.p.F90``, so the steps below apply unchanged.
 
 Output from the compiler is captured to a diagnostics file and fed through the ``postprocess.py`` script, which:
 
@@ -402,6 +409,9 @@ Scripts (all under ``scripts/build/``):
 
 ``libraryInterfaces.py``, ``libraryInterfacesDependencies.py``, ``libraryInterfacesAudit.py``
    Generate (and audit coverage of) the shared-library interface (see Section :galacticus-ref:`buildLibraryInterface`);
+
+``consolidateUses.py``
+   Consolidates the procedure-level ``USE`` statements of a preprocessed source into its specification part before it is compiled (see ``CONSOLIDATE_USES`` in Section :galacticus-ref:`buildKnobs`);
 
 ``moduleDependencies.py``
    Discovers (and generates rules for) dependencies of module files on their source file statements (see Section :galacticus-ref:`buildModulesProvided`);
