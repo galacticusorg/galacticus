@@ -1696,6 +1696,7 @@ jobs:
                 test-ram-pressure-koppen2018.py,
                 test-parameter-resolver.py,
                 test-prompt-cusps-unformed.py,
+                test-galaxy-merger-tree-star-formation.py,
                 test-radius-specifiers-soliton.py,
                 test-radius-specifiers-zero.py,
                 test-splashback-radius.py,

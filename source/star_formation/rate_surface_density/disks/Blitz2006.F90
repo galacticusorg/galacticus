@@ -444,6 +444,10 @@ contains
     type (abundances                                   ), save          :: abundancesFuel
     !$omp threadprivate(abundancesFuel)
 
+    ! Factors computed for a different node must not be reused. This check is needed here (and not only in the rate function)
+    ! as the "unchanged" and "intervals" methods also use these factors, and may be called for successive nodes without any
+    ! intervening calculation reset - for example, for the two galaxies taking part in a merger.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if factors have been precomputed.
     if (.not.self%factorsComputed) then
        ! Get the disk properties.
