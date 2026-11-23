@@ -43,7 +43,7 @@ subprocess.run("rm -f outputs/mergerTreeBranchingVariance*.hdf5",shell=True)
 # the seed rather than the tree index. That matters only when the two runs use different base seeds.)
 run("Table","./Galacticus.exe testSuite/parameters/mergerTreeBranchingVarianceTable.xml")
 run("Jumps","./Galacticus.exe testSuite/parameters/mergerTreeBranchingVarianceJumps.xml")
-run("Script","python3 scripts/analysis/mergerTreeVariance.py testSuite/outputs/mergerTreeBranchingVarianceTrees.hdf5 --statistics ABC --massThresholds 1.0e10,3.0e10 --redshiftTarget 1.0 --binWidthMass 0.0125 --binWidthOmega 0.025 --tableMethod linear --crossProduct --bootstrapCount 200 --foldOffset 220 --cumulativeOmegaTable testSuite/outputs/mergerTreeBranchingVarianceJumps.hdf5 --outputFileName testSuite/outputs/mergerTreeBranchingVarianceScript.hdf5")
+run("Script","python3 scripts/analysis/mergerTreeVariance.py testSuite/outputs/mergerTreeBranchingVarianceTrees.hdf5 --statistics ABC --massThresholds 1.0e10,3.0e10 --redshiftTarget 1.0 --binWidthMass 0.0125 --binWidthOmega 0.025 --tableMethod linear --crossProduct --bootstrapCount 200 --foldOffset 220 --cumulativeOmegaTable testSuite/outputs/mergerTreeBranchingVarianceJumps.hdf5 --nodeOmegaFile testSuite/outputs/mergerTreeBranchingVarianceTable.hdf5 --outputFileName testSuite/outputs/mergerTreeBranchingVarianceScript.hdf5")
 
 operator    = h5py.File("outputs/mergerTreeBranchingVarianceJumps.hdf5" ,"r")["branchingVariance"]
 script      = h5py.File("outputs/mergerTreeBranchingVarianceScript.hdf5","r")
@@ -60,11 +60,13 @@ def covarianceWithinFolds(x,y):
     counts = np.array([np.count_nonzero(fold == h) for h in range(3)])
     return np.dot(counts,[np.cov(x[fold == h],y[fold == h])[0,1] for h in range(3)])/counts.sum()
 
-# Tolerances. Per-tree counts are integers, and must agree exactly. The script interpolates ω(z) from a tabulation, while the
-# operator evaluates it, so jumps differ slightly (by ~1e-4 at most, with typical values of order unity); aggregates over all
-# trees and splits agree far more closely.
-toleranceAggregate = 1.0e-5
-toleranceSplit     = 2.0e-3
+# Tolerances. Per-tree counts are integers, and must agree exactly. The script takes the ω of each node from the operator
+# (written by the table run, with outputNodeOmegas=true), so both place every node in the same bin of the n₁ tables. (Were ω
+# instead interpolated in redshift, it would differ by up to ~1e-6, and a node lying that close to a bin edge would be binned
+# differently - which, in a sparsely populated bin, changes n₁ there by ~0.1.) Jumps then differ by at most a few times 1e-6,
+# with typical values of order unity, and aggregates over all trees and splits by ~1e-8.
+toleranceAggregate = 1.0e-7
+toleranceSplit     = 1.0e-4
 toleranceTelescope = 1.0e-10
 for statistic in "ABC":
     for indexThreshold in range(2):
