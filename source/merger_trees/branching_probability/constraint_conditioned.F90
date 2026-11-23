@@ -69,6 +69,12 @@ Implements a merger tree branching probability class which conditions a branch o
    A window lying entirely above :math:`M_1` would avoid creating mass, but biases the mass of the branch high just before
    :math:`\delta_1` by about half the width of the window, so the window is centered on :math:`M_1`.
 
+   For a branch whose mass lies outside the window, :math:`H` vanishes as :math:`\delta \rightarrow \delta_1`, so the rate at
+   which it moves into the window grows as :math:`1/(\delta_1-\delta)`. The tree builder evaluates rates at the start of each
+   step and holds them fixed across it, so a step reaching :math:`\delta_1` would give such a branch a finite chance of never
+   moving into the window. Steps are therefore limited to a fraction ``[stepFractionRemaining]`` of the distance remaining to
+   :math:`\delta_1`, until that distance falls below :math:`10^{-6}\delta_1`.
+
    The tabulation of :math:`H` is shared by all copies of the object, and is rebuilt only if a larger range is needed. A rebuilt
    table agrees exactly with the one that it replaces over their common range, provided that the objects from which it is built
    (the mass variance, critical overdensity, and so on) return the same values for both. Some of those objects change their values
@@ -123,6 +129,7 @@ Implements a merger tree branching probability class which conditions a branch o
           &                                                            windowLogMass                            , &
           &                                                            stepLogMass                              , &
           &                                                            stepDelta                                , &
+          &                                                            stepFractionRemaining                    , &
           &                                                            massComplementMinimum
      ! The parent halo for which integrals are currently being evaluated.
      double precision                                               :: massParent                               , &
@@ -191,7 +198,8 @@ contains
          &                                                                                  timePresent                    , &
          &                                                                                  windowLogMass                  , &
          &                                                                                  stepLogMass                    , &
-         &                                                                                  stepDelta
+         &                                                                                  stepDelta                      , &
+         &                                                                                  stepFractionRemaining
 
     !![
     <inputParameter docformat="rst">
@@ -217,6 +225,15 @@ contains
       <defaultValue>0.01d0</defaultValue>
       <description>
       The step in critical overdensity of the tabulation of the expected number of progenitors at the constraint.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>stepFractionRemaining</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>
+      The largest step in critical overdensity that the branch may take, as a fraction of the distance remaining to the constraint.
+      Must be less than 1.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -285,7 +302,7 @@ contains
        varianceConstrained           =0.0d0
        call Error_Report('must provide either [criticalOverdensityConstrained] and [varianceConstrained], or [redshiftConstrained] and [massConstrained]'//{introspection:location})
     end if
-    self=mergerTreeBranchingProbabilityConstraintConditioned(criticalOverdensityConstrained,varianceConstrained,windowLogMass,stepLogMass,stepDelta,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+    self=mergerTreeBranchingProbabilityConstraintConditioned(criticalOverdensityConstrained,varianceConstrained,windowLogMass,stepLogMass,stepDelta,stepFractionRemaining,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerTreeBranchingProbability_"/>
@@ -298,7 +315,7 @@ contains
     return
   end function constraintConditionedConstructorParameters
 
-  function constraintConditionedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,windowLogMass,stepLogMass,stepDelta,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
+  function constraintConditionedConstructorInternal(criticalOverdensityConstrained,varianceConstrained,windowLogMass,stepLogMass,stepDelta,stepFractionRemaining,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`mergerTreeBranchingProbabilityConstraintConditioned` merger tree branching probability class.
     !!}
@@ -313,21 +330,25 @@ contains
     class           (criticalOverdensityClass                           ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                      ), intent(in   ), target :: cosmologicalMassVariance_
     class           (linearGrowthClass                                  ), intent(in   ), target :: linearGrowth_
-    double precision                                                     , intent(in   )         :: criticalOverdensityConstrained        , &
-         &                                                                                          varianceConstrained                   , &
-         &                                                                                          windowLogMass                         , &
-         &                                                                                          stepLogMass                           , &
-         &                                                                                          stepDelta
+    double precision                                                     , intent(in   )         :: criticalOverdensityConstrained         , &
+         &                                                                                          varianceConstrained                    , &
+         &                                                                                          windowLogMass                          , &
+         &                                                                                          stepLogMass                            , &
+         &                                                                                          stepDelta                              , &
+         &                                                                                          stepFractionRemaining
     double precision                                                     , parameter             :: toleranceRelativeRoot          =1.0d-09, &
          &                                                                                          toleranceIntegral              =1.0d-02, &
          &                                                                                          toleranceIntegralAbsolute      =1.0d-10, &
          &                                                                                          stepLogMassWindowMaximum       =0.2d+00
     !![
-    <constructorAssign variables="criticalOverdensityConstrained, varianceConstrained, windowLogMass, stepLogMass, stepDelta, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
+    <constructorAssign variables="criticalOverdensityConstrained, varianceConstrained, windowLogMass, stepLogMass, stepDelta, stepFractionRemaining, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
     !!]
 
     ! A coarser tabulation does not resolve the window, and the expectation is then not converged.
     if (stepLogMass > stepLogMassWindowMaximum*windowLogMass) call Error_Report('[stepLogMass] must be at most one fifth of [windowLogMass]'//{introspection:location})
+    ! A step of the whole distance remaining would reach the constraint without the build controller's limit on the step being the
+    ! binding one, so that the controller would never insert the constrained node.
+    if (stepFractionRemaining <= 0.0d0 .or. stepFractionRemaining >= 1.0d0) call Error_Report('[stepFractionRemaining] must lie in the range (0,1)'//{introspection:location})
     ! Only the full-range generalized Press-Schechter process has the two-progenitor structure assumed by the conditioning.
     select type (wrapped => self%mergerTreeBranchingProbability_)
     class is (mergerTreeBranchingProbabilityGeneralizedPressSchechter)
@@ -523,14 +544,30 @@ contains
 
   double precision function constraintConditionedStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !!{RST
-    Return the maximum allowed step in :math:`\delta_\mathrm{crit}`, as given by the wrapped object.
+    Return the maximum allowed step in :math:`\delta_\mathrm{crit}`. This is that given by the wrapped object, limited to a
+    fraction ``[stepFractionRemaining]`` of the distance remaining to the constraint (see the class description), until that
+    distance is negligible.
     !!}
     implicit none
     class           (mergerTreeBranchingProbabilityConstraintConditioned), intent(inout) :: self
-    double precision                                                     , intent(in   ) :: deltaCritical , haloMass, &
-         &                                                                                  massResolution, time
+    double precision                                                     , intent(in   ) :: deltaCritical            , haloMass   , &
+         &                                                                                  massResolution           , time
+    double precision                                                     , parameter     :: toleranceRemaining=1.0d-6
+    double precision                                                                     :: deltaRemaining           , timePresent
 
     constraintConditionedStepMaximum=self%mergerTreeBranchingProbability_%stepMaximum(haloMass,deltaCritical,time,massResolution)
+    ! Here δ_crit is scaled to the present day, while steps are in the critical overdensity at the current time, as for the
+    ! rates, so the distance remaining is converted using the growth factor of the root variance.
+    deltaRemaining=self%criticalOverdensityConstrained-deltaCritical
+    if (deltaRemaining <= toleranceRemaining*self%criticalOverdensityConstrained) return
+    timePresent                     =self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
+    constraintConditionedStepMaximum=min(                                                                              &
+         &                               constraintConditionedStepMaximum                                            , &
+         &                               self%stepFractionRemaining                                                    &
+         &                               *deltaRemaining                                                               &
+         &                               *self%cosmologicalMassVariance_%rootVariance(mass=haloMass,time=time       )  &
+         &                               /self%cosmologicalMassVariance_%rootVariance(mass=haloMass,time=timePresent)  &
+         &                              )
     return
   end function constraintConditionedStepMaximum
 
