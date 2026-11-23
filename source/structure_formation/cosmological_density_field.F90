@@ -423,6 +423,7 @@ contains
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
     use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     use :: Error              , only : Error_Report                  , errorStatusSuccess           , errorStatusOutOfRange
+    use :: Numerical_Ranges   , only : Range_Pinned                  , rangeLattice                 , gridSchemePerUnit
     implicit none
     class           (criticalOverdensityClass), intent(inout)              , target :: self
     double precision                          , intent(in   )                       :: criticalOverdensity
@@ -431,14 +432,15 @@ contains
     integer                                   , intent(  out), optional             :: status
     double precision                          , parameter                           :: toleranceRelative                =1.0d-12   , toleranceAbsolute       =0.0d0, &
          &                                                                             fractionTimeCollapseGrowthMinimum=1.0d-03
-    double precision                          , allocatable  , dimension(:)         :: threshold
+    logical                                   , allocatable  , dimension(:)         :: isComputed
     double precision                                                                :: timeBigCrunch                               , timeGuess                     , &
          &                                                                             collapseThresholdMinimum                    , collapseThresholdMaximum      , &
          &                                                                             collapseTimePrevious                        , collapseTimeUpperLimit        , &
-         &                                                                             timeUpperLimit
-    logical                                                                         :: updateResult                                , remakeTable
-    integer                                                                         :: i                                           , countThresholds               , &
-         &                                                                             countNewLower                               , countNewUpper
+         &                                                                             timeUpperLimit                              , timePresent                   , &
+         &                                                                             overdensityPresent
+    type            (rangeLattice            )                                      :: lattice
+    logical                                                                         :: updateResult
+    integer                                                                         :: i
 
     ! Assume a successful calculation by default.
     if (present(status)) status=errorStatusSuccess    
@@ -536,7 +538,6 @@ contains
        else
           self%criticalOverdensityTarget=criticalOverdensity
        end if
-       if (self%timeOfCollapsePrevious < 0.0d0) self%timeOfCollapsePrevious=self%cosmologyFunctions_%cosmicTime(1.0d0)
        if (.not.self%massPresent.and..not.self%nodePresent) then
           ! There is no dependency on mass, or the node. If there is dependency on the tree, then, if the tree differs from the
           ! tree for which the table was built we must destroy the previously made table, as our tree has changed. The table is
@@ -547,64 +548,77 @@ contains
           end if
           self%collapseThresholdTreeID=self%lastTreeID
           ! Neither the mass or the node are provided, so we can use a simple tabulation of collapse thresholds for rapid
-          ! inversion. Note that we do not tabulate lower than the requested threshold as in some cosmologies (e.g. with dark
-          ! energy or a cosmological constant) this can require tabulating to extremely large cosmic times).
+          ! inversion. Note that we do not tabulate (by more than two lattice steps) lower than the requested threshold as in some
+          ! cosmologies (e.g. with dark energy or a cosmological constant) this can require tabulating to extremely large cosmic
+          ! times.
+          !
+          ! The tabulation is made on an absolute lattice in critical overdensity, with points at integer multiples of
+          ! 1/`countTimeCollapsePerUnit`. Each point is found by a root find seeded by a guess which depends only on the
+          ! critical overdensity at that point. The collapse time at each point is therefore independent of the range of the
+          ! table, and of the order in which it was extended, so that the time returned for a given critical overdensity does
+          ! not depend on the history of earlier requests.
           ! First confirm that the collapse time count is valid.
           if (self%countTimeCollapsePerUnit <= 0.0d0) call Error_Report('`countTimeCollapsePerUnit` > 0 is required'//{introspection:location})
-          ! Now make the table if needed.
-          remakeTable=.false.
-          if (.not.self%collapseThresholdInitialized) then
-             remakeTable                  =.true.
-             self%collapseThresholdMinimum=      criticalOverdensity
-             self%collapseThresholdMaximum=2.0d0*criticalOverdensity
-             call collapseThresholdCountValidate(self%countTimeCollapsePerUnit*(self%collapseThresholdMaximum-self%collapseThresholdMinimum)+2.0d0,self%collapseThresholdMinimum,self%collapseThresholdMaximum)
-             countThresholds              =int(self%countTimeCollapsePerUnit*(self%collapseThresholdMaximum-self%collapseThresholdMinimum))+2
-             ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
-             self%collapseThresholdMaximum=self%collapseThresholdMinimum+dble(countThresholds-1)/self%countTimeCollapsePerUnit
-             allocate(threshold(countThresholds))
-             threshold=-huge(0.0d0)
-          else if (criticalOverdensity < self%collapseThresholdMinimum .or. criticalOverdensity > self%collapseThresholdMaximum) then
-             remakeTable                      =.true.
-             collapseThresholdMinimum=min(      criticalOverdensity,self%collapseThresholdMinimum)
-             collapseThresholdMaximum=max(2.0d0*criticalOverdensity,self%collapseThresholdMaximum)
-             ! Determine how many points the table must be extended by in each direction to span the new required range.
-             countNewLower=0
-             countNewUpper=0
-             call collapseThresholdCountValidate(                                                                                       &
-                  &                               +dble(self%collapseThreshold%size())                                                    &
-                  &                               +max(0.0d0,(+self%collapseThresholdMinimum-collapseThresholdMinimum)*self%countTimeCollapsePerUnit+1.0d0) &
-                  &                               +max(0.0d0,(-self%collapseThresholdMaximum+collapseThresholdMaximum)*self%countTimeCollapsePerUnit+1.0d0) , &
-                  &                                    collapseThresholdMinimum                                                         , &
-                  &                                    collapseThresholdMaximum                                                           &
-                  &                              )
-             if (self%collapseThresholdMinimum > collapseThresholdMinimum) countNewLower=int((+self%collapseThresholdMinimum-collapseThresholdMinimum)*self%countTimeCollapsePerUnit+1.0d0)
-             if (self%collapseThresholdMaximum < collapseThresholdMaximum) countNewUpper=int((-self%collapseThresholdMaximum+collapseThresholdMaximum)*self%countTimeCollapsePerUnit+1.0d0)
-             countThresholds=self%collapseThreshold%size()+countNewLower+countNewUpper
-             ! Adjust the limits of the table by an integer number of steps.
-             self%collapseThresholdMinimum=self%collapseThresholdMinimum-dble(countNewLower)/self%countTimeCollapsePerUnit
-             self%collapseThresholdMaximum=self%collapseThresholdMaximum+dble(countNewUpper)/self%countTimeCollapsePerUnit
-             allocate(threshold(countThresholds))
-             threshold=-huge(0.0d0)
-             ! Populate the table with pre-existing results.
-             threshold(countNewLower+1:countNewLower+self%collapseThreshold%size())=reshape(self%collapseThreshold%ys(),[self%collapseThreshold%size()])
-          end if
-          if (remakeTable) then
-             if (self%collapseThresholdInitialized) call self%collapseThreshold%destroy()
-             call self%collapseThreshold%create(self%collapseThresholdMinimum,self%collapseThresholdMaximum,countThresholds)
-             ! Populate the table in regions where it was not previously populated.
-             do i=1,countThresholds
+          if (self%countTimeCollapsePerUnit /= dble(nint(self%countTimeCollapsePerUnit))) call Error_Report('`countTimeCollapsePerUnit` must be an integer'//{introspection:location})
+          ! Now extend the table if needed.
+          if     (                                                     &
+               &   .not.self%collapseThresholdInitialized              &
+               &  .or.                                                 &
+               &   criticalOverdensity < self%collapseThresholdMinimum &
+               &  .or.                                                 &
+               &   criticalOverdensity > self%collapseThresholdMaximum &
+               & ) then
+             ! Find the range to be spanned, and check that it does not require an excessive number of points. The check is made
+             ! before the lattice is constructed, as an extreme request would overflow the integer lattice indices.
+             if (self%collapseThresholdInitialized) then
+                collapseThresholdMinimum=min(      criticalOverdensity,self%collapseThresholdMinimum)
+                collapseThresholdMaximum=max(2.0d0*criticalOverdensity,self%collapseThresholdMaximum)
+             else
+                collapseThresholdMinimum=      criticalOverdensity
+                collapseThresholdMaximum=2.0d0*criticalOverdensity
+             end if
+             call collapseThresholdCountValidate(self%countTimeCollapsePerUnit*(collapseThresholdMaximum-collapseThresholdMinimum)+2.0d0,collapseThresholdMinimum,collapseThresholdMaximum)
+             ! Pin the requested range onto the lattice, retaining any range already tabulated (through the union with the current
+             ! lattice). A margin of one lattice step is applied, as the pinning (which tolerates round-off in the lattice
+             ! coordinate) could otherwise place the lower bound fractionally above a requested threshold lying just below a lattice
+             ! point. The margin is applied to the requested range only (not to the range already tabulated) so that the table does
+             ! not grow by a further lattice step at its far end on each extension.
+             lattice=Range_Pinned(                                                                &
+                  &                              [criticalOverdensity,2.0d0*criticalOverdensity], &
+                  &                              nint(self%countTimeCollapsePerUnit)            , &
+                  &                              gridSchemePerUnit                              , &
+                  &               marginOffset  =1.0d0/self%countTimeCollapsePerUnit            , &
+                  &               anchorEvery   =1                                              , &
+                  &               latticeCurrent=self%collapseThreshold%lattice                   &
+                  &              )
+             call self%collapseThreshold%extend(lattice,isComputed)
+             self%collapseThresholdMinimum=lattice%minimum()
+             self%collapseThresholdMaximum=lattice%maximum()
+             ! Find the critical overdensity, δ_c(t)/D(t), collapsing at the present epoch. This is used to construct the initial
+             ! guess for the collapse time at each point. With a target of zero the root function returns minus this quantity.
+             timePresent                   =+self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
+             self%criticalOverdensityTarget=+0.0d0
+             overdensityPresent            =-collapseTimeRoot(timePresent)
+             ! Populate the table at those points not previously computed.
+             do i=1,lattice%count
+                if (isComputed(i)) cycle
                 self%criticalOverdensityTarget=self%collapseThreshold%x(i)
-                if (threshold(i) < 0.0d0) then
-                   if (i == 1) then
-                      timeGuess=self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
-                   else
-                      timeGuess=threshold(i-1)
-                   end if
-                   threshold(i)=self%finderTimeOfCollapse%find(rootGuess=timeGuess)
+                ! Construct an initial guess for the collapse time which depends only on the critical overdensity at this point,
+                ! using the scaling, t ∝ [δ_c(t)/D(t)]^{-3/2}, of a matter-dominated universe. This scaling is meaningful only if
+                ! both overdensities are positive - they need not be (e.g. for a critical overdensity in an overdense environment,
+                ! which can be negative at the present epoch), in which case the present epoch is used as the guess.
+                if (overdensityPresent > 0.0d0 .and. self%criticalOverdensityTarget > 0.0d0) then
+                   timeGuess=+timePresent                      &
+                        &    *(                                &
+                        &      +overdensityPresent             &
+                        &      /self%criticalOverdensityTarget &
+                        &     )**1.5d0
+                else
+                   timeGuess=+timePresent
                 end if
+                if (timeGuess >= timeBigCrunch) timeGuess=timePresent
+                call self%collapseThreshold%populate(self%finderTimeOfCollapse%find(rootGuess=timeGuess),i)
              end do
-             call self%collapseThreshold%populate(threshold)
-             deallocate(threshold)
              self%criticalOverdensityTarget   =criticalOverdensity
              self%collapseThresholdInitialized=.true.
           end if
@@ -616,6 +630,22 @@ contains
           timeUpperLimit        =+self%cosmologyFunctions_%cosmicTime               (expansionFactor=1.0d0         )
           collapseTimeUpperLimit=+self                    %criticalOverdensityTarget                                 &
                &                 -                         collapseTimeRoot         (                timeUpperLimit)
+          ! Construct an initial guess for the collapse time which depends only on the critical overdensity (and mass, and node)
+          ! for which the collapse time is sought, using the scaling, t ∝ [δ_c(t)/D(t)]^{-3/2}, of a matter-dominated universe,
+          ! normalized to the critical overdensity collapsing at the present epoch. The guess must not depend on the history of
+          ! earlier requests (e.g. by being the previous collapse time found), as the root found depends (to within the
+          ! tolerance) upon the guess, so that the collapse time returned would then depend on that history. As in the tabulated
+          ! case above, the scaling is used only if both overdensities are positive, with the present epoch used as the guess
+          ! otherwise.
+          if (collapseTimeUpperLimit > 0.0d0 .and. self%criticalOverdensityTarget > 0.0d0) then
+             timeGuess=+timeUpperLimit                     &
+                  &    *(                                  &
+                  &      +collapseTimeUpperLimit           &
+                  &      /self%criticalOverdensityTarget   &
+                  &     )**1.5d0
+          else
+             timeGuess=+timeUpperLimit
+          end if
           do while (collapseTimeRoot(timeUpperLimit) < 0.0d0)
              timeUpperLimit        =+2.0d0                                          &
                   &                 *                               timeUpperLimit
@@ -638,7 +668,10 @@ contains
                 end if
              end if
           end do
-          self%timeOfCollapsePrevious=self%finderTimeOfCollapse%find(rootGuess=self%timeOfCollapsePrevious)
+          ! Limit the guess to the upper bound found above (beyond which the root can not lie).
+          timeGuess                  =min(timeGuess,timeUpperLimit)
+          if (timeGuess >= timeBigCrunch) timeGuess=self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)
+          self%timeOfCollapsePrevious=self%finderTimeOfCollapse%find(rootGuess=timeGuess)
        end if
     end if
     ! Return the memoized value.

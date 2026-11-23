@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests that spherical collapse tabulations are deterministic.
 !!}
@@ -29,9 +31,10 @@ program Tests_Spherical_Collapse_Determinism
 
   #. the tabulated range is pinned to whole decades (or octaves), so that it takes one of a small set of discrete values
      irrespective of the requested time;
-  #. extending the table changes neither the abscissae nor the values of any previously computed point, bit-for-bit---it is the
-     absence of this property which necessitated the warm-up hack in the ``Cole2000`` merger tree builder and the two-attempt
-     workaround in the ``Font2008`` ram pressure stripping class;
+  #. extending the table changes neither the abscissae nor the values of any previously computed point, bit-for-bit---it was the
+     absence of this property (here and in the tabulations of expansion factor and linear growth factor) which necessitated a
+     warm-up call in the ``Cole2000`` merger tree builder (since removed), and contributed to the need for the two-attempt
+     workaround in the ``Font2008`` ram pressure stripping class (which remains, for the reasons given there);
   #. a table subsequently obtained over the wider range is identical to the table built by extension.
   !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda                  , cosmologyFunctionsMatterDarkEnergy
@@ -46,19 +49,19 @@ program Tests_Spherical_Collapse_Determinism
   use :: Unit_Tests                , only : Assert                                          , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group                              , &
        &                                    Unit_Tests_Finish
   implicit none
-  type            (cosmologyParametersSimple                         )           :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                    )           :: cosmologyFunctionsLambda_
-  type            (cosmologyFunctionsMatterDarkEnergy                )           :: cosmologyFunctionsDarkEnergy_
-  type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt  )           :: solverCosmologicalConstant_
-  type            (sphericalCollapseSolverCollisionlessMatterDarkEnergy     )           :: solverDarkEnergy_
-  type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy)           :: solverBaryons_
+  type            (cosmologyParametersSimple                           )           :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                      )           :: cosmologyFunctionsLambda_
+  type            (cosmologyFunctionsMatterDarkEnergy                  )           :: cosmologyFunctionsDarkEnergy_
+  type            (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt    )           :: solverCosmologicalConstant_
+  type            (sphericalCollapseSolverCollisionlessMatterDarkEnergy)           :: solverDarkEnergy_
+  type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy  )           :: solverBaryons_
   ! Times, in Gyr, at which the tabulations are triggered. The second lies far outside of the range which will have been
   ! tabulated in response to the first, and so forces the table to be extended.
-  double precision                                                   , parameter :: timeFirst                    =10.00d+0,                     &
-       &                                                                            timeSecond                   = 5.00d-2
-  integer                                                            , parameter :: pointsPerOctave              = 4
-  integer                                                            , parameter :: solverCosmologicalConstant   = 1      , solverDarkEnergy=2, &
-       &                                                                            solverBaryons                = 3
+  double precision                                                     , parameter :: timeFirst                    =10.00d+0,                     &
+       &                                                                              timeSecond                   = 5.00d-2
+  integer                                                              , parameter :: pointsPerOctave              = 4
+  integer                                                              , parameter :: solverCosmologicalConstant   = 1      , solverDarkEnergy=2, &
+       &                                                                              solverBaryons                = 3
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -67,37 +70,37 @@ program Tests_Spherical_Collapse_Determinism
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: determinism of tabulations")
   ! Construct the cosmology.
-  cosmologyParameters_        =cosmologyParametersSimple                       (                                                                       &
-       &                                                                        OmegaMatter                = 0.2750d0                                , &
-       &                                                                        OmegaBaryon                = 0.0458d0                                , &
-       &                                                                        OmegaDarkEnergy            = 0.7250d0                                , &
-       &                                                                        temperatureCMB             = 2.7800d0                                , &
-       &                                                                        HubbleConstant             =70.2000d0                                  &
-       &                                                                       )
-  cosmologyFunctionsLambda_   =cosmologyFunctionsMatterLambda                  (                                                                       &
-       &                                                                        cosmologyParameters_       =cosmologyParameters_                       &
-       &                                                                       )
-  cosmologyFunctionsDarkEnergy_=cosmologyFunctionsMatterDarkEnergy             (                                                                       &
-       &                                                                        cosmologyParameters_       =cosmologyParameters_                     , &
-       &                                                                        darkEnergyEquationOfStateW0=-1.0d0                                   , &
-       &                                                                        darkEnergyEquationOfStateW1=+0.0d0                                     &
-       &                                                                       )
+  cosmologyParameters_        = cosmologyParametersSimple                        (                                                                             &
+       &                                                                          OmegaMatter                = 0.2750d0                                      , &
+       &                                                                          OmegaBaryon                = 0.0458d0                                      , &
+       &                                                                          OmegaDarkEnergy            = 0.7250d0                                      , &
+       &                                                                          temperatureCMB             = 2.7800d0                                      , &
+       &                                                                          HubbleConstant             =70.2000d0                                        &
+       &                                                                         )
+  cosmologyFunctionsLambda_    =cosmologyFunctionsMatterLambda                   (                                                                             &
+       &                                                                          cosmologyParameters_       =cosmologyParameters_                             &
+       &                                                                         )
+  cosmologyFunctionsDarkEnergy_=cosmologyFunctionsMatterDarkEnergy               (                                                                             &
+       &                                                                          cosmologyParameters_       =cosmologyParameters_                           , &
+       &                                                                          darkEnergyEquationOfStateW0=-1.0d0                                         , &
+       &                                                                          darkEnergyEquationOfStateW1=+0.0d0                                           &
+       &                                                                         )
   ! Construct the solvers. Table storage is disabled throughout so that the test neither depends upon, nor perturbs, any
   ! tabulations cached in the dynamic data path by other runs.
-  solverCosmologicalConstant_ =sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt  (                                                                     &
-       &                                                                          cosmologyFunctions_      =cosmologyFunctionsLambda_                  &
+  solverCosmologicalConstant_ =sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt  (                                                                             &
+       &                                                                          cosmologyFunctions_        =cosmologyFunctionsLambda_                        &
        &                                                                         )
-  solverDarkEnergy_           =sphericalCollapseSolverCollisionlessMatterDarkEnergy     (                                                                     &
-       &                                                                          energyFixedAt             =collisionlessMatterDarkEnergyFixedAtTurnaround , &
-       &                                                                          cosmologyFunctions_       =cosmologyFunctionsDarkEnergy_             &
+  solverDarkEnergy_           =sphericalCollapseSolverCollisionlessMatterDarkEnergy     (                                                                      &
+       &                                                                          energyFixedAt               =collisionlessMatterDarkEnergyFixedAtTurnaround, &
+       &                                                                          cosmologyFunctions_         =cosmologyFunctionsDarkEnergy_                   &
        &                                                                         )
-  solverBaryons_              =sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(                                                                     &
-       &                                                                          baryonsCluster            =.false.                                 , &
-       &                                                                          tablePointsPerOctave      =pointsPerOctave                         , &
-       &                                                                          energyFixedAt             =collisionlessMatterDarkEnergyFixedAtTurnaround , &
-       &                                                                          perturbationSmall         =1.0d-3                                  , &
-       &                                                                          cosmologyParameters_      =cosmologyParameters_                    , &
-       &                                                                          cosmologyFunctions_       =cosmologyFunctionsDarkEnergy_             &
+  solverBaryons_              =sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(                                                                             &
+       &                                                                          baryonsCluster              =.false.                                       , &
+       &                                                                          tablePointsPerOctave        =pointsPerOctave                               , &
+       &                                                                          energyFixedAt               =collisionlessMatterDarkEnergyFixedAtTurnaround, &
+       &                                                                          perturbationSmall           =1.0d-3                                        , &
+       &                                                                          cosmologyParameters_        =cosmologyParameters_                          , &
+       &                                                                          cosmologyFunctions_         =cosmologyFunctionsDarkEnergy_                   &
        &                                                                         )
   ! Test each solver in turn. The final argument is the anchor interval, in lattice steps, which each solver pins its bounds to -
   ! the per-decade solvers anchor to half decades (500 of their 1000 points per decade), while the per-octave solver anchors to

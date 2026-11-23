@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program to test the determinism of the tabulations built by the cosmology functions classes.
 !!}
@@ -32,10 +34,11 @@ program Test_Cosmology_Functions
   span, and not on the order in which they arrived. That is asserted here by presenting the same set of epochs to two objects
   in opposite orders and requiring the results to agree *exactly*.
 
-  Every epoch is requested before any value is recorded. This is deliberate: the expansion factor is integrated forward from
-  an initial condition imposed at the earliest tabulated epoch, so a tabulation which has not yet been asked for the earliest
-  epoch of the set is not the same tabulation, and could not be expected to agree with one which has. What is asserted is that
-  the tabulation *arrived at* is the same, which is the property this determinism buys.
+  Each value is recorded as soon as it is requested, so that values recorded before the tabulation is extended (to earlier or
+  later epochs) are compared with values recorded after. The expansion factor is integrated from an initial condition imposed
+  at a fixed anchor epoch, and extending the tabulation never changes a value already computed, so the two must agree. (When
+  the initial condition was instead imposed at the earliest tabulated epoch, extending the tabulation to earlier epochs rebuilt
+  it, changing every value slightly - see issue #1780.)
   !!}
   use :: Cosmology_Functions , only : cosmologyFunctionsMatterLambda, cosmologyFunctionsMatterDarkEnergy
   use :: Cosmology_Parameters, only : cosmologyParametersSimple
@@ -44,17 +47,17 @@ program Test_Cosmology_Functions
   implicit none
   ! Epochs at which each tabulation is queried, in gigayears. They span several decades, so that every tabulation must be
   ! extended repeatedly, and they are deliberately not points of the lattice. The expansion factor tabulations begin life
-  ! spanning 10⁻⁴ to 20 Gyr, so the epochs presented to them must reach beyond that at *both* ends or no extension is provoked
-  ! at all - the matter plus dark energy case initially did not, and so passed even against the unpinned tabulation. The
+  ! spanning roughly 5×10⁻⁸ to 20 Gyr, so the epochs presented to them must reach beyond that at *both* ends or no extension is
+  ! provoked at all - the matter plus dark energy case initially did not, and so passed even against the unpinned tabulation. The
   ! comoving distance tabulation ends at the present day, so the epochs presented to it stop below the present day age of this
   ! cosmology (13.5 Gyr).
-  double precision                                    , dimension(7), parameter :: timesExpansion      =[2.1d-5,3.7d-3,4.10d-2,0.83d0,2.9d0,9.1d0,47.0d0]
+  double precision                                    , dimension(7), parameter :: timesExpansion      =[3.1d-9,3.7d-3,4.10d-2,0.83d0,2.9d0,9.1d0,47.0d0]
   double precision                                    , dimension(7), parameter :: timesDistance       =[3.7d-3,4.1d-2,0.83d+0,2.90d0,5.3d0,9.1d0,13.0d0]
   type            (cosmologyParametersSimple         )                          :: cosmologyParameters_
   type            (cosmologyFunctionsMatterLambda    )                          :: lambdaAscending_    , lambdaDescending_
   type            (cosmologyFunctionsMatterDarkEnergy)                          :: darkEnergyAscending_, darkEnergyDescending_
   double precision                                    , dimension(7)            :: resultAscending     , resultDescending
-  integer                                                                       :: i                   , pass
+  integer                                                                       :: i
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -107,38 +110,30 @@ program Test_Cosmology_Functions
   !!]
 
   ! Expansion factor vs. time, matter plus cosmological constant.
-  do pass=1,2
-     do i=1,size(timesExpansion)
-        resultAscending (i)=lambdaAscending_ %expansionFactor(timesExpansion(                       i))
-        resultDescending(i)=lambdaDescending_%expansionFactor(timesExpansion(size(timesExpansion)+1-i))
-     end do
+  do i=1,size(timesExpansion)
+     resultAscending (i)=lambdaAscending_ %expansionFactor(timesExpansion(                       i))
+     resultDescending(i)=lambdaDescending_%expansionFactor(timesExpansion(size(timesExpansion)+1-i))
   end do
   call Assert("matter + cosmological constant: expansion factor is independent of the order in which epochs are requested",resultAscending,reverse(resultDescending),absTol=0.0d0)
 
   ! Cosmic time vs. expansion factor - the inverse of the same tabulation.
-  do pass=1,2
-     do i=1,size(timesDistance)
-        resultAscending (i)=lambdaAscending_ %cosmicTime(lambdaAscending_ %expansionFactor(timesDistance(                      i)))
-        resultDescending(i)=lambdaDescending_%cosmicTime(lambdaDescending_%expansionFactor(timesDistance(size(timesDistance)+1-i)))
-     end do
+  do i=1,size(timesDistance)
+     resultAscending (i)=lambdaAscending_ %cosmicTime(lambdaAscending_ %expansionFactor(timesDistance(                      i)))
+     resultDescending(i)=lambdaDescending_%cosmicTime(lambdaDescending_%expansionFactor(timesDistance(size(timesDistance)+1-i)))
   end do
   call Assert("matter + cosmological constant: cosmic time is independent of the order in which epochs are requested"     ,resultAscending,reverse(resultDescending),absTol=0.0d0)
 
   ! Comoving distance vs. time.
-  do pass=1,2
-     do i=1,size(timesDistance)
-        resultAscending (i)=lambdaAscending_ %distanceComoving(timesDistance(                      i))
-        resultDescending(i)=lambdaDescending_%distanceComoving(timesDistance(size(timesDistance)+1-i))
-     end do
+  do i=1,size(timesDistance)
+     resultAscending (i)=lambdaAscending_ %distanceComoving(timesDistance(                      i))
+     resultDescending(i)=lambdaDescending_%distanceComoving(timesDistance(size(timesDistance)+1-i))
   end do
   call Assert("matter + cosmological constant: comoving distance is independent of the order in which epochs are requested",resultAscending,reverse(resultDescending),absTol=0.0d0)
 
   ! Expansion factor vs. time, matter plus dark energy.
-  do pass=1,2
-     do i=1,size(timesExpansion)
-        resultAscending (i)=darkEnergyAscending_ %expansionFactor(timesExpansion(                       i))
-        resultDescending(i)=darkEnergyDescending_%expansionFactor(timesExpansion(size(timesExpansion)+1-i))
-     end do
+  do i=1,size(timesExpansion)
+     resultAscending (i)=darkEnergyAscending_ %expansionFactor(timesExpansion(                       i))
+     resultDescending(i)=darkEnergyDescending_%expansionFactor(timesExpansion(size(timesExpansion)+1-i))
   end do
   call Assert("matter + dark energy: expansion factor is independent of the order in which epochs are requested"           ,resultAscending,reverse(resultDescending),absTol=0.0d0)
 
