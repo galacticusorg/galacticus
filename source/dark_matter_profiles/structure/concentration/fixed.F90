@@ -30,7 +30,7 @@
   !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationFixed
      !!{RST
-     A dark matter halo profile concentration class implementing the algorithm of :cite:t:`gao_redshift_2008`.
+     A dark matter halo profile concentration class using a fixed value for concentration.
      !!}
      private
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()

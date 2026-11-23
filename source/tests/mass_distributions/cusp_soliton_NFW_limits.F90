@@ -65,12 +65,14 @@ program Test_Mass_Distributions_Cusp_Soliton_NFW_Limits
   ! The soliton core. `radiusSoliton` is four core radii, so the soliton radii below all lie strictly inside it.
   double precision                            , parameter                 :: radiusCore              =2.0d-3   , radiusSoliton       =8.0d-3, &
        &                                                                     densitySolitonCentral   =1.0d17                                    ! [Mpc], [Mpc], [M☉/Mpc³]
-  ! Cusp amplitudes. 0.225 is the value found by `tests.prompt_cusps` for a representative halo.
+  ! Cusp amplitudes. 0.225 is the value found by `tests.prompt_cusps` for a representative halo. The outermost radius,
+  ! r=100r_s, has y²<10⁻³r/r_s for y=0.1, where the series for a small cusp at large radius applies, but y is not small; it
+  ! checks that the series is not used there.
   double precision                            , parameter                 :: yCusp                   =1.00d-1  , yCuspLarge          =2.25d-1
-  integer                                     , parameter                 :: countRadiiCusp          =10
-  double precision                            , dimension(countRadiiCusp) :: radiiCusp               =[1.00000000000000d-09,1.00000000000000d-07,1.00000000000000d-06,1.00000000000000d-05,1.00000000000000d-04,1.00000000000000d-03,1.00000000000000d-02,1.00000000000000d-01,1.00000000000000d+00,1.00000000000000d+01]
-  double precision                            , dimension(countRadiiCusp) :: massCuspReference       =[2.64922361384326d-14,2.64923116729412d-11,8.37782167905250d-10,2.64998636104605d-08,8.40165965958284d-07,2.72404659142722d-05,1.04297949607350d-03,6.05340260429755d-02,2.45789232707557d+00,1.87652750600798d+01]
-  double precision                            , dimension(countRadiiCusp) :: massCuspLargeReference  =[5.96075298764774d-14,5.96075577648368d-11,1.88496450026144d-09,5.96103464350899d-08,1.88584587923866d-06,5.98875683325889d-05,1.96909105327401d-03,7.74854246921795d-02,2.57476621868235d+00,1.89858522250268d+01]
+  integer                                     , parameter                 :: countRadiiCusp          =11
+  double precision                            , dimension(countRadiiCusp) :: radiiCusp               =[1.00000000000000d-09,1.00000000000000d-07,1.00000000000000d-06,1.00000000000000d-05,1.00000000000000d-04,1.00000000000000d-03,1.00000000000000d-02,1.00000000000000d-01,1.00000000000000d+00,1.00000000000000d+01,1.00000000000000d+02]
+  double precision                            , dimension(countRadiiCusp) :: massCuspReference       =[2.64922361384326d-14,2.64923116729412d-11,8.37782167905250d-10,2.64998636104605d-08,8.40165965958284d-07,2.72404659142722d-05,1.04297949607350d-03,6.05340260429755d-02,2.45789232707557d+00,1.87652750600798d+01,4.56148606004340d+01]
+  double precision                            , dimension(countRadiiCusp) :: massCuspLargeReference  =[5.96075298764774d-14,5.96075577648368d-11,1.88496450026144d-09,5.96103464350899d-08,1.88584587923866d-06,5.98875683325889d-05,1.96909105327401d-03,7.74854246921795d-02,2.57476621868235d+00,1.89858522250268d+01,4.58560986332875d+01]
   ! The Schive et al. (2014) soliton core, in units of ρ_c r_c³.
   integer                                     , parameter                 :: countRadiiSoliton       =6
   double precision                            , dimension(countRadiiSoliton) :: radiiSoliton         =[1.00000000000000d-02,1.00000000000000d-01,3.00000000000000d-01,1.00000000000000d+00,2.00000000000000d+00,3.00000000000000d+00]

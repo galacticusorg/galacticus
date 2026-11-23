@@ -375,6 +375,7 @@ contains
     class           (massDistributionCuspNFW), intent(inout), target :: self
     double precision                         , intent(in   )         :: radius
     double precision                         , parameter             :: fractionSmall          =1.0d-3
+    double precision                         , parameter             :: ySmall                 =1.0d-2
     ! The simplified solution below drops the (1+r/r_s)⁻² factor of the density, so its error grows in proportion to the radius -
     ! reaching 1.2×10⁻³ at r/r_s = 10⁻³. It is needed only at radii small enough that the alternatives lose accuracy to
     ! cancellation, which is far below that: this threshold minimizes the largest error over the whole range, reducing it from
@@ -424,9 +425,9 @@ contains
             &   *sqrt(radiusScaleFree*(      radiusScaleFree+self%y**2)) &
             &   -termLogarithmic                                         &
             &  )
-    else if (self%y**2 < fractionSmall*radiusScaleFree) then
+    else if (self%y < ySmall .and. self%y**2 < fractionSmall*radiusScaleFree) then
        ! For small cusps, y² ≪ r, use a series solution. This is essentially the NFW solution with the lowest order correction for
-       ! y.
+       ! y. The neglected terms are of order y⁴ln(x/y²), so this is accurate only if y itself is also small.
        mass  =+4.0d0*Pi                     &
             & *self%densityNormalization    &
             & *self%radiusScale         **3 &
