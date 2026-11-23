@@ -57,17 +57,17 @@ program Test_Hot_Halo_Cold_Mode_Mass_Distribution
   type            (treeNode                ), pointer   :: node
   class           (nodeComponentBasic      ), pointer   :: basic
   class           (nodeComponentHotHalo    ), pointer   :: hotHalo
-  class           (massDistributionClass   ), pointer   :: massDistributionAll   , massDistributionHotMode, &
+  class           (massDistributionClass   ), pointer   :: massDistributionAll             , massDistributionHotMode       , &
        &                                                   massDistributionColdMode
   type            (varying_string          )            :: parameterFile
   type            (inputParameters         )            :: parameters
   ! Properties of the test halo.
-  double precision                          , parameter :: massHalo        =1.0d12, massHotMode            =1.0d11, &
-       &                                                   massColdMode    =5.0d10
-  double precision                                      :: time                   , radiusOuter                   , &
-       &                                                   massAllOuter           , massHotModeOuter              , &
-       &                                                   massColdModeOuter      , massAllInner                  , &
-       &                                                   massHotModeInner       , massColdModeInner
+  double precision                          , parameter :: massHalo                =1.0d12, massHotMode             =1.0d11, &
+       &                                                   massColdMode            =5.0d10
+  double precision                                      :: time                           , radiusOuter                    , &
+       &                                                   massAllOuter                   , massHotModeOuter               , &
+       &                                                   massColdModeOuter              , massAllInner                   , &
+       &                                                   massHotModeInner               , massColdModeInner
 
   ! Establish error handlers, so that errors reported by the GSL are trapped rather than aborting.
   call Error_Handler_Register()
@@ -113,9 +113,9 @@ program Test_Hot_Halo_Cold_Mode_Mass_Distribution
   massAllInner     =massDistributionAll     %massEnclosedBySphere(0.2d0*radiusOuter)
   massHotModeInner =massDistributionHotMode %massEnclosedBySphere(0.2d0*radiusOuter)
   massColdModeInner=massDistributionColdMode%massEnclosedBySphere(0.2d0*radiusOuter)
-  call Assert("hot-mode mass within the outer radius"           ,massHotModeOuter ,massHotMode                      ,relTol=1.0d-6)
-  call Assert("cold-mode mass within the outer radius"          ,massColdModeOuter,massColdMode                     ,relTol=1.0d-6)
-  call Assert("total gaseous mass within the outer radius"      ,massAllOuter     ,massHotMode     +massColdMode    ,relTol=1.0d-6)
+  call Assert("hot-mode mass within the outer radius"            ,massHotModeOuter ,massHotMode                       ,relTol=1.0d-6)
+  call Assert("cold-mode mass within the outer radius"           ,massColdModeOuter,massColdMode                      ,relTol=1.0d-6)
+  call Assert("total gaseous mass within the outer radius"       ,massAllOuter     ,massHotMode     +massColdMode     ,relTol=1.0d-6)
   call Assert("total gaseous mass within 0.2 of the outer radius",massAllInner     ,massHotModeInner+massColdModeInner,relTol=1.0d-6)
   !![
   <objectDestructor name="massDistributionAll"     />

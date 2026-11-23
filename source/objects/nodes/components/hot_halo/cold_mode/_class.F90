@@ -519,8 +519,8 @@ contains
              massDistribution_ => massDistributionColdMode
           else          
              allocate(massDistributionTotal          )
-             massDistributionComponents      => massDistributionListAcquire()
-             massDistributionComponents%next => massDistributionListAcquire()
+             massDistributionComponents                        => massDistributionListAcquire()
+             massDistributionComponents%next                   => massDistributionListAcquire()
              massDistributionComponents     %massDistribution_ => massDistributionHotMode
              massDistributionComponents%next%massDistribution_ => massDistributionColdMode
              !![
