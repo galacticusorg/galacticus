@@ -137,7 +137,7 @@ For example:
     !$ integer                                                              :: threadCount
        logical                                                              :: converged  =.false., iterating     =.true.
 
-A comment or a ``#ifdef`` between two runs of declarations does not break the alignment — the columns span it. These conventions are applied automatically by :ref:`manual-sec-formatDeclarations`.
+A comment or a ``#ifdef`` between two runs of declarations does not break the alignment — the columns span it. These conventions can be applied automatically by :ref:`manual-sec-formatDeclarations`, but for now align declarations by hand (see :ref:`the formatter policy <manual-sec-formatterPolicy>`).
 
 Module ``use`` statements
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -166,7 +166,7 @@ For example:
    #endif
     !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
 
-These conventions are applied automatically by :ref:`manual-sec-formatModuleUses`, so there is no need to align them by hand.
+These conventions can be applied automatically by :ref:`manual-sec-formatModuleUses`, but for now align ``use`` blocks by hand (see :ref:`the formatter policy <manual-sec-formatterPolicy>`).
 
 Constants
 ~~~~~~~~~
