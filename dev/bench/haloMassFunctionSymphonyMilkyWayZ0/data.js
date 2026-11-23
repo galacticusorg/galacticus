@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795317234993,
+  "lastUpdate": 1795420134272,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (Symphony Milky Way z=0)": [
@@ -2136,6 +2136,40 @@ window.BENCHMARK_DATA = {
           {
             "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.000 (47 realizations)",
             "value": 4183.781231907154,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX64 z=0.000",
+            "value": 180.57219607377456,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4c4a6ef0184e639b8d82c319dfd4a70967390dbd",
+          "message": "Merge pull request #1839 from galacticusorg/ci/dependency-bot-no-repush\n\nci: stop dependencyBot re-pushing branches with pending PRs",
+          "timestamp": "2026-11-23T00:25:03Z",
+          "tree_id": "6b9e2cd8a63a0d254dab7c604c2166ff668617d7",
+          "url": "https://github.com/galacticusorg/galacticus/commit/4c4a6ef0184e639b8d82c319dfd4a70967390dbd"
+        },
+        "date": 1795420133771,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - Symphony MilkyWay CDM resolutionX1 z=0.000 (47 realizations)",
+            "value": 4183.78122847027,
             "unit": "-logℒ"
           },
           {
