@@ -62,6 +62,13 @@ Implements a merger tree branching probability class which conditions a branch o
    equivalent to conditioning on the tree having such a progenitor when that number is rarely more than one, that is, when
    :math:`H(M_0,\delta_0) \ll 1` for the root halo, or when no two progenitors can both lie in the window.
 
+   The window is :math:`|\ln(M/M_1)| &lt; w`, where :math:`w` is ``[windowLogMass]``, so the branch reaches :math:`\delta_1` with
+   a mass within a factor :math:`\exp(w)` of :math:`M_1`. When used by
+   :galacticus-class:`mergerTreeBuildControllerConstrained`, a branch arriving above :math:`M_1` is split into :math:`M_1` and a
+   second progenitor, while one arriving below :math:`M_1` is raised to it, creating a mass of at most :math:`[1-\exp(-w)]M_1`.
+   A window lying entirely above :math:`M_1` would avoid creating mass, but biases the mass of the branch high just before
+   :math:`\delta_1` by about half the width of the window, so the window is centered on :math:`M_1`.
+
    The tabulation of :math:`H` is shared by all copies of the object, and is rebuilt only if a larger range is needed. A rebuilt
    table agrees exactly with the one that it replaces over their common range, provided that the objects from which it is built
    (the mass variance, critical overdensity, and so on) return the same values for both. Some of those objects change their values
