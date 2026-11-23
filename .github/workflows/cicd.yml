@@ -1581,6 +1581,7 @@ jobs:
                 test-branchSubsampling.py,
                 test-CGM-mass-cooled.py,
                 test-concentration-Ludlow2016.py,
+                test-concentration-Ludlow2014.py,
                 test-concentration-Johnson2021.py,
                 test-tidallyTruncatedNFWFit.py,
                 test-constraint-deterministic-spins.py,
