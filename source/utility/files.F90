@@ -349,7 +349,8 @@ contains
     implicit none
     character(len=*            ), intent(in   ) :: fileName
     integer                                     :: lengthParent
-    type     (varying_string   )                :: fileName_   , parentName
+    type     (varying_string   )                :: fileName_    , parentName, &
+         &                                         lastCharacter
     !$GLC attributes initialized ::  parentName
 
     ! Handle empty file names.
@@ -362,14 +363,25 @@ contains
     ! Find the name of the parent directory.
     parentName  =      fileName_
     lengthParent=len(parentName)
-    if (extract(parentName,lengthParent,lengthParent) == "/") &
-         & parentName=extract(parentName,1,lengthParent-1)
+    !![
+    <workaround type="gfortran" PR="128856" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=128856" docformat="rst">
+      <description>
+      A ``varying_string`` function result used in an operand of an expression in an ``if`` condition is not deallocated, so
+      the last character is extracted into a local variable first. Otherwise every call leaks one byte.
+      </description>
+    !!]
+    lastCharacter=extract(parentName,lengthParent,lengthParent)
+    if (lastCharacter == "/") parentName=extract(parentName,1,lengthParent-1)
+    !![
+    </workaround>
+    !!]
     parentName       =File_Path(parentName)
     ! Sync the parent directory to ensure that any file system caching is updated.
     call syncdir_C(char(parentName)//char(0))
     ! Test for file existence.
     !![
-    <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html" docformat="rst">
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=92836" docformat="rst">
+     <seeAlso type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html"/>
      <description>
      Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existence.
      </description>

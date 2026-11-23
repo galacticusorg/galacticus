@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Changes applied to test-postprocess-outputs-model.xml by test-postprocess-outputs.py: give each galaxy a random
+     inclination, so that inclination-dependent dust attenuation can be postprocessed. -->
+<changes>
+
+  <change type="append" path="nodeOperator">
+    <nodeOperator value="inclinationRandom"/>
+  </change>
+
+</changes>

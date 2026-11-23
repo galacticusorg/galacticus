@@ -97,8 +97,16 @@ program Tests_Merger_Tree_Branching_Constraint_Conditioned
   double precision                                                              , dimension(countOffset                         ), parameter :: deltaOffsets                       =[1.00d0,0.30d0]
   ! For the default window the parents include masses just above the window, where the expectation is hardest to converge.
   double precision                                                              , dimension(countParent  ,countCase             ), parameter :: massesParent                       =reshape([3.0d12,1.0d13,3.0d13,3.0d12,1.0d13,3.0d13,1.1d12,2.0d12,1.0d13],[countParent,countCase])
-  ! Each redshift has its own objects, as assigning a constructor result onto an object already in use risks a double finalization
-  ! (GCC PR 110626).
+  ! Each redshift has its own objects, rather than assigning a constructor result onto an object already in use.
+  !![
+  <workaround type="gfortran" PR="110626" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi?id=110626" docformat="rst">
+  <description>
+  Assigning a new value to an object of this type that is already in use finalizes the old value of its resource-manager
+  component twice. The fix for PR 110626 in gfortran 16.2 covers only types with no pointer or allocatable components, and
+  the PR was reopened for the remaining case.
+  </description>
+  </workaround>
+  !!]
   type            (mergerTreeBranchingProbabilityConstraintConditioned         ), dimension(              countCase             )            :: conditioned                                                             , &
        &                                                                                                                                        conditionedFine
   type            (mergerTreeBranchingProbabilityConstraintConditioned         )                                                             :: conditionedExtended

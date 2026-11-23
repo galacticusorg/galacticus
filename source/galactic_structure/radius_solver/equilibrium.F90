@@ -21,8 +21,11 @@
   Implementation of an "equilibrium" solver for galactic structure.
   !!}
 
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  !+    Contributions to this file made by: Andrew Robertson, Codex.
+
+  use :: Galactic_Structure_Equilibrium_Iteration, only : equilibriumIterationState
+  use :: Dark_Matter_Profiles_DMO                , only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales                 , only : darkMatterHaloScaleClass
 
   !![
   <galacticStructureSolver name="galacticStructureSolverEquilibrium" docformat="rst">
@@ -57,12 +60,13 @@
   end interface galacticStructureSolverEquilibrium
 
   ! Module-scope variables used to communicate current state of radius solver.
-  integer                                               :: countComponentsActive        , countIterations
-  double precision                                      :: fitMeasure
-  type            (treeNode), pointer                   :: node_
-  double precision          , allocatable, dimension(:) :: radiusStored                , velocityStored
-  logical                                               :: revertStructure     =.false.
-  !$omp threadprivate(countIterations,countComponentsActive,fitMeasure,node_,radiusStored,velocityStored,revertStructure)
+  type            (equilibriumIterationState)                            :: iterationState
+  integer                                                                :: countComponentsActive        , countIterations
+  double precision                                                       :: fitMeasure
+  type            (treeNode                 ), pointer                   :: node_
+  double precision                           , allocatable, dimension(:) :: radiusStored                , velocityStored
+  logical                                                                :: revertStructure     =.false.
+  !$omp threadprivate(iterationState,countIterations,countComponentsActive,fitMeasure,node_,radiusStored,velocityStored,revertStructure)
 
 contains
 
@@ -117,7 +121,11 @@ contains
       <name>solutionTolerance</name>
       <defaultValue>1.0d-2</defaultValue>
       <description>
-      Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.
+      Maximum allowed mean logarithmic radius error over the active components. Each component contributes the larger of
+      the undamped update :math:`|\ln(R_\mathrm{proposal}/R)|` and the accepted, possibly damped step
+      :math:`|\ln(R_\mathrm{new}/R)|`. For a positive radius the undamped update is
+      :math:`R_\mathrm{proposal}=\sqrt{jR/V(R)}`, so its error is half of :math:`|\ln(j/[RV(R)])|`.
+      Requiring this residual prevents a small damped step from implying equilibrium.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -212,6 +220,7 @@ contains
     call radiusSolverPlausibilities(node)
     if (node%isPhysicallyPlausible .and. .not.plausibilityOnly_) then
        ! Initialize the solver state.
+       call iterationState%reset()
        countIterations=0
        fitMeasure    =2.0d0*self%solutionTolerance
        ! Determine which node to use for halo properties.
@@ -267,27 +276,21 @@ contains
       use :: Numerical_Constants_Astronomical          , only : gravitationalConstant_internal
       use :: String_Handling                           , only : operator(//)
       implicit none
-      type            (treeNode                    ), intent(inout)                     :: node
-      type            (enumerationComponentTypeType), intent(in   )                     :: component
-      double precision                              , intent(in   )                     :: specificAngularMomentum
-      procedure       (solverGet                   ), intent(in   ) , pointer           :: radiusGet                         , velocityGet
-      procedure       (solverSet                   ), intent(in   ) , pointer           :: radiusSet                         , velocitySet
-      double precision                              , dimension(:,:), allocatable, save :: radiusHistory
-      !$omp threadprivate(radiusHistory)
-      double precision                              , dimension(:,:), allocatable       :: radiusHistoryTemporary
-      double precision                              , dimension(:  ), allocatable       :: radiusStoredTmp                   , velocityStoredTmp
-      class           (massDistributionClass       ), pointer                           :: massDistribution_
-      integer                                       , parameter                         :: storeIncrement                 =10
-      integer                                       , parameter                         :: iterationsForBisectionMinimum  =10
-      integer                                       , parameter                         :: activeComponentMaximumIncrement= 2
-      integer                                                                           :: activeComponentMaximumCurrent
-      character       (len=14                      )                                    :: label
-      type            (varying_string              ), save                              :: message
+      type            (treeNode                    ), intent(inout)               :: node
+      type            (enumerationComponentTypeType), intent(in   )               :: component
+      double precision                              , intent(in   )               :: specificAngularMomentum
+      procedure       (solverGet                   ), intent(in   ) , pointer     :: radiusGet                         , velocityGet
+      procedure       (solverSet                   ), intent(in   ) , pointer     :: radiusSet                         , velocitySet
+      double precision                              , dimension(:  ), allocatable :: radiusStoredTmp                   , velocityStoredTmp
+      class           (massDistributionClass       ), pointer                     :: massDistribution_
+      integer                                       , parameter                   :: storeIncrement                 =10
+      character       (len=14                      )                              :: label
+      type            (varying_string              ), save                        :: message
       !$omp threadprivate(message)
-      double precision                                                                  :: baryonicVelocitySquared           , darkMatterMassFinal, &
-           &                                                                               darkMatterVelocitySquared         , velocity           , &
-           &                                                                               radius                            , radiusNew          , &
-           &                                                                               specificAngularMomentumMaximum
+      double precision                                                            :: baryonicVelocitySquared           , darkMatterMassFinal  , &
+           &                                                                         darkMatterVelocitySquared         , velocity             , &
+           &                                                                         radius                            , radiusNew            , &
+           &                                                                         specificAngularMomentumMaximum    , radiusFitContribution
       !$GLC attributes unused :: component
 
       ! Count the number of active components.
@@ -383,46 +386,9 @@ contains
          else
             radiusNew=     specificAngularMomentum/velocity
          endif
-         ! Ensure that the radius history array is sufficiently sized.
-         if (.not.allocated(radiusHistory)) then
-            allocate(radiusHistory(2,countComponentsActive+activeComponentMaximumIncrement))
-            radiusHistory=-1.0d0
-         else if (size(radiusHistory,dim=2) < countComponentsActive) then
-            activeComponentMaximumCurrent=size(radiusHistory,dim=2)
-            call Move_Alloc(radiusHistory,radiusHistoryTemporary)
-            allocate(radiusHistory(2,countComponentsActive+activeComponentMaximumIncrement))
-            radiusHistory(:,                              1:                      activeComponentMaximumCurrent  )=radiusHistoryTemporary
-            radiusHistory(:,activeComponentMaximumCurrent+1:countComponentsActive+activeComponentMaximumIncrement)=-1.0d0
-            deallocate(radiusHistoryTemporary)
-         end if
-         ! Detect oscillations in the radius solver. Only do this after a few bisection iterations have passed as we don't want to
-         ! declare a true oscillation until the solver has had time to "burn in".
-         if (countIterations == 1) radiusHistory=-1.0d0
-         if     (                                                                                                                                                                            &
-              &             countIterations                                                                                                                >  iterationsForBisectionMinimum  &
-              &  .and. all( radiusHistory(:,countComponentsActive)                                                                                         >= 0.0d0                        ) &
-              &  .and.     (radiusHistory(2,countComponentsActive)-radiusHistory(1,countComponentsActive))*(radiusHistory(1,countComponentsActive)-radius) <  0.0d0                          &
-              & ) then
-            ! An oscillation has been detected - attempt to break out of it. The following heuristic has been found to work quite
-            ! well - we bisect previous solutions in the oscillating sequence in a variety of different ways
-            ! (arithmetic/geometric and using the current+previous or two previous solutions), alternating the bisection method
-            ! sequentially. There's no guarantee that this will work in every situation however.
-            select case (mod(countIterations,4))
-            case (0)
-               radius=sqrt  (radius                                *radiusHistory(1,countComponentsActive))
-            case (1)
-               radius=0.5d0*(radius                                +radiusHistory(1,countComponentsActive))
-            case (2)
-               radius=sqrt  (radiusHistory(1,countComponentsActive)*radiusHistory(2,countComponentsActive))
-            case (3)
-               radius=0.5d0*(radiusHistory(1,countComponentsActive)+radiusHistory(2,countComponentsActive))
-            end select
-            radiusHistory(:,countComponentsActive)=-1.0d0
-         end if
-         radiusHistory(2,countComponentsActive)=radiusHistory(1,countComponentsActive)
-         radiusHistory(1,countComponentsActive)=radius
-         ! Compute a fit measure.
-         if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+abs(log(radiusNew/radius))
+         ! Correct an oscillating proposal and require both the equilibrium residual and the accepted step to be small.
+         call iterationState%update(countIterations,countComponentsActive,radius,radiusNew,radiusFitContribution)
+         fitMeasure=fitMeasure+radiusFitContribution
          ! Set radius to new radius.
          radius=radiusNew
          ! Catch unphysical states.

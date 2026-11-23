@@ -213,8 +213,7 @@ contains
     call self%transitionFunction(radius=coordinates%rSpherical(),multiplier=multiplier)
     density=+self%massDistribution_             %density(coordinates) &
          &  *       multiplier                                        &
-         &  +self%massDistributionAccretionFlow_%density(coordinates) &
-         &  *(1.0d0-multiplier)
+         &  +self%massDistributionAccretionFlow_%density(coordinates)
     return
   end function sphericalAccretionFlowDensity
 
@@ -232,15 +231,11 @@ contains
     !!]
 
     call self%transitionFunction(radius=coordinates%rSpherical(),multiplier=multiplier,multiplierGradient=multiplierGradient)
-    densityGradient=+  self%massDistribution_             %densityGradientRadial(coordinates,logarithmic=.false.) &
-         &          *       multiplier                                                                            &
-         &          +  self%massDistributionAccretionFlow_%densityGradientRadial(coordinates,logarithmic=.false.) &
-         &          *(1.0d0-multiplier        )                                                                   &
-         &          +(                                                                                            &
-         &            +self%massDistribution_             %density              (coordinates                    ) &
-         &            -self%massDistributionAccretionFlow_%density              (coordinates                    ) &
-         &           )                                                                                            &
-         &          *       multiplierGradient
+    densityGradient=+self%massDistribution_             %densityGradientRadial(coordinates,logarithmic=.false.) &
+         &          *     multiplier                                                                            &
+         &          +self%massDistributionAccretionFlow_%densityGradientRadial(coordinates,logarithmic=.false.) &
+         &          +self%massDistribution_             %density              (coordinates                    ) &
+         &          *     multiplierGradient
     if (logarithmic_) densityGradient=+            densityGradient              &
          &                            *coordinates%rSpherical     (           ) &
          &                            /self       %density        (coordinates)

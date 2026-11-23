@@ -46,6 +46,7 @@ Galaxy spectra
    :maxdepth: 1
 
    dust-absorption-and-emission
+   postprocessing-model-outputs
 
 N-body merger trees
 -------------------

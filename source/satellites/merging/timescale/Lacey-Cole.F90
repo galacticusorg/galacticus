@@ -174,12 +174,17 @@ contains
     type            (treeNode                               ), intent(inout) :: node
     type            (treeNode                               ), pointer       :: nodeHost
     class           (nodeComponentBasic                     ), pointer       :: basicHost                 , basic
-    double precision                                         , parameter     :: inverseTwoB1=1.169335453d0            !  1/2/B(1).
+    double precision                                         , parameter     :: inverseTwoB1=1.169335453d0        !  1/2/B(1).
     double precision                                                         :: massRatio
     !$GLC attributes unused :: self
 
-    ! Find the host node.
-    nodeHost => node%parent
+    ! Find the host node. For a node which is not yet a satellite, this is the primary progenitor of its descendant (into which
+    ! the node will merge), as in timeUntilMerging() - the descendant's mass already includes that of the node.
+    if (node%isSatellite()) then
+       nodeHost => node%parent
+    else
+       nodeHost => node%parent%firstChild
+    end if
     ! Compute mass ratio.
     basic     => node    %basic()
     basicHost => nodeHost%basic()

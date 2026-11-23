@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module which provides IO in :term:`IRATE` format. The :term:`IRATE` (IRvine Astrophysical simulaTion structurE) format is an HDF5-based format for storing halo catalogs and simulation data, with standardized groups for snapshots, cosmological parameters, and simulation properties.
 !!}
@@ -259,7 +261,7 @@ contains
     end if
     if (present(velocity)) then
        call halosGroup%writeDataset  (velocity                       ,'Velocity','Halo center velocities',datasetReturned=dataset,chunkSize=-1_c_size_t)
-       call dataset   %writeAttribute('Mpc'                          ,'unitname'                                                                       )
+       call dataset   %writeAttribute('km/s'                         ,'unitname'                                                                       )
        call dataset   %writeAttribute([kilo*hecto      ,0.0d0, 0.0d0],'unitscgs'                                                                       )
     end if
     return

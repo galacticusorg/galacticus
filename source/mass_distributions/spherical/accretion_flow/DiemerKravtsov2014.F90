@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Claude.
+
   !!{RST
   Implementation of a mass distribution for accretion flow using the fitting function of :cite:t:`diemer_dependence_2014`.
   !!}
@@ -180,16 +182,22 @@ contains
     <optionalArgument name="logarithmic" defaultsTo=".false."/>
     !!]
 
-    densityGradient=-self%s                          &
-         &          /(                               &
-         &            +1.0d0                         &
-         &            +(                             &
-         &              +coordinates%rSpherical   () &
-         &              /5.0d0                       &
-         &              /self       %radius200Mean   &
-         &             )**self%s                     &
-         &            /self%b                        &
-         &          )
+    ! Find the logarithmic gradient. If the mean density is included, the density is ρ = ρ̄ [b (r/5r₂₀₀ₘ)⁻ˢ + 1], otherwise it is
+    ! ρ = ρ̄ b (r/5r₂₀₀ₘ)⁻ˢ, a pure power law.
+    if (self%includeMean) then
+       densityGradient=-self%s                          &
+            &          /(                               &
+            &            +1.0d0                         &
+            &            +(                             &
+            &              +coordinates%rSpherical   () &
+            &              /5.0d0                       &
+            &              /self       %radius200Mean   &
+            &             )**self%s                     &
+            &            /self%b                        &
+            &          )
+    else
+       densityGradient=-self%s
+    end if
     if (.not.logarithmic_)                                            &
          & densityGradient=+             densityGradient              &
          &                 *self        %density        (coordinates) &

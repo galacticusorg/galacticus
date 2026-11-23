@@ -32,7 +32,7 @@
     <toleranceRelativeVelocityDispersionMaximum value="0.1"/>
   </darkMatterProfileDMO>
   <darkMatterProfile value="darkMatterOnly"/>
-  <darkMatterProfileHeating value="tidal"/>
+  <darkMatterProfileHeating value="null"/>
 
   <virialOrbit value="isotropic">
     <virialOrbit value="benson2005"/>

@@ -1,0 +1,207 @@
+name: 'Library Release'
+# Build the Galacticus library (`libgalacticus.so`) with link-time optimization for each versioned release, and publish it as
+# an asset of that release.
+#
+# The library build in the CI/CD workflow (`Build-Library-Linux` in `cicd.yml`) disables link-time optimization, as building
+# with it needs far more memory than a standard runner has (a peak of around 38 GB, against their 16 GB). So the library
+# published to `bleeding-edge` is unoptimized at link time, and versioned releases - which mirror a fixed list of
+# `bleeding-edge` assets (see `publish.yml`) - carry no library at all. This workflow builds the optimized library on a
+# GitHub-hosted larger runner, by calling `largerRunnerBuild.yml`. A larger runner is billed by the minute, which is why this
+# is done only for versioned releases, and not for each push to `master`.
+#
+# What is built, and where it is published:
+#   * version tag pushes build the tagged commit, and publish to its versioned release (created by `publish.yml`);
+#   * manual dispatches with `tag` set do the same for an existing version tag - to retry a failed run, or to add the library
+#     to a release made before this workflow existed (`gh workflow run libraryRelease.yml -f tag=v1.2.3`);
+#   * manual dispatches without `tag` build the commit of the ref dispatched on, and publish nothing - for testing changes to
+#     this workflow on a branch (`gh workflow run libraryRelease.yml --ref <branch>`).
+# The library is published as `libgalacticus.tar.bz2` - the same name, and the same layout, as the one on `bleeding-edge` -
+# with `libgalacticus.tar.bz2.sha256` (its checksum) and `libgalacticus.tar.bz2.commit` (the commit it was built from). It is
+# not listed in the release's `SHA256SUMS`, which `publish.yml` writes from its own fixed list of assets.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to build and publish to (empty to build the ref dispatched on, and publish nothing)'
+        type: string
+        default: ''
+# Queue rather than cancel: a build that is cancelled has still been paid for.
+concurrency:
+  group: libraryRelease-${{ github.ref }}-${{ inputs.tag }}
+  cancel-in-progress: false
+defaults:
+  run:
+    shell: bash
+# Read-only by default; the `Publish` job requests write access to upload release assets.
+permissions:
+  contents: read
+jobs:
+  Select-Commit:
+    # The larger runner belongs to this organization, so there is nothing to do in a fork.
+    if: ${{ github.repository == 'galacticusorg/galacticus' }}
+    runs-on: ubuntu-latest
+    outputs:
+      sha:     ${{ steps.select.outputs.sha     }}
+      release: ${{ steps.select.outputs.release }}
+      build:   ${{ steps.select.outputs.build   }}
+    steps:
+      - name: Select the commit to build, and the release to publish to
+        id: select
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          # The commit a tag points to (dereferencing an annotated tag if necessary), or nothing if there is no such tag.
+          tagCommit() {
+            refs=$(git ls-remote "https://github.com/${REPOSITORY}" "refs/tags/$1" "refs/tags/$1^{}")
+            commit=$(echo "${refs}" | awk '$2 ~ /\^\{\}$/ {print $1}')
+            [[ -n "${commit}" ]] || commit=$(echo "${refs}" | awk '{print $1}')
+            echo "${commit}"
+          }
+          build=true
+          if [[ "${EVENT}" == "push" ]]; then
+            sha="${SHA}"
+            release="${REF_NAME}"
+            # `publish.yml` creates the release only if `bleeding-edge` points at the tagged commit (see its `Verify-Release`
+            # job), and fails otherwise - after which the tag is moved and pushed again. Apply the same test here, so that
+            # nothing is built (and paid for) for a release which is not going to be made.
+            bleeding=$(tagCommit bleeding-edge)
+            if [[ "${bleeding}" != "${sha}" ]]; then
+              echo "bleeding-edge (${bleeding}) does not point at ${release} (${sha}), so publish.yml will not create this release - nothing to do." | tee -a "${GITHUB_STEP_SUMMARY}"
+              build=false
+            fi
+          elif [[ -n "${TAG}" ]]; then
+            [[ "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "FAILED: '${TAG}' is not a version tag (vX.Y.Z)"; exit 1; }
+            sha=$(tagCommit "${TAG}")
+            [[ -n "${sha}" ]] || { echo "FAILED: tag ${TAG} does not exist"; exit 1; }
+            release="${TAG}"
+            # Check for the release before building, rather than finding it missing afterward.
+            gh release view "${release}" --repo "${REPOSITORY}" > /dev/null 2>&1 || { echo "FAILED: release ${release} does not exist (it is created by publish.yml)"; exit 1; }
+          else
+            sha="${SHA}"
+            release=""
+          fi
+          if [[ "${build}" == "true" ]]; then
+            echo "Building ${sha}; publishing to '${release:-(nothing)}'." | tee -a "${GITHUB_STEP_SUMMARY}"
+          fi
+          echo "sha=${sha}"         >> "${GITHUB_OUTPUT}"
+          echo "release=${release}" >> "${GITHUB_OUTPUT}"
+          echo "build=${build}"     >> "${GITHUB_OUTPUT}"
+  Build:
+    needs: Select-Commit
+    if: ${{ needs.Select-Commit.outputs.build == 'true' }}
+    # Called at `master`, whatever tag or branch this workflow is running on: access to the larger runner is limited to jobs
+    # defined in that file on that branch (see `largerRunnerBuild.yml`). Link-time optimization is on by default.
+    uses: galacticusorg/galacticus/.github/workflows/largerRunnerBuild.yml@master
+    with:
+      ref: ${{ needs.Select-Commit.outputs.sha }}
+      target: libgalacticus.so
+      options: LIBRARY=yes
+      static: false
+      # The Python interface to the library, which the library build generates.
+      upload: galacticus.py
+  Package:
+    needs: [Select-Commit, Build]
+    runs-on: ubuntu-latest
+    # The same container as the build, so that the libraries which `libgalacticus.so` was linked against are found here.
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.Select-Commit.outputs.sha }}
+      - name: Check out repository datasets
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "PYTHONPATH=$GITHUB_WORKSPACE/galacticus/python" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: Download the library
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: larger-runner-build-target
+      - name: Package the library
+        # As for the library published to `bleeding-edge` (see `Build-Library-Linux` in `cicd.yml`).
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          [[ -s libgalacticus.so && -s galacticus.py ]] || { echo "FAILED: the build did not provide libgalacticus.so and galacticus.py"; exit 1; }
+          # Artifacts do not record file permissions.
+          chmod 755 libgalacticus.so
+          mkdir galacticus
+          mkdir galacticus/lib
+          mkdir galacticus/python
+          # Find all dynamic libraries needed (filtering out some system libs) and copy to our folder.
+          ldd libgalacticus.so | awk '{if (NF == 4) print $3}' | grep -v -e /libc.so -e /libdl.so -e /libm.so -e /libpthread.so -e /librt.so | xargs -n 1 -i{} cp {} galacticus/lib/
+          mv galacticus.py galacticus/python/
+          mv libgalacticus.so galacticus/lib/
+          tar cvfj libgalacticus.tar.bz2 galacticus
+          # Test the archive as it will be published, not the files it was made from.
+          rm -rf galacticus
+      - name: Install Python
+        run: |
+          apt -y update
+          apt -y install python3 python3-numpy
+      - name: Test the library
+        # As for the `Python-Interface` job in `cicd.yml`.
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          tar xvfj libgalacticus.tar.bz2
+          set -o pipefail
+          python3 testSuite/test-Python-interface.py 2>&1 | tee pythonTest.log
+          set +o pipefail
+          ! grep -q -e FAIL pythonTest.log
+      - name: Upload the packaged library
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: galacticus-library-lto
+          path: 'libgalacticus.tar.bz2'
+  Publish:
+    needs: [Select-Commit, Package]
+    if: ${{ needs.Select-Commit.outputs.release != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    permissions:
+      contents: write # required to upload release assets
+    steps:
+      - name: Download the packaged library
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: galacticus-library-lto
+      - name: Upload the library to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE: ${{ needs.Select-Commit.outputs.release }}
+          SHA: ${{ needs.Select-Commit.outputs.sha }}
+        run: |
+          set -euo pipefail
+          # The release is created by `publish.yml`, which the same tag push starts, and whose jobs may still be waiting for
+          # runners when this one starts. Wait for it, for up to three hours.
+          attempts=0
+          until gh release view "${RELEASE}" --repo "${REPOSITORY}" > /dev/null 2>&1; do
+            attempts=$((attempts+1))
+            if [[ "${attempts}" -gt 36 ]]; then
+              echo "FAILED: release ${RELEASE} does not exist (it is created by publish.yml) - re-run this job once it does"
+              exit 1
+            fi
+            echo "Release ${RELEASE} does not exist yet - waiting..."
+            sleep 300
+          done
+          sha256sum libgalacticus.tar.bz2 > libgalacticus.tar.bz2.sha256
+          echo "${SHA}" > libgalacticus.tar.bz2.commit
+          gh release upload "${RELEASE}" --repo "${REPOSITORY}" libgalacticus.tar.bz2 libgalacticus.tar.bz2.sha256 libgalacticus.tar.bz2.commit --clobber
+          echo "Published the library for ${SHA} to ${RELEASE}." | tee -a "${GITHUB_STEP_SUMMARY}"

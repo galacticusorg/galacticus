@@ -432,6 +432,8 @@ contains
     end if
     if (report_ .and. self%reportState) call displayUnindent("")
     call self%parametersModel%parametersModel%reset()
+    ! Clear the facts recorded for this model, so that the next model (built from the same parameter document) starts afresh.
+    call self%parametersModel%parametersModel%modelFactsReset()
     ! Restore verbosity level.
     if (report_ .and. (self%reportFileName .or. self%reportState)) call displayVerbositySet(verbosityLevel)
     return

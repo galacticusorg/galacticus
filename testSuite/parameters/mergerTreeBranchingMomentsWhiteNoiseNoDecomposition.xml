@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Changes to the white-noise test of the mergerTreeBranchingMoments task for a run without the decomposition of the variance, -->
+<!-- whose moments must agree with those of the run with it. -->
+<changes>
+  <change type="update" path="task/decomposeVariance" value="false"/>
+  <change type="update" path="outputFileName"         value="testSuite/outputs/mergerTreeBranchingMomentsWhiteNoiseNoDecomposition.hdf5"/>
+</changes>

@@ -406,6 +406,55 @@ def test_task_lists_are_per_submission(workspace):
     assert campaign.runs[1].status == 'complete'
 
 
+def test_array_job_throttled_by_job_maximum(workspace):
+    """A manager's `arrayTaskMaximum` limits how many tasks of an array job run at once; without one there is no limit."""
+    path, campaign, _ = workspace
+    manager = FakeManager()
+    campaign.submit(manager, indices=[0, 1, 3])
+    assert manager.jobs[0]['array'] == '0-1,3'
+    manager.arrayTaskMaximum = 2
+    campaign.submit(manager, indices=[0, 1, 3])
+    assert manager.jobs[1]['array'] == '0-1,3%2'
+    manager.arrayTaskMaximum = 0
+    campaign.submit(manager, indices=[0, 1, 3])
+    assert manager.jobs[2]['array'] == '0-1,3'
+
+
+@pytest.mark.parametrize('configured, given, expected', [(None, None, None), ('32', None, 32), (None, 5, 5), ('32', 5, 5), ('32', 0, None), ('0', None, None)])
+def test_array_task_maximum_set_separately(configured, given, expected):
+    """The limit on an array job's tasks comes only from `arrayTaskMaximum` (zero meaning no limit), not from `jobMaximum`."""
+    import argparse
+    import xml.etree.ElementTree as ET
+    pytest.importorskip('lxml')
+    import queueManager
+    config = '<host><jobMaximum>10</jobMaximum>' + ('' if configured is None else f'<arrayTaskMaximum>{configured}</arrayTaskMaximum>') + '</host>'
+    manager = queueManager.SLURMManager(ET.fromstring(config), argparse.Namespace(arrayTaskMaximum=given, jobMaximum=None))
+    assert manager.arrayTaskMaximum == expected
+    assert manager.options['jobMaximum'] == 10
+
+
+@pytest.mark.parametrize('configured, given', [('0', None), (None, 0), ('10', -1)])
+def test_job_maximum_must_be_positive(configured, given):
+    """A `jobMaximum` below one, which would stop jobs submitted one at a time from ever being submitted, is an error."""
+    import argparse
+    import xml.etree.ElementTree as ET
+    pytest.importorskip('lxml')
+    import queueManager
+    config = '<host>' + ('' if configured is None else f'<jobMaximum>{configured}</jobMaximum>') + '</host>'
+    with pytest.raises(ValueError, match='jobMaximum'):
+        queueManager.SLURMManager(ET.fromstring(config), argparse.Namespace(jobMaximum=given))
+
+
+def test_array_task_maximum_must_not_be_negative():
+    """A negative `arrayTaskMaximum` is an error."""
+    import argparse
+    import xml.etree.ElementTree as ET
+    pytest.importorskip('lxml')
+    import queueManager
+    with pytest.raises(ValueError, match='arrayTaskMaximum'):
+        queueManager.SLURMManager(ET.fromstring('<host/>'), argparse.Namespace(arrayTaskMaximum=-2))
+
+
 class SequentialManager(FakeManager):
     """A stand-in for a queueManager manager which, like Slurm, gives each job its own ID."""
 
@@ -495,6 +544,8 @@ def test_resubmit_refreshes_statuses(workspace, monkeypatch):
     queue_manager = types.ModuleType('queueManager')
     queue_manager.factory = lambda args: resubmitter
     monkeypatch.setitem(sys.modules, 'queueManager', queue_manager)
+    # Slurm reports the array job's other tasks as still pending, whether or not Slurm is available where the test runs.
+    monkeypatch.setattr(cm, 'slurm_live_jobs', lambda: {'12345'} | {f'12345_{index}' for index in (0, 2, 3, 4, 5)})
     script = os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'scripts', 'emulation', 'emulatorCalibration.py')
     specification = importlib.util.spec_from_file_location('emulatorCalibration', script)
     module = importlib.util.module_from_spec(specification)

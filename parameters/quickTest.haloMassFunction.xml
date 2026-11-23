@@ -10,7 +10,10 @@
 
   <!-- Specify tasks to perform -->
   <task value="multi">
-    <task value="haloMassFunction"/>
+    <task value="haloMassFunction">
+      <!-- Also compute the unevolved subhalo mass function, so that this smoke test exercises that class. -->
+      <includeUnevolvedSubhaloMassFunction value="true"/>
+    </task>
     <task value="evolveForests"/>
   </task>
 

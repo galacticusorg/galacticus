@@ -336,7 +336,7 @@ Without this, editing a generator and rebuilding regenerated nothing: make repor
 Output from the compiler is captured to a diagnostics file and fed through the ``postprocess.py`` script, which:
 
 * uses the ``.lmap`` to translate line numbers in errors and warnings from the preprocessed source back to the original source;
-* filters out known-spurious warnings (e.g. GCC `PR58175 <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58175>`_ scalar-finalizer warnings) and warnings suppressed by ``!$GLC`` markers (see :galacticus-ref:`buildMarkers`);
+* filters out known-spurious warnings (e.g. GCC `PR86117 <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86117>`_ "used uninitialized" warnings) and warnings suppressed by ``!$GLC`` markers (see :galacticus-ref:`buildMarkers`);
 * exits immediately when the compiler produced no diagnostics (the common case).
 
 .. _manual-sec-buildStatusPropagation:

@@ -9,6 +9,9 @@ Sub-commands:
 * ``resolve <params.xml> [change files...] -o <out>`` -- write a resolved
   (XInclude/changes/conditionals applied) parameter file; the serial pre-step for
   MPI runs.
+* ``postprocess <output.hdf5> <extractors.xml> -o <out.hdf5> [change files...]`` -- compute new properties (SEDs, emission
+  lines, dust attenuation) for the galaxies of a Galacticus output file, without evolving the model again (see
+  :mod:`galacticus_launcher.postprocess`).
 * ``clean`` -- purge the regenerable cache (never the durable install).
 * ``info`` -- report the resolved install, paths, and environment.
 * ``install-wsl`` -- (Windows) set up WSL 2 and install Galacticus inside it.
@@ -30,7 +33,7 @@ import platformdirs
 
 from . import __version__, download, macos, paths, platforms, validate as _validate, wsl
 
-_COMMANDS = {"install", "update", "run", "validate", "resolve", "clean", "info",
+_COMMANDS = {"install", "update", "run", "validate", "resolve", "postprocess", "clean", "info",
              "install-wsl"}
 
 
@@ -118,6 +121,36 @@ def main(argv=None):
     resolve_parser.add_argument("--validate", action="store_true",
                                 help="also validate the resolved file")
 
+    postprocess_parser = sub.add_parser(
+        "postprocess", help="compute new properties for the galaxies of a Galacticus output file, "
+                            "without evolving the model again")
+    _add_tools_option(postprocess_parser)
+    postprocess_parser.add_argument("catalog", help="the Galacticus output file to postprocess")
+    postprocess_parser.add_argument("extractors",
+                                    help="an XML file containing the <nodePropertyExtractor> to apply")
+    postprocess_parser.add_argument("change_files", nargs="*",
+                                    help="change files applied (in order) to the parameters of the original model")
+    postprocess_parser.add_argument("-o", "--output", required=True, help="write results to this file")
+    postprocess_parser.add_argument("--selection",
+                                    help="an HDF5 file listing the galaxies to postprocess, as "
+                                         "[group]/Output[i]/selection datasets of zero-based indices (default: all)")
+    postprocess_parser.add_argument("--outputs-group", default="Outputs",
+                                    help="the group containing the Output[i] groups to postprocess (default: Outputs; "
+                                         "Lightcone for a lightcone)")
+    postprocess_parser.add_argument("--threads", type=int, help="number of OpenMP threads")
+    postprocess_parser.add_argument("--count-batch", type=int, default=1024,
+                                    help="galaxies read from file at a time (default: 1024)")
+    postprocess_parser.add_argument("--count-nodes-buffered", type=int, default=1000,
+                                    help="galaxies accumulated before writing to file (default: 1000)")
+    postprocess_parser.add_argument("--keep-filter", action="store_true",
+                                    help="keep the galacticFilter of the original model (by default all galaxies "
+                                         "are accepted)")
+    postprocess_parser.add_argument("--parameter-file",
+                                    help="also write the parameter file used for postprocessing here")
+    postprocess_parser.add_argument("--log-file",
+                                    help="write the output of Galacticus here (default: the output file with "
+                                         "suffix .log)")
+
     clean_parser = sub.add_parser("clean", help="purge the regenerable cache")
     clean_parser.add_argument("--all", action="store_true",
                               help="remove the entire dynamic data cache")
@@ -182,6 +215,9 @@ def _dispatch(args, argv=()):
     if args.command == "run":
         _ensure(install, tools=args.tools)
         return _cmd_run(install, args)
+    if args.command == "postprocess":
+        _ensure(install, tools=args.tools)
+        return _cmd_postprocess(install, args)
     raise ValueError(f"unknown command {args.command!r}")  # pragma: no cover
 
 
@@ -310,6 +346,17 @@ def _cmd_run(install, args):
         command = [str(install.binary), parameter_file, *change_files, *passthrough]
     sys.stdout.flush()
     os.execve(str(install.binary), command, env)  # replaces this process
+
+
+def _cmd_postprocess(install, args):
+    from . import postprocess
+    output = postprocess.postprocess(
+        args.catalog, args.extractors, args.output, selection=args.selection, outputs_group=args.outputs_group,
+        change_files=args.change_files, threads=args.threads, count_batch=args.count_batch,
+        count_nodes_buffered=args.count_nodes_buffered, galactic_filter="keep" if args.keep_filter else "always",
+        parameter_file=args.parameter_file, log_file=args.log_file, install=install)
+    print(f"Postprocessed {args.catalog} -> {output}")
+    return 0
 
 
 def _cmd_info():

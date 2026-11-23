@@ -63,6 +63,7 @@
      procedure :: times                 => fixedAgesTimes
      procedure :: timeNext              => fixedAgesTimeNext
      procedure :: masses                => fixedAgesMasses
+     procedure :: reconstruct           => fixedAgesReconstruct
      procedure :: metallicityBoundaries => fixedAgesMetallicityBoundaries
      procedure :: ageDistribution       => fixedAgesAgeDistribution
      procedure :: descriptor            => fixedAgesDescriptor
@@ -824,6 +825,54 @@ contains
     end if
     return
   end function fixedAgesMasses
+
+  subroutine fixedAgesReconstruct(self,node,historyStarFormation,times,masses)
+    !!{RST
+    Reconstruct the star formation history of a component of ``node`` from the ``times`` and ``masses`` previously output for
+    it. The node is taken to be at the lightcone crossing for which those were output, so the (single) crossing time is the time
+    of the node, and the times stored in the history are the output times relative to it.
+    !!}
+    use :: Error               , only : Error_Report
+    use :: Galacticus_Nodes    , only : nodeComponentBasic
+    use :: Numerical_Comparison, only : Values_Agree
+    use :: Numerical_Ranges    , only : Make_Range        , rangeTypeLogarithmic
+    implicit none
+    class           (starFormationHistoryFixedAges), intent(inout)                 :: self
+    type            (treeNode                     ), intent(inout), target         :: node
+    type            (history                      ), intent(inout)                 :: historyStarFormation
+    double precision                               , intent(in   ), dimension(:  ) :: times
+    double precision                               , intent(in   ), dimension(:,:) :: masses
+    class           (nodeComponentBasic           ), pointer                       :: basic
+    integer         (c_size_t                     )                                :: countTimes          , indexOffset
+    character       (len=*                        ), parameter                     :: messageMismatch     ='the star formation history which was output does not match the ages and metallicities of this class---the same `starFormationHistory` parameters and cosmology as were used to generate the output must be used'
+
+    basic => node%basic()
+    ! The node is at its (sole) lightcone crossing.
+    call basic%longIntegerRank0MetaPropertySet(self%createdInID    , node %index())
+    call basic%floatRank1MetaPropertySet      (self%timesCrossingID,[basic%time ()])
+    ! With no star formation history output for this component there is nothing to reconstruct.
+    countTimes=size(times,kind=c_size_t)
+    if (countTimes == 0_c_size_t) return
+    if     (                                                 &
+         &   countTimes         >  self%countAges         +1 &
+         &  .or.                                             &
+         &   size(masses,dim=1) /=      countTimes           &
+         &  .or.                                             &
+         &   size(masses,dim=2) /= self%countMetallicities+1 &
+         & ) call Error_Report(messageMismatch//{introspection:location})
+    call historyStarFormation%create(int(self%countMetallicities+1),int(self%countAges+1))
+    ! Times in the history are stored relative to the crossing time, on the fixed grid of ages of this class.
+    historyStarFormation%time(1:self%countAges  )=-Make_Range(self%ageMaximum,self%ageMinimum,int(self%countAges),rangeTypeLogarithmic)
+    historyStarFormation%time(  self%countAges+1)=+0.0d0
+    ! Only times after the beginning of the universe are output, so those output correspond to the latest times of the grid.
+    ! Stars can not have formed at the earlier times, so the mass at those times is zero.
+    indexOffset=self%countAges+1-countTimes
+    if (.not.all(Values_Agree(times,basic%time()+historyStarFormation%time(indexOffset+1:self%countAges+1),absTol=1.0d-6*basic%time()))) &
+         & call Error_Report(messageMismatch//{introspection:location})
+    historyStarFormation%data                                  =0.0d0
+    historyStarFormation%data(indexOffset+1:self%countAges+1,:)=masses
+    return
+  end subroutine fixedAgesReconstruct
 
   function fixedAgesAgeDistribution(self) result(ageDistribution)
     !!{RST

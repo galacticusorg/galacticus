@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Implements a galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes.
 !!}
@@ -172,8 +174,8 @@ contains
              if (luminosity > 0.0d0) then
                 ! Convert to apparent magnitude.
                 abMagnitude=-2.5d0*log10(luminosity)+distanceModulus
-                ! Filter out the galaxy if it is below the threshold.
-                if (abMagnitude < self%apparentMagnitudeThreshold(iLuminosity)) then
+                ! Filter out the galaxy if it is fainter than the threshold.
+                if (abMagnitude > self%apparentMagnitudeThreshold(iLuminosity)) then
                    stellarApparentMagnitudesPasses=.false.
                    return
                 end if

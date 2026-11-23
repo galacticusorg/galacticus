@@ -89,8 +89,11 @@ def generate_assignment_allocatable_code(assignment, declaration, name,
     )
     intrinsic = declaration.get('intrinsic')
     if rank > 0 and intrinsic == 'type':
-        # gfortran PR 57696 workaround — use explicit element-wise
-        # assignment rather than a single slice assignment.
+        # <workaround type="gfortran" PR="93690" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93690"/>
+        # Use explicit element-wise assignment rather than a single slice assignment, so that the
+        # defined assignment of each element, or of its components, is used: gfortran does not call
+        # the non-elemental type-bound defined assignment of a component in an intrinsic assignment
+        # of an array (GCC PR 93690; see also PR 57696).
         for i in range(1, rank + 1):
             assignment['code'] += (
                 f"      do i{i}__=lbound(from%{name},dim={i}),"

@@ -129,7 +129,9 @@ def generate_allocatable_state_store_code(state_store, state_stores,
     state_store['outputCode'] += (
         f" if (allocated(self%{variable_name})) then\n"
         "  if (displayVerbosity() >= verbosityLevelWorking) then\n"
-        # gfortran PR 94446 workaround — sizeof(treeNode) mis-types.
+        # <workaround type="gfortran" PR="94446" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94446"/>
+        # Using sizeof() on a treeNode object causes a bogus "type mismatch" error, so the size is
+        # reported as zero here and below.
         "   write (label,'(i16)') 0\n"
         f"   call displayMessage('storing \"{variable_name}\" with size '"
         "//trim(adjustl(label))//' bytes')\n"

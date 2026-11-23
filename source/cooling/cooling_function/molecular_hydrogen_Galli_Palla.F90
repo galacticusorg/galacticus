@@ -368,11 +368,12 @@ contains
        ! Check if we need to recompute the low density limit cooling function gradient.
        if (temperature /= self%temperaturePrevious1) then
           logarithmic10Temperature=log10(temperature)
-          self%coolingFunctionLowDensityLimitTemperatureLogGradient=                             &
-               &                    +                          lowDensityLimitCoefficient(1)     &
-               &                    +logarithmic10Temperature*(lowDensityLimitCoefficient(2)     &
-               &                    +logarithmic10Temperature*(lowDensityLimitCoefficient(3)     &
-               &                    +logarithmic10Temperature*(lowDensityLimitCoefficient(4))))
+          ! The low density limit is a polynomial in log₁₀(T), so its logarithmic slope is the derivative of that polynomial.
+          self%coolingFunctionLowDensityLimitTemperatureLogGradient=                                  &
+               &                    +                                lowDensityLimitCoefficient(1)    &
+               &                    +logarithmic10Temperature*(2.0d0*lowDensityLimitCoefficient(2)    &
+               &                    +logarithmic10Temperature*(3.0d0*lowDensityLimitCoefficient(3)    &
+               &                    +logarithmic10Temperature*(4.0d0*lowDensityLimitCoefficient(4))))
           self%temperaturePrevious1=temperature
        end if
        if (coolingFunctionLowDensityLimit > 0.0d0) then
@@ -487,8 +488,8 @@ contains
              logarithmic10Temperature                                = &
                   & +log10(temperature)
              self%coolingFunctionH2PlusElectronTemperatureLogGradient= &
-                  & +H2PlusElectronCoefficient(1)                      &
-                  & +H2PlusElectronCoefficient(2)                      &
+                  & +      H2PlusElectronCoefficient(1)                &
+                  & +2.0d0*H2PlusElectronCoefficient(2)                &
                   & *logarithmic10Temperature
              self%temperaturePrevious3=temperature
           end if
@@ -507,8 +508,8 @@ contains
              logarithmic10Temperature                         = &
                   & +log10(temperature)
              self%coolingFunctionH2PlusHTemperatureLogGradient= &
-                  & +H2PlusHCoefficient(1)                      &
-                  & +H2PlusHCoefficient(2)                      &
+                  & +      H2PlusHCoefficient(1)                &
+                  & +2.0d0*H2PlusHCoefficient(2)                &
                   & *logarithmic10Temperature
              self%temperaturePrevious4=temperature
           end if
