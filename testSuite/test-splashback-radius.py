@@ -5,11 +5,12 @@ import os
 import h5py
 import numpy as np
 import warnings
+import xml.etree.ElementTree as ET
 
 # Check the splashback radii output by the `haloMassFunction` task. The fitting functions themselves are validated against
 # reference values from the Colossus toolkit by the `tests.splashback_radii.exe` unit test - this test checks that they are
 # correctly wired into the task, and that the resulting radii and masses behave sensibly as a function of halo mass.
-# Andrew Benson with assistance from Claude (07-August-2026).
+# Andrew Benson, Claude (07-August-2026; 20-November-2026).
 
 warnings.filterwarnings('ignore')
 
@@ -91,3 +92,33 @@ for outputName in sorted(outputs.keys()):
     print("   SUCCESS: "+label+": splashback radius scales correctly with halo mass")
 
 model.close()
+
+# Check that the task can be run with a splashback radius class which does not predict the splashback mass. The splashback radius
+# must then be output, but not the splashback mass.
+print("Running splashback radius model without splashback masses...")
+tree       = ET.parse("parameters/splashbackRadius.xml")
+parameters = tree.getroot()
+splashback = parameters.find("darkMatterHaloSplashbackRadius")
+splashback.set("value","diemerKravtsov2014")
+for child in list(splashback):
+    splashback.remove(child)
+parameters.find("outputFileName").set("value","testSuite/outputs/splashbackRadiusNoMass.hdf5")
+tree.write("outputs/splashbackRadiusNoMass.xml")
+log = open("outputs/test-splashback-radius-no-mass.log","w")
+status = subprocess.run("cd ..; ./Galacticus.exe testSuite/outputs/splashbackRadiusNoMass.xml",stdout=log,stderr=log,shell=True)
+log.close()
+if status.returncode != 0 or subprocess.run("grep -q -i -e fatal -e aborted -e \"task failed\" -e \"unrecognized parameter\" outputs/test-splashback-radius-no-mass.log",shell=True).returncode == 0:
+    print("   FAILED: model run without splashback masses:")
+    subprocess.run("cat outputs/test-splashback-radius-no-mass.log",shell=True)
+    sys.exit(0)
+print("   SUCCESS: model run without splashback masses")
+with h5py.File('outputs/splashbackRadiusNoMass.hdf5','r') as model:
+    for outputName, output in model['Outputs'].items():
+        if 'haloSplashbackRadius' not in output or 'haloSplashbackMass' in output:
+            print("   FAILED: "+outputName+": expected a splashback radius dataset and no splashback mass dataset")
+            sys.exit(0)
+        radiusSplashback = output['haloSplashbackRadius'][:]
+        if not (np.all(np.isfinite(radiusSplashback)) and np.all(radiusSplashback > 0.0)):
+            print("   FAILED: "+outputName+": splashback radii are not all finite and positive without splashback masses")
+            sys.exit(0)
+print("   SUCCESS: splashback radii, and no splashback masses, output for a class which does not predict splashback masses")
