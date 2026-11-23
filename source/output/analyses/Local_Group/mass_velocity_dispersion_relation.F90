@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements an output analysis class that computes mass-velocity dispersion relations for Local Group satellite galaxies.
   !!}
@@ -251,7 +253,7 @@ contains
     type            (varying_string                                        )               , dimension(1)   :: radiusSpecifier
     type            (outputAnalysisTargetDataStandard)                              :: outputAnalysisTargetData_
     !![
-    <constructorAssign variables="*outputTimes_, *darkMatterHaloScale_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, velocityDispersionSystematicErrorPolynomialCoefficient, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
+    <constructorAssign variables="*outputTimes_, *darkMatterHaloScale_, randomErrorPolynomialCoefficient, systematicErrorPolynomialCoefficient, velocityDispersionSystematicErrorPolynomialCoefficient, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, randomErrorMinimum, randomErrorMaximum, positionType"/>
     !!]
 
     ! Construct mass bins.
