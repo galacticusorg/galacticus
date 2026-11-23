@@ -51,15 +51,15 @@
        <method description="Compute the variance of the background at this time." method="varianceBackground" />
      </methods>
      !!]
-     final     ::                                       variancePeakBackgroundSplitDestructor
-     procedure :: sigma8                             => variancePeakBackgroundSplitSigma8
-     procedure :: rootVariance                       => variancePeakBackgroundSplitRootVariance
-     procedure :: rootVarianceLogarithmicGradient    => variancePeakBackgroundSplitRootVarianceLogarithmicGradient
-     procedure :: rootVarianceLogarithmicGradientTime=> variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime
-     procedure :: rootVarianceAndLogarithmicGradient => variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient
-     procedure :: mass                               => variancePeakBackgroundSplitMass
-     procedure :: growthIsMassDependent              => variancePeakBackgroundSplitGrowthIsMassDependent
-     procedure :: varianceBackground                 => variancePeakBackgroundSplitVarianceBackground
+     final     ::                                        variancePeakBackgroundSplitDestructor
+     procedure :: sigma8                              => variancePeakBackgroundSplitSigma8
+     procedure :: rootVariance                        => variancePeakBackgroundSplitRootVariance
+     procedure :: rootVarianceLogarithmicGradient     => variancePeakBackgroundSplitRootVarianceLogarithmicGradient
+     procedure :: rootVarianceLogarithmicGradientTime => variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime
+     procedure :: rootVarianceAndLogarithmicGradient  => variancePeakBackgroundSplitRootVarianceAndLogarithmicGradient
+     procedure :: mass                                => variancePeakBackgroundSplitMass
+     procedure :: growthIsMassDependent               => variancePeakBackgroundSplitGrowthIsMassDependent
+     procedure :: varianceBackground                  => variancePeakBackgroundSplitVarianceBackground
   end type cosmologicalMassVariancePeakBackgroundSplit
 
   interface cosmologicalMassVariancePeakBackgroundSplit
@@ -234,8 +234,8 @@ contains
     !!}
     implicit none
     class           (cosmologicalMassVariancePeakBackgroundSplit), intent(inout) :: self
-    double precision                                             , intent(in   ) :: mass         , time
-    double precision                                                             :: varianceTotal, varianceBackground, &
+    double precision                                             , intent(in   ) :: mass                  , time
+    double precision                                                             :: varianceTotal         , varianceBackground, &
          &                                                                          gradientTimeBackground
 
     varianceTotal     =self%cosmologicalMassVariance_%rootVariance      (mass,time)**2
@@ -247,13 +247,13 @@ contains
        else
           gradientTimeBackground=0.0d0
        end if
-       variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime=+(                                                                                 &
-            &                                                           +varianceTotal         *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradientTime(mass,time) &
-            &                                                           -varianceBackground    *gradientTimeBackground                                                        &
-            &                                                          )                                                                                 &
-            &                                                         /(                                                                                 &
-            &                                                           +varianceTotal                                                                   &
-            &                                                           -varianceBackground                                                              &
+       variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime=+(                                                                                                  &
+            &                                                           +varianceTotal     *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradientTime(mass,time) &
+            &                                                           -varianceBackground*gradientTimeBackground                                                        &
+            &                                                          )                                                                                                  &
+            &                                                         /(                                                                                                  &
+            &                                                           +varianceTotal                                                                                    &
+            &                                                           -varianceBackground                                                                               &
             &                                                          )
     else
        variancePeakBackgroundSplitRootVarianceLogarithmicGradientTime=+0.0d0
