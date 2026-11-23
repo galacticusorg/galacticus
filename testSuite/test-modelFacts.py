@@ -11,7 +11,10 @@ are initialized, after every node operator already exists, and is checked then. 
   requirement and names the node operator that would satisfy it, before any tree is evolved;
 * with the node operator removed and the dark matter heating switched to `null`, the model stops with the
   corresponding error for the disk heating requirement, again before any tree is evolved;
-* with the node operator present, the requirements are satisfied and the model runs to completion.
+* with the node operator present, the requirements are satisfied and the model runs to completion;
+* with the node operator present, a `taskMulti` running two `evolveForests` tasks of the model runs to completion. The facts
+  are recorded for the whole model, so they must survive the reset of the parameters at the end of the first task, which
+  is followed by the second task's own check after its node components are initialized.
 
 Andrew Benson, Claude
 """
@@ -76,9 +79,25 @@ if status.returncode != 0 or not os.path.exists(os.path.join("..", outputFileBas
     failures.append("the model with the satelliteTidalHeating node operator did not run")
     print((status.stdout.decode() + status.stderr.decode())[-3000:])
 
+# A taskMulti with two evolveForests tasks. The facts must not be cleared by the parameter reset at the end of the first.
+parameterFileMulti = "testSuite/outputs/modelFactsTaskMulti.xml"
+parameters         = parametersBase.replace('<task value="evolveForests"/>', '<task value="multi"><task value="evolveForests"/><task value="evolveForests"/></task>')
+parameters         = re.sub(r'<treesPerDecade\s+value="[^"]*"\s*/>', '<treesPerDecade value="1"/>', parameters)
+parameters         = re.sub(r'<outputFileName\s+value="[^"]*"\s*/>', '<outputFileName value="testSuite/outputs/modelFactsTaskMulti.hdf5"/>', parameters)
+if parameters.count('<task value="evolveForests"/>') != 2:
+    failures.append("could not construct the taskMulti model")
+else:
+    with open(os.path.join("..", parameterFileMulti), "w") as fileMulti:
+        fileMulti.write(parameters)
+    status = subprocess.run(f"cd ..; ./Galacticus.exe {parameterFileMulti}", shell=True, capture_output=True)
+    log    = status.stdout.decode() + status.stderr.decode()
+    if status.returncode != 0 or log.count("Done task: merger tree evolution") != 2:
+        failures.append("the taskMulti model with two evolveForests tasks did not run both tasks")
+        print(log[-3000:])
+
 if failures:
     for failure in failures:
         print(f"FAILED: {failure}")
 else:
-    print("SUCCESS: unmet model fact requirements (checked at task build and at component initialization) are reported, with their provider, before evolution; met ones are accepted")
+    print("SUCCESS: unmet model fact requirements (checked at task build and at component initialization) are reported, with their provider, before evolution; met ones are accepted, including across the tasks of a taskMulti")
 sys.exit(0)
