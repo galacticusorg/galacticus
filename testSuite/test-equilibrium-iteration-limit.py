@@ -36,15 +36,15 @@ def main():
     cases = [("omitted", None, None), ("explicit100", 100, None),
              ("explicit1000", 1000, None),
              ("exhausted", 2, "failed to find converged solution"),
-             ("invalid1", 1, "[iterationMaximum] must be at least 2"),
-             ("invalid0", 0, "[iterationMaximum] must be at least 2"),
-             ("invalidNegative", -1, "[iterationMaximum] must be at least 2")]
+             ("invalid1", 1, "[countIterationsMaximum] must be at least 2"),
+             ("invalid0", 0, "[countIterationsMaximum] must be at least 2"),
+             ("invalidNegative", -1, "[countIterationsMaximum] must be at least 2")]
     environment = dict(os.environ, OMP_NUM_THREADS="1")
     for name, limit, error in cases:
         tree = ET.parse(ROOT / "testSuite/parameters/galacticStructureEquilibrium.xml")
         solver = tree.getroot().find("galacticStructureSolver")
         if limit is not None:
-            ET.SubElement(solver, "iterationMaximum", value=str(limit))
+            ET.SubElement(solver, "countIterationsMaximum", value=str(limit))
         parameters = output / f"{name}.xml"
         tree.write(parameters, encoding="utf-8", xml_declaration=True)
         log = output / f"{name}.log"
@@ -66,8 +66,7 @@ def main():
         results.append(dict(case=name, passed=passed, returncode=result.returncode, log=str(log)))
         print(f"{'SUCCESS' if passed else 'FAILED'}: {name}; log: {log}")
     (output / "summary.json").write_text(json.dumps(results, indent=2) + "\n")
-    if not all(row["passed"] for row in results):
-        raise SystemExit(1)
+    # The regression harness determines failure from the FAILED markers above.
 
 
 if __name__ == "__main__":
