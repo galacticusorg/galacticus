@@ -31,37 +31,37 @@ program Tests_Black_Hole_Seeds_Vergara2023
   from the collapse (marking the cluster as collapsed, recording its properties, and removing the mass of the seed from its
   stars) must instead be made by ``seedFormed``, which is called once the seed has been placed.
   !!}
-  use :: Abundances_Structure      , only : abundances                  , Abundances_Property_Count, operator(*)
+  use :: Abundances_Structure      , only : abundances                  , Abundances_Property_Count   , operator(*)
   use :: Black_Hole_Seeds          , only : blackHoleSeedsClass
   use :: Display                   , only : displayVerbositySet         , verbosityLevelStandard
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
-  use :: Galacticus_Nodes          , only : nodeClassHierarchyInitialize, nodeComponentBasic       , nodeComponentNSC                 , treeNode                           , &
+  use :: Galacticus_Nodes          , only : nodeClassHierarchyInitialize, nodeComponentBasic          , nodeComponentNSC                 , treeNode                           , &
        &                                    nodeClassHierarchyFinalize  , defaultNSCComponent
   use :: Input_Paths               , only : inputPath                   , pathTypeExec
   use :: Input_Parameters          , only : inputParameters
-  use :: ISO_Varying_String        , only : assignment(=)               , operator(//)             , varying_string                   , var_str
+  use :: ISO_Varying_String        , only : assignment(=)               , operator(//)                , varying_string                   , var_str
   use :: Node_Components           , only : Node_Components_Initialize  , Node_Components_Uninitialize, Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
-  use :: Unit_Tests                , only : Assert                      , Unit_Tests_Begin_Group   , Unit_Tests_End_Group             , Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                      , Unit_Tests_Begin_Group      , Unit_Tests_End_Group             , Unit_Tests_Finish
   implicit none
-  type            (treeNode           ), pointer :: node
-  class           (nodeComponentBasic ), pointer :: basic
-  class           (nodeComponentNSC   ), pointer :: nuclearStarCluster
-  class           (blackHoleSeedsClass), pointer :: blackHoleSeeds_
-  type            (inputParameters    )          :: parameters
-  type            (varying_string     )          :: parameterFile
-  type            (abundances         )          :: abundancesStellar
+  type            (treeNode           ), pointer                   :: node
+  class           (nodeComponentBasic ), pointer                   :: basic
+  class           (nodeComponentNSC   ), pointer                   :: nuclearStarCluster
+  class           (blackHoleSeedsClass), pointer                   :: blackHoleSeeds_
+  type            (inputParameters    )                            :: parameters
+  type            (varying_string     )                            :: parameterFile
+  type            (abundances         )                            :: abundancesStellar
   ! Mass [M☉] of the nuclear star cluster, the time [Gyr] at which it is tested, and the mean time [Gyr] at which its stars formed
   ! (giving an age of 1 Gyr). With the radius efficiency of the parameter file the critical mass for collapse is about 10⁶ M☉, so
   ! the cluster collapses.
-  double precision                     , parameter :: massStellar   =1.0d7, time          =10.0d0, &
-       &                                              timeFormation = 9.0d0
+  double precision                     , parameter                 :: massStellar        =1.0d7, time                   =10.0d0, &
+       &                                                              timeFormation      =9.0d0
   ! The seed mass efficiency, as set in the parameter file.
-  double precision                     , parameter :: massEfficiency=0.1d0
+  double precision                     , parameter                 :: massEfficiency     =0.1d0
   double precision                     , allocatable, dimension(:) :: arrayAbundances
-  double precision                                 :: massSeed            , massSeedRepeat
-  integer                                          :: stellarMassFormedID , timeStellarMassFormedID, &
-       &                                              blackHoleSeedMassID
+  double precision                                                 :: massSeed                 , massSeedRepeat
+  integer                                                          :: stellarMassFormedID      , timeStellarMassFormedID       , &
+       &                                                              blackHoleSeedMassID
 
   ! Initialize.
   parameterFile=inputPath(pathTypeExec)//'testSuite/parameters/blackHoleSeedsVergara2023.xml'
@@ -97,20 +97,20 @@ program Tests_Black_Hole_Seeds_Vergara2023
   ! Compute the seed mass. This must not change the nuclear star cluster.
   massSeed      =blackHoleSeeds_%mass(node)
   massSeedRepeat=blackHoleSeeds_%mass(node)
-  call Assert('nuclear star cluster collapses'                               ,massSeed > 0.0d0                     ,.true.                                     )
-  call Assert('seed mass is the mass efficiency times the stellar mass'      ,massSeed                             ,massEfficiency*massStellar,relTol=1.0d-12)
-  call Assert('computing the seed mass does not mark the cluster as collapsed',nuclearStarCluster%isCollapsed()     ,.false.                                    )
-  call Assert('computing the seed mass does not change the stellar mass'     ,nuclearStarCluster%massStellar()     ,massStellar               ,relTol=1.0d-12)
-  call Assert('computing the seed mass again gives the same mass'            ,massSeedRepeat                       ,massSeed                  ,relTol=1.0d-12)
+  call Assert('nuclear star cluster collapses'                                ,massSeed > 0.0d0                ,.true.                                   )
+  call Assert('seed mass is the mass efficiency times the stellar mass'       ,massSeed                        ,massEfficiency*massStellar,relTol=1.0d-12)
+  call Assert('computing the seed mass does not mark the cluster as collapsed',nuclearStarCluster%isCollapsed(),.false.                                  )
+  call Assert('computing the seed mass does not change the stellar mass'      ,nuclearStarCluster%massStellar(),massStellar               ,relTol=1.0d-12)
+  call Assert('computing the seed mass again gives the same mass'             ,massSeedRepeat                  ,massSeed                  ,relTol=1.0d-12)
   ! Place the seed. The changes that follow from the collapse must now be made.
   call blackHoleSeeds_%seedFormed(node)
   abundancesStellar=nuclearStarCluster%abundancesStellar()
   call abundancesStellar%serialize(arrayAbundances)
-  call Assert('placing the seed marks the cluster as collapsed'              ,nuclearStarCluster%isCollapsed()     ,.true.                                     )
-  call Assert('placing the seed removes its mass from the stars'             ,nuclearStarCluster%massStellar()     ,(1.0d0-massEfficiency)*massStellar,relTol=1.0d-12)
-  call Assert('placing the seed removes its share of the stellar abundances' ,arrayAbundances                      ,spread((1.0d0-massEfficiency)*massStellar,1,size(arrayAbundances)),relTol=1.0d-12)
-  call Assert('placing the seed records the seed mass'                       ,nuclearStarCluster%floatRank0MetaPropertyGet(blackHoleSeedMassID),massSeed,relTol=1.0d-12)
-  call Assert('no further seed forms once the cluster has collapsed'         ,blackHoleSeeds_%mass(node)           ,0.0d0                                      )
+  call Assert('placing the seed marks the cluster as collapsed'              ,nuclearStarCluster%isCollapsed()                                 ,.true.                                                                           )
+  call Assert('placing the seed removes its mass from the stars'             ,nuclearStarCluster%massStellar()                                 ,       (1.0d0-massEfficiency)*massStellar                         ,relTol=1.0d-12)
+  call Assert('placing the seed removes its share of the stellar abundances' ,arrayAbundances                                                  ,spread((1.0d0-massEfficiency)*massStellar,1,size(arrayAbundances)),relTol=1.0d-12)
+  call Assert('placing the seed records the seed mass'                       ,nuclearStarCluster%floatRank0MetaPropertyGet(blackHoleSeedMassID),massSeed                                                          ,relTol=1.0d-12)
+  call Assert('no further seed forms once the cluster has collapsed'         ,blackHoleSeeds_%mass(node)                                       ,0.0d0                                                                            )
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
   ! Clean up.

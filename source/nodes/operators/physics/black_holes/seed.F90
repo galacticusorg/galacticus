@@ -55,7 +55,7 @@
   end interface nodeOperatorBlackHolesSeed
 
   ! Submodule-scope variable used in create function.
-  class           (nodeOperatorBlackHolesSeed), pointer :: self_     => null()
+  class(nodeOperatorBlackHolesSeed), pointer :: self_ => null()
   !$omp threadprivate(self_)
 
 contains
@@ -213,7 +213,7 @@ contains
     ! Apply any changes that follow from the seed having formed. This is done here, rather than when the seed mass is computed
     ! during differential evolution, since changes made there would be overwritten by the evolution.
     call self_%blackHoleSeeds_%seedFormed(node)
-    return 
+    return
   end subroutine blackHoleCreate
 
   subroutine blackHoleMerger(self,blackHole1,blackHole2,blackHoleMerged)
