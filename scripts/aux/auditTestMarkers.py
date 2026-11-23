@@ -29,7 +29,8 @@ This tool therefore reports:
 * a script with no ``SUCCESS`` marker;
 * a ``raise`` or bare ``assert`` which would abort the script with a traceback
   instead of a marker;
-* an explicit non-zero exit.
+* an explicit non-zero exit, whether by ``sys.exit(1)`` (or ``exit``,
+  ``os._exit``, ``quit``) or by ``raise SystemExit(1)``.
 
 A string literal on a line ending in the pragma ``# markers: exempt`` is
 ignored - use it for a literal which deliberately contains a marker word
@@ -53,6 +54,9 @@ import sys
 # Exceptions which are a legitimate way to leave a script: `SystemExit` is an exit, and argparse converts a
 # `ArgumentTypeError` raised by a `type=` callable into its own usage message and exit.
 raisesPermitted = ("SystemExit", "ArgumentTypeError")
+
+# Calls which leave the script with the status given as their first argument.
+exitCalls = ("sys.exit", "exit", "os._exit", "quit")
 
 # Scripts which are not tests, and so have no outcome to mark.
 scriptsExempt = ("test-all.py",)
@@ -83,6 +87,21 @@ def literalsOf(tree, source, lines):
             if lineNumber <= len(lines) and lines[lineNumber-1].rstrip().endswith("# markers: exempt"):
                 continue
             yield lineNumber, node.value
+
+
+def isExit(node):
+    """Return the exit-status argument node of a statement-level exit, ``False`` if the node is not an exit at all, or
+    ``None`` for an exit with no status argument. Both ``sys.exit(...)`` (and its synonyms) and ``raise SystemExit(...)``
+    count as exits."""
+    if isinstance(node, ast.Call) and callName(node) in exitCalls:
+        return node.args[0] if node.args else None
+    if isinstance(node, ast.Raise):
+        exception = node.exc
+        if isinstance(exception, ast.Name) and exception.id == "SystemExit":
+            return None
+        if isinstance(exception, ast.Call) and callName(exception).split(".")[-1] == "SystemExit":
+            return exception.args[0] if exception.args else None
+    return False
 
 
 def callName(call):
@@ -141,11 +160,10 @@ def auditScript(path):
     # Exits and aborts. The convention is to exit zero always, so that the outcome is read from the marker; anything which
     # leaves the script by another route reports itself as a traceback rather than as a readable message.
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and callName(node) in ("sys.exit", "exit", "os._exit", "quit"):
-            if node.args:
-                code = node.args[0]
-                if isinstance(code, ast.Constant) and code.value not in (0, None, False):
-                    issues.append(f"line {node.lineno}: exits with non-zero status {code.value!r}")
+        code = isExit(node)
+        if code is not False:
+            if isinstance(code, ast.Constant) and code.value not in (0, None, False):
+                issues.append(f"line {node.lineno}: exits with non-zero status {code.value!r}")
         elif isinstance(node, ast.Raise):
             exception = node.exc
             name = ""
@@ -167,9 +185,8 @@ def auditScript(path):
             if not block:
                 continue
             last = block[-1]
-            exits = isinstance(last, ast.Return)
-            if isinstance(last, ast.Expr) and isinstance(last.value, ast.Call) \
-               and callName(last.value) in ("sys.exit", "exit", "os._exit", "quit"):
+            exits = isinstance(last, ast.Return) or isExit(last) is not False
+            if isinstance(last, ast.Expr) and isExit(last.value) is not False:
                 exits = True
             if not exits:
                 continue
