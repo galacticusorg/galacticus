@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
+!+    Contributions to this file made by: Andrew Benson, Claude, Andrew Robertson, Codex.
 
   !!{RST
   Implements a node operator class that interpolates positions of nodes using the approach of :cite:t:`merson_lightcone_2013`.
@@ -90,6 +90,7 @@
      type            (treeNode ), pointer             :: node             => null() , nodeHost => null()
      type            (nodeTrace), pointer             :: next             => null()
      logical                                          :: isSatellite
+     logical                                          :: useIncomingHost = .true., useOutgoingHost = .true.
      integer         (c_size_t )                      :: iHistory
      logical                                          :: isOrphanDecaying =  .false.
      double precision           , dimension(10)       :: orbitOrphan
@@ -400,7 +401,8 @@ contains
     class           (nodeOperatorPositionInterpolated), intent(inout)  , target      :: self
     type            (treeNode                        ), intent(inout)  , target      :: node
     type            (treeNode                        )                 , pointer     :: nodeDescendant      , nodeHost                  , &
-         &                                                                              nodeMergeTarget     , nodeMergeTargetPrevious
+         &                                                                              nodeMergeTarget     , nodeMergeTargetPrevious   , &
+         &                                                                              nodeHostBeforeJump
     class           (nodeComponentBasic              )                 , pointer     :: basic               , basicHost                 , &
          &                                                                              basicMergeTarget
     class           (nodeComponentPosition           )                 , pointer     :: position            , positionMergeTarget
@@ -471,11 +473,13 @@ contains
     ! present-time check (findEvents(presentOnly=.true.)) is reached only after the time has been advanced to the next history
     ! step. We therefore apply it explicitly here, so that satellite positions are interpolated relative to the correct host
     ! from the very first step - consistent with how the merger logic follows such jumps when another branch merges onto this node.
+    nullify(nodeHostBeforeJump)
     eventPrior => node%event
     do while (associated(eventPrior))
        select type (eventPrior)
        type is (nodeEventBranchJump)
           if (eventPrior%time == time .and. associated(eventPrior%task)) then
+             if (.not.associated(nodeDescendant,nodeHost)) call rememberIncomingHost(eventPrior%node)
              if (associated(nodeDescendant,nodeHost)) nodeDescendant => eventPrior%node
              nodeHost => eventPrior%node
           end if
@@ -602,21 +606,32 @@ contains
              allocate(traceHead     )
              traceTail => traceHead
           end if
-          if (reporting) then
-             write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
-             call displayMessage(trim(adjustl(label)))
-          end if
           traceTail%time        =  time
           traceTail%isSatellite =  isSatellite
           traceTail%iHistory    =  iHistory
           traceTail%node        => nodeDescendant
           traceTail%nodeHost    => nodeHost
           traceTail%next        => null()
+          if (associated(nodeHostBeforeJump) .and. isSatellite .and. haveHistory .and. iHistory > 0) then
+             if (positionHistory%time(iHistory) == time) then
+                ! The jump names a future host. Keep the incoming host at this measured knot. Across the
+                ! transfer there is no common host frame, so fit the satellite's own phase-space samples.
+                traceTail%nodeHost        => nodeHostBeforeJump
+                basicHost                 => nodeHostBeforeJump%basic()
+                traceTail%useIncomingHost =  basicHost%time() == time
+                traceTail%useOutgoingHost =  .false.
+             end if
+          end if
+          if (reporting) then
+             write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),traceTail%nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
+             call displayMessage(trim(adjustl(label)))
+          end if
           if (isOrphanDecaying) then
              traceTail%isOrphanDecaying=.true.
              traceTail%orbitOrphan     =orbitOrphan
           end if
        end if
+       nullify(nodeHostBeforeJump)
        isOrphanReverted=.false.
        ! Move to the next step.
        !! Case where we are following the decaying orbit of an orphan.
@@ -842,6 +857,7 @@ contains
           call displayMessage("trace events - branch jump?, time, timeJump: "//trim(adjustl(label)))
        end if
        if (haveBranchJump .and. time == timeBranchJump) then
+          if (.not.associated(nodeDescendant,nodeHost) .and. .not.isOrphanDecaying) call rememberIncomingHost(event%node)
           if (associated(nodeDescendant,nodeHost) .or. isOrphanDecaying) nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
           nodeHost         => event%node
           isOrphanDecaying =  .false.
@@ -909,7 +925,8 @@ contains
                 call displayMessage("     host: "//trim(message))
                 call displayUnindent("")
              end if
-          else if (traceTail%isSatellite .and. traceTail%next%isSatellite .and. .not.traceTail%isOrphanDecaying) then
+          else if (traceTail%isSatellite .and. traceTail%next%isSatellite .and. .not.traceTail%isOrphanDecaying &
+               & .and. traceTail%useOutgoingHost .and. traceTail%next%useIncomingHost) then
              ! Logarithmic spiral interpolation - the node is a satellite at this step, and at the next step.
              coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationLogarithmicSpiral
              !! Get the logarithmic spiral interpolation for the host halo.
@@ -931,7 +948,7 @@ contains
              end if
           else
              ! Polynomial interpolation - whenever the node is not a satellite at this and the next step, or is ending a decaying
-             ! orbit as an orphan.
+             ! orbit as an orphan, or crosses between host frames.
              coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationCubicPolynomial
              !! Get the cubic polynomial coefficients.
              coefficientsCubic=computeCoefficientsCubicPolynomial   (traceTail,useHost=.false.)
@@ -939,7 +956,7 @@ contains
              offset                                                                 =2_c_size_t*(countTrace-1_c_size_t)+(countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)*iTrace
              coefficients(offset+1_c_size_t:offset+countCoefficientsCubicPolynomial)=reshape(coefficientsCubic,[countCoefficientsCubicPolynomial])
              if (reporting) then
-                call displayIndent("non-satellite")
+                call displayIndent("cubic")
                 write (message,'(12(e12.6,1x))') reshape(coefficientsCubic ,[countCoefficientsCubicPolynomial  ])
                 call displayMessage("     self: "//trim(message))
                 call displayUnindent("")
@@ -958,6 +975,14 @@ contains
     return
 
   contains
+
+    subroutine rememberIncomingHost(destination)
+      type (treeNode), intent(inout) :: destination
+      class (nodeComponentBasic), pointer :: basicDestination
+
+      basicDestination => destination%basic()
+      if (basicDestination%time() > time .and. .not.associated(nodeHostBeforeJump)) nodeHostBeforeJump => nodeHost
+    end subroutine rememberIncomingHost
 
     subroutine findEvents(presentOnly)
       !!{RST
