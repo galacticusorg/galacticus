@@ -35,12 +35,16 @@
       \dot{M}_\mathrm{outflow} = {\dot{E}_\mathrm{SN} \over E_\mathrm{SN} \dot{M}_\star} \int_0^{x_\mathrm{outer} r_\mathrm{d}} \beta_0
       \Sigma_{g,1}^{-\mu}(r) f_\mathrm{g}^\nu(r) \dot{\Sigma}_\star(r) 2 \pi r \mathrm{d}r,
 
-   where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`, :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate, :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``. :cite:t:`creasey_how_2013` integrate
+   where :math:`\Sigma_{g,1}(r)` is the surface density of gas in units of :math:`\mathrm{M}_\odot` pc\ :math:`^{-2}`,
+   :math:`f_\mathrm{g}(r)` is the gas fraction, :math:`\dot{\Sigma}_\star(r)` is the surface density of star formation rate,
+   :math:`\dot{M}_\star` is the total star formation rate in the disk, :math:`\dot{E}_\mathrm{SN}` is the current energy input
+   rate from supernovae, :math:`E_\mathrm{SN}` is the total energy input per unit mass from a stellar population after infinite
+   time, :math:`\beta_0=`\ ``[beta0]``, :math:`\mu=`\ ``[mu]``, and :math:`\nu=`\ ``[nu]``. :cite:t:`creasey_how_2013` integrate
    to infinite radius, but here the integral is truncated at :math:`x_\mathrm{outer}=`\ ``[radiusOuterDimensionless]`` disk scale
    lengths, :math:`r_\mathrm{d}`: for star formation laws whose effective slope in gas surface density is :math:`\le \mu` the
-   integral diverges at large radii, so some truncation is needed. For example, for an untruncated Kennicutt-Schmidt law with :math:`N=1.4`
-   and a gas fraction independent of radius, truncating at 30 (the default) scale lengths omits 0.5% of the outflow rate, and
-   truncating at 10 omits 29%.
+   integral diverges at large radii, so some truncation is needed. For example, for an untruncated Kennicutt-Schmidt law with
+   :math:`N=1.4` and a gas fraction independent of radius, truncating at 30 (the default) scale lengths omits 0.5% of the outflow
+   rate, and truncating at 10 omits 29%.
    </description>
   </stellarFeedbackOutflows>
   !!]
@@ -50,7 +54,7 @@
      !!}
      private
      class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
-     double precision                                                     :: nu                                             , mu, &
+     double precision                                                     :: nu                                             , mu                      , &
           &                                                                  beta0                                          , radiusOuterDimensionless
    contains
      final     ::                creasey2013Destructor
@@ -76,7 +80,7 @@ contains
     type            (stellarFeedbackOutflowsCreasey2013       )                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (starFormationRateSurfaceDensityDisksClass), pointer       :: starFormationRateSurfaceDensityDisks_
-    double precision                                                           :: mu                                   , nu, &
+    double precision                                                           :: mu                                   , nu                      , &
          &                                                                        beta0                                , radiusOuterDimensionless
 
     !![
@@ -141,7 +145,7 @@ contains
     implicit none
     type            (stellarFeedbackOutflowsCreasey2013       )                        :: self
     class           (starFormationRateSurfaceDensityDisksClass), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
-    double precision                                           , intent(in   )         :: mu                                   , nu, &
+    double precision                                           , intent(in   )         :: mu                                   , nu                      , &
          &                                                                                beta0                                , radiusOuterDimensionless
     !![
     <constructorAssign variables="mu, nu, beta0, radiusOuterDimensionless, *starFormationRateSurfaceDensityDisks_"/>
@@ -193,8 +197,8 @@ contains
     double precision                                    , intent(  out) :: rateOutflowEjective           , rateOutflowExpulsive
     class           (massDistributionClass             ), pointer       :: massDistributionGaseous       , massDistributionStellar
     double precision                                    , parameter     :: radiusInnerDimensionless=0.0d0
-    double precision                                                    :: radiusScale                   , massGas                        , &
-         &                                                                 radiusInner                   , radiusOuter                    , &
+    double precision                                                    :: radiusScale                   , massGas                , &
+         &                                                                 radiusInner                   , radiusOuter            , &
          &                                                                 massStellar
     type            (integrator                        )                :: integrator_
 
@@ -224,7 +228,7 @@ contains
        return
     end if
     ! Compute suitable limits for the integration.
-    radiusInner=radiusScale*radiusInnerDimensionless
+    radiusInner=radiusScale*     radiusInnerDimensionless
     radiusOuter=radiusScale*self%radiusOuterDimensionless
     ! Compute the outflow rate.
     massDistributionGaseous => component%hostNode%massDistribution(componentType=componentTypeDisk,massType=massTypeGaseous)

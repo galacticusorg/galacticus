@@ -38,29 +38,29 @@ program Test_Stellar_Feedback_Outflows_Creasey2013
   * integrated to 10 scale lengths (the outer radius used previously), the outflow rate is :math:`1-3.5\exp(-2.5)=0.7127` of that
     integrated to infinite radius.
   !!}
-  use :: Display                                  , only : displayVerbositySet                     , verbosityLevelStandard
+  use :: Display                                  , only : displayVerbositySet                      , verbosityLevelStandard
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize            , nodeComponentBasic               , nodeComponentDisk                  , treeNode
-  use :: ISO_Varying_String                       , only : assignment(=)                           , varying_string
+  use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize             , nodeComponentBasic                , nodeComponentDisk                  , treeNode
+  use :: ISO_Varying_String                       , only : assignment(=)                            , varying_string
   use :: Input_Parameters                         , only : inputParameters
-  use :: Node_Components                          , only : Node_Components_Initialize              , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
+  use :: Node_Components                          , only : Node_Components_Initialize               , Node_Components_Thread_Initialize , Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
-  use :: Stellar_Feedback_Outflows                , only : stellarFeedbackOutflowsClass            , stellarFeedbackOutflowsCreasey2013
-  use :: Unit_Tests                               , only : Assert                                  , Unit_Tests_Begin_Group           , Unit_Tests_End_Group               , Unit_Tests_Finish
+  use :: Stellar_Feedback_Outflows                , only : stellarFeedbackOutflowsClass             , stellarFeedbackOutflowsCreasey2013
+  use :: Unit_Tests                               , only : Assert                                   , Unit_Tests_Begin_Group            , Unit_Tests_End_Group               , Unit_Tests_Finish
   implicit none
   type            (varying_string                           )          :: parameterFile
   type            (inputParameters                          )          :: parameters
   class           (stellarFeedbackOutflowsClass             ), pointer :: stellarFeedbackOutflowsDefault_
   class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_
-  type            (stellarFeedbackOutflowsCreasey2013       )          :: stellarFeedbackOutflowsInfinite_     , stellarFeedbackOutflowsTen_
+  type            (stellarFeedbackOutflowsCreasey2013       )          :: stellarFeedbackOutflowsInfinite_           , stellarFeedbackOutflowsTen_
   type            (treeNode                                 ), pointer :: node
   class           (nodeComponentBasic                       ), pointer :: basic
   class           (nodeComponentDisk                        ), pointer :: disk
   ! Star formation and energy input rates [M☉/Gyr and arbitrary units] - only their ratio matters.
-  double precision                                           , parameter :: rateStarFormation      =1.0d0, rateEnergyInput=1.0d0
-  double precision                                                       :: rateOutflowDefault           , rateOutflowInfinite  , &
-       &                                                                    rateOutflowTen               , rateOutflowExpulsive
+  double precision                                           , parameter :: rateStarFormation                  =1.0d0, rateEnergyInput            =1.0d0
+  double precision                                                       :: rateOutflowDefault                       , rateOutflowInfinite              , &
+       &                                                                    rateOutflowTen                           , rateOutflowExpulsive
 
   call displayVerbositySet(verbosityLevelStandard)
   parameterFile='testSuite/parameters/stellarFeedbackOutflowsCreasey2013.xml'
@@ -87,8 +87,8 @@ program Test_Stellar_Feedback_Outflows_Creasey2013
   call stellarFeedbackOutflowsDefault_ %outflowRate(disk,rateStarFormation,rateEnergyInput,rateOutflowDefault ,rateOutflowExpulsive)
   call stellarFeedbackOutflowsInfinite_%outflowRate(disk,rateStarFormation,rateEnergyInput,rateOutflowInfinite,rateOutflowExpulsive)
   call stellarFeedbackOutflowsTen_     %outflowRate(disk,rateStarFormation,rateEnergyInput,rateOutflowTen     ,rateOutflowExpulsive)
-  call Assert('outflow rate is positive'                                   ,rateOutflowInfinite > 0.0d0         ,.true.                         )
-  call Assert('default outer radius gives the infinite-radius outflow rate',rateOutflowDefault/rateOutflowInfinite,1.0d0                ,relTol=1.0d-2)
+  call Assert('outflow rate is positive'                                   ,rateOutflowInfinite > 0.0d0           ,.true.                               )
+  call Assert('default outer radius gives the infinite-radius outflow rate',rateOutflowDefault/rateOutflowInfinite,1.0d0                  ,relTol=1.0d-2)
   call Assert('outer radius of 10 scale lengths omits 29% of the outflow'  ,rateOutflowTen    /rateOutflowInfinite,1.0d0-3.5d0*exp(-2.5d0),relTol=1.0d-2)
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
