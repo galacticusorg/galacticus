@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795420116543,
+  "lastUpdate": 1795521451084,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Decaying dark matter-only subhalos benchmarks (τ=80 Gyr; vₖ=40 km/s)": [
@@ -8097,6 +8097,40 @@ window.BENCHMARK_DATA = {
           {
             "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
             "value": 53.70377125682495,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bc933cfc85290f404e6bccaa281f3c72667d2808",
+          "message": "Merge pull request #1833 from galacticusorg/fix/baugh2005-burst-criterion\n\nfeat(mergerMassMovementsBaugh2005)!: use the Baugh et al. (2005) minor-merger burst criterion and major-merger ratio, with migrations",
+          "timestamp": "2026-11-23T16:18:30Z",
+          "tree_id": "f4628a1310e4aff7bb60caecbe7a5fb5c63b3846",
+          "url": "https://github.com/galacticusorg/galacticus/commit/bc933cfc85290f404e6bccaa281f3c72667d2808"
+        },
+        "date": 1795521450269,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - mass function",
+            "value": 167.99386633806614,
+            "unit": "-logℒ"
+          },
+          {
+            "name": " (τ=80.0 Gyr; vₖ=40.0 km/s) - Likelihood - orbital radius function",
+            "value": 49.02516101968313,
             "unit": "-logℒ"
           }
         ]
