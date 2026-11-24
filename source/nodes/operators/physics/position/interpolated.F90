@@ -614,11 +614,12 @@ contains
           traceTail%next        => null()
           if (associated(nodeHostBeforeJump) .and. isSatellite .and. haveHistory .and. iHistory > 0) then
              if (positionHistory%time(iHistory) == time) then
-                ! The jump names a future host. Keep the incoming host at this measured knot. Across the
-                ! transfer there is no common host frame, so fit the satellite's own phase-space samples.
+                ! The satellite is still in its old host at this snapshot. The jump points to the new host at a later snapshot.
+                ! Use the old host for the interval ending here if its position was measured at this snapshot.
                 traceTail%nodeHost        => nodeHostBeforeJump
                 basicHost                 => nodeHostBeforeJump%basic()
                 traceTail%useIncomingHost =  basicHost%time() == time
+                ! The satellite changes hosts in the following interval. Interpolate its measured positions and velocities directly.
                 traceTail%useOutgoingHost =  .false.
              end if
           end if
