@@ -6,16 +6,16 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "4c4a6ef0184e639b8d82c319dfd4a70967390dbd",
-        "message": "Merge pull request #1839 from galacticusorg/ci/dependency-bot-no-repush\n\nci: stop dependencyBot re-pushing branches with pending PRs\n",
-        "timestamp": "2026-11-23 00:25:03+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4c4a6ef0184e639b8d82c319dfd4a70967390dbd"
+        "id": "bc933cfc85290f404e6bccaa281f3c72667d2808",
+        "message": "Merge pull request #1833 from galacticusorg/fix/baugh2005-burst-criterion\n\nfeat(mergerMassMovementsBaugh2005)!: use the Baugh et al. (2005) minor-merger burst criterion and major-merger ratio, with migrations\n",
+        "timestamp": "2026-11-23 16:18:30+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/bc933cfc85290f404e6bccaa281f3c72667d2808"
     },
     "results": [
         {
             "attributes": {
                 "name": "Symphony MilkyWay CDM resolutionX1 z=3.984 (47 realizations)",
-                "logLikelihood": "-2731.4337024094057",
+                "logLikelihood": "-2731.4302412206994",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -39,34 +39,34 @@ window.ANALYSES_DATA = {
                     22387211385.68341
                 ],
                 "yDataset": [
-                    5.1333588566969715,
-                    3.333546878720567,
-                    2.1524345905853974,
-                    1.3821846303328105,
-                    0.9806083806292787,
-                    0.7815630151350492,
-                    0.5598927178568106,
-                    0.3491374311374191,
-                    0.21608855671341645,
-                    0.13135420620771093,
-                    0.08082460333562226,
-                    0.04650614199593744,
-                    0.039391460110511145
+                    5.133349228257769,
+                    3.3335393096414214,
+                    2.152428808981011,
+                    1.3821802581703977,
+                    0.9806048841259152,
+                    0.7815600054341808,
+                    0.5598903064948967,
+                    0.34913564558221766,
+                    0.21608726518862453,
+                    0.13135329473169832,
+                    0.08082396191236649,
+                    0.046505704313691096,
+                    0.03939112182124143
                 ],
                 "yError": [
-                    0.08004705716054737,
-                    0.054147761224452313,
-                    0.037020096224849856,
-                    0.026084447807728405,
-                    0.02862163578858496,
-                    0.024417092893676575,
-                    0.013900412875365722,
-                    0.010953014898239858,
-                    0.00889056212167506,
-                    0.007167778567116416,
-                    0.006995971299367821,
-                    0.006797811516659668,
-                    0.02104393584900645
+                    0.0800469341057236,
+                    0.054147662250403995,
+                    0.03702001842656467,
+                    0.026084386055161193,
+                    0.028621562451732804,
+                    0.024417027320363518,
+                    0.013900373098052018,
+                    0.01095298022511542,
+                    0.008890531147418945,
+                    0.007167750839749574,
+                    0.006995941327587281,
+                    0.006797777834399005,
+                    0.021043840617656025
                 ],
                 "yDatasetTarget": [
                     4.936256110146047,

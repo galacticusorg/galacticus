@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "4c4a6ef0184e639b8d82c319dfd4a70967390dbd",
-        "message": "Merge pull request #1839 from galacticusorg/ci/dependency-bot-no-repush\n\nci: stop dependencyBot re-pushing branches with pending PRs\n",
-        "timestamp": "2026-11-23 00:25:03+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/4c4a6ef0184e639b8d82c319dfd4a70967390dbd"
+        "id": "bc933cfc85290f404e6bccaa281f3c72667d2808",
+        "message": "Merge pull request #1833 from galacticusorg/fix/baugh2005-burst-criterion\n\nfeat(mergerMassMovementsBaugh2005)!: use the Baugh et al. (2005) minor-merger burst criterion and major-merger ratio, with migrations\n",
+        "timestamp": "2026-11-23 16:18:30+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/bc933cfc85290f404e6bccaa281f3c72667d2808"
     },
     "surfaceDensity": {
         "percentageBelow": 10.714285714285708,
@@ -17,8 +17,8 @@ window.PONOSV_DATA = {
         "target": 0.006
     },
     "slope": {
-        "percentageBelow": 47.61904761904762,
-        "percentageAbove": 52.38095238095238,
+        "percentageBelow": 40.90909090909091,
+        "percentageAbove": 59.09090909090909,
         "target": 0.85
     }
 }
