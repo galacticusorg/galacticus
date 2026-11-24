@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Yu Zhao
+  !+    Contributions to this file made by: Yu Zhao, Claude.
 
   !!{RST
   Implementation of a kinematic distribution class for the soliton-NFW Heated mass distribution.
@@ -144,12 +144,11 @@ contains
             &                 *massDistributionEmbedding%radiusCore    &
             &                 /massDistributionEmbedding%radiusSoliton
        if (radiusSolitonFree < radiusSolitonFreeSmall) then
-          ! Small radius. Use the tabulated solution at the small radius boundary, extrapolated to the actual
-          ! radius using the result for a power-law ρ(r) ∝ r⁰ profile.
+          ! Small radius. Use the tabulated solution at the small radius boundary. The soliton has a constant density core,
+          ! ρ(r) ∝ r⁰, for which the Jeans equation gives a velocity dispersion that tends to a constant as r→0, so no
+          ! extrapolation is needed.
           coordinatesReference=[radiusSolitonFreeSmall*massDistributionEmbedding%radiusSoliton,0.0d0,0.0d0]
-          velocityDispersion  =+self%velocityDispersion1DNumerical(coordinatesReference,massDistribution_,massDistributionEmbedding) &
-               &               *radiusSolitonFree                                                                                    &    
-               &               /radiusSolitonFreeSmall
+          velocityDispersion  =+self%velocityDispersion1DNumerical(coordinatesReference,massDistribution_,massDistributionEmbedding)
        else
           velocityDispersion  =+self%velocityDispersion1DNumerical(coordinates         ,massDistribution_,massDistributionEmbedding)
        end if
