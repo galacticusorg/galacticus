@@ -87,10 +87,10 @@
      Type used for tracing nodes through their positional history.
      !!}
      double precision                                 :: time
-     type            (treeNode ), pointer             :: node             => null() , nodeHost => null()
+     type            (treeNode ), pointer             :: node             => null() , nodeHost        => null()
      type            (nodeTrace), pointer             :: next             => null()
      logical                                          :: isSatellite
-     logical                                          :: useIncomingHost = .true., useOutgoingHost = .true.
+     logical                                          :: useIncomingHost  =  .true. , useOutgoingHost =  .true.
      integer         (c_size_t )                      :: iHistory
      logical                                          :: isOrphanDecaying =  .false.
      double precision           , dimension(10)       :: orbitOrphan
@@ -479,8 +479,11 @@ contains
        select type (eventPrior)
        type is (nodeEventBranchJump)
           if (eventPrior%time == time .and. associated(eventPrior%task)) then
-             if (.not.associated(nodeDescendant,nodeHost)) call rememberIncomingHost(eventPrior%node)
-             if (associated(nodeDescendant,nodeHost)) nodeDescendant => eventPrior%node
+             if (associated(nodeDescendant,nodeHost)) then
+                nodeDescendant => eventPrior%node
+             else
+                call rememberIncomingHost(eventPrior%node)
+             end if
              nodeHost => eventPrior%node
           end if
        end select
@@ -858,8 +861,11 @@ contains
           call displayMessage("trace events - branch jump?, time, timeJump: "//trim(adjustl(label)))
        end if
        if (haveBranchJump .and. time == timeBranchJump) then
-          if (.not.associated(nodeDescendant,nodeHost) .and. .not.isOrphanDecaying) call rememberIncomingHost(event%node)
-          if (associated(nodeDescendant,nodeHost) .or. isOrphanDecaying) nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
+          if (associated(nodeDescendant,nodeHost) .or. isOrphanDecaying) then
+             nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
+          else
+             call rememberIncomingHost(event%node)
+          end if
           nodeHost         => event%node
           isOrphanDecaying =  .false.
        end if
@@ -926,8 +932,17 @@ contains
                 call displayMessage("     host: "//trim(message))
                 call displayUnindent("")
              end if
-          else if (traceTail%isSatellite .and. traceTail%next%isSatellite .and. .not.traceTail%isOrphanDecaying &
-               & .and. traceTail%useOutgoingHost .and. traceTail%next%useIncomingHost) then
+          else if (                                     &
+               &         traceTail%isSatellite          &
+               &   .and.                                &
+               &         traceTail%next%isSatellite     &
+               &   .and.                                &
+               &    .not.traceTail%isOrphanDecaying     &
+               &   .and.                                &
+               &         traceTail%useOutgoingHost      &
+               &   .and.                                &
+               &         traceTail%next%useIncomingHost &
+               &  ) then
              ! Logarithmic spiral interpolation - the node is a satellite at this step, and at the next step.
              coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationLogarithmicSpiral
              !! Get the logarithmic spiral interpolation for the host halo.
@@ -978,8 +993,14 @@ contains
   contains
 
     subroutine rememberIncomingHost(destination)
-      type (treeNode), intent(inout) :: destination
-      class (nodeComponentBasic), pointer :: basicDestination
+      !!{RST
+      Record the current host of a satellite which is about to undergo a branch jump. If the ``destination`` host of the jump
+      exists only at a later time than the jump, the satellite remains in its current host until then, so that host is retained
+      (in ``nodeHostBeforeJump``) for use at the time of the jump. Only the first such host is recorded.
+      !!}
+      implicit none
+      type (treeNode          ), intent(inout) :: destination
+      class(nodeComponentBasic), pointer       :: basicDestination
 
       basicDestination => destination%basic()
       if (basicDestination%time() > time .and. .not.associated(nodeHostBeforeJump)) nodeHostBeforeJump => nodeHost
