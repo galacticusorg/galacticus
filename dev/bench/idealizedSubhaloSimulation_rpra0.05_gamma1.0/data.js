@@ -1,47 +1,8 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795420070564,
+  "lastUpdate": 1795521388229,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Idealized subhalo simulations (rₚ/rₐ=0.05; γ=1.0)": [
-      {
-        "commit": {
-          "author": {
-            "email": "abensonca@gmail.com",
-            "name": "Andrew Benson",
-            "username": "abensonca"
-          },
-          "committer": {
-            "email": "noreply@github.com",
-            "name": "GitHub",
-            "username": "web-flow"
-          },
-          "distinct": true,
-          "id": "c5185afbf01c82d3e65a46dedcf09ea50a034a3c",
-          "message": "Merge pull request #740 from galacticusorg/fixMergerTreeReadMultipleFiles\n\nCorrectly handle reading of multiple merger tree files",
-          "timestamp": "2024-11-21T16:31:06Z",
-          "tree_id": "ebe387a77320f583242d3af3fa89914c1f6e40d1",
-          "url": "https://github.com/galacticusorg/galacticus/commit/c5185afbf01c82d3e65a46dedcf09ea50a034a3c"
-        },
-        "date": 1732230558978,
-        "tool": "customSmallerIsBetter",
-        "benches": [
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
-            "value": "69.36737924766514",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
-            "value": "39.24572985840733",
-            "unit": "-logℒ"
-          },
-          {
-            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
-            "value": "32.236493260231335",
-            "unit": "-logℒ"
-          }
-        ]
-      },
       {
         "commit": {
           "author": {
@@ -9938,6 +9899,45 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/4c4a6ef0184e639b8d82c319dfd4a70967390dbd"
         },
         "date": 1795420069943,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteBoundMass",
+            "value": -69.3673783505106,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteRadiusVelocityMaximum",
+            "value": -39.24572993013376,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Idealized Subhalo Simulation (rₚ/rₐ=0.05; γ=1.0) - Likelihood - satelliteVelocityMaximum",
+            "value": -32.236493229827545,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bc933cfc85290f404e6bccaa281f3c72667d2808",
+          "message": "Merge pull request #1833 from galacticusorg/fix/baugh2005-burst-criterion\n\nfeat(mergerMassMovementsBaugh2005)!: use the Baugh et al. (2005) minor-merger burst criterion and major-merger ratio, with migrations",
+          "timestamp": "2026-11-23T16:18:30Z",
+          "tree_id": "f4628a1310e4aff7bb60caecbe7a5fb5c63b3846",
+          "url": "https://github.com/galacticusorg/galacticus/commit/bc933cfc85290f404e6bccaa281f3c72667d2808"
+        },
+        "date": 1795521387358,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
