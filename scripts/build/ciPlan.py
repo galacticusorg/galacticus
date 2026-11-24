@@ -26,7 +26,7 @@ What a pull request runs is decided by the tables below, not by the workflow fil
 * Selection fails safe. A job or test which this script does not know about runs; a changed file which it cannot classify gets
   the default subset; a list of changed files which could not be determined gets the full suite.
 * A selected job brings the jobs it ``needs`` with it, so a test can never be planned without its build.
-* A job which was planned but did not run fails the gate, as does one which failed or was cancelled.
+* A job which was planned but did not run fails the gate, as does one which failed or was canceled.
 
 Run with::
 
@@ -398,7 +398,7 @@ def gate(needs, planned):
     for name, job in sorted(needs.items()):
         result = job.get("result")
         if result in ("failure", "cancelled"):
-            problems.append(f"`{name}` {'failed' if result == 'failure' else 'was cancelled'}")
+            problems.append(f"`{name}` {'failed' if result == 'failure' else 'was canceled'}")
         elif result == "skipped" and name in planned:
             problems.append(f"`{name}` was planned but did not run")
     return problems

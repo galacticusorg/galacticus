@@ -170,7 +170,7 @@ run a *tier*, and every other job runs only if the plan lists it:
   affect the build or the tests.
 
 The last job, **CI-Gate**, checks the outcome against the plan: it passes only if
-no job failed or was cancelled and every planned job actually ran. It is the one
+no job failed or was canceled and every planned job actually ran. It is the one
 status check which branch protection should require, and it reports for every
 run — including a skipped one.
 

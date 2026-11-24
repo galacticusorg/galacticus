@@ -2921,7 +2921,7 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
   # Gate
   ## The one status check which branch protection needs to require. It needs every job which builds or tests, runs whatever
-  ## became of them, and passes only if the plan succeeded, no job failed or was cancelled, and every job which was planned
+  ## became of them, and passes only if the plan succeeded, no job failed or was canceled, and every job which was planned
   ## actually ran. (A job which is skipped reports success to branch protection, so requiring the jobs themselves would let a
   ## pull request merge with its tests skipped because its build failed.) The jobs which follow - those which publish - need
   ## this job, and so run only for a commit which passed. A job added to this workflow must be added to the list here; the tests
