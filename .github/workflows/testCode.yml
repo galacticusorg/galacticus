@@ -9,7 +9,7 @@ on:
       artifact: # The name of the artifact to download to retrieve the executable
         required: true
         type: string
-      executable: # The name of the test executable to be run and tested
+      executable: # The name of the test executable to be run and tested, or several names separated by white space
         required: true
         type: string
       expectUnrecognized: # Set to zero if unrecognized parameters are not expected, 1 if they are expected
@@ -32,12 +32,22 @@ on:
         required: false
         default: 0
         type: number
+      enabled: # Set to false to skip the test - used by callers with a matrix of tests to run only those which were planned
+        required: false
+        default: true
+        type: boolean
+      timeoutMinutes: # The time after which the job is stopped - a test which hangs otherwise runs for six hours
+        required: false
+        default: 180
+        type: number
 defaults:
   run:
     shell: bash
 jobs:
   Test-Code:
+    if: ${{ inputs.enabled }}
     runs-on: ${{ inputs.runner }}
+    timeout-minutes: ${{ inputs.timeoutMinutes }}
     container:
       image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:latest' || '' }}
     steps:
@@ -59,42 +69,70 @@ jobs:
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "PARAM_PATH=/home/galacticus/super/secret/stuff" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      # Downloading the executables occasionally fails for reasons which have nothing to do with the code being tested, and a
+      # failure here fails the whole run, so it is tried twice.
       - name: Download executables
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ${{ inputs.artifact }}
+      - name: Download executables (second attempt)
+        if: steps.download.outcome == 'failure'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ inputs.artifact }}
       - name: Install tools
         if: ${{ format('{0}',inputs.requirePython) == '1' }}
         run: |
-          apt -y update && apt -y upgrade
-          apt -y install python3-numpy python3-h5py
+          # Package installation depends on the network, so it is retried.
+          for attempt in 1 2 3; do
+           if apt -y update && apt -y upgrade && apt -y install python3-numpy python3-h5py; then break; fi
+           if [ $attempt == 3 ]; then exit 1; fi
+           sleep 20
+          done
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
+        env:
+          # Passed through the environment so that a list of names may be split across lines.
+          EXECUTABLES: ${{ inputs.executable }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./${{ inputs.executable }}
           set -o pipefail
-          if [ ${{ inputs.mpi }} == 1 ]; then
-           if [ ${{ inputs.expectCrash }} == 1 ]; then
-            ! mpirun --oversubscribe -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+          # Each executable is run in turn, and all of them are run even if one fails, so that a job which runs many reports
+          # every failure at once. An executable passes if it exits cleanly and reports no failure - or, for the tests of the
+          # test harness itself, if it crashes or reports a failure as it is expected to.
+          : > test.log
+          failures=""
+          for executable in ${EXECUTABLES}; do
+           chmod u=wrx ./${executable}
+           echo "::group::${executable}"
+           crashed=0
+           if [ ${{ inputs.mpi }} == 1 ]; then
+            mpirun --oversubscribe -np 2 --allow-run-as-root ./${executable} 2>&1 | tee ${executable}.log || crashed=1
            else
-            mpirun --oversubscribe -np 2 --allow-run-as-root ./${{ inputs.executable }} 2>&1 | tee test.log
+            ./${executable} 2>&1 | tee ${executable}.log || crashed=1
            fi
-          else
-           if [ ${{ inputs.expectCrash }} == 1 ]; then
-            ! ./${{ inputs.executable }} 2>&1 | tee test.log
-           else
-            ./${{ inputs.executable }} 2>&1 | tee test.log
+           echo "::endgroup::"
+           failed=0
+           if grep -q FAIL ${executable}.log; then failed=1; fi
+           if [ $crashed != ${{ inputs.expectCrash }} ] || [ $failed != ${{ inputs.expectFail }} ]; then
+            failures="${failures} ${executable}"
+            echo "::error title=Unit test::${executable} did not behave as expected (crashed: ${crashed}, reported a failure: ${failed})"
            fi
+           cat ${executable}.log >> test.log
+          done
+          if [ -n "${failures}" ]; then
+           echo "# :x: Unit tests which did not behave as expected" >> $GITHUB_STEP_SUMMARY
+           for executable in ${failures}; do echo "- \`${executable}\`" >> $GITHUB_STEP_SUMMARY; done
+           exit 1
           fi
-          if [ ${{ inputs.expectFail }} == 1 ]; then
-           grep -q FAIL test.log
-          else
-           ! grep -q FAIL test.log
-          fi
+      # This action only supplies the job's URL for the summary written below. It queries the GitHub API, and has failed a
+      # job whose test had already passed when that query timed out, so a failure here is not allowed to fail the job.
       - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
+        continue-on-error: true
       - name: "Check for unrecognized parameters"
         if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
         run: |

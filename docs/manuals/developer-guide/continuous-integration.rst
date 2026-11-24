@@ -149,6 +149,50 @@ of the reusable ``testCode.yml`` and ``testModel.yml`` workflows and compares
 outputs against references (``hdf5Diff.yml``). This pipeline is heavier and takes
 considerably longer than the pull-request checks.
 
+The full suite costs over a hundred hours of runner time, so it is not run for
+every push to every pull request. The first job of each run, **Plan**, gives the
+run a *tier*, and every other job runs only if the plan lists it:
+
+* **full** — every job. Used for each merge group formed by the merge queue (so
+  that a change is tested against the exact state of ``master`` that it will land
+  on), for a pull request which changes the build system, the code generator, the
+  dependencies, or the workflows themselves, for a pull request carrying the
+  ``ci:full`` label, and for a manual dispatch.
+* **pr** — a subset chosen from the files which a pull request changes. A change
+  to the source runs the two default Linux builds, the unit tests, and the model
+  tests which take no more than a few minutes each. A change to the test suite
+  alone runs just the tests which it affects. Other build configurations, macOS,
+  MPI, validation, benchmarks, and profiling are left to the merge queue.
+* **deploy** — a push to ``master`` of a commit which the merge queue has already
+  tested. Nothing is rebuilt or retested: the artifacts of the merge group's run
+  are deployed as they are. Any other push to ``master`` runs the full suite.
+* **skip** — nothing: a draft pull request, or one which changes no file that can
+  affect the build or the tests.
+
+The last job, **CI-Gate**, checks the outcome against the plan: it passes only if
+no job failed or was cancelled and every planned job actually ran. It is the one
+status check which branch protection should require, and it reports for every
+run — including a skipped one.
+
+The rules which choose a tier and a subset are tables in
+``scripts/build/ciPlan.py``, which is the place to change what a pull request
+runs. To have a pull request run the full suite, give it the ``ci:full`` label
+before opening it, or add the label and then push to (or close and reopen) the
+pull request so that a new run begins.
+
+When adding a job to ``cicd.yml``, make it need the ``Plan`` job, give it the
+same ``if:`` condition as its neighbors (with its own name), and add it to the
+``needs`` of ``CI-Gate``. The tests in ``scripts/build/tests/test_ciPlan.py``
+fail if any of these is missed. A new job runs only in the full tier unless it is
+added to a group in ``ciPlan.py``. A new unit test executable is added to the
+list of the ``Codes-Quick`` job, which runs all of the quick unit tests one after
+another in a single job; a unit test which takes several minutes or more belongs
+instead in the matrix of the ``Codes`` job, where each gets a job of its own.
+
+A test which is known to fail by chance can be given more than one attempt with
+the ``attempts`` input of ``testModel.yml``. A test which passes only on a later
+attempt is reported as a warning on the run, so that it remains visible.
+
 .. _git-hooks:
 
 Git hooks
