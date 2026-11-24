@@ -129,18 +129,30 @@ jobs:
            for executable in ${failures}; do echo "- \`${executable}\`" >> $GITHUB_STEP_SUMMARY; done
            exit 1
           fi
-      # This action only supplies the job's URL for the summary written below. It queries the GitHub API, and has failed a
-      # job whose test had already passed when that query timed out, so a failure here is not allowed to fail the job.
-      - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
-        continue-on-error: true
+      # The summary written below links to this job's log. The link is built from the job's check run ID, which the `job`
+      # context supplies, so that nothing need be asked of the GitHub API. (An action which looked the job up through the API
+      # was used for this once; with hundreds of test jobs in a run making that request, it would now and then time out and
+      # fail a job whose test had already passed.) Should the ID be unavailable, the link is to the run instead.
+      - name: "Find the URL of this job"
+        env:
+          CHECK_RUN_ID: ${{ job.check_run_id }}
+        run: |
+          url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          if [ -n "${CHECK_RUN_ID}" ]; then url="${url}/job/${CHECK_RUN_ID}"; fi
+          echo "JOB_URL=${url}" >> $GITHUB_ENV
       - name: "Check for unrecognized parameters"
         if: ${{ format('{0}',inputs.expectUnrecognized) == '0' }}
+        env:
+          EXECUTABLES: ${{ inputs.executable }}
         run: |
           cd $GALACTICUS_EXEC_PATH
           grep "unrecognized parameter" test.log > unrecognized.txt || true
           if [ -s "unrecognized.txt" ]; then
-           echo "# :warning: Unrecognized parameters from ${GITHUB_JOB_NAME} :warning:" >> $GITHUB_STEP_SUMMARY
-           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           # Name the job by the executable it runs, or by how many if it runs several.
+           set -- ${EXECUTABLES}
+           if [ $# == 1 ]; then label="\`$1\`"; else label="$# unit tests"; fi
+           echo "# :warning: Unrecognized parameters from ${label} :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${JOB_URL})" >> $GITHUB_STEP_SUMMARY
            cat unrecognized.txt >> $GITHUB_STEP_SUMMARY
           fi
       - run: echo "This job's status is ${{ job.status }}."

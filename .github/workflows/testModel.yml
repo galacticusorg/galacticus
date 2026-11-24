@@ -236,10 +236,17 @@ jobs:
            echo ":warning: \`${{ inputs.file }} ${{ inputs.options }}\` did not pass on attempt ${attempt} of ${{ inputs.attempts }} and was retried." >> $GITHUB_STEP_SUMMARY
            attempt=$((attempt+1))
           done
-      # This action only supplies the job's URL for the summaries written below. It queries the GitHub API, and has failed a
-      # job whose test had already passed when that query timed out, so a failure here is not allowed to fail the job.
-      - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
-        continue-on-error: true
+      # The summaries written below link to this job's log. The link is built from the job's check run ID, which the `job`
+      # context supplies, so that nothing need be asked of the GitHub API. (An action which looked the job up through the API
+      # was used for this once; with hundreds of test jobs in a run making that request, it would now and then time out and
+      # fail a job whose test had already passed.) Should the ID be unavailable, the link is to the run instead.
+      - name: "Find the URL of this job"
+        env:
+          CHECK_RUN_ID: ${{ job.check_run_id }}
+        run: |
+          url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          if [ -n "${CHECK_RUN_ID}" ]; then url="${url}/job/${CHECK_RUN_ID}"; fi
+          echo "JOB_URL=${url}" >> $GITHUB_ENV
       - name: "Report skipped tests"
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -249,7 +256,7 @@ jobs:
           # so a misconfigured runner would silently stop testing anything.
           if grep -q '^SKIPPED' test.log; then
            echo "# :warning: Test skipped: ${{ inputs.file }} :warning:" >> $GITHUB_STEP_SUMMARY
-           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${JOB_URL})" >> $GITHUB_STEP_SUMMARY
            grep '^SKIPPED' test.log >> $GITHUB_STEP_SUMMARY
           fi
       - name: "Check for unrecognized parameters"
@@ -261,8 +268,8 @@ jobs:
           grep "unrecognized parameter" test.log >> $GALACTICUS_EXEC_PATH/unrecognized.txt || true
           cd $GALACTICUS_EXEC_PATH
           if [ -s "unrecognized.txt" ]; then
-           echo "# :warning: Unrecognized parameters from ${GITHUB_JOB_NAME} :warning:" >> $GITHUB_STEP_SUMMARY
-           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           echo "# :warning: Unrecognized parameters from \`${{ inputs.file }} ${{ inputs.options }}\` :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${JOB_URL})" >> $GITHUB_STEP_SUMMARY
            cat unrecognized.txt >> $GITHUB_STEP_SUMMARY
           fi
       - name: "Clean datasets"

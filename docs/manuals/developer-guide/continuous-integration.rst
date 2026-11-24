@@ -187,7 +187,10 @@ fail if any of these is missed. A new job runs only in the full tier unless it i
 added to a group in ``ciPlan.py``. A new unit test executable is added to the
 list of the ``Codes-Quick`` job, which runs all of the quick unit tests one after
 another in a single job; a unit test which takes several minutes or more belongs
-instead in the matrix of the ``Codes`` job, where each gets a job of its own.
+instead in the matrix of the ``Codes`` job, where each gets a job of its own. A
+test added to that matrix also needs a step in the
+``Build-Executable-Linux-Non-Static`` job which uploads its executable as an
+artifact of its own, so that its job need not download every test executable.
 
 A test which is known to fail by chance can be given more than one attempt with
 the ``attempts`` input of ``testModel.yml``. A test which passes only on a later

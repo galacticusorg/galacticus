@@ -61,7 +61,9 @@ def test_every_job_is_gated_by_the_plan(workflow):
 
 def test_the_gate_needs_every_job_which_builds_or_tests(workflow):
     gate = workflow.jobs["CI-Gate"]
-    assert "always()" in gate["if"]
+    # The gate must run when jobs it needs fail or are skipped, so its condition needs a status function to displace the implicit
+    # success(). It must not use always(), which keeps a superseded run alive until the gate is given a runner.
+    assert gate["if"] == "${{ !cancelled() || github.event_name == 'merge_group' }}"
     expected = {"Plan"} | (set(workflow.names()) - NOT_GATED)
     assert set(gate["needs"]) == expected
 
@@ -116,6 +118,26 @@ def test_every_unit_test_program_is_run_exactly_once(workflow):
     others = [executable for name in ("Codes-MPI", "Codes-Debugging", "Codes-MacOS") for executable in workflow.entries(name)]
     assert set(default + others) <= programs, "a job runs a unit test which has no source"
     assert programs - set(default + others) == UNLISTED_TEST_PROGRAMS
+
+
+def test_unit_tests_run_singly_have_an_artifact_each(workflow):
+    """A job which runs one unit test downloads that executable alone, so the build must upload it by that name."""
+    uploads = {
+        step["with"]["name"]: step["with"]["path"]
+        for step in workflow.jobs["Build-Executable-Linux-Non-Static"]["steps"]
+        if "upload-artifact" in step.get("uses", "")
+    }
+    expected = set()
+    for name in ("Codes", "Parameters", "IO-HDF5", "Crash", "Fail"):
+        artifact = workflow.jobs[name]["with"]["artifact"]
+        for executable in workflow.entries(name):
+            assert artifact.replace("${{ matrix.executable }}", executable) == "test-exec-" + executable, name
+            assert uploads.get("test-exec-" + executable) == executable, f"the build does not upload {executable} on its own"
+            expected.add("test-exec-" + executable)
+    assert {name for name in uploads if name.startswith("test-exec-")} == expected, "the build uploads an executable no job asks for"
+    # The job which runs all of the quick tests takes the whole set.
+    assert workflow.jobs["Codes-Quick"]["with"]["artifact"] == "test-execs"
+    assert uploads["test-execs"] == "tests.*.exe"
 
 
 # --- Path rules ------------------------------------------------------------------------------------------------------------------
