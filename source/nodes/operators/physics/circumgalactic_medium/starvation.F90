@@ -28,7 +28,11 @@
   !![
   <nodeOperator name="nodeOperatorCGMStarvation" docformat="rst">
    <description>
-   A node operator class that removes :term:`CGM` gas from subhalos at node merger events, simulating environmental gas starvation. ``starveOutflowsOnly`` limits removal to outflowing gas only, transferring it to the host halo's :term:`CGM` instead of destroying it. ``fractionBaryonLimitInNodeMerger`` optionally trims the merged halo's :term:`CGM` gas (hot-mode gas, with its angular momentum, abundances, and chemicals proportionally, and any cold-mode gas, with its abundances) to enforce the universal baryon fraction at node mergers.
+   A node operator class that removes :term:`CGM` gas from subhalos at node merger events, simulating environmental gas
+   starvation. ``starveOutflowsOnly`` limits removal to outflowing gas only, transferring it to the host halo's :term:`CGM`
+   instead of destroying it. ``fractionBaryonLimitInNodeMerger`` optionally trims the merged halo's :term:`CGM` gas (hot-mode gas,
+   with its angular momentum, abundances, and chemicals proportionally, and any cold-mode gas, with its abundances) to enforce the
+   universal baryon fraction at node mergers.
    </description>
   </nodeOperator>
   !!]
@@ -79,7 +83,10 @@ contains
       <name>fractionBaryonLimitInNodeMerger</name>
       <defaultValue>.false.</defaultValue>
       <description>
-      Controls whether the :term:`CGM` gas content of nodes should be limited to not exceed the universal baryon fraction at node merger events. If set to ``true``, :term:`CGM` gas (hot-mode gas, with its angular momentum, abundances, and chemicals proportionally, and any cold-mode gas, with its abundances) will be removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon fraction where possible.
+      Controls whether the :term:`CGM` gas content of nodes should be limited to not exceed the universal baryon fraction at node
+      merger events. If set to ``true``, :term:`CGM` gas (hot-mode gas, with its angular momentum, abundances, and chemicals
+      proportionally, and any cold-mode gas, with its abundances) will be removed from the merged halo to the unaccreted gas
+      reservoir to limit the baryonic mass to the universal baryon fraction where possible.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -279,13 +286,13 @@ contains
 	  !!]
           if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass() > 0.0d0) then
              fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/massCGMTotal,1.0d0)
-             call    hotHaloParent%      unaccretedMassSet(                                                             &
-                  &                                         hotHaloParent%unaccretedMass      ()                        &
-                  &                                        +hotHaloParent%mass                ()*       fractionRemove  &
+             call    hotHaloParent%      unaccretedMassSet(                                                              &
+                  &                                         hotHaloParent%unaccretedMass      ()                         &
+                  &                                        +hotHaloParent%mass                ()*       fractionRemove   &
                   &                                       )
-             call    hotHaloParent%unaccretedAbundancesSet(                                                             &
-                  &                                         hotHaloParent%unaccretedAbundances()                        &
-                  &                                        +hotHaloParent%abundances          ()*       fractionRemove  &
+             call    hotHaloParent%unaccretedAbundancesSet(                                                              &
+                  &                                         hotHaloParent%unaccretedAbundances()                         &
+                  &                                        +hotHaloParent%abundances          ()*       fractionRemove   &
                   &                                       )
              call    hotHaloParent%                massSet( hotHaloParent%mass                ()*(1.0d0-fractionRemove))
              call    hotHaloParent%     angularMomentumSet( hotHaloParent%angularMomentum     ()*(1.0d0-fractionRemove))
@@ -293,13 +300,13 @@ contains
              call    hotHaloParent%          chemicalsSet ( hotHaloParent%chemicals           ()*(1.0d0-fractionRemove))
              if (hotHaloParent%massColdIsSettable()) then
                 ! The same fraction of the cold mode CGM is also moved to the unaccreted reservoir.
-                call hotHaloParent%      unaccretedMassSet(                                                             &
-                     &                                     hotHaloParent%unaccretedMass      ()                        &
-                     &                                    +hotHaloParent%massCold            ()*       fractionRemove  &
+                call hotHaloParent%      unaccretedMassSet(                                                              &
+                     &                                     hotHaloParent%unaccretedMass      ()                          &
+                     &                                    +hotHaloParent%massCold            ()*       fractionRemove    &
                      &                                   )
-                call hotHaloParent%unaccretedAbundancesSet(                                                             &
-                     &                                     hotHaloParent%unaccretedAbundances()                        &
-                     &                                    +hotHaloParent%abundancesCold      ()*       fractionRemove  &
+                call hotHaloParent%unaccretedAbundancesSet(                                                              &
+                     &                                     hotHaloParent%unaccretedAbundances()                          &
+                     &                                    +hotHaloParent%abundancesCold      ()*       fractionRemove    &
                      &                                   )
                 call hotHaloParent%            massColdSet( hotHaloParent%massCold            ()*(1.0d0-fractionRemove))
                 call hotHaloParent% angularMomentumColdSet( hotHaloParent%angularMomentumCold ()*(1.0d0-fractionRemove))

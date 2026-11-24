@@ -390,15 +390,15 @@ contains
     class(massDistributionBetaProfile), intent(inout) :: self
 
     if      (self%truncateAtOuterRadius) then
-       mass=self%massEnclosedBySphere(self%radiusOuter)
+       mass   =self%massEnclosedBySphere(self%radiusOuter)
     else if (self%beta > 1.0d0         ) then
-       mass=+Pi**1.5d0                                                       &
-            & *self%densityNormalization                                     &
-            & *self%radiusCore**3                                            &
-            & *exp(                                                          &
-            &      +Gamma_Function_Logarithmic(1.5d0*self%beta-1.5d0)        &
-            &      -Gamma_Function_Logarithmic(1.5d0*self%beta      )        &
-            &     )
+       mass   =+Pi**1.5d0                                              &
+            &  *self%densityNormalization                              &
+            &  *self%radiusCore**3                                     &
+            &  *exp(                                                   &
+            &       +Gamma_Function_Logarithmic(1.5d0*self%beta-1.5d0) &
+            &       -Gamma_Function_Logarithmic(1.5d0*self%beta      ) &
+            &      )
     else
        mass=huge(0.0d0)
     end if
