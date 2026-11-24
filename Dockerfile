@@ -43,11 +43,12 @@ RUN     cd /opt &&\
 	cd /opt &&\
 	git clone --depth 1 https://github.com/galacticusorg/datasets.git datasets
 
-# Build Galacticus. Cap at -j2 to bound peak memory: at -j4 the concurrent -O3 compiles of the large
-# generated `_class` units peak ~10 GB and OOM the ~16 GB runner (matches the -j2 backoff applied to the
-# Linux executable jobs in .github/workflows/cicd.yml).
+# Build Galacticus at -j4, as the Linux executable jobs in .github/workflows/cicd.yml do. This relies on USE
+# consolidation (`CONSOLIDATE_USES=yes`, the default; see `scripts/build/consolidateUses.py`), which keeps
+# every compile under ~3 GB: a -j4 build then peaks at ~6 GB, against the ~16 GB runner that builds this image.
+# Without consolidation the largest compile alone peaks at ~14 GB, and the build must be capped at -j2.
 RUN     cd /opt/galacticus &&\
-	make -j2 Galacticus.exe &&\
+	make -j4 Galacticus.exe &&\
 	rm -rf work/build
 
 # Build external tools.
