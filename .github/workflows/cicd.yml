@@ -21,6 +21,8 @@ on:
       - 'master'
     # Always run on pushes to master (even docs-only changes) so build
     # artifacts are available in case we want to tag the commit for release.
+# Cancelling an in-progress run applies on master too, deliberately: each merge cancels the run for
+# the previous one, so most master runs end "cancelled". Changes are validated by their PR checks.
 concurrency:
   group: cicd-${{ github.ref }}
   cancel-in-progress: true  
