@@ -179,6 +179,28 @@ call has several such arguments the combinations multiply. The
 :ref:`conditionalCall directive <manual-sec-conditionalCall>` generates the
 combinations from a single written form, and exists largely for this case.
 
+.. _manual-sec-errorHandlingToleratedStatus:
+
+Tolerating a numerical failure: which statuses leave a usable result
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Passing ``status=`` to a numerical routine (``integrator%integrate``, say)
+switches off the abort that GSL would otherwise trigger, so the returned status
+must then be tested. Testing it only against ``errorStatusSuccess`` and carrying
+on after any failure is too coarse, because some GSL failures leave no usable
+result at all. For example, ``gsl_integration_qag`` rejects a relative tolerance
+below ``50*epsilon`` (about ``1.11e-14``) with ``GSL_EBadTol`` *after* setting the
+result to zero; since Galacticus defaults ``toleranceAbsolute`` to zero, a
+"warn and carry on" policy turns a too-tight tolerance into silent zeros (every
+luminosity in a model, for example).
+
+Tolerate only the statuses which return a best estimate --- ``GSL_ERound``,
+``GSL_EMaxIter`` and ``GSL_ESing`` --- and treat anything else as fatal.
+``gslErrorDecode(status)``, from ``Interface_GSL``, gives the text to include in
+the message. Where tolerating such failures should be the user's choice, follow
+the ``tolerateIntegrationFailures`` parameter of
+:galacticus-class:`nodePropertyExtractorProjectedDensity`.
+
 .. _manual-sec-errorHandlingWarnings:
 
 Warnings
@@ -222,6 +244,24 @@ The test for something that belongs in a warning is whether it indicates that
 the *model* may not be what the user intended. Anything which is merely a record
 of what the code did belongs in the output file, or at
 ``verbosityLevelInfo``, not in the warning channel.
+
+.. _manual-sec-errorHandlingVisibleWarnings:
+
+Warnings that must be seen in a successful run
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because the default verbosity, ``verbosityLevelStandard``, is *below*
+``verbosityLevelWarn`` (the order is silent, standard, working, warn, info,
+debug), a ``Warn`` issued in a run that goes on to succeed is accumulated and
+never displayed: the accumulated warnings are replayed only by
+``Error_Report``, by the signal handlers, and by the GSL error handler. For a
+warning that the user must see even when the run succeeds, call
+``displayMessage(message)`` with no ``verbosity`` argument instead, using the
+usual prefix:
+
+.. code-block:: fortran
+
+   call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' <what happened>')
 
 .. _manual-sec-errorHandlingAllocation:
 

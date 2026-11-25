@@ -89,19 +89,8 @@ running both sides under `threadpoolctl.threadpool_limits(1)` rather than by loo
 ## Reading Galacticus HDF5 outputs in test scripts
 *Added 2026-09-21; verified 2026-09-21*
 
-- Units are a *compound* attribute `units`, with fields `unitsInSI`, `description`, `quantity`, `isComoving`; there is no
-  plain `unitsInSI` attribute.
-- For array properties the outputter writes `<name>ColumnValues` only for the *first* property on a given column grid;
-  later properties on that grid have none, so fall back to the shared grid.
-- `Outputs/OutputN` are numbered by *time* (`Output1` is earliest, i.e. highest redshift), so identify outputs by their
-  `outputExpansionFactor` attribute rather than assuming redshift order.
-- **Exported trees (`mergerTreeOperator value="export"`) repeat `nodeIndex` across forests** (built trees number nodes from
-  1 in each). Resolve `descendantIndex` within each forest's `forestIndex/firstNode`..`numberOfNodes` slice; a global
-  lookup silently cross-links trees (2026-11-10: it gave a 2.3x "resolution effect" that was not there).
-
-**Why:** each of these silently gives the wrong numbers rather than an error.
-
-**How to apply:** check this list when writing a test which reads model outputs.
+Moved to the user guide: *Reading outputs from a script* in `docs/manuals/user-guide/running.rst`. Read it
+before writing a test which reads model outputs.
 
 ## Trees evolve from the highest tree number down
 *Added 2026-08-10; verified 2026-09-13*
@@ -115,13 +104,8 @@ running both sides under `threadpoolctl.threadpool_limits(1)` rather than by loo
 ## Runs with nearby seeds share their trees
 *Added 2026-11-17; verified 2026-11-17*
 
-The default `mergerTreeSeeds` is `incremental`: tree *i* is seeded with the base seed plus *i*. So runs with seeds
-4001-4004 of 512 trees each are mostly the same trees shifted by one index (304 of 511 matched node for node), not 2048
-independent trees.
-
-**Why:** "independent" batches or seed-variation checks that are not independent, with too little scatter between them.
-
-**How to apply:** space base seeds by more than the tree count, or set `<mergerTreeSeeds value="random"/>`.
+Moved to the user guide: *Random seeds and independent runs* in `docs/manuals/user-guide/running.rst`. Space base
+seeds by more than the tree count, or use `<mergerTreeSeeds value="random"/>`.
 
 ## Benchmarking and training runs: what the models really do
 *Added 2026-09-29; verified 2026-10-11*
@@ -233,32 +217,9 @@ confirm the old call fails under the same block. When printing a captured traceb
 ## An independent reference must match Galacticus' unit definitions and the model's own inputs
 *Added 2026-09-17; verified 2026-11-02*
 
-When writing a Python reference to compare against Galacticus, two mismatches look exactly like a physics disagreement
-and neither shrinks when a tolerance is tightened:
-
-- **Unit *definitions* must be copied, not chosen.** Galacticus' gigayear is 10^9 *sidereal* years,
-  `3.15581497635456e16` s, not the Julian `3.1556952e16` - a 3.8e-5 difference which enters squared wherever a rate
-  converts km/s/Mpc to Gyr^-1. Its megaparsec is `3.08567758135e22` m. Both are in
-  `source/numerical/constants/astronomical.F90`. Measured constants (G, atomic data) can legitimately come from CODATA/IAU
-  to keep a reference independent; a unit definition cannot.
-- **Epoch.** A virial radius from a `virialDensityContrast` relative to the *mean* matter density depends on the expansion
-  factor at the node's time. At t = 13.8 Gyr under `matterLambda`, a = 0.99997, so the mean density is 1e-4 higher than
-  today and the virial radius 3.3e-5 smaller. Under `staticUniverse` a = 1 exactly.
-- **Initial conditions come from the tree, not from a recomputation.** A hand-written merger tree states the satellite's
-  position and velocity, and the model integrates *those*. Recomputing "the same" quantity in the reference can differ -
-  in one case by 4e-5, because the tree carried the `matterLambda` virial radius while the model ran a static universe -
-  and that grew to 1.2e-4 by the end of the orbit.
-- **The dark matter halo is (1-Omega_b/Omega_M) of the node mass** when baryonic components are present: an NFW reference
-  normalized to the full basic mass was 15.6% (= 0.0493/0.3153) too heavy (2026-11-02). Check the satellite's enclosed mass
-  with the `massProfile` extractor (e.g. `virialRadius:all:all:0.2`) in the test itself.
-
-**Why:** these were, in turn, a 2e-4 disagreement in a unit test and a 1.2e-4 disagreement in an orbit test. The second
-was recorded for weeks as "the floor is set by the two integrators", which measurement disproved: tightening the ODE
-tolerance a hundredfold and the timestep criterion tenfold changed nothing to three figures.
-
-**How to apply:** copy the unit definitions from the source; evaluate densities at the node's epoch; read initial
-conditions from the tree verbatim. When a disagreement will not shrink as a tolerance tightens, suspect an input mismatch
-rather than the physics, and print the shared inputs to find it.
+Moved to the developer guide: *Writing an independent reference for a test* in
+`docs/manuals/developer-guide/continuous-integration.rst`. Read it before writing a reference calculation that a test
+compares against.
 
 ## Test coverage traps
 *Added 2026-06-18; verified 2026-09-17*
