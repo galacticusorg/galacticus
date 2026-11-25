@@ -1149,8 +1149,9 @@ is ``source/output/analyses/distribution_operator/random_error/_class.F90``.
   used by callbacks, say) from the children into the parent, check every other
   handler in each child which uses it. A handler which reads child-only
   components through a pointer that now has the parent's type no longer
-  compiles ("is not a member of the 'functionclass' structure"). Do not add a
-  second pointer: event hooks already pass the instance in, so unwrap it with
+  compiles (gfortran reports
+  ``is not a member of the 'functionclass' structure``). Do not add a second
+  pointer: event hooks already pass the instance in, so unwrap it with
   ``select type``, with a ``class is (...)`` branch for the child, plus
   ``class is (functionClass)`` and ``class default`` branches which report an
   error, and drop any ``!$GLC attributes unused :: self`` line. The
