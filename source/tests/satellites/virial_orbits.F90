@@ -57,6 +57,7 @@ program Test_Satellite_Virial_Orbits
   The samplers themselves are not tested here - the orbits they return are propagated to the virial radius under the default
   density contrast, so their moments are not those of the distributions above.
   !!}
+  use, intrinsic :: ISO_C_Binding            , only : c_long
   use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda                    , cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParametersSimple
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleVirialDensityContrastDefinition
@@ -70,9 +71,11 @@ program Test_Satellite_Virial_Orbits
   use :: Error                               , only : Error_Handler_Register
   use :: IO_HDF5                             , only : ioHDF5AccessInitialize
   use :: Input_Parameters                    , only : inputParameters
+  use :: Kepler_Orbits                       , only : keplerOrbit
   use :: Node_Components                     , only : Node_Components_Initialize                        , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
   use :: Numerical_Constants_Astronomical    , only : gravitationalConstant_internal
   use :: Numerical_Integration               , only : integrator
+  use :: Numerical_Random_Numbers            , only : randomNumberGeneratorGSL
   use :: Unit_Tests                          , only : Assert                                            , Unit_Tests_Begin_Group           , Unit_Tests_End_Group              , Unit_Tests_Finish
   use :: Virial_Density_Contrast             , only : virialDensityContrastBryanNorman1998              , virialDensityContrastClass
   use :: Virial_Orbits                       , only : virialOrbitBenson2005                             , virialOrbitJiang2014             , virialOrbitLi2020                 , virialOrbitClass
@@ -87,6 +90,10 @@ program Test_Satellite_Virial_Orbits
   type            (virialOrbitJiang2014                              ), pointer        :: jiang2014_                       , jiang2014Default_
   class           (virialDensityContrastClass                        ), pointer        :: densityContrastDefinition_
   type            (mergerTree                                        )                 :: tree
+  ! A node, and an orbit, for the check that a satellite more massive than its host is given an orbit.
+  type            (treeNode                                          ), pointer        :: satelliteMassive
+  type            (keplerOrbit                                       )                 :: orbitMassive
+  double precision                                                    , parameter      :: ratioMassMassive          =2.0d1
   type            (treeNode                                          ), pointer        :: hostBenson                       , satelliteBenson
   type            (treeNode                                          ), pointer        :: host                             , satellite
   class           (virialOrbitClass                                  ), pointer        :: virialOrbit_
@@ -195,6 +202,13 @@ program Test_Satellite_Virial_Orbits
        &                                                                   )
   parametersDefault     =inputParameters                                   (                                                    )
   jiang2014Default_     =virialOrbitJiang2014                              (parametersDefault                                   )
+  ! A random number generator for the tree, from which the Jiang et al. (2015) sampler draws below.
+  allocate(randomNumberGeneratorGSL :: tree%randomNumberGenerator_)
+  select type (randomNumberGenerator_ => tree%randomNumberGenerator_)
+  type is (randomNumberGeneratorGSL)
+     randomNumberGenerator_=randomNumberGeneratorGSL(seed_=1379_c_long)
+  end select
+  call tree%properties%initialize()
   ! Test the Benson (2005) distribution.
   call Unit_Tests_Begin_Group("Benson (2005)")
   call buildNode(hostBenson     ,massHostBenson     )
@@ -242,6 +256,17 @@ program Test_Satellite_Virial_Orbits
   call Assert('mean tangential velocity'        ,velocityTangentialJiang          ,velocityTangentialJiangReference          ,relTol=toleranceJiang    )
   call Assert('root mean squared total velocity',velocityTotalRootMeanSquaredJiang,velocityTotalRootMeanSquaredJiangReference,relTol=toleranceJiang    )
   call Assert('default parameters are those of Table 2',ratioDefault              ,ratioExplicit                             ,relTol=toleranceAlgebraic)
+  ! A satellite can be more massive than its host under the Jiang et al. (2015) definition, if it was last isolated much earlier.
+  ! Its mass is then limited to that of the host. Without that limit, the orbits drawn for a satellite much more massive than
+  ! its host are so bound that none reaches the virial radius of the host under the default definition (larger than under the
+  ! 200 times critical density definition of Jiang et al.), and the sampler aborts after exhausting its attempts.
+  call buildNode(host            ,massesHost(1)                 )
+  call buildNode(satelliteMassive,massesHost(1)*ratioMassMassive)
+  orbitMassive=jiang2014_%orbit(satelliteMassive,host,acceptUnboundOrbits=.true.)
+  call Assert('orbit found for a satellite more massive than its host'   ,orbitMassive%isDefined(),.true.                                                     )
+  call Assert('orbit of a satellite more massive than its host is at R_v',orbitMassive%radius   (),darkMatterHaloScale_%radiusVirial(host),relTol=toleranceAlgebraic)
+  call host            %destroy()
+  call satelliteMassive%destroy()
   call Unit_Tests_End_Group()
   ! Test the Li et al. (2020) distribution. This class is built from the parameter file, so that the critical overdensity and
   ! cosmological mass variance objects it needs are built too - they enter only through the peak height, which is an input to the
