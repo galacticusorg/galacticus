@@ -1433,6 +1433,18 @@ jobs:
       executable: ${{ matrix.executable }}
       artifact: test-execs
     secrets: inherit
+  ### Test equilibrium iteration limits using the already-built physical-reference executable
+  Equilibrium-Iteration-Limit:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testModel.yml
+    with:
+      artifact: test-execs
+      executable: tests.galactic_structure_equilibrium.exe
+      file: testSuite/test-equilibrium-iteration-limit.py
+      options: --executable ./tests.galactic_structure_equilibrium.exe
+      uploadFile: testSuite/outputs/equilibriumIterationLimit
+      uploadName: equilibrium-iteration-limit
+    secrets: inherit
   ### Test Parameters
   Parameters:
     needs: Build-Executable-Linux-Non-Static
@@ -2768,6 +2780,7 @@ jobs:
              Profile-Milky-Way-GProf,
              Profile-Milky-Way-SIDM-GProf,
              Codes,
+             Equilibrium-Iteration-Limit,
              Crash,
              Fail,
              Codes-MPI,

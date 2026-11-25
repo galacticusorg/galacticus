@@ -21,7 +21,7 @@
 Contains a program which tests the equilibrium galactic structure solver against independently computed reference values.
 !!}
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
+!+    Contributions to this file made by: Andrew Benson, Claude, Andrew Robertson, Codex.
 
 program Test_Galactic_Structure_Equilibrium
   !!{RST
@@ -55,7 +55,7 @@ program Test_Galactic_Structure_Equilibrium
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
   use :: Display                   , only : displayMessage                    , displayVerbositySet              , verbosityLevelStandard
-  use :: Error                     , only : Error_Handler_Register
+  use :: Error                     , only : Error_Handler_Register            , Error_Report
   use :: Events_Hooks              , only : eventsHooksInitialize
   use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Galactic_Structure_Solvers, only : galacticStructureSolverClass
@@ -93,6 +93,8 @@ program Test_Galactic_Structure_Equilibrium
   class           (nodeComponentSpheroid         ), pointer   :: spheroid
   type            (inputParameters               )            :: parameters
   character       (len=128                       )            :: message
+  character       (len=:                         ), allocatable :: parameterFile
+  integer                                                     :: argumentLength, argumentStatus
   integer                                                     :: iModel
   double precision                                            :: radiusVirial                  , time              , &
        &                                                         differenceDisk                , differenceSpheroid, &
@@ -103,7 +105,18 @@ program Test_Galactic_Structure_Equilibrium
   call displayVerbositySet              (verbosityLevelStandard)
   call Error_Handler_Register           (                      )
   ! Initialize event hooks, global functions and node components.
-  parameters=inputParameters(var_str('testSuite/parameters/galacticStructureEquilibrium.xml'))
+  ! An optional parameter file lets the iteration-limit regression test exercise the same reference galaxies with different
+  ! limits, including deliberately insufficient and invalid values. With no argument, retain the usual reference test.
+  parameterFile='testSuite/parameters/galacticStructureEquilibrium.xml'
+  if (command_argument_count() > 0) then
+     call get_command_argument(1,length=argumentLength,status=argumentStatus)
+     if (argumentStatus /= 0 .or. argumentLength == 0) call Error_Report('unable to read test parameter file argument'//{introspection:location})
+     deallocate(parameterFile)
+     allocate(character(len=argumentLength) :: parameterFile)
+     call get_command_argument(1,value=parameterFile,status=argumentStatus)
+     if (argumentStatus /= 0) call Error_Report('unable to read test parameter file argument'//{introspection:location})
+  end if
+  parameters=inputParameters(var_str(parameterFile))
   call eventsHooksInitialize            (          )
   call Functions_Global_Set             (          )
   call nodeClassHierarchyInitialize     (parameters)
