@@ -287,6 +287,15 @@ contains
     coefficients => position%floatRank1MetaPropertyGetReference(self%coefficientsID)
     ! Determine the number of steps in the interpolation.
     countTrace  =size(coefficients)/(2_c_size_t+countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)
+    ! A node which exists at only a single time (e.g. a tree consisting of a single node) has a trace with a single entry, and
+    ! so no interval to interpolate across. Its position and velocity are those it was given - leave them unchanged.
+    if (countTrace == 0_c_size_t) then
+       if (report) then
+          call displayMessage("No interpolation intervals - position unchanged")
+          call displayUnindent("")
+       end if
+       return
+    end if
     ! Find the appropriate time.
     iTrace=1_c_size_t
     do while (iTrace < countTrace .and. time >= coefficients(iTrace+1_c_size_t))
@@ -594,13 +603,22 @@ contains
        ! Append this step to the trace - unless an orphan has just reverted from a decaying orbit to following its host, in which
        ! case the final step in the trace has already been updated to describe this step.
        if (.not.isOrphanReverted) then
-          countTrace=countTrace+1_c_size_t
-          if (associated(traceTail)) then
-             allocate(traceTail%next)
-             traceTail => traceTail%next
+          if (associated(traceTail) .and. traceTail%time == time) then
+             ! This step is at the same time as the previous one. This happens, for example, for a node that is a satellite
+             ! from its first appearance and has no position history: it is followed in its host, and if that host's parent
+             ! is a clone of it (existing at the same time) the trace then moves to that clone. Both steps describe the same
+             ! position at the same time, and there is no interval between them to interpolate across, so the later state
+             ! (which may, for example, have a position history) replaces the earlier one.
+             traceTail%isOrphanDecaying=.false.
           else
-             allocate(traceHead     )
-             traceTail => traceHead
+             countTrace=countTrace+1_c_size_t
+             if (associated(traceTail)) then
+                allocate(traceTail%next)
+                traceTail => traceTail%next
+             else
+                allocate(traceHead     )
+                traceTail => traceHead
+             end if
           end if
           if (reporting) then
              write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
