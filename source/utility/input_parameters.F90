@@ -120,12 +120,13 @@ module Input_Parameters
      !!}
      private
      type(node          ), pointer    , public       :: document              => null()
-     ! Model-scoped fact registry (see the ``modelFact`` and ``modelRequire`` directives). It is held here, by the root
-     ! document, so that it is shared by every parameters object (and every per-thread copy) derived from one parameter file,
-     ! and so that each model built from a fresh parameter file gets a fresh registry.
-     type(varying_string), allocatable, dimension(:) :: factsProvided                  , factsRequired    , &
-          &                                             factsRequiredReason            , factsRequiredHelp, &
-          &                                             factsRequiredLocation
+     ! Model-scoped fact registry (see the ``modelFact``, ``modelRequire``, and ``modelExclusive`` directives). It is held here,
+     ! by the root document, so that it is shared by every parameters object (and every per-thread copy) derived from one
+     ! parameter file, and so that each model built from a fresh parameter file gets a fresh registry.
+     type(varying_string), allocatable, dimension(:) :: factsProvided                  , factsRequired         , &
+          &                                             factsRequiredReason            , factsRequiredHelp     , &
+          &                                             factsRequiredLocation          , factsExclusive        , &
+          &                                             factsExclusiveDescription      , factsExclusiveLocation
    contains
      final :: documentWrapperDestructor
   end type documentWrapper
@@ -169,9 +170,10 @@ module Input_Parameters
        <method description="Assign input parameter objects." method="assignment(=)"/>
        <method description="Record that the model establishes the named fact. Normally called via the ``modelFact`` directive." method="modelFactProvide" />
        <method description="Record that the model requires the named fact, with the reason it is needed, help text naming its providers, and the location of the requirement. Normally called via the ``modelRequire`` directive." method="modelFactRequire" />
+       <method description="Record that an object in the model claims exclusive responsibility for the named fact, with a description of that object, and the location of the claim. Normally called via the ``modelExclusive`` directive." method="modelFactExclusive" />
        <method description="Return true if the named fact has been established in this model." method="modelFactIsProvided" />
-       <method description="Check that every fact required in this model has been established, reporting an error if not." method="modelFactsValidate" />
-       <method description="Clear all facts and requirements recorded for this model." method="modelFactsReset" />
+       <method description="Check that every fact required in this model has been established, and that no fact is claimed exclusively by more than one object, reporting an error if not." method="modelFactsValidate" />
+       <method description="Clear all facts, requirements, and exclusive claims recorded for this model." method="modelFactsReset" />
      </methods>
      !!]
      procedure :: buildTree            => inputParametersBuildTree
@@ -200,6 +202,7 @@ module Input_Parameters
      procedure :: markDefaulted        => inputParametersMarkDefaulted
      procedure :: modelFactProvide     => inputParametersModelFactProvide
      procedure :: modelFactRequire     => inputParametersModelFactRequire
+     procedure :: modelFactExclusive   => inputParametersModelFactExclusive
      procedure :: modelFactIsProvided  => inputParametersModelFactIsProvided
      procedure :: modelFactsValidate   => inputParametersModelFactsValidate
      procedure :: modelFactsReset      => inputParametersModelFactsReset
@@ -3046,6 +3049,46 @@ contains
     return
   end subroutine inputParametersModelFactRequire
 
+  subroutine inputParametersModelFactExclusive(self,name,description,location)
+    !!{RST
+    Record that an object in the model described by this parameter set claims exclusive responsibility for the fact ``name``
+    (typically because the model would double count some physics if another object did the same). Claims are checked by
+    ``modelFactsValidate``: claims on the same fact from more than one ``location`` are an error, which lists the
+    ``description`` of each claimant. Recording an identical claim more than once (e.g. once per OpenMP thread) has no further
+    effect.
+    !!}
+    use :: ISO_Varying_String, only : operator(==)
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: name     , description, &
+         &                                       location
+    integer                                   :: i
+    logical                                   :: isPresent
+
+    if (.not.associated(self%document)) return
+    !$omp critical (inputParametersModelFacts)
+    isPresent=.false.
+    if (allocated(self%document%factsExclusive)) then
+       do i=1,size(self%document%factsExclusive)
+          if     (                                                     &
+               &   self%document%factsExclusive        (i) == name     &
+               &  .and.                                                &
+               &   self%document%factsExclusiveLocation(i) == location &
+               & ) then
+             isPresent=.true.
+             exit
+          end if
+       end do
+    end if
+    if (.not.isPresent) then
+       call inputParametersModelFactAppend(self%document%factsExclusive           ,name       )
+       call inputParametersModelFactAppend(self%document%factsExclusiveDescription,description)
+       call inputParametersModelFactAppend(self%document%factsExclusiveLocation   ,location   )
+    end if
+    !$omp end critical (inputParametersModelFacts)
+    return
+  end subroutine inputParametersModelFactExclusive
+
   logical function inputParametersModelFactIsProvided(self,name) result(isProvided)
     !!{RST
     Return true if the fact ``name`` has been established in the model described by this parameter set.
@@ -3064,18 +3107,21 @@ contains
 
   subroutine inputParametersModelFactsValidate(self)
     !!{RST
-    Check that every fact required in the model described by this parameter set has been established, and report an error naming
-    each unmet requirement (and the classes that would satisfy it) if not. This should be called at points at which every object
-    that might establish a fact has been built---for example, after node component initialization when evolving forests.
+    Check that every fact required in the model described by this parameter set has been established, and that no fact is
+    claimed exclusively by more than one object. Report an error naming each unmet requirement (and the classes that would
+    satisfy it), and each conflicting set of exclusive claims, if not. This should be called at points at which every object that
+    might establish or claim a fact has been built---for example, after node component initialization when evolving forests.
     !!}
     use :: Display           , only : displayGreen, displayReset
     use :: Error             , only : Error_Report
-    use :: ISO_Varying_String, only : char        , operator(//), var_str
+    use :: ISO_Varying_String, only : char        , operator(//), var_str, operator(==)
     implicit none
-    class  (inputParameters), intent(inout) :: self
+    class    (inputParameters), intent(inout) :: self
     type     (varying_string )                :: message
     character(len=:          ), allocatable   :: nameRequired
-    integer                                   :: i           , countUnmet
+    integer                                   :: i           , countUnmet, &
+         &                                       j           , k
+    logical                                   :: isFirst     , isConflict
 
     if (.not.associated(self%document)) return
     countUnmet=0
@@ -3095,6 +3141,42 @@ contains
                &  self%document%factsRequiredLocation(i)
        end do
     end if
+    if (allocated(self%document%factsExclusive)) then
+       do i=1,size(self%document%factsExclusive)
+          ! Report each conflicting fact once, from its first claim.
+          isFirst=.true.
+          do k=1,i-1
+             if (self%document%factsExclusive(k) == self%document%factsExclusive(i)) then
+                isFirst=.false.
+                exit
+             end if
+          end do
+          if (.not.isFirst) cycle
+          isConflict=.false.
+          do j=i+1,size(self%document%factsExclusive)
+             if (self%document%factsExclusive(j) == self%document%factsExclusive(i)) then
+                isConflict=.true.
+                exit
+             end if
+          end do
+          if (.not.isConflict) cycle
+          countUnmet=countUnmet+1
+          if (countUnmet > 1) message=message//char(10)//char(10)
+          message=message                                                                               // &
+               &  'the following can not be used together, as each claims exclusive responsibility for '// &
+               &  "'"//self%document%factsExclusive(i)//"'"//':'
+          do j=i,size(self%document%factsExclusive)
+             if (.not.self%document%factsExclusive(j) == self%document%factsExclusive(i)) cycle
+             message=message                                       // &
+                  &  char(10)//'  * '                              // &
+                  &  self%document%factsExclusiveDescription(j)    // &
+                  &  self%document%factsExclusiveLocation   (j)
+          end do
+          message=message                                                 // &
+               &  char(10)//displayGreen()//'  HELP:'//displayReset()//' '// &
+               &  'remove all but one of these from your parameter file'
+       end do
+    end if
     !$omp end critical (inputParametersModelFacts)
     if (countUnmet > 0) call Error_Report(message)
     return
@@ -3102,19 +3184,22 @@ contains
 
   subroutine inputParametersModelFactsReset(self)
     !!{RST
-    Clear all facts and requirements recorded for the model described by this parameter set. This must be called at model
-    boundaries when a parameter document is reused to build a new model (e.g. between likelihood evaluations).
+    Clear all facts, requirements, and exclusive claims recorded for the model described by this parameter set. This must be
+    called at model boundaries when a parameter document is reused to build a new model (e.g. between likelihood evaluations).
     !!}
     implicit none
     class(inputParameters), intent(inout) :: self
 
     if (.not.associated(self%document)) return
     !$omp critical (inputParametersModelFacts)
-    if (allocated(self%document%factsProvided        )) deallocate(self%document%factsProvided        )
-    if (allocated(self%document%factsRequired        )) deallocate(self%document%factsRequired        )
-    if (allocated(self%document%factsRequiredReason  )) deallocate(self%document%factsRequiredReason  )
-    if (allocated(self%document%factsRequiredHelp    )) deallocate(self%document%factsRequiredHelp    )
-    if (allocated(self%document%factsRequiredLocation)) deallocate(self%document%factsRequiredLocation)
+    if (allocated(self%document%factsProvided            )) deallocate(self%document%factsProvided            )
+    if (allocated(self%document%factsRequired            )) deallocate(self%document%factsRequired            )
+    if (allocated(self%document%factsRequiredReason      )) deallocate(self%document%factsRequiredReason      )
+    if (allocated(self%document%factsRequiredHelp        )) deallocate(self%document%factsRequiredHelp        )
+    if (allocated(self%document%factsRequiredLocation    )) deallocate(self%document%factsRequiredLocation    )
+    if (allocated(self%document%factsExclusive           )) deallocate(self%document%factsExclusive           )
+    if (allocated(self%document%factsExclusiveDescription)) deallocate(self%document%factsExclusiveDescription)
+    if (allocated(self%document%factsExclusiveLocation   )) deallocate(self%document%factsExclusiveLocation   )
     !$omp end critical (inputParametersModelFacts)
     return
   end subroutine inputParametersModelFactsReset

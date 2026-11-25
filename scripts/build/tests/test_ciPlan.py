@@ -121,23 +121,40 @@ def test_every_unit_test_program_is_run_exactly_once(workflow):
 
 
 def test_unit_tests_run_singly_have_an_artifact_each(workflow):
-    """A job which runs one unit test downloads that executable alone, so the build must upload it by that name."""
+    """A job which runs one unit test executable downloads that executable alone, so the build must upload it by that name."""
     uploads = {
         step["with"]["name"]: step["with"]["path"]
         for step in workflow.jobs["Build-Executable-Linux-Non-Static"]["steps"]
         if "upload-artifact" in step.get("uses", "")
     }
     expected = set()
-    for name in ("Codes", "Parameters", "IO-HDF5", "Crash", "Fail"):
-        artifact = workflow.jobs[name]["with"]["artifact"]
-        for executable in workflow.entries(name):
+    for name in workflow.names():
+        job = workflow.jobs[name]
+        parameters = job.get("with") or {}
+        artifact = parameters.get("artifact", "")
+        if artifact == "test-execs":
+            # Only the job which runs all of the quick tests takes the whole set, which is several gigabytes.
+            assert name == "Codes-Quick", f"{name} downloads every test executable"
+        if not artifact.startswith("test-exec-"):
+            continue
+        executable = parameters["executable"]
+        if executable == "${{ matrix.executable }}":
+            executables = job["strategy"]["matrix"]["executable"]
+        else:
+            executables = [executable]
+        for executable in executables:
             assert artifact.replace("${{ matrix.executable }}", executable) == "test-exec-" + executable, name
             assert uploads.get("test-exec-" + executable) == executable, f"the build does not upload {executable} on its own"
             expected.add("test-exec-" + executable)
+    assert {"Codes", "Parameters", "IO-HDF5", "Crash", "Fail", "Equilibrium-Iteration-Limit"} <= {
+        name for name in workflow.names() if (workflow.jobs[name].get("with") or {}).get("artifact", "").startswith("test-exec-")
+    }
     assert {name for name in uploads if name.startswith("test-exec-")} == expected, "the build uploads an executable no job asks for"
-    # The job which runs all of the quick tests takes the whole set.
-    assert workflow.jobs["Codes-Quick"]["with"]["artifact"] == "test-execs"
     assert uploads["test-execs"] == "tests.*.exe"
+
+
+def test_a_job_which_runs_a_test_file_with_a_named_executable_is_one_entry(workflow):
+    assert workflow.entries("Equilibrium-Iteration-Limit") == ["testSuite/test-equilibrium-iteration-limit.py"]
 
 
 # --- Path rules ------------------------------------------------------------------------------------------------------------------

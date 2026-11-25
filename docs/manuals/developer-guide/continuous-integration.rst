@@ -214,8 +214,9 @@ The hooks include:
   (``schema/parameters.xsd``) is up to date with the sources — regenerating it
   only when a staged change could affect it (a Fortran source, the schema
   generator, the catalog builder, or the schema itself). A second script
-  (``01-claude-review``) optionally reviews the staged diff.
-* **commit-msg** / **prepare-commit-msg** — enforce and pre-fill
+  (``01-claude-review``) optionally reviews the staged diff with ``claude``.
+* **commit-msg** / **prepare-commit-msg** — enforce and (optionally, with
+  ``claude``) pre-fill
   `Conventional Commits <https://www.conventionalcommits.org>`_ messages.
 * **pre-push** — asks for confirmation before pushing directly to
   ``master``/``main``.
@@ -230,6 +231,10 @@ find ``pre-commit.d/`` under ``.git/hooks``):
    cd /path/to/your/galacticus
    rm -rf .git/hooks
    ln -s /path/to/gitHooks .git/hooks
+
+The two hooks that call ``claude`` spend the committer's own Claude usage, so
+they are opt-in: set ``GALACTICUS_CLAUDE_HOOKS=1`` (or
+``git config galacticus.claudeHooks true``) to enable them.
 
 The hooks degrade gracefully when optional tools (for example ``hunspell``,
 ``yamllint``, ``lxml``, or ``claude``) are not installed; see the

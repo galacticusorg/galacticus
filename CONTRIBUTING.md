@@ -86,8 +86,10 @@ Do not use `git config core.hooksPath` instead: the `pre-commit` dispatcher look
 The hooks provide:
 
 - **`commit-msg`** — enforces [Conventional Commits](https://www.conventionalcommits.org) format (see [Submitting a Pull Request](#submitting-a-pull-request) below for the allowed types).
-- **`pre-commit`** — runs static checks on staged files (Fortran static analysis; `.bib`, XML, YAML, and Python validation; docstring and spell checks; leftover-debug detection) and, if [`claude`](https://docs.claude.com/en/docs/claude-code/overview) is installed, an automated review.
-- **`prepare-commit-msg`** — pre-fills a suggested Conventional-Commits message (when `claude` is installed).
+- **`pre-commit`** — runs static checks on staged files (Fortran static analysis; `.bib`, XML, YAML, and Python validation; docstring and spell checks; leftover-debug detection) and, if you opt in, an automated review by [`claude`](https://docs.claude.com/en/docs/claude-code/overview).
+- **`prepare-commit-msg`** — pre-fills a suggested Conventional-Commits message from `claude` (if you opt in).
+
+The two hooks that call `claude` spend your own Claude usage, so they are off unless you set `GALACTICUS_CLAUDE_HOOKS=1` (or `git config galacticus.claudeHooks true`), and they never block a commit because `claude` is missing or fails.
 - **`pre-push`** — asks you to confirm before pushing directly to `master`.
 
 See the [`gitHooks` README](https://github.com/galacticusorg/gitHooks) for more detail.
@@ -211,6 +213,15 @@ However, **you are responsible** for:
 2. **Testing thoroughly** - AI-generated code needs the same level of testing as human-written code
 3. **Understanding the logic** - You should be able to explain every part of your code
 4. **Catching issues** - Look for edge cases, performance problems, and style inconsistencies that AI may have missed
+
+### Guidance for AI agents
+
+The root [`AGENTS.md`](AGENTS.md) gives AI coding agents the project's working rules, and points them to
+the longer knowledge files in [`docs/agents/`](docs/agents/). Most agent tools (Codex, Copilot, Cursor and
+others) read `AGENTS.md` directly; Claude Code reads it through `.claude/CLAUDE.md`, and Gemini CLI reads it
+once `AGENTS.md` is added to its `context.fileName` setting. Changes to these files go through a pull
+request like any other, so if your agent learns something every contributor's agent should know, have it
+propose an entry as `AGENTS.md` describes.
 
 ### Typical Workflow
 

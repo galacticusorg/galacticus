@@ -356,6 +356,13 @@ contains
         </default>
        </objectBuilder>
        !!]
+       ! Heating of the spheroid along with the dark matter of its host halo can not be combined with other tidal heating of the
+       ! spheroid, which would double count the heating.
+       if (galacticComponentHeating_%isActive()) then
+          !![
+          <modelExclusive name="spheroid:tidalHeating" description="tidal heating of spheroids along with the dark matter of their host halos by the spheroid component's `galacticComponentHeating` class (set &lt;galacticComponentHeating value=&quot;none&quot;/&gt; for the spheroid component to disable it)"/>
+          !!]
+       end if
        ! Validate the disk mass distribution.
        select type (massDistributionStellar_)
        class is (massDistributionSpherical)

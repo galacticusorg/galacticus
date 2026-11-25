@@ -13,6 +13,10 @@ on:
       artifact: # The name of the artifact to download to retrieve the executable
         required: true
         type: string
+      executable: # Executable from the artifact to make runnable and use for XML tests
+        required: false
+        default: Galacticus.exe
+        type: string
       cacheData: # Set to 0/1 to disable/enable caching of dynamically-generated datasets
         required: false
         default: 0
@@ -177,7 +181,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
+          chmod u=wrx ./${{ inputs.executable }}
           mkdir -p testSuite/outputs/regressions
           set -o pipefail
           function runTest {
@@ -188,9 +192,9 @@ jobs:
              false
             fi
             if [ ${{ inputs.mpi }} == 1 ]; then
-             mpirun --oversubscribe -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
+             mpirun --oversubscribe -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./${{ inputs.executable }} ${{ inputs.file }} 2>&1 | tee test.log
             else
-             ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
+             ./${{ inputs.executable }} ${{ inputs.file }} 2>&1 | tee test.log
             fi
            elif [[ ${{ inputs.file }} =~ \.sh$ ]]; then
             cd ${{ inputs.runPath }}

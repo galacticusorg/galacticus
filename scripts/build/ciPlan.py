@@ -23,8 +23,11 @@ protection, and it reports for every run - including a skipped one - so that a r
 
 What a pull request runs is decided by the tables below, not by the workflow file. Three properties are deliberate:
 
-* Selection fails safe. A job or test which this script does not know about runs; a changed file which it cannot classify gets
-  the default subset; a list of changed files which could not be determined gets the full suite.
+* Selection fails safe. A test added to the matrix of a job in the `pr` tier runs for pull requests unless it is listed here
+  as deferred; a changed file which matches no rule selects nothing only because every path that can affect the build or the
+  tests has a rule; and a list of changed files which could not be determined gets the full suite. (A *job* which this script
+  does not know about is not in the `pr` tier: it runs in the full suite, and so in every merge group, until it is added to a
+  group below.)
 * A selected job brings the jobs it ``needs`` with it, so a test can never be planned without its build.
 * A job which was planned but did not run fails the gate, as does one which failed or was canceled.
 
@@ -239,8 +242,8 @@ class Workflow:
             return []
         matrixed = re.fullmatch(r"\$\{\{\s*matrix\.(\w+)\s*\}\}", target)
         if not matrixed:
-            # A job may name several test executables, separated by white space.
-            return target.split() if "executable" in parameters else [target]
+            # A job which runs unit tests (and so names no test file) may name several executables, separated by white space.
+            return [target] if "file" in parameters else target.split()
         values = ((job.get("strategy") or {}).get("matrix") or {}).get(matrixed.group(1), [])
         return [value for value in values if isinstance(value, str)] if isinstance(values, list) else []
 
