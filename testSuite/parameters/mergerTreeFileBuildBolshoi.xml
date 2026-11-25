@@ -29,111 +29,59 @@
     </metaData>
     <metaData>
       <type value="simulation"/>
-
       <name value="code"/>
-
       <content value="ART (Kravtsov et al. 1997, Kravtsov 1999)"/>
-
-      <metaData>
-      </metaData>
-      <type value="simulation"/>
-
-      <name value="startRedshift"/>
-
-      <content value="1.270e2"/>
-
     </metaData>
     <metaData>
       <type value="simulation"/>
-
       <name value="initialConditions"/>
-
       <content value="Zel\'dovich approximation"/>
-
     </metaData>
     <metaData>
       <type value="simulation"/>
-
       <name value="softeningKernel"/>
-
       <content value="n/a"/>
-
     </metaData>
     <metaData>
       <type value="simulation"/>
-
       <name value="softeningPlummerEquivalent"/>
       <content value="1.0e-3"/>
-
     </metaData>
     <metaData>
       <type value="simulation"/>
-
       <name value="TypeOfTimestepCriterion"/>
-
       <content value="a"/>
-
     </metaData>
     <metaData>
       <type value="simulation"/>
-
       <name value="ErrTolIntAccuracy"/>
-
       <content value="0.02"/>
-
     </metaData>
     <metaData>
       <type value="simulation"/>
-
       <name value="startRedshift"/>
-
       <content value="80.0"/>
-
     </metaData>
     <metaData>
       <type value="groupFinder"/>
       <name value="code"/>
-
       <content value="ROCKSTAR"/>
-
     </metaData>
     <metaData>
       <type value="groupFinder"/>
       <name value="minimumParticleNumber"/>
-
       <content value="20"/>
-
     </metaData>
     <metaData>
       <type value="groupFinder"/>
       <name value="linkingLength"/>
-
       <content value="0.28"/>
-
     </metaData>
     <metaData>
       <type value="provenance"/>
       <name value="source"/>
-
       <content value="http://hipacc.ucsc.edu/Bolshoi/MergerTrees.html"/>
     </metaData>
-
-    <cosmologyParameters value="simple">
-      <HubbleConstant value="70.0000"/>
-      <OmegaMatter value=" 0.2700"/>
-      <OmegaDarkEnergy value=" 0.7300"/>
-      <OmegaBaryon value=" 0.0469"/>
-    </cosmologyParameters>
-
-    <cosmologicalMassVariance value="filteredPower"/>
-
-    <transferFunction value="CAMB"/>
-
-    <powerSpectrumPrimordial value="powerLaw">
-      <index value="0.95"/>
-      <wavenumberReference value="1.00"/>
-      <running value="0.00"/>
-    </powerSpectrumPrimordial>
 
     <unitsMass>
       <unitsInSI value="1.989e30"/>
@@ -241,6 +189,22 @@
 
   </task>
 
+
+  <!-- Cosmological model of the simulation. These are placed outside of the task so that objects built by default (e.g. the
+       transferred power spectrum used to compute sigma_8 for the file metadata) are built from them too. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.0000"/>
+    <OmegaMatter value=" 0.2700"/>
+    <OmegaDarkEnergy value=" 0.7300"/>
+    <OmegaBaryon value=" 0.0469"/>
+  </cosmologyParameters>
+  <cosmologicalMassVariance value="filteredPower"/>
+  <transferFunction value="CAMB"/>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.95"/>
+    <wavenumberReference value="1.00"/>
+    <running value="0.00"/>
+  </powerSpectrumPrimordial>
 
   <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.82"/>
