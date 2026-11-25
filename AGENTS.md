@@ -338,6 +338,14 @@ date it was last verified. Read the matching file before the task:
 A knowledge entry records what was true when it was written: if it names a
 file, flag or command, check that it still exists before relying on it.
 
+### Skills
+
+[`.agents/skills/`](.agents/skills/) holds shared agent skills in the Agent
+Skills format (`SKILL.md` plus supporting files); `.claude/skills` links to it
+for Claude Code. `galacticus-review` reviews a PR, a branch, or everything
+merged to master since the last such review, for physics, numerical
+correctness and bugs.
+
 ### Proposing a change to this guidance
 
 These files, and this one, are shared by everyone's agents, so changes go
