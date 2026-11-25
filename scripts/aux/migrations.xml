@@ -554,6 +554,18 @@
     <translation function="nuclear_star_cluster_star_formation_timescale"/>
   </migration>
 
+  <migration commit="9ae0d79097227e1a0b462614522bdf146889d637">
+    <!-- The baugh2005 merger mass movements class now decides whether a minor merger triggers a burst from the satellite-to-  -->
+    <!-- central mass ratio, as Baugh et al. (2005) do, by default (a3c242fa9e), and the default of `massRatioMajorMerger`     -->
+    <!-- changed from 0.25 to 0.3, the value used by Baugh et al. (2005) (f601fcf315). Retain the prior bulge-to-total criterion -->
+    <!-- and mass ratio in existing parameter files. This is keyed to the merge of master into the branch which made these     -->
+    <!-- changes, rather than to those commits themselves: the migration walks only commits descended from a file's            -->
+    <!-- lastModified revision, so files last modified on master after that branch was made would never reach them. Both     -->
+    <!-- translations leave a parameter that is already set unchanged, so files migrated on that branch are unaffected.       -->
+    <translation function="baugh2005_burst_criterion_default"/>
+    <translation function="baugh2005_major_merger_ratio_default"/>
+  </migration>
+
   <!-- Known default values for parameters -->
   <default parameter="componentBlackHole"             value="standard"        />
   <default parameter="componentDisk"                  value="standard"        />

@@ -192,8 +192,8 @@ program Tests_Merger_Tree_Branching_Constraint_Conditioned
      deltaConstraint   =+criticalOverdensity_     %value     (time=timeConstraint,mass=massConstraint)             &
           &             /linearGrowth_            %value     (time=timeConstraint                    )
      varianceConstraint=+cosmologicalMassVariance_%rootVariance(time=timePresent ,mass=massConstraint)**2
-     conditioned    (i)=mergerTreeBranchingProbabilityConstraintConditioned(deltaConstraint,varianceConstraint,windowLogMass,      stepLogMass,      stepDelta,wrapped,massResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
-     conditionedFine(i)=mergerTreeBranchingProbabilityConstraintConditioned(deltaConstraint,varianceConstraint,windowLogMass,0.5d0*stepLogMass,0.5d0*stepDelta,wrapped,massResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+     conditioned    (i)=mergerTreeBranchingProbabilityConstraintConditioned(deltaConstraint,varianceConstraint,windowLogMass,      stepLogMass,      stepDelta,0.1d0,wrapped,massResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+     conditionedFine(i)=mergerTreeBranchingProbabilityConstraintConditioned(deltaConstraint,varianceConstraint,windowLogMass,0.5d0*stepLogMass,0.5d0*stepDelta,0.1d0,wrapped,massResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
      ! One step away from the constraint the expectation is the step multiplied by the rate of producing a progenitor in the
      ! window, as nothing else has yet contributed. This fixes the normalization of the rates used in the tabulation, including
      ! the conversion to the present-day-scaled critical overdensity. Limited by the quadrature across the edges of the window.
@@ -265,7 +265,29 @@ program Tests_Merger_Tree_Branching_Constraint_Conditioned
      end do
      ! Quantities unaffected by the conditioning are forwarded unchanged.
      call Assert('sub-resolution fraction forwarded',conditioned(i)%fractionSubresolution(massParent,delta,time,massResolutionFixed,node),wrapped%fractionSubresolution(massParent,delta,time,massResolutionFixed,node),relTol=toleranceExact)
-     call Assert('maximum step forwarded'           ,conditioned(i)%stepMaximum          (massParent,delta,time,massResolutionFixed     ),wrapped%stepMaximum          (massParent,delta,time,massResolutionFixed     ),relTol=toleranceExact)
+     ! The maximum step is that of the wrapped object, limited to a fraction (here 0.1) of the distance remaining to the
+     ! constraint. Steps are in the critical overdensity at the current time, so that distance, which is scaled to the present
+     ! day, is converted using the growth factor of the root variance. In this Einstein-de Sitter cosmology that factor is the
+     ! linear growth factor, D(t)=(t/t₀)^⅔, independent of mass. Here the limit applies, so the step is reduced. Within a
+     ! negligible distance of the constraint the limit is lifted, so that the constraint can be reached.
+     call Assert('maximum step limited near constraint',conditioned(i)%stepMaximum(massParent,delta,time,massResolutionFixed) < wrapped%stepMaximum(massParent,delta,time,massResolutionFixed),.true.)
+     call Assert(                                                                       &
+          &      'maximum step is a fraction of remaining distance'                   , &
+          &      conditioned(i)%stepMaximum(massParent,delta,time,massResolutionFixed), &
+          &      min(                                                                   &
+          &          wrapped%stepMaximum(massParent,delta,time,massResolutionFixed)   , &
+          &          +0.1d0                                                             &
+          &          *(deltaConstraint-delta)                                           &
+          &          *(time/timePresent)**(2.0d0/3.0d0)                                 &
+          &         )                                                                 , &
+          &      relTol=1.0d-6                                                          &
+          &     )
+     call Assert(                                                                                                                                                                                                                 &
+          &      'maximum step forwarded at constraint'                                                                                                                                                                         , &
+          &      conditioned(i)%stepMaximum(massParent,deltaConstraint*(1.0d0-1.0d-7),criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaConstraint*(1.0d0-1.0d-7),mass=massConstraint,node=node),massResolutionFixed), &
+          &      wrapped       %stepMaximum(massParent,deltaConstraint*(1.0d0-1.0d-7),criticalOverdensity_%timeOfCollapse(criticalOverdensity=deltaConstraint*(1.0d0-1.0d-7),mass=massConstraint,node=node),massResolutionFixed), &
+          &      relTol=toleranceExact                                                                                                                                                                                            &
+          &     )
      ! The branch mass returned must invert the cumulative rate. The accuracy is limited by that of the integrals in the class.
      probability=conditioned(i)%probability(massParent,delta,time,massResolutionFixed,node)
      do j=1,countFraction
@@ -285,7 +307,7 @@ program Tests_Merger_Tree_Branching_Constraint_Conditioned
   deltaConstraint   =+criticalOverdensity_     %value     (time=timeConstraint,mass=massConstraint)             &
        &             /linearGrowth_            %value     (time=timeConstraint                    )
   varianceConstraint=+cosmologicalMassVariance_%rootVariance(time=timePresent ,mass=massConstraint)**2
-  conditionedExtended=mergerTreeBranchingProbabilityConstraintConditioned(deltaConstraint,varianceConstraint,windowLogMass,stepsLogMass(i),2.0d0*stepDelta,wrapped,massResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+  conditionedExtended=mergerTreeBranchingProbabilityConstraintConditioned(deltaConstraint,varianceConstraint,windowLogMass,stepsLogMass(i),2.0d0*stepDelta,0.1d0,wrapped,massResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
   ! The initial table is built for the largest parent mass and offset, so that all of the values recorded come from that table.
   massesInitial(1:countParent   )=massesParent (:,i)
   massesInitial(countParent+1:  )=massesNearTop

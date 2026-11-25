@@ -17,8 +17,11 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
-  An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
+  An implementation of accretion from the :term:`IGM` onto halos using simple truncation to mimic the effects of reionization,
+  with the maximum circular velocity of the halo as the velocity scale.
   !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
@@ -26,13 +29,17 @@
   !![
   <accretionHalo name="accretionHaloBertschinger" docformat="rst">
    <description>
-   Accretion onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
+   Accretion onto halos using simple truncation to mimic the effects of reionization, as in :galacticus-class:`accretionHaloSimple`,
+   but with the maximum circular velocity of the halo (rather than its virial velocity) as the velocity scale compared with the
+   reionization suppression velocity. (Use of the Bertschinger mass to define the mass available for accretion is provided
+   separately, by :galacticus-class:`accretionHaloTotalBertschinger`.)
    </description>
   </accretionHalo>
   !!]
   type, extends(accretionHaloSimple) :: accretionHaloBertschinger
      !!{RST
-     A halo accretion class using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.
+     A halo accretion class using simple truncation to mimic the effects of reionization, with the maximum circular velocity of
+     the halo as the velocity scale.
      !!}
      private
      class(darkMatterProfileDMOClass), pointer:: darkMatterProfileDMO_ => null()

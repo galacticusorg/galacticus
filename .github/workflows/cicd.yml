@@ -21,6 +21,8 @@ on:
       - 'master'
     # Always run on pushes to master (even docs-only changes) so build
     # artifacts are available in case we want to tag the commit for release.
+# Cancelling an in-progress run applies on master too, deliberately: each merge cancels the run for
+# the previous one, so most master runs end "cancelled". Changes are validated by their PR checks.
 concurrency:
   group: cicd-${{ github.ref }}
   cancel-in-progress: true  
@@ -1298,6 +1300,7 @@ jobs:
                       tests.root_finding.exe,
                       tests.multi_dimensional_minimizer.exe,
                       tests.search.exe,
+                      tests.nearest_neighbors.exe,
                       tests.Roman_numerals.exe,
                       tests.SI_prefixes.exe,
                       tests.sort.exe,
@@ -1421,8 +1424,11 @@ jobs:
                       tests.merger_tree_branching_constraint_conditioned.exe,
                       tests.merger_tree_census.exe,
                       tests.event_hooks.exe,
+                      tests.merger_mass_movements_Baugh2005.exe,
                       tests.tree_branch_destroy.exe,
+                      tests.merger_tree_walker_branch_time_limited.exe,
                       tests.binary_search_trees.exe,
+                      tests.merger_remnant_size_Covington2008.exe,
                       tests.orbits.exe,
                       tests.debugging.exe,
                       tests.hashes.cryptographic.exe,
@@ -1432,6 +1438,18 @@ jobs:
     with:
       executable: ${{ matrix.executable }}
       artifact: test-execs
+    secrets: inherit
+  ### Test equilibrium iteration limits using the already-built physical-reference executable
+  Equilibrium-Iteration-Limit:
+    needs: Build-Executable-Linux-Non-Static
+    uses: ./.github/workflows/testModel.yml
+    with:
+      artifact: test-execs
+      executable: tests.galactic_structure_equilibrium.exe
+      file: testSuite/test-equilibrium-iteration-limit.py
+      options: --executable ./tests.galactic_structure_equilibrium.exe
+      uploadFile: testSuite/outputs/equilibriumIterationLimit
+      uploadName: equilibrium-iteration-limit
     secrets: inherit
   ### Test Parameters
   Parameters:
@@ -1583,6 +1601,7 @@ jobs:
                 test-branchSubsampling.py,
                 test-CGM-mass-cooled.py,
                 test-concentration-Ludlow2016.py,
+                test-concentration-Ludlow2014.py,
                 test-concentration-Johnson2021.py,
                 test-tidallyTruncatedNFWFit.py,
                 test-constraint-deterministic-spins.py,
@@ -1692,11 +1711,14 @@ jobs:
                 test-virial-orbit-loss-cone.py,
                 test-CGM-ram-pressure-outer-radius.py,
                 test-ram-pressure-history.py,
+                test-position-interpolated-trace-edge-cases.py,
                 test-ram-pressure-koppen2018.py,
                 test-parameter-resolver.py,
                 test-prompt-cusps-unformed.py,
+                test-galaxy-merger-tree-star-formation.py,
                 test-radius-specifiers-soliton.py,
                 test-radius-specifiers-zero.py,
+                test-density-profile-polar-angles.py,
                 test-splashback-radius.py,
                 test-tree-processing-time.py ]
     uses: ./.github/workflows/testModel.yml
@@ -2764,6 +2786,7 @@ jobs:
              Profile-Milky-Way-GProf,
              Profile-Milky-Way-SIDM-GProf,
              Codes,
+             Equilibrium-Iteration-Limit,
              Crash,
              Fail,
              Codes-MPI,

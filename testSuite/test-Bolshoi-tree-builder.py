@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import shutil
+import h5py
 
 # Take trees from the Bolshoi simulation and process into both Galacticus and IRATE formats.
 # Andrew Benson (ported to Python)
@@ -13,6 +14,15 @@ subprocess.run("cd ..; mkdir -p testSuite/outputs", shell=True)
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildBolshoi.xml", shell=True)
 if status.returncode != 0:
     print("FAILED: failed to make Galacticus-format merger tree file from Bolshoi merger tree")
+    sys.exit(0)
+
+# Check that the value of sigma_8 recorded in the file matches that requested. (Formerly, the cosmological model was given inside
+# the task, and so was not seen by objects built by default - such as the transferred power spectrum from which sigma_8 is
+# computed - so a different value was recorded.)
+with h5py.File("../testSuite/outputs/bolshoiTestTreesGLC_in.hdf5", "r") as treeFile:
+    sigma8 = treeFile["cosmology"].attrs["sigma_8"]
+if abs(sigma8 / 0.82 - 1.0) > 1.0e-3:
+    print(f"FAILED: sigma_8 recorded in the Bolshoi merger tree file is {sigma8}, but 0.82 was requested")
     sys.exit(0)
 
 # Create a file in IRATE format.

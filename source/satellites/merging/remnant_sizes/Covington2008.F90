@@ -22,6 +22,7 @@
   !!}
 
   use :: Dark_Matter_Halo_Scales                , only : darkMatterHaloScaleClass
+  use :: Satellite_Merging_Mass_Movements       , only : mergerMassMovementsClass
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
   !![
@@ -42,17 +43,23 @@
 
       f_\mathrm{gas} = {M_\mathrm{1,gas}+M_\mathrm{2,gas} \over M_1+M_2}
 
-   begin the gas fraction of the progenitor galaxies. By default, :math:`C_\mathrm{rad}=2.75` :cite:p:`covington_effects_2011`. To account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the :cite:t:`cole_hierarchical_2000` algorithm (see :galacticus-class:`mergerRemnantSizeCole2000`).
+   being the gas fraction of the progenitor galaxies. By default, :math:`C_\mathrm{rad}=2.75` :cite:p:`covington_effects_2011`. This
+   dissipative correction was calibrated by :cite:t:`covington_effects_2011` for major mergers only, and, applied to a minor
+   merger, it would shrink the remnant by the factor :math:`1/(1+f_\mathrm{gas} C_\mathrm{rad})` even as the satellite mass tends
+   to zero (whereas :cite:t:`covington_predicting_2008` find that radiative losses become insignificant in minor mergers). It is
+   therefore applied only in major mergers (as determined by the :galacticus-class:`mergerMassMovementsClass` class), and is
+   omitted (:math:`C_\mathrm{rad}=0`) in minor mergers. To account for the effects of dark matter and non-spheroid baryonic matter the same approach is used as in the :cite:t:`cole_hierarchical_2000` algorithm (see :galacticus-class:`mergerRemnantSizeCole2000`).
    </description>
   </mergerRemnantSize>
   !!]
   type, extends(mergerRemnantSizeMemoized) :: mergerRemnantSizeCovington2008
      !!{RST
-     A merger remnant size class which uses the :cite:t:`cole_hierarchical_2000` algorithm.
+     A merger remnant size class which uses the :cite:t:`covington_predicting_2008` algorithm.
      !!}
      private
      class           (darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_        => null()
      class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
+     class           (mergerMassMovementsClass       ), pointer :: mergerMassMovements_        => null()
      double precision                                           :: energyOrbital                        , efficiencyRadiative
      logical                                                    :: warningIssued
    contains
@@ -80,6 +87,7 @@ contains
     type            (inputParameters                ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
     class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
+    class           (mergerMassMovementsClass       ), pointer       :: mergerMassMovements_
     double precision                                                 :: energyOrbital              , efficiencyRadiative
 
     !![
@@ -94,27 +102,30 @@ contains
     <inputParameter docformat="rst">
       <name>efficiencyRadiative</name>
       <defaultSource>
-      :cite:p:`covington_predicting_2008`
+      :cite:p:`covington_effects_2011`
       </defaultSource>
       <defaultValue>2.75d0</defaultValue>
       <description>
-      The coefficient, :math:`C_\mathrm{rad}` energy used in the :cite:t:`covington_predicting_2008` merger remnant size algorithm.
+      The coefficient, :math:`C_\mathrm{rad}`, of the radiated energy used in the :cite:t:`covington_predicting_2008` merger remnant
+      size algorithm, in the form given by :cite:t:`covington_effects_2011`. It is applied only in major mergers.
       </description>
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters"/>
     <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
+    <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters"/>
     !!]
-    self=mergerRemnantSizeCovington2008(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_)
+    self=mergerRemnantSizeCovington2008(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_,mergerMassMovements_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_"       />
     <objectDestructor name="mergerProgenitorProperties_"/>
+    <objectDestructor name="mergerMassMovements_"       />
     !!]
     return
   end function covington2008ConstructorParameters
 
-  function covington2008ConstructorInternal(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_) result(self)
+  function covington2008ConstructorInternal(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_,mergerMassMovements_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`mergerRemnantSizeCovington2008` merger remnant size class.
     !!}
@@ -123,8 +134,9 @@ contains
     double precision                                 , intent(in   )         :: energyOrbital              , efficiencyRadiative
     class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
     class           (mergerProgenitorPropertiesClass), intent(in   ), target :: mergerProgenitorProperties_
+    class           (mergerMassMovementsClass       ), intent(in   ), target :: mergerMassMovements_
     !![
-    <constructorAssign variables="energyOrbital, efficiencyRadiative, *darkMatterHaloScale_, *mergerProgenitorProperties_"/>
+    <constructorAssign variables="energyOrbital, efficiencyRadiative, *darkMatterHaloScale_, *mergerProgenitorProperties_, *mergerMassMovements_"/>
     !!]
 
     self%warningIssued=.false.
@@ -141,6 +153,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_"       />
     <objectDestructor name="self%mergerProgenitorProperties_"/>
+    <objectDestructor name="self%mergerMassMovements_"       />
     !!]
     call self%detachHooks()
     return
@@ -156,25 +169,29 @@ contains
     use :: Error                           , only : Error_Report                  , Warn
     use :: Numerical_Comparison            , only : Values_Agree
     use :: Numerical_Constants_Astronomical, only : gravitationalConstant_internal
+    use :: Satellite_Merging_Mass_Movements, only : enumerationDestinationMergerType
     use :: String_Handling                 , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCovington2008), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(  out) :: radius                                      , velocityCircular   , &
+    double precision                                , intent(  out) :: radius                                      , velocityCircular         , &
          &                                                             angularMomentumSpecific
     type            (treeNode                      ), pointer       :: nodeHost
     double precision                                , parameter     :: formFactorEnergyBinding             =0.5d+00
     double precision                                , parameter     :: toleranceMassAbsolute               =1.0d-06
     double precision                                , parameter     :: toleranceMassRelative               =1.0d-09
     double precision                                , parameter     :: fractionAngularMomentumSpecificSmall=1.0d-12
-    double precision                                                :: factorAngularMomentum                       , energyFinal        , &
-         &                                                             fractionGasInitial                          , massHost           , &
-         &                                                             radiusHost                                  , massSpheroidHost   , &
-         &                                                             massSpheroidHostPreMerger                   , energyProgenitors  , &
-         &                                                             energyRadiated                              , radiusVirial       , &
-         &                                                             massGasSpheroidRemnant                      , massSpheroidRemnant, &
-         &                                                             massSatellite                               , radiusSatellite    , &
+    double precision                                                :: factorAngularMomentum                       , energyFinal              , &
+         &                                                             fractionGasInitial                          , massHost                 , &
+         &                                                             radiusHost                                  , massSpheroidHost         , &
+         &                                                             massSpheroidHostPreMerger                   , energyProgenitors        , &
+         &                                                             energyRadiated                              , radiusVirial             , &
+         &                                                             massGasSpheroidRemnant                      , massSpheroidRemnant      , &
+         &                                                             massSatellite                               , radiusSatellite          , &
          &                                                             massSpheroidSatellite                       , velocityVirial
+    type            (enumerationDestinationMergerType)              :: destinationGasSatellite                     , destinationStarsSatellite, &
+         &                                                             destinationGasHost                          , destinationStarsHost
+    logical                                                         :: mergerIsMajor
     character       (len= 5                        )                :: joinString
     character       (len=70                        )                :: dataString
     type            (varying_string                )                :: message
@@ -279,10 +296,16 @@ contains
           if (+radiusHost+radiusSatellite > 0.0d0)                                                                           &
                & energyProgenitors=energyProgenitors+massSpheroidSatellite*massSpheroidHost   /(+radiusSatellite+radiusHost) &
                &                                    *self%energyOrbital/formFactorEnergyBinding
-          ! Compute the gas fraction in the remnant.
-          fractionGasInitial=massGasSpheroidRemnant/massSpheroidRemnant
-          ! Compute the energy lost through radiation.
-          energyRadiated=self%efficiencyRadiative*fractionGasInitial*energyProgenitors
+          ! Compute the energy lost through radiation. The Covington et al. (2011) form used here was calibrated for major mergers
+          ! only, so is applied only to those.
+          call self%mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+          if (mergerIsMajor) then
+             ! Compute the gas fraction in the remnant.
+             fractionGasInitial=massGasSpheroidRemnant/massSpheroidRemnant
+             energyRadiated    =self%efficiencyRadiative*fractionGasInitial*energyProgenitors
+          else
+             energyRadiated    =0.0d0
+          end if
           ! Compute the final energy.
           energyFinal=energyProgenitors+energyRadiated
           if (energyFinal <= 0.0d0) then

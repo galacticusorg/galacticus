@@ -196,7 +196,7 @@ contains
          &                                                                         iSimulation                      , jSimulation                , &
          &                                                                         jStart                           , jEnd                       , &
          &                                                                         pairCountTotal
-    type            (nearestNeighbors          )                                :: neighborFinder
+    type            (nearestNeighbors          ), allocatable                   :: neighborFinder
     integer                                                                     :: neighborCount
     type            (varying_string            )                                :: label
     
@@ -268,7 +268,9 @@ contains
        allocate(weightPair             (bootstrapSampleCount,size(position2,dim=2)))
        allocate(neighborIndex          (                     size(position2,dim=2)))
        allocate(neighborDistanceSquared(                     size(position2,dim=2)))
-       ! Construct the nearest neighbor finder object.
+       ! Construct the nearest neighbor finder object. It is allocatable, as gfortran does not initialize the private copies of a
+       ! non-allocatable derived type, and would finalize garbage on first assignment.
+       allocate(neighborFinder)
        neighborFinder=nearestNeighbors(transpose(position2))
        ! Iterate over particles.
        !$omp do schedule(dynamic)
@@ -313,6 +315,7 @@ contains
           !$ end if
        end do
        !$omp end do
+       deallocate(neighborFinder)
        !$omp end parallel
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then

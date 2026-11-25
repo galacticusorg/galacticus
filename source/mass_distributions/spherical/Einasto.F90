@@ -135,7 +135,8 @@ contains
       <name>mass</name>
       <defaultValue>1.0d0</defaultValue>
       <description>
-      The mass (in :math:`\mathrm{M}_\odot`) of the Einasto profile enclosed within ``radiusVirial``, used to set the density normalization :math:`\rho_{-2}` when ``densityNormalization`` is not supplied.
+      The mass (in :math:`\mathrm{M}_\odot`) of the Einasto profile enclosed within ``radiusVirial``, used to set the density
+      normalization :math:`\rho_{-2}` when ``densityNormalization`` is not supplied.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -203,8 +204,8 @@ contains
     implicit none
     type            (massDistributionEinasto     )                          :: self
     double precision                              , intent(in   )           :: shapeParameter
-    double precision                              , intent(in   ), optional :: scaleLength         , concentration, &
-         &                                                                     densityNormalization, mass         , &
+    double precision                              , intent(in   ), optional :: scaleLength         , concentration     , &
+         &                                                                     densityNormalization, mass              , &
          &                                                                     radiusVirial
     logical                                       , intent(in   ), optional :: dimensionless
     type            (enumerationComponentTypeType), intent(in   ), optional :: componentType

@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a program which tests the :cite:t:`navarro_structure_1996` halo concentration algorithm in a dark energy Universe. Comparisons are made to the ``charden`` code written by Julio Navarro.
 !!}
@@ -46,33 +48,37 @@ program Test_NFW96_Concentration_Dark_Energy
   use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
   use :: String_Handling                     , only : operator(//)                                                , String_Superscript
   use :: Transfer_Functions                  , only : transferFunctionBBKS
-  use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group               , Unit_Tests_End_Group               , Unit_Tests_Finish
-  use :: Virial_Density_Contrast             , only : virialDensityContrastFixed                                  , fixedDensityTypeCritical
+  use :: Unit_Tests                          , only : Assert                                                      , Unit_Tests_Begin_Group               , Unit_Tests_End_Group                                             , &
+       &                                              Unit_Tests_Finish
+  use :: Virial_Density_Contrast             , only : virialDensityContrastFixed                                  , fixedDensityTypeCritical             , virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   implicit none
-  type            (treeNode                                                    ), pointer                 :: node
-  class           (nodeComponentBasic                                          ), pointer                 :: basic
-  integer                                                                       , dimension(6), parameter :: chardenLogHaloMass                 =[10,11,12,13,14,15]
-  double precision                                                              , dimension(6), parameter :: chardenConcentrationZ0             =[10.2700200d00,9.0204391d00,7.8041310d00,6.6154380d00,5.4956946d00,4.4538398d00], &
-       &                                                                                                     chardenConcentrationZ3             =[ 5.8715897d00,5.4417138d00,5.0239682d00,4.6186433d00,4.2366042d00,3.8884208d00]
-  type            (cosmologyParametersSimple                                   )                          :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                              )                          :: cosmologyFunctions_
-  type            (cosmologicalMassVarianceFilteredPower                       )                          :: cosmologicalMassVariance_
-  type            (linearGrowthCollisionlessMatter                             )                          :: linearGrowth_
-  type            (powerSpectrumWindowFunctionTopHat                           )                          :: powerSpectrumWindowFunction_
-  type            (powerSpectrumPrimordialPowerLaw                             )                          :: powerSpectrumPrimordial_
-  type            (transferFunctionBBKS                                        )                          :: transferFunction_
-  type            (powerSpectrumPrimordialTransferredSimple                    )                          :: powerSpectrumPrimordialTransferred_
-  type            (powerSpectrumNormalizerSigma8                               )                          :: powerSpectrumNormalizer_
-  type            (darkMatterParticleCDM                                       )                          :: darkMatterParticle_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: criticalOverdensity_
-  type            (virialDensityContrastFixed                                  )                          :: virialDensityContrast_
-  type            (darkMatterProfileConcentrationNFW1996                       )                          :: darkMatterProfileConcentration_
-  type            (varying_string                                              )                          :: message                                                                                                             , &
-       &                                                                                                     parameterFile
-  type            (inputParameters                                             )                          :: parameters
-  integer                                                                                                 :: iMass
-  double precision                                                                                        :: ourConcentration
-  character       (len=2                                                       )                          :: label
+  type            (treeNode                                                      ), pointer                 :: node
+  class           (nodeComponentBasic                                            ), pointer                 :: basic
+  integer                                                                         , dimension(6), parameter :: chardenLogHaloMass                     =[10,11,12,13,14,15]
+  double precision                                                                , dimension(6), parameter :: chardenConcentrationZ0                 =[10.2700200d00,9.0204391d00,7.8041310d00,6.6154380d00,5.4956946d00,4.4538398d00], &
+       &                                                                                                       chardenConcentrationZ3                 =[ 5.8715897d00,5.4417138d00,5.0239682d00,4.6186433d00,4.2366042d00,3.8884208d00]
+  type            (cosmologyParametersSimple                                     )                          :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                )                          :: cosmologyFunctions_
+  type            (cosmologicalMassVarianceFilteredPower                         )                          :: cosmologicalMassVariance_
+  type            (linearGrowthCollisionlessMatter                               )                          :: linearGrowth_
+  type            (powerSpectrumWindowFunctionTopHat                             )                          :: powerSpectrumWindowFunction_
+  type            (powerSpectrumPrimordialPowerLaw                               )                          :: powerSpectrumPrimordial_
+  type            (transferFunctionBBKS                                          )                          :: transferFunction_
+  type            (powerSpectrumPrimordialTransferredSimple                      )                          :: powerSpectrumPrimordialTransferred_
+  type            (powerSpectrumNormalizerSigma8                                 )                          :: powerSpectrumNormalizer_
+  type            (darkMatterParticleCDM                                         )                          :: darkMatterParticle_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt  )                          :: criticalOverdensity_
+  type            (virialDensityContrastFixed                                    )                          :: virialDensityContrast_
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: virialDensityContrastSphericalCollapse_
+  type            (darkMatterProfileConcentrationNFW1996                         )                          :: darkMatterProfileConcentration_                                                                                         , &
+       &                                                                                                       darkMatterProfileConcentrationVirial_
+  type            (varying_string                                                )                          :: message                                                                                                                 , &
+       &                                                                                                       parameterFile
+  type            (inputParameters                                               )                          :: parameters
+  integer                                                                                                   :: iMass
+  double precision                                                                                          :: ourConcentration                                                                                                        , &
+       &                                                                                                       ourConcentrationVirial
+  character       (len=2                                                         )                          :: label
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -95,53 +101,53 @@ program Test_NFW96_Concentration_Dark_Energy
   !![
   <referenceConstruct object="darkMatterParticle_"                >
    <constructor>
-    darkMatterParticleCDM                                        (                                                                              &amp;
+    darkMatterParticleCDM                                        (                                                                                  &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyParameters_"               >
    <constructor>
-    cosmologyParametersSimple                                    (                                                                              &amp;
-     &amp;                                                        OmegaMatter                             = 0.3d0                             , &amp;
-     &amp;                                                        OmegaBaryon                             = 0.0296d0                          , &amp;
-     &amp;                                                        OmegaDarkEnergy                         = 0.7d0                             , &amp;
-     &amp;                                                        temperatureCMB                          = 2.7000d0                          , &amp;
-     &amp;                                                        HubbleConstant                          =65.0d0                               &amp;
+    cosmologyParametersSimple                                    (                                                                                  &amp;
+     &amp;                                                        OmegaMatter                             = 0.3d0                                 , &amp;
+     &amp;                                                        OmegaBaryon                             = 0.0296d0                              , &amp;
+     &amp;                                                        OmegaDarkEnergy                         = 0.7d0                                 , &amp;
+     &amp;                                                        temperatureCMB                          = 2.7000d0                              , &amp;
+     &amp;                                                        HubbleConstant                          =65.0d0                                   &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="cosmologyFunctions_"                >
    <constructor>
-    cosmologyFunctionsMatterLambda                               (                                                                              &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                 &amp;
+    cosmologyFunctionsMatterLambda                               (                                                                                  &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                     &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="linearGrowth_"                      >
    <constructor>
-    linearGrowthCollisionlessMatter                              (                                                                              &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
-     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                  &amp;
+    linearGrowthCollisionlessMatter                              (                                                                                  &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                   , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                      &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumPrimordial_"           >
    <constructor>
-    powerSpectrumPrimordialPowerLaw                              (                                                                              &amp;
-     &amp;                                                        index_                                  =+1.000d0                           , &amp;
-     &amp;                                                        running                                 =+0.000d0                           , &amp;
-     &amp;                                                        runningRunning                          =+0.000d0                           , &amp;
-     &amp;                                                        wavenumberReference                     =+1.000d0                           , &amp;
-     &amp;                                                        runningSmallScalesOnly                  =.false.                              &amp;
+    powerSpectrumPrimordialPowerLaw                              (                                                                                  &amp;
+     &amp;                                                        index_                                  =+1.000d0                               , &amp;
+     &amp;                                                        running                                 =+0.000d0                               , &amp;
+     &amp;                                                        runningRunning                          =+0.000d0                               , &amp;
+     &amp;                                                        wavenumberReference                     =+1.000d0                               , &amp;
+     &amp;                                                        runningSmallScalesOnly                  =.false.                                  &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="transferFunction_"                  >
    <constructor>
-    transferFunctionBBKS                                         (                                                                              &amp;
-     &amp;                                                        darkMatterParticle_                     =darkMatterParticle_                , &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
-     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                  &amp;
+    transferFunctionBBKS                                         (                                                                                  &amp;
+     &amp;                                                        darkMatterParticle_                     =darkMatterParticle_                    , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                   , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                      &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -169,8 +175,8 @@ program Test_NFW96_Concentration_Dark_Energy
   </referenceConstruct>
   <referenceConstruct object="powerSpectrumWindowFunction_"       >
    <constructor>
-    powerSpectrumWindowFunctionTopHat                            (                                                                              &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                 &amp;
+    powerSpectrumWindowFunctionTopHat                            (                                                                                  &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                     &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -195,36 +201,57 @@ program Test_NFW96_Concentration_Dark_Energy
   </referenceConstruct>
   <referenceConstruct object="criticalOverdensity_"               >
    <constructor>
-    criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                               &amp;
-     &amp;                                                        linearGrowth_                           =linearGrowth_                      , &amp;
-     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
-     &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVariance_          , &amp;
-     &amp;                                                        darkMatterParticle_                     =darkMatterParticle_                , &amp;
-     &amp;                                                        tableStore                              =.true.                               &amp;
+    criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                   &amp;
+     &amp;                                                        linearGrowth_                           =linearGrowth_                          , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                    , &amp;
+     &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVariance_              , &amp;
+     &amp;                                                        darkMatterParticle_                     =darkMatterParticle_                    , &amp;
+     &amp;                                                        tableStore                              =.true.                                   &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>  
   <referenceConstruct object="virialDensityContrast_"               >
    <constructor>
-    virialDensityContrastFixed(                                                                                                                 &amp;
-     &amp;                                                        densityContrastValue                    =200.0d0                            , &amp;
-     &amp;                                                        densityType                             =fixedDensityTypeCritical           , &amp;
-     &amp;                                                        turnAroundOverVirialRadius              =  2.0d0                            , &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
-     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                  &amp;
+    virialDensityContrastFixed(                                                                                                                     &amp;
+     &amp;                                                        densityContrastValue                    =200.0d0                                , &amp;
+     &amp;                                                        densityType                             =fixedDensityTypeCritical               , &amp;
+     &amp;                                                        turnAroundOverVirialRadius              =  2.0d0                                , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                   , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                      &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
   <referenceConstruct object="darkMatterProfileConcentration_"      >
    <constructor>
-    darkMatterProfileConcentrationNFW1996                        (                                                                              &amp;
-     &amp;                                                        f                                       =0.01d0                             , &amp;
-     &amp;                                                        C                                       =3.00d3                             , &amp;
-     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_               , &amp;
-     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                , &amp;
-     &amp;                                                        criticalOverdensity_                    =criticalOverdensity_               , &amp;
-     &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVariance_          , &amp;
-     &amp;                                                        virialDensityContrast_                  =virialDensityContrast_               &amp;
+    darkMatterProfileConcentrationNFW1996                        (                                                                                  &amp;
+     &amp;                                                        f                                       =0.01d0                                 , &amp;
+     &amp;                                                        C                                       =3.00d3                                 , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                   , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                    , &amp;
+     &amp;                                                        criticalOverdensity_                    =criticalOverdensity_                   , &amp;
+     &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVariance_              , &amp;
+     &amp;                                                        virialDensityContrast_                  =virialDensityContrast_                   &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="virialDensityContrastSphericalCollapse_">
+   <constructor>
+    virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(                                                                                 &amp;
+     &amp;                                                        tableStore                              =.true.                                 , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                      &amp;
+     &amp;                                                       )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="darkMatterProfileConcentrationVirial_"  >
+   <constructor>
+    darkMatterProfileConcentrationNFW1996                        (                                                                                  &amp;
+     &amp;                                                        f                                       =0.01d0                                 , &amp;
+     &amp;                                                        C                                       =3.00d3                                 , &amp;
+     &amp;                                                        cosmologyParameters_                    =cosmologyParameters_                   , &amp;
+     &amp;                                                        cosmologyFunctions_                     =cosmologyFunctions_                    , &amp;
+     &amp;                                                        criticalOverdensity_                    =criticalOverdensity_                   , &amp;
+     &amp;                                                        cosmologicalMassVariance_               =cosmologicalMassVariance_              , &amp;
+     &amp;                                                        virialDensityContrast_                  =virialDensityContrastSphericalCollapse_  &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>
@@ -239,6 +266,12 @@ program Test_NFW96_Concentration_Dark_Energy
      write (label,'(i2)') chardenLogHaloMass(iMass)
      message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙/h halo concentration at z=0"
      call Assert(char(message),ourConcentration,chardenConcentrationZ0(iMass),relTol=0.02d0)
+     ! The concentration is defined relative to 200 times the critical density whatever virial density contrast is used for
+     ! the halo itself (the node's mass is taken to be already in the 200c definition), so must be unchanged when the
+     ! spherical collapse virial density contrast is supplied instead.
+     ourConcentrationVirial=darkMatterProfileConcentrationVirial_%concentration(node)
+     message=var_str("10")//String_Superscript(trim(adjustl(label)))//" M⊙/h halo concentration at z=0 [independent of the virial density contrast]"
+     call Assert(char(message),ourConcentrationVirial,ourConcentration,relTol=1.0d-6)
      ! Compute and compare concentration at z=3.
      call basic%timeSet(cosmologyFunctions_%cosmicTime(0.25d0))
      ourConcentration=darkMatterProfileConcentration_%concentration(node)

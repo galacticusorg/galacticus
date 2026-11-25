@@ -17,6 +17,10 @@ import numpy as np
 redshiftsBranch        = np.array([0.25,0.5,1.0,1.5,2.0,3.0])
 binsMassSecondary      = np.array([10.0,10.5,11.0,11.5,12.0,15.0])
 halfWidthSelection     = np.log(10.0)*0.1
+# Largest mass, relative to the constrained mass, with which a constrained branch may reach the constrained redshift. This is the
+# upper edge of the default window of mergerTreeBranchingProbabilityConstraintConditioned (exp(0.05)), plus three cells of its
+# default tabulation in mass (0.005 each in ln M), within which interpolation lets a branch arrive just outside the window.
+arrivalMaximum         = np.exp(0.05+3.0*0.005)
 
 def treeLinks(tree):
     # Return masses, redshifts, the index of each node's parent (-1 for none), and a dictionary of each node's children.
@@ -39,25 +43,31 @@ def branchStatistics(redshifts, masses, secondaries, mass):
 
 def branchesConstrained(fileName, massConstraint, redshiftConstraint):
     # Statistics of the constrained branch of each tree. Also returns the number of trees in which the branch does not pass
-    # through the constrained mass. (The node of the constrained mass is placed slightly before the constrained redshift, at
-    # z=4.005 for z=4, so the redshift is matched only to 1%.)
-    branches = []; secondaries = []; missed = 0
+    # through the constrained mass, and the mass (relative to the constrained mass) with which the branch reaches the constrained
+    # redshift in each tree. (The node of the constrained mass is placed slightly before the constrained redshift, at z=4.005
+    # for z=4, so the redshift is matched only to 1%. Any mass of the branch in excess of the constrained mass, if above the
+    # resolution, is inserted as a second, unconstrained, progenitor, which is the only sibling of the constrained node.)
+    branches = []; secondaries = []; missed = 0; arrivals = []
     with h5py.File(fileName,"r") as model:
         trees = model["mergerTreeStructures"]
         for treeName in trees.keys():
             tree                             = trees[treeName]
             mass, redshift, parent, children = treeLinks(tree)
-            constrained = np.where(tree["nodeIsConstrained"][:] == 1)[0]
+            isConstrained                    = tree["nodeIsConstrained"][:]
+            constrained = np.where(isConstrained == 1)[0]
             below       = constrained[redshift[constrained] < redshiftConstraint*(1.0-1.0e-6)]
             atConstraint= constrained[(np.abs(redshift[constrained]-redshiftConstraint) < 1.0e-2*redshiftConstraint) & (np.abs(mass[constrained]/massConstraint-1.0) < 1.0e-3)]
             if len(atConstraint) == 0:
                 missed += 1
                 continue
+            nodeConstrained = atConstraint[0]
+            excess          = sum(mass[k] for k in children.get(int(parent[nodeConstrained]),[]) if isConstrained[k] == 0)
+            arrivals.append(1.0+excess/massConstraint)
             onBranch = set(constrained.tolist())
             merging  = [k for j in below for k in children.get(int(j),[]) if k not in onBranch]
             b, s     = branchStatistics(list(redshift[below])+[redshiftConstraint],list(mass[below])+[massConstraint],merging,mass)
             branches.append(b); secondaries.append(s)
-    return np.array(branches), np.array(secondaries), missed
+    return np.array(branches), np.array(secondaries), missed, np.array(arrivals)
 
 def branchesRejection(fileName, massConstraint, redshiftConstraint, offset):
     # Statistics of all branches through the constrained mass and redshift, found by rejection in unconstrained trees. Returns
@@ -97,11 +107,17 @@ def compareBranches(fileName, reference):
     toleranceMassBranch = 0.1
     toleranceSecondary  = 0.1
     significance        = 3.0
-    branches, secondaries, missed = branchesConstrained(fileName,reference["massConstraint"],reference["redshiftConstraint"])
+    branches, secondaries, missed, arrivals = branchesConstrained(fileName,reference["massConstraint"],reference["redshiftConstraint"])
     statusStr = "SUCCESS" if missed == 0 and len(branches) > 0 else "FAILED"
     print(f"{statusStr}: constrained branches pass through the constraint ({missed} of {len(branches)+missed} do not)")
     if len(branches) < 2:
         return
+    # Mass with which the branch reaches the constraint. Conditioned branches must arrive within the window about the
+    # constrained mass, as rejection branches do by construction. Steps which are too long close to the constraint let some
+    # branches miss the window, arriving more massive, with the excess split off at the constrained redshift.
+    countAbove = np.count_nonzero(arrivals > arrivalMaximum)
+    statusStr  = "SUCCESS" if countAbove == 0 else "FAILED"
+    print(f"{statusStr}: constrained branches reach the constraint within the window ({countAbove} of {len(arrivals)} arrive above M/M₁ = {arrivalMaximum:.4f}; largest {arrivals.max():.4f})")
     # Mass of the branch.
     offset    = branches.mean(axis=0)-np.array(reference["massBranchMean"])
     error     = np.sqrt(branches.std(axis=0,ddof=1)**2/len(branches)+np.array(reference["massBranchError"])**2)

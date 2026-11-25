@@ -409,7 +409,8 @@ contains
        radialMomentMaximum=radialMomentScaleFree(radiusMaximum/self%scaleLength)
     else
        radialMomentMaximum=0.0d0
-       if (moment >= 3.0d0) then
+       ! The density falls as r⁻³ at large radii, so moments of order 2 or greater diverge.
+       if (moment >= 2.0d0) then
           if (present(isInfinite)) then
              isInfinite=.true.
              return

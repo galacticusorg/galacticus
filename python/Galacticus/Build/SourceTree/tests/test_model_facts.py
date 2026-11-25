@@ -8,13 +8,16 @@ Fortran text:
     class and implementation providing the fact, and the XML that selects it;
   * a `modelRequire` naming a fact that nothing provides is a build-time error
     (the token vocabulary is checked by the build);
+  * `modelExclusive` emits a `modelFactExclusive` call carrying its description
+    and location, and a token which no other `modelExclusive` directive claims
+    is a build-time error;
   * malformed directives raise rather than emitting broken Fortran.
 """
 
 import pytest
 
 from Galacticus.Build.SourceTree.Process.ModelFacts import (
-    help_text, process_model_fact, process_model_require,
+    help_text, process_model_exclusive, process_model_fact, process_model_require,
 )
 
 
@@ -26,6 +29,11 @@ _PROVIDERS = {
         ('nodeOperator', 'first',  'source/first.F90' ),
         (None          , None   ,  'source/disk.F90'  ),
     ],
+}
+
+_CLAIMANTS = {
+    'spheroid:tidalHeating': 2,
+    'component:lonely':      1,
 }
 
 
@@ -71,6 +79,12 @@ def _fact(directive):
 def _require(directive, providers=None):
     parent = _build('modelRequire', directive)
     process_model_require(parent, {'modelFactProviders': _PROVIDERS if providers is None else providers})
+    return _emitted(parent)
+
+
+def _exclusive(directive, claimants=None):
+    parent = _build('modelExclusive', directive)
+    process_model_exclusive(parent, {'modelExclusiveClaimants': _CLAIMANTS if claimants is None else claimants})
     return _emitted(parent)
 
 
@@ -135,3 +149,37 @@ def test_directive_processed_once():
     process_model_fact(parent, {})
     process_model_fact(parent, {})
     assert _emitted(parent).count('modelFactProvide') == 1
+
+
+def test_exclusive_emits_call_with_description_and_location():
+    code = _exclusive({
+        'name':        'spheroid:tidalHeating',
+        'description': "the spheroid's tidal heating",
+    })
+    assert code.startswith("call parameters%modelFactExclusive('spheroid:tidalHeating',")
+    assert "'the spheroid''s tidal heating'" in code
+    assert 'function:testConstructor' in code
+    assert code.rstrip().endswith(')')
+
+
+def test_exclusive_explicit_source():
+    code = _exclusive({'name': 'spheroid:tidalHeating', 'description': 'x', 'source': 'subParameters'})
+    assert code.startswith("call subParameters%modelFactExclusive('spheroid:tidalHeating',")
+
+
+def test_exclusive_single_claimant_fails_the_build():
+    with pytest.raises(RuntimeError, match="'component:lonely' is claimed by only one"):
+        _exclusive({'name': 'component:lonely', 'description': 'x'})
+    with pytest.raises(RuntimeError, match="'spheroid:tidalHeatng' is claimed by only one"):
+        _exclusive({'name': 'spheroid:tidalHeatng', 'description': 'x'})
+
+
+def test_exclusive_needs_description():
+    with pytest.raises(RuntimeError, match='`description` attribute is required'):
+        _exclusive({'name': 'spheroid:tidalHeating'})
+
+
+@pytest.mark.parametrize('name', ['', 'a b', 'a::b'])
+def test_exclusive_rejects_bad_token(name):
+    with pytest.raises(RuntimeError, match='not a valid token'):
+        _exclusive({'name': name, 'description': 'x'})

@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
-  An implementation of dark matter halo profile concentrations using the :cite:t:`navarro_structure_1996` algorithm.
+  An implementation of dark matter halo profile concentrations using the :cite:t:`bullock_profiles_2001` algorithm.
   !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
@@ -201,45 +203,32 @@ contains
     !!{RST
     Return the concentration of the dark matter halo profile of ``node`` using the :cite:t:`bullock_profiles_2001` algorithm.
     !!}
-    use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Virial_Density_Contrast             , only : virialDensityContrastClass
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterProfileConcentrationBullock2001), intent(inout), target  :: self
     type            (treeNode                                 ), intent(inout), target  :: node
-    class           (virialDensityContrastClass               ), pointer                :: virialDensityContrast_
     class           (nodeComponentBasic                       )               , pointer :: basic
-    double precision                                                                    :: massHalo              , massHaloFormation       , &
-         &                                                                                 sigmaFormation        , timeFormation           , &
-         &                                                                                 expansionFactor       , expansionFactorFormation, &
-         &                                                                                 densityContrast
+    double precision                                                                    :: massHalo       , massHaloFormation       , &
+         &                                                                                 sigmaFormation , timeFormation           , &
+         &                                                                                 expansionFactor, expansionFactorFormation
 
-    ! Compute the characteristic mass at formation time.
-    basic                  =>  node                               %basic                    ()
-    virialDensityContrast_ =>  self                               %densityContrastDefinition()
-    densityContrast        =   virialDensityContrast_             %densityContrast          (                                                     &
-         &                                                                                                          basic%mass            ()    , &
-         &                                                                                                          basic%timeLastIsolated()      &
-         &                                                                                  )
-    massHalo               =   Dark_Matter_Profile_Mass_Definition                          (                                                     &
-         &                                                                                   node                                               , &
-         &                                                                                   densityContrast                                    , &
-         &                                                                                   cosmologyParameters_  =self %cosmologyParameters_  , &
-         &                                                                                   cosmologyFunctions_   =self %cosmologyFunctions_   , &
-         &                                                                                   virialDensityContrast_=self %virialDensityContrast_  &
-         &                                                                                  )
-    massHaloFormation      =  +self%F*massHalo
+    ! Compute the characteristic mass at formation time. The node mass is used directly - as in other concentration classes,
+    ! conversion between the node's mass definition and that of this class (given by the densityContrastDefinition() and
+    ! darkMatterProfileDMODefinition() methods) is handled by the darkMatterProfileScaleRadiusConcentration class.
+    basic                    =>  node %basic()
+    massHalo                 =   basic%mass ()
+    massHaloFormation        =  +self%F*massHalo
     ! Compute the corresponding rms fluctuation in the density field (i.e. σ(M)).
-    sigmaFormation          =+self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation,     self%cosmologyFunctions_%cosmicTime(1.0d0))
+    sigmaFormation           =  +self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation,     self%cosmologyFunctions_%cosmicTime(1.0d0))
     ! Get the time at which this equals the critical overdensity for collapse.
-    timeFormation           =+self%criticalOverdensity_     %timeOfCollapse (criticalOverdensity=sigmaFormation   ,mass=massHalo                                  )
+    timeFormation            =  +self%criticalOverdensity_     %timeOfCollapse (criticalOverdensity=sigmaFormation   ,mass=massHaloFormation                         )
     ! Get the corresponding expansion factors.
-    expansionFactorFormation=+self%cosmologyFunctions_      %expansionFactor(                    timeFormation                                                    )
-    expansionFactor         =+self%cosmologyFunctions_      %expansionFactor(                    basic%time()                                                     )
+    expansionFactorFormation =  +self%cosmologyFunctions_      %expansionFactor(                    timeFormation                                                    )
+    expansionFactor          =  +self%cosmologyFunctions_      %expansionFactor(                    basic%time()                                                     )
     ! Compute the concentration.
-    bullock2001Concentration=+self%K                   &
-         &                   *expansionFactor          &
-         &                   /expansionFactorFormation
+    bullock2001Concentration =  +self%K                   &
+         &                      *expansionFactor          &
+         &                      /expansionFactorFormation
     return
   end function bullock2001Concentration
 

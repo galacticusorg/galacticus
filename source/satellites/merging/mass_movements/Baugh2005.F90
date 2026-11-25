@@ -17,9 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a merger mass movements class using the :cite:t:`baugh_can_2005` model.
   !!}
+
+  ! Enumeration for the criterion used to decide whether a minor merger triggers a burst.
+  !![
+  <enumeration docformat="rst">
+   <name>baugh2005BurstCriterion</name>
+   <description>
+   Specifies the criterion used by the :galacticus-class:`mergerMassMovementsBaugh2005` class to decide whether a minor merger
+   triggers a burst.
+   </description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
+   <entry label="massRatio"   />
+   <entry label="bulgeToTotal"/>
+  </enumeration>
+  !!]
 
   !![
   <mergerMassMovements name="mergerMassMovementsBaugh2005" docformat="rst">
@@ -29,7 +47,7 @@
    * If :math:`M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}` then all mass from both satellite and central galaxies moves to the spheroid :term:`component` of the central galaxy;
    * Otherwise:
 
-     * If :math:`M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}` and the gas fraction in the host equals or exceeds :math:`f_\mathrm{gas,crit}` then all gas is moved to the host spheroid, while the host stellar disk remains in place.
+     * If :math:`M_\mathrm{satellite} &gt; f_\mathrm{burst} M_\mathrm{central}` and the gas fraction in the host equals or exceeds :math:`f_\mathrm{gas,crit}` then all gas is moved to the host spheroid, while the host stellar disk remains in place. This is the criterion for a burst in a minor merger of :cite:t:`baugh_can_2005`. If ``[burstCriterion]``\ :math:`=`\ ``bulgeToTotal`` the first condition is instead :math:`M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}`, as in earlier versions of Galacticus (``[burstCriterion]``\ :math:`=`\ ``massRatio``, the default, selects the criterion of :cite:t:`baugh_can_2005`).
      * Otherwise, gas from the satellite moves to the :term:`component` of the central specified by the ``[destinationGasMinorMerger]`` parameter (either "``disk``" or "``spheroid``"), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
 
    Here, :math:`f_\mathrm{major}=`\ ``[massRatioMajorMerger]`` is the mass ratio above which a merger is considered to be "major", while :math:`f_\mathrm{burst}=`\ ``[ratioMassBurst]`` and :math:`f_\mathrm{gas,crit}=`\ ``[fractionGasCriticalBurst]``.
@@ -41,9 +59,10 @@
      A merger mass movements class which uses the :cite:t:`baugh_can_2005` calculation.
      !!}
      private
-     double precision                                   :: massRatioMajorMerger     , ratioMassBurst, &
-          &                                                fractionGasCriticalBurst
-     type            (enumerationDestinationMergerType) :: destinationGasMinorMerger
+     double precision                                         :: massRatioMajorMerger     , ratioMassBurst, &
+          &                                                      fractionGasCriticalBurst
+     type            (enumerationDestinationMergerType      ) :: destinationGasMinorMerger
+     type            (enumerationBaugh2005BurstCriterionType) :: burstCriterion
    contains
      final     ::              baugh2005Destructor
      procedure :: calculate => baugh2005Calculate
@@ -69,14 +88,15 @@ contains
     type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: massRatioMajorMerger     , ratioMassBurst, &
          &                                                           fractionGasCriticalBurst
-    type            (varying_string              )                :: destinationGasMinorMerger
+    type            (varying_string              )                :: destinationGasMinorMerger, burstCriterion
 
     !![
     <inputParameter docformat="rst">
       <name>massRatioMajorMerger</name>
-      <defaultValue>0.25d0</defaultValue>
+      <defaultValue>0.3d0</defaultValue>
       <description>
-      The mass ratio above which mergers are considered to be "major".
+      The mass ratio above which mergers are considered to be "major". The default is the value, :math:`f_\mathrm{ellip}=0.3`, used
+      by :cite:t:`baugh_can_2005`.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -84,7 +104,20 @@ contains
       <name>ratioMassBurst</name>
       <defaultValue>0.05d0</defaultValue>
       <description>
-      The mass ratio above which mergers are considered to trigger a burst.
+      If ``[burstCriterion]`` is ``massRatio``, the satellite to central galaxy mass ratio above which minor mergers trigger a
+      burst; if ``bulgeToTotal``, the bulge-to-total mass ratio of the central galaxy below which minor mergers trigger a burst.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter docformat="rst">
+      <name>burstCriterion</name>
+      <defaultValue>var_str('massRatio')</defaultValue>
+      <description>
+      The criterion used to decide whether a minor merger triggers a burst. If ``massRatio`` (the criterion of
+      :cite:t:`baugh_can_2005`), a burst requires that the satellite to central galaxy mass ratio exceed ``[ratioMassBurst]``. If
+      ``bulgeToTotal`` (the criterion used by earlier versions of Galacticus), a burst instead requires that the bulge-to-total
+      mass ratio of the central galaxy be less than ``[ratioMassBurst]``. In both cases the gas fraction of the central galaxy must
+      also equal or exceed ``[fractionGasCriticalBurst]``.
       </description>
       <source>parameters</source>
     </inputParameter>
@@ -105,25 +138,29 @@ contains
       <source>parameters</source>
     </inputParameter>
     !!]
-    self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst)
+    self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst,enumerationBaugh2005BurstCriterionEncode(char(burstCriterion),includesPrefix=.false.))
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function baugh2005ConstructorParameters
 
-  function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst) result(self)
+  function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst,burstCriterion) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`mergerMassMovementsBaugh2005` merger mass movements.
     !!}
+    use :: Error, only : Error_Report
     implicit none
-    type            (mergerMassMovementsBaugh2005    )                :: self
-    double precision                                  , intent(in   ) :: massRatioMajorMerger     , ratioMassBurst, &
-         &                                                               fractionGasCriticalBurst
-    type            (enumerationDestinationMergerType), intent(in   ) :: destinationGasMinorMerger
+    type            (mergerMassMovementsBaugh2005          )                :: self
+    double precision                                        , intent(in   ) :: massRatioMajorMerger     , ratioMassBurst, &
+         &                                                                     fractionGasCriticalBurst
+    type            (enumerationDestinationMergerType      ), intent(in   ) :: destinationGasMinorMerger
+    type            (enumerationBaugh2005BurstCriterionType), intent(in   ) :: burstCriterion
     !![
-    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst"/>
+    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst, burstCriterion"/>
     !!]
+
+    if (.not.enumerationBaugh2005BurstCriterionIsValid(burstCriterion)) call Error_Report('[burstCriterion] is invalid'//{introspection:location})
 
     return
   end function baugh2005ConstructorInternal
@@ -171,10 +208,20 @@ contains
          &                             +massDistributionHostSpheroidGas%massTotal       (                                                             )
     massSpheroidHost                =  +massDistributionHostSpheroid   %massTotal       (                                                             )
     mergerIsMajor                   =    massSatellite    >= self%massRatioMajorMerger    *massHost
+    select case (self%burstCriterion%ID)
+    case (baugh2005BurstCriterionMassRatio   %ID)
+       ! The criterion of Baugh et al. (2005): the satellite to central mass ratio must exceed the burst threshold.
+       triggersBurst                =    massSatellite    >  self%ratioMassBurst          *massHost
+    case (baugh2005BurstCriterionBulgeToTotal%ID)
+       ! The criterion used by earlier versions of Galacticus: the central bulge-to-total ratio must be below the burst threshold.
+       triggersBurst                =    massSpheroidHost <  self%ratioMassBurst          *massHost
+    case default
+       triggersBurst                =   .false.
+    end select
     triggersBurst                   =    mergerIsMajor                                              &
          &                             .or.                                                         &
          &                              (                                                           &
-         &                               massSpheroidHost <  self%ratioMassBurst          *massHost &
+         &                               triggersBurst                                              &
          &                                .and.                                                     &
          &                               massGasHost      >= self%fractionGasCriticalBurst*massHost &
          &                              )
@@ -186,10 +233,10 @@ contains
     <objectDestructor name="massDistributionHostSpheroid"   />
     !!]
     if (mergerIsMajor) then
-       destinationGasSatellite  =    destinationMergerSpheroid
-       destinationStarsSatellite=    destinationMergerSpheroid
-       destinationGasHost       =    destinationMergerSpheroid
-       destinationStarsHost     =    destinationMergerSpheroid
+       destinationGasSatellite     =    destinationMergerSpheroid
+       destinationStarsSatellite   =    destinationMergerSpheroid
+       destinationGasHost          =    destinationMergerSpheroid
+       destinationStarsHost        =    destinationMergerSpheroid
     else
        if (triggersBurst) then
           destinationGasSatellite  =    destinationMergerSpheroid
