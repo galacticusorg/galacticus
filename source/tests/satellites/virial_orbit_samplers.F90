@@ -42,6 +42,13 @@ program Test_Satellite_Virial_Orbit_Samplers
   :cite:t:`li_orbital_2020`. The two radii then coincide and the propagation is a no-op, so the returned velocities are those
   drawn. Orbits are requested with ``acceptUnboundOrbits`` set, since the reported moments are of the unrestricted distribution.
 
+  Finally, the propagation itself is tested: a :galacticus-class:`virialOrbitBenson2005` object is placed in a model whose virial
+  density contrast is :math:`200\rho_\mathrm{c}` (its ``darkMatterHaloScale``, ``virialDensityContrast`` and dark matter profile
+  all use that definition), whose virial radius is about 0.8 times that of the class' own definition, so that some of the orbits
+  it draws do not reach that radius and must be rejected. Every orbit returned must have been propagated to that radius, and
+  carry the masses of the host and satellite nodes (defined under :math:`200\rho_\mathrm{c}`) rather than those under the class'
+  own definition.
+
   The agreement required is statistical: each sample mean must lie within five standard errors of the reported moment, with the
   standard error estimated from the sample itself. So that this can not pass merely by being imprecise, each standard error is
   also required to be a small fraction of the moment it tests, which is what makes the comparison sharp.
@@ -66,30 +73,38 @@ program Test_Satellite_Virial_Orbit_Samplers
   use            :: Virial_Density_Contrast           , only : virialDensityContrastFixed                       , fixedDensityTypeCritical         , virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
   use            :: Virial_Orbits                     , only : virialOrbitBenson2005                            , virialOrbitJiang2014             , virialOrbitLi2020                 , virialOrbitClass
   implicit none
-  type            (inputParameters                                             )          :: parameters
-  type            (cosmologyParametersSimple                                   ), pointer :: cosmologyParameters_
-  type            (cosmologyFunctionsMatterLambda                              ), pointer :: cosmologyFunctions_
-  type            (darkMatterProfileDMONFW                                     ), pointer :: darkMatterProfileDMO_
+  type            (inputParameters                                               )            :: parameters
+  type            (cosmologyParametersSimple                                     ), pointer   :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda                                ), pointer   :: cosmologyFunctions_
+  type            (darkMatterProfileDMONFW                                       ), pointer   :: darkMatterProfileDMO_           , darkMatterProfileDMOJiang_
   ! One density contrast per class, each precisely that class' own definition, with a dark matter halo scale built upon it.
-  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: contrastBenson_
-  type            (virialDensityContrastFixed                                  ), pointer :: contrastJiang_
-  type            (darkMatterHaloScaleVirialDensityContrastDefinition           ), pointer :: scaleBenson_                    , scaleJiang_
-  type            (virialOrbitBenson2005                                       ), pointer :: benson2005_
-  type            (virialOrbitJiang2014                                        ), pointer :: jiang2014_
-  class           (virialOrbitClass                                            ), pointer :: virialOrbit_
-  type            (mergerTree                                                  )          :: tree
-  type            (treeNode                                                    ), pointer :: host                            , satellite
+  type            (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer   :: contrastBenson_
+  type            (virialDensityContrastFixed                                    ), pointer   :: contrastJiang_
+  type            (darkMatterHaloScaleVirialDensityContrastDefinition            ), pointer   :: scaleBenson_                    , scaleJiang_
+  type            (virialOrbitBenson2005                                         ), pointer   :: benson2005_                     , benson2005Propagated_
+  type            (virialOrbitJiang2014                                          ), pointer   :: jiang2014_
+  class           (virialOrbitClass                                              ), pointer   :: virialOrbit_
+  type            (mergerTree                                                    )            :: tree
+  type            (treeNode                                                      ), pointer   :: host                            , satellite
   ! Halo masses [M☉] and the epoch [Gyr] at which they are placed.
-  double precision                                                              , parameter :: massHost                =1.0d13, massSatellite             =1.0d11, &
-       &                                                                                       time                    =1.38d1
+  double precision                                                                , parameter :: massHost                =1.0d13 , massSatellite                    =1.0d11, &
+       &                                                                                         time                    =1.38d1
   ! The number of orbits drawn from each sampler. At this size the standard error on the mean tangential velocity is a few parts
   ! in ten thousand of the mean, so a five standard error band is a fractional agreement of order 10⁻³.
-  integer                                                                       , parameter :: countOrbits             =2000000
+  integer                                                                         , parameter :: countOrbits             =2000000
   ! The width of the band, in standard errors, and the largest standard error - as a fraction of the moment it tests - for which
   ! the comparison is considered sharp enough to be meaningful.
-  double precision                                                              , parameter :: widthBand               =5.0d0 , standardErrorMaximum      =2.0d-3
-  double precision                                                                          :: velocityTangentialMean          , velocityTotalRootMeanSquared     , &
-       &                                                                                       errorVelocityTangential         , errorVelocityTotalRootMeanSquared
+  double precision                                                                , parameter :: widthBand               =5.0d0  , standardErrorMaximum             =2.0d-3
+  ! The number of orbits drawn to test propagation to a virial radius other than that of the class' own definition. Of order
+  ! 5% of them would not reach that radius, so this gives thousands of orbits which must be rejected.
+  integer                                                                         , parameter :: countOrbitsPropagated   =100000
+  double precision                                                                , parameter :: toleranceRadius         =1.0d-6 , toleranceMass                    =1.0d-9
+  double precision                                                                            :: velocityTangentialMean          , velocityTotalRootMeanSquared            , &
+       &                                                                                         errorVelocityTangential         , errorVelocityTotalRootMeanSquared       , &
+       &                                                                                         radiusVirialPropagated
+  type            (keplerOrbit                                                   )            :: orbitPropagated
+  integer                                                                                     :: i                               , countRadiusWrong                        , &
+       &                                                                                         countMassWrong
 
   call displayVerbositySet(verbosityLevelStandard)
   call Error_Handler_Register()
@@ -181,6 +196,35 @@ program Test_Satellite_Virial_Orbit_Samplers
   class default
      call Assert('the virial orbit class built is li2020',.false.,.true.)
   end select
+  call Unit_Tests_End_Group()
+  ! Test that orbits are propagated to the virial radius of the dark matter halo scale given, when that differs from the virial
+  ! radius under the class' own definition.
+  call Unit_Tests_Begin_Group("Benson (2005) propagated to 200ρc")
+  allocate(darkMatterProfileDMOJiang_)
+  allocate(benson2005Propagated_     )
+  darkMatterProfileDMOJiang_=darkMatterProfileDMONFW(velocityDispersionUseSeriesExpansion=.false.,darkMatterHaloScale_=scaleJiang_)
+  benson2005Propagated_     =virialOrbitBenson2005  (                                                  &
+       &                                             darkMatterHaloScale_  =scaleJiang_              , &
+       &                                             cosmologyFunctions_   =cosmologyFunctions_      , &
+       &                                             cosmologyParameters_  =cosmologyParameters_     , &
+       &                                             virialDensityContrast_=contrastJiang_           , &
+       &                                             darkMatterProfileDMO_ =darkMatterProfileDMOJiang_ &
+       &                                            )
+  radiusVirialPropagated=scaleJiang_%radiusVirial(host)
+  countRadiusWrong      =0
+  countMassWrong        =0
+  do i=1,countOrbitsPropagated
+     orbitPropagated=benson2005Propagated_%orbit(satellite,host,acceptUnboundOrbits=.false.)
+     if (abs(orbitPropagated%radius()/radiusVirialPropagated-1.0d0) > toleranceRadius) countRadiusWrong=countRadiusWrong+1
+     if     (                                                                           &
+          &   abs(orbitPropagated%massHost     ()/massHost     -1.0d0) > toleranceMass  &
+          &  .or.                                                                       &
+          &   abs(orbitPropagated%massSatellite()/massSatellite-1.0d0) > toleranceMass  &
+          & ) countMassWrong=countMassWrong+1
+  end do
+  call Assert('all orbits are at the virial radius of the halo scale given',countRadiusWrong,0)
+  call Assert('all orbits carry the masses of the nodes'                   ,countMassWrong  ,0)
+  deallocate(benson2005Propagated_)
   call Unit_Tests_End_Group()
   ! Clean up.
   call host     %destroy()
