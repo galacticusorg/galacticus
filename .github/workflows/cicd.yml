@@ -1611,6 +1611,7 @@ jobs:
         tests.binary_search_trees.exe
         tests.merger_remnant_size_Covington2008.exe
         tests.orbits.exe
+        tests.black_hole_seeds_Vergara2023.exe
         tests.debugging.exe
         tests.accretion_halo_isocurvature.exe
         tests.accretion_halo_cold_mode_chemicals.exe
@@ -1812,6 +1813,7 @@ jobs:
                 test-bar-instability-binding-energy.py,
                 test-transfer-functions-axion.py,
                 test-mass-definitions.py,
+                test-cooling-rate-Cole2000.py,
                 test-branchlessTrees.py,
                 test-branchSubsampling.py,
                 test-CGM-mass-cooled.py,
@@ -1901,6 +1903,7 @@ jobs:
                 test-decayingDM-shell-crossing-capture.py,
                 test-enforceNonNegativity.py,
                 test-pruneLightcone.py,
+                test-position-interpolated-branch-jump.py,
                 test-position-interpolated-orphan-decay.py,
                 test-soliton-coremass.py,
                 test-soliton-satellite-merging.py,

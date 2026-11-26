@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  !+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that implements radial migration of non-central black holes.
   !!}
@@ -250,6 +252,7 @@ contains
          &                                                               massBlackHole1  , massBlackHole2    , &
          &                                                               velocityRecoil  , spinBlackHole1    , &
          &                                                               spinBlackHole2
+    logical                                                           :: escaped
     !$GLC attributes unused :: timeEnd
     
     ! Get the black holes.
@@ -281,6 +284,7 @@ contains
     ! Calculate the recoil velocity of the binary black hole and check whether it escapes the galaxy
     velocityRecoil=self_%blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
     ! Compare the recoil velocity to the potential and determine whether the binary is ejected or stays in the galaxy.
+    escaped=.false.
     if     (                                                                                             &
          &  blackHolesRecoilEscapes(                                                                     &
          &                          node                 =node                                         , &
@@ -290,12 +294,15 @@ contains
          &                          ignoreCentralBlackHole=.true.                                        &
          &                         )                                                                     &
          & ) then
+       escaped         =.true.
        massBlackHoleNew=self_%blackHoleSeeds_%mass(node)
        spinBlackHoleNew=self_%blackHoleSeeds_%spin(node)
     end if
     ! Set the mass and spin of the central black hole.
     call blackHole1%massSet(massBlackHoleNew)
     call blackHole1%spinSet(spinBlackHoleNew)
+    ! If the binary escaped, and a seed was placed in its stead, apply any changes that follow from the seed having formed.
+    if (escaped .and. massBlackHoleNew > 0.0d0) call self_%blackHoleSeeds_%seedFormed(node)
     ! Remove the merging black hole from the list.
     call node%blackHoleRemove(mergingInstance)
     return

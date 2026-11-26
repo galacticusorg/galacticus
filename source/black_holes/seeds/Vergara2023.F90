@@ -22,7 +22,7 @@
   !!{RST
   Implements a black hole seed based on collapse of nuclear star clusters due to runaway stellar collisions.
   !!}
- 
+
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
   !![
@@ -47,14 +47,15 @@
          &                                                 velocityNuclearStarClustersID                  , ageNuclearStarClustersID         , &
          &                                                 gasMassNuclearStarClustersID                   , criticalMassNuclearStarClustersID, &
          &                                                 redshiftBlackHoleSeedFormationID               , stellarMassNuclearStarClustersID , &
-         &                                                 mergerTreeWeightNuclearStarClustersID 
+         &                                                 mergerTreeWeightNuclearStarClustersID
    contains
-     final     ::                     vergara2023Destructor              
+     final     ::                     vergara2023Destructor
      procedure :: mass             => vergara2023Mass
      procedure :: spin             => vergara2023Spin
+     procedure :: seedFormed       => vergara2023SeedFormed
      procedure :: formationChannel => vergara2023FormationChannel
   end type blackHoleSeedsVergara2023
-  
+
   interface blackHoleSeedsVergara2023
      !!{RST
      Constructors for the :galacticus-class:`blackHoleSeedsVergara2023` black hole seeds class.
@@ -76,7 +77,7 @@ contains
     class           (cosmologyFunctionsClass  ), pointer       :: cosmologyFunctions_
     double precision                                           :: massSingleStar     , radiusSingleStar, &
        &                                                          massEfficiency     , radiusEfficiency, &
-       &                                                          massThreshold 
+       &                                                          massThreshold
 
     !![
     <inputParameter docformat="rst">
@@ -128,7 +129,7 @@ contains
     !!]
     return
   end function vergara2023ConstructorParameters
-  
+
   function vergara2023ConstructorInternal(massSingleStar, radiusSingleStar, massEfficiency, radiusEfficiency, massThreshold,cosmologyFunctions_) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`blackHoleSeedsVergara2023` black hole seeds class.
@@ -163,9 +164,9 @@ contains
       !!{RST
       Destructor for the :galacticus-class:`blackHoleSeedsVergara2023` black hole seeds class.
       !!}
-      implicit none 
+      implicit none
       type(blackHoleSeedsVergara2023), intent(inout) :: self
-      
+
       !![
       <objectDestructor name="self%cosmologyFunctions_"/>
       !!]
@@ -173,11 +174,43 @@ contains
   end subroutine vergara2023Destructor
 
   double precision function vergara2023Mass(self,node) result(mass)
+    !!{RST
+    Compute the mass of the black hole seed formed by collapse of the nuclear star cluster. This is called during differential
+    evolution, so does not change the state of the node: the changes that follow from the collapse are made by
+    ``seedFormed``.
+    !!}
+    implicit none
+    class(blackHoleSeedsVergara2023), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+
+    call vergara2023Evaluate(self,node,applyCollapse=.false.,mass=mass)
+    return
+  end function vergara2023Mass
+
+  subroutine vergara2023SeedFormed(self,node)
+    !!{RST
+    Apply the changes that follow from the collapse of the nuclear star cluster into a black hole seed: record the properties of
+    the nuclear star cluster at collapse, mark it as collapsed, and remove the mass of the seed from its stars, reducing their
+    abundances and luminosities in proportion.
+    !!}
+    implicit none
+    class           (blackHoleSeedsVergara2023), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node
+    double precision                                           :: mass
+
+    call vergara2023Evaluate(self,node,applyCollapse=.true.,mass=mass)
+    return
+  end subroutine vergara2023SeedFormed
+
+  subroutine vergara2023Evaluate(self,node,applyCollapse,mass)
       !!{RST
-      Compute the nuclear star cluster collapse condition.
+      Compute the nuclear star cluster collapse condition, and the mass of the resulting black hole seed. If
+      ``applyCollapse`` is true, and the nuclear star cluster collapses, the changes to the nuclear star cluster that follow
+      from the collapse are also made.
       !!}
-    use :: Galacticus_Nodes                , only : nodeComponentNSC               , nodeComponentBasic, nodeComponentNSCStandard, treeNode  
+    use :: Galacticus_Nodes                , only : nodeComponentNSC               , nodeComponentBasic, nodeComponentNSCStandard, treeNode
     use :: Abundances_Structure            , only : operator(*)
+    use :: Stellar_Luminosities_Structure  , only : operator(*)
     use :: Numerical_Constants_Math        , only : Pi
     use :: Galactic_Structure_Options      , only : componentTypenuclearStarCluster, massTypeStellar
     use :: Numerical_Constants_Prefixes    , only : mega                           , kilo
@@ -186,6 +219,8 @@ contains
     implicit none
     class           (blackHoleSeedsVergara2023), intent(inout)          :: self
     type            (treeNode                 ), intent(inout)          :: node
+    logical                                    , intent(in   )          :: applyCollapse
+    double precision                           , intent(  out)          :: mass
     class           (nodeComponentNSC         )               , pointer :: nuclearStarCluster
     class           (nodeComponentBasic       )               , pointer :: basic
     double precision                                                    :: radiusNuclearStarCluster                  , velocityNuclearStarCluster    , &
@@ -194,7 +229,7 @@ contains
         &                                                                  massTimeStellarNuclearStarCluster         , ageNuclearStarCluster         , &
         &                                                                  time
     double precision                                                    :: velocity                         = 100.0d0 !km s¯¹
-    
+
     ! Get the nuclear star cluster component.
     nuclearStarCluster => node%NSC()
     ! Detect the type of the nuclear star cluster component.
@@ -214,11 +249,11 @@ contains
              & ) then
             mass=0.0d0
             return
-          end if 
+          end if
           ! Get the age of the nuclear star cluster.
           velocityNuclearStarCluster        =  sqrt(                                                     &
                &                                    +                   gravitationalConstant_internal   &
-               &                                    *nuclearStarCluster%massStellar                   () & 
+               &                                    *nuclearStarCluster%massStellar                   () &
                &                                    /                   radiusNuclearStarCluster         &
                &                                   )
           massStellarNuclearStarCluster     =  nuclearStarCluster%floatRank0MetaPropertyGet(self%    stellarMassFormedNSCID)
@@ -229,7 +264,7 @@ contains
              ageNuclearStarCluster=+time                              &
                   &                -massTimeStellarNuclearStarCluster &
                   &                /massStellarNuclearStarCluster
-          else 
+          else
              ageNuclearStarCluster=+0.0d0
           end if
           ! Do nothing if the nuclear star cluster has an unphysical age or already collapsed and formed a black hole seed.
@@ -240,7 +275,7 @@ contains
              & ) then
              mass=0.0d0
              return
-          end if 
+          end if
           ! Safronov number defined by Binney & Tremaine (2008, https://ui.adsabs.harvard.edu/abs/2008gady.book.....B/abstract)
           ! [non-dimensional].
           safronovNumber                =+9.54d0                       &
@@ -293,41 +328,51 @@ contains
                &  .and.                                                                    &
                &   self%massThreshold                  <= nuclearStarCluster%massStellar() &
                & ) then
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%ageNuclearStarClustersID         ,                                       ageNuclearStarCluster                                                         )
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%gasMassNuclearStarClustersID     ,nuclearStarCluster                    %massGas                       (                                              ))
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%stellarMassNuclearStarClustersID ,nuclearStarCluster                    %massStellar                   (                                              ))
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%velocityNuclearStarClustersID    ,                                       velocityNuclearStarCluster                                                    )
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%redshiftBlackHoleSeedFormationID ,self              %cosmologyFunctions_%redshiftFromExpansionFactor   (self%cosmologyFunctions_%expansionFactor(time)))
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%criticalMassNuclearStarClustersID,                                       massCriticalNuclearStarCluster                                                )
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%radiusNuclearStarClustersID      ,                                       radiusNuclearStarCluster                                                      )
-
             mass   =+self              %massEfficiency   &
                  &  *nuclearStarCluster%massStellar   ()
-            call nuclearStarCluster%           isCollapsedSet(                         .true.)
-            call nuclearStarCluster%floatRank0MetaPropertySet(self%blackHoleSeedMassID,mass  )
-            
-            ! Adjust stellar mass of the nuclear star cluster
-            call nuclearStarCluster%           massStellarSet(                                         &
-                 &                                            +(                                       &
-                 &                                              +1.0d0                                 &
-                 &                                              -self%massEfficiency                   &
-                 &                                             )                                       &
-                 &                                            *nuclearStarCluster%      massStellar()  &
-                 &                                           )
-            ! Adjust stellar abundances of the nuclear star cluster 
-            call nuclearStarCluster%     abundancesStellarSet(                                         &
-                 &                                            +(                                       &
-                 &                                              +1.0d0                                 &
-                 &                                              -self%massEfficiency                   &
-                 &                                             )                                       &
-                 &                                            *nuclearStarCluster%abundancesStellar()  &
-                 &                                           )            
+            if (applyCollapse) then
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%ageNuclearStarClustersID         ,                                       ageNuclearStarCluster                                                         )
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%gasMassNuclearStarClustersID     ,nuclearStarCluster                    %massGas                       (                                              ))
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%stellarMassNuclearStarClustersID ,nuclearStarCluster                    %massStellar                   (                                              ))
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%velocityNuclearStarClustersID    ,                                       velocityNuclearStarCluster                                                    )
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%redshiftBlackHoleSeedFormationID ,self              %cosmologyFunctions_%redshiftFromExpansionFactor   (self%cosmologyFunctions_%expansionFactor(time)))
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%criticalMassNuclearStarClustersID,                                       massCriticalNuclearStarCluster                                                )
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%radiusNuclearStarClustersID      ,                                       radiusNuclearStarCluster                                                      )
+
+               call nuclearStarCluster%           isCollapsedSet(                         .true.)
+               call nuclearStarCluster%floatRank0MetaPropertySet(self%blackHoleSeedMassID,mass  )
+
+               ! Adjust stellar mass of the nuclear star cluster
+               call nuclearStarCluster%           massStellarSet(                                         &
+                    &                                            +(                                       &
+                    &                                              +1.0d0                                 &
+                    &                                              -self%massEfficiency                   &
+                    &                                             )                                       &
+                    &                                            *nuclearStarCluster%      massStellar()  &
+                    &                                           )
+               ! Adjust stellar abundances of the nuclear star cluster
+               call nuclearStarCluster%     abundancesStellarSet(                                         &
+                    &                                            +(                                       &
+                    &                                              +1.0d0                                 &
+                    &                                              -self%massEfficiency                   &
+                    &                                             )                                       &
+                    &                                            *nuclearStarCluster%abundancesStellar()  &
+                    &                                           )
+               ! Adjust stellar luminosities of the nuclear star cluster
+               call nuclearStarCluster%   luminositiesStellarSet(                                         &
+                    &                                            +(                                       &
+                    &                                              +1.0d0                                 &
+                    &                                              -self%massEfficiency                   &
+                    &                                             )                                       &
+                    &                                            *nuclearStarCluster%luminositiesStellar()&
+                    &                                           )
+            end if
           else
             mass   =+0.0d0
-          end if 
+          end if
     end select
     return
-  end function vergara2023Mass
+  end subroutine vergara2023Evaluate
 
   double precision function vergara2023Spin(self,node) result(spin)
     !!{RST
