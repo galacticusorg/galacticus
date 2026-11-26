@@ -2,7 +2,7 @@
 
 from lxml import etree
 
-from Galacticus.Parameters.graph import build_graph, group_of
+from Galacticus.Parameters.graph import _scan_declared_objects, build_graph, group_of
 
 
 def _object(class_name, parameter_name=None, repeatable=False):
@@ -110,3 +110,21 @@ def test_group_follows_the_source_file():
     assert group_of('numerical/random_numbers/GSL.F90') == 'numerics'
     graph = _graph('<parameters><operator value="growth"/></parameters>')
     assert _node(graph, 'operator', 'growth')['group'] == 'starFormation'
+
+
+def test_object_built_by_hand_is_read_from_allowed_parameters(tmp_path):
+    (tmp_path / 'tasks').mkdir()
+    (tmp_path / 'tasks' / 'x.F90').write_text(
+        "  !![\n"
+        "  <task name=\"taskEvolve\">\n"
+        "   <allowedParameters>\n"
+        "    <object variable=\"unused_\" name=\"unused\" source=\"parameters\" function=\"f\" module=\"Functions_Global\"/>\n"
+        "   </allowedParameters>\n"
+        "  </task>\n"
+        "  !!]\n")
+    declared = _scan_declared_objects(str(tmp_path), CATALOG)
+    assert [obj['class'] for obj in declared['taskEvolve']] == ['unused']
+    root = etree.fromstring(b'<parameters><unused value="plain"/></parameters>')
+    graph = build_graph(root, CATALOG, source_root=str(tmp_path))
+    assert _node(graph, 'unused', 'plain')['reached'] is True
+    assert ('unused', 'plain') in _uses(graph, _node(graph, 'task', 'evolve'))

@@ -21,8 +21,13 @@ so are not in the catalog. Where a source tree is given, they are added from
 the ``<component>``, ``<objectBuilder>`` and ``<inputParameter>`` directives of
 `source/objects/nodes/components`.
 
+A few objects are built by a hand-written call rather than an
+``<objectBuilder>`` (through ``Functions_Global``, where a direct dependence
+would make a cycle of modules). Those declare what they build in the
+``<allowedParameters>`` of their class directive, which is read here too.
+
 The graph is static: it is what the directives say will be built. Objects
-constructed in hand-written code, without an ``<objectBuilder>``, are not seen.
+constructed in hand-written code which declares nothing are not seen.
 """
 
 import os
@@ -221,6 +226,39 @@ def _scan_components(source_root):
     return components
 
 
+def _scan_declared_objects(source_root, catalog):
+    """Return ``{type: [object, ...]}`` for the objects which implementations
+    build by a hand-written call, and so declare only in the
+    ``<allowedParameters>`` of their class directive."""
+    from Galacticus.Build.Directives import extract_directives
+
+    function_classes = catalog['functionClasses']
+    declared = {}
+    by_file = {}
+    for type_name, implementation in catalog['implementations'].items():
+        if implementation.get('sourceFile'):
+            by_file.setdefault(implementation['sourceFile'], []).append(type_name)
+    for source_file, type_names in sorted(by_file.items()):
+        path = os.path.join(source_root, source_file)
+        try:
+            with open(path, errors='replace') as handle:
+                if '<allowedParameters>' not in handle.read():
+                    continue
+        except OSError:
+            continue
+        class_names = {catalog['implementations'][type_name]['functionClass'] for type_name in type_names}
+        for directive in extract_directives(path, tuple(sorted(class_names))):
+            if directive.get('name') not in type_names:
+                continue
+            entries = (directive.get('allowedParameters') or {}).get('object') or []
+            for entry in entries if isinstance(entries, list) else [entries]:
+                if entry.get('name') in function_classes and entry.get('source') == 'parameters':
+                    declared.setdefault(directive['name'], []).append({
+                        'class': entry['name'], 'parameterName': entry['name'],
+                        'repeatable': False, 'source': 'parameters', 'sourceElement': None})
+    return declared
+
+
 def build_graph(root, catalog, source_root=None, name=None):
     """Return the object graph of the model whose resolved ``<parameters>``
     element is `root` (see `Galacticus.Parameters.resolve`).
@@ -232,7 +270,8 @@ def build_graph(root, catalog, source_root=None, name=None):
     catalog : dict
         A parameter catalog, as built by `Galacticus.Parameters.catalog`.
     source_root : str, optional
-        The `source/` directory. Where given, node components are included.
+        The `source/` directory. Where given, node components are included, as
+        are objects which are built by a hand-written call.
     name : str, optional
         A name for the model, recorded in the result.
 
@@ -259,6 +298,8 @@ def build_graph(root, catalog, source_root=None, name=None):
                   for element in root.iter()
                   if isinstance(element.tag, str) and element.get('id') is not None}
 
+    declared = _scan_declared_objects(source_root, catalog) if source_root is not None else {}
+
     nodes = {}
     by_id = {}
     order = []
@@ -271,6 +312,7 @@ def build_graph(root, catalog, source_root=None, name=None):
         while current in implementations and current not in seen:
             seen.add(current)
             objects.extend(implementations[current].get('objects', []))
+            objects.extend(declared.get(current, []))
             current = implementations[current].get('parent')
         return objects
 
