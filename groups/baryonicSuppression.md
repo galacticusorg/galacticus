@@ -10,5 +10,5 @@ Suppression of structure growth by baryonic physics.
 
 | Metric | Status | Validation | Benchmark | Last commit |
 |--------|--------|------------|-----------|-------------|
-| Halo mass function ratio | `N/A`{: .label .label-grey } | [plots]({{ '/dev/valid/baryonicSuppression/' | relative_url }}) | — | [`bc933cf`](https://github.com/galacticusorg/galacticus/commit/bc933cfc85290f404e6bccaa281f3c72667d2808) |
+| Halo mass function ratio | `N/A`{: .label .label-grey } | [plots]({{ '/dev/valid/baryonicSuppression/' | relative_url }}) | — | [`72eaf36`](https://github.com/galacticusorg/galacticus/commit/72eaf36aa425a1bf1ae148854b6d392d4e5a9699) |
 
