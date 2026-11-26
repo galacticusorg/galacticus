@@ -23,6 +23,7 @@ Andrew Benson (2026).
 
 import argparse
 import collections
+import html
 import json
 import os
 import sys
@@ -38,6 +39,7 @@ _TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'parameters
 _DATA_MARKER = '/*MODEL_GRAPH*/null'
 _URL_MARKER = '/*MODEL_URL*/null'
 _BODY_MARKER = '<!--BODY-->'
+_TITLE_MARKER = '<title>Galacticus Model Map</title>'
 
 
 def _load_catalog(path):
@@ -53,8 +55,12 @@ def _load_catalog(path):
 def _render(graph, fragment, data_url=None):
     with open(_TEMPLATE) as handle:
         template = handle.read()
-    if any(marker not in template for marker in (_DATA_MARKER, _URL_MARKER, _BODY_MARKER)):
+    if any(marker not in template for marker in (_DATA_MARKER, _URL_MARKER, _BODY_MARKER, _TITLE_MARKER)):
         raise RuntimeError(f'{_TEMPLATE} lacks one of its markers')
+    # Title the page for its model, so that the maps of several can be told apart.
+    model = os.path.splitext(graph['model']['name'] or '')[0]
+    if model:
+        template = template.replace(_TITLE_MARKER, f'<title>{html.escape(model)} Model Map</title>')
     if data_url is not None:
         page = template.replace(_URL_MARKER, json.dumps(data_url))
     else:
