@@ -1546,6 +1546,7 @@ jobs:
         tests.cooling_chain.exe
         tests.cooling_energy_radiated_cap.exe
         tests.hot_halo_outflow_stripping.exe
+        tests.hot_halo_cold_mode_mass_distribution.exe
         tests.bett2007_spin_distribution.exe
         tests.bug745815.exe
         tests.gaunt_factors.exe
@@ -1610,6 +1611,7 @@ jobs:
         tests.merger_tree_walker_branch_time_limited.exe
         tests.binary_search_trees.exe
         tests.merger_remnant_size_Covington2008.exe
+        tests.stellar_feedback_outflows_Creasey2013.exe
         tests.orbits.exe
         tests.black_hole_seeds_Vergara2023.exe
         tests.debugging.exe

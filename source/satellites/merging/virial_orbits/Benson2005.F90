@@ -156,6 +156,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Numerical_Comparison                , only : Values_Agree
     implicit none
     type            (keplerOrbit          )                        :: benson2005Orbit
     class           (virialOrbitBenson2005), intent(inout), target :: self
@@ -163,7 +164,8 @@ contains
     logical                                , intent(in   )         :: acceptUnboundOrbits
     class           (nodeComponentBasic   ), pointer               :: basicHost              , basic
     double precision                       , parameter             :: pMax                   =1.96797d0                              , &
-         &                                                            velocityMax            =3.00000d0
+         &                                                            velocityMax            =3.00000d0                              , &
+         &                                                            toleranceRadius        =1.00000d-3
     ! The unrounded coefficients of the z=0 fit of Benson (2005; Table 2). The published table prints a₂=2.49, a typo: the fit
     ! value here rounds to 2.48 (all other coefficients round to their printed values). The constants velocityTangentialMean and
     ! velocityTotalRootMeanSquared used elsewhere in this class were computed from these unrounded values.
@@ -243,10 +245,15 @@ contains
        call benson2005Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
        radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
+       ! Reject the orbit (and draw again) unless it reaches the virial radius under the default density contrast definition. If
+       ! that radius agrees with the virial radius under this class' own definition to within the precision of the tabulations
+       ! from which the two are computed, the orbit is already at the required radius, and is accepted as it is.
        if (benson2005Orbit%radiusApocenter() >= radiusHost .and. benson2005Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
           call benson2005Orbit%propagate(radiusHost  ,infalling=.true.)
           call benson2005Orbit%massesSet(basic%mass(),basicHost%mass())
+       else
+          foundOrbit=Values_Agree(radiusHost,radiusHostSelf,relTol=toleranceRadius)
        end if
     end do
     return

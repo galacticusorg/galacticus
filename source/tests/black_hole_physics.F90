@@ -135,6 +135,7 @@ program Test_Black_Hole_Physics
   double precision                                   , dimension(6) :: efficiencyRadiative                                                                        , &
        &                                                               spinUp
   double precision                                   , dimension(4) :: rateBondi
+  double precision                                   , dimension(2) :: rateBondiMoving
   double precision                                   , dimension(5) :: powerJet
   type            (nodeComponentBlackHoleStandard   )               :: blackHole
   type            (accretionDisksShakuraSunyaev     )               :: accretionDisk
@@ -236,6 +237,17 @@ program Test_Black_Hole_Physics
   call Assert("accretion radius {T=10²K}",Bondi_Hoyle_Lyttleton_Accretion_Radius(1.0d8,1.0d2          ),1.8502304790d-01  ,relTol=5.0d-4)
   call Assert("accretion radius {T=10⁷K}",Bondi_Hoyle_Lyttleton_Accretion_Radius(1.0d8,1.0d7          ),1.8502304790d-06  ,relTol=5.0d-4)
   call Assert("accretion rate"           ,rateBondi                                                    ,rateBondiReference,relTol=5.0d-4)
+  ! The accretion radius for gas moving relative to the black hole, G M/(c_s²+v²). The final case has no thermal support.
+  call Assert("accretion radius {T=10²K, v= 50km/s}",Bondi_Hoyle_Lyttleton_Accretion_Radius(1.0d8,1.0d2,velocity=5.0d1),1.7187687758d-04,relTol=5.0d-4)
+  call Assert("accretion radius {T=10⁷K, v=300km/s}",Bondi_Hoyle_Lyttleton_Accretion_Radius(1.0d8,1.0d7,velocity=3.0d2),1.3338119163d-06,relTol=5.0d-4)
+  call Assert("accretion radius {T=0  K, v=300km/s}",Bondi_Hoyle_Lyttleton_Accretion_Radius(1.0d8,0.0d0,velocity=3.0d2),4.7787969668d-06,relTol=5.0d-4)
+  ! The flux form evaluated at that radius (as used for accretion from the hot halo) must recover the Bondi-Hoyle-Lyttleton rate,
+  ! which falls as the relative velocity increases. The second reference is the v=0 rate scaled by [c_s²/(c_s²+v²)]^{3/2}.
+  rateBondiMoving=[                                                                                                                                          &
+       &           Bondi_Hoyle_Lyttleton_Accretion_Rate(1.0d8,1.0d18,5.0d1,1.0d2,radius=Bondi_Hoyle_Lyttleton_Accretion_Radius(1.0d8,1.0d2,velocity=5.0d1)), &
+       &           Bondi_Hoyle_Lyttleton_Accretion_Rate(1.0d8,1.0d15,3.0d2,1.0d7,radius=Bondi_Hoyle_Lyttleton_Accretion_Radius(1.0d8,1.0d7,velocity=3.0d2))  &
+       &          ]
+  call Assert("accretion rate {flux form at the accretion radius, v>0}",rateBondiMoving,[1.8991969905d+10,1.2983318764d+04],relTol=5.0d-4)
   call Unit_Tests_End_Group()
 
   ! Binary black hole mergers.
