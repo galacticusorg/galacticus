@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by test-cooling-rate-Cole2000.py to check that the Cole et al. (2000) cooling rate continues to evolve  -->
+<!-- between halo formation events (the hot gas profile is frozen at formation, but the time available for cooling grows).   -->
+<!-- Andrew Benson, Claude (19-November-2026)                                                                                  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="a9511c71c4fcc7ef84ecc50201d3fc51fab25086" time="2026-11-19T12:00:00"/>
+
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
+    <treesPerDecade value="1"/>
+    <massTreeMaximum value="1.001e+12"/>
+    <massTreeMinimum value="1e+12"/>
+  </mergerTreeBuildMasses>
+
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <!-- CGM cooling/heating -->
+  <circumgalacticMediumHeating value="AGNFeedback"/>
+
+  <!-- Node evolution and physics -->
+      <nodeOperator value="multi">
+  	<!-- Cosmological epoch -->
+  	<nodeOperator value="cosmicTime"/>
+  	<!-- DMO evolution -->
+  	<nodeOperator value="DMOInterpolate"/>
+  	<!-- Halo concentrations -->
+  	<nodeOperator value="darkMatterProfileScaleSet"/>
+  	<nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  	<!-- Halo spins -->
+  	<nodeOperator value="haloAngularMomentumRandom"/>
+  	<nodeOperator value="haloAngularMomentumInterpolate"/>
+  	<!-- Satellite evolution -->
+	<nodeOperator value="satelliteMergingTime"/>
+	<nodeOperator value="satelliteMassLoss"/>
+	<!-- Star formation -->
+  	<nodeOperator value="starFormationDisks"/>
+  	<nodeOperator value="starFormationSpheroids"/>
+  	<!--Stellar feedback outflows-->
+  	<nodeOperator value="stellarFeedbackDisks">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+  	<nodeOperator value="stellarFeedbackSpheroids">
+  	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+  	  </stellarFeedbackOutflows>
+  	</nodeOperator>
+	<!-- Black hole physics -->
+	<nodeOperator value="blackHolesSeed">
+	  <blackHoleSeeds value="fixed">
+            <mass value="100.0"/>
+            <spin value="  0.0"/>
+	  </blackHoleSeeds>
+	</nodeOperator>
+	<nodeOperator value="blackHolesAccretion" />
+	<nodeOperator value="blackHolesWinds"     />
+	<!-- CGM physics -->
+	<nodeOperator value="CGMAccretion">
+	  <allowNegativeCGMMass value="true"/>
+	  <angularMomentumAlwaysGrows value="false"/>
+	</nodeOperator>
+	<nodeOperator value="CGMOutflowReincorporation">
+	  <includeSatellites value="true"/>
+	</nodeOperator>
+	<nodeOperator value="CGMCoolingHeating">
+	  <component value="disk"/>
+	  <coolingFrom value="formationNode"/>
+	  <excessHeatDrivesOutflow value="true"/>
+	  <rateMaximumExpulsion value="1.0"/>
+	</nodeOperator>
+	<nodeOperator value="nodeFormationTimeCole2000"/>
+	<nodeOperator value="CGMOuterRadiusRamPressureStripping"/>
+      </nodeOperator>
+
+  <componentHotHalo value="standard"/>
+  <coolingRate value="cole2000"/>
+  <coolingTimeAvailable value="formationTime"/>
+  <outputTimes value="list">
+    <redshifts value="1.0000 0.9500 0.9000 0.8500 0.8000 0.7500 0.7000 0.6500 0.6000 0.5500 0.5000 0.4500 0.4000 0.3500 0.3000 0.2500 0.2000 0.1500 0.1000 0.0500 0.0000"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="nodeIndices"/>
+    <nodePropertyExtractor value="rateCooling"/>
+    <nodePropertyExtractor value="massBasic"/>
+    <nodePropertyExtractor value="time"/>
+    <nodePropertyExtractor value="nodeFormationTime"/>
+  </nodePropertyExtractor>
+  <outputFileName value="testSuite/outputs/coolingRateCole2000.hdf5"/>
+  <randomNumberGenerator value="GSL"><seed value="219"/></randomNumberGenerator>
+</parameters>
