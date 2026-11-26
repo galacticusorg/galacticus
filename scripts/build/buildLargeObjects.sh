@@ -7,11 +7,13 @@
 # <buildPath> is the build directory selected by the make options (e.g. ./work/build, or ./work/buildMPI for MPI=yes). The
 # make options are passed to each make, and must be those of the build which follows, since they select its configuration.
 #
-# Used by the CI builds, which run on machines with ~16 GB of memory. There, `make -j2` alone is not enough: the largest
-# compile peaks at ~14 GiB, and the next six at 6-10 GiB, so two of them running together can exhaust memory and get the
-# compiler killed (`Killed signal terminated program f951`). Each is built here as a make target of its own: make builds
-# its prerequisites two at a time, then compiles it with nothing running beside it. Every other compile peaks below
-# ~5.5 GiB, so any two of the rest fit together. Peak memories were measured with gfortran 16.0.1, with and without
+# Needed only without USE consolidation (`CONSOLIDATE_USES=no`): consolidation, the default, keeps every compile under
+# ~3 GiB, so the CI builds no longer use this script, except for the weekly unconsolidated build (`unconsolidatedBuild.yml`).
+# That runs on a machine with ~16 GB of memory, where `make -j2` alone is not enough: the largest compile peaks at ~14 GiB,
+# and the next six at 6-10 GiB, so two of them running together can exhaust memory and get the compiler killed (`Killed
+# signal terminated program f951`). Each is built here as a make target of its own: make builds its prerequisites two at a
+# time, then compiles it with nothing running beside it. Every other compile peaks below ~5.5 GiB, so any two of the rest fit
+# together. Peak memories were measured with gfortran 16.0.1, with and without
 # link-time optimization (the build profile, from `make BUILDPROFILE=yes`, reports them).
 #
 # The objects are listed with prerequisites first: `merger_trees/construct/read/_class` depends on all of the others, and

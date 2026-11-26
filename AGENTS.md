@@ -90,9 +90,12 @@ make -jN Galacticus.exe   # N = number of parallel cores
 Gotchas:
 
 - **Builds are slow and memory-hungry.** Concurrent `-O3` compiles of the large
-  generated `*_class` units are the peak. On a ~16 GB machine, `-j4` can OOM
-  (exit 137); CI caps at **`-j2`**. On memory-constrained machines use a lower
-  `-jN` and/or `LTO=disabled` (e.g. `make -j2 LTO=disabled Galacticus.exe`).
+  generated `*_class` units are the peak. USE consolidation (`CONSOLIDATE_USES=yes`,
+  the default) keeps each compile under ~3 GB, so `-j4` peaks at ~6 GB, and CI
+  builds at **`-j4`**. With `CONSOLIDATE_USES=no` the largest compile needs
+  ~14 GB, and `-j4` can OOM (exit 137) on a ~16 GB machine. On memory-constrained
+  machines use a lower `-jN` and/or `LTO=disabled` (e.g.
+  `make -j2 LTO=disabled Galacticus.exe`).
 - **One `make` per tree.** Never run two `make` invocations concurrently in the
   same working tree — they race over generated files.
 - Because a full build takes a long time, **prefer launching it in the
