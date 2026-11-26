@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "bc933cfc85290f404e6bccaa281f3c72667d2808",
-        "message": "Merge pull request #1833 from galacticusorg/fix/baugh2005-burst-criterion\n\nfeat(mergerMassMovementsBaugh2005)!: use the Baugh et al. (2005) minor-merger burst criterion and major-merger ratio, with migrations\n",
-        "timestamp": "2026-11-23 16:18:30+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/bc933cfc85290f404e6bccaa281f3c72667d2808"
+        "id": "72eaf36aa425a1bf1ae148854b6d392d4e5a9699",
+        "message": "Merge pull request #1872 from galacticusorg/ccr-4403ba3d-4q4fbr\n\nShare the review skill, move knowledge entries into the manuals, and explain AGN torus test failures\n",
+        "timestamp": "2026-11-26 16:26:33+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/72eaf36aa425a1bf1ae148854b6d392d4e5a9699"
     },
     "surfaceDensity": {
         "percentageBelow": 10.714285714285708,

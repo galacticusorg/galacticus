@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "bc933cfc85290f404e6bccaa281f3c72667d2808",
-        "message": "Merge pull request #1833 from galacticusorg/fix/baugh2005-burst-criterion\n\nfeat(mergerMassMovementsBaugh2005)!: use the Baugh et al. (2005) minor-merger burst criterion and major-merger ratio, with migrations\n",
-        "timestamp": "2026-11-23 16:18:30+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/bc933cfc85290f404e6bccaa281f3c72667d2808"
+        "id": "72eaf36aa425a1bf1ae148854b6d392d4e5a9699",
+        "message": "Merge pull request #1872 from galacticusorg/ccr-4403ba3d-4q4fbr\n\nShare the review skill, move knowledge entries into the manuals, and explain AGN torus test failures\n",
+        "timestamp": "2026-11-26 16:26:33+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/72eaf36aa425a1bf1ae148854b6d392d4e5a9699"
     },
     "results": [
         {
@@ -99,7 +99,7 @@ window.ANALYSES_DATA = {
                 ],
                 "yError": [
                     80.44584578870503,
-                    42.2789321394834,
+                    42.278932139483395,
                     17.69403648503403,
                     8.07931085053033,
                     4.0535171975162525,
@@ -153,7 +153,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Caterpillar (Griffen et al. 2016)",
                 "comment": "Analysis of subhalo mass functions",
                 "description": "Subhalo radial distribution",
-                "logLikelihood": "6.179164102345126",
+                "logLikelihood": "6.17916410234513",
                 "type": "function1D",
                 "xDataset": "radiusFractional",
                 "yCovariance": "radialDistributionCovariance",
@@ -200,9 +200,9 @@ window.ANALYSES_DATA = {
                     3.1310980709222616,
                     5.4874441753779575,
                     8.37789276092709,
-                    12.119509099561558,
+                    12.119509099561556,
                     16.434564131724976,
-                    22.056387302874686,
+                    22.056387302874683,
                     25.677933284045533,
                     28.675485583579444
                 ],
@@ -241,11 +241,11 @@ window.ANALYSES_DATA = {
                     0.04757615441774892,
                     0.05924089526327675,
                     0.08792325903185795,
-                    0.11945361345563096,
+                    0.11945361345563095,
                     0.1644737618974823,
                     0.21497732209857853,
                     0.27042853955504254,
-                    0.3352896286546025,
+                    0.33528962865460255,
                     0.4247689651238963,
                     0.487538174670582,
                     0.5372740986837459
@@ -284,7 +284,7 @@ window.ANALYSES_DATA = {
                 "targetLabel": "Caterpillar (Griffen et al. 2016)",
                 "comment": "Subhalo mean maximum velocity vs. bound mass relation",
                 "description": "Subhalo mean maximum velocity vs. bound mass relation",
-                "logLikelihood": "-16919.11509676811",
+                "logLikelihood": "-16919.115096768073",
                 "type": "function1D",
                 "xDataset": "massBound",
                 "yCovariance": "velocityMaximumMeanCovariance",
@@ -314,11 +314,11 @@ window.ANALYSES_DATA = {
                     556683886382.3326
                 ],
                 "yDataset": [
-                    5.057772108965526,
+                    5.057772108965527,
                     6.074881946932046,
                     7.232089071953399,
-                    8.759255253523769,
-                    10.590895280698188,
+                    8.759255253523767,
+                    10.590895280698186,
                     12.976753614888842,
                     15.99710430547736,
                     19.75557668282868,
@@ -354,23 +354,23 @@ window.ANALYSES_DATA = {
                     119.56
                 ],
                 "yError": [
-                    0.014450130289952288,
-                    0.015919798932024942,
+                    0.014450130289952247,
+                    0.015919798932024987,
                     0.02167981590593114,
                     0.0234556299958776,
                     0.02893985519617083,
                     0.03570529734407074,
-                    0.046241314375210306,
+                    0.0462413143752102,
                     0.06777308491773154,
-                    0.1067082065793128,
+                    0.10670820657931356,
                     0.16548885650630618,
                     0.2659070515601884,
                     0.40449494458671403,
-                    0.6987738215226036,
+                    0.6987738215226,
                     1.0653284288117058,
-                    2.214538303857582,
+                    2.2145383038575757,
                     3.5663554758070046,
-                    4.458867223272861,
+                    4.458867223272882,
                     4.228066020542452
                 ],
                 "yErrorTarget": [
