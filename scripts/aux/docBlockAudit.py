@@ -93,8 +93,13 @@ BIBLIOGRAPHY_ENTRY = re.compile(r'@\w+\s*\{\s*([^,\s]+)\s*,')
 
 
 def repositoryRoot():
-    """Return the root of the Galacticus source tree."""
-    return os.environ.get('GALACTICUS_EXEC_PATH', os.getcwd())
+    """Return the root of the Galacticus source tree.
+
+    This is the tree in which this script lives, not the one named by `GALACTICUS_EXEC_PATH`: run from a worktree in a shell
+    whose `GALACTICUS_EXEC_PATH` names another checkout, auditing that checkout would report success about code never
+    opened.
+    """
+    return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir))
 
 
 def sourceFiles(root):
