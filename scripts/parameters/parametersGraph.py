@@ -11,6 +11,8 @@ Usage:
 builds which) and groups (physics subsystems). ``--html <file>`` writes a
 self-contained, interactive map of it, to open in a browser. ``--fragment``
 writes that page without its ``<html>`` wrapper, for embedding in another page.
+With ``--changes``, what the change files added, moved, altered or removed is
+marked, against the model without them.
 ``--data-url <url>`` has the page load the graph from that URL (the file written
 by ``--json``, served beside it) instead of carrying the graph within itself.
 With neither output named, a summary is printed.
@@ -33,7 +35,7 @@ _REPOSITORY = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__fil
 sys.path.insert(0, os.path.join(_REPOSITORY, 'python'))
 
 from Galacticus.Parameters import resolve
-from Galacticus.Parameters.graph import build_graph
+from Galacticus.Parameters.graph import build_graph, compare_graphs
 
 _TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'parametersGraphTemplate.html')
 _DATA_MARKER = '/*MODEL_GRAPH*/null'
@@ -58,7 +60,8 @@ def _render(graph, fragment, data_url=None):
     if any(marker not in template for marker in (_DATA_MARKER, _URL_MARKER, _BODY_MARKER, _TITLE_MARKER)):
         raise RuntimeError(f'{_TEMPLATE} lacks one of its markers')
     # Title the page for its model, so that the maps of several can be told apart.
-    model = os.path.splitext(graph['model']['name'] or '')[0]
+    model = ' + '.join(os.path.splitext(part)[0]
+                       for part in [graph['model']['name'] or ''] + graph['model'].get('changes', []) if part)
     if model:
         template = template.replace(_TITLE_MARKER, f'<title>{html.escape(model)} Model Map</title>')
     if data_url is not None:
@@ -84,6 +87,10 @@ def _summary(graph):
         f"    set in the file : {sum(1 for node in nodes if node['origin'] == 'file')}",
         f"    class defaults  : {sum(1 for node in nodes if node['origin'] == 'default')}",
         f"    not seen built  : {sum(1 for node in nodes if not node['reached'])}",
+    ] + ([
+        f"    changed         : {sum(1 for node in nodes if node.get('changed'))}",
+        f"    removed         : {len(graph['model'].get('removed', []))}",
+    ] if graph['model'].get('changes') else []) + [
         f"  links             : {len(edges)}",
     ]
     counts = collections.Counter(node['group'] for node in nodes)
@@ -116,9 +123,15 @@ def main(argv):
         print(f'parametersGraph.py: {error}', file=sys.stderr)
         return 1
     catalog = _load_catalog(arguments.catalog)
-    graph = build_graph(tree.getroot(), catalog,
-                        source_root=os.path.join(_REPOSITORY, 'source'),
-                        name=os.path.basename(arguments.parameterFile))
+    source_root = os.path.join(_REPOSITORY, 'source')
+    name = os.path.basename(arguments.parameterFile)
+    graph = build_graph(tree.getroot(), catalog, source_root=source_root, name=name)
+    if arguments.changes:
+        # Mark what the change files altered, against the model without them.
+        base = build_graph(resolve.resolve_file(arguments.parameterFile).getroot(), catalog,
+                           source_root=source_root, name=name)
+        compare_graphs(graph, base)
+        graph['model']['changes'] = [os.path.basename(path) for path in arguments.changes]
 
     if arguments.json:
         with open(arguments.json, 'w') as handle:

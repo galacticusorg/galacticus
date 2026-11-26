@@ -94,6 +94,7 @@ h1 {
 }
 .stats { margin: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .stats b { font-weight: 600; color: var(--ink); }
+.changes { margin: 4px 0 0; color: var(--ink-2); font-size: 13px; overflow-wrap: anywhere; }
 .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
 .search {
   width: 230px;
@@ -188,6 +189,7 @@ h1 {
 .tag-default { border: 1px dashed var(--ink-3); }
 .tag-hub { background: var(--surface-2); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .tag-orphan { border: 1px solid var(--line); }
+.tag-changed { background: var(--accent-tint); color: var(--accent); font-weight: 500; }
 .slot.is-default .slot-impl { font-weight: 400; color: var(--ink-2); }
 
 .board.has-selection .slot { opacity: 0.55; }
@@ -322,10 +324,12 @@ details > summary { cursor: pointer; list-style-position: outside; }
       <p class="eyebrow">Galacticus model map</p>
       <h1 id="model-name">Model</h1>
       <p class="stats" id="model-stats"></p>
+      <p class="changes" id="model-changes" hidden></p>
     </div>
     <div class="controls">
       <input class="search" id="search" type="search" placeholder="Find a class or implementation" aria-label="Find a class or implementation">
       <label class="check"><input type="checkbox" id="show-defaults" checked> <span id="show-defaults-label">Class defaults</span></label>
+      <label class="check" id="only-changed-wrap" hidden><input type="checkbox" id="only-changed"> <span id="only-changed-label">Changed only</span></label>
       <div class="segmented" role="group" aria-label="How far to trace from the selection">
         <button type="button" id="trace-direct" aria-pressed="true">Direct links</button>
         <button type="button" id="trace-full" aria-pressed="false">Full chain</button>
@@ -338,6 +342,7 @@ details > summary { cursor: pointer; list-style-position: outside; }
     <span><svg width="34" height="10" viewBox="0 0 34 10" aria-hidden="true"><path class="wire wire-usedby" d="M1 5H26"/><path class="head-usedby" d="M33 5l-8-4v8z"/></svg>this uses the selection</span>
     <span><b class="tag tag-default">default</b>class default, not named in the parameter file</span>
     <span><b class="tag tag-hub">used &times;5</b>how many objects share it</span>
+    <span id="key-changed" hidden><b class="tag tag-changed">changed</b>added, moved or altered by the change files</span>
   </div>
 
   <div class="layout">
@@ -390,6 +395,9 @@ details > summary { cursor: pointer; list-style-position: outside; }
     var inspector = document.getElementById('inspector');
     var search = document.getElementById('search');
     var showDefaults = document.getElementById('show-defaults');
+    var onlyChanged = document.getElementById('only-changed');
+    var changes = graph.model.changes || [];
+    var changed = nodes.filter(function (node) { return node.changed; }).length;
     var slotOf = {}, panelOf = {}, headOf = {};
     var state = { kind: null, id: null, full: false };
 
@@ -404,6 +412,15 @@ details > summary { cursor: pointer; list-style-position: outside; }
         stats.appendChild(document.createTextNode(' ' + item[1]));
       });
     document.getElementById('show-defaults-label').textContent = 'Class defaults (' + (nodes.length - fromFile) + ')';
+    if (changes.length) {
+      var applied = document.getElementById('model-changes');
+      applied.textContent = 'With ' + changes.join(', then ') + ' applied: ' + plural(changed, 'object', 'objects') +
+        ' changed, ' + (graph.model.removed || []).length + ' removed.';
+      applied.hidden = false;
+      document.getElementById('only-changed-wrap').hidden = false;
+      document.getElementById('only-changed-label').textContent = 'Changed only (' + changed + ')';
+      document.getElementById('key-changed').hidden = false;
+    }
 
     // The chart: a panel for each group, a slot for each object. The node
     // operators come first in each panel: they are the processes at work.
@@ -430,6 +447,7 @@ details > summary { cursor: pointer; list-style-position: outside; }
         slot.appendChild(el('span', 'slot-impl', node.label));
         var meta = el('span', 'slot-meta');
         var shared = users(node.id).length;
+        if (node.changed) meta.appendChild(el('span', 'tag tag-changed', 'changed'));
         if (node.origin === 'default') meta.appendChild(el('span', 'tag tag-default', 'default'));
         if (shared >= 3) meta.appendChild(el('span', 'tag tag-hub', 'used ×' + shared));
         if (!node.reached) meta.appendChild(el('span', 'tag tag-orphan', 'no user found'));
@@ -455,6 +473,7 @@ details > summary { cursor: pointer; list-style-position: outside; }
         var shown = 0;
         group.nodes.forEach(function (node) {
           var keep = (showDefaults.checked || node.origin !== 'default') &&
+            (!onlyChanged.checked || node.changed) &&
             (!query || (node.class + ' ' + node.label + ' ' + node.className).toLowerCase().indexOf(query) >= 0);
           slotOf[node.id].parentNode.hidden = !keep;
           if (keep) shown++;
@@ -661,6 +680,20 @@ details > summary { cursor: pointer; list-style-position: outside; }
       inspector.appendChild(linkList(hubs.map(function (n) { return n.id; }), function (id) {
         return byId[id].class + ' · used ×' + users(id).length;
       }));
+      var removed = graph.model.removed || [];
+      if (removed.length) {
+        inspector.appendChild(heading('Removed by the change files', plural(removed.length, 'object', 'objects')));
+        var list = el('ul', 'links');
+        removed.forEach(function (gone) {
+          var item = el('li'), row = el('div', 'link');
+          row.style.cursor = 'default';
+          row.appendChild(el('b', null, gone.label));
+          row.appendChild(el('span', null, gone.class));
+          item.appendChild(row);
+          list.appendChild(item);
+        });
+        inspector.appendChild(list);
+      }
     }
 
     function inspectGroup(group) {
@@ -701,6 +734,7 @@ details > summary { cursor: pointer; list-style-position: outside; }
       var shared = users(node.id).length;
       var states = el('ul', 'states');
       states.appendChild(el('li', null, node.origin === 'default' ? 'Class default' : 'Named in the parameter file'));
+      if (node.changed) states.appendChild(el('li', null, 'Changed by the change files'));
       if (shared > 1) states.appendChild(el('li', null, 'Shared by ' + shared + ' objects'));
       if (!node.reached) states.appendChild(el('li', null, 'No user found'));
       if (node.kind === 'object' && !node.type) states.appendChild(el('li', null, 'Unknown implementation'));
@@ -708,7 +742,7 @@ details > summary { cursor: pointer; list-style-position: outside; }
 
       if (node.origin === 'default') {
         inspector.appendChild(el('p', 'note', 'The parameter file does not name this object, so the default implementation of its class is built. To choose another, add:'));
-        inspector.appendChild(el('code', 'snippet', '<' + node.class + ' value="' + node.label + '"/>'));
+        inspector.appendChild(el('code', 'snippet', '<' + (node.element || node.class) + ' value="' + node.label + '"/>'));
       } else if (node.path && node.path.indexOf(' / ') >= 0) {
         inspector.appendChild(el('p', 'note', 'Defined inside another object, so only that object and those within it see it:'));
         inspector.appendChild(el('code', 'snippet', node.path.split(' / ').join('\n  / ')));
@@ -773,6 +807,7 @@ details > summary { cursor: pointer; list-style-position: outside; }
     // Controls.
     search.addEventListener('input', filter);
     showDefaults.addEventListener('change', filter);
+    onlyChanged.addEventListener('change', filter);
     var direct = document.getElementById('trace-direct'), full = document.getElementById('trace-full');
     function trace(value) {
       state.full = value;

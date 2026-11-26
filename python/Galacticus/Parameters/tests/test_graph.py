@@ -2,7 +2,7 @@
 
 from lxml import etree
 
-from Galacticus.Parameters.graph import _scan_declared_objects, build_graph, group_of
+from Galacticus.Parameters.graph import _scan_declared_objects, build_graph, compare_graphs, group_of
 
 
 def _object(class_name, parameter_name=None, repeatable=False):
@@ -128,3 +128,51 @@ def test_object_built_by_hand_is_read_from_allowed_parameters(tmp_path):
     graph = build_graph(root, CATALOG, source_root=str(tmp_path))
     assert _node(graph, 'unused', 'plain')['reached'] is True
     assert ('unused', 'plain') in _uses(graph, _node(graph, 'task', 'evolve'))
+
+
+def test_named_object_has_no_class_default():
+    catalog = {
+        'enumerations': {},
+        'functionClasses': dict(CATALOG['functionClasses']),
+        'implementations': dict(CATALOG['implementations']),
+    }
+    catalog['implementations']['taskEvolve'] = _implementation(
+        'task', 'evolve', [_object('cosmology', parameter_name='cosmologyReference')])
+    absent = build_graph(etree.fromstring(b'<parameters/>'), catalog)
+    assert [(node['class'], node['label']) for node in absent['nodes']] == [('task', 'evolve')]
+    present = build_graph(etree.fromstring(
+        b'<parameters><cosmologyReference value="other"/></parameters>'), catalog)
+    node = _node(present, 'cosmology', 'other')
+    assert node['element'] == 'cosmologyReference' and node['reached'] is True
+
+
+def test_extended_implementation_is_followed_only_where_it_is_called(tmp_path):
+    catalog = {
+        'enumerations': {},
+        'functionClasses': dict(CATALOG['functionClasses']),
+        'implementations': dict(CATALOG['implementations']),
+    }
+    for label, body in (('calls', 'self%operatorGrowth=operatorGrowth(parameters)'),
+                        ('builds', 'self=operatorBuilds(1.0d0)')):
+        entry = _implementation('operator', label, source_file=f'tasks/{label}.F90')
+        entry['parent'] = 'operatorGrowth'
+        catalog['implementations']['operator' + label.capitalize()] = entry
+        (tmp_path / 'tasks').mkdir(exist_ok=True)
+        (tmp_path / 'tasks' / f'{label}.F90').write_text(f'    {body}\n')
+    graph = build_graph(etree.fromstring(
+        b'<parameters><operator value="multi"><operator value="calls"/><operator value="builds"/></operator></parameters>'),
+        catalog, source_root=str(tmp_path))
+    assert _uses(graph, _node(graph, 'operator', 'calls')) == [('cosmology', 'simple')]
+    assert _uses(graph, _node(graph, 'operator', 'builds')) == []
+    assert [p['name'] for p in _node(graph, 'operator', 'calls')['parameters']] == ['rate']
+    assert _node(graph, 'operator', 'builds')['parameters'] == []
+
+
+def test_changes_are_marked_against_the_base_model():
+    base = _graph('<parameters><cosmology value="simple"/><operator value="growth"/></parameters>')
+    graph = _graph('<parameters><cosmology value="other"/>'
+                   '<operator value="growth"><rate value="3.0"/></operator></parameters>')
+    compare_graphs(graph, base)
+    assert sorted((node['class'], node['label']) for node in graph['nodes'] if node.get('changed')) == [
+        ('cosmology', 'other'), ('operator', 'growth')]
+    assert graph['model']['removed'] == [{'class': 'cosmology', 'label': 'simple', 'path': 'cosmology[simple]'}]

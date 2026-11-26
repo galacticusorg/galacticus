@@ -26,6 +26,24 @@ A few objects are built by a hand-written call rather than an
 would make a cycle of modules). Those declare what they build in the
 ``<allowedParameters>`` of their class directive, which is read here too.
 
+An object is resolved as ``objectBuilder`` resolves it:
+
+* one named for its class is looked for in the parameters of the object which
+  builds it, then in each enclosing element, and failing that is the class
+  default, built once at the root (so seeing what is at the root, whatever
+  built it);
+* one given a parameter name of its own has no class default: where no element
+  of that name is found it is not built, unless its builder carries an inline
+  ``<default>``. Those of node components are followed; those of the few
+  ``functionClass`` implementations which have one are not in the catalog, so
+  are not.
+
+An implementation which extends another builds what that one builds only where
+its parameter constructor calls that of the other. Most do not: they build
+their own objects and call the internal constructor. So the objects of an
+extended implementation are followed only where that call is found in the
+source.
+
 The graph is static: it is what the directives say will be built. Objects
 constructed in hand-written code which declares nothing are not seen.
 """
@@ -33,9 +51,11 @@ constructed in hand-written code which declares nothing are not seen.
 import os
 import re
 
+from lxml import etree
+
 from Galacticus.Parameters.query import resolved_parameters
 
-__all__ = ['GROUPS', 'build_graph', 'group_of']
+__all__ = ['GROUPS', 'build_graph', 'compare_graphs', 'group_of']
 
 # Physics subsystems, in the order a model is read: from the cosmology, through
 # the growth of structure and the evolution of galaxies, to what is output.
@@ -212,8 +232,9 @@ def _scan_components(source_root):
                     'class':         directive['class'],
                     'parameterName': directive.get('parameterName') or directive['class'],
                     'own':           directive.get('source') != 'parameters',
+                    'default':       directive.get('default'),
                 }
-                if entry not in component['objects']:
+                if entry['parameterName'] not in [obj['parameterName'] for obj in component['objects']]:
                     component['objects'].append(entry)
             elif kind == 'inputParameter' and directive.get('name'):
                 names = [parameter['name'] for parameter in component['parameters']]
@@ -259,6 +280,65 @@ def _scan_declared_objects(source_root, catalog):
     return declared
 
 
+def _scan_delegations(source_root, catalog):
+    """Return the types whose parameter constructor hands its parameters to
+    that of the implementation it extends, and so builds all that it builds."""
+    implementations = catalog['implementations']
+    delegating = set()
+    for type_name, implementation in implementations.items():
+        parent = implementation.get('parent')
+        if parent not in implementations or not implementation.get('sourceFile'):
+            continue
+        try:
+            with open(os.path.join(source_root, implementation['sourceFile']), errors='replace') as handle:
+                text = handle.read()
+        except OSError:
+            continue
+        if re.search(r'=\s*' + re.escape(parent) + r'\s*\(\s*parameters\s*\)', text, re.IGNORECASE):
+            delegating.add(type_name)
+    return delegating
+
+
+def _default_element(parameter_name, default):
+    """An element holding the inline ``<default>`` of an object builder. It
+    is attached to nothing, as the parameters built from such a default are."""
+    def fill(element, content):
+        for key, value in (content or {}).items():
+            if isinstance(value, dict):
+                fill(etree.SubElement(element, key), value)
+            elif isinstance(value, list):
+                for item in value:
+                    fill(etree.SubElement(element, key), item if isinstance(item, dict) else {'value': item})
+            elif key == 'value':
+                element.set('value', str(value))
+    element = etree.Element(parameter_name)
+    fill(element, (default or {}).get(parameter_name))
+    return element
+
+
+def compare_graphs(graph, base):
+    """Mark, in `graph`, what differs from `base` (the same model before its
+    change files were applied): each node which `base` lacks, or holds with
+    other parameters, gains ``changed``; the nodes of `base` which `graph`
+    lacks are listed as ``graph['model']['removed']``. An object which a
+    change moves (by wrapping it in another, say) is both."""
+    def place(node):
+        return (node['class'], node['label'], node['path'])
+
+    def state(node):
+        return place(node) + (tuple((p['name'], p['value']) for p in node['parameters'] if p['set']),)
+
+    before = {state(node) for node in base['nodes']}
+    after = {place(node) for node in graph['nodes']}
+    for node in graph['nodes']:
+        if state(node) not in before:
+            node['changed'] = True
+    graph['model']['removed'] = [
+        {'class': node['class'], 'label': node['label'], 'path': node['path']}
+        for node in base['nodes'] if place(node) not in after]
+    return graph
+
+
 def build_graph(root, catalog, source_root=None, name=None):
     """Return the object graph of the model whose resolved ``<parameters>``
     element is `root` (see `Galacticus.Parameters.resolve`).
@@ -271,7 +351,8 @@ def build_graph(root, catalog, source_root=None, name=None):
         A parameter catalog, as built by `Galacticus.Parameters.catalog`.
     source_root : str, optional
         The `source/` directory. Where given, node components are included, as
-        are objects which are built by a hand-written call.
+        are objects which are built by a hand-written call, and those which an
+        implementation builds through the one it extends.
     name : str, optional
         A name for the model, recorded in the result.
 
@@ -282,7 +363,8 @@ def build_graph(root, catalog, source_root=None, name=None):
         ``class`` and ``label`` (implementation) of its object, its ``group``,
         its ``origin`` (``'file'`` or ``'default'``), whether it is ``reached``
         from the task or a component, and its ``parameters``. Each edge runs
-        ``from`` an object ``to`` one it builds, ``as`` a named parameter.
+        ``from`` an object ``to`` one it builds, ``as`` a named parameter. A
+        node whose element is not named for its class records that ``element``.
     """
     function_classes = catalog['functionClasses']
     implementations = catalog['implementations']
@@ -299,6 +381,7 @@ def build_graph(root, catalog, source_root=None, name=None):
                   if isinstance(element.tag, str) and element.get('id') is not None}
 
     declared = _scan_declared_objects(source_root, catalog) if source_root is not None else {}
+    delegating = _scan_delegations(source_root, catalog) if source_root is not None else set()
 
     nodes = {}
     by_id = {}
@@ -306,14 +389,23 @@ def build_graph(root, catalog, source_root=None, name=None):
     edges = []
     edge_keys = set()
 
+    def lineage(type_name):
+        """An implementation, then each it extends for so long as the
+        parameter constructor of one calls that of the next."""
+        chain, current = [], type_name
+        while current in implementations and current not in chain:
+            chain.append(current)
+            if current not in delegating:
+                break
+            current = implementations[current].get('parent')
+        return chain
+
     def schema(type_name):
         """The objects an implementation builds, its own and inherited."""
-        objects, seen, current = [], set(), type_name
-        while current in implementations and current not in seen:
-            seen.add(current)
+        objects = []
+        for current in lineage(type_name):
             objects.extend(implementations[current].get('objects', []))
             objects.extend(declared.get(current, []))
-            current = implementations[current].get('parent')
         return objects
 
     def dereference(element):
@@ -366,8 +458,11 @@ def build_graph(root, catalog, source_root=None, name=None):
             obj['sourceElement'] for obj in objects if obj.get('sourceElement')}
         values = scalar_values(element, object_names | set(function_classes))
         parameters = []
+        read_by = lineage(type_name)
         for parameter in resolved_parameters(catalog, type_name):
             if parameter.get('sourceElement') is not None or not parameter.get('name'):
+                continue
+            if parameter.get('inheritedFrom') and parameter['inheritedFrom'] not in read_by:
                 continue
             value = values.pop(parameter['name'], None)
             parameters.append({
@@ -397,10 +492,11 @@ def build_graph(root, catalog, source_root=None, name=None):
         edge_keys.add((source, target, parameter_name))
         edges.append({'from': source, 'to': target, 'as': parameter_name})
 
-    def visit(class_name, element, reached):
+    def visit(class_name, element, reached, key=None):
         """Add the object of `class_name` selected by `element`, or the class
-        default where `element` is None, and all that it builds. Returns the
-        node id."""
+        default where `element` is None, and all that it builds. A `key` marks
+        `element` as an inline default, which is in no parameter file. Returns
+        the node id."""
         if class_name not in function_classes:
             return None
         label = element.get('value') if element is not None else None
@@ -408,7 +504,9 @@ def build_graph(root, catalog, source_root=None, name=None):
             label = function_classes[class_name].get('default')
         if label is None:
             return None
-        key = ('default', class_name) if element is None else ('file', tree.getpath(element))
+        inline = key is not None
+        if key is None:
+            key = ('default', class_name) if element is None else ('file', tree.getpath(element))
         node = nodes.get(key)
         if node is not None:
             if reached:
@@ -425,12 +523,14 @@ def build_graph(root, catalog, source_root=None, name=None):
             'label':      label,
             'type':       type_name,
             'group':      group_of(source_file),
-            'origin':     'default' if element is None else 'file',
+            'origin':     'default' if element is None or inline else 'file',
             'reached':    reached,
-            'path':       path_of(element) if element is not None else None,
+            'path':       path_of(element) if element is not None and not inline else None,
             'sourceFile': (source_file or '').replace('./source/', '') or None,
             'parameters': parameters_of(type_name, element) if type_name else [],
         }
+        if element is not None and element.tag != class_name:
+            node['element'] = element.tag
         nodes[key] = node
         by_id[node['id']] = node
         order.append(node)
@@ -449,6 +549,9 @@ def build_graph(root, catalog, source_root=None, name=None):
             groups = [child for child in _elements(scope) if child.tag == group]
             scope = groups[0] if groups else scope
         found = locate(scope, obj['parameterName'], obj.get('repeatable', False))
+        if not found and obj['parameterName'] != obj['class']:
+            # Only an object named for its class has a class default.
+            return
         for element in found or [None]:
             add_edge(source_id, visit(obj['class'], element, reached), obj['parameterName'])
 
@@ -517,8 +620,17 @@ def build_graph(root, catalog, source_root=None, name=None):
             for obj in objects:
                 scope = element if (obj['own'] and element is not None) else root
                 found = locate(scope, obj['parameterName'])
-                for target in found or [None]:
-                    add_edge(node['id'], visit(obj['class'], target, True), obj['parameterName'])
+                if found:
+                    targets = [visit(obj['class'], found[0], True)]
+                elif obj['parameterName'] == obj['class']:
+                    targets = [visit(obj['class'], None, True)]
+                elif obj['default']:
+                    targets = [visit(obj['class'], _default_element(obj['parameterName'], obj['default']), True,
+                                     key=('inline', node['id'], obj['parameterName']))]
+                else:
+                    targets = []
+                for target in targets:
+                    add_edge(node['id'], target, obj['parameterName'])
 
     # Whatever remains in the file selects an object which nothing above was
     # seen to build: it is used by hand-written code, or not at all.
