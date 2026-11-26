@@ -372,6 +372,7 @@ details > summary { cursor: pointer; list-style-position: outside; }
     if (text !== undefined && text !== null) node.textContent = text;
     return node;
   }
+  function anchor(text) { return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
   function plural(count, one, many) { return count + ' ' + (count === 1 ? one : many); }
 
   function start(graph) {
@@ -791,8 +792,14 @@ details > summary { cursor: pointer; list-style-position: outside; }
       inspector.appendChild(linkList(up));
 
       var outbound = el('p', 'outbound');
-      var docs = el('a', null, node.kind === 'component' ? 'Components documentation' : 'Class documentation');
-      docs.href = DOCS + (node.kind === 'component' ? 'manuals/physics/components.html' : 'physics/' + node.class + '.html');
+      // Link to the section for the implementation selected, not only to the
+      // page for its class. Sphinx forms each section's id as `anchor` does.
+      var docs = el('a', null, node.kind === 'component' ? 'Component documentation' : 'Class documentation');
+      if (node.kind === 'component') {
+        docs.href = DOCS + 'nodeComponents.html#' + anchor('component-' + node.class.replace(/^component/, '') + '-' + node.label);
+      } else {
+        docs.href = DOCS + 'physics/' + node.class + '.html' + (node.type ? '#' + anchor(node.type) : '');
+      }
       docs.target = '_blank'; docs.rel = 'noopener';
       outbound.appendChild(docs);
       if (node.sourceFile) {
