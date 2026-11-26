@@ -49,12 +49,14 @@ def _directive(pr, issue=None):
             '  !!]\n')
 
 
-def _run(monkeypatch, tmp_path, source, statuses, issueStates, pythonFiles=None):
+def _run(monkeypatch, tmp_path, source, statuses, issueStates, pythonFiles=None,
+         makefile=None):
     """Run the checker over `source`, with Bugzilla and GitHub stubbed.
 
     `statuses` maps PR number to the Bugzilla status to report, `issueStates`
     maps issue URL to the state ("open"/"closed") to report. `pythonFiles`
     optionally maps paths (relative to a Python directory) to their content.
+    `makefile` optionally gives the content of a Makefile to scan.
     """
     module = _load()
     (tmp_path / 'test.F90').write_text(source)
@@ -65,6 +67,10 @@ def _run(monkeypatch, tmp_path, source, statuses, issueStates, pythonFiles=None)
         (pythonDirectory / name).write_text(content)
     monkeypatch.setattr(module, 'PYTHON_DIRECTORIES',
                         (str(pythonDirectory),) if pythonFiles else ())
+    if makefile is not None:
+        (tmp_path / 'Makefile').write_text(makefile)
+    monkeypatch.setattr(module, 'OTHER_FILES',
+                        (str(tmp_path / 'Makefile'),) if makefile is not None else ())
     monkeypatch.setattr(module.time, 'sleep', lambda _seconds: None)
     monkeypatch.setattr(module, 'issue_state',
                         lambda url: issueStates.get(url, 'UNKNOWN'))
@@ -121,6 +127,17 @@ def test_python_comment_directive_is_checked(monkeypatch, tmp_path, capsys):
                           pythonFiles={'Build/generate.py': _PYTHON_DIRECTIVE})
     assert status == 1
     assert any(name.endswith('generate.py') for name in module.WORKAROUNDS['88632']['files'])
+
+
+def test_makefile_comment_directive_is_checked(monkeypatch, tmp_path):
+    # A workaround in the Makefile is marked by a directive in a comment.
+    makefile = ('# <workaround type="gfortran" PR="88632" '
+                'url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88632"/>\n'
+                'FCFLAGS += -O0\n')
+    status, module = _run(monkeypatch, tmp_path, '', {'88632': 'RESOLVED'}, {},
+                          makefile=makefile)
+    assert status == 1
+    assert any(name.endswith('Makefile') for name in module.WORKAROUNDS['88632']['files'])
 
 
 def test_python_tests_directories_are_skipped(monkeypatch, tmp_path):

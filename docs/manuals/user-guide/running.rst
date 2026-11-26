@@ -165,6 +165,48 @@ which lists the mass of stars in each galaxy disk (in units of :math:`\mathrm{M}
 
 These data can be extracted and analyzed using any software or language that supports reading HDF5 files. The `Dendros <https://github.com/galacticusorg/dendros>`_ package provides ready-made tools for analyzing and plotting Galacticus output, including on-the-fly analyses, MCMC chain diagnostics, and posterior corner plots.
 
+.. _sec-running-reading-outputs:
+
+Reading outputs from a script
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A few features of the output file catch out scripts which read it directly
+(each gives wrong numbers rather than an error):
+
+* **Units** are stored in a *compound* attribute, ``units``, on each dataset,
+  with fields ``unitsInSI``, ``description``, ``quantity`` and ``isComoving``.
+  There is no plain ``unitsInSI`` attribute.
+
+* **Array properties** that share a column grid: the ``<name>ColumnValues``
+  dataset giving the grid is written only for the *first* property on that
+  grid. Later properties on the same grid have none, and use the first one's.
+
+* **Output groups are numbered by time**: ``Output1`` is the *earliest* output,
+  that is, the highest redshift. Identify an output by its
+  ``outputExpansionFactor`` attribute rather than by assuming an order in
+  redshift.
+
+* **Exported merger trees** (written by ``<mergerTreeOperator value="export"/>``)
+  repeat ``nodeIndex`` values from one forest to the next, since built trees
+  number their nodes from 1 in each forest. Resolve each ``descendantIndex``
+  within its own forest, using that forest's slice of the node arrays (from its
+  first node, for its number of nodes); a look-up over the whole file silently
+  links nodes in different trees. The same caution applies to the main outputs:
+  see :ref:`sec-output-tree-structure-caveats`.
+
+.. _sec-running-random-seeds:
+
+Random seeds and independent runs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default (``<mergerTreeSeeds value="incremental"/>``) tree *i* of a run is
+seeded with the base random seed plus *i*. Runs whose base seeds differ by less
+than the number of trees in each therefore share most of their trees, shifted
+by an index: four runs of 512 trees with base seeds 4001 to 4004 contain mostly
+the same trees, not 2048 independent ones. To make runs independent, space their
+base seeds by more than the number of trees per run, or set
+``<mergerTreeSeeds value="random"/>``.
+
 Dry Runs
 ~~~~~~~~
 

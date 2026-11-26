@@ -25,7 +25,8 @@ endif
 #   DEBUGGING=yes       a debugging build (`-DDEBUGGING`);
 #   BUILDPROFILE=yes    profile the build itself - its time and memory use - rather than the code built;
 #   PGO=generate|use    the two phases of a profile-guided optimization build (see the PGO section below).
-# Further options, documented where they are used below, are LTO, OFDLOCKS, USEGIT2, and GALACTICUS_OBJECTS_DEBUG.
+# Further options, documented where they are used below, are LTO, CONSOLIDATE_USES, OFDLOCKS, USEGIT2, and
+# GALACTICUS_OBJECTS_DEBUG.
 #
 # Options which change the code built each add a tag (e.g. `MPI`, `Perf`) to the build directory and to the suffix of
 # executables, so that each combination is built separately and can coexist with the others: for example, `MPI=yes
@@ -247,6 +248,18 @@ ifeq '$(LTO)' 'enabled'
 FCFLAGS  += -flto=jobserver
 CFLAGS   += -flto=jobserver
 CPPFLAGS += -flto=jobserver
+endif
+# USE statement consolidation. Enabled by default; set `CONSOLIDATE_USES=no` to turn off. Before each preprocessed
+# source is compiled, `consolidateUses.py` moves USE statements from its procedures to its specification part, where
+# that cannot change the meaning of any name. gfortran reads a module, and creates new copies of every symbol that the
+# names USEd reach, for every USE statement, and the copies persist until the whole file has been compiled (GCC PR
+# 117474). Consolidation reduced the memory needed to compile the largest files from 9-15 GB to under 1 GB, and their
+# compile times by up to a factor of 20. The consolidated source is written to `%.pc.F90` and compiled in place of
+# `%.p.F90` (line numbers are unchanged, so diagnostics map back to the original source as before).
+# <workaround type="gfortran" PR="117474" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=117474"/>
+CONSOLIDATE_USES ?= yes
+ifeq ($(filter $(CONSOLIDATE_USES),yes no),)
+$(error CONSOLIDATE_USES must be 'yes' or 'no', not '$(CONSOLIDATE_USES)')
 endif
 # Profile-guided optimization (PGO). A two-phase build, both phases in the same build directory (e.g. ./work/buildPGO):
 #   1. `make PGO=generate Galacticus.exe` builds an instrumented executable, Galacticus.exe_PGOInstrumented. Each run of it
@@ -484,6 +497,7 @@ APPLE_SILICON := $(shell defs=`$(CCOMPILER) -dM -E - < /dev/null 2>/dev/null`; e
 # after the global -O3, and so takes precedence). This is gated on Apple Silicon so that other
 # architectures retain full optimization. Add further object files to this list if they are found to
 # trigger the same ICE; these overrides (and the gate) can be removed once the upstream bug is fixed.
+# <workaround type="gfortran" PR="124146" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=124146"/>
 ifeq ($(APPLE_SILICON),yes)
 FCFLAGS_AARCH64_ICE_OBJECTS = \
 	$(BUILDPATH)/output.analyses.volume_function_1d.o
@@ -505,8 +519,14 @@ endif
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile $(BUILDCONFIGURATIONSTAMP)
 	@mkdir -p $(BUILDPATH)/moduleBuild
 	diag=$(BUILDPATH)/$*.o.diag.$$$$; \
-	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) > $$diag 2>&1; \
+	source=$(BUILDPATH)/$*.p.F90; \
+	rm -f $(BUILDPATH)/$*.pc.F90; \
+	if [ "$(CONSOLIDATE_USES)" = "yes" ]; then \
+	 ./scripts/build/consolidateUses.py $(BUILDPATH)/$*.p.F90 $(BUILDPATH)/$*.pc.F90 --moduleDependencies $(BUILDPATH)/Makefile_Module_Dependencies && source=$(BUILDPATH)/$*.pc.F90; \
+	fi; \
+	$(FCCOMPILER) -c $$source -o $(BUILDPATH)/$*.o $(FCFLAGS) > $$diag 2>&1; \
 	compileStatus=$$?; \
+	sed -i 's/\.pc\.F90:/.p.F90:/g' $$diag; \
 	./scripts/build/postprocess.py $(BUILDPATH)/$*.p.F90 < $$diag; \
 	postprocessStatus=$$?; \
 	rm -f $$diag; \
@@ -1111,8 +1131,9 @@ parameters-schema:
 parameters-schema-check:
 	+./scripts/build/parameterSchema.py `pwd` schema/parameters.xsd --check
 
-# Build configuration stamp. Nothing else records the compilers and flags with which a build directory was built, so
-# changing them (e.g. LTO, GALACTICUS_FCFLAGS, or a newly detected library) would otherwise leave objects, and code
+# Build configuration stamp. Nothing else records the compilers and flags with which a build directory was built (nor
+# CONSOLIDATE_USES, which changes the source compiled), so changing them (e.g. LTO, GALACTICUS_FCFLAGS, or a newly
+# detected library) would otherwise leave objects, and code
 # generated according to them (e.g. for `-DDEBUGGING`), from the previous configuration in place, to be silently linked
 # with the new. This file records the configuration, and every preprocessed source and object depends on it. It is
 # written here, once the whole Makefile (including the library-probe results) has been read, but only if its contents
@@ -1135,5 +1156,5 @@ endif
 endif
 BUILDCONFIGURATIONQUOTE         = '$(subst ','\'',$(1))'
 ifneq ($(if $(MAKECMDGOALS),$(filter-out $(BUILDCONFIGURATIONUTILITYGOALS),$(MAKECMDGOALS)),build)$(if $(wildcard $(BUILDCONFIGURATIONSTAMP)),,missing),)
-BUILDCONFIGURATIONSTATUS := $(shell mkdir -p $(BUILDPATH) && printf '%s\n' $(call BUILDCONFIGURATIONQUOTE,FCCOMPILER=$(FCCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CCOMPILER=$(CCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CPPCOMPILER=$(CPPCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS=$(FCFLAGS)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS_LINK=$(FCFLAGS_LINK)) $(call BUILDCONFIGURATIONQUOTE,F77FLAGS=$(F77FLAGS)) $(call BUILDCONFIGURATIONQUOTE,CFLAGS=$(CFLAGS)) $(call BUILDCONFIGURATIONQUOTE,CPPFLAGS=$(CPPFLAGS)) > $(BUILDCONFIGURATIONSTAMP).new && { cmp -s $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP) || { mv $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP)$(BUILDCONFIGURATIONPGODELETE); }; }; rm -f $(BUILDCONFIGURATIONSTAMP).new$(BUILDCONFIGURATIONPGOTRAINED))
+BUILDCONFIGURATIONSTATUS := $(shell mkdir -p $(BUILDPATH) && printf '%s\n' $(call BUILDCONFIGURATIONQUOTE,FCCOMPILER=$(FCCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CCOMPILER=$(CCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,CPPCOMPILER=$(CPPCOMPILER)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS=$(FCFLAGS)) $(call BUILDCONFIGURATIONQUOTE,FCFLAGS_LINK=$(FCFLAGS_LINK)) $(call BUILDCONFIGURATIONQUOTE,F77FLAGS=$(F77FLAGS)) $(call BUILDCONFIGURATIONQUOTE,CFLAGS=$(CFLAGS)) $(call BUILDCONFIGURATIONQUOTE,CPPFLAGS=$(CPPFLAGS)) $(call BUILDCONFIGURATIONQUOTE,CONSOLIDATE_USES=$(CONSOLIDATE_USES)) > $(BUILDCONFIGURATIONSTAMP).new && { cmp -s $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP) || { mv $(BUILDCONFIGURATIONSTAMP).new $(BUILDCONFIGURATIONSTAMP)$(BUILDCONFIGURATIONPGODELETE); }; }; rm -f $(BUILDCONFIGURATIONSTAMP).new$(BUILDCONFIGURATIONPGOTRAINED))
 endif
