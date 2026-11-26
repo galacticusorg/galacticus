@@ -1,0 +1,813 @@
+<title>Galacticus Model Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&display=swap">
+<style>
+/* Layout: a wall chart. Each physics subsystem is a panel of slots (one per
+   object, written as the parameter file writes it); selecting a slot draws
+   its wiring across the chart and opens its details alongside. */
+:root {
+  --bg: #f2f4f7;
+  --surface: #ffffff;
+  --surface-2: #e8ecf1;
+  --ink: #17212b;
+  --ink-2: #4a5867;
+  --ink-3: #6f7c8a;
+  --line: #d3dae2;
+  --accent: #3a4bd0;
+  --accent-tint: #e3e6fb;
+  --uses: #0b7482;
+  --uses-tint: #d9eef1;
+  --usedby: #ad5208;
+  --usedby-tint: #f8e8d6;
+  --font-text: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-head: "IBM Plex Sans Condensed", "IBM Plex Sans", "Arial Narrow", system-ui, sans-serif;
+  --font-code: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151c;
+    --surface: #17202a;
+    --surface-2: #212c38;
+    --ink: #e5eaf0;
+    --ink-2: #aab5c1;
+    --ink-3: #8794a2;
+    --line: #2d3a48;
+    --accent: #97a2ff;
+    --accent-tint: #262d5e;
+    --uses: #56c5d3;
+    --uses-tint: #12383f;
+    --usedby: #f0a560;
+    --usedby-tint: #46301a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151c;
+  --surface: #17202a;
+  --surface-2: #212c38;
+  --ink: #e5eaf0;
+  --ink-2: #aab5c1;
+  --ink-3: #8794a2;
+  --line: #2d3a48;
+  --accent: #97a2ff;
+  --accent-tint: #262d5e;
+  --uses: #56c5d3;
+  --uses-tint: #12383f;
+  --usedby: #f0a560;
+  --usedby-tint: #46301a;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/1.45 var(--font-text);
+}
+.page {
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  max-width: 1680px;
+  margin-inline: auto;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+code, .mono { font-family: var(--font-code); }
+
+/* Masthead */
+.masthead { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: flex-end; justify-content: space-between; }
+.masthead-title { min-width: 0; }
+.eyebrow {
+  margin: 0;
+  font: 600 12px/1.3 var(--font-head);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+h1 {
+  margin: 2px 0 4px;
+  font: 600 28px/1.15 var(--font-code);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.stats { margin: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.stats b { font-weight: 600; color: var(--ink); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.search {
+  width: 230px;
+  max-width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+.search::placeholder { color: var(--ink-3); }
+.check { display: inline-flex; gap: 6px; align-items: center; color: var(--ink-2); cursor: pointer; }
+.check input { accent-color: var(--accent); margin: 0; }
+.segmented { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.segmented button {
+  padding: 6px 10px;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.segmented button + button { border-left: 1px solid var(--line); }
+.segmented button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.key {
+  display: flex; flex-wrap: wrap; gap: 6px 22px;
+  margin: 16px 0 14px;
+  padding: 9px 0;
+  border-block: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 13px;
+}
+.key span { display: inline-flex; align-items: center; gap: 7px; }
+.key svg { flex: none; }
+
+/* Chart and inspector */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.board { position: relative; min-width: 0; padding-right: 26px; }
+.columns { columns: 268px; column-gap: 28px; }
+.wires { position: absolute; inset: 0 auto auto 0; overflow: visible; pointer-events: none; z-index: 2; }
+.wire { fill: none; stroke-width: 1.5; stroke-linecap: round; }
+.wire-uses { stroke: var(--uses); }
+.wire-usedby { stroke: var(--usedby); stroke-dasharray: 5 4; }
+.head-uses { fill: var(--uses); }
+.head-usedby { fill: var(--usedby); }
+
+.panel {
+  break-inside: avoid;
+  margin: 0 0 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.panel-head {
+  display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline;
+  width: 100%;
+  padding: 9px 10px 7px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 4px 4px 0 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.panel-head:hover { background: var(--surface-2); }
+.panel-title { font: 600 15px/1.25 var(--font-head); letter-spacing: 0.01em; }
+.panel-count { color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.panel-links { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.panel-links span { padding: 0 6px; border-radius: 3px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+.panel-links .l-uses { background: var(--uses-tint); color: var(--uses); }
+.panel-links .l-usedby { background: var(--usedby-tint); color: var(--usedby); }
+.panel.is-selected .panel-head { background: var(--accent-tint); }
+.panel.is-selected { border-color: var(--accent); }
+
+.slots { list-style: none; margin: 0; padding: 4px; display: flex; flex-direction: column; gap: 1px; }
+.slot {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; align-items: center;
+  width: 100%;
+  padding: 4px 6px 5px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.slot:hover { background: var(--surface-2); }
+.slot-class { grid-column: 1; font: 400 11.5px/1.35 var(--font-code); color: var(--ink-3); overflow-wrap: anywhere; }
+.slot-impl { grid-column: 1; font: 500 13px/1.35 var(--font-code); overflow-wrap: anywhere; }
+.slot-meta { grid-column: 2; grid-row: 1 / span 2; display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+.tag { padding: 0 5px; border-radius: 3px; font-size: 11px; line-height: 1.5; white-space: nowrap; color: var(--ink-3); }
+.tag-default { border: 1px dashed var(--ink-3); }
+.tag-hub { background: var(--surface-2); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.tag-orphan { border: 1px solid var(--line); }
+.slot.is-default .slot-impl { font-weight: 400; color: var(--ink-2); }
+
+.board.has-selection .slot { opacity: 0.55; }
+.board.has-selection .slot:hover { opacity: 1; }
+.board.has-selection .slot.is-selected,
+.board.has-selection .slot.is-member,
+.board.has-selection .slot.is-uses,
+.board.has-selection .slot.is-usedby,
+.board.has-selection .slot.is-uses-far,
+.board.has-selection .slot.is-usedby-far { opacity: 1; }
+.slot.is-selected { background: var(--accent-tint); border-color: var(--accent); }
+.slot.is-member { background: var(--accent-tint); }
+.slot.is-uses { background: var(--uses-tint); border-color: var(--uses); }
+.slot.is-usedby { background: var(--usedby-tint); border-color: var(--usedby); border-style: dashed; }
+.slot.is-uses-far { background: var(--uses-tint); }
+.slot.is-usedby-far { background: var(--usedby-tint); }
+.slot.is-selected .slot-class, .slot.is-member .slot-class, .slot.is-uses .slot-class, .slot.is-usedby .slot-class,
+.slot.is-uses-far .slot-class, .slot.is-usedby-far .slot-class { color: var(--ink-2); }
+.empty { margin: 24px 0; color: var(--ink-2); }
+
+.inspector {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+.inspector h2 { margin: 2px 0 2px; font: 600 19px/1.2 var(--font-code); overflow-wrap: anywhere; }
+.inspector h2.plain { font-family: var(--font-head); font-size: 21px; }
+.inspector h3 {
+  display: flex; gap: 8px; align-items: baseline;
+  margin: 18px 0 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font: 600 12px/1.3 var(--font-head);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.inspector h3 span { font: 400 12px/1.3 var(--font-text); letter-spacing: 0; text-transform: none; color: var(--ink-3); }
+.inspector p { margin: 6px 0; }
+.inspector .sub { color: var(--ink-2); overflow-wrap: anywhere; }
+.inspector .note { color: var(--ink-2); font-size: 13px; }
+.inspector-top { display: flex; gap: 8px; justify-content: space-between; align-items: flex-start; }
+.close {
+  flex: none;
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.close:hover { background: var(--surface-2); }
+.states { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 2px; padding: 0; list-style: none; }
+.states li { padding: 1px 7px; border-radius: 3px; background: var(--surface-2); color: var(--ink-2); font-size: 12px; }
+.snippet {
+  display: block;
+  margin: 8px 0;
+  padding: 7px 9px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  font: 400 12px/1.5 var(--font-code);
+  overflow-x: auto;
+  white-space: pre;
+}
+.params { margin: 0; padding: 0; list-style: none; }
+.params li { border-bottom: 1px solid var(--line); }
+.params li:last-child { border-bottom: 0; }
+.param { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; padding: 4px 0; }
+.param-name { font: 400 12.5px/1.4 var(--font-code); overflow-wrap: anywhere; min-width: 0; }
+.param-value { font: 500 12.5px/1.4 var(--font-code); text-align: right; overflow-wrap: anywhere; min-width: 0; max-width: 60%; font-variant-numeric: tabular-nums; }
+.param.is-defaulted .param-name, .param.is-defaulted .param-value { color: var(--ink-3); font-weight: 400; }
+details > summary { cursor: pointer; list-style-position: outside; }
+.params details > summary { list-style: none; }
+.params details > summary::-webkit-details-marker { display: none; }
+.params details > summary:hover .param-name { text-decoration: underline; text-decoration-color: var(--ink-3); }
+.param-about { margin: 0 0 8px; color: var(--ink-2); font-size: 12.5px; }
+.about summary { color: var(--ink-2); font-size: 13px; }
+.about p { color: var(--ink-2); font-size: 13px; }
+.links { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.link {
+  display: flex; flex-wrap: wrap; gap: 0 8px; align-items: baseline;
+  width: 100%;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.link:hover { background: var(--surface-2); }
+.link b { font: 500 12.5px/1.4 var(--font-code); overflow-wrap: anywhere; }
+.link span { font: 400 11.5px/1.4 var(--font-code); color: var(--ink-3); overflow-wrap: anywhere; }
+.link em { margin-left: auto; font-style: normal; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.outbound { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 13px; }
+.outbound a { color: var(--accent); }
+.colophon { margin: 28px 0 0; color: var(--ink-3); font-size: 12.5px; max-width: 75ch; }
+
+@media (max-width: 900px) {
+  .layout { display: block; }
+  .board { padding-right: 24px; padding-bottom: 46vh; }
+  .inspector {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 5;
+    max-height: 44vh;
+    padding: 12px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    border-width: 1px 0 0;
+    border-radius: 0;
+    box-shadow: 0 -6px 18px rgb(0 0 0 / 0.14);
+  }
+  .inspector.is-resting { display: none; }
+  .board.is-resting { padding-bottom: 0; }
+  h1 { font-size: 22px; }
+  .search { width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .slot { transition: opacity 0.12s; }
+}
+</style>
+<!--BODY-->
+<div class="page">
+  <header class="masthead">
+    <div class="masthead-title">
+      <p class="eyebrow">Galacticus model map</p>
+      <h1 id="model-name">Model</h1>
+      <p class="stats" id="model-stats"></p>
+    </div>
+    <div class="controls">
+      <input class="search" id="search" type="search" placeholder="Find a class or implementation" aria-label="Find a class or implementation">
+      <label class="check"><input type="checkbox" id="show-defaults" checked> <span id="show-defaults-label">Class defaults</span></label>
+      <div class="segmented" role="group" aria-label="How far to trace from the selection">
+        <button type="button" id="trace-direct" aria-pressed="true">Direct links</button>
+        <button type="button" id="trace-full" aria-pressed="false">Full chain</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="key" aria-label="Key">
+    <span><svg width="34" height="10" viewBox="0 0 34 10" aria-hidden="true"><path class="wire wire-uses" d="M1 5H26"/><path class="head-uses" d="M33 5l-8-4v8z"/></svg>the selection uses this</span>
+    <span><svg width="34" height="10" viewBox="0 0 34 10" aria-hidden="true"><path class="wire wire-usedby" d="M1 5H26"/><path class="head-usedby" d="M33 5l-8-4v8z"/></svg>this uses the selection</span>
+    <span><b class="tag tag-default">default</b>class default, not named in the parameter file</span>
+    <span><b class="tag tag-hub">used &times;5</b>how many objects share it</span>
+  </div>
+
+  <div class="layout">
+    <main class="board" id="board">
+      <div class="columns" id="columns"></div>
+      <p class="empty" id="empty" hidden>Nothing in this model matches.</p>
+      <svg class="wires" id="wires" aria-hidden="true"></svg>
+    </main>
+    <aside class="inspector" id="inspector" aria-live="polite"></aside>
+  </div>
+
+  <p class="colophon">Read statically from the parameter file and the <code>objectBuilder</code> directives of the source, by <code>scripts/parameters/parametersGraph.py</code>. Objects which are built in hand-written code are not shown, so an object marked &ldquo;no user found&rdquo; may still be used.</p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var GRAPH = /*MODEL_GRAPH*/null;
+  var GRAPH_URL = /*MODEL_URL*/null;
+  var DOCS = 'https://galacticus.readthedocs.io/en/latest/';
+  var SOURCE = 'https://github.com/galacticusorg/galacticus/blob/master/source/';
+  var SVG = 'http://www.w3.org/2000/svg';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined && text !== null) node.textContent = text;
+    return node;
+  }
+  function plural(count, one, many) { return count + ' ' + (count === 1 ? one : many); }
+
+  function start(graph) {
+    var nodes = graph.nodes, edges = graph.edges;
+    var byId = {}, uses = {}, usedBy = {}, groupOf = {};
+    nodes.forEach(function (node) { byId[node.id] = node; uses[node.id] = []; usedBy[node.id] = []; });
+    edges.forEach(function (edge) {
+      if (!byId[edge.from] || !byId[edge.to]) return;
+      uses[edge.from].push(edge);
+      usedBy[edge.to].push(edge);
+    });
+    graph.groups.forEach(function (group) { groupOf[group.id] = group; group.nodes = []; });
+    nodes.forEach(function (node) { (groupOf[node.group] || graph.groups[graph.groups.length - 1]).nodes.push(node); });
+    function users(id) { return unique(usedBy[id].map(function (edge) { return edge.from; })); }
+    function used(id) { return unique(uses[id].map(function (edge) { return edge.to; })); }
+    function unique(list) { return list.filter(function (item, index) { return list.indexOf(item) === index; }); }
+
+    var board = document.getElementById('board');
+    var columns = document.getElementById('columns');
+    var wires = document.getElementById('wires');
+    var inspector = document.getElementById('inspector');
+    var search = document.getElementById('search');
+    var showDefaults = document.getElementById('show-defaults');
+    var slotOf = {}, panelOf = {}, headOf = {};
+    var state = { kind: null, id: null, full: false };
+
+    // Masthead.
+    var fromFile = nodes.filter(function (node) { return node.origin === 'file'; }).length;
+    document.getElementById('model-name').textContent = graph.model.name || 'Model';
+    var stats = document.getElementById('model-stats');
+    [[nodes.length, 'objects'], [fromFile, 'named in the file'], [nodes.length - fromFile, 'class defaults'], [edges.length, 'links']]
+      .forEach(function (item, index) {
+        if (index) stats.appendChild(document.createTextNode(' · '));
+        stats.appendChild(el('b', null, item[0]));
+        stats.appendChild(document.createTextNode(' ' + item[1]));
+      });
+    document.getElementById('show-defaults-label').textContent = 'Class defaults (' + (nodes.length - fromFile) + ')';
+
+    // The chart: a panel for each group, a slot for each object. The node
+    // operators come first in each panel: they are the processes at work.
+    graph.groups.forEach(function (group) {
+      if (!group.nodes.length) return;
+      group.nodes.sort(function (a, b) {
+        var rank = (a.class === 'nodeOperator' ? 0 : 1) - (b.class === 'nodeOperator' ? 0 : 1);
+        return rank || a.class.localeCompare(b.class) || a.label.localeCompare(b.label);
+      });
+      var panel = el('section', 'panel');
+      var head = el('button', 'panel-head');
+      head.type = 'button';
+      head.appendChild(el('span', 'panel-title', group.title));
+      head.appendChild(el('span', 'panel-count'));
+      head.appendChild(el('span', 'panel-links'));
+      head.addEventListener('click', function () { select('group', group.id); });
+      panel.appendChild(head);
+      var list = el('ul', 'slots');
+      group.nodes.forEach(function (node) {
+        var item = el('li');
+        var slot = el('button', 'slot' + (node.origin === 'default' ? ' is-default' : ''));
+        slot.type = 'button';
+        slot.appendChild(el('span', 'slot-class', node.class));
+        slot.appendChild(el('span', 'slot-impl', node.label));
+        var meta = el('span', 'slot-meta');
+        var shared = users(node.id).length;
+        if (node.origin === 'default') meta.appendChild(el('span', 'tag tag-default', 'default'));
+        if (shared >= 3) meta.appendChild(el('span', 'tag tag-hub', 'used ×' + shared));
+        if (!node.reached) meta.appendChild(el('span', 'tag tag-orphan', 'no user found'));
+        slot.appendChild(meta);
+        slot.addEventListener('click', function () { select('node', node.id); });
+        item.appendChild(slot);
+        list.appendChild(item);
+        slotOf[node.id] = slot;
+      });
+      panel.appendChild(list);
+      columns.appendChild(panel);
+      panelOf[group.id] = panel;
+      headOf[group.id] = head;
+    });
+
+    function visible(node) { return !slotOf[node.id].parentNode.hidden; }
+
+    function filter() {
+      var query = search.value.trim().toLowerCase();
+      var any = false;
+      graph.groups.forEach(function (group) {
+        if (!panelOf[group.id]) return;
+        var shown = 0;
+        group.nodes.forEach(function (node) {
+          var keep = (showDefaults.checked || node.origin !== 'default') &&
+            (!query || (node.class + ' ' + node.label + ' ' + node.className).toLowerCase().indexOf(query) >= 0);
+          slotOf[node.id].parentNode.hidden = !keep;
+          if (keep) shown++;
+        });
+        panelOf[group.id].hidden = !shown;
+        headOf[group.id].querySelector('.panel-count').textContent =
+          shown === group.nodes.length ? String(shown) : shown + ' of ' + group.nodes.length;
+        any = any || shown > 0;
+      });
+      document.getElementById('empty').hidden = any;
+      draw();
+    }
+
+    // Everything reachable from `id` along `step`, beyond its direct links.
+    function closure(id, step) {
+      var seen = {}, queue = step(id).slice(), far = [];
+      seen[id] = true;
+      step(id).forEach(function (next) { seen[next] = true; });
+      while (queue.length) {
+        step(queue.shift()).forEach(function (next) {
+          if (seen[next]) return;
+          seen[next] = true;
+          far.push(next);
+          queue.push(next);
+        });
+      }
+      return far;
+    }
+
+    // Links between groups, counted once for each pair of objects.
+    function groupLinks(groupId) {
+      var out = {}, back = {};
+      edges.forEach(function (edge) {
+        var from = byId[edge.from].group, to = byId[edge.to].group;
+        if (from === to) return;
+        if (from === groupId) out[to] = (out[to] || 0) + 1;
+        if (to === groupId) back[from] = (back[from] || 0) + 1;
+      });
+      return { uses: out, usedBy: back };
+    }
+
+    function select(kind, id, reveal) {
+      state.kind = kind; state.id = id;
+      paint();
+      if (reveal && kind === 'node') {
+        var box = slotOf[id].getBoundingClientRect();
+        if (box.top < 0 || box.bottom > window.innerHeight) {
+          slotOf[id].scrollIntoView({ block: 'center' });
+        }
+      }
+    }
+
+    function paint() {
+      var marks = {};
+      nodes.forEach(function (node) { marks[node.id] = ''; });
+      graph.groups.forEach(function (group) {
+        if (!panelOf[group.id]) return;
+        panelOf[group.id].classList.remove('is-selected');
+        headOf[group.id].querySelector('.panel-links').replaceChildren();
+      });
+      if (state.kind === 'node') {
+        if (state.full) {
+          closure(state.id, used).forEach(function (id) { marks[id] = 'is-uses-far'; });
+          closure(state.id, users).forEach(function (id) { if (!marks[id]) marks[id] = 'is-usedby-far'; });
+        }
+        users(state.id).forEach(function (id) { marks[id] = 'is-usedby'; });
+        used(state.id).forEach(function (id) { marks[id] = 'is-uses'; });
+        marks[state.id] = 'is-selected';
+      } else if (state.kind === 'group') {
+        var members = {};
+        groupOf[state.id].nodes.forEach(function (node) { members[node.id] = true; });
+        Object.keys(members).forEach(function (id) {
+          users(id).forEach(function (other) { if (!members[other]) marks[other] = 'is-usedby-far'; });
+        });
+        Object.keys(members).forEach(function (id) {
+          used(id).forEach(function (other) { if (!members[other]) marks[other] = 'is-uses-far'; });
+        });
+        Object.keys(members).forEach(function (id) { marks[id] = 'is-member'; });
+        panelOf[state.id].classList.add('is-selected');
+        var links = groupLinks(state.id);
+        graph.groups.forEach(function (group) {
+          if (!panelOf[group.id] || group.id === state.id) return;
+          var holder = headOf[group.id].querySelector('.panel-links');
+          [['l-uses', links.uses[group.id], 'from the selection to here'], ['l-usedby', links.usedBy[group.id], 'from here to the selection']]
+            .forEach(function (badge) {
+              if (!badge[1]) return;
+              var mark = el('span', badge[0], plural(badge[1], 'link', 'links'));
+              mark.title = plural(badge[1], 'link', 'links') + ' ' + badge[2];
+              holder.appendChild(mark);
+            });
+        });
+      }
+      nodes.forEach(function (node) {
+        var slot = slotOf[node.id];
+        slot.classList.remove('is-selected', 'is-member', 'is-uses', 'is-usedby', 'is-uses-far', 'is-usedby-far');
+        if (marks[node.id]) slot.classList.add(marks[node.id]);
+        slot.setAttribute('aria-pressed', marks[node.id] === 'is-selected' && state.kind === 'node' ? 'true' : 'false');
+      });
+      board.classList.toggle('has-selection', state.kind !== null);
+      board.classList.toggle('is-resting', state.kind === null);
+      inspector.classList.toggle('is-resting', state.kind === null);
+      inspect();
+      draw();
+    }
+
+    // Wiring. A wire leaves the side of its slot which faces the other; two
+    // slots in one column are joined by a loop through the gutter beside it.
+    function draw() {
+      var frame = board.getBoundingClientRect();
+      wires.setAttribute('width', board.scrollWidth);
+      wires.setAttribute('height', board.scrollHeight);
+      wires.replaceChildren();
+      function wire(fromEl, toEl, kind, weight) {
+        var a = fromEl.getBoundingClientRect(), b = toEl.getBoundingClientRect();
+        if (!a.width || !b.width) return;
+        var ay = a.top - frame.top + a.height / 2, by = b.top - frame.top + b.height / 2;
+        var x1, x2, c1, c2, tip, back = 7;
+        if (b.left >= a.right - 1) {
+          x1 = a.right - frame.left; x2 = b.left - frame.left - back; tip = 1;
+          c1 = x1 + Math.max(18, (x2 - x1) / 2); c2 = x2 - Math.max(18, (x2 - x1) / 2);
+        } else if (b.right <= a.left + 1) {
+          x1 = a.left - frame.left; x2 = b.right - frame.left + back; tip = -1;
+          c1 = x1 - Math.max(18, (x1 - x2) / 2); c2 = x2 + Math.max(18, (x1 - x2) / 2);
+        } else {
+          x1 = a.right - frame.left; x2 = b.right - frame.left + back; tip = -1;
+          c1 = x1 + 24; c2 = x2 + 18;
+        }
+        var path = document.createElementNS(SVG, 'path');
+        path.setAttribute('class', 'wire wire-' + kind);
+        path.setAttribute('d', 'M' + x1 + ',' + ay + ' C' + c1 + ',' + ay + ' ' + c2 + ',' + by + ' ' + x2 + ',' + by);
+        if (weight) path.style.strokeWidth = weight;
+        wires.appendChild(path);
+        var head = document.createElementNS(SVG, 'path');
+        head.setAttribute('class', 'head-' + kind);
+        head.setAttribute('d', 'M' + (x2 + tip * back) + ',' + by + ' l' + (-tip * 8) + ',-4 v8 z');
+        wires.appendChild(head);
+      }
+      if (state.kind === 'node' && visible(byId[state.id])) {
+        users(state.id).forEach(function (id) {
+          if (id !== state.id && visible(byId[id])) wire(slotOf[id], slotOf[state.id], 'usedby');
+        });
+        used(state.id).forEach(function (id) {
+          if (id !== state.id && visible(byId[id])) wire(slotOf[state.id], slotOf[id], 'uses');
+        });
+      } else if (state.kind === 'group' && !panelOf[state.id].hidden) {
+        var links = groupLinks(state.id);
+        var heaviest = Math.max.apply(null, Object.keys(links.uses).map(function (k) { return links.uses[k]; })
+          .concat(Object.keys(links.usedBy).map(function (k) { return links.usedBy[k]; })).concat([1]));
+        Object.keys(links.usedBy).forEach(function (id) {
+          if (!panelOf[id].hidden) wire(headOf[id], headOf[state.id], 'usedby', 1.2 + 2.8 * links.usedBy[id] / heaviest);
+        });
+        Object.keys(links.uses).forEach(function (id) {
+          if (!panelOf[id].hidden) wire(headOf[state.id], headOf[id], 'uses', 1.2 + 2.8 * links.uses[id] / heaviest);
+        });
+      }
+    }
+
+    // The inspector.
+    function linkList(ids, describe) {
+      var list = el('ul', 'links');
+      ids.forEach(function (id) {
+        var node = byId[id], item = el('li'), button = el('button', 'link');
+        button.type = 'button';
+        button.appendChild(el('b', null, node.label));
+        button.appendChild(el('span', null, describe ? describe(id) : node.class));
+        button.addEventListener('click', function () { select('node', id, true); });
+        item.appendChild(button);
+        list.appendChild(item);
+      });
+      return list;
+    }
+    function heading(text, note) {
+      var h = el('h3', null, text);
+      if (note) h.appendChild(el('span', null, note));
+      return h;
+    }
+    function top(eyebrow) {
+      var row = el('div', 'inspector-top');
+      row.appendChild(el('p', 'eyebrow', eyebrow));
+      if (state.kind !== null) {
+        var close = el('button', 'close', 'Clear');
+        close.type = 'button';
+        close.addEventListener('click', function () { select(null, null); });
+        row.appendChild(close);
+      }
+      return row;
+    }
+
+    function inspect() {
+      inspector.replaceChildren();
+      if (state.kind === 'node') inspectNode(byId[state.id]);
+      else if (state.kind === 'group') inspectGroup(groupOf[state.id]);
+      else inspectModel();
+      inspector.scrollTop = 0;
+    }
+
+    function inspectModel() {
+      inspector.appendChild(top('How to read this'));
+      inspector.appendChild(el('h2', 'plain', 'Select an object'));
+      inspector.appendChild(el('p', 'note', 'Each panel is a part of the physics. Each row in it is one object of the model: the class on top, the implementation chosen for it beneath, as in the parameter file.'));
+      inspector.appendChild(el('p', 'note', 'Select a row to see what it uses and what uses it. Select a panel heading to see how that part of the physics connects to the rest.'));
+      var hubs = nodes.slice().sort(function (a, b) { return users(b.id).length - users(a.id).length; }).slice(0, 8);
+      inspector.appendChild(heading('Most widely shared'));
+      inspector.appendChild(linkList(hubs.map(function (n) { return n.id; }), function (id) {
+        return byId[id].class + ' · used ×' + users(id).length;
+      }));
+    }
+
+    function inspectGroup(group) {
+      inspector.appendChild(top('Part of the physics'));
+      inspector.appendChild(el('h2', 'plain', group.title));
+      inspector.appendChild(el('p', 'sub', group.blurb));
+      var defaults = group.nodes.filter(function (node) { return node.origin === 'default'; }).length;
+      inspector.appendChild(el('p', 'note', plural(group.nodes.length, 'object', 'objects') + ', ' +
+        (defaults ? defaults + ' of them class defaults which the parameter file does not name.' : 'all named in the parameter file.')));
+      var links = groupLinks(group.id);
+      [['Uses', links.uses], ['Used by', links.usedBy]].forEach(function (section) {
+        var ids = Object.keys(section[1]).sort(function (a, b) { return section[1][b] - section[1][a]; });
+        inspector.appendChild(heading(section[0], ids.length ? plural(ids.length, 'other part', 'other parts') : 'nothing outside itself'));
+        var list = el('ul', 'links');
+        ids.forEach(function (id) {
+          var item = el('li'), button = el('button', 'link');
+          button.type = 'button';
+          button.appendChild(el('b', null, groupOf[id].title));
+          button.appendChild(el('em', null, plural(section[1][id], 'link', 'links')));
+          button.querySelector('b').style.fontFamily = 'var(--font-text)';
+          button.addEventListener('click', function () { select('group', id); });
+          item.appendChild(button);
+          list.appendChild(item);
+        });
+        inspector.appendChild(list);
+      });
+    }
+
+    function inspectNode(node) {
+      var group = groupOf[node.group];
+      inspector.appendChild(top(group ? group.title : 'Object'));
+      inspector.appendChild(el('h2', null, node.label));
+      var sub = el('p', 'sub');
+      sub.appendChild(document.createTextNode(node.className + ' · '));
+      sub.appendChild(el('code', null, node.class));
+      inspector.appendChild(sub);
+
+      var shared = users(node.id).length;
+      var states = el('ul', 'states');
+      states.appendChild(el('li', null, node.origin === 'default' ? 'Class default' : 'Named in the parameter file'));
+      if (shared > 1) states.appendChild(el('li', null, 'Shared by ' + shared + ' objects'));
+      if (!node.reached) states.appendChild(el('li', null, 'No user found'));
+      if (node.kind === 'object' && !node.type) states.appendChild(el('li', null, 'Unknown implementation'));
+      inspector.appendChild(states);
+
+      if (node.origin === 'default') {
+        inspector.appendChild(el('p', 'note', 'The parameter file does not name this object, so the default implementation of its class is built. To choose another, add:'));
+        inspector.appendChild(el('code', 'snippet', '<' + node.class + ' value="' + node.label + '"/>'));
+      } else if (node.path && node.path.indexOf(' / ') >= 0) {
+        inspector.appendChild(el('p', 'note', 'Defined inside another object, so only that object and those within it see it:'));
+        inspector.appendChild(el('code', 'snippet', node.path.split(' / ').join('\n  / ')));
+      }
+      if (!node.reached) {
+        inspector.appendChild(el('p', 'note', 'Nothing on this map was seen to use it. It may be used by hand-written code, or not at all.'));
+      }
+      if (node.description) {
+        var about = el('details', 'about');
+        about.appendChild(el('summary', null, 'About this component'));
+        about.appendChild(el('p', null, node.description));
+        inspector.appendChild(about);
+      }
+
+      var parameters = node.parameters || [];
+      var set = parameters.filter(function (parameter) { return parameter.set; }).length;
+      if (parameters.length) {
+        inspector.appendChild(heading('Parameters', set + ' set · ' + (parameters.length - set) + ' at their defaults'));
+        var list = el('ul', 'params');
+        parameters.slice().sort(function (a, b) { return (b.set ? 1 : 0) - (a.set ? 1 : 0); }).forEach(function (parameter) {
+          var item = el('li');
+          var row = el(parameter.description ? 'summary' : 'div', 'param' + (parameter.set ? '' : ' is-defaulted'));
+          row.appendChild(el('span', 'param-name', parameter.name));
+          row.appendChild(el('span', 'param-value', parameter.value === null || parameter.value === undefined ? '—' : parameter.value));
+          if (parameter.description) {
+            var details = el('details');
+            details.appendChild(row);
+            details.appendChild(el('p', 'param-about', parameter.description));
+            item.appendChild(details);
+          } else {
+            item.appendChild(row);
+          }
+          list.appendChild(item);
+        });
+        inspector.appendChild(list);
+      }
+
+      var slotName = {};
+      uses[node.id].forEach(function (edge) { slotName[edge.to] = edge.as; });
+      var down = used(node.id), up = users(node.id);
+      inspector.appendChild(heading('Uses', down.length ? plural(down.length, 'object', 'objects') : 'nothing'));
+      inspector.appendChild(linkList(down, function (id) {
+        return slotName[id] && slotName[id] !== byId[id].class ? byId[id].class + ' as ' + slotName[id] : byId[id].class;
+      }));
+      inspector.appendChild(heading('Used by', up.length ? plural(up.length, 'object', 'objects') : 'nothing found'));
+      inspector.appendChild(linkList(up));
+
+      var outbound = el('p', 'outbound');
+      var docs = el('a', null, node.kind === 'component' ? 'Components documentation' : 'Class documentation');
+      docs.href = DOCS + (node.kind === 'component' ? 'manuals/physics/components.html' : 'physics/' + node.class + '.html');
+      docs.target = '_blank'; docs.rel = 'noopener';
+      outbound.appendChild(docs);
+      if (node.sourceFile) {
+        var source = el('a', null, 'Source file');
+        source.href = SOURCE + node.sourceFile;
+        source.target = '_blank'; source.rel = 'noopener';
+        outbound.appendChild(source);
+      }
+      inspector.appendChild(outbound);
+    }
+
+    // Controls.
+    search.addEventListener('input', filter);
+    showDefaults.addEventListener('change', filter);
+    var direct = document.getElementById('trace-direct'), full = document.getElementById('trace-full');
+    function trace(value) {
+      state.full = value;
+      direct.setAttribute('aria-pressed', String(!value));
+      full.setAttribute('aria-pressed', String(value));
+      paint();
+    }
+    direct.addEventListener('click', function () { trace(false); });
+    full.addEventListener('click', function () { trace(true); });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && state.kind !== null) select(null, null);
+    });
+    if (window.ResizeObserver) new ResizeObserver(draw).observe(columns);
+    else window.addEventListener('resize', draw);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+
+    // Open on a process of the model where there is room to show it.
+    var opening = null;
+    if (window.matchMedia('(min-width: 901px)').matches) {
+      opening = nodes.filter(function (node) { return node.class === 'nodeOperator' && /^starFormation/.test(node.label); })[0] ||
+        nodes.filter(function (node) { return node.class === 'task'; })[0] || null;
+    }
+    filter();
+    select(opening ? 'node' : null, opening ? opening.id : null);
+  }
+
+  function fail(message) {
+    document.getElementById('inspector').textContent = message;
+  }
+  if (GRAPH) start(GRAPH);
+  else if (GRAPH_URL) {
+    fetch(GRAPH_URL).then(function (response) {
+      if (!response.ok) throw new Error(response.status);
+      return response.json();
+    }).then(start).catch(function () { fail('The model could not be loaded from ' + GRAPH_URL + '.'); });
+  } else fail('No model was given to this page.');
+})();
+</script>
