@@ -1426,6 +1426,7 @@ jobs:
                       tests.merger_tree_walker_branch_time_limited.exe,
                       tests.binary_search_trees.exe,
                       tests.merger_remnant_size_Covington2008.exe,
+                      tests.stellar_feedback_outflows_Creasey2013.exe,
                       tests.orbits.exe,
                       tests.black_hole_seeds_Vergara2023.exe,
                       tests.debugging.exe,
