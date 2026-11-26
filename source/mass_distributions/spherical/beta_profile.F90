@@ -50,6 +50,7 @@
      procedure :: densitySlopeLogarithmicCentral => betaProfileDensitySlopeLogarithmicCentral
      procedure :: densityRadialMoment            => betaProfileDensityRadialMoment
      procedure :: densitySquareIntegral          => betaProfileDensitySquareIntegral
+     procedure :: massTotal                      => betaProfileMassTotal
      procedure :: massEnclosedBySphere           => betaProfileMassEnclosedBySphere
      procedure :: potentialIsAnalytic            => betaProfilePotentialIsAnalytic
      procedure :: potential                      => betaProfilePotential
@@ -375,6 +376,34 @@ contains
     slope=0.0d0
     return
   end function betaProfileDensitySlopeLogarithmicCentral
+
+  double precision function betaProfileMassTotal(self) result(mass)
+    !!{RST
+    Return the total mass of a :math:`\beta`-profile mass distribution. If the profile is truncated at its outer radius, this is
+    the mass within that radius. Otherwise, it is finite only for :math:`\beta &gt; 1`, for which it is
+    :math:`\pi^{3/2} \rho_0 r_\mathrm{core}^3 \Gamma(3\beta/2-3/2)/\Gamma(3\beta/2)`, and is returned as the largest representable
+    number otherwise (as for other profiles of infinite mass).
+    !!}
+    use :: Gamma_Functions         , only : Gamma_Function_Logarithmic
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class(massDistributionBetaProfile), intent(inout) :: self
+
+    if      (self%truncateAtOuterRadius) then
+       mass   =self%massEnclosedBySphere(self%radiusOuter)
+    else if (self%beta > 1.0d0         ) then
+       mass   =+Pi**1.5d0                                              &
+            &  *self%densityNormalization                              &
+            &  *self%radiusCore**3                                     &
+            &  *exp(                                                   &
+            &       +Gamma_Function_Logarithmic(1.5d0*self%beta-1.5d0) &
+            &       -Gamma_Function_Logarithmic(1.5d0*self%beta      ) &
+            &      )
+    else
+       mass=huge(0.0d0)
+    end if
+    return
+  end function betaProfileMassTotal
 
   double precision function betaProfileMassEnclosedBySphere(self,radius)
     !!{RST
