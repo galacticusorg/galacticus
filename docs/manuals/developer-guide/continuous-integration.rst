@@ -89,6 +89,52 @@ string literal which must contain a marker word without being a marker (a
 ``grep`` pattern, say) is exempted by ending its line with the pragma
 ``# markers: exempt``.
 
+.. _test-independent-references:
+
+Writing an independent reference for a test
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A test that compares Galacticus against an independent calculation (a Python
+reference script, say) can disagree for reasons that look exactly like a
+physics error but have nothing to do with the physics. Their signature is a
+disagreement that does not shrink when the numerical tolerances are tightened.
+The usual causes are:
+
+* **Unit definitions.** Copy them from Galacticus; do not choose your own. In
+  Galacticus a Gyr is :math:`10^9` *sidereal* years
+  (``3.15581497635456e16`` s), not Julian years (``3.1556952e16`` s), a
+  difference of :math:`3.8\times 10^{-5}` which enters squared wherever a rate is
+  converted from km/s/Mpc to Gyr\ :sup:`-1`. An Mpc is
+  ``3.08567758135e22`` m. Both are defined in
+  ``source/numerical/constants/astronomical.F90``. Measured constants (the
+  gravitational constant, atomic data) may legitimately come from published standard
+  values, which keeps the reference independent; a unit definition may not.
+
+* **Epoch.** A virial radius defined by a ``virialDensityContrast`` relative to
+  the *mean* matter density depends on the expansion factor at the node's time.
+  At :math:`t=13.8` Gyr under ``matterLambda`` the expansion factor is 0.99997,
+  so the mean density is :math:`10^{-4}` higher than today and the virial radius
+  :math:`3.3\times 10^{-5}` smaller; under ``staticUniverse`` the expansion
+  factor is exactly 1.
+
+* **Initial conditions.** Take them from the merger tree, not from
+  recomputing them. A hand-written tree states, for example, a satellite's position
+  and velocity, and the model integrates *those*. Recomputing "the same"
+  quantity in the reference can give a slightly different value (if the tree
+  carried a ``matterLambda`` virial radius while the model ran a static
+  universe, say), and the difference grows along the orbit.
+
+* **Dark matter fraction.** When baryonic components are present, the dark
+  matter halo holds :math:`1-\Omega_\mathrm{b}/\Omega_\mathrm{M}` of the node
+  mass, not all of it: an NFW reference normalized to the full basic mass is too
+  heavy by :math:`\Omega_\mathrm{b}/\Omega_\mathrm{M}` (about 16%). Check the
+  enclosed mass in the test itself, with the ``massProfile`` extractor (e.g.
+  ``virialRadius:all:all:0.2``).
+
+When a disagreement will not shrink as a tolerance is tightened, suspect an
+input mismatch before the physics, and print the inputs the two calculations
+share to find it.
+
 The Python unit tests (``pytest``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
