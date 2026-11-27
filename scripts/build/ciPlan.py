@@ -5,18 +5,30 @@ The full suite costs over a hundred runner-hours, so it is not run on every push
 workflow is given a *tier* by its ``Plan`` job, and every other job runs only if this script lists it:
 
 ``full``
-    Every job. Used for merge groups (the merge queue tests each group against the exact state of ``master`` it will land on), for
-    pull requests which change the build system or carry the ``ci:full`` label, for manual dispatches, and for any push to
-    ``master`` which did not come through the merge queue.
+    Every job. Used for pull requests which change the build system or carry the ``ci:full`` label, for manual dispatches, and
+    for any push to ``master`` of content which has not already passed the full suite.
 ``pr``
     A subset chosen from the files a pull request changes: the two default Linux builds, the quick unit tests, and the model tests
     which run in a few minutes each. Tests too slow or too specialized for that (other build configurations, macOS, MPI,
-    validation, benchmarks, profiling) are left to the merge queue.
+    validation, benchmarks, profiling) are left to the full suite.
 ``deploy``
-    A push to ``master`` of a commit which the merge queue has already tested. Nothing is rebuilt or retested: the deployment jobs
-    run using the artifacts of the merge group's run.
+    A push to ``master`` of content which has already passed the full suite. Nothing is retested: what is published is rebuilt
+    from the commit on ``master`` (an executable records the commit it was built from) and published along with the validation
+    results, benchmarks and profiles of the run which tested that content.
 ``skip``
-    Nothing: a draft pull request, or one which changes no file that can affect the build or the tests.
+    Nothing: a draft pull request, one which changes no file that can affect the build or the tests, or a merge group whose
+    content has already passed the full suite.
+``blocked``
+    Nothing, and the run fails: a merge group whose content has not passed the full suite.
+
+"Content" here means the tree of a commit - the state of every file - which is what a run tests. A run of the full suite which
+passes records the tree it tested (the ``CI-Gate`` job uploads an artifact named for it), and the ``Plan`` job of a later run
+looks that record up. For a pull request the tree is that of the pull request merged into ``master`` as it was when the run
+began; the merge queue forms the same tree for a pull request which is alone at the front of the queue while ``master`` has not
+moved. So the full suite is run on a pull request (or on a rollup of several), not by the merge queue: the queue allows a
+required check at most six hours to report, which the full suite can not promise, and so a merge group is only ever verified
+against the record. A group whose tree has no record is refused rather than tested, which keeps untested content off
+``master`` by construction.
 
 The ``CI-Gate`` job then checks the outcome against the plan. It is the one status check that needs to be required by branch
 protection, and it reports for every run - including a skipped one - so that a required check is never left pending.
@@ -26,29 +38,31 @@ What a pull request runs is decided by the tables below, not by the workflow fil
 * Selection fails safe. A test added to the matrix of a job in the `pr` tier runs for pull requests unless it is listed here
   as deferred; a changed file which matches no rule selects nothing only because every path that can affect the build or the
   tests has a rule; and a list of changed files which could not be determined gets the full suite. (A *job* which this script
-  does not know about is not in the `pr` tier: it runs in the full suite, and so in every merge group, until it is added to a
-  group below.)
+  does not know about is not in the `pr` tier: it runs in the full suite, which everything passes before it reaches
+  ``master``, until it is added to a group below.)
 * A selected job brings the jobs it ``needs`` with it, so a test can never be planned without its build.
 * A job which was planned but did not run fails the gate, as does one which failed or was canceled.
 
 Run with::
 
     ciPlan.py plan --event <event> [--ref <ref>] [--draft] [--labels <json>] [--changed-files <file>] [--tier <tier>]
-                   [--tested-run-id <id>] [--run-id <id>]
+                   [--tested-run-id <id>] [--tree <tree>] [--run-id <id>]
     ciPlan.py gate [--needs <json>] [--jobs <json>]
+    ciPlan.py attribute <results file> ...
 """
 
 import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 WORKFLOW = REPOSITORY / ".github" / "workflows" / "cicd.yml"
 
-TIERS = ("skip", "pr", "full", "deploy")
+TIERS = ("skip", "pr", "full", "deploy", "blocked")
 
 # The label which runs the full suite on a pull request.
 LABEL_FULL = "ci:full"
@@ -59,9 +73,23 @@ UNGATED_JOBS = ("Plan", "CI-Gate")
 # Jobs which publish something, and so run only for a push to (or a dispatch on) `master`.
 PUBLISH_JOBS = ("Submit-Notarization-MacOS", "Deploy", "Update-Release-Tag")
 
-# The jobs of the `deploy` tier. `Build-Docker-Linux` builds its image from source and pushes it, and `Validate` publishes the
-# validation results to `gh-pages`; neither can be replaced by an artifact of the merge group's run.
-DEPLOY_JOBS = ("Build-Docker-Linux", "Validate") + PUBLISH_JOBS
+# The jobs which build what is published. An executable records the commit it was built from, so these are built again from the
+# commit on `master` even where its content has already been tested as part of a pull request.
+DEPLOY_BUILD_JOBS = (
+    # Not a build, but the job which makes the parameter catalog that is published - which takes it a few minutes.
+    "Test-Preprocessor",
+    "Build-Executable-Linux",
+    "Build-Library-Linux",
+    "Build-Tools",
+    "Package-Datasets",
+    "Build-Executable-MacOS-M1",
+    "Build-Library-MacOS",
+    "Build-Docker-Linux",
+)
+
+# The jobs of the `deploy` tier: those builds, `Validate` (which publishes to `gh-pages` the validation results and benchmarks of
+# the run which tested this content), and the jobs which publish.
+DEPLOY_JOBS = DEPLOY_BUILD_JOBS + ("Validate",) + PUBLISH_JOBS
 
 # Jobs which comment on a pull request, and so run only for one. `Validation-Report` needs the validation results, which only
 # the full suite produces.
@@ -73,7 +101,7 @@ PR_GROUPS = {
     # Pure-Python checks: the preprocessor regression tests, parameter file validation, and the schema.
     "tooling": ("Test-Preprocessor", "Python-Utils-Tests"),
     # Unit tests of the non-static build. `Codes-Quick` runs every unit test which takes less than a few minutes in one job; the
-    # few slow ones are the `Codes` matrix, which is left to the merge queue.
+    # few slow ones are the `Codes` matrix, which is left to the full suite.
     "unit": ("Codes-Quick", "Parameters", "IO-HDF5", "Crash", "Fail"),
     # Model tests of the static build.
     "model": (
@@ -94,9 +122,10 @@ PR_GROUPS = {
     ),
 }
 
-# Matrix entries of `pr` tier jobs which are left to the merge queue because they are slow: each of these took over five minutes
-# to run (not counting job setup) when the tiers were introduced. Listing an entry here only defers it - it still runs in every
-# merge group - so the list errs on the side of brevity, and an entry which is not listed runs on pull requests.
+# Matrix entries of `pr` tier jobs which are left to the full suite because they are slow: each of these took over five minutes
+# to run (not counting job setup) when the tiers were introduced. Listing an entry here only defers it - it still runs in the
+# full suite, which everything passes before it reaches `master` - so the list errs on the side of brevity, and an entry which is
+# not listed runs on pull requests.
 PR_DEFERRED_ENTRIES = (
     # Miscellaneous
     "test-constraint-deterministic-spins.py",
@@ -289,12 +318,14 @@ def select_affected(workflow, changed, repository=REPOSITORY):
     return jobs, skipped
 
 
-def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=None, tested_run_id="", run_id="",
+def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=None, tested_run_id="", tree="", run_id="",
          repository=REPOSITORY):
     """Return the plan for an event as a dictionary of the `Plan` job's outputs, plus a list of reasons for the summary.
 
-    `changed` is the list of files changed by a pull request, or `None` if it could not be determined.
+    `changed` is the list of files changed by a pull request, or `None` if it could not be determined. `tree` is the tree of the
+    commit which the run is for, and `tested_run_id` the run of the full suite which passed for that tree, if there is one.
     """
+    content = f"this content (tree `{tree}`)" if tree else "this content"
     reasons = []
     deploying = event in ("push", "workflow_dispatch") and ref == "refs/heads/master"
     groups = set()
@@ -308,13 +339,21 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
     elif event == "push":
         if tested_run_id:
             tier = "deploy"
-            reasons.append(f"This commit was tested by the merge queue in run {tested_run_id}; deploying its artifacts.")
+            reasons.append(f"The full suite passed for {content} in run {tested_run_id}: rebuilding what is published from this "
+                           "commit, and publishing it with the results of that run.")
         else:
             tier = "full"
-            reasons.append("This commit was not tested by the merge queue (or its artifacts are gone); running the full suite.")
+            reasons.append(f"No run of the full suite has passed for {content} (or its record is gone); running the full suite.")
     elif event == "merge_group":
-        tier = "full"
-        reasons.append("Merge group: running the full suite against the state of the branch this group will land on.")
+        if tested_run_id:
+            tier = "skip"
+            reasons.append(f"Merge group: the full suite passed for {content} in run {tested_run_id}, so there is nothing to run.")
+        else:
+            tier = "blocked"
+            reasons.append(f"Merge group: no run of the full suite has passed for {content}, and the merge queue does not run "
+                           "it. Merge `master` into the pull request (or into a rollup of several), run the full suite on it "
+                           f"(the `{LABEL_FULL}` label), and queue it again once that has passed and while `master` has not "
+                           "moved.")
     elif event == "pull_request":
         if draft:
             tier = "skip"
@@ -354,7 +393,7 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
         raise ValueError(f"unknown tier '{tier}'")
 
     skipped = []
-    if tier == "skip":
+    if tier in ("skip", "blocked"):
         jobs = []
     elif tier == "deploy":
         jobs = [name for name in workflow.names() if name in DEPLOY_JOBS]
@@ -387,8 +426,11 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
         "jobs": json.dumps(jobs),
         "skipEntries": json.dumps(skipped),
         "deploy": "true" if deploying and tier in ("full", "deploy") else "false",
-        # The run whose artifacts the deployment jobs download: the merge group's run in the `deploy` tier, else this run.
-        "artifactRunId": str(tested_run_id if tier == "deploy" else run_id),
+        # The run whose validation results, benchmarks and profiles are published: in the `deploy` tier the run which tested
+        # this content, else this run.
+        "resultsRunId": str(tested_run_id if tier == "deploy" else run_id),
+        # The tree which this run is for, under which `CI-Gate` records a pass of the full suite.
+        "tree": tree,
     }
     return outputs, reasons
 
@@ -397,7 +439,7 @@ def gate(needs, planned):
     """Check the results of the jobs which the gate needs against the plan. Returns a list of problems, empty for a pass."""
     problems = []
     if (needs.get("Plan") or {}).get("result") != "success":
-        problems.append("the `Plan` job did not succeed, so nothing can be trusted to have run")
+        problems.append("the `Plan` job did not succeed (its summary says why), so nothing can be trusted to have run")
     for name, job in sorted(needs.items()):
         result = job.get("result")
         if result in ("failure", "cancelled"):
@@ -405,6 +447,44 @@ def gate(needs, planned):
         elif result == "skipped" and name in planned:
             problems.append(f"`{name}` was planned but did not run")
     return problems
+
+
+# What a file of validation results begins with: it is JavaScript, which assigns the results to a variable.
+RESULTS_PREFIX = re.compile(r"window\.\w+ = ")
+
+
+def head_commit(repository=REPOSITORY):
+    """Describe the commit which is checked out, in the form in which a file of validation results describes a commit."""
+    fields = subprocess.run(["git", "-C", str(repository), "log", "-1", "--format=%H%x00%an%x00%ae%x00%cI%x00%B"],
+                            capture_output=True, text=True, check=True).stdout.split("\0")
+    revision, name, email, committed, message = fields
+    from datetime import datetime
+
+    return {
+        "author": {"name": name, "email": email},
+        "id": revision,
+        # A commit message as `git log` prints it ends with one more newline than the message itself.
+        "message": message[:-1] if message.endswith("\n") else message,
+        "timestamp": str(datetime.fromisoformat(committed)),
+        "url": "https://github.com/galacticusorg/galacticus/commit/" + revision,
+    }
+
+
+def attribute(text, commit):
+    """Return the text of a file of validation results with the commit which it describes replaced by `commit`.
+
+    The results published by a `deploy` tier run are those of the run which tested the same content as part of a pull request,
+    and so describe the commit which that run had checked out - a merge of the pull request made for the test, which is on no
+    branch. They are attributed instead to the commit on `master` which has that content.
+    """
+    prefix = RESULTS_PREFIX.match(text)
+    if not prefix:
+        raise ValueError("not a file of validation results")
+    data = json.loads(text[prefix.end():])
+    if not isinstance(data, dict) or not isinstance(data.get("commit"), dict):
+        raise ValueError("the results describe no commit")
+    data["commit"] = commit
+    return prefix.group(0) + json.dumps(data, indent=4, ensure_ascii=False)
 
 
 def write_outputs(outputs):
@@ -440,7 +520,8 @@ def main(arguments=None):
     planner.add_argument("--labels", default="[]", help="the labels of the pull request, as a JSON list")
     planner.add_argument("--changed-files", help="a file holding the NUL-separated names of the files changed")
     planner.add_argument("--tier", default="", help="the tier requested by a manual dispatch")
-    planner.add_argument("--tested-run-id", default="", help="the merge group run which tested this commit, if any")
+    planner.add_argument("--tested-run-id", default="", help="the run of the full suite which passed for this tree, if any")
+    planner.add_argument("--tree", default="", help="the tree of the commit which this run is for")
     planner.add_argument("--run-id", default="", help="the ID of this run")
     planner.add_argument("--workflow", default=str(WORKFLOW), help="the workflow file to plan for")
     gater = commands.add_parser("gate", help="check the results of a run against its plan")
@@ -448,7 +529,17 @@ def main(arguments=None):
                        help="the `needs` context of the gate job, as JSON (default: the CI_NEEDS environment variable)")
     gater.add_argument("--jobs", default=os.environ.get("CI_JOBS"),
                        help="the planned jobs, as a JSON list (default: the CI_JOBS environment variable)")
+    attributer = commands.add_parser("attribute", help="attribute files of validation results to the commit which is checked out")
+    attributer.add_argument("files", nargs="+", help="the files of results to rewrite in place")
     options = parser.parse_args(arguments)
+
+    if options.command == "attribute":
+        commit = head_commit()
+        for name in options.files:
+            file = Path(name)
+            file.write_text(attribute(file.read_text(encoding="utf-8"), commit), encoding="utf-8")
+            print(f"{name}: attributed to {commit['id']}")
+        return 0
 
     if options.command == "plan":
         labels = json.loads(options.labels or "[]") or []
@@ -461,16 +552,22 @@ def main(arguments=None):
             changed=read_changed_files(options.changed_files),
             tier=options.tier or None,
             tested_run_id=options.tested_run_id,
+            tree=options.tree,
             run_id=options.run_id,
         )
         write_outputs(outputs)
         jobs = json.loads(outputs["jobs"])
         skipped = json.loads(outputs["skipEntries"])
         summary = [f"## CI plan: `{outputs['tier']}` tier", ""] + [f"- {reason}" for reason in reasons] + [""]
-        summary.append(f"{len(jobs)} job(s) planned" + (f", with {len(skipped)} matrix entries left to the merge queue" if skipped else "") + ".")
+        summary.append(f"{len(jobs)} job(s) planned" + (f", with {len(skipped)} matrix entries left to the full suite" if skipped else "") + ".")
         if jobs and outputs["tier"] != "full":
             summary += ["", "<details><summary>Planned jobs</summary>", ""] + [f"- `{name}`" for name in jobs] + ["", "</details>"]
         write_summary("\n".join(summary) + "\n")
+        if outputs["tier"] == "blocked":
+            # Failing here fails the gate, which is what removes the pull request from the merge queue.
+            for reason in reasons:
+                print("::error title=Not tested::" + reason.replace("`", ""))
+            return 1
         return 0
 
     if not options.needs:

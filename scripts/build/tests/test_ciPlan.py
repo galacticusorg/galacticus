@@ -4,6 +4,7 @@ import glob
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -95,6 +96,73 @@ def test_matrices_of_tests_can_skip_entries(workflow):
         if isinstance(target, str) and target.startswith("${{ matrix."):
             key = re.fullmatch(r"\$\{\{\s*matrix\.(\w+)\s*\}\}", target).group(1)
             assert parameters.get("enabled") == f"${{{{ !contains(fromJSON(needs.Plan.outputs.skipEntries), matrix.{key}) }}}}", name
+
+
+def test_a_pass_of_the_full_suite_is_recorded_under_the_name_which_the_plan_looks_for(workflow):
+    record = "ci-full-passed-"
+    steps = workflow.jobs["CI-Gate"]["steps"]
+    check = next(index for index, step in enumerate(steps) if "ciPlan.py gate" in str(step.get("run", "")))
+    uploads = [(index, step) for index, step in enumerate(steps) if "upload-artifact" in str(step.get("uses", ""))]
+    assert len(uploads) == 1
+    index, upload = uploads[0]
+    # The record must follow the check (a step runs only if those before it succeeded), and be made only by the full suite.
+    assert index > check
+    assert upload["if"] == "needs.Plan.outputs.tier == 'full'"
+    assert upload["with"]["name"] == record + "${{ needs.Plan.outputs.tree }}"
+    plan = workflow.jobs["Plan"]
+    assert plan["outputs"]["tree"].split() == "${{ steps.plan.outputs.tree }}".split()
+    lookup = next(step for step in plan["steps"] if step.get("id") == "tested")
+    assert f"artifacts?name={record}${{tree}}" in lookup["run"]
+    # A record made by a pull request from a fork, which runs its own copy of the workflow, must not be believed.
+    assert ".workflow_run.repository_id == .workflow_run.head_repository_id" in lookup["run"]
+    assert "--tested-run-id" in str(plan["steps"][-1]["run"]) and "--tree" in str(plan["steps"][-1]["run"])
+
+
+def downloads_of(job):
+    """Return `(artifact, parameters)` for each step of a job which downloads an artifact, directly or by the benchmark action."""
+    found = []
+    for step in job.get("steps", []):
+        uses, parameters = str(step.get("uses", "")), step.get("with") or {}
+        if "download-artifact" in uses:
+            found.append((parameters.get("name") or parameters.get("pattern"), parameters))
+        elif uses.endswith("/actions/benchmark"):
+            found.append((parameters.get("artifact") or f"{parameters['type']}-{parameters['suffix']}", parameters))
+    return found
+
+
+def test_the_deploy_tier_can_find_every_artifact_which_it_downloads(workflow):
+    """In the `deploy` tier only `DEPLOY_JOBS` run, so an artifact must come either from one of those or from the tested run."""
+    deployed = [name for name in workflow.jobs if name in ciPlan.DEPLOY_JOBS]
+    built = {(step.get("with") or {}).get("name") for name in deployed for step in workflow.jobs[name].get("steps", [])
+             if "upload-artifact" in str(step.get("uses", ""))}
+    fromTestedRun = "${{ needs.Plan.outputs.tier == 'deploy' && needs.Plan.outputs.resultsRunId || '' }}"
+    counted = {True: 0, False: 0}
+    for name in deployed:
+        for artifact, parameters in downloads_of(workflow.jobs[name]):
+            other = "run-id" in parameters
+            counted[other] += 1
+            if not other:
+                assert artifact in built, f"{name} downloads {artifact} from its own run, where no job of the deploy tier makes it"
+                assert "github-token" not in parameters
+                continue
+            assert artifact not in built, f"{name} downloads {artifact} from the tested run, but a job of the deploy tier makes it"
+            if "download-artifact" in str(parameters) or "github-token" in parameters:
+                # Reading another run's artifacts needs a token, which is passed only when another run is read.
+                assert parameters["run-id"] == "${{ needs.Plan.outputs.resultsRunId }}", (name, artifact)
+                assert parameters["github-token"] == "${{ needs.Plan.outputs.tier == 'deploy' && github.token || '' }}", (name, artifact)
+            else:
+                assert parameters["run-id"] == fromTestedRun, (name, artifact)
+    assert counted[True] and counted[False]
+
+
+def test_the_builds_of_the_deploy_tier_need_only_each_other(workflow):
+    for name in ciPlan.DEPLOY_BUILD_JOBS:
+        assert set(workflow.needs(name)) <= {"Plan"} | set(ciPlan.DEPLOY_BUILD_JOBS), name
+    # `Validate` publishes the build profile, and in the `deploy` tier nothing else that it needs waits for that build.
+    assert "Build-Executable-Linux" in workflow.needs("Validate")
+    assert "needs.Plan.outputs.tier == 'deploy'" in workflow.jobs["Validate"]["if"]
+    attribute = next(step for step in workflow.jobs["Validate"]["steps"] if "ciPlan.py attribute" in str(step.get("run", "")))
+    assert attribute["if"] == "needs.Plan.outputs.tier == 'deploy'"
 
 
 def test_the_tables_name_only_what_exists(workflow):
@@ -223,7 +291,7 @@ def test_source_change_runs_the_subset(workflow):
     # Both default builds are brought in by the tests which need them, and nothing else is built.
     assert {name for name in jobs if name.startswith("Build-")} == {"Build-Executable-Linux", "Build-Executable-Linux-Non-Static"}
     assert {"Test-Preprocessor", "Codes-Quick", "Model-Integration", "Miscellaneous", "Regressions", "Watch-Updates"} <= jobs
-    # Slow and specialized jobs are left to the merge queue, and nothing is published.
+    # Slow and specialized jobs are left to the full suite, and nothing is published.
     assert not jobs & {"Codes", "Codes-MPI", "Codes-MacOS", "Validate", "Validation-Report", "Merger-Tree-Builder", "Python-Interface"}
     assert not jobs & set(ciPlan.PUBLISH_JOBS)
     assert skipped_of(outputs) == sorted(ciPlan.PR_DEFERRED_ENTRIES)
@@ -249,26 +317,54 @@ def test_label_runs_everything(workflow):
     assert outputs["tier"] == "full" and "Validation-Report" in jobs_of(outputs)
 
 
-def test_merge_group_runs_everything_but_publishes_nothing(workflow):
-    outputs = ciPlan.plan(workflow, "merge_group", ref="refs/heads/gh-readonly-queue/master/pr-1-abc", run_id="7")[0]
-    jobs = set(jobs_of(outputs))
-    assert outputs["tier"] == "full"
-    assert jobs == set(workflow.names()) - set(ciPlan.PUBLISH_JOBS) - set(ciPlan.PULL_REQUEST_JOBS)
-    assert outputs["deploy"] == "false" and outputs["artifactRunId"] == "7" and skipped_of(outputs) == []
+MERGE_GROUP = "refs/heads/gh-readonly-queue/master/pr-1-abc"
 
 
-def test_push_of_a_tested_commit_only_deploys(workflow):
-    outputs = ciPlan.plan(workflow, "push", ref="refs/heads/master", tested_run_id="42", run_id="7")[0]
+def test_merge_group_of_tested_content_runs_nothing(workflow):
+    outputs, reasons = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, tested_run_id="42", tree="abc123", run_id="7")
+    assert outputs["tier"] == "skip" and jobs_of(outputs) == [] and outputs["deploy"] == "false"
+    assert "abc123" in reasons[0] and "42" in reasons[0]
+
+
+def test_merge_group_of_untested_content_is_refused(workflow):
+    """The merge queue never runs the full suite - it could not finish in the time the queue allows - so it must not pass."""
+    outputs, reasons = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, tree="abc123", run_id="7")
+    assert outputs["tier"] == "blocked" and jobs_of(outputs) == [] and outputs["deploy"] == "false"
+    assert ciPlan.LABEL_FULL in reasons[0]
+
+
+def test_plan_command_fails_for_a_refused_merge_group(monkeypatch, tmp_path, capsys):
+    monkeypatch.setenv("GITHUB_OUTPUT", str(tmp_path / "output"))
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(tmp_path / "summary"))
+    arguments = ["plan", "--event", "merge_group", "--ref", MERGE_GROUP, "--tree", "abc123", "--run-id", "7"]
+    assert ciPlan.main(arguments) == 1
+    assert "::error" in capsys.readouterr().out
+    assert "`blocked` tier" in (tmp_path / "summary").read_text()
+    assert ciPlan.main(arguments + ["--tested-run-id", "42"]) == 0
+    # The failure of the plan is what fails the gate.
+    assert ciPlan.gate(results(Plan="failure", A="skipped"), [])
+
+
+def test_only_the_full_suite_makes_content_tested(workflow):
+    """A merge group or a push is believed to be tested only on the word of the lookup, never by default."""
+    for event, ref in (("merge_group", MERGE_GROUP), ("push", "refs/heads/master")):
+        assert ciPlan.plan(workflow, event, ref=ref, tested_run_id="", run_id="7")[0]["tier"] in ("blocked", "full")
+
+
+def test_push_of_tested_content_rebuilds_and_deploys(workflow):
+    outputs = ciPlan.plan(workflow, "push", ref="refs/heads/master", tested_run_id="42", tree="abc123", run_id="7")[0]
     assert outputs["tier"] == "deploy"
     assert set(jobs_of(outputs)) == set(ciPlan.DEPLOY_JOBS)
-    assert outputs["deploy"] == "true" and outputs["artifactRunId"] == "42"
+    # What is published is built by this run; the results published with it are those of the run which tested the content.
+    assert set(ciPlan.DEPLOY_BUILD_JOBS) <= set(jobs_of(outputs))
+    assert outputs["deploy"] == "true" and outputs["resultsRunId"] == "42" and outputs["tree"] == "abc123"
 
 
 def test_push_of_an_untested_commit_runs_everything_then_deploys(workflow):
     outputs = ciPlan.plan(workflow, "push", ref="refs/heads/master", run_id="7")[0]
     assert outputs["tier"] == "full"
     assert set(jobs_of(outputs)) == set(workflow.names()) - set(ciPlan.PULL_REQUEST_JOBS)
-    assert outputs["deploy"] == "true" and outputs["artifactRunId"] == "7"
+    assert outputs["deploy"] == "true" and outputs["resultsRunId"] == "7"
 
 
 def test_dispatch_deploys_only_from_master(workflow):
@@ -373,9 +469,64 @@ def test_plan_command_reads_changed_files(monkeypatch, tmp_path, capsys):
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(tmp_path / "summary"))
     assert ciPlan.main(["plan", "--event", "pull_request", "--labels", "null", "--changed-files", str(changed), "--run-id", "7"]) == 0
     written = dict(line.split("=", 1) for line in output.read_text().splitlines())
-    assert written["tier"] == "pr" and written["artifactRunId"] == "7"
+    assert written["tier"] == "pr" and written["resultsRunId"] == "7"
     assert "Codes-Quick" in json.loads(written["jobs"])
     assert "`pr` tier" in (tmp_path / "summary").read_text()
     # A list of changed files which is missing means that the changes are unknown, not that there are none.
     assert ciPlan.main(["plan", "--event", "pull_request", "--changed-files", str(tmp_path / "missing")]) == 0
     assert "tier=full" in capsys.readouterr().out
+
+
+# --- Attributing published results ------------------------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("variable", ["ANALYSES_DATA", "PONOSV_DATA", "BARYONICSUPPRESSION_DATA"])
+def test_attribute_replaces_only_the_commit(variable):
+    original = {"repoUrl": "https://example.org", "commit": {"id": "old", "message": "Merge a into b"}, "results": [{"name": "é", "value": 1.5}]}
+    text = f"window.{variable} = " + json.dumps(original, indent=4, ensure_ascii=False)
+    commit = {"id": "new", "message": "merged"}
+    attributed = ciPlan.attribute(text, commit)
+    assert attributed.startswith(f"window.{variable} = ")
+    assert json.loads(attributed.split(" = ", 1)[1]) == {**original, "commit": commit}
+    # Attributing a file to the commit which it already describes changes nothing, so the format is that of the original.
+    assert ciPlan.attribute(text, original["commit"]) == text
+
+
+@pytest.mark.parametrize("text", ["{}", "window.DATA = []", 'window.DATA = {"results": []}', 'window.DATA = {"commit": "abc"}'])
+def test_attribute_refuses_what_it_does_not_recognize(text):
+    with pytest.raises(ValueError):
+        ciPlan.attribute(text, {"id": "new"})
+
+
+def git(repository, *arguments):
+    environment = dict(os.environ, GIT_AUTHOR_NAME="A. Author", GIT_AUTHOR_EMAIL="author@example.org",
+                       GIT_COMMITTER_NAME="C. Committer", GIT_COMMITTER_EMAIL="committer@example.org",
+                       GIT_AUTHOR_DATE="2026-01-02T03:04:05+00:00", GIT_COMMITTER_DATE="2026-02-03T04:05:06-08:00")
+    return subprocess.run(["git", "-C", str(repository), "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null", *arguments],
+                          capture_output=True, text=True, check=True, env=environment).stdout.strip()
+
+
+def test_head_commit_describes_a_commit_as_the_validation_scripts_do(tmp_path):
+    git(tmp_path, "init", "--quiet")
+    (tmp_path / "file").write_text("content")
+    git(tmp_path, "add", "file")
+    git(tmp_path, "commit", "--quiet", "-m", "A subject\n\nAnd a body.")
+    commit = ciPlan.head_commit(tmp_path)
+    revision = git(tmp_path, "rev-parse", "HEAD")
+    assert commit == {
+        # The validation scripts record the author, but the time at which the commit was made.
+        "author": {"name": "A. Author", "email": "author@example.org"},
+        "id": revision,
+        "message": "A subject\n\nAnd a body.\n",
+        "timestamp": "2026-02-03 04:05:06-08:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/" + revision,
+    }
+
+
+def test_attribute_command_rewrites_files_in_place(monkeypatch, tmp_path, capsys):
+    monkeypatch.setattr(ciPlan, "head_commit", lambda: {"id": "new"})
+    file = tmp_path / "results_a.json"
+    file.write_text('window.ANALYSES_DATA = {"commit": {"id": "old"}, "results": []}', encoding="utf-8")
+    assert ciPlan.main(["attribute", str(file)]) == 0
+    assert json.loads(file.read_text(encoding="utf-8").split(" = ", 1)[1]) == {"commit": {"id": "new"}, "results": []}
+    assert "new" in capsys.readouterr().out
