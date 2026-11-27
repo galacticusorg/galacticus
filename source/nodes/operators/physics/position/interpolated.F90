@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!+    Contributions to this file made by: Andrew Benson, Claude.
+!+    Contributions to this file made by: Andrew Benson, Claude, Andrew Robertson, Codex.
 
   !!{RST
   Implements a node operator class that interpolates positions of nodes using the approach of :cite:t:`merson_lightcone_2013`.
@@ -87,9 +87,11 @@
      Type used for tracing nodes through their positional history.
      !!}
      double precision                                 :: time
-     type            (treeNode ), pointer             :: node             => null() , nodeHost => null()
+     type            (treeNode ), pointer             :: node             => null() , nodeHost        => null()
+     type            (treeNode ), pointer             :: nodeHostDecayStart => null()
      type            (nodeTrace), pointer             :: next             => null()
      logical                                          :: isSatellite
+     logical                                          :: useIncomingHost  =  .true. , useOutgoingHost =  .true.
      integer         (c_size_t )                      :: iHistory
      logical                                          :: isOrphanDecaying =  .false.
      double precision           , dimension(10)       :: orbitOrphan
@@ -409,7 +411,8 @@ contains
     class           (nodeOperatorPositionInterpolated), intent(inout)  , target      :: self
     type            (treeNode                        ), intent(inout)  , target      :: node
     type            (treeNode                        )                 , pointer     :: nodeDescendant      , nodeHost                  , &
-         &                                                                              nodeMergeTarget     , nodeMergeTargetPrevious
+         &                                                                              nodeMergeTarget     , nodeMergeTargetPrevious   , &
+         &                                                                              nodeHostBeforeJump
     class           (nodeComponentBasic              )                 , pointer     :: basic               , basicHost                 , &
          &                                                                              basicMergeTarget
     class           (nodeComponentPosition           )                 , pointer     :: position            , positionMergeTarget
@@ -480,12 +483,17 @@ contains
     ! present-time check (findEvents(presentOnly=.true.)) is reached only after the time has been advanced to the next history
     ! step. We therefore apply it explicitly here, so that satellite positions are interpolated relative to the correct host
     ! from the very first step - consistent with how the merger logic follows such jumps when another branch merges onto this node.
+    nullify(nodeHostBeforeJump)
     eventPrior => node%event
     do while (associated(eventPrior))
        select type (eventPrior)
        type is (nodeEventBranchJump)
           if (eventPrior%time == time .and. associated(eventPrior%task)) then
-             if (associated(nodeDescendant,nodeHost)) nodeDescendant => eventPrior%node
+             if (associated(nodeDescendant,nodeHost)) then
+                nodeDescendant => eventPrior%node
+             else
+                call rememberIncomingHost(eventPrior%node)
+             end if
              nodeHost => eventPrior%node
           end if
        end select
@@ -620,21 +628,33 @@ contains
                 traceTail => traceHead
              end if
           end if
-          if (reporting) then
-             write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
-             call displayMessage(trim(adjustl(label)))
-          end if
           traceTail%time        =  time
           traceTail%isSatellite =  isSatellite
           traceTail%iHistory    =  iHistory
           traceTail%node        => nodeDescendant
           traceTail%nodeHost    => nodeHost
           traceTail%next        => null()
+          if (associated(nodeHostBeforeJump) .and. isSatellite .and. haveHistory .and. iHistory > 0) then
+             if (positionHistory%time(iHistory) == time) then
+                ! The satellite is still in its old host at this snapshot. The jump points to the new host at a later snapshot.
+                ! Use the old host for the interval ending here if its position was measured at this snapshot.
+                traceTail%nodeHost        => nodeHostBeforeJump
+                basicHost                 => nodeHostBeforeJump%basic()
+                traceTail%useIncomingHost =  basicHost%time() == time
+                ! If the satellite remains resolved, interpolate across the transfer using its measured positions and velocities.
+                traceTail%useOutgoingHost =  .false.
+             end if
+          end if
+          if (reporting) then
+             write (label,'(i12,1x,i12,1x,e12.6,1x,e12.6,1x,l1,1x,i4,1x,i4)') nodeDescendant%index(),traceTail%nodeHost%index(),time,basicHost%time(),isSatellite,iHistory,countHistory
+             call displayMessage(trim(adjustl(label)))
+          end if
           if (isOrphanDecaying) then
              traceTail%isOrphanDecaying=.true.
              traceTail%orbitOrphan     =orbitOrphan
           end if
        end if
+       nullify(nodeHostBeforeJump)
        isOrphanReverted=.false.
        ! Move to the next step.
        !! Case where we are following the decaying orbit of an orphan.
@@ -860,7 +880,11 @@ contains
           call displayMessage("trace events - branch jump?, time, timeJump: "//trim(adjustl(label)))
        end if
        if (haveBranchJump .and. time == timeBranchJump) then
-          if (associated(nodeDescendant,nodeHost) .or. isOrphanDecaying) nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
+          if (associated(nodeDescendant,nodeHost) .or. isOrphanDecaying) then
+             nodeDescendant => event%node ! Orphanized, so descendant always follows the host.
+          else
+             call rememberIncomingHost(event%node)
+          end if
           nodeHost         => event%node
           isOrphanDecaying =  .false.
        end if
@@ -927,7 +951,17 @@ contains
                 call displayMessage("     host: "//trim(message))
                 call displayUnindent("")
              end if
-          else if (traceTail%isSatellite .and. traceTail%next%isSatellite .and. .not.traceTail%isOrphanDecaying) then
+          else if (                                     &
+               &         traceTail%isSatellite          &
+               &   .and.                                &
+               &         traceTail%next%isSatellite     &
+               &   .and.                                &
+               &    .not.traceTail%isOrphanDecaying     &
+               &   .and.                                &
+               &         traceTail%useOutgoingHost      &
+               &   .and.                                &
+               &         traceTail%next%useIncomingHost &
+               &  ) then
              ! Logarithmic spiral interpolation - the node is a satellite at this step, and at the next step.
              coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationLogarithmicSpiral
              !! Get the logarithmic spiral interpolation for the host halo.
@@ -949,7 +983,7 @@ contains
              end if
           else
              ! Polynomial interpolation - whenever the node is not a satellite at this and the next step, or is ending a decaying
-             ! orbit as an orphan.
+             ! orbit as an orphan, or crosses between host frames.
              coefficients(1_c_size_t+(countTrace-1_c_size_t)+iTrace)=interpolationCubicPolynomial
              !! Get the cubic polynomial coefficients.
              coefficientsCubic=computeCoefficientsCubicPolynomial   (traceTail,useHost=.false.)
@@ -957,7 +991,7 @@ contains
              offset                                                                 =2_c_size_t*(countTrace-1_c_size_t)+(countCoefficientsCubicPolynomial+countCoefficientsLogarithmicSpiral)*iTrace
              coefficients(offset+1_c_size_t:offset+countCoefficientsCubicPolynomial)=reshape(coefficientsCubic,[countCoefficientsCubicPolynomial])
              if (reporting) then
-                call displayIndent("non-satellite")
+                call displayIndent("cubic")
                 write (message,'(12(e12.6,1x))') reshape(coefficientsCubic ,[countCoefficientsCubicPolynomial  ])
                 call displayMessage("     self: "//trim(message))
                 call displayUnindent("")
@@ -976,6 +1010,20 @@ contains
     return
 
   contains
+
+    subroutine rememberIncomingHost(destination)
+      !!{RST
+      Record the current host of a satellite which is about to undergo a branch jump. If the ``destination`` host of the jump
+      exists only at a later time than the jump, the satellite remains in its current host until then, so that host is retained
+      (in ``nodeHostBeforeJump``) for use at the time of the jump. Only the first such host is recorded.
+      !!}
+      implicit none
+      type (treeNode          ), intent(inout) :: destination
+      class(nodeComponentBasic), pointer       :: basicDestination
+
+      basicDestination => destination%basic()
+      if (basicDestination%time() > time .and. .not.associated(nodeHostBeforeJump)) nodeHostBeforeJump => nodeHost
+    end subroutine rememberIncomingHost
 
     subroutine findEvents(presentOnly)
       !!{RST
@@ -1031,6 +1079,7 @@ contains
       implicit none
       class           (nodeComponentPosition), pointer      :: positionSatellite, positionHost_
       class           (nodeComponentBasic   ), pointer      :: basicHost_
+      type            (treeNode             ), pointer      :: decayHost, progenitor
       type            (history              )               :: positionHistory_
       double precision                       , dimension(3) :: positionRelative , velocityRelative   , &
            &                                                   vectorRadial     , vectorTangential   , &
@@ -1050,9 +1099,25 @@ contains
       if (     timeMerger       <= traceTail%time       ) return
       ! Find the final position and velocity of the satellite relative to its host. As for the logarithmic spiral interpolation,
       ! the physical position of the host is translated to that at the expansion factor of the satellite.
-      positionSatellite   => traceTail%node    %position       ()
-      positionHost_       => traceTail%nodeHost%position       ()
-      basicHost_          => traceTail%nodeHost%basic          ()
+      decayHost => traceTail%nodeHost
+      if (.not.traceTail%useOutgoingHost) then
+         ! The last measurement belongs to the old host, but the orphan will orbit the destination. Use its primary
+         ! progenitor at the handoff time when available. Otherwise retain the usual expansion-factor correction
+         ! for a host sampled at a different epoch.
+         decayHost  => nodeHost
+         progenitor => nodeHost
+         do while (associated(progenitor))
+            basicHost_ => progenitor%basic()
+            if (basicHost_%time() <= traceTail%time) then
+               if (basicHost_%time() == traceTail%time .and. .not.progenitor%isSatellite()) decayHost => progenitor
+               exit
+            end if
+            progenitor => progenitor%firstChild
+         end do
+      end if
+      positionSatellite   => traceTail%node%position           ()
+      positionHost_       => decayHost     %position           ()
+      basicHost_          => decayHost     %basic              ()
       positionHistory_    =  positionSatellite %positionHistory()
       expansionFactor     =  self%cosmologyFunctions_%expansionFactor(traceTail %time  )
       expansionFactorHost =  self%cosmologyFunctions_%expansionFactor(basicHost_%time())
@@ -1099,6 +1164,12 @@ contains
       isOrphanDecaying          =.true.
       traceTail%isOrphanDecaying=.true.
       traceTail%orbitOrphan     =orbitOrphan
+      if (.not.traceTail%useOutgoingHost) then
+         ! Advance along the same host branch used to define the new orbit. Keep nodeHost on the trace intact
+         ! for the resolved interpolation ending at this point.
+         traceTail%nodeHostDecayStart => decayHost
+         nodeHost                     => decayHost
+      end if
       orphanDecayBegin          =.true.
       if (reporting) then
          write (message,'(10(e12.6,1x))') orbitOrphan
@@ -1346,6 +1417,7 @@ contains
       class           (nodeComponentBasic              )                , pointer     :: basic
       class           (nodeComponentPosition           )                , pointer     :: position
       type            (nodeTrace                       )                , pointer     :: trace_
+      type            (treeNode                        )                , pointer     :: host
       double precision                                  , dimension(2  )              :: times
       double precision                                  , dimension(2,3)              :: positionComoving            , velocityComoving, &
            &                                                                             positionPhysical            , velocityPhysical
@@ -1366,8 +1438,10 @@ contains
          end select
          times(i)=trace_%time
          if (useHost) then
-            position        => trace_%nodeHost           %position       (              )
-            basic           => trace_%nodeHost           %basic          (              )
+            host => trace_%nodeHost
+            if (i == 1 .and. associated(trace_%nodeHostDecayStart)) host => trace_%nodeHostDecayStart
+            position        => host                      %position       (              )
+            basic           => host                      %basic          (              )
             expansionFactor =  self  %cosmologyFunctions_%expansionFactor(basic%time ( ))
          else
             position        => trace_%node               %position       (              )

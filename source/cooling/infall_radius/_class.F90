@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module that implements calculations of the infall radius for cooling calculations.
 !!}
@@ -39,19 +41,26 @@ module Cooling_Infall_Radii
    <default>coolingRadius</default>
    <method name="radius" >
     <description>
-    Return the infall radius (in units of Mpc) for the halo in ``node``, i.e. the radius within which cooled gas can fall inward and join the galaxy disk or bulge, determining the angular momentum of accreting gas.
+    Return the infall radius (in units of Mpc) for the halo in ``node``, i.e. the radius within which cooled gas can fall inward
+    and join the galaxy disk or bulge, determining the angular momentum of accreting gas. If ``time`` is given, quantities which
+    depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a
+    formation node, whose structure is frozen at its formation time, while the time available for cooling continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
    <method name="radiusIncreaseRate" >
     <description>
-    Return the rate at which the infall radius grows for ``node`` (in units of Mpc/Gyr).
+    Return the rate at which the infall radius grows for ``node`` (in units of Mpc/Gyr). If ``time`` is given, quantities which
+    depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a
+    formation node, whose structure is frozen at its formation time, while the time available for cooling continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
   </functionClass>
   !!]

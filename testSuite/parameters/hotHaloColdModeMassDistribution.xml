@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.hot_halo_cold_mode_mass_distribution.exe, which checks that the mass distribution of the
+     coldMode hot halo component includes both its hot-mode and its cold-mode gas.
+
+     The virial density contrast is pinned to a fixed value, so that the test does not also depend on the spherical collapse
+     solver. Each class is declared once, at the top level, so that the hot halo component and the test share a single instance
+     of each.
+  -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="84c0ff625920c3d87efce19a5fe16adc0650dbd4" time="2026-11-21T10:30:00"/>
+
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"  />
+    <OmegaMatter     value="0.3153" />
+    <OmegaDarkEnergy value="0.6847" />
+    <OmegaBaryon     value="0.0493" />
+    <temperatureCMB  value="2.72548"/>
+  </cosmologyParameters>
+  <cosmologyFunctions value="matterLambda"/>
+
+  <virialDensityContrast value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrast>
+  <darkMatterHaloScale value="virialDensityContrastDefinition"/>
+
+  <!-- Node components. Only the basic and hot halo components are needed. -->
+  <componentBasic   value="standard"/>
+  <componentHotHalo value="coldMode"/>
+  <accretionHalo    value="zero"    />
+
+  <!-- The hot-mode and cold-mode mass distributions: beta=2/3 profiles with different core radii, so that the two can be
+       told apart at radii inside the outer radius. -->
+  <hotHaloMassDistribution value="betaProfile">
+    <beta value="0.666666666666666667"/>
+  </hotHaloMassDistribution>
+  <hotHaloMassDistributionCoreRadius value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.3"/>
+  </hotHaloMassDistributionCoreRadius>
+  <hotHaloTemperatureProfile value="virial"/>
+  <hotHaloColdModeMassDistribution value="betaProfile">
+    <beta value="0.666666666666666667"/>
+  </hotHaloColdModeMassDistribution>
+  <hotHaloColdModeCoreRadii value="virialFraction">
+    <coreRadiusOverVirialRadius value="0.05"/>
+  </hotHaloColdModeCoreRadii>
+</parameters>

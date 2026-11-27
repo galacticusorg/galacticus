@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
 !!{RST
 Contains a module that implements calculations of the time available for cooling.
 !!}
@@ -38,19 +40,26 @@ module Cooling_Times_Available
    <default>whiteFrenk1991</default>
    <method name="timeAvailable" >
     <description>
-    Return the time available for cooling in ``node`` in units of Gyr.
+    Return the time available for cooling in ``node`` in units of Gyr. If ``time`` is given, quantities which depend on the
+    current epoch are evaluated at that time rather than at the time of ``node``---this allows ``node`` to be a formation node,
+    whose structure is frozen at its formation time, while the time available for cooling continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
    <method name="timeAvailableIncreaseRate" >
     <description>
-    Return the rate at which the time available for cooling increases in ``node`` (dimensionless).
+    Return the rate at which the time available for cooling increases in ``node`` (dimensionless). If ``time`` is given,
+    quantities which depend on the current epoch are evaluated at that time rather than at the time of ``node``---this allows
+    ``node`` to be a formation node, whose structure is frozen at its formation time, while the time available for cooling
+    continues to grow.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
-    <argument>type(treeNode), intent(inout) :: node</argument>
+    <argument>type            (treeNode), intent(inout)           :: node</argument>
+    <argument>double precision          , intent(in   ), optional :: time</argument>
    </method>
   </functionClass>
   !!]

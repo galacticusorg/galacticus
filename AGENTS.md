@@ -90,9 +90,12 @@ make -jN Galacticus.exe   # N = number of parallel cores
 Gotchas:
 
 - **Builds are slow and memory-hungry.** Concurrent `-O3` compiles of the large
-  generated `*_class` units are the peak. On a ~16 GB machine, `-j4` can OOM
-  (exit 137); CI caps at **`-j2`**. On memory-constrained machines use a lower
-  `-jN` and/or `LTO=disabled` (e.g. `make -j2 LTO=disabled Galacticus.exe`).
+  generated `*_class` units are the peak. USE consolidation (`CONSOLIDATE_USES=yes`,
+  the default) keeps each compile under ~3 GB, so `-j4` peaks at ~6 GB, and CI
+  builds at **`-j4`**. With `CONSOLIDATE_USES=no` the largest compile needs
+  ~14 GB, and `-j4` can OOM (exit 137) on a ~16 GB machine. On memory-constrained
+  machines use a lower `-jN` and/or `LTO=disabled` (e.g.
+  `make -j2 LTO=disabled Galacticus.exe`).
 - **One `make` per tree.** Never run two `make` invocations concurrently in the
   same working tree — they race over generated files.
 - Because a full build takes a long time, **prefer launching it in the
@@ -201,6 +204,19 @@ change that.
   ```
   A string literal that must contain a marker word without being one (a `grep`
   pattern, say) is exempted by ending its line with `# markers: exempt`.
+- **CI runs in tiers, so a green PR has usually not run the full suite.** A PR
+  that changes `source/**` runs the default builds and the quick tests only;
+  macOS, MPI, validations and the slow tests run in the *full* suite, which
+  content must pass before the merge queue admits it (on a PR labeled `ci:full`,
+  or on a rollup of several PRs). A full run costs about 95 runner-hours: do not
+  add that label, build a rollup, or push to a PR whose full run is in progress
+  or waiting to be queued, unless the user asked. **A new test runs in CI only
+  if you add it to a job in `.github/workflows/cicd.yml`** (a unit test program
+  to the `Codes-Quick` list; a test script to the matrix of the job that fits),
+  and a slow one is also listed in `scripts/build/ciPlan.py`. Make no other edit
+  to `cicd.yml` in the same PR: adding tests keeps it in the cheap tier, while
+  any other change to that file sends every push to the full suite. See
+  [`docs/agents/ci.md`](docs/agents/ci.md) for each case.
 - **Three scripts are not run by any CI workflow** and are run manually (or via
   `test-all.py`) only: `testSuite/test-regressions.py` (superseded by the
   `testSuite/regressions/` matrix), `testSuite/validate-concentrationConvergence.py`
@@ -333,10 +349,18 @@ date it was last verified. Read the matching file before the task:
 | [`fortran.md`](docs/agents/fortran.md) | adding a class, parameter or directive; changing object copying, assignment, OpenMP or error handling |
 | [`committing.md`](docs/agents/committing.md) | committing, updating a branch, changing a parameter, pushing |
 | [`testing.md`](docs/agents/testing.md) | writing or trusting a test; comparing model outputs; benchmarking or profiling |
-| [`ci.md`](docs/agents/ci.md) | diagnosing a CI failure; editing a workflow; working with stacked PRs |
+| [`ci.md`](docs/agents/ci.md) | diagnosing a CI failure; judging what a green PR proves; adding a test or job to CI; landing a PR or building a rollup; editing a workflow; working with stacked PRs |
 
 A knowledge entry records what was true when it was written: if it names a
 file, flag or command, check that it still exists before relying on it.
+
+### Skills
+
+[`.agents/skills/`](.agents/skills/) holds shared agent skills in the Agent
+Skills format (`SKILL.md` plus supporting files); `.claude/skills` links to it
+for Claude Code. `galacticus-review` reviews a PR, a branch, or everything
+merged to master since the last such review, for physics, numerical
+correctness and bugs.
 
 ### Proposing a change to this guidance
 

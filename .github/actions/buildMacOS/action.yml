@@ -41,8 +41,26 @@ runs:
            exit 1
         fi
         curl -L --fail --retry 5 --retry-all-errors --retry-max-time 120 https://github.com/macports/macports-base/releases/download/v${macportsversion}/MacPorts-${macportsbase}.pkg --output MacPorts-${macportsbase}.pkg
-        sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /
+        # The installer runs scripts from the package once its files are in place, and every so often those hang for
+        # about ten minutes and then fail ("An error occurred while running scripts from the package"), which fails
+        # the whole job before anything has been compiled. It is not a fault in the package -- the same package
+        # installs on the next run -- so the installer is tried up to three times, with a pause between attempts.
+        installed=false
+        for attempt in 1 2 3; do
+           if sudo installer -pkg ./MacPorts-${macportsbase}.pkg -target /; then
+              installed=true
+              break
+           fi
+           echo "::warning title=MacPorts installer::Attempt ${attempt} of 3 to install MacPorts failed."
+           if [[ "${attempt}" -lt 3 ]]; then
+              sleep 60
+           fi
+        done
         rm ./MacPorts-${macportsbase}.pkg
+        if [[ "${installed}" != "true" ]]; then
+           echo "MacPorts could not be installed in 3 attempts"
+           exit 1
+        fi
     - name: Install GCC 16 (gcc/g++/gfortran)
       shell: bash
       run: |

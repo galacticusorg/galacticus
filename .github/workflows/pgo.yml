@@ -116,9 +116,10 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           set -o pipefail
-          # As for the release build (see `Build-Executable-Linux` in `cicd.yml`), cap at -j2 to bound peak memory.
+          # As for the release build (see `Build-Executable-Linux` in `cicd.yml`), build at -j4, which USE consolidation
+          # (the default) keeps within the runner's memory.
           # `SUFFIX=` names the executable `Galacticus.exe` rather than `Galacticus.exe_PGOInstrumented`.
-          make -j2 PGO=generate SUFFIX= Galacticus.exe 2>&1 | tee build.log
+          make -j4 PGO=generate SUFFIX= Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
           grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
@@ -149,7 +150,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
           set -o pipefail
-          make -j2 Galacticus.exe 2>&1 | tee build.log
+          make -j4 Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
       - name: Upload the standard executable
@@ -322,7 +323,7 @@ jobs:
           tar xf profiles.tar
           rm profiles.tar
           set -o pipefail
-          make -j2 PGO=use SUFFIX= Galacticus.exe 2>&1 | tee build.log
+          make -j4 PGO=use SUFFIX= Galacticus.exe 2>&1 | tee build.log
           set +o pipefail
           grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
           grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)

@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Parameter file used by tests.black_hole_seeds_Vergara2023 to check that the Vergara et al. (2023) black hole seeds class -->
+<!-- changes the nuclear star cluster only when a seed is placed, and not when the seed mass is computed.                    -->
+<!-- Andrew Benson, Claude (19-November-2026)                                                                                 -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <lastModified revision="a9511c71c4fcc7ef84ecc50201d3fc51fab25086" time="2026-11-19T12:00:00"/>
+  <componentBasic value="standard"/>
+  <componentNSC   value="standard">
+    <radiusNormalization value="3.3d-6"/>
+  </componentNSC>
+  <!-- A small radius efficiency, so that the nuclear star cluster of the test collapses. -->
+  <blackHoleSeeds value="vergara2023">
+    <massEfficiency   value="0.1" />
+    <radiusEfficiency value="0.01"/>
+  </blackHoleSeeds>
+  <!-- A single luminosity, so that the scaling of the nuclear star cluster's luminosities can be tested. -->
+  <luminosityFilter   value="SDSS_r"/>
+  <luminosityType     value="rest"  />
+  <luminosityRedshift value="0.0"   />
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="67.36"/>
+    <OmegaMatter     value=" 0.3153"/>
+    <OmegaDarkEnergy value=" 0.6847"/>
+    <OmegaBaryon     value=" 0.0493"/>
+    <temperatureCMB  value=" 2.72548"/>
+  </cosmologyParameters>
+</parameters>

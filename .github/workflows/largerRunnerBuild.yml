@@ -1,10 +1,10 @@
 name: 'Larger-Runner Build'
 # Build Galacticus on a GitHub-hosted larger runner, and report how long the build took and how much memory it used.
 #
-# The standard runners used by the CI/CD workflow have 4 cores and 16 GB of memory, which limits its builds to `make -j2` (see
-# `Build-Executable-Linux` in `cicd.yml`). A larger runner lifts that limit, but - unlike the standard runners - is billed by
-# the minute, even for a public repository. So this workflow never runs on a push or a pull request. It runs when dispatched
-# manually:
+# The standard runners used by the CI/CD workflow have 4 cores and 16 GB of memory, which limits its builds to `make -j4`
+# (see `Build-Executable-Linux` in `cicd.yml`), or `make -j2` without USE consolidation (`CONSOLIDATE_USES=no`). A larger
+# runner lifts that limit, but - unlike the standard runners - is billed by the minute, even for a public repository. So this
+# workflow never runs on a push or a pull request. It runs when dispatched manually:
 #
 #   gh workflow run largerRunnerBuild.yml [-f ref=<branch>] [-f jobs=8] [-f target=libgalacticus.so -f options='LIBRARY=yes' -f static=false]
 #
@@ -96,8 +96,8 @@ jobs:
     concurrency:
       group: largerRunnerBuild
       cancel-in-progress: false
-    # Bounds the cost of a run that stalls. A build at `-j2` on a standard runner takes around 100 minutes, so a build that has
-    # not finished in this time is gaining nothing from the larger runner.
+    # Bounds the cost of a run that stalls. A build at `-j2` on a standard runner without USE consolidation takes around 100
+    # minutes, so a build that has not finished in this time is gaining nothing from the larger runner.
     timeout-minutes: 90
     steps:
       - name: Check out repository code

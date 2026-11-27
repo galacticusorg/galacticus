@@ -125,39 +125,9 @@ that one object recompiles (every other `.p.F90` regenerates identically, even t
 ## Abstract intermediate classes in a functionClass hierarchy
 *Added 2026-09-17; verified 2026-09-17*
 
-To share code between sibling implementations, an abstract intermediate is the supported mechanism and often fits
-where a "make one extend the other" refactoring does not (that would inherit parameters the child never uses,
-changing its user-visible parameter interface).
-
-- **Declare it with `abstract="yes"`** on the class directive, plus `type, abstract, extends(<class>Class)`. 33
-  exist across 12 families (`posteriorSampleLikelihoodBaseParameters`, `outputAnalysisDistributionOperatorRandomError`,
-  `surveyGeometryMangle`, nine abstract `nodePropertyExtractor`s, …). It is registered in `schema/parameters.xsd`
-  like any other.
-- **A deferred binding needs an `abstract interface`** placed between `end type` and `contains`, with
-  `import <Type>, treeNode` (comma-separated, no parentheses), and `procedure(<template>), deferred :: <method>` in
-  the type. Keep the `<methods>` entry. The overriding procedures must match the interface's characteristics
-  exactly - a `result(...)` clause does not affect that.
-- **Shared construction goes in a type-bound initializer the children call**, not a parent constructor
-  (`procedure :: initialize => baseParametersInitialize` is the precedent); abstract intermediates otherwise rely on
-  default member initializers. `<addMetaProperty>` works in such a procedure - 8 of the tree's 254 sit in
-  `*Initialize*` ones, not constructors.
-- **A child *can* assign the parent's `private` components** (`source/models/likelihoods/halo_mass_function.F90` does),
-  because implementations are submodules of one hoisted ancestor module - so `<constructorAssign>` on inherited
-  members compiles.
-- **Beware a second module-scope callback.** Moving a shared `self_` pointer to the parent breaks any *other*
-  handler in a child that rode it: soliton's `satelliteMerger` read soliton-only components through it and was
-  rejected with "is not a member of the 'functionclass' structure". The fix is not a second pointer - event hooks
-  already pass the instance in, so unwrap it with `select type` / `class is (…)` plus `class is (functionClass)` and
-  `class default` error arms (`time.F90`'s `satelliteHostChange` is the pattern), dropping the
-  `!$GLC attributes unused :: self` line.
-
-**Why:** the mechanics are spread across precedents, and each of the last three points was found only by a broken
-compile or a wrong assumption.
-
-**How to apply:** copy the shape from `output/analyses/distribution_operator/random_error/_class.F90`, then grep the
-children for every module-scope pointer they use before moving one.
-
-*(Candidate for `docs/manuals/developer-guide/creating-a-new-class.rst`.)*
+Moved to the developer guide: *Sharing code between implementations: abstract intermediate classes* in
+`docs/manuals/developer-guide/creating-a-new-class.rst`. Read it before sharing code between implementations of a
+class.
 
 ## Reference-counted objects, OpenMP, and gfortran-16 bugs
 *Added 2026-08-03; verified 2026-11-19*
@@ -271,24 +241,6 @@ children for every module-scope pointer they use before moving one.
 ## Reporting a numerical failure the run survives: `Warn` is invisible, and a GSL status is not just a flag
 *Added 2026-10-26; verified 2026-10-26*
 
-- **`Warn` shows nothing in a run that succeeds.** `Warn` (`source/error/_module.F90`) calls
-  `displayMessage(message,verbosity=verbosityLevelWarn)`, and the default verbosity is `verbosityLevelStandard`,
-  which is *lower* (the order is silent < standard < working < warn < info < debug). Below `warn` the message is
-  only recorded, and `Warn_Review`, which prints the record, is called solely from `Error_Report_Char`, the two
-  signal handlers and `errorHandlerGSL`. For a warning the user must actually see, call `displayMessage(message)`
-  with no verbosity argument (`displayMagenta()//'WARNING:'//displayReset()` is the house prefix).
-- **Tolerate only the integrator statuses that leave a usable result.** Passing `status=` to `integrator%integrate`
-  switches off GSL's abort, so the status must be tested; but `status /= errorStatusSuccess` is too coarse to
-  tolerate wholesale. `gsl_integration_qag` rejects `epsrel < 50*epsilon` (1.11e-14) with `GSL_EBadTol` (13)
-  *after* setting the result to **zero**, and Galacticus defaults `toleranceAbsolute` to 0, so "warn and carry on"
-  turns a too-tight tolerance into silent zeros (measured 2026-10-26 against the system `libgsl.so.25`, and
-  reproduced end-to-end: every luminosity 0.0 for 149 galaxies). Tolerate `GSL_ERound`, `GSL_EMaxIter` and
-  `GSL_ESing`, which do return a best estimate; make anything else fatal. `gslErrorDecode(status)` from
-  `Interface_GSL` gives the text for the message, and `nodePropertyExtractorProjectedDensity` is the model for a
-  `tolerate...Failures` parameter.
-
-**Why:** both failure modes are silent: the first hides the warning, the second replaces results with zeros while
-reporting only that a tolerance was missed.
-
-**How to apply:** use these whenever adding a user-facing warning, or a parameter that decides whether a numerical
-failure is fatal.
+Moved to the developer guide: *Tolerating a numerical failure: which statuses leave a usable result* and *Warnings
+that must be seen in a successful run*, in `docs/manuals/developer-guide/error-handling.rst`. Read them before adding a
+user-facing warning, or a parameter that decides whether a numerical failure is fatal.
