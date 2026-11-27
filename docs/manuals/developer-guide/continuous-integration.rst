@@ -195,6 +195,124 @@ of the reusable ``testCode.yml`` and ``testModel.yml`` workflows and compares
 outputs against references (``hdf5Diff.yml``). This pipeline is heavier and takes
 considerably longer than the pull-request checks.
 
+The full suite costs over a hundred hours of runner time, so it is not run for
+every push to every pull request. The first job of each run, **Plan**, gives the
+run a *tier*, and every other job runs only if the plan lists it:
+
+* **full** — every job. Used for a pull request which changes the build system,
+  the code generator, the dependencies, or the workflows themselves (other than
+  by adding tests to the jobs of ``cicd.yml``: see below), for a pull request
+  carrying the ``ci:full`` label, for a manual dispatch, and for a push to
+  ``master`` of content which has not already passed the full suite.
+* **pr** — a subset chosen from the files which a pull request changes. A change
+  to the source runs the two default Linux builds, the unit tests, and the model
+  tests which take no more than a few minutes each. A change to the test suite
+  alone runs just the tests which it affects. Other build configurations, macOS,
+  MPI, validation, benchmarks, and profiling are left to the full suite.
+* **deploy** — a push to ``master`` of content which has already passed the full
+  suite. Nothing is tested again. What is published is built again from the
+  commit on ``master``, because an executable records the commit from which it
+  was built, and is published together with the validation results, benchmarks,
+  and profiles of the run which tested that content.
+* **skip** — nothing: a draft pull request, one which changes no file that can
+  affect the build or the tests, or a merge group whose content has already
+  passed the full suite.
+* **blocked** — nothing, and the run fails: a merge group whose content has not
+  passed the full suite.
+
+The last job, **CI-Gate**, checks the outcome against the plan: it passes only if
+no job failed or was canceled and every planned job actually ran. It is the one
+status check which branch protection should require, and it reports for every
+run — including a skipped one.
+
+Getting a change onto ``master``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Everything passes the full suite before it reaches ``master``, but the merge
+queue does not run it. The queue allows a required check at most six hours to
+report, and the full suite takes longer than that whenever runners are scarce.
+Instead, a run of the full suite which passes records the *content* which it
+tested, and the merge queue admits only a merge group whose content has such a
+record.
+
+Content here means the state of every file which can affect the build or the
+tests: every file which matches one of the path rules in
+``scripts/build/ciPlan.py``. It is identified by a digest of those files (print
+it for a checkout with ``scripts/build/ciPlan.py key``). Two commits which
+differ only in other files — documentation, for the most part — have the same
+content. For a pull request, the content tested is that of the pull request
+merged into ``master`` as ``master`` was when the run began. The merge queue
+forms that same content for the pull request for as long as nothing which can
+affect the build or the tests has reached ``master`` in the meantime.
+
+So, to land one pull request, or several together:
+
+#. Let each pull request pass its own checks in the **pr** tier.
+#. Choose what will run the full suite. For a single pull request, give it the
+   ``ci:full`` label. For several, make a new branch from ``master``, merge
+   each of their branches into it, and open a pull request for that branch with
+   the ``ci:full`` label. The label is read when a run begins: add it before
+   opening the pull request, or add it and then push.
+#. When that run has passed, add the pull request to the merge queue. Its merge
+   group is verified against the record in about a minute. Merging the combined
+   pull request with a merge commit also marks the pull requests which it
+   combines as merged.
+#. The push to ``master`` which follows runs the **deploy** tier.
+
+A pull request which changes no file that can affect the build or the tests
+needs none of this. Its content is the content already on ``master``, which has
+a record, so it can be queued as soon as its own checks have passed, and it
+does not disturb a pull request which is waiting to be queued.
+
+If a change which can affect the build or the tests reached ``master`` after
+the run of the full suite began, the merge group is of content which no run has
+tested: its run fails, and the pull request is removed from the queue. Merge
+``master`` into the branch, let the full suite run again, and queue it once
+more. Two such pull requests queued at once fare the same way: the second is of
+content which includes the first.
+
+A record is an artifact of the run which made it, and expires with that run's
+other artifacts. Only a record made by a run in this repository is believed: a
+pull request from a fork runs its own copy of the workflow. A branch of this
+repository could likewise change the workflow to record a pass which it had not
+earned, so a pull request which changes ``cicd.yml`` deserves the same review as
+any other change to what guards ``master``.
+
+Changing what runs
+^^^^^^^^^^^^^^^^^^
+
+The rules which choose a tier and a subset are tables in
+``scripts/build/ciPlan.py``, which is the place to change what a pull request
+runs. Its path rules must cover every file which can affect the build or the
+tests, because a file which matches no rule is also left out of the content
+described above, and so a change to it is never tested. When a new kind of file
+comes to be used by the build or by a test, give it a rule.
+
+A pull request which adds a test to ``cicd.yml`` — an executable in the list of
+``Codes-Quick``, or an entry in the matrix of a job — does not thereby run the
+full suite. The plan compares the workflow with that of ``master``, and where
+the two differ only in the tests which their jobs run, the pull request stays in
+the **pr** tier and runs the tests which it adds as well: whichever job they were
+added to, and whether or not they are listed as deferred. A job brought in for
+an added test alone runs nothing else. Any other change to the workflow, however
+small, runs the full suite.
+
+When adding a job to ``cicd.yml``, make it need the ``Plan`` job, give it the
+same ``if:`` condition as its neighbors (with its own name), and add it to the
+``needs`` of ``CI-Gate``. The tests in ``scripts/build/tests/test_ciPlan.py``
+fail if any of these is missed. A new job runs only in the full tier unless it is
+added to a group in ``ciPlan.py``. A new unit test executable is added to the
+list of the ``Codes-Quick`` job, which runs all of the quick unit tests one after
+another in a single job; a unit test which takes several minutes or more belongs
+instead in the matrix of the ``Codes`` job, where each gets a job of its own. A
+test added to that matrix also needs a step in the
+``Build-Executable-Linux-Non-Static`` job which uploads its executable as an
+artifact of its own, so that its job need not download every test executable.
+
+A test which is known to fail by chance can be given more than one attempt with
+the ``attempts`` input of ``testModel.yml``. A test which passes only on a later
+attempt is reported as a warning on the run, so that it remains visible.
+
 .. _git-hooks:
 
 Git hooks
