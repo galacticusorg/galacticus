@@ -11,12 +11,17 @@ import numpy as np
 
 # Statistics of constrained branches. A branch is described by the logarithm of its mass at a set of redshifts below the
 # constraint, and by the number of halos merging directly into it below the constraint, in bins of their mass. For constrained
-# trees the branch is the constrained branch. For unconstrained trees (used to make the reference) every progenitor within
-# ±0.1 dex of the constrained mass at the constrained redshift is selected, and traced to the root: this is the rejection
-# method, which samples branches with the correct distribution.
+# trees the branch is the constrained branch. For unconstrained trees (used to make the reference) every halo within the window
+# about the constrained mass at the constrained redshift is selected, and traced to the root: this is the rejection method,
+# which samples branches with the correct distribution. The window is that into which constrained branches are conditioned to
+# arrive (the default half-width, 0.05 in ln M, of mergerTreeBranchingProbabilityConstraintConditioned). A wider window would
+# select halos whose mean mass is below the constrained mass, as lower masses are more abundant. The tree builder places all
+# progenitors of a node at the time at which the node branches, so the halo which exists at the constrained redshift, between
+# a node below it and that node's progenitors above it, is the node's own: its mass is interpolated between the total mass of
+# the progenitors and the mass of the node. Halos merging into the branch are those which do so below the constrained redshift.
 redshiftsBranch        = np.array([0.25,0.5,1.0,1.5,2.0,3.0])
 binsMassSecondary      = np.array([10.0,10.5,11.0,11.5,12.0,15.0])
-halfWidthSelection     = np.log(10.0)*0.1
+halfWidthSelection     = 0.05
 # Largest mass, relative to the constrained mass, with which a constrained branch may reach the constrained redshift. This is the
 # upper edge of the default window of mergerTreeBranchingProbabilityConstraintConditioned (exp(0.05)), plus three cells of its
 # default tabulation in mass (0.005 each in ln M), within which interpolation lets a branch arrive just outside the window.
@@ -46,7 +51,9 @@ def branchesConstrained(fileName, massConstraint, redshiftConstraint):
     # through the constrained mass, and the mass (relative to the constrained mass) with which the branch reaches the constrained
     # redshift in each tree. (The node of the constrained mass is placed slightly before the constrained redshift, at z=4.005
     # for z=4, so the redshift is matched only to 1%. Any mass of the branch in excess of the constrained mass, if above the
-    # resolution, is inserted as a second, unconstrained, progenitor, which is the only sibling of the constrained node.)
+    # resolution, is inserted as a second, unconstrained, progenitor, which is the only sibling of the constrained node. The halo
+    # at the constrained redshift is that of their parent, so the branch has the combined mass there, and that progenitor is not
+    # counted as merging below the constrained redshift.)
     branches = []; secondaries = []; missed = 0; arrivals = []
     with h5py.File(fileName,"r") as model:
         trees = model["mergerTreeStructures"]
@@ -64,8 +71,8 @@ def branchesConstrained(fileName, massConstraint, redshiftConstraint):
             excess          = sum(mass[k] for k in children.get(int(parent[nodeConstrained]),[]) if isConstrained[k] == 0)
             arrivals.append(1.0+excess/massConstraint)
             onBranch = set(constrained.tolist())
-            merging  = [k for j in below for k in children.get(int(j),[]) if k not in onBranch]
-            b, s     = branchStatistics(list(redshift[below])+[redshiftConstraint],list(mass[below])+[massConstraint],merging,mass)
+            merging  = [k for j in below for k in children.get(int(j),[]) if k not in onBranch and redshift[k] < redshiftConstraint*(1.0-1.0e-6)]
+            b, s     = branchStatistics(list(redshift[below])+[redshiftConstraint],list(mass[below])+[massConstraint+excess],merging,mass)
             branches.append(b); secondaries.append(s)
     return np.array(branches), np.array(secondaries), missed, np.array(arrivals)
 
@@ -77,24 +84,22 @@ def branchesRejection(fileName, massConstraint, redshiftConstraint, offset):
         trees = model["mergerTreeStructures"]
         for treeNumber, treeName in enumerate(trees.keys()):
             mass, redshift, parent, children = treeLinks(trees[treeName])
-            primary = {j: max(c,key=lambda k: mass[k]) for j, c in children.items()}
-            for i in np.where((parent >= 0) & (redshift >= redshiftConstraint))[0]:
-                j = parent[i]
-                if redshift[j] >= redshiftConstraint:
+            for j, progenitors in children.items():
+                # Find nodes below the constrained redshift whose progenitors are above it. All progenitors of a node share the
+                # same redshift.
+                redshiftProgenitors = redshift[progenitors[0]]
+                if redshift[j] >= redshiftConstraint or redshiftProgenitors < redshiftConstraint:
                     continue
-                # Mass at the constrained redshift: interpolated along a primary progenitor, otherwise that of the merging halo.
-                if primary[int(j)] == i:
-                    weight      = (redshift[i]-redshiftConstraint)/(redshift[i]-redshift[j])
-                    massCrossing= np.exp((1.0-weight)*np.log(mass[i])+weight*np.log(mass[j]))
-                else:
-                    massCrossing= mass[i]
+                # Mass at the constrained redshift: interpolated between the total mass of the progenitors and the mass of the node.
+                weight       = (redshiftProgenitors-redshiftConstraint)/(redshiftProgenitors-redshift[j])
+                massCrossing = np.exp((1.0-weight)*np.log(mass[progenitors].sum())+weight*np.log(mass[j]))
                 if abs(np.log(massCrossing/massConstraint)) > halfWidthSelection:
                     continue
                 path = []
                 while j >= 0:
                     path.append(j); j = parent[j]
-                onBranch = set(path+[i])
-                merging  = [k for j in path for k in children.get(int(j),[]) if k not in onBranch]
+                onBranch = set(path)
+                merging  = [k for j in path for k in children.get(int(j),[]) if k not in onBranch and redshift[k] < redshiftConstraint]
                 b, s     = branchStatistics([redshiftConstraint]+list(redshift[path]),[massCrossing]+list(mass[path]),merging,mass)
                 branches.append(b); secondaries.append(s); treeOf.append(offset+treeNumber)
     return branches, secondaries, treeOf
@@ -102,8 +107,9 @@ def branchesRejection(fileName, massConstraint, redshiftConstraint, offset):
 def compareBranches(fileName, reference):
     # Compare the statistics of constrained branches with those found by rejection in unconstrained trees, printing the
     # outcome of each check. The allowed offsets combine a fixed margin with three times the combined statistical error. Over
-    # 640 trees the constraint-conditioned branching rates match rejection to within about 0.01 dex in branch mass and 2% in
-    # the number of merging halos, so the fixed margin is a safeguard, not an allowance for a known bias.
+    # 640 trees the constraint-conditioned branching rates match rejection to within the statistical errors (at most 0.02 dex,
+    # or 1.2σ, in branch mass and 1.3% in the number of merging halos), so the fixed margin is a safeguard, not an allowance for
+    # a known bias.
     toleranceMassBranch = 0.1
     toleranceSecondary  = 0.1
     significance        = 3.0
@@ -153,7 +159,7 @@ if arguments.reference is not None:
     branchesOfTree = [np.where(treeOf == tree)[0] for tree in range(countTrees)]
     resampled      = [np.concatenate([branchesOfTree[k] for k in generator.integers(0,countTrees,countTrees)]) for _ in range(500)]
     reference      = {
-        "description"       : "Statistics of branches passing through a progenitor of mass 10^12 Msun at z=4 in trees of 10^14 Msun at z=0, found by rejection in unconstrained trees (testSuite/parameters/constrainedMergerTreesRejection.xml) and made by test-constrained-merger-trees.py.",
+        "description"       : "Statistics of branches passing through a halo of mass 10^12 Msun (to within 0.05 in ln M) at z=4 in trees of 10^14 Msun at z=0, found by rejection in unconstrained trees (testSuite/parameters/constrainedMergerTreesRejection.xml) and made by test-constrained-merger-trees.py.",
         "massConstraint"    : 1.0e12,
         "redshiftConstraint": 4.0,
         "countTrees"        : countTrees,
