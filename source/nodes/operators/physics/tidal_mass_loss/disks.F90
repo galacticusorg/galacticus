@@ -44,8 +44,8 @@
    angular momentum of the disk then remains consistent with its truncated mass distribution. (Otherwise, removing material from
    across the region beyond the tidal radius, while truncating the mass distribution from its edge, leaves the disk with more
    angular momentum than its mass distribution implies.) The ``[galacticComponentTruncation]`` used here must be the same as that
-   used by the disk component, which is ensured by specifying it at the top level of the parameter file. (A fatal error occurs if
-   one, but not the other, truncates the disk.) The disk component must track the angular momentum of the disk (e.g. the standard
+   used by the disk component, which is ensured by specifying it at the top level of the parameter file. (A fatal error occurs,
+   before any tree is evolved, if they differ.) The disk component must track the angular momentum of the disk (e.g. the standard
    disk).
    </description>
   </nodeOperator>
@@ -88,6 +88,7 @@ contains
     !![
     <objectBuilder class="tidalStripping"              name="tidalStripping_"              source="parameters"/>
     <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation_" source="parameters"/>
+    <modelConsistent name="disk:galacticComponentTruncation" object="galacticComponentTruncation_" description="the `galacticComponentTruncation` of the `tidalMassLossDisks` node operator"/>
     !!]
     self=nodeOperatorTidalMassLossDisks(tidalStripping_,galacticComponentTruncation_)
     !![
@@ -167,10 +168,8 @@ contains
     Apply tidal mass loss to the disk. If the mass distribution of the disk is truncated, the stripped material carries the
     specific angular momentum implied by the change in the truncated mass distribution.
     !!}
-    use :: Error                                    , only : Error_Report
-    use :: Galactic_Component_Truncation_Disk_Status, only : diskTruncationIsActive
-    use :: Galacticus_Nodes                         , only : propertyInactive          , nodeComponentDisk
-    use :: Tidal_Mass_Loss_Utilities                , only : Tidal_Mass_Loss_Apply_Disk
+    use :: Galacticus_Nodes         , only : propertyInactive          , nodeComponentDisk
+    use :: Tidal_Mass_Loss_Utilities, only : Tidal_Mass_Loss_Apply_Disk
     implicit none
     class           (nodeOperatorTidalMassLossDisks), intent(inout), target  :: self
     type            (treeNode                      ), intent(inout), target  :: node
@@ -187,14 +186,6 @@ contains
 
     ! Do nothing during inactive property solving.
     if (propertyInactive(propertyType)) return
-    ! The truncation used here must match that of the disk, as otherwise the angular momentum of the disk becomes inconsistent with
-    ! its mass distribution.
-    if (self%galacticComponentTruncation_%isActive() .neqv. diskTruncationIsActive)                                       &
-         & call Error_Report(                                                                                             &
-         &                   'the disk is truncated by the [galacticComponentTruncation] used by only one of the disk '// &
-         &                   'component and this operator - declare it at the top level of the parameter file'         // &
-         &                   {introspection:location}                                                                     &
-         &                  )
     if (self%galacticComponentTruncation_%isActive()) then
        disk => node%disk()
        select type (disk)

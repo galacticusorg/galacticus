@@ -395,6 +395,9 @@ def main(argv):
             # A `modelExclusive` is checked against every other claim on
             # its fact, found from the `modelExclusive` directives.
             'modelExclusive':       lambda _: ['modelExclusive'],
+            # Likewise each `modelConsistent` is checked against every other
+            # declaration of its fact.
+            'modelConsistent':      lambda _: ['modelConsistent'],
             # A static event hook calls every function attached to it by a
             # directive named after the hook.
             'eventHookStatic':      lambda consumer: [

@@ -43,7 +43,7 @@
    :galacticus-class:`galacticComponentTruncationExponential`). Assuming a flat rotation curve, the mean specific angular momentum
    of the gas is that of the disk scaled by the ratio of the mean radius of the gas to the mass-weighted mean radius of the stars
    and gas. The ``[galacticComponentTruncation]`` used here must be the same as that used by the disk component, which is ensured
-   by specifying it at the top level of the parameter file. (A fatal error occurs if one, but not the other, truncates the disk.)
+   by specifying it at the top level of the parameter file. (A fatal error occurs, before any tree is evolved, if they differ.)
    </description>
   </nodeOperator>
   !!]
@@ -85,6 +85,7 @@ contains
     !![
     <objectBuilder class="ramPressureStripping"        name="ramPressureStripping_"        source="parameters"/>
     <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation_" source="parameters"/>
+    <modelConsistent name="disk:galacticComponentTruncation" object="galacticComponentTruncation_" description="the `galacticComponentTruncation` of the `ramPressureMassLossDisks` node operator"/>
     !!]
     self=nodeOperatorRamPressureMassLossDisks(ramPressureStripping_,galacticComponentTruncation_)
     !![
@@ -161,10 +162,8 @@ contains
     !!{RST
     Perform ram pressure stripping-induced mass loss in a disk.
     !!}
-    use :: Abundances_Structure                     , only : operator(*)
-    use :: Error                                    , only : Error_Report
-    use :: Galactic_Component_Truncation_Disk_Status, only : diskTruncationIsActive
-    use :: Galacticus_Nodes                         , only : propertyInactive      , nodeComponentDisk, nodeComponentHotHalo
+    use :: Abundances_Structure, only : operator(*)
+    use :: Galacticus_Nodes    , only : propertyInactive, nodeComponentDisk, nodeComponentHotHalo
     implicit none
     class           (nodeOperatorRamPressureMassLossDisks), intent(inout), target  :: self
     type            (treeNode                            ), intent(inout), target  :: node
@@ -180,12 +179,6 @@ contains
 
     ! Do nothing during inactive property solving.
     if (propertyInactive(propertyType)        ) return
-    if (self%galacticComponentTruncation_%isActive() .neqv. diskTruncationIsActive)                                       &
-         & call Error_Report(                                                                                             &
-         &                   'the disk is truncated by the [galacticComponentTruncation] used by only one of the disk '// &
-         &                   'component and this operator - declare it at the top level of the parameter file'         // &
-         &                   {introspection:location}                                                                     &
-         &                  )
     disk => node%disk()
     if (disk%massGas() <= 0.0d0               ) return
     massLossRate=self%ramPressureStripping_%rateMassLoss(disk)
