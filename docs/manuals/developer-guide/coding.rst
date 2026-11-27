@@ -623,7 +623,7 @@ The error reporting described under ``isCreator`` is supported by the ``metaProp
 Model Facts: Dependencies Between Objects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An object builds and owns the objects it needs (via ``objectBuilder``), but sometimes an object gives correct results only if some *other* object, which it neither owns nor builds, is also part of the model. For example, :galacticus-class:`galacticDiskHeatingImpulsive` reads the ``tidalHeatingNormalized`` property of satellites, which is evolved only if a :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator is present. Without it the property stays zero, and disks are silently never heated. Such dependencies are declared with the ``modelFact`` and ``modelRequire`` directives, and conflicts between objects with the ``modelExclusive`` directive. The class which establishes something declares a *fact*, named by a colon-separated token:
+An object builds and owns the objects it needs (via ``objectBuilder``), but sometimes an object gives correct results only if some *other* object, which it neither owns nor builds, is also part of the model. For example, :galacticus-class:`galacticDiskHeatingImpulsive` reads the ``tidalHeatingNormalized`` property of satellites, which is evolved only if a :galacticus-class:`nodeOperatorSatelliteTidalHeating` node operator is present. Without it the property stays zero, and disks are silently never heated. Such dependencies are declared with the ``modelFact`` and ``modelRequire`` directives, conflicts between objects with the ``modelExclusive`` directive, and configurations which must agree with the ``modelConsistent`` directive. The class which establishes something declares a *fact*, named by a colon-separated token:
 
 .. code-block:: none
 
@@ -653,9 +653,19 @@ Some physics must be handled by only one object, or the model would double count
 
 An object should make the claim only if it will actually do the physics; for example, the spheroid component makes its claim only if its :galacticus-class:`galacticComponentHeatingClass` is active. Claims are checked by ``inputParameters%modelFactsValidate()`` along with requirements. Claims on the same token from more than one place in the source are reported as an error listing the description of each claimant, while repeated claims from the same place (e.g. once per OpenMP thread) are not. A token which only one ``modelExclusive`` directive in the whole source claims could never conflict, and so fails the build, as it is most likely a misspelling.
 
+Some objects must agree on the configuration of another object which each builds for itself. For example, the standard disk component truncates its mass distribution using a :galacticus-class:`galacticComponentTruncationClass` object, while :galacticus-class:`nodeOperatorTidalMassLossDisks` uses its own such object to compute the angular momentum carried away by stripped material. If the two differ, the angular momentum of the disk becomes inconsistent with its mass distribution. Each such object declares the configuration it uses:
+
+.. code-block:: none
+
+    !![
+    <modelConsistent name="disk:galacticComponentTruncation" object="galacticComponentTruncation_" description="the `galacticComponentTruncation` of the `tidalMassLossDisks` node operator"/>
+    !!]
+
+where ``object`` names an object whose descriptor (serialized to a string) is the value compared. Alternatively, ``value`` gives a Fortran character expression to compare instead. Values are checked by ``inputParameters%modelFactsValidate()`` along with requirements, and differing values declared for one token are reported as an error listing the description and value of each declaration, and suggesting that the object be specified once, at the top level of the parameter file (which is how objects are made the same). As for ``modelExclusive``, a token which only one ``modelConsistent`` directive in the whole source declares fails the build.
+
 Some points to note:
 
-* Only objects built from parameters register. Code which builds objects with their internal constructors (e.g. unit tests) neither records nor checks facts, and must call ``modelFactProvide``, ``modelFactRequire``, ``modelFactExclusive`` and ``modelFactsValidate`` itself if it needs them.
+* Only objects built from parameters register. Code which builds objects with their internal constructors (e.g. unit tests) neither records nor checks facts, and must call ``modelFactProvide``, ``modelFactRequire``, ``modelFactExclusive``, ``modelFactConsistent`` and ``modelFactsValidate`` itself if it needs them.
 * A fact means only that some object establishing it was built. An object should declare a fact only if building it really does establish it.
 * Code which builds a new model from a parameter document that it reuses (as the posterior sampling likelihoods do) must call ``inputParameters%modelFactsReset()`` between models.
 

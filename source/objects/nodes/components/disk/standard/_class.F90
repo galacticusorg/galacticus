@@ -229,13 +229,12 @@ contains
     !!{RST
     Initializes the tree node standard disk methods module.
     !!}
-    use :: Abundances_Structure                     , only : Abundances_Property_Count
-    use :: Error                                    , only : Error_Report
-    use :: Galactic_Component_Truncations           , only : galacticComponentTruncationClass
-    use :: Galactic_Component_Truncation_Disk_Status, only : diskTruncationIsActive
-    use :: Galacticus_Nodes                         , only : defaultDiskComponent            , nodeComponentDiskStandard
-    use :: Input_Parameters                         , only : inputParameter                  , inputParameters
-    use :: Node_Component_Disk_Standard_Data        , only : tidalTruncationID               , truncationGasID
+    use :: Abundances_Structure             , only : Abundances_Property_Count
+    use :: Error                            , only : Error_Report
+    use :: Galactic_Component_Truncations   , only : galacticComponentTruncationClass
+    use :: Galacticus_Nodes                 , only : defaultDiskComponent            , nodeComponentDiskStandard
+    use :: Input_Parameters                 , only : inputParameter                  , inputParameters
+    use :: Node_Component_Disk_Standard_Data, only : tidalTruncationID               , truncationGasID
     implicit none
     type (inputParameters                 ), intent(inout) :: parameters
     type (nodeComponentDiskStandard       )                :: diskStandardComponent
@@ -255,9 +254,9 @@ contains
        ! to the ODE system of every node, whether or not it is created.
        !![
        <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation__" source="subParameters"/>
+       <modelConsistent name="disk:galacticComponentTruncation" object="galacticComponentTruncation__" description="the `galacticComponentTruncation` of the standard disk component"/>
        !!]
-       diskTruncationIsActive=galacticComponentTruncation__%isActive()
-       if (diskTruncationIsActive) then
+       if (galacticComponentTruncation__%isActive()) then
           !![
           <addMetaProperty component="disk" name="tidalTruncation" id="tidalTruncationID" isEvolvable="yes"/>
           <addMetaProperty component="disk" name="truncationGas"   id="truncationGasID"   isEvolvable="yes"/>
