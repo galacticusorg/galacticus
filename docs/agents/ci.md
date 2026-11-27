@@ -90,7 +90,7 @@ and prefer a re-run to a day of investigation. Re-running needs the run to be co
 refuses while it is still in progress.
 
 ## CI/CD runs in tiers: a green PR has not run the full suite, and only fully tested content reaches master
-*Added 2026-11-27; verified 2026-11-27 (the merge-queue step ran for PR #1870, run 46025056716; the `pr` tier had not yet run on GitHub)*
+*Added 2026-11-27; verified 2026-11-27 (for PR #1870 the merge-queue step ran in run 46025056716 and the `deploy` tier in run 46025228373; the `pr` tier had not yet run on GitHub)*
 
 Since PR #1870 the first job of every `cicd.yml` run, `Plan`, gives the run a *tier* from the files changed, using the
 tables in `scripts/build/ciPlan.py`, and every other job runs only if the plan lists it. A PR that changes `source/**` gets
