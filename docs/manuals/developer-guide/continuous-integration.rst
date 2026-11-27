@@ -230,12 +230,19 @@ Getting a change onto ``master``
 Everything passes the full suite before it reaches ``master``, but the merge
 queue does not run it. The queue allows a required check at most six hours to
 report, and the full suite takes longer than that whenever runners are scarce.
-Instead, a run of the full suite which passes records the *tree* which it
-tested — the state of every file — and the merge queue admits only a merge
-group whose tree has such a record. For a pull request, the tree tested is that
-of the pull request merged into ``master`` as ``master`` was when the run began.
-The merge queue forms exactly that tree for a pull request which is alone at
-the front of the queue, provided that ``master`` has not moved in the meantime.
+Instead, a run of the full suite which passes records the *content* which it
+tested, and the merge queue admits only a merge group whose content has such a
+record.
+
+Content here means the state of every file which can affect the build or the
+tests: every file which matches one of the path rules in
+``scripts/build/ciPlan.py``. It is identified by a digest of those files (print
+it for a checkout with ``scripts/build/ciPlan.py key``). Two commits which
+differ only in other files — documentation, for the most part — have the same
+content. For a pull request, the content tested is that of the pull request
+merged into ``master`` as ``master`` was when the run began. The merge queue
+forms that same content for the pull request for as long as nothing which can
+affect the build or the tests has reached ``master`` in the meantime.
 
 So, to land one pull request, or several together:
 
@@ -251,11 +258,17 @@ So, to land one pull request, or several together:
    combines as merged.
 #. The push to ``master`` which follows runs the **deploy** tier.
 
-If ``master`` moved after the run of the full suite began, the merge group is
-of content which no run has tested: its run fails, and the pull request is
-removed from the queue. Merge ``master`` into the branch, let the full suite run
-again, and queue it once more. Two pull requests queued at once fare the same
-way: the second is of content which includes the first.
+A pull request which changes no file that can affect the build or the tests
+needs none of this. Its content is the content already on ``master``, which has
+a record, so it can be queued as soon as its own checks have passed, and it
+does not disturb a pull request which is waiting to be queued.
+
+If a change which can affect the build or the tests reached ``master`` after
+the run of the full suite began, the merge group is of content which no run has
+tested: its run fails, and the pull request is removed from the queue. Merge
+``master`` into the branch, let the full suite run again, and queue it once
+more. Two such pull requests queued at once fare the same way: the second is of
+content which includes the first.
 
 A record is an artifact of the run which made it, and expires with that run's
 other artifacts. Only a record made by a run in this repository is believed: a
@@ -269,7 +282,10 @@ Changing what runs
 
 The rules which choose a tier and a subset are tables in
 ``scripts/build/ciPlan.py``, which is the place to change what a pull request
-runs.
+runs. Its path rules must cover every file which can affect the build or the
+tests, because a file which matches no rule is also left out of the content
+described above, and so a change to it is never tested. When a new kind of file
+comes to be used by the build or by a test, give it a rule.
 
 When adding a job to ``cicd.yml``, make it need the ``Plan`` job, give it the
 same ``if:`` condition as its neighbors (with its own name), and add it to the

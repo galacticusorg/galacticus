@@ -21,14 +21,20 @@ workflow is given a *tier* by its ``Plan`` job, and every other job runs only if
 ``blocked``
     Nothing, and the run fails: a merge group whose content has not passed the full suite.
 
-"Content" here means the tree of a commit - the state of every file - which is what a run tests. A run of the full suite which
-passes records the tree it tested (the ``CI-Gate`` job uploads an artifact named for it), and the ``Plan`` job of a later run
-looks that record up. For a pull request the tree is that of the pull request merged into ``master`` as it was when the run
-began; the merge queue forms the same tree for a pull request which is alone at the front of the queue while ``master`` has not
-moved. So the full suite is run on a pull request (or on a rollup of several), not by the merge queue: the queue allows a
-required check at most six hours to report, which the full suite can not promise, and so a merge group is only ever verified
-against the record. A group whose tree has no record is refused rather than tested, which keeps untested content off
-``master`` by construction.
+"Content" here means the state of every file which can affect the build or the tests - every file which matches one of the path
+rules below - and is identified by a digest of those files, its *key* (see ``content_key()``). A run of the full suite which
+passes records the key of what it tested (the ``CI-Gate`` job uploads an artifact named for it), and the ``Plan`` job of a
+later run looks that record up. For a pull request the content is that of the pull request merged into ``master`` as it was
+when the run began; the merge queue forms the same content for that pull request for as long as nothing which can affect the
+build or the tests has reached ``master`` in the meantime. So the full suite is run on a pull request (or on a rollup of
+several), not by the merge queue: the queue allows a required check at most six hours to report, which the full suite can not
+promise, and so a merge group is only ever verified against the record. A group whose content has no record is refused rather
+than tested, which keeps untested content off ``master`` by construction.
+
+A change to files which match no rule - documentation, for the most part - leaves the key as it was. A pull request which
+makes only such changes therefore runs nothing, passes the merge queue on the record of the content already on ``master``, and
+does not disturb the record of a pull request which is waiting to be queued. This rests on the path rules being complete: a
+file which can affect the build or the tests but matches no rule would never be tested.
 
 The ``CI-Gate`` job then checks the outcome against the plan. It is the one status check that needs to be required by branch
 protection, and it reports for every run - including a skipped one - so that a required check is never left pending.
@@ -46,12 +52,14 @@ What a pull request runs is decided by the tables below, not by the workflow fil
 Run with::
 
     ciPlan.py plan --event <event> [--ref <ref>] [--draft] [--labels <json>] [--changed-files <file>] [--tier <tier>]
-                   [--tested-run-id <id>] [--tree <tree>] [--run-id <id>]
+                   [--tested-run-id <id>] [--content <key>] [--run-id <id>]
+    ciPlan.py key
     ciPlan.py gate [--needs <json>] [--jobs <json>]
     ciPlan.py attribute <results file> ...
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -166,6 +174,10 @@ PR_DEFERRED_ENTRIES = (
 # not affect the build or the tests (documentation, for the most part) and selects nothing. `FULL` selects the full suite, and is
 # used where the effect of a change can not be predicted from its path: the build system, the code generator, the dependencies,
 # and the workflows themselves. In a pattern `*` matches within one path component and `**` matches across them.
+#
+# These rules must be complete. A file which matches none is also left out of the key which identifies tested content (see
+# `content_key()`), so a change to it is never tested - by a pull request, by the merge queue, or on `master`. When a new kind of
+# file comes to be used by the build or by a test, give it a rule here; `FULL` is always a safe choice.
 FULL = "full"
 PATH_RULES = (
     # Scripts which live with the build system but take no part in the build.
@@ -181,12 +193,25 @@ PATH_RULES = (
     ("scripts/build/**", FULL),
     ("python/Galacticus/Build/**/tests/**", ("tooling",)),
     ("python/Galacticus/Build/**", FULL),
-    # The workflows which make up the suite.
+    # The workflows which make up the suite, and the image which one of its jobs builds.
     (".github/workflows/cicd.yml", FULL),
     (".github/workflows/testModel.yml", FULL),
     (".github/workflows/testCode.yml", FULL),
     (".github/workflows/profile.yml", FULL),
     (".github/actions/**", FULL),
+    ("Dockerfile", FULL),
+    # The configuration of the Python package and of its tests.
+    ("pyproject.toml", ("tooling", "model")),
+    ("pytest.ini", ("tooling",)),
+    # Other scripts. Those for the documentation and for development are used by no model; the developer tools are used by
+    # some model tests (parameter migration, for one); the rest (analysis, emulation, and so on) are used by validations and
+    # tests which the `pr` tier does not run.
+    ("scripts/doc/**", ("tooling",)),
+    ("scripts/aux/**", ("tooling", "model")),
+    ("scripts/**", FULL),
+    # Constraint pipelines and tutorials are run by validations and tests which the `pr` tier does not run.
+    ("constraints/**", FULL),
+    ("tutorials/**", FULL),
     # Source code.
     ("source/**", ("tooling", "unit", "model")),
     # Python: tests of the Python modules need no build; the modules themselves are used by the model tests.
@@ -318,14 +343,31 @@ def select_affected(workflow, changed, repository=REPOSITORY):
     return jobs, skipped
 
 
-def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=None, tested_run_id="", tree="", run_id="",
+def content_key(repository=REPOSITORY, revision="HEAD"):
+    """Return the key which identifies the content of a commit: a digest of every file which can affect the build or the tests.
+
+    The digest is of the names, modes and contents (as git's object names) of the files which match a path rule, so two commits
+    have the same key exactly when they differ, if at all, only in files which match no rule.
+    """
+    listing = subprocess.run(["git", "-C", str(repository), "ls-tree", "-r", "-z", "--full-tree", revision],
+                             capture_output=True, check=True).stdout
+    digest = hashlib.sha256()
+    for entry in listing.split(b"\0"):
+        if entry and classify(entry.split(b"\t", 1)[1].decode("utf-8", "surrogateescape")):
+            digest.update(entry + b"\0")
+    return digest.hexdigest()[:40]
+
+
+def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=None, tested_run_id="", content="", run_id="",
          repository=REPOSITORY):
     """Return the plan for an event as a dictionary of the `Plan` job's outputs, plus a list of reasons for the summary.
 
-    `changed` is the list of files changed by a pull request, or `None` if it could not be determined. `tree` is the tree of the
-    commit which the run is for, and `tested_run_id` the run of the full suite which passed for that tree, if there is one.
+    `changed` is the list of files changed by a pull request, or `None` if it could not be determined. `content` is the key of
+    the content which the run is for (see `content_key()`), and `tested_run_id` the run of the full suite which passed for that
+    content, if there is one.
     """
-    content = f"this content (tree `{tree}`)" if tree else "this content"
+    key = content
+    content = f"this content (key `{key}`)" if key else "this content"
     reasons = []
     deploying = event in ("push", "workflow_dispatch") and ref == "refs/heads/master"
     groups = set()
@@ -352,8 +394,9 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
             tier = "blocked"
             reasons.append(f"Merge group: no run of the full suite has passed for {content}, and the merge queue does not run "
                            "it. Merge `master` into the pull request (or into a rollup of several), run the full suite on it "
-                           f"(the `{LABEL_FULL}` label), and queue it again once that has passed and while `master` has not "
-                           "moved.")
+                           f"(the `{LABEL_FULL}` label), and queue it again once that has passed. If the full suite did pass "
+                           "for this pull request, then `master` has since gained a change which can affect the build or the "
+                           "tests.")
     elif event == "pull_request":
         if draft:
             tier = "skip"
@@ -429,8 +472,8 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
         # The run whose validation results, benchmarks and profiles are published: in the `deploy` tier the run which tested
         # this content, else this run.
         "resultsRunId": str(tested_run_id if tier == "deploy" else run_id),
-        # The tree which this run is for, under which `CI-Gate` records a pass of the full suite.
-        "tree": tree,
+        # The key of the content which this run is for, under which `CI-Gate` records a pass of the full suite.
+        "content": key,
     }
     return outputs, reasons
 
@@ -520,8 +563,8 @@ def main(arguments=None):
     planner.add_argument("--labels", default="[]", help="the labels of the pull request, as a JSON list")
     planner.add_argument("--changed-files", help="a file holding the NUL-separated names of the files changed")
     planner.add_argument("--tier", default="", help="the tier requested by a manual dispatch")
-    planner.add_argument("--tested-run-id", default="", help="the run of the full suite which passed for this tree, if any")
-    planner.add_argument("--tree", default="", help="the tree of the commit which this run is for")
+    planner.add_argument("--tested-run-id", default="", help="the run of the full suite which passed for this content, if any")
+    planner.add_argument("--content", default="", help="the key of the content which this run is for")
     planner.add_argument("--run-id", default="", help="the ID of this run")
     planner.add_argument("--workflow", default=str(WORKFLOW), help="the workflow file to plan for")
     gater = commands.add_parser("gate", help="check the results of a run against its plan")
@@ -531,7 +574,12 @@ def main(arguments=None):
                        help="the planned jobs, as a JSON list (default: the CI_JOBS environment variable)")
     attributer = commands.add_parser("attribute", help="attribute files of validation results to the commit which is checked out")
     attributer.add_argument("files", nargs="+", help="the files of results to rewrite in place")
+    commands.add_parser("key", help="print the key which identifies the content of the commit which is checked out")
     options = parser.parse_args(arguments)
+
+    if options.command == "key":
+        print(content_key())
+        return 0
 
     if options.command == "attribute":
         commit = head_commit()
@@ -552,7 +600,7 @@ def main(arguments=None):
             changed=read_changed_files(options.changed_files),
             tier=options.tier or None,
             tested_run_id=options.tested_run_id,
-            tree=options.tree,
+            content=options.content,
             run_id=options.run_id,
         )
         write_outputs(outputs)

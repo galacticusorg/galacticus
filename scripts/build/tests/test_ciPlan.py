@@ -108,14 +108,17 @@ def test_a_pass_of_the_full_suite_is_recorded_under_the_name_which_the_plan_look
     # The record must follow the check (a step runs only if those before it succeeded), and be made only by the full suite.
     assert index > check
     assert upload["if"] == "needs.Plan.outputs.tier == 'full'"
-    assert upload["with"]["name"] == record + "${{ needs.Plan.outputs.tree }}"
+    assert upload["with"]["name"] == record + "${{ needs.Plan.outputs.content }}"
     plan = workflow.jobs["Plan"]
-    assert plan["outputs"]["tree"].split() == "${{ steps.plan.outputs.tree }}".split()
+    assert plan["outputs"]["content"].split() == "${{ steps.plan.outputs.content }}".split()
     lookup = next(step for step in plan["steps"] if step.get("id") == "tested")
-    assert f"artifacts?name={record}${{tree}}" in lookup["run"]
+    # The key is made by the planner itself, so that what is recorded and what is looked up can not come to differ.
+    assert "key=$(python scripts/build/ciPlan.py key)" in lookup["run"]
+    assert f"artifacts?name={record}${{key}}" in lookup["run"]
     # A record made by a pull request from a fork, which runs its own copy of the workflow, must not be believed.
     assert ".workflow_run.repository_id == .workflow_run.head_repository_id" in lookup["run"]
-    assert "--tested-run-id" in str(plan["steps"][-1]["run"]) and "--tree" in str(plan["steps"][-1]["run"])
+    assert "--tested-run-id" in str(plan["steps"][-1]["run"])
+    assert '--content       "${{ steps.tested.outputs.key }}"' in str(plan["steps"][-1]["run"])
 
 
 def downloads_of(job):
@@ -264,6 +267,17 @@ def test_glob_to_regex(pattern, path, matches):
         (".github/workflows/testModel.yml", ciPlan.FULL),
         (".github/actions/benchmark/action.yml", ciPlan.FULL),
         ("parameters/quickTest.xml", ("tooling",)),
+        ("Dockerfile", ciPlan.FULL),
+        ("pyproject.toml", ("tooling", "model")),
+        ("pytest.ini", ("tooling",)),
+        ("scripts/doc/extractContributors.py", ("tooling",)),
+        ("scripts/aux/parametersMigrate.py", ("tooling", "model")),
+        ("scripts/analysis/someAnalysis.py", ciPlan.FULL),
+        ("constraints/pipelines/darkMatter/haloMassFunctionBase.xml", ciPlan.FULL),
+        ("tutorials/library/executeNotebooks.py", ciPlan.FULL),
+        ("AGENTS.md", ()),
+        ("docs/agents/ci.md", ()),
+        ("aux/words.dict", ()),
         ("testSuite/test-bar-instability.py", ("tooling", "model")),
     ],
 )
@@ -321,14 +335,14 @@ MERGE_GROUP = "refs/heads/gh-readonly-queue/master/pr-1-abc"
 
 
 def test_merge_group_of_tested_content_runs_nothing(workflow):
-    outputs, reasons = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, tested_run_id="42", tree="abc123", run_id="7")
+    outputs, reasons = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, tested_run_id="42", content="abc123", run_id="7")
     assert outputs["tier"] == "skip" and jobs_of(outputs) == [] and outputs["deploy"] == "false"
     assert "abc123" in reasons[0] and "42" in reasons[0]
 
 
 def test_merge_group_of_untested_content_is_refused(workflow):
     """The merge queue never runs the full suite - it could not finish in the time the queue allows - so it must not pass."""
-    outputs, reasons = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, tree="abc123", run_id="7")
+    outputs, reasons = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, content="abc123", run_id="7")
     assert outputs["tier"] == "blocked" and jobs_of(outputs) == [] and outputs["deploy"] == "false"
     assert ciPlan.LABEL_FULL in reasons[0]
 
@@ -336,7 +350,7 @@ def test_merge_group_of_untested_content_is_refused(workflow):
 def test_plan_command_fails_for_a_refused_merge_group(monkeypatch, tmp_path, capsys):
     monkeypatch.setenv("GITHUB_OUTPUT", str(tmp_path / "output"))
     monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(tmp_path / "summary"))
-    arguments = ["plan", "--event", "merge_group", "--ref", MERGE_GROUP, "--tree", "abc123", "--run-id", "7"]
+    arguments = ["plan", "--event", "merge_group", "--ref", MERGE_GROUP, "--content", "abc123", "--run-id", "7"]
     assert ciPlan.main(arguments) == 1
     assert "::error" in capsys.readouterr().out
     assert "`blocked` tier" in (tmp_path / "summary").read_text()
@@ -352,12 +366,12 @@ def test_only_the_full_suite_makes_content_tested(workflow):
 
 
 def test_push_of_tested_content_rebuilds_and_deploys(workflow):
-    outputs = ciPlan.plan(workflow, "push", ref="refs/heads/master", tested_run_id="42", tree="abc123", run_id="7")[0]
+    outputs = ciPlan.plan(workflow, "push", ref="refs/heads/master", tested_run_id="42", content="abc123", run_id="7")[0]
     assert outputs["tier"] == "deploy"
     assert set(jobs_of(outputs)) == set(ciPlan.DEPLOY_JOBS)
     # What is published is built by this run; the results published with it are those of the run which tested the content.
     assert set(ciPlan.DEPLOY_BUILD_JOBS) <= set(jobs_of(outputs))
-    assert outputs["deploy"] == "true" and outputs["resultsRunId"] == "42" and outputs["tree"] == "abc123"
+    assert outputs["deploy"] == "true" and outputs["resultsRunId"] == "42" and outputs["content"] == "abc123"
 
 
 def test_push_of_an_untested_commit_runs_everything_then_deploys(workflow):
@@ -530,3 +544,76 @@ def test_attribute_command_rewrites_files_in_place(monkeypatch, tmp_path, capsys
     assert ciPlan.main(["attribute", str(file)]) == 0
     assert json.loads(file.read_text(encoding="utf-8").split(" = ", 1)[1]) == {"commit": {"id": "new"}, "results": []}
     assert "new" in capsys.readouterr().out
+
+
+# --- The key which identifies tested content --------------------------------------------------------------------------------------
+
+
+@pytest.fixture(name="checkout")
+def fixture_checkout(tmp_path):
+    git(tmp_path, "init", "--quiet")
+    for name, text in {"source/a.F90": "program a", "docs/index.rst": "Title", "Makefile": "all:", "README.md": "Read me"}.items():
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text(text)
+    git(tmp_path, "add", ".")
+    git(tmp_path, "commit", "--quiet", "-m", "Initial")
+    return tmp_path
+
+
+def change(checkout, name, text, executable=False):
+    file = checkout / name
+    file.parent.mkdir(parents=True, exist_ok=True)
+    file.write_text(text)
+    if executable:
+        file.chmod(0o755)
+    git(checkout, "add", ".")
+    git(checkout, "commit", "--quiet", "-m", "Change " + name)
+    return ciPlan.content_key(checkout)
+
+
+def test_content_key_ignores_files_which_can_not_affect_the_build_or_the_tests(checkout):
+    key = ciPlan.content_key(checkout)
+    assert re.fullmatch(r"[0-9a-f]{40}", key)
+    assert change(checkout, "docs/index.rst", "A new title") == key
+    assert change(checkout, "docs/manuals/new.rst", "A new page") == key
+    assert change(checkout, "AGENTS.md", "Guidance") == key
+    # The key is of what is committed, whatever lies in the working tree.
+    (checkout / "source/a.F90").write_text("program uncommitted")
+    assert ciPlan.content_key(checkout) == key
+
+
+@pytest.mark.parametrize("name, text", [("source/a.F90", "program b"), ("source/new.F90", "program a"), ("Makefile", "all: a"),
+                                        ("testSuite/test-new.py", "pass"), ("constraints/pipelines/a.xml", "<a/>")])
+def test_content_key_changes_with_any_file_which_can(checkout, name, text):
+    key = ciPlan.content_key(checkout)
+    assert change(checkout, name, text) != key
+
+
+def test_content_key_changes_with_a_rename_a_removal_or_a_mode(checkout):
+    keys = [ciPlan.content_key(checkout)]
+    keys.append(change(checkout, "source/a.F90", "program a", executable=True))
+    git(checkout, "mv", "source/a.F90", "source/b.F90")
+    git(checkout, "commit", "--quiet", "-m", "Rename")
+    keys.append(ciPlan.content_key(checkout))
+    git(checkout, "rm", "--quiet", "source/b.F90")
+    git(checkout, "commit", "--quiet", "-m", "Remove")
+    keys.append(ciPlan.content_key(checkout))
+    assert len(set(keys)) == len(keys)
+    # The same content has the same key, however it was arrived at.
+    change(checkout, "source/a.F90", "program a")
+    (checkout / "source/a.F90").chmod(0o644)
+    assert change(checkout, "docs/index.rst", "Restored") == keys[0]
+
+
+def test_every_file_which_a_job_of_the_suite_names_is_part_of_the_content(workflow):
+    """A test file which matched no path rule would be left out of the key, and so a change to it would never be tested."""
+    for name in workflow.names():
+        for entry in workflow.entries(name):
+            path = ciPlan.entry_path(entry)
+            if path:
+                assert ciPlan.classify(path), f"{path}, run by {name}, matches no path rule"
+
+
+def test_key_command(capsys):
+    assert ciPlan.main(["key"]) == 0
+    assert capsys.readouterr().out.strip() == ciPlan.content_key()

@@ -14,8 +14,9 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
   # Merge groups are created by the merge queue: each is the state of `master` that would result from merging a pull request
   # (and those queued ahead of it). Nothing is built or tested for one: the queue allows a required check at most six hours to
-  # report, which the full suite can not promise. Instead `Plan` checks that the group's content - its tree - is content for
-  # which the full suite has already passed (on a pull request, or on a rollup of several), and fails if it is not.
+  # report, which the full suite can not promise. Instead `Plan` checks that the group's content - every file which can affect
+  # the build or the tests - is content for which the full suite has already passed (on a pull request, or on a rollup of
+  # several), and fails if it is not.
   merge_group:
     types: [checks_requested]
   push:
@@ -51,7 +52,7 @@ jobs:
       skipEntries:   ${{ steps.plan.outputs.skipEntries   }}
       deploy:        ${{ steps.plan.outputs.deploy        }}
       resultsRunId:  ${{ steps.plan.outputs.resultsRunId  }}
-      tree:          ${{ steps.plan.outputs.tree          }}
+      content:       ${{ steps.plan.outputs.content       }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -68,22 +69,23 @@ jobs:
       - name: Find the files changed by the pull request
         if: github.event_name == 'pull_request'
         run: git diff --name-only -z HEAD^1 HEAD > "${RUNNER_TEMP}/changedFiles" || rm -f "${RUNNER_TEMP}/changedFiles"
-      # A run of the full suite which passes records the tree that it tested, as an artifact named for that tree (see `CI-Gate`).
-      # A merge group, or a push to `master`, whose commit has that same tree is of content which has already been tested: the
-      # merge group has nothing to run, and the push has only to rebuild and publish. Look for such a record: one which has not
-      # expired, which was made by a run of this workflow, and which was made in this repository (a pull request from a fork
-      # runs its own copy of the workflow, and so could record whatever it liked). Any doubt - no record, an expired one, an
-      # error from the API - leaves the output empty: a push then runs the full suite, and a merge group is refused.
-      - name: Find a run of the full suite which passed for this tree
+      # A run of the full suite which passes records the content that it tested, as an artifact named for the key of that content
+      # (see `CI-Gate`): a digest of every file which can affect the build or the tests, made by `ciPlan.py key`. A merge group,
+      # or a push to `master`, whose commit has that same key is of content which has already been tested: the merge group has
+      # nothing to run, and the push has only to rebuild and publish. Look for such a record: one which has not expired, which
+      # was made by a run of this workflow, and which was made in this repository (a pull request from a fork runs its own copy
+      # of the workflow, and so could record whatever it liked). Any doubt - no record, an expired one, an error from the API -
+      # leaves the output empty: a push then runs the full suite, and a merge group is refused.
+      - name: Find a run of the full suite which passed for this content
         id: tested
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tree=$(git rev-parse 'HEAD^{tree}')
-          echo "tree=${tree}" >> "${GITHUB_OUTPUT}"
+          key=$(python scripts/build/ciPlan.py key)
+          echo "key=${key}" >> "${GITHUB_OUTPUT}"
           run=
           if [ "${GITHUB_EVENT_NAME}" == push ] || [ "${GITHUB_EVENT_NAME}" == merge_group ]; then
-           candidates=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=ci-full-passed-${tree}&per_page=20" --jq '.artifacts[] | select(.expired == false and .workflow_run.repository_id == .workflow_run.head_repository_id) | .workflow_run.id') || candidates=
+           candidates=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=ci-full-passed-${key}&per_page=20" --jq '.artifacts[] | select(.expired == false and .workflow_run.repository_id == .workflow_run.head_repository_id) | .workflow_run.id') || candidates=
            for candidate in ${candidates}; do
             path=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${candidate}" --jq '.path') || path=
             if [ "${path}" == ".github/workflows/cicd.yml" ]; then
@@ -107,7 +109,7 @@ jobs:
             --changed-files "${RUNNER_TEMP}/changedFiles"                       \
             --tier          "${TIER}"                                           \
             --tested-run-id "${{ steps.tested.outputs.run }}"                   \
-            --tree          "${{ steps.tested.outputs.tree }}"                  \
+            --content       "${{ steps.tested.outputs.key }}"                   \
             --run-id        "${{ github.run_id }}"
   # Preprocessor regression tests
   ## Fast pure-Python checks that the preprocessor stack still emits the
@@ -3069,18 +3071,19 @@ jobs:
           CI_NEEDS: ${{ toJSON(needs) }}
           CI_JOBS:  ${{ needs.Plan.outputs.jobs }}
         run: python3 scripts/build/ciPlan.py gate
-      # A pass of the full suite is recorded against the tree which was tested, so that a merge group or a push to `master` with
-      # that same tree need not be tested again (see `Plan`). The record is an artifact, which expires as any other does.
-      - name: Record that the full suite passed for this tree
+      # A pass of the full suite is recorded against the key of the content which was tested, so that a merge group or a push to
+      # `master` with that same content need not be tested again (see `Plan`). The record is an artifact, which expires as any
+      # other does.
+      - name: Record that the full suite passed for this content
         if: needs.Plan.outputs.tier == 'full'
         env:
-          TREE: ${{ needs.Plan.outputs.tree }}
-        run: printf 'tree=%s\ncommit=%s\nrun=%s\n' "${TREE}" "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > ciFullPassed.txt
+          CONTENT: ${{ needs.Plan.outputs.content }}
+        run: printf 'content=%s\ncommit=%s\nrun=%s\n' "${CONTENT}" "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > ciFullPassed.txt
       - name: Upload the record
         if: needs.Plan.outputs.tier == 'full'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: ci-full-passed-${{ needs.Plan.outputs.tree }}
+          name: ci-full-passed-${{ needs.Plan.outputs.content }}
           path: ciFullPassed.txt
           overwrite: true
   # Build a report comparing this pull request's validation results to master, and link to it from a comment on the pull request.
