@@ -30,7 +30,7 @@
   !![
   <galacticStructureSolver name="galacticStructureSolverEquilibrium" docformat="rst">
    <description>
-   An "equilibrium" solver for galactic structure that iteratively finds radii at which each galactic component is in equilibrium within the combined gravitational potential of dark matter and baryons. Convergence is controlled by ``[solutionTolerance]``, with optional inclusion of baryon self-gravity via ``[includeBaryonGravity]``.
+   An "equilibrium" solver for galactic structure that iteratively finds radii at which each galactic component is in equilibrium within the combined gravitational potential of dark matter and baryons. Convergence is controlled by ``[solutionTolerance]`` and the iteration limit ``[countIterationsMaximum]``, with optional inclusion of baryon self-gravity via ``[includeBaryonGravity]``.
    </description>
   </galacticStructureSolver>
   !!]
@@ -42,6 +42,7 @@
      logical                                              :: includeBaryonGravity                , useFormationHalo         , &
           &                                                  solveForInactiveProperties          , convergenceFailureIsFatal
      double precision                                     :: solutionTolerance                   , velocityMaximumFactor
+     integer                                              :: countIterationsMaximum
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_       => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
    contains
@@ -83,6 +84,7 @@ contains
     logical                                                             :: useFormationHalo          , includeBaryonGravity     , &
          &                                                                 solveForInactiveProperties, convergenceFailureIsFatal
     double precision                                                    :: solutionTolerance         , velocityMaximumFactor
+    integer                                                             :: countIterationsMaximum
 
     !![
     <inputParameter docformat="rst">
@@ -129,6 +131,18 @@ contains
       </description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter docformat="rst">
+      <name>countIterationsMaximum</name>
+      <defaultValue>100</defaultValue>
+      <description>
+      Maximum number of iterations in each equilibrium size solve. Must be at least two, allowing the initial radius
+      estimate and a subsequent convergence check. A tighter ``[solutionTolerance]`` may require more than the default
+      100 iterations; for example, set this parameter to 1000 to allow slowly converging solves to finish. The solver
+      still stops as soon as convergence is achieved. Reaching the limit without convergence follows
+      ``[convergenceFailureIsFatal]`` and does not relax the requested accuracy.
+      </description>
+      <source>parameters</source>
+    </inputParameter>
     <inputParameter>
       <name>velocityMaximumFactor</name>
       <defaultValue>0.0d0</defaultValue>
@@ -138,7 +152,7 @@ contains
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,velocityMaximumFactor,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=galacticStructureSolverEquilibrium(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,velocityMaximumFactor,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_,countIterationsMaximum)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
@@ -147,10 +161,11 @@ contains
     return
   end function equilibriumConstructorParameters
 
-  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,velocityMaximumFactor,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function equilibriumConstructorInternal(convergenceFailureIsFatal,useFormationHalo,includeBaryonGravity,solutionTolerance,velocityMaximumFactor,solveForInactiveProperties,darkMatterHaloScale_,darkMatterProfileDMO_,countIterationsMaximum) result(self)
     !!{RST
     Internal constructor for the :galacticus-class:`galacticStructureSolverEquilibrium` galactic structure solver class.
     !!}
+    use :: Error, only : Error_Report
     implicit none
     type            (galacticStructureSolverEquilibrium)                        :: self
     logical                                             , intent(in   )         :: useFormationHalo          , includeBaryonGravity     , &
@@ -158,10 +173,11 @@ contains
     double precision                                    , intent(in   )         :: solutionTolerance         , velocityMaximumFactor
     class           (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
+    integer                                             , intent(in   ), optional :: countIterationsMaximum
     !![
-    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, velocityMaximumFactor, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="convergenceFailureIsFatal, useFormationHalo, includeBaryonGravity, solutionTolerance, velocityMaximumFactor, solveForInactiveProperties, *darkMatterHaloScale_, *darkMatterProfileDMO_, countIterationsMaximum=100"/>
     !!]
-
+    if (self%countIterationsMaximum < 2) call Error_Report('[countIterationsMaximum] must be at least 2 in the equilibrium galactic structure solver'//{introspection:location})
     return
   end function equilibriumConstructorInternal
 
@@ -208,7 +224,6 @@ contains
     type            (treeNode                          ), intent(inout), target   :: node
     logical                                             , intent(in   ), optional :: plausibilityOnly
     logical                                             , parameter               :: specificAngularMomentumRequired=.true.
-    integer                                             , parameter               :: iterationMaximum               =  100
     procedure       (radiusSolver                      ), pointer                 :: radiusSolve_
     !![
     <optionalArgument name="plausibilityOnly" defaultsTo=".false."/>
@@ -230,7 +245,7 @@ contains
           node_ => node
        end if
        ! Begin iteration to find a converged solution.
-       do while (countIterations <= 1 .or. ( fitMeasure > self%solutionTolerance .and. countIterations < iterationMaximum ) )
+       do while (countIterations <= 1 .or. ( fitMeasure > self%solutionTolerance .and. countIterations < self%countIterationsMaximum ) )
           countIterations      =countIterations+1
           countComponentsActive=0
           if (countIterations > 1) fitMeasure=0.0d0

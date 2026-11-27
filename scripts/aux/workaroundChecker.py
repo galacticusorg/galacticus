@@ -16,6 +16,8 @@ DIRECTORIES = ("./source",)
 #   # <workaround type="gfortran" PR="94446" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94446"/>
 # Their `tests` directories are skipped, as test fixtures contain example directives.
 PYTHON_DIRECTORIES = ("./python", "./scripts")
+# Other files whose workarounds are marked in the same way, as a comment: the Makefile.
+OTHER_FILES = ("./Makefile",)
 # Match the opening tag of a `<workaround …>` directive, capturing its
 # attributes.  The tag may be preceded by a `#` (workarounds inside
 # preprocessor-conditional code, or in Python comments).
@@ -44,7 +46,8 @@ def issue_url(issue: str) -> str:
 
 
 def files_to_scan():
-    """Yield the files to scan for directives: Fortran sources, and the Python of the code generator and build scripts."""
+    """Yield the files to scan for directives: Fortran sources, the Python of the code generator and build scripts, and the
+    Makefile."""
     for directory in DIRECTORIES:
         for root, _, files in os.walk(directory):
             for file_name in files:
@@ -56,6 +59,9 @@ def files_to_scan():
             for file_name in files:
                 if file_name.endswith(".py"):
                     yield os.path.join(root, file_name)
+    for file_name in OTHER_FILES:
+        if os.path.isfile(file_name):
+            yield file_name
 
 
 def file_matcher() -> None:

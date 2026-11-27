@@ -392,6 +392,9 @@ def main(argv):
             # A `modelRequire` embeds help text naming every provider of
             # its fact, found from the `modelFact` directives.
             'modelRequire':         lambda _: ['modelFact'],
+            # A `modelExclusive` is checked against every other claim on
+            # its fact, found from the `modelExclusive` directives.
+            'modelExclusive':       lambda _: ['modelExclusive'],
             # A static event hook calls every function attached to it by a
             # directive named after the hook.
             'eventHookStatic':      lambda consumer: [

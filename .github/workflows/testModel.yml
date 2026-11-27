@@ -13,6 +13,10 @@ on:
       artifact: # The name of the artifact to download to retrieve the executable
         required: true
         type: string
+      executable: # Executable from the artifact to make runnable and use for XML tests
+        required: false
+        default: Galacticus.exe
+        type: string
       cacheData: # Set to 0/1 to disable/enable caching of dynamically-generated datasets
         required: false
         default: 0
@@ -57,12 +61,26 @@ on:
         required: false
         default: 0
         type: string
+      enabled: # Set to false to skip the test - used by callers with a matrix of tests to run only those which were planned
+        required: false
+        default: true
+        type: boolean
+      attempts: # The number of times to try the test before reporting it as failed - for tests which fail by chance
+        required: false
+        default: 1
+        type: number
+      timeoutMinutes: # The time after which the job is stopped - a test which hangs otherwise runs for six hours
+        required: false
+        default: 180
+        type: number
 defaults:
   run:
     shell: bash
 jobs:
   Test-Model:
+    if: ${{ inputs.enabled }}
     runs-on: ${{ inputs.runner }}
+    timeout-minutes: ${{ inputs.timeoutMinutes }}
     container:
       image: ${{ startsWith( format('{0}',inputs.runner), 'ubuntu') && 'ghcr.io/galacticusorg/buildenv:latest' || '' }}
     steps:
@@ -108,15 +126,28 @@ jobs:
         if: inputs.ompNumThreads != '0'
         run: |
           echo "OMP_NUM_THREADS=${{ inputs.ompNumThreads }}" >> $GITHUB_ENV
+      # Downloading the executable occasionally fails for reasons which have nothing to do with the code being tested, and a
+      # failure here fails the whole run, so it is tried twice.
       - name: Download executables
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: ${{ inputs.artifact }}
+      - name: Download executables (second attempt)
+        if: steps.download.outcome == 'failure'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: ${{ inputs.artifact }}
       - name: Install packages
         if: inputs.install != ''
         run: |
-          apt -y update && apt -y upgrade
-          apt -y install ${{ inputs.install }}
+          # Package installation depends on the network, so it is retried.
+          for attempt in 1 2 3; do
+           if apt -y update && apt -y upgrade && apt -y install ${{ inputs.install }}; then break; fi
+           if [ $attempt == 3 ]; then exit 1; fi
+           sleep 20
+          done
       - name: Check for IRATE deploy secret availability
         id: secret-check
         # Perform secret check and put boolean result as an output.
@@ -150,46 +181,76 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           git config --global --add safe.directory $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
+          chmod u=wrx ./${{ inputs.executable }}
           mkdir -p testSuite/outputs/regressions
           set -o pipefail
-          if [[ ${{ inputs.file }} =~ \.xml$ ]]; then
-           if [ ! -z "${{ inputs.options }}" ]; then
-            echo Options can not be set for XML files
-            false
-           fi
-           if [ ${{ inputs.mpi }} == 1 ]; then
-            mpirun --oversubscribe -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
+          function runTest {
+           cd $GALACTICUS_EXEC_PATH
+           if [[ ${{ inputs.file }} =~ \.xml$ ]]; then
+            if [ ! -z "${{ inputs.options }}" ]; then
+             echo Options can not be set for XML files
+             false
+            fi
+            if [ ${{ inputs.mpi }} == 1 ]; then
+             mpirun --oversubscribe -np  ${{ inputs.processesPerNode }} --allow-run-as-root ./${{ inputs.executable }} ${{ inputs.file }} 2>&1 | tee test.log
+            else
+             ./${{ inputs.executable }} ${{ inputs.file }} 2>&1 | tee test.log
+            fi
+           elif [[ ${{ inputs.file }} =~ \.sh$ ]]; then
+            cd ${{ inputs.runPath }}
+            chmod u=wrx ./${{ inputs.file }}
+            ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+           elif [[ ${{ inputs.file }} =~ \.py$ ]]; then
+            if [[ ${{ inputs.runner }} =~ ^macos ]]; then
+             echo Python tests not supported on MacOS
+             false
+            fi
+            echo Preparing for Python installing...
+            apt -y update && apt -y upgrade
+            echo Installing Python...
+            apt -y --no-install-recommends install python3-numpy python3-h5py python3-lxml python3-matplotlib
+            echo "   ...done Python installation"
+            cd ${{ inputs.runPath }}
+            chmod u=wrx ./${{ inputs.file }}
+            # Preload libstdc++ from the system installation - needed by SciPy etc. This avoids attempts to use the older
+            # (incompatible) version used by our custom GCC install.
+            echo Running test model script...
+            LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
+            echo "   ...done running test model script"
            else
-            ./Galacticus.exe ${{ inputs.file }} 2>&1 | tee test.log
-           fi
-          elif [[ ${{ inputs.file }} =~ \.sh$ ]]; then
-           cd ${{ inputs.runPath }}
-           chmod u=wrx ./${{ inputs.file }}
-           ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
-          elif [[ ${{ inputs.file }} =~ \.py$ ]]; then
-           if [[ ${{ inputs.runner }} =~ ^macos ]]; then
-            echo Python tests not supported on MacOS
+            echo Unrecognized file extension
             false
            fi
-           echo Preparing for Python installing...
-           apt -y update && apt -y upgrade
-           echo Installing Python...
-           apt -y --no-install-recommends install python3-numpy python3-h5py python3-lxml python3-matplotlib
-           echo "   ...done Python installation"
-           cd ${{ inputs.runPath }}
-           chmod u=wrx ./${{ inputs.file }}
-           # Preload libstdc++ from the system installation - needed by SciPy etc. This avoids attempts to use the older
-           # (incompatible) version used by our custom GCC install.
-           echo Running test model script...
-           LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./${{ inputs.file }} ${{ inputs.options }} 2>&1 | tee test.log
-           echo "   ...done running test model script"
-          else
-           echo Unrecognized file extension
-           false
-          fi
-          ! grep -q -e FAIL -e "ODE integration failed" test.log
-      - uses: qoomon/actions--context@e12e182be797e3476990faf801dd1b87f107f91c # v5
+           ! grep -q -e FAIL -e "ODE integration failed" test.log
+          }
+          # Run the test, trying again (up to the number of attempts allowed) if it fails. The test is run in a subshell which
+          # sets `-e` for itself, and is not made part of an `if` or `||`, since bash ignores `-e` throughout anything run in
+          # such a context - and the test relies on `-e` to stop at the first failing command. A test which passed only on a
+          # later attempt is reported, so that a test which fails by chance too often (or which fails intermittently because of
+          # a real fault, such as a race) remains visible instead of quietly costing a retry each time.
+          attempt=1
+          while true; do
+           set +e
+           ( set -e; runTest )
+           status=$?
+           set -e
+           if [ $status == 0 ]; then break; fi
+           if [ $attempt -ge ${{ inputs.attempts }} ]; then exit $status; fi
+           echo "::warning title=Test retried::${{ inputs.file }} ${{ inputs.options }} did not pass on attempt ${attempt} of ${{ inputs.attempts }} and was retried."
+           echo ":warning: \`${{ inputs.file }} ${{ inputs.options }}\` did not pass on attempt ${attempt} of ${{ inputs.attempts }} and was retried." >> $GITHUB_STEP_SUMMARY
+           attempt=$((attempt+1))
+          done
+      # The summaries written below link to this job's log. The link is built from the job's check run ID, which the `job`
+      # context supplies, so that nothing need be asked of the GitHub API. (An action which looked the job up through the API
+      # was used for this once; with hundreds of test jobs in a run making that request, it would now and then time out and
+      # fail a job whose test had already passed.) Should the ID be unavailable, the link is to the run instead.
+      - name: "Find the URL of this job"
+        env:
+          CHECK_RUN_ID: ${{ job.check_run_id }}
+        run: |
+          url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          if [ -n "${CHECK_RUN_ID}" ]; then url="${url}/job/${CHECK_RUN_ID}"; fi
+          echo "JOB_URL=${url}" >> $GITHUB_ENV
       - name: "Report skipped tests"
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -199,7 +260,7 @@ jobs:
           # so a misconfigured runner would silently stop testing anything.
           if grep -q '^SKIPPED' test.log; then
            echo "# :warning: Test skipped: ${{ inputs.file }} :warning:" >> $GITHUB_STEP_SUMMARY
-           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${JOB_URL})" >> $GITHUB_STEP_SUMMARY
            grep '^SKIPPED' test.log >> $GITHUB_STEP_SUMMARY
           fi
       - name: "Check for unrecognized parameters"
@@ -211,8 +272,8 @@ jobs:
           grep "unrecognized parameter" test.log >> $GALACTICUS_EXEC_PATH/unrecognized.txt || true
           cd $GALACTICUS_EXEC_PATH
           if [ -s "unrecognized.txt" ]; then
-           echo "# :warning: Unrecognized parameters from ${GITHUB_JOB_NAME} :warning:" >> $GITHUB_STEP_SUMMARY
-           echo ":information_source: Job log can be found [here](${GITHUB_JOB_URL})" >> $GITHUB_STEP_SUMMARY
+           echo "# :warning: Unrecognized parameters from \`${{ inputs.file }} ${{ inputs.options }}\` :warning:" >> $GITHUB_STEP_SUMMARY
+           echo ":information_source: Job log can be found [here](${JOB_URL})" >> $GITHUB_STEP_SUMMARY
            cat unrecognized.txt >> $GITHUB_STEP_SUMMARY
           fi
       - name: "Clean datasets"

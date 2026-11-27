@@ -165,6 +165,13 @@ program Test_Parameters
   call testParameters%modelFactRequire('test:fact:a','a test requires fact a','provide fact a','test location')
   call testParameters%modelFactsValidate()
   call Assert('met requirement passes validation'                  ,.true.                                            ,.true. )
+  ! Exclusive claims repeated from one location (as by each OpenMP thread), and single claims on distinct facts, pass validation
+  ! (two claims on one fact from different locations would be a fatal error).
+  call wrapper1      %modelFactExclusive('test:exclusive:a','claimant one','location one')
+  call testParameters%modelFactExclusive('test:exclusive:a','claimant one','location one')
+  call testParameters%modelFactExclusive('test:exclusive:b','claimant two','location two')
+  call testParameters%modelFactsValidate()
+  call Assert('repeated and distinct exclusive claims pass validation',.true.                                         ,.true. )
   ! Resetting the parameters (as is done at the end of each task) must not clear the facts, since a later task (e.g. in a
   ! taskMulti) belongs to the same model.
   deallocate(wrapper1)
@@ -176,6 +183,11 @@ program Test_Parameters
   call Assert('fact cleared by fact reset'                         ,testParameters%modelFactIsProvided('test:fact:a'),.false.)
   call testParameters%modelFactsValidate()
   call Assert('requirement cleared by fact reset'                  ,.true.                                            ,.true. )
+  ! Exclusive claims are also cleared, so a claim on the same fact from a different location (as by a different object in the
+  ! next model) does not conflict.
+  call testParameters%modelFactExclusive('test:exclusive:a','claimant three','location three')
+  call testParameters%modelFactsValidate()
+  call Assert('exclusive claims cleared by fact reset'             ,.true.                                            ,.true. )
   ! Facts can be recorded again after a reset.
   call testParameters%modelFactProvide('test:fact:a')
   call Assert('fact can be provided again after reset'             ,testParameters%modelFactIsProvided('test:fact:a'),.true. )

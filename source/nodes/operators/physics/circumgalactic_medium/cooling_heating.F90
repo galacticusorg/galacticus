@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implements a node operator class that implements inflow/outflow of gas from the :term:`CGM` due to cooling/heating.
   !!}
@@ -220,7 +222,7 @@ contains
     use :: Abundances_Structure         , only : abundances            , operator(*)
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Cooling_Options              , only : coolingFromCurrentNode, coolingFromFormationNode
-    use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentDisk       , nodeComponentSpheroid
+    use :: Galacticus_Nodes             , only : nodeComponentHotHalo  , nodeComponentDisk       , nodeComponentSpheroid, nodeComponentBasic
     use :: Galactic_Structure_Options   , only : componentTypeDisk     , componentTypeSpheroid   , componentTypeNone
     use :: Error                        , only : Error_Report
     use :: Nodes_Formation_Node         , only : nodeFormationRequired
@@ -234,6 +236,7 @@ contains
     class           (nodeComponentHotHalo         )               , pointer :: hotHalo                    , hotHaloCooling
     class           (nodeComponentDisk            )               , pointer :: disk
     class           (nodeComponentSpheroid        )               , pointer :: spheroid
+    class           (nodeComponentBasic           )               , pointer :: basic
     type            (abundances                   )                         :: rateMassAbundancesCooling  , rateMassAbundancesOutflow
     type            (chemicalAbundances           )                         :: rateMassChemicalsCooling   , rateMassChemicalsOutflow
     logical                                                                 :: hasAngularMomentum         , hasOuterRadius            , &
@@ -320,23 +323,30 @@ contains
        hotHaloCooling => nodeCooling%hotHalo()
        !! Angular momentum.
        if (hasAngularMomentum) then
-          ! Find the infall radius.
-          radiusInfall              =+self          %coolingInfallRadius_           %radius                     (node                    )
+          ! Find the infall radius. If cooling is computed from the formation node, the infall radius is that of the formation node,
+          ! but at the current time (as for the cooling rate itself, e.g. for the Cole et al. (2000) model).
+          select case (self%coolingFrom%ID)
+          case (coolingFromFormationNode%ID)
+             basic                   =>  node                                          %basic                      (                        )
+             radiusInfall            =  +self          %coolingInfallRadius_           %radius                     (nodeCooling,basic%time())
+          case default
+             radiusInfall            =  +self          %coolingInfallRadius_           %radius                     (node                    )
+          end select
           ! Find the fraction of angular momentum lost during infall.
-          fractionLossAngularMomentum=self          %coolingInfallTorque_           %fractionAngularMomentumLoss(node                    )
+          fractionLossAngularMomentum =  self          %coolingInfallTorque_           %fractionAngularMomentumLoss(node                    )
           ! Calculate cooling rates of other quantities.
-          rateAngularMomentumCooling=+                                               rateMassCooling                                       &
-               &                     *self          %coolingSpecificAngularMomentum_%angularMomentumSpecific    (nodeCooling,radiusInfall)
+          rateAngularMomentumCooling =  +                                               rateMassCooling                                       &
+               &                        *self          %coolingSpecificAngularMomentum_%angularMomentumSpecific    (nodeCooling,radiusInfall)
        else
-          rateAngularMomentumCooling=+0.0d0
+          rateAngularMomentumCooling =  +0.0d0
        end if
        !! Abundances.
-       rateMassAbundancesCooling    =+                                               rateMassCooling                                       &
-            &                        *hotHaloCooling                                %abundances                 (                        ) &
-            &                        /hotHaloCooling                                %mass                       (                        )
+       rateMassAbundancesCooling     =  +                                               rateMassCooling                                       &
+            &                           *hotHaloCooling                                %abundances                 (                        ) &
+            &                           /hotHaloCooling                                %mass                       (                        )
        !! Chemicals.
        if (hasChemicals      ) then
-          rateMassChemicalsCooling  = hotHaloCooling                                %chemicals                  (                        )
+          rateMassChemicalsCooling   =   hotHaloCooling                                %chemicals                  (                        )
           call rateMassChemicalsCooling%scale(                                  &
                &                              -               rateMassCooling   &
                &                              /hotHaloCooling%mass           () &

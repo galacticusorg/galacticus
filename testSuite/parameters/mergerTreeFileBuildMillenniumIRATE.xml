@@ -33,8 +33,8 @@
 
       <content value="GADGET-2"/>
 
-      <metaData>
-      </metaData>
+    </metaData>
+    <metaData>
       <type value="simulation"/>
 
       <name value="startRedshift"/>
@@ -108,23 +108,6 @@
 
       <content value="http://www.g-vo.org/MyMillennium3"/>
     </metaData>
-
-    <cosmologyParameters value="simple">
-      <HubbleConstant value="73.000"/>
-      <OmegaMatter value=" 0.250"/>
-      <OmegaDarkEnergy value=" 0.750"/>
-      <OmegaBaryon value=" 0.045"/>
-    </cosmologyParameters>
-
-    <cosmologicalMassVariance value="filteredPower"/>
-
-    <transferFunction value="CAMB"/>
-
-    <powerSpectrumPrimordial value="powerLaw">
-      <index value="1.0"/>
-      <wavenumberReference value="1.0"/>
-      <running value="0.0"/>
-    </powerSpectrumPrimordial>
 
     <unitsMass>
       <unitsInSI value="1.989e40"/>
@@ -263,6 +246,22 @@
     </particleProperty>
   </task>
 
+
+  <!-- Cosmological model of the simulation. These are placed outside of the task so that objects built by default (e.g. the
+       transferred power spectrum used to compute sigma_8 for the file metadata) are built from them too. -->
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="73.000"/>
+    <OmegaMatter value=" 0.250"/>
+    <OmegaDarkEnergy value=" 0.750"/>
+    <OmegaBaryon value=" 0.045"/>
+  </cosmologyParameters>
+  <cosmologicalMassVariance value="filteredPower"/>
+  <transferFunction value="CAMB"/>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="1.0"/>
+    <wavenumberReference value="1.0"/>
+    <running value="0.0"/>
+  </powerSpectrumPrimordial>
 
   <powerSpectrumNormalizer value="sigma8">
     <sigma_8 value="0.9"/>

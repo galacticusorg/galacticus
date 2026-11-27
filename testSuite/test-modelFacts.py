@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the model-scoped fact registry (the `modelFact` and `modelRequire` directives).
+"""Check the model-scoped fact registry (the `modelFact`, `modelRequire`, and `modelExclusive` directives).
 
 Both `galacticDiskHeatingImpulsive` and `darkMatterProfileHeatingTidal` require the fact
 `satellite:tidalHeatingNormalized:evolved`, which is established by the `satelliteTidalHeating` node operator. The dark
@@ -16,6 +16,16 @@ are initialized, after every node operator already exists, and is checked then. 
   are recorded for the whole model, so they must survive the reset of the parameters at the end of the first task, which
   is followed by the second task's own check after its node components are initialized.
 
+Both the `tidalHeatingSpheroids` node operator and the spheroid component (when its `galacticComponentHeating` class is
+active, as it is in this model) claim the fact `spheroid:tidalHeating` exclusively, as using both would double count the
+heating. The operator is built with the task, while the spheroid component's claim is made only when node components are
+initialized. It is checked that:
+
+* with the node operator added, the model stops with an error that names the conflicting fact and describes both
+  claimants, before any tree is evolved;
+* with the node operator added and the spheroid component's `galacticComponentHeating` set to `none`, there is no conflict
+  and the model runs to completion.
+
 Andrew Benson, Claude
 """
 import os
@@ -29,13 +39,15 @@ operatorElement   = '<nodeOperator value="satelliteTidalHeating"/>'
 outputFileBase    = "testSuite/outputs/tidalStrippingGalacticComponentsHeated.hdf5"
 heatingPattern    = re.compile(r'<darkMatterProfileHeating value="tidal">.*?</darkMatterProfileHeating>', re.DOTALL)
 fact              = "the fact 'satellite:tidalHeatingNormalized:evolved' is established by"
+spheroidElement   = '<componentSpheroid value="standard"/>'
+heatingOperator   = '<nodeOperator value="tidalHeatingSpheroids"/>'
 
 os.makedirs("outputs", exist_ok=True)
 
 with open(os.path.join("..", parameterFileBase)) as fileBase:
     parametersBase = fileBase.read()
-if parametersBase.count(operatorElement) != 1 or len(heatingPattern.findall(parametersBase)) != 1:
-    print(f"FAILED: expected exactly one {operatorElement} and one tidal darkMatterProfileHeating in {parameterFileBase}")
+if parametersBase.count(operatorElement) != 1 or len(heatingPattern.findall(parametersBase)) != 1 or parametersBase.count(spheroidElement) != 1:
+    print(f"FAILED: expected exactly one {operatorElement}, one tidal darkMatterProfileHeating, and one {spheroidElement} in {parameterFileBase}")
     sys.exit(0)
 
 failures = []
@@ -95,9 +107,46 @@ else:
         failures.append("the taskMulti model with two evolveForests tasks did not run both tasks")
         print(log[-3000:])
 
+# Exclusive claims. Add the tidalHeatingSpheroids node operator alongside the satelliteTidalHeating one.
+def runExclusive(label, spheroid):
+    """Run a copy of the model with the tidalHeatingSpheroids node operator added, and the spheroid component given by
+    `spheroid`, returning the exit status and log."""
+    parameterFileTest = f"testSuite/outputs/modelFactsExclusive_{label}.xml"
+    parameters        = parametersBase.replace(operatorElement, operatorElement+heatingOperator)
+    parameters        = parameters    .replace(spheroidElement, spheroid                       )
+    parameters        = re.sub(r'<outputFileName\s+value="[^"]*"\s*/>', f'<outputFileName value="testSuite/outputs/modelFactsExclusive_{label}.hdf5"/>', parameters)
+    with open(os.path.join("..", parameterFileTest), "w") as fileTest:
+        fileTest.write(parameters)
+    status = subprocess.run(f"cd ..; ./Galacticus.exe {parameterFileTest}", shell=True, capture_output=True)
+    return status.returncode, status.stdout.decode() + status.stderr.decode()
+
+# With the spheroid component's heating active, the claims conflict.
+status, log = runExclusive("conflict", spheroidElement)
+failed      = len(failures)
+if status == 0:
+    failures.append("conflict: the model with both the tidalHeatingSpheroids node operator and spheroid component heating ran to completion")
+else:
+    for expected, description in (
+            ("claims exclusive responsibility for 'spheroid:tidalHeating'"                , "the conflicting fact"                   ),
+            ("tidal heating of spheroids by the `tidalHeatingSpheroids` node operator"    , "the node operator claimant"             ),
+            ("by the spheroid component's `galacticComponentHeating` class"               , "the spheroid component claimant"        ),
+    ):
+        if expected not in log:
+            failures.append(f"conflict: the error report does not give {description}")
+    if re.search(r"evolving (?:forest|tree)", log, re.IGNORECASE):
+        failures.append("conflict: the exclusive claims were not checked before trees were evolved")
+if len(failures) > failed:
+    print(log[-3000:])
+
+# With the spheroid component's heating switched off, only the node operator claims the fact, and the model runs.
+status, log = runExclusive("noConflict", '<componentSpheroid value="standard"><galacticComponentHeating value="none"/></componentSpheroid>')
+if status != 0:
+    failures.append("noConflict: the model with the tidalHeatingSpheroids node operator and no spheroid component heating did not run")
+    print(log[-3000:])
+
 if failures:
     for failure in failures:
         print(f"FAILED: {failure}")
 else:
-    print("SUCCESS: unmet model fact requirements (checked at task build and at component initialization) are reported, with their provider, before evolution; met ones are accepted, including across the tasks of a taskMulti")
+    print("SUCCESS: unmet model fact requirements (checked at task build and at component initialization) are reported, with their provider, before evolution; met ones are accepted, including across the tasks of a taskMulti; conflicting exclusive claims are reported, and a single claim is accepted")
 sys.exit(0)

@@ -99,6 +99,18 @@ where ``-i3`` sets the indent for block constructs, ``-r2`` the indent for
 procedure bodies, ``-m2`` the indent for module bodies, and ``--openmp=0``
 leaves the ``!$`` sentinels untouched.
 
+.. _manual-sec-formatterPolicy:
+
+.. important::
+
+   **Current policy: do not run** ``formatModuleUses.py`` **or**
+   ``formatDeclarations.py`` **yourself.** The two formatters described below
+   are not yet considered ready for general use, and the maintainers run them
+   when needed. Align ``use`` and declaration blocks by hand, matching the
+   surrounding code. The formatting checks in the pre-commit hook and on pull
+   requests are advisory (see :ref:`manual-sec-formattingAdoption`), and a
+   follow-up ``style(...)`` commit that realigns a file you changed is normal.
+
 .. _manual-sec-formatModuleUses:
 
 Formatting module ``use`` blocks
@@ -119,8 +131,9 @@ suppress the backup with ``--no-backup``). Pass ``--check`` to report whether a
 file would be reformatted without modifying it; it exits with status 1 if so,
 which makes it usable as a pre-commit or continuous-integration check.
 
-Run it after any edit that adds, removes, or renames imported symbols, rather
-than realigning the columns by hand.
+Once the formatters are in general use, run it after any edit that adds,
+removes, or renames imported symbols, rather than realigning the columns by
+hand. For now, see :ref:`the formatter policy <manual-sec-formatterPolicy>`.
 
 The script refuses to write unless three conditions hold: parsing the file and
 writing it straight back out reproduces it exactly; re-parsing its own output
@@ -191,8 +204,9 @@ to any of them to carry a whole-file reformat in the same commit, mixed in with
 the substantive change. Reporting instead leaves the choice of when to reformat
 with you.
 
-When you do reformat, make it a commit of its own, so that reviewers can read
-the reformatting and the substantive change apart:
+A reformat (currently made by the maintainers; see
+:ref:`the formatter policy <manual-sec-formatterPolicy>`) is a commit of its own, so that reviewers can
+read the reformatting and the substantive change apart:
 
 .. code-block:: bash
 

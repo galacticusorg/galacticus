@@ -282,8 +282,11 @@ contains
     self%surfaceDensityCritical             =self%surfaceDensityCritical*(mega**2)                                                    ! Convert to M☉/Mpc².
     self%starFormationFrequencyNormalization=self%starFormationFrequencyNormalization*giga                                            ! Convert to Gyr⁻¹.
     self%pressureCharacteristic             =self%pressureCharacteristic*boltzmannsConstant*((hecto*megaParsec)**3)/massSolar/kilo**2 ! Convert to M☉(km/s)²/Mpc.
-    ! Build fast exponentiator.
-    self%pressureRatioExponentiator         =fastExponentiator(0.0d0,1.0d0,pressureExponent,1000.0d0,.false.)
+    ! Build fast exponentiator. The table is linearly interpolated, which is accurate (to 4×10⁻⁶ for α=0.92 at a spacing of
+    ! 10⁻³) only well away from zero, where P^α has unbounded derivative. It therefore begins at a pressure ratio of 0.05 -
+    ! smaller ratios, like those above unity, are computed exactly by the exponentiator. A table beginning at zero gave
+    ! R_mol ∝ P instead of P^α below a ratio of 10⁻³, biasing low the star formation rates of low surface density disks.
+    self%pressureRatioExponentiator         =fastExponentiator(0.05d0,1.0d0,pressureExponent,1000.0d0,.false.)
     ! Build root finder.
     self%finder=rootFinder(                                                             &
          &                 rootFunction                 =blitz2006CriticalDensityRoot , &
@@ -375,12 +378,8 @@ contains
     pressureRatio=self%pressureRatio(node,radius,surfaceDensityGas)
     ! Compute the ratio of molecular to atomic hydrogen, R_mol=Σ_H₂/Σ_HI=(P_ext/P₀)^α (eqn. 11 of Blitz & Rosolowsky 2006), and
     ! from it the molecular fraction, f_H₂=R_mol/(1+R_mol) (their eqn. 21). The fast exponentiator is tabulated over the range
-    ! [0,1] only, so is used only where the pressure ratio falls within that range.
-    if (pressureRatio >= 1.0d0) then
-       ratioMolecular   =+                                             pressureRatio **self%pressureExponent
-    else
-       ratioMolecular   =+self%pressureRatioExponentiator%exponentiate(pressureRatio)
-    end if
+    ! [0.05,1] only, and computes R_mol exactly outside that range.
+    ratioMolecular      =+self%pressureRatioExponentiator%exponentiate(pressureRatio)
     molecularFraction   =+       ratioMolecular  &
          &               /(1.0d0+ratioMolecular)
     ! Compute the star formation rate surface density. The frequency, following Leroy et al. (2008), is per unit mass of molecular
@@ -444,6 +443,10 @@ contains
     type (abundances                                   ), save          :: abundancesFuel
     !$omp threadprivate(abundancesFuel)
 
+    ! Factors computed for a different node must not be reused. This check is needed here (and not only in the rate function)
+    ! as the "unchanged" and "intervals" methods also use these factors, and may be called for successive nodes without any
+    ! intervening calculation reset - for example, for the two galaxies taking part in a merger.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node,node%uniqueID())
     ! Check if factors have been precomputed.
     if (.not.self%factorsComputed) then
        ! Get the disk properties.

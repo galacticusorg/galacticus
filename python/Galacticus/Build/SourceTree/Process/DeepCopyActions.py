@@ -67,29 +67,27 @@ def _emit_deep_copy_action(class_name, classes, directive):
         out += f" type is ({sub_name})\n"
 
         # For each ancestor level (including sub_name itself), pull setTo /
-        # methodCall actions declared at that level, provided the target
-        # class has any declarations in its body.
+        # methodCall actions declared at that level.
         method_calls = []
         cursor = sub_name
         while cursor is not None:
-            class_node = classes[cursor]['node']
             scope_directive = directive.get(cursor) if isinstance(directive.get(cursor), dict) else None
 
-            child = class_node.get('firstChild')
-            while child is not None:
-                if child.get('type') == 'declaration' and scope_directive is not None:
-                    for set_to in as_array(scope_directive.get('setTo')):
-                        variables = re.split(
-                            r'\s*,\s*', set_to.get('variables', ''))
-                        state = set_to.get('state', '')
-                        for v in variables:
-                            out += f" self%{v}={state}\n"
-                    for method_call in as_array(scope_directive.get('methodCall')):
-                        args = method_call.get('arguments', '')
-                        method_calls.append(
-                            f" call self%{method_call.get('method', '')}({args})"
-                        )
-                child = child.get('sibling')
+            # The actions of a level are emitted once for that level (previously they were emitted once for each declaration node
+            # in the type body - i.e. for each run of declarations broken by a comment or directive - repeating every action).
+            # They are emitted whether or not the type at that level has any declarations of its own.
+            if scope_directive is not None:
+                for set_to in as_array(scope_directive.get('setTo')):
+                    variables = re.split(
+                        r'\s*,\s*', set_to.get('variables', ''))
+                    state = set_to.get('state', '')
+                    for v in variables:
+                        out += f" self%{v}={state}\n"
+                for method_call in as_array(scope_directive.get('methodCall')):
+                    args = method_call.get('arguments', '')
+                    method_calls.append(
+                        f" call self%{method_call.get('method', '')}({args})"
+                    )
             cursor = classes[cursor].get('extends')
 
         if method_calls:

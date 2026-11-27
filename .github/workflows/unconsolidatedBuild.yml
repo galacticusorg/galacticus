@@ -1,0 +1,68 @@
+name: 'Unconsolidated-Build'
+# Build Galacticus without USE consolidation, to check that the code still builds that way.
+#
+# By default the build moves USE statements that procedures of a module share to the module's specification part before
+# compiling it (`CONSOLIDATE_USES=yes`; see `scripts/build/consolidateUses.py`). That cuts gfortran's memory and time on the
+# largest files several-fold, and every build in the CI/CD workflow relies on it. But `CONSOLIDATE_USES=no` remains a supported
+# option - it compiles the code as written - so this workflow builds that way once a week, to catch code that compiles only
+# when consolidated. Consolidation does not change what the code does, so building, with the same check for errors and
+# warnings as `Build-Executable-Linux` in `cicd.yml`, is enough; no model is run.
+#
+# Without consolidation the largest compile peaks at ~14 GB, and the next six at 6-10 GB, so even -j2 can exhaust the standard
+# runner's ~16 GB. So the objects with the largest compiles are first built one at a time (by `buildLargeObjects.sh`), and the
+# rest at -j2. It takes around 100 minutes.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '00 06 * * 6'
+concurrency:
+  group: unconsolidatedBuild-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash
+permissions:
+  contents: read
+jobs:
+  Build-Unconsolidated-Linux:
+    runs-on: ubuntu-latest
+    container: ghcr.io/galacticusorg/buildenv:latest
+    timeout-minutes: 240
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - name: Check out repository code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+      - name: "Install build profiling tools"
+        # GNU `time` provides the per-task peak memory measurements used by the build profiler.
+        run: apt-get install --yes time || { apt-get update && apt-get install --yes time ; }
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          git config --global --add safe.directory $GALACTICUS_EXEC_PATH
+          # Preprocess first, at full parallelism: preprocessing needs only ~100 MB per process, so the -j2 cap
+          # below, which protects the memory-hungry compiles, need not apply to it. Pass the same build options
+          # as the build itself, since they select the build directory and configuration.
+          make -j$(nproc) CONSOLIDATE_USES=no preprocess
+          set -o pipefail
+          # Then build the objects whose compiles need the most memory one at a time (see the script for why -j2 alone is
+          # not enough).
+          ./scripts/build/buildLargeObjects.sh ./work/build CONSOLIDATE_USES=no BUILDPROFILE=yes 2>&1 | tee build.log
+          make CONSOLIDATE_USES=no BUILDPROFILE=yes -j2 Galacticus.exe 2>&1 | tee -a build.log
+          set +o pipefail
+          python3 ./scripts/build/buildProfiler.py build.log buildProfile.html --durationMinimum 20
+          grep -vqzi error:   build.log || (echo "FAIL: errors found in build.log"   && false)
+          grep -vqzi warning: build.log || (echo "FAIL: warnings found in build.log" && false)
+      - name: Upload the build profile
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: unconsolidated-build-profile
+          path: |
+            build.log
+            buildProfile.html
+          if-no-files-found: ignore
+      - run: echo "This job's status is ${{ job.status }}."

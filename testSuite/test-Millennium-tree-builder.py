@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import shutil
+import h5py
 
 # Take trees from the Millennium Database and process into both Galacticus and IRATE formats.
 # Andrew Benson (ported to Python)
@@ -10,6 +11,21 @@ import shutil
 status = subprocess.run("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildMillennium.xml", shell=True)
 if status.returncode != 0:
     print("FAILED: failed to make Galacticus-format merger tree file from Millennium database output")
+    sys.exit(0)
+
+# Check that the value of sigma_8 recorded in the file matches that requested. (Formerly, the cosmological model was given inside
+# the task, and so was not seen by objects built by default - such as the transferred power spectrum from which sigma_8 is
+# computed - so a different value was recorded.)
+with h5py.File("../testSuite/outputs/millenniumTestTreesGLC.hdf5", "r") as treeFile:
+    sigma8 = treeFile["cosmology"].attrs["sigma_8"]
+    simulation = dict(treeFile["simulation"].attrs)
+if abs(sigma8 / 0.9 - 1.0) > 1.0e-3:
+    print(f"FAILED: sigma_8 recorded in the Millennium merger tree file is {sigma8}, but 0.9 was requested")
+    sys.exit(0)
+# Check that each simulation metadata entry was recorded. (Formerly, a malformed entry in the parameter file caused the starting
+# redshift to be silently dropped.)
+if simulation.get("startRedshift") != 127.0:
+    print(f"FAILED: startRedshift recorded in the Millennium merger tree file is {simulation.get('startRedshift')}, but 127 was given")
     sys.exit(0)
 
 # Extract a single tree from the file we just created.

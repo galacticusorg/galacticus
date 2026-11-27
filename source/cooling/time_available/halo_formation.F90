@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of the :cite:t:`cole_hierarchical_2000` time available for cooling class.
   !!}
@@ -84,30 +86,37 @@ contains
     return
   end function formationTimeConstructorInternal
   
-  double precision function formationTimeTimeAvailable(self,node)
+  double precision function formationTimeTimeAvailable(self,node,time)
     !!{RST
     Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the :cite:t:`cole_hierarchical_2000` model.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(coolingTimeAvailableFormationTime), intent(inout) :: self
-    type (treeNode                         ), intent(inout) :: node
-    class(nodeComponentBasic               ), pointer       :: basic
+    class           (coolingTimeAvailableFormationTime), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout)           :: node
+    double precision                                   , intent(in   ), optional :: time
+    class           (nodeComponentBasic               ), pointer                 :: basic
 
-    basic                      =>  node %basic                    (                        )
-    formationTimeTimeAvailable =  +basic%time                     (                        ) &
-         &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
+    basic                         =>  node %basic                    (                        )
+    if (present(time)) then
+       formationTimeTimeAvailable =  +time                                                      &
+            &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
+    else
+       formationTimeTimeAvailable =  +basic%time                     (                        ) &
+            &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
+    end if
     return
   end function formationTimeTimeAvailable
 
-  double precision function formationTimeTimeAvailableIncreaseRate(self,node)
+  double precision function formationTimeTimeAvailableIncreaseRate(self,node,time)
     !!{RST
     Compute the rate of increase of the time available for cooling using the :cite:t:`cole_hierarchical_2000` method. We return a rate of 1, even though technically it can depend on halo properties.
     !!}
     implicit none
-    class(coolingTimeAvailableFormationTime), intent(inout) :: self
-    type (treeNode                         ), intent(inout) :: node
-    !$GLC attributes unused :: self, node
+    class           (coolingTimeAvailableFormationTime), intent(inout)           :: self
+    type            (treeNode                         ), intent(inout)           :: node
+    double precision                                   , intent(in   ), optional :: time
+    !$GLC attributes unused :: self, node, time
 
     ! Simply return unit rate.
     formationTimeTimeAvailableIncreaseRate=1.0d0

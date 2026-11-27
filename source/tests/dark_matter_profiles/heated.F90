@@ -92,16 +92,17 @@ program Test_Dark_Matter_Profiles_Heated
   class           (massDistributionHeatingClass                                  ), pointer      :: massDistributionHeatingTidal_
   class           (massDistributionClass                                         ), pointer      :: massDistributionIsothermal_
   type            (coordinateSpherical                                           )               :: coordinates                                                     , coordinatesHeated         , &
-       &                                                                                            coordinatesInitial
+       &                                                                                            coordinatesInitial                                              , coordinatesReference
   double precision                                                                               :: radiusVirial                                                    , radiusHeated              , &
        &                                                                                            massEnclosedAnalytic                                            , densityAnalytic           , &
        &                                                                                            radiusInitial                                                   , radiusInitialAnalytic     , &
        &                                                                                            massEnclosed                                                    , velocityDispersion        , &
        &                                                                                            potential                                                       , potentialAnalytic         , &
        &                                                                                            potentialZeroPoint                                              , potentialAnalyticZeroPoint, &
+       &                                                                                            potentialDifference                                             , density                   , &
        &                                                                                            radius                                                          , toleranceRelative         , &
        &                                                                                            velocityDispersionAnalytic                                      , radiusScaled              , &
-       &                                                                                            toleranceRelativeVelocityDispersionAssert                       , density
+       &                                                                                            toleranceRelativeVelocityDispersionAssert
   integer                                                                                        :: i                                                               , profileType
   character       (len=5                                                         )               :: radiusLabel
   character       (len=128                                                       )               :: profileName
@@ -368,7 +369,10 @@ program Test_Dark_Matter_Profiles_Heated
            ! Compute potential zero points at our first radius - we compare only potential differences.
            potentialZeroPoint        =potential
            potentialAnalyticZeroPoint=potentialAnalytic
+           coordinatesReference      =coordinates
         end if
+        ! Evaluate the potential difference relative to the first radius directly.
+        potentialDifference=massDistributionSphericalHeated_%potentialDifference(coordinates,coordinatesReference)
         potential        =+potential                  &
              &            -potentialZeroPoint
         potentialAnalytic=+potentialAnalytic          &
@@ -386,11 +390,13 @@ program Test_Dark_Matter_Profiles_Heated
              &                          )
     
         if (profileType == 1) &
-             & call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius'     ,radiusInitial     ,radiusInitialAnalytic     ,relTol=toleranceRelative                        )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass'      ,massEnclosed      ,massEnclosedAnalytic      ,relTol=toleranceRelative                        )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; density'            ,density           ,densityAnalytic           ,relTol=toleranceRelative                        )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; potential'          ,potential         ,potentialAnalytic         ,relTol=toleranceRelativePotentialDifference     )
-        call        Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion',velocityDispersion,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
+             & call Assert('r='//trim(radiusLabel)//'rᵥ; initial radius'      ,radiusInitial      ,radiusInitialAnalytic     ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; enclosed mass'       ,massEnclosed       ,massEnclosedAnalytic      ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; density'             ,density            ,densityAnalytic           ,relTol=toleranceRelative                        )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; potential'           ,potential          ,potentialAnalytic         ,relTol=toleranceRelativePotentialDifference     )
+        if (i > 1) &
+             & call Assert('r='//trim(radiusLabel)//'rᵥ; potential difference',potentialDifference,potentialAnalytic         ,relTol=toleranceRelativePotentialDifference     )
+        call        Assert('r='//trim(radiusLabel)//'rᵥ; velocity dispersion' ,velocityDispersion ,velocityDispersionAnalytic,relTol=toleranceRelativeVelocityDispersionAssert)
      end do
      call Unit_Tests_End_Group()
      !![

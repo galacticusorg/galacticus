@@ -1107,6 +1107,57 @@ Then, when you compile Galacticus it will automatically discover your new class,
      <timescale              value="1.0"/>
    </starFormationTimescale>
 
+.. _new-class-abstract-intermediate:
+
+Sharing code between implementations: abstract intermediate classes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When two or more implementations of a class share code, the supported way to
+share it is an *abstract intermediate* implementation, which the sharing
+implementations extend. This often fits where making one implementation extend
+another does not: a child that extended a sibling would inherit all of that
+sibling's parameters, changing its own user-visible parameter interface.
+Existing examples include ``posteriorSampleLikelihoodBaseParameters``,
+``outputAnalysisDistributionOperatorRandomError``, ``surveyGeometryMangle``, and
+several abstract ``nodePropertyExtractor`` implementations. The simplest to copy
+is ``source/output/analyses/distribution_operator/random_error/_class.F90``.
+
+* **Declaration.** Mark the implementation directive with ``abstract="yes"``,
+  and declare the type ``type, abstract, extends(<class>Class)``. An abstract
+  implementation is registered in ``schema/parameters.xsd`` like any other.
+
+* **Deferred methods.** A binding which the children must provide needs an
+  ``abstract interface``, placed between ``end type`` and ``contains``, which
+  imports what it needs as ``import <Type>, treeNode`` (comma-separated, without
+  parentheses). Declare the binding in the type as
+  ``procedure(<template>), deferred :: <method>``, and keep its ``<methods>``
+  entry. Each child's procedure must match the interface's characteristics
+  exactly; a ``result(...)`` clause does not affect that match.
+
+* **Shared construction.** Put construction shared between the children in a
+  type-bound initializer which each child's constructor calls (for example,
+  ``procedure :: initialize => baseParametersInitialize``), rather than in a
+  constructor of the parent; otherwise rely on default initialization of the
+  parent's components. ``<addMetaProperty>`` works in such an initializer.
+
+* **Private components.** A child *can* assign the parent's ``private``
+  components (``source/models/likelihoods/halo_mass_function.F90`` does so),
+  because all implementations are submodules of one module. So
+  ``<constructorAssign>`` works for inherited components too.
+
+* **Module-scope pointers.** Before moving a module-scope pointer (a ``self_``
+  used by callbacks, say) from the children into the parent, check every other
+  handler in each child which uses it. A handler which reads child-only
+  components through a pointer that now has the parent's type no longer
+  compiles (gfortran reports
+  ``is not a member of the 'functionclass' structure``). Do not add a second
+  pointer: event hooks already pass the instance in, so unwrap it with
+  ``select type``, with a ``class is (...)`` branch for the child, plus
+  ``class is (functionClass)`` and ``class default`` branches which report an
+  error, and drop any ``!$GLC attributes unused :: self`` line. The
+  ``satelliteHostChange`` handler in
+  ``source/nodes/operators/physics/satellite_merging/time.F90`` is the pattern.
+
 Recursive classes
 ~~~~~~~~~~~~~~~~~~
 

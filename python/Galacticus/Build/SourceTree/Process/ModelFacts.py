@@ -1,4 +1,4 @@
-"""Processes `modelFact` and `modelRequire` directives: the declarative
+"""Processes `modelFact`, `modelRequire` and `modelExclusive` directives: the declarative
 interface to the model-scoped fact registry held by the root parameter
 document (see `inputParameters%modelFact*` in
 `source/utility/input_parameters.F90`).
@@ -36,7 +36,26 @@ and the parameter-file XML which selects it. A `modelRequire` naming a fact
 which no `modelFact` directive provides is a build-time error, so the token
 vocabulary is checked by the build.
 
-Both directives accept `source="<variable>"` to name the `inputParameters`
+An object which takes sole responsibility for some physics, such that the
+model would double count it if another object did the same, claims it
+exclusively:
+
+    !![
+    <modelExclusive name="spheroid:tidalHeating"
+                    description="tidal heating of spheroids by the `tidalHeatingSpheroids` node operator"/>
+    !!]
+
+expands to
+
+    call parameters%modelFactExclusive('spheroid:tidalHeating','<description>',<location>)
+
+Claims are checked at the same validation points as requirements, and two
+claims on one token from different places in the source are an error, listing
+the description of each. A token claimed by only one `modelExclusive`
+directive in the whole source could never conflict, so is a build-time error:
+it is most likely a misspelling.
+
+All three directives accept `source="<variable>"` to name the `inputParameters`
 object to register with (default `parameters`). Directives should be placed in
 parameter constructors, which always have the parameters to hand.
 
@@ -62,9 +81,11 @@ _SOURCE_TAG    = 'Galacticus.Build.SourceTree.Process.ModelFacts'
 _TOKEN_PATTERN = re.compile(r'^[A-Za-z][A-Za-z0-9_]*(:[A-Za-z][A-Za-z0-9_]*)*$')
 _NAME_PATTERN  = re.compile(r'^[A-Za-z][A-Za-z0-9_%]*$')
 
-# Cache of the provider table, keyed by build path. The table is a pure
-# function of the source tree, so it is computed once per preprocessor run.
+# Caches of the provider and claimant tables, keyed by build path. The tables
+# are pure functions of the source tree, so are computed once per
+# preprocessor run.
 _PROVIDERS_CACHE = {}
+_CLAIMANTS_CACHE = {}
 
 
 def _quote(text):
@@ -128,6 +149,27 @@ def provider_table(build_path):
     return providers
 
 
+def claimant_table(build_path):
+    """Return `{token: count}`, the number of `modelExclusive` directives in
+    the source tree claiming each token."""
+    if build_path in _CLAIMANTS_CACHE:
+        return _CLAIMANTS_CACHE[build_path]
+    locations_path = os.path.join(build_path, 'directiveLocations.xml')
+    if not os.path.exists(locations_path):
+        raise RuntimeError(f"modelExclusive: {locations_path} not found")
+    block     = Catalogs.load(locations_path).get('modelExclusive') or {}
+    claimants = {}
+    for file_name in sorted(set(as_array(block.get('file')))):
+        if not os.path.exists(file_name):
+            # Stale directiveLocations.xml entry for a deleted file.
+            continue
+        for claim in extract_directives(file_name, 'modelExclusive'):
+            token            = (claim.get('name') or '').strip()
+            claimants[token] = claimants.get(token, 0)+1
+    _CLAIMANTS_CACHE[build_path] = claimants
+    return claimants
+
+
 def help_text(token, providers):
     """Compose the HELP text for an unsatisfied requirement on `token`."""
     hints = []
@@ -154,6 +196,16 @@ def _providers(options):
     if not build_path:
         raise RuntimeError("modelRequire: BUILDPATH is not set")
     return provider_table(build_path)
+
+
+def _claimants(options):
+    """Return the claimant table, from `options` (tests) or the build tree."""
+    if 'modelExclusiveClaimants' in options:
+        return options['modelExclusiveClaimants']
+    build_path = os.environ.get('BUILDPATH')
+    if not build_path:
+        raise RuntimeError("modelExclusive: BUILDPATH is not set")
+    return claimant_table(build_path)
 
 
 def _insert(node, code, function):
@@ -215,5 +267,38 @@ def process_model_require(tree, options):
         _insert(node, code, 'process_model_require')
 
 
-register_process('modelFact',    process_model_fact   )
-register_process('modelRequire', process_model_require)
+def process_model_exclusive(tree, options):
+    """Process `modelExclusive` directives in the tree."""
+    for node in walk_tree(tree):
+        if node.get('type') != 'modelExclusive':
+            continue
+        directive = node.setdefault('directive', {})
+        if directive.get('processed'):
+            continue
+        directive['processed'] = True
+        token       = _token (directive, 'modelExclusive', node)
+        source      = _source(directive, 'modelExclusive', node)
+        description = (directive.get('description') or '').strip()
+        if not description:
+            raise RuntimeError(
+                "modelExclusive: a `description` attribute is required"
+                f" [{node.get('source', 'unknown')}:{node.get('line', 0)}]")
+        if _claimants(options).get(token, 0) < 2:
+            raise RuntimeError(
+                f"modelExclusive: the fact '{token}' is claimed by only one"
+                " `modelExclusive` directive in the source, so can never"
+                " conflict - check the spelling, or add a `modelExclusive`"
+                " directive to each class with which it conflicts"
+                f" [{node.get('source', 'unknown')}:{node.get('line', 0)}]")
+        code = (
+            f"call {source}%modelFactExclusive("
+            f"{_quote(token)},"
+            f"{_quote(description)},"
+            f"{location(node, node.get('line', 0))})\n"
+        )
+        _insert(node, code, 'process_model_exclusive')
+
+
+register_process('modelFact',      process_model_fact     )
+register_process('modelRequire',   process_model_require  )
+register_process('modelExclusive', process_model_exclusive)

@@ -477,7 +477,7 @@ contains
     use :: Galactic_Structure_Options, only : enumerationWeightByType     , enumerationComponentTypeType, enumerationMassTypeType  , componentTypeColdHalo, &
          &                                    massTypeGaseous
     use :: Mass_Distributions        , only : massDistributionClass       , kinematicsDistributionLocal , massDistributionComposite, massDistributionList , &
-         &                                    massDistributionMatches_
+         &                                    massDistributionMatches_    , massDistributionListAcquire
     implicit none
     class  (massDistributionClass       ), pointer                 :: massDistributionHotMode   , massDistributionColdMode, &
          &                                                            massDistribution_
@@ -519,8 +519,8 @@ contains
              massDistribution_ => massDistributionColdMode
           else          
              allocate(massDistributionTotal          )
-             allocate(massDistributionComponents     )
-             allocate(massDistributionComponents%next)
+             massDistributionComponents                        => massDistributionListAcquire()
+             massDistributionComponents%next                   => massDistributionListAcquire()
              massDistributionComponents     %massDistribution_ => massDistributionHotMode
              massDistributionComponents%next%massDistribution_ => massDistributionColdMode
              !![
@@ -529,6 +529,8 @@ contains
 	     <objectDestructor name="massDistributionColdMode"/>
              !!]
              nullify(massDistributionComponents)
+             ! Return the composite, which now holds the references to the hot-mode and cold-mode distributions.
+             massDistribution_ => massDistributionTotal
           end if
        end if
     class default
