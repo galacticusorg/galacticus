@@ -97,8 +97,11 @@ tables in `scripts/build/ciPlan.py`, and every other job runs only if the plan l
 the `pr` tier: the two default Linux builds, the quick unit tests, and the model tests that take a few minutes. It does
 **not** run the other build configurations, macOS, MPI, validations, benchmarks, profiles, or about 30 slow tests. A PR
 that changes the build system, a workflow, `constraints/**` or `tutorials/**` gets the `full` tier, as does one labeled
-`ci:full`. A PR that changes nothing which can affect the build or the tests (documentation, mostly) gets `skip`. The job
-summary of `Plan` says which tier was chosen and why. `CI-Gate` is the one required check, and reports for every run.
+`ci:full`. The exception is a change to `cicd.yml` that only adds tests to its jobs (or removes them): the PR stays in the
+`pr` tier and also runs the tests it adds, in whichever job they were added to. Of the last 60 merges that touched
+`cicd.yml` before this was written, 47 were of that kind. A PR that changes nothing which can affect the build or the tests
+(documentation, mostly) gets `skip`. The job summary of `Plan` says which tier was chosen and why. `CI-Gate` is the one
+required check, and reports for every run.
 
 The merge queue runs nothing (it allows a check at most 360 minutes; the full suite took 6.7 h and 15 h in runs
 45859684041 and 45696160577, and costs about 95 runner-hours). A full run that passes records the *content* it tested, as
@@ -130,6 +133,9 @@ one by accident (a label, a rollup, or a push to a PR that has one) matters.
   `needs` of `CI-Gate`. It runs only in the full tier unless you add it to a group in `PR_GROUPS`.
 - *Adding a new kind of file that the build or a test reads:* give it a rule in `PATH_RULES`. A file matching no rule is
   left out of the key, so a change to it would never be tested. `FULL` is always a safe choice.
+- *Keep a test's addition to `cicd.yml` free of other edits to that file.* Adding entries to the test lists keeps the PR
+  in the `pr` tier; any other difference from master's `cicd.yml` in the same PR (a changed step, a new job, a renamed
+  parameter) sends every push of it to the full suite. Put such changes in a PR of their own.
 - After any of these, run `python -m pytest scripts/build/tests/test_ciPlan.py`: it checks the wiring, that every built
   test program is run by exactly one job, and that every test a job names matches a path rule.
 - *Rollups and `ci:full`:* do not add the label, build a rollup, or push to a PR whose full run is in progress or has

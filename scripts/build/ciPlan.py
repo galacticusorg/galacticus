@@ -46,19 +46,24 @@ What a pull request runs is decided by the tables below, not by the workflow fil
   tests has a rule; and a list of changed files which could not be determined gets the full suite. (A *job* which this script
   does not know about is not in the `pr` tier: it runs in the full suite, which everything passes before it reaches
   ``master``, until it is added to a group below.)
+* A pull request which adds a test runs it. A change to the workflow selects the full suite, with one exception: where the
+  workflow differs from that of ``master`` only in the tests which its jobs run, the pull request stays in the `pr` tier and
+  runs the tests which it adds as well - whichever job they were added to, and whether or not they are listed as deferred.
+  Otherwise every pull request which came with a new test would run the full suite at each push.
 * A selected job brings the jobs it ``needs`` with it, so a test can never be planned without its build.
 * A job which was planned but did not run fails the gate, as does one which failed or was canceled.
 
 Run with::
 
     ciPlan.py plan --event <event> [--ref <ref>] [--draft] [--labels <json>] [--changed-files <file>] [--tier <tier>]
-                   [--tested-run-id <id>] [--content <key>] [--run-id <id>]
+                   [--base-workflow <file>] [--tested-run-id <id>] [--content <key>] [--run-id <id>]
     ciPlan.py key
     ciPlan.py gate [--needs <json>] [--jobs <json>]
     ciPlan.py attribute <results file> ...
 """
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -68,7 +73,8 @@ import sys
 from pathlib import Path
 
 REPOSITORY = Path(__file__).resolve().parents[2]
-WORKFLOW = REPOSITORY / ".github" / "workflows" / "cicd.yml"
+WORKFLOW_PATH = ".github/workflows/cicd.yml"
+WORKFLOW = REPOSITORY / WORKFLOW_PATH
 
 TIERS = ("skip", "pr", "full", "deploy", "blocked")
 
@@ -194,7 +200,8 @@ PATH_RULES = (
     ("python/Galacticus/Build/**/tests/**", ("tooling",)),
     ("python/Galacticus/Build/**", FULL),
     # The workflows which make up the suite, and the image which one of its jobs builds.
-    (".github/workflows/cicd.yml", FULL),
+    # (A change to this one which only adds tests to its jobs, or removes them, is treated more leniently: see `plan()`.)
+    (WORKFLOW_PATH, FULL),
     (".github/workflows/testModel.yml", FULL),
     (".github/workflows/testCode.yml", FULL),
     (".github/workflows/profile.yml", FULL),
@@ -263,10 +270,13 @@ def classify(path):
 class Workflow:
     """The parts of the workflow which planning needs: each job's `needs`, and the test files of the jobs which run them."""
 
-    def __init__(self, path=WORKFLOW):
-        import yaml  # Imported here so that `gate`, which needs no workflow, runs without PyYAML.
+    def __init__(self, path=WORKFLOW, document=None):
+        if document is None:
+            import yaml  # Imported here so that `gate`, which needs no workflow, runs without PyYAML.
 
-        self.jobs = yaml.safe_load(Path(path).read_text())["jobs"]
+            document = yaml.safe_load(Path(path).read_text())
+        self.document = document
+        self.jobs = document["jobs"]
 
     def names(self):
         return [name for name in self.jobs if name not in UNGATED_JOBS]
@@ -287,19 +297,61 @@ class Workflow:
             pending.extend(self.needs(name))
         return [name for name in self.jobs if name in selected]
 
+    @staticmethod
+    def _target(job):
+        """Return where a job names the tests which it runs, as `(the parameter naming them, the matrix key if any)`."""
+        parameters = job.get("with") or {}
+        field = "file" if "file" in parameters else "executable"
+        target = parameters.get(field)
+        if not isinstance(target, str):
+            return None, None
+        matrixed = re.fullmatch(r"\$\{\{\s*matrix\.(\w+)\s*\}\}", target)
+        return field, matrixed.group(1) if matrixed else None
+
     def entries(self, name):
         """Return the test files (or test executables) which a job runs: one per matrix entry, or the single one it names."""
         job = self.jobs[name]
-        parameters = job.get("with") or {}
-        target = parameters.get("file", parameters.get("executable"))
-        if not isinstance(target, str):
+        field, key = self._target(job)
+        if field is None:
             return []
-        matrixed = re.fullmatch(r"\$\{\{\s*matrix\.(\w+)\s*\}\}", target)
-        if not matrixed:
+        if key is None:
             # A job which runs unit tests (and so names no test file) may name several executables, separated by white space.
-            return [target] if "file" in parameters else target.split()
-        values = ((job.get("strategy") or {}).get("matrix") or {}).get(matrixed.group(1), [])
+            target = job["with"][field]
+            return [target] if field == "file" else target.split()
+        values = ((job.get("strategy") or {}).get("matrix") or {}).get(key, [])
         return [value for value in values if isinstance(value, str)] if isinstance(values, list) else []
+
+    def without_entries(self):
+        """Return the workflow's document with the tests which its jobs run removed: everything `entries()` does not report."""
+        document = copy.deepcopy(self.document)
+        for job in document["jobs"].values():
+            field, key = self._target(job)
+            if field is None:
+                continue
+            if key is None:
+                job["with"][field] = ""
+            else:
+                matrix = (job.get("strategy") or {}).get("matrix")
+                if isinstance(matrix, dict) and isinstance(matrix.get(key), list):
+                    matrix[key] = [value for value in matrix[key] if not isinstance(value, str)]
+        return document
+
+
+def added_entries(base, workflow):
+    """Compare a workflow with the version which a pull request is based on.
+
+    Returns `{job: [the tests added to it]}` if the two differ only in the tests which their jobs run - so an empty dictionary
+    if they differ only in comments or layout, or only by tests removed - and `None` if they differ in any other way.
+    """
+    if base.without_entries() != workflow.without_entries():
+        return None
+    added = {}
+    for name in workflow.names():
+        before = set(base.entries(name))
+        new = [entry for entry in workflow.entries(name) if entry not in before]
+        if new:
+            added[name] = new
+    return added
 
 
 def entry_path(entry, repository=REPOSITORY):
@@ -359,12 +411,13 @@ def content_key(repository=REPOSITORY, revision="HEAD"):
 
 
 def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=None, tested_run_id="", content="", run_id="",
-         repository=REPOSITORY):
+         repository=REPOSITORY, base=None):
     """Return the plan for an event as a dictionary of the `Plan` job's outputs, plus a list of reasons for the summary.
 
-    `changed` is the list of files changed by a pull request, or `None` if it could not be determined. `content` is the key of
-    the content which the run is for (see `content_key()`), and `tested_run_id` the run of the full suite which passed for that
-    content, if there is one.
+    `changed` is the list of files changed by a pull request, or `None` if it could not be determined, and `base` is the
+    workflow as it is on the branch which the pull request is based on, or `None` if that could not be read. `content` is the
+    key of the content which the run is for (see `content_key()`), and `tested_run_id` the run of the full suite which passed
+    for that content, if there is one.
     """
     key = content
     content = f"this content (key `{key}`)" if key else "this content"
@@ -373,6 +426,7 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
     groups = set()
     suite = []
     selective = False
+    added = {}
     if event == "workflow_dispatch":
         tier = tier or "full"
         reasons.append(f"Manually dispatched with tier `{tier}`.")
@@ -409,6 +463,17 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
             reasons.append("The files changed by this pull request could not be determined; running the full suite.")
         else:
             decisive = {file: classify(file) for file in changed}
+            if decisive.get(WORKFLOW_PATH) == FULL and base is not None:
+                # A workflow which differs only in the tests that its jobs run does not need the full suite: only those tests.
+                tests = added_entries(base, workflow)
+                if tests is not None:
+                    added = tests
+                    decisive[WORKFLOW_PATH] = ()
+                    count = sum(len(entries) for entries in added.values())
+                    reasons.append("The workflow changed only in the tests which its jobs run"
+                                   + (f": the {count} added will be run (" + ", ".join(f"`{entry}`" for entries in added.values()
+                                                                                       for entry in entries) + ")." if count
+                                      else ", and none was added."))
             forcing = sorted(file for file, selection in decisive.items() if selection == FULL)
             if forcing:
                 tier = "full"
@@ -417,7 +482,7 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
             else:
                 for selection in decisive.values():
                     groups.update(selection)
-                if groups:
+                if groups or added:
                     tier = "pr"
                     relevant = [file for file, selection in decisive.items() if selection]
                     # A pull request which touches only the test suite (and files which need no build) runs just the tests
@@ -425,7 +490,8 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
                     suite = [file for file in relevant if file.startswith("testSuite/")]
                     selective = bool(suite) and all(file.startswith("testSuite/") or decisive[file] == ("tooling",)
                                                     for file in relevant)
-                    reasons.append("Pull request subset selected by changed paths: " + ", ".join(sorted(groups)) + ".")
+                    if groups:
+                        reasons.append("Pull request subset selected by changed paths: " + ", ".join(sorted(groups)) + ".")
                 else:
                     tier = "skip"
                     reasons.append("No changed file can affect the build or the tests.")
@@ -457,6 +523,15 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
                                    if entry_path(entry, repository) in suite}
                 skipped = sorted((set(skipped) | set(skipped_affected)) - changed_entries)
                 reasons.append("Only the test suite changed: running the " + str(len(models)) + " job(s) which it affects.")
+        if added:
+            # Tests which the pull request adds to the workflow run, in whichever job they were added to. A job brought in
+            # for that alone runs nothing else. A test is enabled or disabled by its name alone, in every job which names it,
+            # so one is skipped only if no selected job is to run it.
+            wanted = {entry for name in workflow.closure(selected) for entry in workflow.entries(name)} - set(skipped)
+            wanted |= {entry for entries in added.values() for entry in entries}
+            selected = selected + [name for name in added if name not in selected]
+            named = {entry for name in workflow.closure(selected) for entry in workflow.entries(name)}
+            skipped = sorted((set(skipped) | named) - wanted)
         jobs = workflow.closure(selected)
     if tier in ("pr", "full"):
         jobs = [name for name in jobs if name not in PUBLISH_JOBS or (tier == "full" and deploying)]
@@ -562,6 +637,7 @@ def main(arguments=None):
     planner.add_argument("--draft", default="false", help="'true' if the pull request is a draft")
     planner.add_argument("--labels", default="[]", help="the labels of the pull request, as a JSON list")
     planner.add_argument("--changed-files", help="a file holding the NUL-separated names of the files changed")
+    planner.add_argument("--base-workflow", help="a file holding the workflow as it is on the branch a pull request is based on")
     planner.add_argument("--tier", default="", help="the tier requested by a manual dispatch")
     planner.add_argument("--tested-run-id", default="", help="the run of the full suite which passed for this content, if any")
     planner.add_argument("--content", default="", help="the key of the content which this run is for")
@@ -591,6 +667,12 @@ def main(arguments=None):
 
     if options.command == "plan":
         labels = json.loads(options.labels or "[]") or []
+        base = None
+        if options.base_workflow and Path(options.base_workflow).is_file():
+            try:
+                base = Workflow(options.base_workflow)
+            except Exception as error:  # Whatever is wrong with it, the workflows can not be compared: the full suite is run.
+                print(f"The workflow of the base branch could not be read ({error}).", file=sys.stderr)
         outputs, reasons = plan(
             Workflow(options.workflow),
             options.event,
@@ -602,6 +684,7 @@ def main(arguments=None):
             tested_run_id=options.tested_run_id,
             content=options.content,
             run_id=options.run_id,
+            base=base,
         )
         write_outputs(outputs)
         jobs = json.loads(outputs["jobs"])

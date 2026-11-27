@@ -1,5 +1,6 @@
 """Tests for the CI/CD workflow planner, and of the workflow's wiring to it."""
 
+import copy
 import glob
 import json
 import os
@@ -117,6 +118,10 @@ def test_a_pass_of_the_full_suite_is_recorded_under_the_name_which_the_plan_look
     assert f"artifacts?name={record}${{key}}" in lookup["run"]
     # A record made by a pull request from a fork, which runs its own copy of the workflow, must not be believed.
     assert ".workflow_run.repository_id == .workflow_run.head_repository_id" in lookup["run"]
+    # The workflow of the base branch is read from the same commit as the list of changed files, and given to the plan.
+    changes = next(step for step in plan["steps"] if "changedFiles" in str(step.get("run", "")) and "git diff" in step["run"])
+    assert f'git show HEAD^1:{ciPlan.WORKFLOW_PATH} > "${{RUNNER_TEMP}}/baseWorkflow.yml"' in changes["run"]
+    assert '--base-workflow "${RUNNER_TEMP}/baseWorkflow.yml"' in str(plan["steps"][-1]["run"])
     assert "--tested-run-id" in str(plan["steps"][-1]["run"])
     assert '--content       "${{ steps.tested.outputs.key }}"' in str(plan["steps"][-1]["run"])
 
@@ -617,3 +622,203 @@ def test_every_file_which_a_job_of_the_suite_names_is_part_of_the_content(workfl
 def test_key_command(capsys):
     assert ciPlan.main(["key"]) == 0
     assert capsys.readouterr().out.strip() == ciPlan.content_key()
+
+
+# --- Pull requests which add tests to the workflow --------------------------------------------------------------------------------
+
+
+def edited(workflow, edit):
+    """Return a copy of a workflow to which `edit` (a function of its document) has been applied."""
+    document = copy.deepcopy(workflow.document)
+    edit(document)
+    return ciPlan.Workflow(document=document)
+
+
+def adding(job, entry, key="file"):
+    def edit(document):
+        document["jobs"][job]["strategy"]["matrix"][key].append(entry)
+    return edit
+
+
+def adding_unit_test(executable):
+    def edit(document):
+        document["jobs"]["Codes-Quick"]["with"]["executable"] += " " + executable
+    return edit
+
+
+def test_added_entries_finds_the_tests_added(workflow):
+    assert ciPlan.added_entries(workflow, workflow) == {}
+    assert ciPlan.added_entries(workflow, edited(workflow, adding("Miscellaneous", "test-new.py"))) == {"Miscellaneous": ["test-new.py"]}
+    assert ciPlan.added_entries(workflow, edited(workflow, adding_unit_test("tests.new.exe"))) == {"Codes-Quick": ["tests.new.exe"]}
+    both = edited(edited(workflow, adding("Miscellaneous", "test-new.py")), adding("Codes", "tests.slow.exe", key="executable"))
+    assert ciPlan.added_entries(workflow, both) == {"Miscellaneous": ["test-new.py"], "Codes": ["tests.slow.exe"]}
+    # A test which is removed, or which is only moved within its list, is not one which was added.
+    assert ciPlan.added_entries(both, workflow) == {}
+    assert ciPlan.added_entries(workflow, edited(workflow, lambda document: document["jobs"]["Miscellaneous"]["strategy"]["matrix"]["file"].reverse())) == {}
+    # A test moved from one job to another is added to the job which it was moved to.
+    def move(document):
+        document["jobs"]["Codes"]["strategy"]["matrix"]["executable"].remove("tests.excursion_sets.exe")
+        document["jobs"]["Codes-Quick"]["with"]["executable"] += " tests.excursion_sets.exe"
+    assert ciPlan.added_entries(workflow, edited(workflow, move)) == {"Codes-Quick": ["tests.excursion_sets.exe"]}
+    # A job which runs one test may be given another to run.
+    def replace(document):
+        document["jobs"]["Cosmology"]["with"]["file"] = "test-new.py"
+    assert ciPlan.added_entries(workflow, edited(workflow, replace)) == {"Cosmology": ["test-new.py"]}
+
+
+def change_a_step(document):
+    document["jobs"]["Build-Executable-Linux"]["steps"][-1]["run"] = "echo changed"
+
+
+def add_a_job(document):
+    document["jobs"]["New-Job"] = copy.deepcopy(document["jobs"]["Cosmology"])
+
+
+def remove_a_job(document):
+    del document["jobs"]["Cosmology"]
+
+
+def change_the_triggers(document):
+    document[True if True in document else "on"]["push"] = {"branches": ["other"]}
+
+
+def change_another_parameter(document):
+    document["jobs"]["Miscellaneous"]["with"]["artifact"] = "other-artifact"
+
+
+def change_what_a_test_is_run_with(document):
+    document["jobs"]["Equilibrium-Iteration-Limit"]["with"]["executable"] = "other.exe"
+
+
+def change_the_other_side_of_a_matrix(document):
+    document["jobs"]["Miscellaneous"]["strategy"]["matrix"]["os"] = ["ubuntu-latest", "macos-latest"]
+
+
+def change_the_gate(document):
+    document["jobs"]["CI-Gate"]["needs"].remove("Miscellaneous")
+
+
+OTHER_CHANGES = [change_a_step, add_a_job, remove_a_job, change_the_triggers, change_another_parameter,
+                 change_what_a_test_is_run_with, change_the_other_side_of_a_matrix, change_the_gate]
+
+
+@pytest.mark.parametrize("edit", OTHER_CHANGES)
+def test_added_entries_refuses_any_other_change(workflow, edit):
+    assert ciPlan.added_entries(workflow, edited(workflow, edit)) is None
+    # Even one which comes along with a test that was added.
+    assert ciPlan.added_entries(workflow, edited(edited(workflow, adding("Miscellaneous", "test-new.py")), edit)) is None
+
+
+@pytest.mark.parametrize("edit", OTHER_CHANGES)
+def test_any_other_change_to_the_workflow_runs_everything(workflow, edit):
+    changed = edited(workflow, edit)
+    outputs = pull_request(changed, ["source/a.F90", ciPlan.WORKFLOW_PATH], base=workflow)
+    assert outputs["tier"] == "full" and skipped_of(outputs) == []
+
+
+def test_workflow_change_runs_everything_if_the_base_is_unknown(workflow):
+    changed = edited(workflow, adding("Miscellaneous", "test-new.py"))
+    assert pull_request(changed, ["source/a.F90", ciPlan.WORKFLOW_PATH])["tier"] == "full"
+    # And whatever the workflow, another file which calls for the full suite gets it.
+    assert pull_request(changed, ["Makefile", ciPlan.WORKFLOW_PATH], base=workflow)["tier"] == "full"
+
+
+def test_a_test_added_with_a_source_change_runs_in_the_subset(workflow):
+    changed = edited(workflow, adding("Miscellaneous", "test-new.py"))
+    outputs = pull_request(changed, ["source/a.F90", "testSuite/test-new.py", ciPlan.WORKFLOW_PATH], base=workflow)
+    plain = pull_request(workflow, ["source/a.F90"])
+    assert outputs["tier"] == "pr"
+    assert jobs_of(outputs) == jobs_of(plain)
+    assert skipped_of(outputs) == skipped_of(plain) and "test-new.py" not in skipped_of(outputs)
+
+
+def test_an_added_unit_test_runs_in_the_subset(workflow):
+    changed = edited(workflow, adding_unit_test("tests.new.exe"))
+    outputs = pull_request(changed, ["source/tests/new.F90", ciPlan.WORKFLOW_PATH], base=workflow)
+    assert outputs["tier"] == "pr" and "Codes-Quick" in jobs_of(outputs) and "Codes" not in jobs_of(outputs)
+
+
+def test_an_added_test_runs_even_if_it_is_deferred(workflow, monkeypatch):
+    monkeypatch.setattr(ciPlan, "PR_DEFERRED_ENTRIES", ciPlan.PR_DEFERRED_ENTRIES + ("test-new.py",))
+    changed = edited(workflow, adding("Miscellaneous", "test-new.py"))
+    outputs = pull_request(changed, ["source/a.F90", ciPlan.WORKFLOW_PATH], base=workflow)
+    assert "test-new.py" not in skipped_of(outputs)
+    # Whereas it is deferred once it is no longer new.
+    assert "test-new.py" in skipped_of(pull_request(changed, ["source/a.F90"]))
+
+
+def test_a_test_added_to_a_job_outside_the_subset_brings_only_itself(workflow):
+    """A new slow unit test, or MPI test, runs in the pull request which adds it - but the rest of its job does not."""
+    changed = edited(workflow, adding("Codes", "tests.new.exe", key="executable"))
+    outputs = pull_request(changed, ["source/a.F90", ciPlan.WORKFLOW_PATH], base=workflow)
+    plain = pull_request(workflow, ["source/a.F90"])
+    assert outputs["tier"] == "pr"
+    assert set(jobs_of(outputs)) == set(jobs_of(plain)) | {"Codes"}
+    others = set(workflow.entries("Codes"))
+    assert others <= set(skipped_of(outputs)) and "tests.new.exe" not in skipped_of(outputs)
+    assert set(skipped_of(outputs)) == set(skipped_of(plain)) | others
+    # Its build comes with it.
+    mpi = edited(workflow, adding("Codes-MPI", "tests.new_MPI.exe", key="executable"))
+    outputs = pull_request(mpi, ["source/tests/new_MPI.F90", ciPlan.WORKFLOW_PATH], base=workflow)
+    assert {"Codes-MPI", "Build-Executables-MPI-Linux"} <= set(jobs_of(outputs))
+    assert set(workflow.entries("Codes-MPI")) <= set(skipped_of(outputs)) and "tests.new_MPI.exe" not in skipped_of(outputs)
+
+
+def test_a_test_shared_with_a_selected_job_is_not_skipped(workflow):
+    """Tests are enabled by name in every job which names them, so one that a selected job is to run must stay enabled."""
+    shared = set(workflow.entries("Codes-Quick")) & set(workflow.entries("Codes-Debugging"))
+    assert shared, "this test needs a unit test which two jobs run"
+    changed = edited(workflow, adding("Codes-Debugging", "tests.new.exe", key="executable"))
+    outputs = pull_request(changed, ["source/a.F90", ciPlan.WORKFLOW_PATH], base=workflow)
+    assert "Codes-Debugging" in jobs_of(outputs) and "Codes-Quick" in jobs_of(outputs)
+    assert not shared & set(skipped_of(outputs))
+
+
+def test_a_test_added_to_the_workflow_alone_runs_alone(workflow):
+    changed = edited(workflow, adding("Miscellaneous", "test-new.py"))
+    outputs = pull_request(changed, [ciPlan.WORKFLOW_PATH, "docs/index.rst"], base=workflow)
+    assert outputs["tier"] == "pr"
+    assert set(jobs_of(outputs)) == {"Miscellaneous", "Build-Executable-Linux", "Watch-Updates"}
+    assert set(workflow.entries("Miscellaneous")) <= set(skipped_of(outputs)) and "test-new.py" not in skipped_of(outputs)
+
+
+def test_a_workflow_changed_only_in_comments_or_by_removing_tests_runs_nothing_for_it(workflow):
+    removed = edited(workflow, lambda document: document["jobs"]["Miscellaneous"]["strategy"]["matrix"]["file"].pop())
+    for changed in (workflow, removed):
+        assert pull_request(changed, [ciPlan.WORKFLOW_PATH, "docs/index.rst"], base=workflow)["tier"] == "skip"
+        outputs = pull_request(changed, [ciPlan.WORKFLOW_PATH, "source/a.F90"], base=workflow)
+        assert outputs["tier"] == "pr" and jobs_of(outputs) == jobs_of(pull_request(changed, ["source/a.F90"]))
+
+
+def test_a_new_test_script_and_its_entry_run_alone(workflow, tmp_path):
+    """The commonest case with no source change: a new test script, added to a job's matrix."""
+    changed = edited(workflow, adding("Miscellaneous", "test-new.py"))
+    (tmp_path / "testSuite").mkdir()
+    (tmp_path / "testSuite" / "test-new.py").write_text("print('SUCCESS: new')")
+    outputs = pull_request(changed, ["testSuite/test-new.py", ciPlan.WORKFLOW_PATH], base=workflow, repository=tmp_path)
+    assert outputs["tier"] == "pr" and "Miscellaneous" in jobs_of(outputs)
+    assert "test-new.py" not in skipped_of(outputs) and "Regressions" not in jobs_of(outputs)
+
+
+def test_plan_command_compares_the_workflow_with_its_base(monkeypatch, tmp_path, capsys):
+    workflow = ciPlan.Workflow()
+    changed = tmp_path / "changed"
+    changed.write_text(f"source/a.F90\0{ciPlan.WORKFLOW_PATH}\0")
+    output = tmp_path / "output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(output))
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(tmp_path / "summary"))
+    base = tmp_path / "base.yml"
+    base.write_text(yaml.safe_dump(edited(workflow, lambda document: document["jobs"]["Miscellaneous"]["strategy"]["matrix"]["file"].pop()).document))
+    arguments = ["plan", "--event", "pull_request", "--changed-files", str(changed), "--run-id", "7"]
+
+    def tier():
+        return dict(line.split("=", 1) for line in output.read_text().splitlines())["tier"]
+
+    assert ciPlan.main(arguments + ["--base-workflow", str(base)]) == 0 and tier() == "pr"
+    assert "added will be run" in (tmp_path / "summary").read_text()
+    # Without the workflow of the base branch, or with one which can not be read, the change can not be judged.
+    output.unlink()
+    assert ciPlan.main(arguments + ["--base-workflow", str(tmp_path / "missing.yml")]) == 0 and tier() == "full"
+    output.unlink()
+    base.write_text("jobs: [unclosed")
+    assert ciPlan.main(arguments + ["--base-workflow", str(base)]) == 0 and tier() == "full"

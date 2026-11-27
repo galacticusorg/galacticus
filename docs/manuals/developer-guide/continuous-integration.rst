@@ -200,9 +200,10 @@ every push to every pull request. The first job of each run, **Plan**, gives the
 run a *tier*, and every other job runs only if the plan lists it:
 
 * **full** — every job. Used for a pull request which changes the build system,
-  the code generator, the dependencies, or the workflows themselves, for a pull
-  request carrying the ``ci:full`` label, for a manual dispatch, and for a push
-  to ``master`` of content which has not already passed the full suite.
+  the code generator, the dependencies, or the workflows themselves (other than
+  by adding tests to the jobs of ``cicd.yml``: see below), for a pull request
+  carrying the ``ci:full`` label, for a manual dispatch, and for a push to
+  ``master`` of content which has not already passed the full suite.
 * **pr** — a subset chosen from the files which a pull request changes. A change
   to the source runs the two default Linux builds, the unit tests, and the model
   tests which take no more than a few minutes each. A change to the test suite
@@ -286,6 +287,15 @@ runs. Its path rules must cover every file which can affect the build or the
 tests, because a file which matches no rule is also left out of the content
 described above, and so a change to it is never tested. When a new kind of file
 comes to be used by the build or by a test, give it a rule.
+
+A pull request which adds a test to ``cicd.yml`` — an executable in the list of
+``Codes-Quick``, or an entry in the matrix of a job — does not thereby run the
+full suite. The plan compares the workflow with that of ``master``, and where
+the two differ only in the tests which their jobs run, the pull request stays in
+the **pr** tier and runs the tests which it adds as well: whichever job they were
+added to, and whether or not they are listed as deferred. A job brought in for
+an added test alone runs nothing else. Any other change to the workflow, however
+small, runs the full suite.
 
 When adding a job to ``cicd.yml``, make it need the ``Plan`` job, give it the
 same ``if:`` condition as its neighbors (with its own name), and add it to the

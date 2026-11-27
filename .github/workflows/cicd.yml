@@ -65,10 +65,14 @@ jobs:
       - name: Install PyYAML
         run: python -m pip install --upgrade pip pyyaml
       # The names of the changed files are chosen by whoever opened the pull request, so they are written to a file (separated
-      # by NUL characters) and never interpolated into a script. If they can not be found the plan is the full suite.
+      # by NUL characters) and never interpolated into a script. If they can not be found the plan is the full suite. This
+      # workflow as it is on the base branch is kept too: a pull request which changes it only by adding tests to its jobs
+      # need not run the full suite, and the plan compares the two to tell. If it can not be read, the full suite is run.
       - name: Find the files changed by the pull request
         if: github.event_name == 'pull_request'
-        run: git diff --name-only -z HEAD^1 HEAD > "${RUNNER_TEMP}/changedFiles" || rm -f "${RUNNER_TEMP}/changedFiles"
+        run: |
+          git diff --name-only -z HEAD^1 HEAD > "${RUNNER_TEMP}/changedFiles" || rm -f "${RUNNER_TEMP}/changedFiles"
+          git show HEAD^1:.github/workflows/cicd.yml > "${RUNNER_TEMP}/baseWorkflow.yml" || rm -f "${RUNNER_TEMP}/baseWorkflow.yml"
       # A run of the full suite which passes records the content that it tested, as an artifact named for the key of that content
       # (see `CI-Gate`): a digest of every file which can affect the build or the tests, made by `ciPlan.py key`. A merge group,
       # or a push to `master`, whose commit has that same key is of content which has already been tested: the merge group has
@@ -107,6 +111,7 @@ jobs:
             --draft         "${{ github.event.pull_request.draft || false }}"   \
             --labels        "${LABELS}"                                         \
             --changed-files "${RUNNER_TEMP}/changedFiles"                       \
+            --base-workflow "${RUNNER_TEMP}/baseWorkflow.yml"                   \
             --tier          "${TIER}"                                           \
             --tested-run-id "${{ steps.tested.outputs.run }}"                   \
             --content       "${{ steps.tested.outputs.key }}"                   \
