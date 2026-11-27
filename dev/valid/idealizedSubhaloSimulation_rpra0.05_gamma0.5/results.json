@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "72eaf36aa425a1bf1ae148854b6d392d4e5a9699",
-        "message": "Merge pull request #1872 from galacticusorg/ccr-4403ba3d-4q4fbr\n\nShare the review skill, move knowledge entries into the manuals, and explain AGN torus test failures\n",
-        "timestamp": "2026-11-26 16:26:33+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/72eaf36aa425a1bf1ae148854b6d392d4e5a9699"
+        "id": "d55ef586f09756620febdde4df84db5b79a7254b",
+        "message": "Merge pull request #1870 from galacticusorg/ccr-d50f68e1-76vh9y\n\nci: plan each CI/CD run by tier, add a merge-queue trigger and a single gate check\n",
+        "timestamp": "2026-11-27 15:27:01+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d55ef586f09756620febdde4df84db5b79a7254b"
     },
     "results": [
         {

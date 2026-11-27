@@ -6,10 +6,10 @@ window.ANALYSES_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "72eaf36aa425a1bf1ae148854b6d392d4e5a9699",
-        "message": "Merge pull request #1872 from galacticusorg/ccr-4403ba3d-4q4fbr\n\nShare the review skill, move knowledge entries into the manuals, and explain AGN torus test failures\n",
-        "timestamp": "2026-11-26 16:26:33+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/72eaf36aa425a1bf1ae148854b6d392d4e5a9699"
+        "id": "d55ef586f09756620febdde4df84db5b79a7254b",
+        "message": "Merge pull request #1870 from galacticusorg/ccr-d50f68e1-76vh9y\n\nci: plan each CI/CD run by tier, add a merge-queue trigger and a single gate check\n",
+        "timestamp": "2026-11-27 15:27:01+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d55ef586f09756620febdde4df84db5b79a7254b"
     },
     "results": [
         {
@@ -80,7 +80,7 @@ window.ANALYSES_DATA = {
         {
             "attributes": {
                 "name": "COZMIC MilkyWay IDM:1e-4GeV:envelope resolutionX8 z=0.000",
-                "logLikelihood": "-61.072226371183675",
+                "logLikelihood": "-61.0722263711837",
                 "xAxisLabel": "Mₕₐₗₒ [M☉]",
                 "yAxisLabel": "dn/dlnM [Mpc⁻³]",
                 "xAxisIsLog": "1",
@@ -109,8 +109,8 @@ window.ANALYSES_DATA = {
                     2.6506321160115576,
                     2.4050325935786536,
                     2.05440694367187,
-                    1.6525743629871708,
-                    1.2626433383126843
+                    1.6525743629871714,
+                    1.2626433383126845
                 ],
                 "yError": [
                     0.5988688321362057,
