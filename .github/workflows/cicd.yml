@@ -62,8 +62,15 @@ jobs:
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: '3.14'
+      # Tried more than once: this job decides whether a pull request stays in the merge queue, and should not put one out
+      # because a download failed.
       - name: Install PyYAML
-        run: python -m pip install --upgrade pip pyyaml
+        run: |
+          for attempt in 1 2 3; do
+           if python -m pip install --upgrade pip pyyaml; then exit 0; fi
+           sleep 15
+          done
+          exit 1
       # The names of the changed files are chosen by whoever opened the pull request, so they are written to a file (separated
       # by NUL characters) and never interpolated into a script. If they can not be found the plan is the full suite. This
       # workflow as it is on the base branch is kept too: a pull request which changes it only by adding tests to its jobs
@@ -71,34 +78,57 @@ jobs:
       - name: Find the files changed by the pull request
         if: github.event_name == 'pull_request'
         run: |
-          git diff --name-only -z HEAD^1 HEAD > "${RUNNER_TEMP}/changedFiles" || rm -f "${RUNNER_TEMP}/changedFiles"
+          # Renames are not detected, so that a file which is moved is listed under its old name as well as its new one.
+          git diff --name-only --no-renames -z HEAD^1 HEAD > "${RUNNER_TEMP}/changedFiles" || rm -f "${RUNNER_TEMP}/changedFiles"
           git show HEAD^1:.github/workflows/cicd.yml > "${RUNNER_TEMP}/baseWorkflow.yml" || rm -f "${RUNNER_TEMP}/baseWorkflow.yml"
       # A run of the full suite which passes records the content that it tested, as an artifact named for the key of that content
-      # (see `CI-Gate`): a digest of every file which can affect the build or the tests, made by `ciPlan.py key`. A merge group,
-      # or a push to `master`, whose commit has that same key is of content which has already been tested: the merge group has
-      # nothing to run, and the push has only to rebuild and publish. Look for such a record: one which has not expired, which
-      # was made by a run of this workflow, and which was made in this repository (a pull request from a fork runs its own copy
-      # of the workflow, and so could record whatever it liked). Any doubt - no record, an expired one, an error from the API -
-      # leaves the output empty: a push then runs the full suite, and a merge group is refused.
+      # (see `CI-Gate`): a digest of every file which can affect the build or the tests, made by `ciPlan.py key`. A commit with
+      # that same key is of content which has already been tested: a merge group or a pull request has nothing to run, and a
+      # push to `master` has only to rebuild and publish. Look for such a record: one which has not expired, which was made by a
+      # run of this workflow, and which was made in this repository (a pull request from a fork runs its own copy of the
+      # workflow, and so could record whatever it liked). Any doubt leaves the output empty, and then a pull request or a push
+      # is tested as it otherwise would be, and a merge group is refused. An error from the API is reported apart from the
+      # absence of a record, so that a merge group which is refused for that alone is known to need only to be queued again.
       - name: Find a run of the full suite which passed for this content
         id: tested
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Ask the GitHub API, trying again if it fails: its errors are mostly brief. The answer is printed only for an
+          # attempt which succeeds, so that nothing of a failed one is taken for an answer.
+          function api {
+           local attempt answer
+           for attempt in 1 2 3 4; do
+            if answer=$(gh api "$1" --jq "$2"); then
+             printf '%s\n' "${answer}"
+             return 0
+            fi
+            if [ "${attempt}" -lt 4 ]; then sleep $((attempt * 15)); fi
+           done
+           return 1
+          }
           key=$(python scripts/build/ciPlan.py key)
           echo "key=${key}" >> "${GITHUB_OUTPUT}"
           run=
-          if [ "${GITHUB_EVENT_NAME}" == push ] || [ "${GITHUB_EVENT_NAME}" == merge_group ]; then
-           candidates=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=ci-full-passed-${key}&per_page=20" --jq '.artifacts[] | select(.expired == false and .workflow_run.repository_id == .workflow_run.head_repository_id) | .workflow_run.id') || candidates=
+          failed=false
+          if candidates=$(api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=ci-full-passed-${key}&per_page=20" '.artifacts[] | select(.expired == false and .workflow_run.repository_id == .workflow_run.head_repository_id) | .workflow_run.id'); then
            for candidate in ${candidates}; do
-            path=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${candidate}" --jq '.path') || path=
-            if [ "${path}" == ".github/workflows/cicd.yml" ]; then
-             run=${candidate}
-             break
+            if path=$(api "repos/${GITHUB_REPOSITORY}/actions/runs/${candidate}" '.path'); then
+             if [ "${path}" == ".github/workflows/cicd.yml" ]; then
+              run=${candidate}
+              break
+             fi
+            else
+             failed=true
             fi
            done
+          else
+           failed=true
           fi
-          echo "run=${run}" >> "${GITHUB_OUTPUT}"
+          # A record which was found settles the matter, whatever else failed.
+          if [ -n "${run}" ]; then failed=false; fi
+          echo "run=${run}"       >> "${GITHUB_OUTPUT}"
+          echo "failed=${failed}" >> "${GITHUB_OUTPUT}"
       - name: Plan
         id: plan
         env:
@@ -114,6 +144,8 @@ jobs:
             --base-workflow "${RUNNER_TEMP}/baseWorkflow.yml"                   \
             --tier          "${TIER}"                                           \
             --tested-run-id "${{ steps.tested.outputs.run }}"                   \
+            --lookup-failed "${{ steps.tested.outputs.failed }}"                \
+            --fork          "${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}" \
             --content       "${{ steps.tested.outputs.key }}"                   \
             --run-id        "${{ github.run_id }}"
   # Preprocessor regression tests
@@ -2985,8 +3017,11 @@ jobs:
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
           git add dev/valid/haloMassFunction*/results.json dev/valid/darkMatterOnlySubhalos/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosSymphonyCDMMilkyWayX64/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX1/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM3keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM4keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM6.5keVMilkyWayX8/results.json dev/valid/darkMatterOnlySubhalosCOZMICWDM10keVMilkyWayX8/results.json dev/valid/milkyWayModel/results.json dev/valid/strongLensing/results_PonosV.json dev/valid/baryonicSuppression/results_baryonicSuppression.json dev/valid/idealizedSubhaloSimulation_*/results.json dev/valid/darkMatterOnlySubhalos_decayingDarkMatter_*/results.json
-          git commit -m "Update validation results"
-          git push --set-upstream origin gh-pages
+          # Results which are published again for the same commit (when this job is run again) are unchanged.
+          if ! git diff --cached --quiet; then
+            git commit -m "Update validation results"
+            git push --set-upstream origin gh-pages
+          fi
           git checkout -
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
       - name: Push build profile
@@ -2997,8 +3032,10 @@ jobs:
           git config --local user.email "github@users.noreply.github.com"
           git config --local user.name "github-action-validate"
           git add dev/bench/meta/buildProfile.html
-          git commit -m "Update build profile"
-          git push --set-upstream origin gh-pages
+          if ! git diff --cached --quiet; then
+            git commit -m "Update build profile"
+            git push --set-upstream origin gh-pages
+          fi
           git checkout -
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
       - name: Regenerate gh-pages index
@@ -3079,13 +3116,14 @@ jobs:
       # A pass of the full suite is recorded against the key of the content which was tested, so that a merge group or a push to
       # `master` with that same content need not be tested again (see `Plan`). The record is an artifact, which expires as any
       # other does.
+      # A pull request from a fork makes no record: one made by a fork's copy of this workflow would not be believed.
       - name: Record that the full suite passed for this content
-        if: needs.Plan.outputs.tier == 'full'
+        if: needs.Plan.outputs.tier == 'full' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         env:
           CONTENT: ${{ needs.Plan.outputs.content }}
         run: printf 'content=%s\ncommit=%s\nrun=%s\n' "${CONTENT}" "${GITHUB_SHA}" "${GITHUB_RUN_ID}" > ciFullPassed.txt
       - name: Upload the record
-        if: needs.Plan.outputs.tier == 'full'
+        if: needs.Plan.outputs.tier == 'full' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: ci-full-passed-${{ needs.Plan.outputs.content }}
