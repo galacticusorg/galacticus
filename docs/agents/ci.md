@@ -90,7 +90,7 @@ and prefer a re-run to a day of investigation. Re-running needs the run to be co
 refuses while it is still in progress.
 
 ## CI/CD runs in tiers: a green PR has not run the full suite, and only fully tested content reaches master
-*Added 2026-11-27; verified 2026-11-27 (the merge-queue step and the `deploy` tier had not yet run on GitHub)*
+*Added 2026-11-27; verified 2026-11-27 (the merge-queue step ran for PR #1870, run 46025056716; the `pr` tier had not yet run on GitHub)*
 
 Since PR #1870 the first job of every `cicd.yml` run, `Plan`, gives the run a *tier* from the files changed, using the
 tables in `scripts/build/ciPlan.py`, and every other job runs only if the plan lists it. A PR that changes `source/**` gets
@@ -105,7 +105,7 @@ required check, and reports for every run.
 
 The merge queue runs nothing (it allows a check at most 360 minutes; the full suite took 6.7 h and 15 h in runs
 45859684041 and 45696160577, and costs about 95 runner-hours). A full run that passes records the *content* it tested, as
-an artifact `ci-full-passed-<key>`, where the key is a digest of every file matching a path rule in `ciPlan.py`
+an artifact `ci-full-passed-<key>`, where the key is a digest of every file that the path rules in `ciPlan.py` do not ignore
 (`scripts/build/ciPlan.py key` prints it). A merge group is admitted only if its key has a record; otherwise its `Plan`
 job fails and the PR is removed from the queue. So a PR that affects the build or tests lands in one of two ways: it
 carries `ci:full` itself, or it is merged into a *rollup* branch (cut from master, with each PR's branch merged in by a
@@ -131,20 +131,29 @@ one by accident (a label, a rollup, or a push to a PR that has one) matters.
   `ciPlan.py`, which leaves it to the full suite.
 - *Adding a job:* make it need `Plan`, give it the same `if:` as its neighbors with its own name, and add it to the
   `needs` of `CI-Gate`. It runs only in the full tier unless you add it to a group in `PR_GROUPS`.
-- *Adding a new kind of file that the build or a test reads:* give it a rule in `PATH_RULES`. A file matching no rule is
-  left out of the key, so a change to it would never be tested. `FULL` is always a safe choice.
+- *Adding a file at a new kind of path:* give it a rule in `PATH_RULES`. A file matching no rule selects the full suite
+  (safe, but about 95 runner-hours a push), and `test_every_file_in_the_repository_has_a_rule` fails until it has one. Use
+  `IGNORE` only for what cannot affect the build or the tests: an ignored file is left out of the key, so a change to it is
+  never tested.
 - *Keep a test's addition to `cicd.yml` free of other edits to that file.* Adding entries to the test lists keeps the PR
   in the `pr` tier; any other difference from master's `cicd.yml` in the same PR (a changed step, a new job, a renamed
   parameter) sends every push of it to the full suite. Put such changes in a PR of their own.
 - After any of these, run `python -m pytest scripts/build/tests/test_ciPlan.py`: it checks the wiring, that every built
   test program is run by exactly one job, and that every test a job names matches a path rule.
 - *Rollups and `ci:full`:* do not add the label, build a rollup, or push to a PR whose full run is in progress or has
-  passed and is waiting to be queued, unless the user asked: each starts (or restarts) a run of about 95 runner-hours. When
+  passed and is waiting to be queued, unless the user asked: each starts (or restarts) a run of about 95 runner-hours. (A
+  push that changes only ignored files, after the full run has passed, runs nothing: the content already has a record.) When
   asked for a rollup, branch from current master, merge each PR's branch with `git merge --no-ff` (never squash or
   rebase: migrations are keyed to commit hashes), resolve conflicts in the rollup rather than in the PRs, and open its PR
   with `ci:full` already set. Merging it marks the PRs it contains as merged; verify on master as for a stack (see "A stacked PR's MERGED label does not mean it reached master").
-- A merge group that fails with "Not tested" is not a flake: do not re-queue it. Its `Plan` log names the key it looked
-  for; compare with `ciPlan.py key` on the PR merged into current master.
+- *PRs from forks:* a fork's run cannot make a record (it runs the fork's copy of the workflow), so `ci:full` on a fork PR
+  spends a full run that the queue will not accept. To land one, merge its branch into a rollup branch in this repository.
+- *A merge group that is refused:* read the `Plan` job's message. "No run of the full suite has passed" is not a flake:
+  do not re-queue it; compare the key it names with `ciPlan.py key` on the PR merged into current master. "Could not be
+  looked for" is a GitHub API error: re-queue the PR.
+- *`Deferred` jobs in a PR's checks* are the slow tests left to the full suite, not tests that ran.
+- A full run triggered by Dependabot has no secrets, so the tests that need them (IRATE validation) are skipped, yet its
+  record is accepted.
 
 ## Master's CI/CD runs are almost always cancelled, by design
 *Added 2026-09-17; verified 2026-11-27*
