@@ -109,7 +109,11 @@ for index, (label, refused, extractor) in enumerate(CASES):
         if status.returncode != 0 and MESSAGE in log:
             print(f"SUCCESS: [{label}] refused, as the spectrum includes the emission of the torus")
         else:
-            print(f"FAILED: [{label}] was not refused, although the spectrum includes the emission of the torus")
+            # Distinguish "the model ran" from "the model aborted for some other reason" (a failed download, say), which
+            # this check cannot otherwise tell apart: show the exit status and the end of the model's log.
+            outcome = "the model ran to completion" if status.returncode == 0 else f"the model exited with status {status.returncode} without the expected message"
+            print(f"FAILED: [{label}] was not refused, although the spectrum includes the emission of the torus ({outcome}); end of its log:")
+            print(log[-2000:])
     else:
         if status.returncode == 0 and os.path.exists(outputPath):
             print(f"SUCCESS: [{label}] accepted, and the model ran")

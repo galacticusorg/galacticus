@@ -228,6 +228,7 @@ contains
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Error                               , only : Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
+    use :: Numerical_Comparison                , only : Values_Agree
     implicit none
     type            (keplerOrbit               )                        :: wetzel2010Orbit
     class           (virialOrbitWetzel2010     ), intent(inout), target :: self
@@ -237,6 +238,7 @@ contains
     class           (virialDensityContrastClass), pointer               :: virialDensityContrastDefinition_
     double precision                            , parameter             :: circularityMaximum              =1.0d0, circularityMinimum    =0.0d0
     double precision                            , parameter             :: redshiftMaximum                 =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
+    double precision                            , parameter             :: toleranceRadius                 =1.0d-3
     double precision                                                    :: R1                                    , apocentricRadius                                    , &
          &                                                                 circularity                           , eccentricityInternal                                , &
          &                                                                 expansionFactor                       , g1                                                  , &
@@ -323,10 +325,15 @@ contains
        call wetzel2010Orbit%radiusPericenterSet(pericentricRadius*radiusHostSelf)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
        radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
+       ! Reject the orbit (and draw again) unless it reaches the virial radius under the default density contrast definition. If
+       ! that radius agrees with the virial radius under this class' own definition to within the precision of the tabulations
+       ! from which the two are computed, the orbit is already at the required radius, and is accepted as it is.
        if (wetzel2010Orbit%radiusApocenter() >= radiusHost .and. wetzel2010Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
           call wetzel2010Orbit%propagate(radiusHost  ,infalling=.true.)
           call wetzel2010Orbit%massesSet(basic%mass(),basicHost%mass())
+       else
+          foundOrbit=Values_Agree(radiusHost,radiusHostSelf,relTol=toleranceRadius)
        end if
     end do
     return

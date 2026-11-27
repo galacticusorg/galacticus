@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !+    Contributions to this file made by: Matías Liempi
+  !+    Contributions to this file made by: Matías Liempi, Claude.
 
 !!{RST
 Contains a module which implements a class for black hole seeds.
@@ -55,7 +55,8 @@ module Black_Hole_Seeds
    <default>fixed</default>
    <method name="mass" >
     <description>
-    Computes the mass of the black hole seed in the given ``node``.
+    Computes the mass of the black hole seed in the given ``node``. This is called during differential evolution, so must not
+    change the state of the ``node``: any changes that follow from the seed forming belong in the ``seedFormed`` method.
     </description>
     <type>double precision</type>
     <pass>yes</pass>
@@ -68,6 +69,20 @@ module Black_Hole_Seeds
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="seedFormed">
+    <description>
+    Perform any actions that follow from a black hole seed, of the mass given by the ``mass`` method, having been placed in the
+    given ``node`` (for example, removing the mass from which the seed formed). This is called once, outside of differential
+    evolution, each time a black hole is given a seed mass. The ``mass`` method itself is called during differential evolution,
+    so must not change the state of the ``node``.
+    </description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+    <code>
+      !$GLC attributes unused :: self, node
+    </code>
    </method>
    <method name="formationChannel">
     <description>

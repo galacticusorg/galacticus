@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a simple freefall radius class.
   !!}
@@ -107,21 +109,22 @@ contains
     return
   end subroutine darkMatterHaloDestructor
 
-  double precision function darkMatterHaloRadiusGrowthRate(self,node) result(radiusGrowthRate)
+  double precision function darkMatterHaloRadiusGrowthRate(self,node,time) result(radiusGrowthRate)
     !!{RST
     Returns the freefall radius growth rate (in Mpc/Gyr) in the hot atmosphere.
     !!}
     use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    class           (freefallRadiusDarkMatterHalo ), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    class           (massDistributionClass        ), pointer       :: massDistribution_
-    double precision                                               :: timeAvailable    , timeAvailableIncreaseRate
+    class           (freefallRadiusDarkMatterHalo ), intent(inout)           :: self
+    type            (treeNode                     ), intent(inout)           :: node
+    double precision                               , intent(in   ), optional :: time
+    class           (massDistributionClass        ), pointer                 :: massDistribution_
+    double precision                                                         :: timeAvailable    , timeAvailableIncreaseRate
 
     ! Get the time available for freefall.
-    timeAvailable                 =  +self             %freefallTimeAvailable_    %timeAvailable            (node                     )
+    timeAvailable                 =  +self             %freefallTimeAvailable_    %timeAvailable            (node,time                )
     ! Get the rate of increase of the time available for freefall.
-    timeAvailableIncreaseRate     =  +self             %freefallTimeAvailable_    %timeAvailableIncreaseRate(node                     )
+    timeAvailableIncreaseRate     =  +self             %freefallTimeAvailable_    %timeAvailableIncreaseRate(node,time                )
     ! Get freefall radius increase rate from dark matter profile.
     massDistribution_             =>  self             %darkMatterProfileDMO_     %get                      (node                     )
     radiusGrowthRate              =  +massDistribution_%radiusFreefallIncreaseRate                          (timeAvailable            ) &
@@ -132,19 +135,20 @@ contains
     return
   end function darkMatterHaloRadiusGrowthRate
 
-  double precision function darkMatterHaloRadius(self,node) result(radius)
+  double precision function darkMatterHaloRadius(self,node,time) result(radius)
     !!{RST
     Return the freefall radius in the darkMatterHalo model.
     !!}
     use :: Mass_Distributions, only : massDistributionClass
     implicit none
-    class           (freefallRadiusDarkMatterHalo ), intent(inout) :: self
-    type            (treeNode                     ), intent(inout) :: node
-    class           (massDistributionClass        ), pointer       :: massDistribution_
-    double precision                                               :: timeAvailable
+    class           (freefallRadiusDarkMatterHalo ), intent(inout)           :: self
+    type            (treeNode                     ), intent(inout)           :: node
+    double precision                               , intent(in   ), optional :: time
+    class           (massDistributionClass        ), pointer                 :: massDistribution_
+    double precision                                                         :: timeAvailable
 
     ! Get the time available for freefall.
-    timeAvailable     =  self             %freefallTimeAvailable_%timeAvailable(node         )
+    timeAvailable     =  self             %freefallTimeAvailable_%timeAvailable(node,time    )
     ! Get freefall radius from dark matter profile.
     massDistribution_ => self             %darkMatterProfileDMO_ %get          (node         )
     radius            =  massDistribution_%radiusFreefall                      (timeAvailable)

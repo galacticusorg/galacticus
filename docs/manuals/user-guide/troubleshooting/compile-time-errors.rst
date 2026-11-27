@@ -241,7 +241,7 @@ Compiler killed during the build
    f951: internal compiler error: Killed (program f951)
    make: *** [work/build/foo.o] Error 137
 
-or a build that stops with ``Error 137`` and no other diagnostic, means the operating system killed the compiler for using too much memory. Compiling the large generated ``*_class`` units at ``-O3`` in parallel is the peak: on a machine with about 16 GB of memory, ``make -j4`` can exceed it. Reduce the number of parallel jobs (``make -j2 Galacticus.exe`` is what the continuous integration uses), or build with link-time optimization disabled (``make -j2 LTO=disabled Galacticus.exe``), which lowers the memory needed at link time. Re-running ``make`` after such a failure continues from where it stopped.
+or a build that stops with ``Error 137`` and no other diagnostic, means the operating system killed the compiler for using too much memory. Compiling the large generated ``*_class`` units at ``-O3`` in parallel is the peak. By default the build consolidates module imports before compiling (``CONSOLIDATE_USES=yes``), which keeps each compile under about 3 GB, so a ``make -j4`` build needs about 6 GB in all. Without consolidation (``CONSOLIDATE_USES=no``) the largest compile alone needs about 14 GB. Check that ``CONSOLIDATE_USES=no`` is not set, reduce the number of parallel jobs (e.g. ``make -j2 Galacticus.exe``), or build with link-time optimization disabled (``make -j2 LTO=disabled Galacticus.exe``), which lowers the memory needed at link time. Re-running ``make`` after such a failure continues from where it stopped.
 
 Changes to the pre-processor have no effect
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

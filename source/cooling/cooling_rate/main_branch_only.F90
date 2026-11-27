@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+!+    Contributions to this file made by: Andrew Benson, Claude.
+
   !!{RST
   Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling side branches.
   !!}
@@ -106,8 +108,8 @@ contains
     type (treeNode                 ), intent(inout) :: node
 
     if (node%isOnMainBranch()) then
-    else
        mainBranchOnlyRate=self%coolingRate_%rate(node)
+    else
        mainBranchOnlyRate=0.0d0
     end if
     return

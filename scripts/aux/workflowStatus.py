@@ -12,8 +12,9 @@ import urllib.error
 repo = "galacticus"
 
 workflows = [
-    {"file": "cicd.yml",      "name": "CI/CD"},
-    {"file": "linkCheck.yml", "name": "Link-Check"},
+    {"file": "cicd.yml",                "name": "CI/CD"               },
+    {"file": "linkCheck.yml",           "name": "Link-Check"          },
+    {"file": "unconsolidatedBuild.yml", "name": "Unconsolidated-Build"},
 ]
 
 # Get the current HEAD SHA once.

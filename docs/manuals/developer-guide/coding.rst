@@ -137,7 +137,7 @@ For example:
     !$ integer                                                              :: threadCount
        logical                                                              :: converged  =.false., iterating     =.true.
 
-A comment or a ``#ifdef`` between two runs of declarations does not break the alignment — the columns span it. These conventions are applied automatically by :ref:`manual-sec-formatDeclarations`.
+A comment or a ``#ifdef`` between two runs of declarations does not break the alignment — the columns span it. These conventions can be applied automatically by :ref:`manual-sec-formatDeclarations`, but for now align declarations by hand (see :ref:`the formatter policy <manual-sec-formatterPolicy>`).
 
 Module ``use`` statements
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -166,7 +166,7 @@ For example:
    #endif
     !$ use            :: OMP_Lib           , only : OMP_Get_Max_Threads
 
-These conventions are applied automatically by :ref:`manual-sec-formatModuleUses`, so there is no need to align them by hand.
+These conventions can be applied automatically by :ref:`manual-sec-formatModuleUses`, but for now align ``use`` blocks by hand (see :ref:`the formatter policy <manual-sec-formatterPolicy>`).
 
 Constants
 ~~~~~~~~~
@@ -1550,7 +1550,7 @@ The ``workaround`` directive annotates code that exists only to work around a bu
 
 The ``type`` attribute (required) names the tool containing the bug (e.g. ``gfortran``), while the optional ``PR`` and ``url`` attributes identify the relevant bug report. A ``description`` element should explain the bug being worked around. Optional ``seeAlso`` elements (with the same ``type``/``PR``/``url`` attributes) can reference related bug reports.
 
-A workaround in the code generator (``python/``) or the build scripts (``scripts/``)---including one in the Fortran that the code generator emits---is marked instead by the opening tag of the directive, closed with ``/>``, as a Python comment, followed by comments explaining the bug:
+A workaround in the code generator (``python/``), the build scripts (``scripts/``) or the ``Makefile``---including one in the Fortran that the code generator emits---is marked instead by the opening tag of the directive, closed with ``/>``, as a comment, followed by comments explaining the bug:
 
 .. code-block:: python
 
