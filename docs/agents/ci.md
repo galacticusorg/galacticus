@@ -89,14 +89,66 @@ on 2026-09-18 that reasoning wrongly blamed the change.
 and prefer a re-run to a day of investigation. Re-running needs the run to be complete first - `gh run rerun <id> --failed`
 refuses while it is still in progress.
 
+## CI/CD runs in tiers: a green PR has not run the full suite, and only fully tested content reaches master
+*Added 2026-11-27; verified 2026-11-27 (the merge-queue step and the `deploy` tier had not yet run on GitHub)*
+
+Since PR #1870 the first job of every `cicd.yml` run, `Plan`, gives the run a *tier* from the files changed, using the
+tables in `scripts/build/ciPlan.py`, and every other job runs only if the plan lists it. A PR that changes `source/**` gets
+the `pr` tier: the two default Linux builds, the quick unit tests, and the model tests that take a few minutes. It does
+**not** run the other build configurations, macOS, MPI, validations, benchmarks, profiles, or about 30 slow tests. A PR
+that changes the build system, a workflow, `constraints/**` or `tutorials/**` gets the `full` tier, as does one labeled
+`ci:full`. A PR that changes nothing which can affect the build or the tests (documentation, mostly) gets `skip`. The job
+summary of `Plan` says which tier was chosen and why. `CI-Gate` is the one required check, and reports for every run.
+
+The merge queue runs nothing (it allows a check at most 360 minutes; the full suite took 6.7 h and 15 h in runs
+45859684041 and 45696160577, and costs about 95 runner-hours). A full run that passes records the *content* it tested, as
+an artifact `ci-full-passed-<key>`, where the key is a digest of every file matching a path rule in `ciPlan.py`
+(`scripts/build/ciPlan.py key` prints it). A merge group is admitted only if its key has a record; otherwise its `Plan`
+job fails and the PR is removed from the queue. So a PR that affects the build or tests lands in one of two ways: it
+carries `ci:full` itself, or it is merged into a *rollup* branch (cut from master, with each PR's branch merged in by a
+merge commit) whose PR carries `ci:full`. The label is read when a run starts, so it must be on the PR before the push
+that should use it. If anything that affects the build or tests reaches master after the full run began, the key no longer
+matches: merge master in and run again. A docs-only PR needs no full run, and does not invalidate anyone's record.
+
+**Why:** "CI is green" used to mean the whole suite had passed. On a `pr`-tier run it now means a subset passed, and a
+change that breaks only an MPI test, a validation or a slow test is found later, on the rollup, where it is harder to
+attribute. A test added to the source but to no job is never run at all. And a full run is expensive enough that starting
+one by accident (a label, a rollup, or a push to a PR that has one) matters.
+
+**How to apply:**
+
+- *Reading a PR's checks:* look at the tier in the `Plan` summary before saying what a green PR proves. If the change
+  plausibly affects something the `pr` tier skips (MPI, macOS, a validation, a deferred test), say so, and run that test
+  locally where you can.
+- *Adding a unit test program:* add its executable to the `Codes-Quick` list in `cicd.yml`. If it takes several minutes,
+  add it to the `Codes` matrix instead, with a step in `Build-Executable-Linux-Non-Static` uploading it as
+  `test-exec-<executable>`.
+- *Adding a test script or regression:* add it to the matrix of the job that fits (`Miscellaneous`, `Regressions`,
+  `Methods`, ...). It then runs on PRs. If it takes more than about five minutes, also list it in `PR_DEFERRED_ENTRIES` in
+  `ciPlan.py`, which leaves it to the full suite.
+- *Adding a job:* make it need `Plan`, give it the same `if:` as its neighbors with its own name, and add it to the
+  `needs` of `CI-Gate`. It runs only in the full tier unless you add it to a group in `PR_GROUPS`.
+- *Adding a new kind of file that the build or a test reads:* give it a rule in `PATH_RULES`. A file matching no rule is
+  left out of the key, so a change to it would never be tested. `FULL` is always a safe choice.
+- After any of these, run `python -m pytest scripts/build/tests/test_ciPlan.py`: it checks the wiring, that every built
+  test program is run by exactly one job, and that every test a job names matches a path rule.
+- *Rollups and `ci:full`:* do not add the label, build a rollup, or push to a PR whose full run is in progress or has
+  passed and is waiting to be queued, unless the user asked: each starts (or restarts) a run of about 95 runner-hours. When
+  asked for a rollup, branch from current master, merge each PR's branch with `git merge --no-ff` (never squash or
+  rebase: migrations are keyed to commit hashes), resolve conflicts in the rollup rather than in the PRs, and open its PR
+  with `ci:full` already set. Merging it marks the PRs it contains as merged; verify on master as for a stack (see "A stacked PR's MERGED label does not mean it reached master").
+- A merge group that fails with "Not tested" is not a flake: do not re-queue it. Its `Plan` log names the key it looked
+  for; compare with `ciPlan.py key` on the PR merged into current master.
+
 ## Master's CI/CD runs are almost always cancelled, by design
-*Added 2026-09-17; verified 2026-11-23*
+*Added 2026-09-17; verified 2026-11-27*
 
 `cicd.yml` sets `concurrency: {group: cicd-${{ github.ref }}, cancel-in-progress: true}`, on master as well as on PR
 branches. On master this means each merge cancels the run validating the previous one, and merges arrive faster than the
 suite completes (five landed inside one minute on 2026-09-17). Of 30 consecutive master CI/CD runs checked then, **27 were
-cancelled and 2 succeeded**. This is deliberate, maintainer-confirmed behavior (2026-11-23): changes are validated by their PR
-checks, which run to completion.
+cancelled and 2 succeeded**. This is deliberate, maintainer-confirmed behavior (2026-11-23): changes are validated before
+they reach master (since PR #1870, by a full-suite run of the same content; see the entry above), and a master run only
+rebuilds and publishes, so a cancelled one loses nothing but the deployment of a commit that has already been superseded.
 
 **Why:** it looks as though master is verified after each merge, or as though cancelled runs signal a problem. Neither is
 so, and waiting for a post-merge run can burn hours for nothing: a 12-hour watch on 2026-09-17 never saw one finish.
