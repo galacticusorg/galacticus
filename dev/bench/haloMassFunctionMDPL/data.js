@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795796138118,
+  "lastUpdate": 1795840503129,
   "repoUrl": "https://github.com/galacticusorg/galacticus",
   "entries": {
     "Halo mass function validation (MDPL)": [
@@ -4577,6 +4577,75 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/galacticusorg/galacticus/commit/d55ef586f09756620febdde4df84db5b79a7254b"
         },
         "date": 1795796137439,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "Halo mass function - Likelihood - MDPL BigMDPL CDM resolutionX1 z=0.000",
+            "value": 265.8418502000771,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.000",
+            "value": 232.03645709480216,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=0.987",
+            "value": 155.13962729388487,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL HugeMDPL CDM resolutionX1 z=3.037",
+            "value": 44.42467078899553,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.000",
+            "value": 340.26491673134433,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=0.987",
+            "value": 283.8720515249039,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL MDPL2 CDM resolutionX1 z=3.127",
+            "value": 172.59588323013338,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL SMDPL CDM resolutionX1 z=0.000",
+            "value": 383.1614649503416,
+            "unit": "-logℒ"
+          },
+          {
+            "name": "Halo mass function - Likelihood - MDPL VSMDPL CDM resolutionX1 z=0.000",
+            "value": 399.109546440274,
+            "unit": "-logℒ"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "abensonca@gmail.com",
+            "name": "Andrew Benson",
+            "username": "abensonca"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d54d0b95905793ced6bbe3d27b14d3eab5769c3f",
+          "message": "Merge pull request #1873 from galacticusorg/ccr-d50f68e1-76vh9y\n\nci: fix what a review of the tiered workflow found",
+          "timestamp": "2026-11-28T03:46:12Z",
+          "tree_id": "51b6e710a30317b23a6bf7ead1f6f3c4ac4f8e26",
+          "url": "https://github.com/galacticusorg/galacticus/commit/d54d0b95905793ced6bbe3d27b14d3eab5769c3f"
+        },
+        "date": 1795840502418,
         "tool": "customSmallerIsBetter",
         "benches": [
           {
