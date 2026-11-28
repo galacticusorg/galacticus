@@ -210,12 +210,16 @@ change that.
   content must pass before the merge queue admits it (on a PR labeled `ci:full`,
   or on a rollup of several PRs). A full run costs about 95 runner-hours: do not
   add that label, build a rollup, or push to a PR whose full run is in progress
-  or waiting to be queued, unless the user asked. **A new test runs in CI only
-  if you add it to a job in `.github/workflows/cicd.yml`** (a unit test program
-  to the `Codes-Quick` list; a test script to the matrix of the job that fits),
-  and a slow one is also listed in `scripts/build/ciPlan.py`. Make no other edit
-  to `cicd.yml` in the same PR: adding tests keeps it in the cheap tier, while
-  any other change to that file sends every push to the full suite. See
+  or waiting to be queued, unless the user asked. A PR that changes the code
+  generator, the build system, a workflow, `constraints/**` or `tutorials/**`
+  runs the full suite on every push: open it as a draft, which runs nothing, and
+  leave it for a rollup unless the user asked for a run of its own. **A new test
+  runs in CI only if you add it to a job in `.github/workflows/cicd.yml`** (a
+  unit test program to the `Codes-Quick` list; a test script to the matrix of
+  the job that fits), and a slow one is also listed in
+  `scripts/build/ciPlan.py`. Make no other edit to `cicd.yml` in the same PR:
+  adding tests keeps it in the cheap tier, while any other change to that file
+  sends every push to the full suite. See
   [`docs/agents/ci.md`](docs/agents/ci.md) for each case.
 - **Three scripts are not run by any CI workflow** and are run manually (or via
   `test-all.py`) only: `testSuite/test-regressions.py` (superseded by the
