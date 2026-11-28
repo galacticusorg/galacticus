@@ -6,10 +6,10 @@ window.PONOSV_DATA = {
             "name": "Andrew Benson",
             "email": "abensonca@gmail.com"
         },
-        "id": "d55ef586f09756620febdde4df84db5b79a7254b",
-        "message": "Merge pull request #1870 from galacticusorg/ccr-d50f68e1-76vh9y\n\nci: plan each CI/CD run by tier, add a merge-queue trigger and a single gate check\n",
-        "timestamp": "2026-11-27 15:27:01+00:00",
-        "url": "https://github.com/galacticusorg/galacticus/commit/d55ef586f09756620febdde4df84db5b79a7254b"
+        "id": "d54d0b95905793ced6bbe3d27b14d3eab5769c3f",
+        "message": "Merge pull request #1873 from galacticusorg/ccr-d50f68e1-76vh9y\n\nci: fix what a review of the tiered workflow found\n",
+        "timestamp": "2026-11-28 03:46:12+00:00",
+        "url": "https://github.com/galacticusorg/galacticus/commit/d54d0b95905793ced6bbe3d27b14d3eab5769c3f"
     },
     "surfaceDensity": {
         "percentageBelow": 10.714285714285708,
