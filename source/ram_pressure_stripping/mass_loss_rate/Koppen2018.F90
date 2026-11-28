@@ -173,6 +173,7 @@ contains
     </inputParameter>
     <objectBuilder class="hotHaloRamPressureHistory"   name="hotHaloRamPressureHistory_"   source="parameters"/>
     <objectBuilder class="galacticComponentTruncation" name="galacticComponentTruncation_" source="parameters"/>
+    <modelConsistent name="disk:galacticComponentTruncation" object="galacticComponentTruncation_" description="the `galacticComponentTruncation` of the `koppen2018` ram pressure stripping class"/>
     !!]
     self=ramPressureStrippingKoppen2018(factorPeriodVertical,enhancementMolecular,radiusEnhancementMolecular,hotHaloRamPressureHistory_,galacticComponentTruncation_)
     !![

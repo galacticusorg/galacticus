@@ -32,7 +32,7 @@ program Test_Parameters
   use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
   use :: IO_HDF5                   , only : hdf5File
-  use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
+  use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string     , char
   use :: Input_Parameters          , only : inputParameters         , inputParameter
   use :: Functions_Global_Utilities, only : Functions_Global_Set
   use :: Kind_Numbers              , only : kind_int8
@@ -45,6 +45,7 @@ program Test_Parameters
   class           (cosmologicalMassVarianceClass), pointer     :: cosmologicalMassVariance_
   type            (inputParameters              ), target      :: testParameters
   type            (inputParameters              ), allocatable :: wrapper1                 ,  wrapper2
+  type            (inputParameters              )              :: descriptor
   type            (inputParameter               ), pointer     :: testParameter
   double precision                                             :: valueNumerical
   integer                                                      :: valueInteger
@@ -172,6 +173,22 @@ program Test_Parameters
   call testParameters%modelFactExclusive('test:exclusive:b','claimant two','location two')
   call testParameters%modelFactsValidate()
   call Assert('repeated and distinct exclusive claims pass validation',.true.                                         ,.true. )
+  ! Identical values declared from different locations, and repeated from one location, pass validation (differing values for
+  ! one fact would be a fatal error). Values may be given directly, or as the descriptor of an object (here, the same object
+  ! twice, so the serialized descriptors agree).
+  call testParameters%modelFactConsistent('test:consistent:a','value one','declarer one','location one')
+  call testParameters%modelFactConsistent('test:consistent:a','value one','declarer one','location one')
+  call wrapper1      %modelFactConsistent('test:consistent:a','value one','declarer two','location two')
+  call testParameters%modelFactConsistent('test:consistent:b','value two','declarer one','location one')
+  descriptor=inputParameters()
+  call cosmologyParameters_%descriptor(descriptor,includeClass=.true.)
+  parameterValue=descriptor%serializeToString()
+  call Assert('descriptor serialization names the class'              ,index(char(parameterValue),'cosmologyParameters') > 0,.true.)
+  call testParameters%modelFactConsistentDescriptor('test:consistent:c',descriptor,'declarer one','location one')
+  call testParameters%modelFactConsistentDescriptor('test:consistent:c',descriptor,'declarer two','location two')
+  call descriptor%destroy()
+  call testParameters%modelFactsValidate()
+  call Assert('agreeing values pass validation'                       ,.true.                                         ,.true. )
   ! Resetting the parameters (as is done at the end of each task) must not clear the facts, since a later task (e.g. in a
   ! taskMulti) belongs to the same model.
   deallocate(wrapper1)
@@ -188,6 +205,10 @@ program Test_Parameters
   call testParameters%modelFactExclusive('test:exclusive:a','claimant three','location three')
   call testParameters%modelFactsValidate()
   call Assert('exclusive claims cleared by fact reset'             ,.true.                                            ,.true. )
+  ! Declared values are also cleared, so a different value for the same fact (as declared in the next model) does not disagree.
+  call testParameters%modelFactConsistent('test:consistent:a','value three','declarer three','location three')
+  call testParameters%modelFactsValidate()
+  call Assert('declared values cleared by fact reset'              ,.true.                                            ,.true. )
   ! Facts can be recorded again after a reset.
   call testParameters%modelFactProvide('test:fact:a')
   call Assert('fact can be provided again after reset'             ,testParameters%modelFactIsProvided('test:fact:a'),.true. )

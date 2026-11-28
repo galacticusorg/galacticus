@@ -11,14 +11,18 @@ Fortran text:
   * `modelExclusive` emits a `modelFactExclusive` call carrying its description
     and location, and a token which no other `modelExclusive` directive claims
     is a build-time error;
+  * `modelConsistent` emits code passing the descriptor of an object (or a
+    value) to the registry, declaring the variables it needs, and a token which
+    no other `modelConsistent` directive declares is a build-time error;
   * malformed directives raise rather than emitting broken Fortran.
 """
 
 import pytest
 
 from Galacticus.Build.SourceTree.Process.ModelFacts import (
-    help_text, process_model_exclusive, process_model_fact, process_model_require,
+    help_text, process_model_consistent, process_model_exclusive, process_model_fact, process_model_require,
 )
+from Galacticus.Build.SourceTree import serialize
 
 
 _PROVIDERS = {
@@ -34,6 +38,11 @@ _PROVIDERS = {
 _CLAIMANTS = {
     'spheroid:tidalHeating': 2,
     'component:lonely':      1,
+}
+
+_CONSISTENT = {
+    'disk:galacticComponentTruncation': 4,
+    'component:lonely':                 1,
 }
 
 
@@ -183,3 +192,54 @@ def test_exclusive_needs_description():
 def test_exclusive_rejects_bad_token(name):
     with pytest.raises(RuntimeError, match='not a valid token'):
         _exclusive({'name': name, 'description': 'x'})
+
+
+def _consistent(directive, claimants=None):
+    parent = _build('modelConsistent', directive)
+    process_model_consistent(parent, {'modelConsistentClaimants': _CONSISTENT if claimants is None else claimants})
+    return parent
+
+
+def test_consistent_object_passes_descriptor():
+    parent = _consistent({
+        'name':        'disk:galacticComponentTruncation',
+        'object':      'galacticComponentTruncation_',
+        'description': "the disk's truncation",
+    })
+    code = serialize(parent)
+    # The descriptor variable and the module providing its type are declared.
+    assert 'use :: Input_Parameters, only : inputParameters' in code
+    assert 'type(inputParameters) :: modelConsistentDescriptor_' in code
+    # The descriptor of the object is built, passed to the registry, and destroyed.
+    assert 'modelConsistentDescriptor_=inputParameters()' in code
+    assert 'call galacticComponentTruncation_%descriptor(modelConsistentDescriptor_,includeClass=.true.)' in code
+    assert ("call parameters%modelFactConsistentDescriptor('disk:galacticComponentTruncation',"
+            "modelConsistentDescriptor_,'the disk''s truncation',") in code
+    assert 'function:testConstructor' in code
+    assert code.index('%modelFactConsistentDescriptor(') < code.index('call modelConsistentDescriptor_%destroy()')
+
+
+def test_consistent_value_assigned_before_call():
+    code = serialize(_consistent({
+        'name':        'disk:galacticComponentTruncation',
+        'value':       'char(self%label)',
+        'description': 'x',
+        'source':      'subParameters',
+    }))
+    assert 'character(len=:), allocatable :: modelConsistentValue_' in code
+    # The value is assigned to a variable, not passed as a function result.
+    assert 'modelConsistentValue_=char(self%label)' in code
+    assert "call subParameters%modelFactConsistent('disk:galacticComponentTruncation',modelConsistentValue_,'x'," in code
+
+
+@pytest.mark.parametrize('directive, message', [
+    ({'name': 'disk:galacticComponentTruncation', 'object': 'a_'},                                  '`description` attribute is required'),
+    ({'name': 'disk:galacticComponentTruncation', 'description': 'x'},                              'exactly one of the `object` and `value`'),
+    ({'name': 'disk:galacticComponentTruncation', 'description': 'x', 'object': 'a_', 'value': 'b'}, 'exactly one of the `object` and `value`'),
+    ({'name': 'disk:galacticComponentTruncation', 'description': 'x', 'object': 'a_; stop'},        'is not a variable name'),
+    ({'name': 'component:lonely',                 'description': 'x', 'object': 'a_'},              "'component:lonely' is declared by only one"),
+    ({'name': 'disk:galacticComponentTrunction',  'description': 'x', 'object': 'a_'},              "'disk:galacticComponentTrunction' is declared by only one"),
+])
+def test_consistent_rejects_bad_directives(directive, message):
+    with pytest.raises(RuntimeError, match=message):
+        _consistent(directive)

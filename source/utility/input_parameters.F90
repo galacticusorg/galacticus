@@ -119,14 +119,16 @@ module Input_Parameters
      Wrapper class for managing XML documents.
      !!}
      private
-     type(node          ), pointer    , public       :: document              => null()
-     ! Model-scoped fact registry (see the ``modelFact``, ``modelRequire``, and ``modelExclusive`` directives). It is held here,
-     ! by the root document, so that it is shared by every parameters object (and every per-thread copy) derived from one
-     ! parameter file, and so that each model built from a fresh parameter file gets a fresh registry.
-     type(varying_string), allocatable, dimension(:) :: factsProvided                  , factsRequired         , &
-          &                                             factsRequiredReason            , factsRequiredHelp     , &
-          &                                             factsRequiredLocation          , factsExclusive        , &
-          &                                             factsExclusiveDescription      , factsExclusiveLocation
+     type(node          ), pointer    , public       :: document                   => null()
+     ! Model-scoped fact registry (see the ``modelFact``, ``modelRequire``, ``modelExclusive``, and ``modelConsistent``
+     ! directives). It is held here, by the root document, so that it is shared by every parameters object (and every per-thread
+     ! copy) derived from one parameter file, and so that each model built from a fresh parameter file gets a fresh registry.
+     type(varying_string), allocatable, dimension(:) :: factsProvided                      , factsRequired          , &
+          &                                             factsRequiredReason                , factsRequiredHelp      , &
+          &                                             factsRequiredLocation              , factsExclusive         , &
+          &                                             factsExclusiveDescription          , factsExclusiveLocation , &
+          &                                             factsConsistent                    , factsConsistentValue   , &
+          &                                             factsConsistentDescription         , factsConsistentLocation
    contains
      final :: documentWrapperDestructor
   end type documentWrapper
@@ -171,43 +173,47 @@ module Input_Parameters
        <method description="Record that the model establishes the named fact. Normally called via the ``modelFact`` directive." method="modelFactProvide" />
        <method description="Record that the model requires the named fact, with the reason it is needed, help text naming its providers, and the location of the requirement. Normally called via the ``modelRequire`` directive." method="modelFactRequire" />
        <method description="Record that an object in the model claims exclusive responsibility for the named fact, with a description of that object, and the location of the claim. Normally called via the ``modelExclusive`` directive." method="modelFactExclusive" />
+       <method description="Record the value which an object in the model declares for the named fact, which must be the same for every object declaring it, with a description of that object, and the location of the declaration. Normally called via the ``modelConsistent`` directive." method="modelFactConsistent" />
+       <method description="Record the value (given as the descriptor of an object, which is serialized) which an object in the model declares for the named fact, which must be the same for every object declaring it, with a description of that object, and the location of the declaration. Normally called via the ``modelConsistent`` directive." method="modelFactConsistentDescriptor" />
        <method description="Return true if the named fact has been established in this model." method="modelFactIsProvided" />
-       <method description="Check that every fact required in this model has been established, and that no fact is claimed exclusively by more than one object, reporting an error if not." method="modelFactsValidate" />
-       <method description="Clear all facts, requirements, and exclusive claims recorded for this model." method="modelFactsReset" />
+       <method description="Check that every fact required in this model has been established, that no fact is claimed exclusively by more than one object, and that all values declared for each fact agree, reporting an error if not." method="modelFactsValidate" />
+       <method description="Clear all facts, requirements, exclusive claims, and declared values recorded for this model." method="modelFactsReset" />
      </methods>
      !!]
-     procedure :: buildTree            => inputParametersBuildTree
-     procedure :: resolveReferences    => inputParametersResolveReferences
-     procedure :: evaluateConditionals => inputParametersEvaluateConditionals
-     procedure :: destroy              => inputParametersDestroy
-     procedure :: parametersGroup      => inputParametersParametersGroup
-     procedure :: parametersGroupOpen  => inputParametersParametersGroupOpen
-     procedure :: validateName         => inputParametersValidateName
-     procedure :: checkParameters      => inputParametersCheckParameters
-     procedure :: node                 => inputParametersNode
-     procedure :: isPresent            => inputParametersIsPresent
-     procedure :: copiesCount          => inputParametersCopiesCount
-     procedure :: count                => inputParametersCount
-     procedure :: subParameters        => inputParametersSubParameters
-     procedure :: findParent           => inputParametersFindParent
-     procedure ::                         inputParametersValueName{Type¦label}
-     procedure ::                         inputParametersValueNode{Type¦label}
-     generic   :: value                => inputParametersValueName{Type¦label}
-     generic   :: value                => inputParametersValueNode{Type¦label}
-     procedure :: serializeToString    => inputParametersSerializeToString
-     procedure :: serializeToXML       => inputParametersSerializeToXML
-     procedure :: addParameter         => inputParametersAddParameter
-     procedure :: reset                => inputParametersReset
-     procedure :: path                 => inputParametersPath
-     procedure :: markDefaulted        => inputParametersMarkDefaulted
-     procedure :: modelFactProvide     => inputParametersModelFactProvide
-     procedure :: modelFactRequire     => inputParametersModelFactRequire
-     procedure :: modelFactExclusive   => inputParametersModelFactExclusive
-     procedure :: modelFactIsProvided  => inputParametersModelFactIsProvided
-     procedure :: modelFactsValidate   => inputParametersModelFactsValidate
-     procedure :: modelFactsReset      => inputParametersModelFactsReset
-     procedure ::                         inputParametersAssignment
-     generic   :: assignment(=)        => inputParametersAssignment
+     procedure :: buildTree                     => inputParametersBuildTree
+     procedure :: resolveReferences             => inputParametersResolveReferences
+     procedure :: evaluateConditionals          => inputParametersEvaluateConditionals
+     procedure :: destroy                       => inputParametersDestroy
+     procedure :: parametersGroup               => inputParametersParametersGroup
+     procedure :: parametersGroupOpen           => inputParametersParametersGroupOpen
+     procedure :: validateName                  => inputParametersValidateName
+     procedure :: checkParameters               => inputParametersCheckParameters
+     procedure :: node                          => inputParametersNode
+     procedure :: isPresent                     => inputParametersIsPresent
+     procedure :: copiesCount                   => inputParametersCopiesCount
+     procedure :: count                         => inputParametersCount
+     procedure :: subParameters                 => inputParametersSubParameters
+     procedure :: findParent                    => inputParametersFindParent
+     procedure ::                                  inputParametersValueName{Type¦label}
+     procedure ::                                  inputParametersValueNode{Type¦label}
+     generic   :: value                         => inputParametersValueName{Type¦label}
+     generic   :: value                         => inputParametersValueNode{Type¦label}
+     procedure :: serializeToString             => inputParametersSerializeToString
+     procedure :: serializeToXML                => inputParametersSerializeToXML
+     procedure :: addParameter                  => inputParametersAddParameter
+     procedure :: reset                         => inputParametersReset
+     procedure :: path                          => inputParametersPath
+     procedure :: markDefaulted                 => inputParametersMarkDefaulted
+     procedure :: modelFactProvide              => inputParametersModelFactProvide
+     procedure :: modelFactRequire              => inputParametersModelFactRequire
+     procedure :: modelFactExclusive            => inputParametersModelFactExclusive
+     procedure :: modelFactConsistent           => inputParametersModelFactConsistent
+     procedure :: modelFactConsistentDescriptor => inputParametersModelFactConsistentDescriptor
+     procedure :: modelFactIsProvided           => inputParametersModelFactIsProvided
+     procedure :: modelFactsValidate            => inputParametersModelFactsValidate
+     procedure :: modelFactsReset               => inputParametersModelFactsReset
+     procedure ::                                  inputParametersAssignment
+     generic   :: assignment(=)                 => inputParametersAssignment
   end type inputParameters
 
   interface inputParameters
@@ -3089,6 +3095,71 @@ contains
     return
   end subroutine inputParametersModelFactExclusive
 
+  subroutine inputParametersModelFactConsistent(self,name,value,description,location)
+    !!{RST
+    Record that an object in the model described by this parameter set declares the ``value`` of the fact ``name``. Values are
+    checked by ``modelFactsValidate``: differing values declared for the same fact are an error, which lists the ``description``
+    and value of each declaration. Recording an identical declaration more than once (e.g. once per OpenMP thread) has no further
+    effect.
+    !!}
+    use :: ISO_Varying_String, only : operator(==)
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: name       , value   , &
+         &                                       description, location
+    integer                                   :: i
+    logical                                   :: isPresent
+
+    if (.not.associated(self%document)) return
+    !$omp critical (inputParametersModelFacts)
+    isPresent=.false.
+    if (allocated(self%document%factsConsistent)) then
+       do i=1,size(self%document%factsConsistent)
+          if     (                                                      &
+               &   self%document%factsConsistent        (i) == name     &
+               &  .and.                                                 &
+               &   self%document%factsConsistentLocation(i) == location &
+               &  .and.                                                 &
+               &   self%document%factsConsistentValue   (i) == value    &
+               & ) then
+             isPresent=.true.
+             exit
+          end if
+       end do
+    end if
+    if (.not.isPresent) then
+       call inputParametersModelFactAppend(self%document%factsConsistent           ,name       )
+       call inputParametersModelFactAppend(self%document%factsConsistentValue      ,value      )
+       call inputParametersModelFactAppend(self%document%factsConsistentDescription,description)
+       call inputParametersModelFactAppend(self%document%factsConsistentLocation   ,location   )
+    end if
+    !$omp end critical (inputParametersModelFacts)
+    return
+  end subroutine inputParametersModelFactConsistent
+
+  subroutine inputParametersModelFactConsistentDescriptor(self,name,descriptor,description,location)
+    !!{RST
+    Record that an object in the model described by this parameter set declares the value of the fact ``name`` to be given by
+    ``descriptor`` (typically the descriptor of some object, such that the fact is the configuration of that object). The
+    descriptor is serialized, and the result recorded as for ``modelFactConsistent``.
+    !!}
+    use :: ISO_Varying_String, only : char
+    implicit none
+    class    (inputParameters), intent(inout) :: self
+    character(len=*          ), intent(in   ) :: name           , description, &
+         &                                       location
+    type     (inputParameters), intent(inout) :: descriptor
+    character(len=:          ), allocatable   :: value
+    type     (varying_string )                :: valueSerialized
+
+    if (.not.associated(self%document)) return
+    ! Convert to local variables rather than passing function results as arguments, which gfortran can leak.
+    valueSerialized=descriptor%serializeToString()
+    value          =char(valueSerialized)
+    call self%modelFactConsistent(name,value,description,location)
+    return
+  end subroutine inputParametersModelFactConsistentDescriptor
+
   logical function inputParametersModelFactIsProvided(self,name) result(isProvided)
     !!{RST
     Return true if the fact ``name`` has been established in the model described by this parameter set.
@@ -3107,10 +3178,11 @@ contains
 
   subroutine inputParametersModelFactsValidate(self)
     !!{RST
-    Check that every fact required in the model described by this parameter set has been established, and that no fact is
-    claimed exclusively by more than one object. Report an error naming each unmet requirement (and the classes that would
-    satisfy it), and each conflicting set of exclusive claims, if not. This should be called at points at which every object that
-    might establish or claim a fact has been built---for example, after node component initialization when evolving forests.
+    Check that every fact required in the model described by this parameter set has been established, that no fact is claimed
+    exclusively by more than one object, and that all values declared for each fact agree. Report an error naming each unmet
+    requirement (and the classes that would satisfy it), each conflicting set of exclusive claims, and each set of disagreeing
+    values, if not. This should be called at points at which every object that might establish, claim, or declare a fact has
+    been built---for example, after node component initialization when evolving forests.
     !!}
     use :: Display           , only : displayGreen, displayReset
     use :: Error             , only : Error_Report
@@ -3177,6 +3249,48 @@ contains
                &  'remove all but one of these from your parameter file'
        end do
     end if
+    if (allocated(self%document%factsConsistent)) then
+       do i=1,size(self%document%factsConsistent)
+          ! Report each inconsistent fact once, from its first declaration.
+          isFirst=.true.
+          do k=1,i-1
+             if (self%document%factsConsistent(k) == self%document%factsConsistent(i)) then
+                isFirst=.false.
+                exit
+             end if
+          end do
+          if (.not.isFirst) cycle
+          isConflict=.false.
+          do j=i+1,size(self%document%factsConsistent)
+             if     (                                                                                     &
+                  &        self%document%factsConsistent     (j) == self%document%factsConsistent     (i) &
+                  &  .and.                                                                                &
+                  &   .not.self%document%factsConsistentValue(j) == self%document%factsConsistentValue(i) &
+                  & ) then
+                isConflict=.true.
+                exit
+             end if
+          end do
+          if (.not.isConflict) cycle
+          countUnmet=countUnmet+1
+          if (countUnmet > 1) message=message//char(10)//char(10)
+          message=message                                                    // &
+               &  'the following must agree on '                             // &
+               &  "'"//self%document%factsConsistent(i)//"'"//', but do not:'
+          do j=i,size(self%document%factsConsistent)
+             if (.not.self%document%factsConsistent(j) == self%document%factsConsistent(i)) cycle
+             message=message                                        // &
+                  &  char(10)//'  * '                               // &
+                  &  self%document%factsConsistentDescription(j)    // &
+                  &  char(10)//'    value: '                        // &
+                  &  self%document%factsConsistentValue      (j)    // &
+                  &  self%document%factsConsistentLocation   (j)
+          end do
+          message=message                                                 // &
+               &  char(10)//displayGreen()//'  HELP:'//displayReset()//' '// &
+               &  'make these the same, for example by specifying the object once, at the top level of your parameter file'
+       end do
+    end if
     !$omp end critical (inputParametersModelFacts)
     if (countUnmet > 0) call Error_Report(message)
     return
@@ -3184,22 +3298,27 @@ contains
 
   subroutine inputParametersModelFactsReset(self)
     !!{RST
-    Clear all facts, requirements, and exclusive claims recorded for the model described by this parameter set. This must be
-    called at model boundaries when a parameter document is reused to build a new model (e.g. between likelihood evaluations).
+    Clear all facts, requirements, exclusive claims, and declared values recorded for the model described by this parameter set.
+    This must be called at model boundaries when a parameter document is reused to build a new model (e.g. between likelihood
+    evaluations).
     !!}
     implicit none
     class(inputParameters), intent(inout) :: self
 
     if (.not.associated(self%document)) return
     !$omp critical (inputParametersModelFacts)
-    if (allocated(self%document%factsProvided            )) deallocate(self%document%factsProvided            )
-    if (allocated(self%document%factsRequired            )) deallocate(self%document%factsRequired            )
-    if (allocated(self%document%factsRequiredReason      )) deallocate(self%document%factsRequiredReason      )
-    if (allocated(self%document%factsRequiredHelp        )) deallocate(self%document%factsRequiredHelp        )
-    if (allocated(self%document%factsRequiredLocation    )) deallocate(self%document%factsRequiredLocation    )
-    if (allocated(self%document%factsExclusive           )) deallocate(self%document%factsExclusive           )
-    if (allocated(self%document%factsExclusiveDescription)) deallocate(self%document%factsExclusiveDescription)
-    if (allocated(self%document%factsExclusiveLocation   )) deallocate(self%document%factsExclusiveLocation   )
+    if (allocated(self%document%factsProvided             )) deallocate(self%document%factsProvided             )
+    if (allocated(self%document%factsRequired             )) deallocate(self%document%factsRequired             )
+    if (allocated(self%document%factsRequiredReason       )) deallocate(self%document%factsRequiredReason       )
+    if (allocated(self%document%factsRequiredHelp         )) deallocate(self%document%factsRequiredHelp         )
+    if (allocated(self%document%factsRequiredLocation     )) deallocate(self%document%factsRequiredLocation     )
+    if (allocated(self%document%factsExclusive            )) deallocate(self%document%factsExclusive            )
+    if (allocated(self%document%factsExclusiveDescription )) deallocate(self%document%factsExclusiveDescription )
+    if (allocated(self%document%factsExclusiveLocation    )) deallocate(self%document%factsExclusiveLocation    )
+    if (allocated(self%document%factsConsistent           )) deallocate(self%document%factsConsistent           )
+    if (allocated(self%document%factsConsistentValue      )) deallocate(self%document%factsConsistentValue      )
+    if (allocated(self%document%factsConsistentDescription)) deallocate(self%document%factsConsistentDescription)
+    if (allocated(self%document%factsConsistentLocation   )) deallocate(self%document%factsConsistentLocation   )
     !$omp end critical (inputParametersModelFacts)
     return
   end subroutine inputParametersModelFactsReset
