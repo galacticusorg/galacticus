@@ -872,12 +872,11 @@ def test_everything_which_the_workflow_uses_is_tested(workflow):
 
 
 @pytest.mark.parametrize("name, job", [(".github/workflows/testModel.yml", "Test-Model"), (".github/workflows/testCode.yml", "Test-Code")])
-def test_a_deferred_test_still_runs_a_job(name, job):
-    """So that the result of a matrix of tests, some of them deferred, does not depend on how GitHub counts skipped jobs."""
+def test_a_deferred_test_runs_no_job(name, job):
+    """A deferred test is skipped, and nothing runs in its place: GitHub counts a matrix with skipped jobs as having succeeded."""
     jobs = yaml.safe_load((REPOSITORY / name).read_text())["jobs"]
     assert jobs[job]["if"] == "${{ inputs.enabled }}"
-    assert jobs["Deferred"]["if"] == "${{ !inputs.enabled }}"
-    assert set(jobs) == {job, "Deferred"}
+    assert set(jobs) == {job}
 
 
 def idle_jobs(workflow, outputs):

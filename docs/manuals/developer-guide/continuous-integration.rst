@@ -304,9 +304,9 @@ never tested: ignore only what can not affect the build or the tests. A file
 which matches no rule selects the full suite, and a test fails until it is given
 one, so that the choice is made when a new kind of file is added.
 
-A test which is deferred to the full suite still appears among the checks of a
-pull request, as a job named ``Deferred`` which does nothing. It is there so
-that every entry of a matrix of tests runs some job.
+A test which is deferred to the full suite appears among the checks of a pull
+request as skipped. GitHub reports a matrix of tests of which some were skipped
+as having succeeded, so such a test does not hold up the gate.
 
 A pull request which adds a test to ``cicd.yml`` — an executable in the list of
 ``Codes-Quick``, or an entry in the matrix of a job — does not thereby run the

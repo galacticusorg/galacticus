@@ -77,13 +77,8 @@ defaults:
   run:
     shell: bash
 jobs:
-  # A test which is left to the full suite gets this job in place of the test itself, so that every use of this workflow runs
-  # some job. The result of a matrix of tests of which some are deferred then does not depend on how skipped jobs are counted.
-  Deferred:
-    if: ${{ !inputs.enabled }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "This test is left to the full suite, which every change passes before it reaches master."
+  # A test which is left to the full suite is skipped. GitHub reports a matrix of tests of which some were skipped as having
+  # succeeded (as in run 46069455568, in which 30 were), so nothing need run in place of such a test.
   Test-Model:
     if: ${{ inputs.enabled }}
     runs-on: ${{ inputs.runner }}
