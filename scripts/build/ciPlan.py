@@ -21,8 +21,8 @@ workflow is given a *tier* by its ``Plan`` job, and every other job runs only if
 ``blocked``
     Nothing, and the run fails: a merge group whose content has not passed the full suite.
 
-"Content" here means the state of every file which can affect the build or the tests - every file which matches one of the path
-rules below - and is identified by a digest of those files, its *key* (see ``content_key()``). A run of the full suite which
+"Content" here means the state of every file which can affect the build or the tests - every file other than those which the
+path rules below say can not - and is identified by a digest of those files, its *key* (see ``content_key()``). A run of the full suite which
 passes records the key of what it tested (the ``CI-Gate`` job uploads an artifact named for it), and the ``Plan`` job of a
 later run looks that record up. For a pull request the content is that of the pull request merged into ``master`` as it was
 when the run began; the merge queue forms the same content for that pull request for as long as nothing which can affect the
@@ -31,10 +31,13 @@ several), not by the merge queue: the queue allows a required check at most six 
 promise, and so a merge group is only ever verified against the record. A group whose content has no record is refused rather
 than tested, which keeps untested content off ``master`` by construction.
 
-A change to files which match no rule - documentation, for the most part - leaves the key as it was. A pull request which
+A change to files which the rules ignore - documentation, for the most part - leaves the key as it was. A pull request which
 makes only such changes therefore runs nothing, passes the merge queue on the record of the content already on ``master``, and
-does not disturb the record of a pull request which is waiting to be queued. This rests on the path rules being complete: a
-file which can affect the build or the tests but matches no rule would never be tested.
+does not disturb the record of a pull request which is waiting to be queued. A file which matches no rule at all is taken to
+affect everything: it is part of the content, and a change to it selects the full suite.
+
+Content which has passed the full suite is not tested again by a pull request either. A push to a pull request which changes
+only ignored files, after its full run has passed, runs nothing.
 
 The ``CI-Gate`` job then checks the outcome against the plan. It is the one status check that needs to be required by branch
 protection, and it reports for every run - including a skipped one - so that a required check is never left pending.
@@ -42,8 +45,8 @@ protection, and it reports for every run - including a skipped one - so that a r
 What a pull request runs is decided by the tables below, not by the workflow file. Three properties are deliberate:
 
 * Selection fails safe. A test added to the matrix of a job in the `pr` tier runs for pull requests unless it is listed here
-  as deferred; a changed file which matches no rule selects nothing only because every path that can affect the build or the
-  tests has a rule; and a list of changed files which could not be determined gets the full suite. (A *job* which this script
+  as deferred; a changed file which matches no rule selects the full suite; and a list of changed files which could not be
+  determined gets the full suite. (A *job* which this script
   does not know about is not in the `pr` tier: it runs in the full suite, which everything passes before it reaches
   ``master``, until it is added to a group below.)
 * A pull request which adds a test runs it. A change to the workflow selects the full suite, with one exception: where the
@@ -56,7 +59,8 @@ What a pull request runs is decided by the tables below, not by the workflow fil
 Run with::
 
     ciPlan.py plan --event <event> [--ref <ref>] [--draft] [--labels <json>] [--changed-files <file>] [--tier <tier>]
-                   [--base-workflow <file>] [--tested-run-id <id>] [--content <key>] [--run-id <id>]
+                   [--base-workflow <file>] [--tested-run-id <id>] [--lookup-failed] [--fork] [--content <key>]
+                   [--run-id <id>]
     ciPlan.py key
     ciPlan.py gate [--needs <json>] [--jobs <json>]
     ciPlan.py attribute <results file> ...
@@ -176,15 +180,16 @@ PR_DEFERRED_ENTRIES = (
     "testSuite/parameters/mergerTreeEvolverThreaded.xml",
 )
 
-# What a changed file selects. The first rule whose pattern matches a file decides for that file; a file matching no rule can
-# not affect the build or the tests (documentation, for the most part) and selects nothing. `FULL` selects the full suite, and is
-# used where the effect of a change can not be predicted from its path: the build system, the code generator, the dependencies,
-# and the workflows themselves. In a pattern `*` matches within one path component and `**` matches across them.
-#
-# These rules must be complete. A file which matches none is also left out of the key which identifies tested content (see
-# `content_key()`), so a change to it is never tested - by a pull request, by the merge queue, or on `master`. When a new kind of
-# file comes to be used by the build or by a test, give it a rule here; `FULL` is always a safe choice.
+# What a changed file selects. The first rule whose pattern matches a file decides for that file. `FULL` selects the full suite,
+# and is used where the effect of a change can not be predicted from its path: the build system, the code generator, the
+# dependencies, and the workflows themselves. `IGNORE` is for a file which can not affect the build or the tests
+# (documentation, for the most part): it selects nothing, and it is left out of the key which identifies tested content (see
+# `content_key()`), so a change to it is never tested - by a pull request, by the merge queue, or on `master`. A file which
+# matches no rule is treated as `FULL`, so that a new kind of file is tested until someone decides otherwise; a test checks that
+# every file in the repository has a rule, so that the decision is made when the file is added. In a pattern `*` matches within
+# one path component and `**` matches across them.
 FULL = "full"
+IGNORE = ()
 PATH_RULES = (
     # Scripts which live with the build system but take no part in the build.
     ("scripts/build/tests/**", ("tooling",)),
@@ -230,6 +235,28 @@ PATH_RULES = (
     ("parameters.xml", ("tooling",)),
     # The test suite. A pull request which changes nothing else runs only the tests it affects - see `select_affected()`.
     ("testSuite/**", ("tooling", "model")),
+    # Files which can not affect the build or the tests. The workflows and actions which the suite uses have rules above, and
+    # a test checks that it uses no other: the rest of `.github/` is other workflows, and templates.
+    (".github/**", IGNORE),
+    ("docs/**", IGNORE),
+    ("plots/**", IGNORE),
+    ("aux/words.aff", IGNORE),
+    ("aux/words.dict", IGNORE),
+    (".agents/**", IGNORE),
+    (".claude/**", IGNORE),
+    (".devcontainer/**", IGNORE),
+    (".vscode/**", IGNORE),
+    ("AGENTS.md", IGNORE),
+    ("CITATION.cff", IGNORE),
+    ("CONTRIBUTING.md", IGNORE),
+    ("COPYING", IGNORE),
+    ("README.md", IGNORE),
+    (".fortls", IGNORE),
+    (".gitattributes", IGNORE),
+    (".gitconfig", IGNORE),
+    (".gitignore", IGNORE),
+    (".readthedocs.yaml", IGNORE),
+    (".yamllint", IGNORE),
 )
 
 
@@ -259,12 +286,23 @@ def glob_to_regex(pattern):
 _PATH_RULES = tuple((glob_to_regex(pattern), selection) for pattern, selection in PATH_RULES)
 
 
+def rule_for(path):
+    """Return the pattern of the rule which decides for a file, or `None` if no rule matches it."""
+    for (pattern, _), (regex, _) in zip(PATH_RULES, _PATH_RULES):
+        if regex.match(path):
+            return pattern
+    return None
+
+
 def classify(path):
-    """Return what a changed file selects: `FULL`, a tuple of `PR_GROUPS` names, or an empty tuple for a file which matters not."""
+    """Return what a changed file selects: `FULL`, a tuple of `PR_GROUPS` names, or `IGNORE` for a file which matters not.
+
+    A file which matches no rule selects `FULL`: what is not known to be harmless is tested.
+    """
     for regex, selection in _PATH_RULES:
         if regex.match(path):
             return selection
-    return ()
+    return FULL
 
 
 class Workflow:
@@ -398,8 +436,8 @@ def select_affected(workflow, changed, repository=REPOSITORY):
 def content_key(repository=REPOSITORY, revision="HEAD"):
     """Return the key which identifies the content of a commit: a digest of every file which can affect the build or the tests.
 
-    The digest is of the names, modes and contents (as git's object names) of the files which match a path rule, so two commits
-    have the same key exactly when they differ, if at all, only in files which match no rule.
+    The digest is of the names, modes and contents (as git's object names) of the files which the path rules do not ignore, so
+    two commits have the same key exactly when they differ, if at all, only in ignored files.
     """
     listing = subprocess.run(["git", "-C", str(repository), "ls-tree", "-r", "-z", "--full-tree", revision],
                              capture_output=True, check=True).stdout
@@ -411,13 +449,14 @@ def content_key(repository=REPOSITORY, revision="HEAD"):
 
 
 def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=None, tested_run_id="", content="", run_id="",
-         repository=REPOSITORY, base=None):
+         repository=REPOSITORY, base=None, lookup_failed=False, fork=False):
     """Return the plan for an event as a dictionary of the `Plan` job's outputs, plus a list of reasons for the summary.
 
     `changed` is the list of files changed by a pull request, or `None` if it could not be determined, and `base` is the
     workflow as it is on the branch which the pull request is based on, or `None` if that could not be read. `content` is the
     key of the content which the run is for (see `content_key()`), and `tested_run_id` the run of the full suite which passed
-    for that content, if there is one.
+    for that content, if there is one. `lookup_failed` says that the record of such a run could not be looked for at all, which
+    is not the same as there being none. `fork` says that a pull request comes from a fork of the repository.
     """
     key = content
     content = f"this content (key `{key}`)" if key else "this content"
@@ -437,6 +476,10 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
             tier = "deploy"
             reasons.append(f"The full suite passed for {content} in run {tested_run_id}: rebuilding what is published from this "
                            "commit, and publishing it with the results of that run.")
+        elif lookup_failed:
+            tier = "full"
+            reasons.append(f"The record of a run of the full suite for {content} could not be looked for (the GitHub API "
+                           "returned an error); running the full suite.")
         else:
             tier = "full"
             reasons.append(f"No run of the full suite has passed for {content} (or its record is gone); running the full suite.")
@@ -444,6 +487,10 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
         if tested_run_id:
             tier = "skip"
             reasons.append(f"Merge group: the full suite passed for {content} in run {tested_run_id}, so there is nothing to run.")
+        elif lookup_failed:
+            tier = "blocked"
+            reasons.append(f"Merge group: the record of a run of the full suite for {content} could not be looked for (the GitHub "
+                           "API returned an error). This says nothing about the pull request: add it to the merge queue again.")
         else:
             tier = "blocked"
             reasons.append(f"Merge group: no run of the full suite has passed for {content}, and the merge queue does not run "
@@ -455,6 +502,9 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
         if draft:
             tier = "skip"
             reasons.append("Draft pull request: nothing is run until it is marked ready for review.")
+        elif tested_run_id:
+            tier = "skip"
+            reasons.append(f"The full suite passed for {content} in run {tested_run_id}, so there is nothing to run.")
         elif LABEL_FULL in labels:
             tier = "full"
             reasons.append(f"The pull request carries the `{LABEL_FULL}` label.")
@@ -500,6 +550,11 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
         reasons.append(f"Unrecognized event `{event}`; running the full suite.")
     if tier not in TIERS:
         raise ValueError(f"unknown tier '{tier}'")
+    if event == "pull_request" and fork and tier != "skip":
+        reasons.append("This pull request is from a fork, so no run of it can make a record which the merge queue will believe"
+                       + (", this run included" if tier == "full" else "") + ". To land it, merge its branch into a branch of "
+                       f"this repository (a rollup) and run the full suite on a pull request for that branch (the `{LABEL_FULL}` "
+                       "label).")
 
     skipped = []
     if tier in ("skip", "blocked"):
@@ -518,10 +573,10 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
             else:
                 models, skipped_affected = affected
                 selected = [name for name in selected if name not in PR_GROUPS["model"]] + models
-                # A test which the pull request itself changes runs even if it is otherwise deferred as slow.
-                changed_entries = {entry for name in models for entry in workflow.entries(name)
-                                   if entry_path(entry, repository) in suite}
-                skipped = sorted((set(skipped) | set(skipped_affected)) - changed_entries)
+                # A test which the pull request affects - which it changes, or a file of which it changes - runs even if it
+                # is otherwise deferred as slow.
+                affected_entries = {entry for name in models for entry in workflow.entries(name)} - set(skipped_affected)
+                skipped = sorted((set(skipped) | set(skipped_affected)) - affected_entries)
                 reasons.append("Only the test suite changed: running the " + str(len(models)) + " job(s) which it affects.")
         if added:
             # Tests which the pull request adds to the workflow run, in whichever job they were added to. A job brought in
@@ -532,6 +587,12 @@ def plan(workflow, event, ref="", draft=False, labels=(), changed=None, tier=Non
             selected = selected + [name for name in added if name not in selected]
             named = {entry for name in workflow.closure(selected) for entry in workflow.entries(name)}
             skipped = sorted((set(skipped) | named) - wanted)
+        # A job which runs tests, but every one of whose tests is skipped, would run nothing: leave it out, with its builds.
+        idle = [name for name in selected if workflow.entries(name) and not set(workflow.entries(name)) - set(skipped)]
+        if idle:
+            selected = [name for name in selected if name not in idle]
+            reasons.append("Left out, as every test which they run is left to the full suite: "
+                           + ", ".join(f"`{name}`" for name in idle) + ".")
         jobs = workflow.closure(selected)
     if tier in ("pr", "full"):
         jobs = [name for name in jobs if name not in PUBLISH_JOBS or (tier == "full" and deploying)]
@@ -640,6 +701,8 @@ def main(arguments=None):
     planner.add_argument("--base-workflow", help="a file holding the workflow as it is on the branch a pull request is based on")
     planner.add_argument("--tier", default="", help="the tier requested by a manual dispatch")
     planner.add_argument("--tested-run-id", default="", help="the run of the full suite which passed for this content, if any")
+    planner.add_argument("--lookup-failed", default="false", help="'true' if the record of such a run could not be looked for")
+    planner.add_argument("--fork", default="false", help="'true' if the pull request comes from a fork of the repository")
     planner.add_argument("--content", default="", help="the key of the content which this run is for")
     planner.add_argument("--run-id", default="", help="the ID of this run")
     planner.add_argument("--workflow", default=str(WORKFLOW), help="the workflow file to plan for")
@@ -685,6 +748,8 @@ def main(arguments=None):
             content=options.content,
             run_id=options.run_id,
             base=base,
+            lookup_failed=options.lookup_failed == "true",
+            fork=options.fork == "true",
         )
         write_outputs(outputs)
         jobs = json.loads(outputs["jobs"])
@@ -694,6 +759,8 @@ def main(arguments=None):
         if jobs and outputs["tier"] != "full":
             summary += ["", "<details><summary>Planned jobs</summary>", ""] + [f"- `{name}`" for name in jobs] + ["", "</details>"]
         write_summary("\n".join(summary) + "\n")
+        if options.fork == "true" and options.event == "pull_request" and outputs["tier"] != "skip":
+            print("::warning title=Pull request from a fork::" + reasons[-1].replace("`", ""))
         if outputs["tier"] == "blocked":
             # Failing here fails the gate, which is what removes the pull request from the merge queue.
             for reason in reasons:

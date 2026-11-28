@@ -108,7 +108,10 @@ def test_a_pass_of_the_full_suite_is_recorded_under_the_name_which_the_plan_look
     index, upload = uploads[0]
     # The record must follow the check (a step runs only if those before it succeeded), and be made only by the full suite.
     assert index > check
-    assert upload["if"] == "needs.Plan.outputs.tier == 'full'"
+    # ... and not by a pull request from a fork, whose record would not be believed.
+    ownRepository = "(github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)"
+    assert upload["if"] == f"needs.Plan.outputs.tier == 'full' && {ownRepository}"
+    assert steps[index - 1]["if"] == upload["if"]
     assert upload["with"]["name"] == record + "${{ needs.Plan.outputs.content }}"
     plan = workflow.jobs["Plan"]
     assert plan["outputs"]["content"].split() == "${{ steps.plan.outputs.content }}".split()
@@ -121,6 +124,10 @@ def test_a_pass_of_the_full_suite_is_recorded_under_the_name_which_the_plan_look
     # The workflow of the base branch is read from the same commit as the list of changed files, and given to the plan.
     changes = next(step for step in plan["steps"] if "changedFiles" in str(step.get("run", "")) and "git diff" in step["run"])
     assert f'git show HEAD^1:{ciPlan.WORKFLOW_PATH} > "${{RUNNER_TEMP}}/baseWorkflow.yml"' in changes["run"]
+    # A file which is moved must be listed under its old name too: the old name may be the one with a rule.
+    assert "git diff --name-only --no-renames -z HEAD^1 HEAD" in changes["run"]
+    assert '--lookup-failed "${{ steps.tested.outputs.failed }}"' in str(plan["steps"][-1]["run"])
+    assert "--fork" in str(plan["steps"][-1]["run"])
     assert '--base-workflow "${RUNNER_TEMP}/baseWorkflow.yml"' in str(plan["steps"][-1]["run"])
     assert "--tested-run-id" in str(plan["steps"][-1]["run"])
     assert '--content       "${{ steps.tested.outputs.key }}"' in str(plan["steps"][-1]["run"])
@@ -822,3 +829,146 @@ def test_plan_command_compares_the_workflow_with_its_base(monkeypatch, tmp_path,
     output.unlink()
     base.write_text("jobs: [unclosed")
     assert ciPlan.main(arguments + ["--base-workflow", str(base)]) == 0 and tier() == "full"
+
+
+# --- Rules for every file --------------------------------------------------------------------------------------------------------
+
+
+def test_a_file_which_matches_no_rule_is_tested(workflow, checkout):
+    assert ciPlan.rule_for("somewhere/new/file.txt") is None
+    assert ciPlan.classify("somewhere/new/file.txt") == ciPlan.FULL
+    assert pull_request(workflow, ["docs/index.rst", "somewhere/new/file.txt"])["tier"] == "full"
+    key = ciPlan.content_key(checkout)
+    assert change(checkout, "somewhere/new/file.txt", "new") != key
+
+
+def test_every_file_in_the_repository_has_a_rule():
+    """A file with no rule is tested by the full suite, which is safe but costly: decide for it when it is added."""
+    listed = subprocess.run(["git", "-C", str(REPOSITORY), "ls-files", "-z"], capture_output=True, text=True, check=False)
+    if listed.returncode != 0:
+        pytest.skip("not a git checkout")
+    unruled = sorted(name for name in listed.stdout.split("\0") if name and ciPlan.rule_for(name) is None)
+    assert not unruled, (
+        f"No rule in PATH_RULES of scripts/build/ciPlan.py matches {unruled[:10]}. Give each a rule: what it selects if it can "
+        "affect the build or the tests (FULL is always safe), or IGNORE if it can not."
+    )
+
+
+def test_everything_which_the_workflow_uses_is_tested(workflow):
+    """A reusable workflow or a local action which the suite uses is part of the suite, so a change to it must be tested."""
+    used = set()
+    for job in workflow.jobs.values():
+        used.update(str(step.get("uses", "")) for step in job.get("steps", []))
+        used.add(str(job.get("uses", "")))
+    local = sorted(name[2:] for name in used if name.startswith("./"))
+    assert local
+    for name in local:
+        path = name if name.endswith((".yml", ".yaml")) else name + "/action.yml"
+        assert (REPOSITORY / path).is_file(), path
+        assert ciPlan.classify(path) == ciPlan.FULL, f"{path} is used by the workflow, but a change to it would not be tested"
+
+
+# --- Tests left to the full suite --------------------------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("name, job", [(".github/workflows/testModel.yml", "Test-Model"), (".github/workflows/testCode.yml", "Test-Code")])
+def test_a_deferred_test_still_runs_a_job(name, job):
+    """So that the result of a matrix of tests, some of them deferred, does not depend on how GitHub counts skipped jobs."""
+    jobs = yaml.safe_load((REPOSITORY / name).read_text())["jobs"]
+    assert jobs[job]["if"] == "${{ inputs.enabled }}"
+    assert jobs["Deferred"]["if"] == "${{ !inputs.enabled }}"
+    assert set(jobs) == {job, "Deferred"}
+
+
+def idle_jobs(workflow, outputs):
+    skipped = set(skipped_of(outputs))
+    return [name for name in jobs_of(outputs) if workflow.entries(name) and not set(workflow.entries(name)) - skipped]
+
+
+def test_no_planned_job_has_every_test_skipped(workflow):
+    listed = subprocess.run(["git", "-C", str(REPOSITORY), "ls-files", "-z", "testSuite"], capture_output=True, text=True, check=False)
+    if listed.returncode != 0:
+        pytest.skip("not a git checkout")
+    files = sorted(name for name in listed.stdout.split("\0") if name)
+    # Every file which a deferred test names, and a sample of the rest.
+    deferred = [ciPlan.entry_path(entry) for entry in ciPlan.PR_DEFERRED_ENTRIES]
+    texts = [(REPOSITORY / path).read_text(errors="replace") for path in deferred if path]
+    named = [name for name in files if any(Path(name).name in text for text in texts)]
+    assert len(named) > 20
+    for name in named + files[::40]:
+        outputs = pull_request(workflow, [name])
+        assert not idle_jobs(workflow, outputs), f"a pull request which changes {name} plans {idle_jobs(workflow, outputs)} with nothing to run"
+    assert not idle_jobs(workflow, pull_request(workflow, ["source/a.F90"]))
+
+
+@pytest.mark.parametrize("name, job, entry", [
+    ("testSuite/parameters/checkpointingResume.xml", "Miscellaneous", "test-checkpointing.py"),
+    ("testSuite/regressions/particulate.xml", "Regressions", "testSuite/regressions/particulate.py"),
+])
+def test_a_deferred_test_runs_when_a_file_which_it_uses_changes(workflow, name, job, entry):
+    assert entry in ciPlan.PR_DEFERRED_ENTRIES and (REPOSITORY / name).is_file()
+    outputs = pull_request(workflow, [name])
+    assert outputs["tier"] == "pr" and job in jobs_of(outputs)
+    assert entry not in skipped_of(outputs)
+
+
+def test_a_job_with_every_test_deferred_is_left_out(workflow, monkeypatch):
+    monkeypatch.setattr(ciPlan, "PR_DEFERRED_ENTRIES", ciPlan.PR_DEFERRED_ENTRIES + tuple(workflow.entries("Outputs")))
+    outputs, reasons = ciPlan.plan(workflow, "pull_request", ref="refs/pull/1/merge", changed=["source/a.F90"], run_id="7")
+    assert "Outputs" not in jobs_of(outputs) and "Cosmology" in jobs_of(outputs)
+    assert any("`Outputs`" in reason for reason in reasons)
+    assert not idle_jobs(workflow, outputs)
+
+
+# --- Records which exist, and which could not be looked for ---------------------------------------------------------------------
+
+
+def test_a_pull_request_of_tested_content_runs_nothing(workflow):
+    """A push which changes only ignored files, after the full suite has passed, must not run the full suite again."""
+    for options in ({}, {"labels": [ciPlan.LABEL_FULL]}):
+        outputs = pull_request(workflow, ["Makefile", "source/a.F90"], tested_run_id="42", content="abc123", **options)
+        assert outputs["tier"] == "skip" and jobs_of(outputs) == []
+    # Without the record, the same pull request is tested.
+    assert pull_request(workflow, ["Makefile"], content="abc123")["tier"] == "full"
+
+
+def test_a_failed_lookup_is_told_apart_from_a_missing_record(workflow):
+    missing = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, content="abc123", run_id="7")
+    failed = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, content="abc123", run_id="7", lookup_failed=True)
+    # Either way nothing unverified may pass...
+    assert missing[0]["tier"] == failed[0]["tier"] == "blocked"
+    # ... but only one of them is a reason to run the full suite again.
+    assert "queue again" in failed[1][0] and ciPlan.LABEL_FULL not in failed[1][0]
+    assert ciPlan.LABEL_FULL in missing[1][0] and "queue again" not in missing[1][0]
+    # On `master`, and for a pull request, a failed lookup changes nothing but the explanation.
+    push = ciPlan.plan(workflow, "push", ref="refs/heads/master", content="abc123", run_id="7", lookup_failed=True)
+    assert push[0]["tier"] == "full" and "could not be looked for" in push[1][0]
+    assert pull_request(workflow, ["source/a.F90"], lookup_failed=True)["tier"] == "pr"
+    # A record which was found settles the matter.
+    found = ciPlan.plan(workflow, "merge_group", ref=MERGE_GROUP, tested_run_id="42", content="abc123", run_id="7", lookup_failed=True)
+    assert found[0]["tier"] == "skip"
+
+
+def test_a_pull_request_from_a_fork_is_told_how_it_can_land(workflow, monkeypatch, tmp_path, capsys):
+    for changed, tier in ((["source/a.F90"], "pr"), (["Makefile"], "full")):
+        outputs, reasons = ciPlan.plan(workflow, "pull_request", ref="refs/pull/1/merge", changed=changed, run_id="7", fork=True)
+        assert outputs["tier"] == tier and "from a fork" in reasons[-1] and "rollup" in reasons[-1]
+    # One which changes nothing that is tested needs no such advice, and nor does a pull request from this repository.
+    assert not any("fork" in reason for reason in ciPlan.plan(workflow, "pull_request", changed=["docs/index.rst"], fork=True)[1])
+    assert not any("fork" in reason for reason in ciPlan.plan(workflow, "pull_request", changed=["source/a.F90"])[1])
+    changes = tmp_path / "changed"
+    changes.write_text("source/a.F90\0")
+    monkeypatch.setenv("GITHUB_OUTPUT", str(tmp_path / "output"))
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(tmp_path / "summary"))
+    assert ciPlan.main(["plan", "--event", "pull_request", "--changed-files", str(changes), "--fork", "true"]) == 0
+    assert "::warning title=Pull request from a fork::" in capsys.readouterr().out
+    assert ciPlan.main(["plan", "--event", "pull_request", "--changed-files", str(changes), "--fork", "false"]) == 0
+    assert "::warning" not in capsys.readouterr().out
+
+
+def test_the_validation_results_are_committed_only_if_they_changed(workflow):
+    for step in workflow.jobs["Validate"]["steps"]:
+        script = str(step.get("run", ""))
+        for message in ("Update validation results", "Update build profile", "Regenerate gh-pages index"):
+            if f'git commit -m "{message}"' in script:
+                assert script.index("if ! git diff --cached --quiet; then") < script.index(f'git commit -m "{message}"')

@@ -236,11 +236,11 @@ tested, and the merge queue admits only a merge group whose content has such a
 record.
 
 Content here means the state of every file which can affect the build or the
-tests: every file which matches one of the path rules in
-``scripts/build/ciPlan.py``. It is identified by a digest of those files (print
-it for a checkout with ``scripts/build/ciPlan.py key``). Two commits which
-differ only in other files — documentation, for the most part — have the same
-content. For a pull request, the content tested is that of the pull request
+tests: every file other than those which the path rules in
+``scripts/build/ciPlan.py`` ignore. It is identified by a digest of those files
+(print it for a checkout with ``scripts/build/ciPlan.py key``). Two commits
+which differ only in ignored files — documentation, for the most part — have the
+same content. For a pull request, the content tested is that of the pull request
 merged into ``master`` as ``master`` was when the run began. The merge queue
 forms that same content for the pull request for as long as nothing which can
 affect the build or the tests has reached ``master`` in the meantime.
@@ -262,7 +262,17 @@ So, to land one pull request, or several together:
 A pull request which changes no file that can affect the build or the tests
 needs none of this. Its content is the content already on ``master``, which has
 a record, so it can be queued as soon as its own checks have passed, and it
-does not disturb a pull request which is waiting to be queued.
+does not disturb a pull request which is waiting to be queued. For the same
+reason, a push to a pull request which changes only ignored files, after its
+run of the full suite has passed, runs nothing: its content has a record.
+
+A pull request from a fork can not make a record. It runs its own copy of the
+workflow, which could record whatever it liked, so only a record made by a run
+in this repository is believed. To land one which can affect the build or the
+tests, merge its branch into a new branch of this repository — alone, or
+together with others — and open a pull request for that branch with the
+``ci:full`` label. Merging that pull request with a merge commit marks the
+fork's pull request as merged too.
 
 If a change which can affect the build or the tests reached ``master`` after
 the run of the full suite began, the merge group is of content which no run has
@@ -271,22 +281,32 @@ tested: its run fails, and the pull request is removed from the queue. Merge
 more. Two such pull requests queued at once fare the same way: the second is of
 content which includes the first.
 
+The ``Plan`` job says which of two things happened when it refuses a merge
+group. If no record was found, the full suite must be run as above. If the
+record could not be looked for at all, because the GitHub API returned an error
+after several attempts, nothing is wrong with the pull request: add it to the
+merge queue again.
+
 A record is an artifact of the run which made it, and expires with that run's
-other artifacts. Only a record made by a run in this repository is believed: a
-pull request from a fork runs its own copy of the workflow. A branch of this
-repository could likewise change the workflow to record a pass which it had not
-earned, so a pull request which changes ``cicd.yml`` deserves the same review as
-any other change to what guards ``master``.
+other artifacts. A branch of this repository could change the workflow to record
+a pass which it had not earned, so a pull request which changes ``cicd.yml``
+deserves the same review as any other change to what guards ``master``.
 
 Changing what runs
 ^^^^^^^^^^^^^^^^^^
 
 The rules which choose a tier and a subset are tables in
 ``scripts/build/ciPlan.py``, which is the place to change what a pull request
-runs. Its path rules must cover every file which can affect the build or the
-tests, because a file which matches no rule is also left out of the content
-described above, and so a change to it is never tested. When a new kind of file
-comes to be used by the build or by a test, give it a rule.
+runs. Each path rule says what a change to the files it matches selects: the
+full suite, some part of the **pr** tier, or nothing. A file which a rule says to
+ignore is also left out of the content described above, so a change to it is
+never tested: ignore only what can not affect the build or the tests. A file
+which matches no rule selects the full suite, and a test fails until it is given
+one, so that the choice is made when a new kind of file is added.
+
+A test which is deferred to the full suite still appears among the checks of a
+pull request, as a job named ``Deferred`` which does nothing. It is there so
+that every entry of a matrix of tests runs some job.
 
 A pull request which adds a test to ``cicd.yml`` — an executable in the list of
 ``Codes-Quick``, or an entry in the matrix of a job — does not thereby run the
