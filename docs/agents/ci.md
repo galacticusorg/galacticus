@@ -90,7 +90,7 @@ and prefer a re-run to a day of investigation. Re-running needs the run to be co
 refuses while it is still in progress.
 
 ## CI/CD runs in tiers: a green PR has not run the full suite, and only fully tested content reaches master
-*Added 2026-11-27; verified 2026-11-27 (for PR #1870 the merge-queue step ran in run 46025056716 and the `deploy` tier in run 46025228373; the `pr` tier had not yet run on GitHub)*
+*Added 2026-11-27; verified 2026-11-28 (the `pr` tier ran for PR #1876 in run 46069455568; for PR #1873 the `full` tier ran in run 46060286046 and the merge-queue step in run 46104444115; for PR #1870 the `deploy` tier ran in run 46025228373)*
 
 Since PR #1870 the first job of every `cicd.yml` run, `Plan`, gives the run a *tier* from the files changed, using the
 tables in `scripts/build/ciPlan.py`, and every other job runs only if the plan lists it. A PR that changes `source/**` gets
@@ -120,6 +120,17 @@ one by accident (a label, a rollup, or a push to a PR that has one) matters.
 
 **How to apply:**
 
+- *Before opening a PR, find its tier:* from the branch, with master fetched,
+  ```bash
+  git diff --name-only --no-renames -z origin/master...HEAD > /tmp/changedFiles
+  git show origin/master:.github/workflows/cicd.yml > /tmp/baseWorkflow.yml
+  python3 scripts/build/ciPlan.py plan --event pull_request --changed-files /tmp/changedFiles --base-workflow /tmp/baseWorkflow.yml | head -1
+  ```
+  If it prints `tier=full` (the code generator, the build system, a workflow, `constraints/**` or `tutorials/**` was
+  changed), every push to the PR runs the full suite. Open such a PR as a **draft**, which runs nothing, and tell the user
+  that it is waiting for a rollup, unless they asked for a run of its own. Do not mark it ready for review to get its
+  checks: PR #1875 was opened ready for review, and started a full run which was then canceled. A `pr`-tier PR can be
+  opened as usual: one for a change to `source/**` took 14 runner-hours and 1 h 42 min (run 46069455568).
 - *Reading a PR's checks:* look at the tier in the `Plan` summary before saying what a green PR proves. If the change
   plausibly affects something the `pr` tier skips (MPI, macOS, a validation, a deferred test), say so, and run that test
   locally where you can.
@@ -151,7 +162,8 @@ one by accident (a label, a rollup, or a push to a PR that has one) matters.
 - *A merge group that is refused:* read the `Plan` job's message. "No run of the full suite has passed" is not a flake:
   do not re-queue it; compare the key it names with `ciPlan.py key` on the PR merged into current master. "Could not be
   looked for" is a GitHub API error: re-queue the PR.
-- *`Deferred` jobs in a PR's checks* are the slow tests left to the full suite, not tests that ran.
+- *Skipped tests in a PR's checks* are the slow tests left to the full suite, not tests that ran. GitHub reports a matrix
+  of tests of which some were skipped as having succeeded (30 were in run 46069455568, whose gate passed).
 - A full run triggered by Dependabot has no secrets, so the tests that need them (IRATE validation) are skipped, yet its
   record is accepted.
 

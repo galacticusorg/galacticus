@@ -555,6 +555,8 @@ contains
          &                                            virialDensityContrast_=self%virialDensityContrast_                                                                    , &
          &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                       &
          &                                           )
+    ! Limit the satellite mass to be no larger than the host mass (see above).
+    massSatellite=min(massHost,massSatellite)
     !![
     <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]

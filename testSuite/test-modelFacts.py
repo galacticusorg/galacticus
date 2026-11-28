@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the model-scoped fact registry (the `modelFact`, `modelRequire`, and `modelExclusive` directives).
+"""Check the model-scoped fact registry (the `modelFact`, `modelRequire`, `modelExclusive`, and `modelConsistent` directives).
 
 Both `galacticDiskHeatingImpulsive` and `darkMatterProfileHeatingTidal` require the fact
 `satellite:tidalHeatingNormalized:evolved`, which is established by the `satelliteTidalHeating` node operator. The dark
@@ -25,6 +25,13 @@ initialized. It is checked that:
   claimants, before any tree is evolved;
 * with the node operator added and the spheroid component's `galacticComponentHeating` set to `none`, there is no conflict
   and the model runs to completion.
+
+The standard disk component and the `tidalMassLossDisks` node operator each declare the configuration of the
+`galacticComponentTruncation` they use for the fact `disk:galacticComponentTruncation`, which must agree. In this model both
+use the one given at the top level of the parameter file (so the model above runs). It is checked that, with the disk
+component given its own `galacticComponentTruncation` which differs from that of the node operator, either in its class
+(`none`) or only in the value of a parameter, the model stops with an error that names the fact and describes both
+declarations, before any tree is evolved.
 
 Andrew Benson, Claude
 """
@@ -144,9 +151,42 @@ if status != 0:
     failures.append("noConflict: the model with the tidalHeatingSpheroids node operator and no spheroid component heating did not run")
     print(log[-3000:])
 
+# Consistent declarations. Give the disk component its own galacticComponentTruncation, differing from the node operator's.
+diskElement = '<componentDisk value="standard"/>'
+if parametersBase.count(diskElement) != 1:
+    failures.append(f"could not construct the consistency models (expected exactly one {diskElement})")
+else:
+    for label, truncation in (
+            ("class"    , '<galacticComponentTruncation value="none"/>'                                                                             ),
+            ("parameter", '<galacticComponentTruncation value="exponential"><radiusDecayOverRadiusTruncate value="0.2"/></galacticComponentTruncation>'),
+    ):
+        parameterFileTest = f"testSuite/outputs/modelFactsConsistent_{label}.xml"
+        parameters        = parametersBase.replace(diskElement, f'<componentDisk value="standard">{truncation}</componentDisk>')
+        parameters        = re.sub(r'<outputFileName\s+value="[^"]*"\s*/>', f'<outputFileName value="testSuite/outputs/modelFactsConsistent_{label}.hdf5"/>', parameters)
+        with open(os.path.join("..", parameterFileTest), "w") as fileTest:
+            fileTest.write(parameters)
+        status = subprocess.run(f"cd ..; ./Galacticus.exe {parameterFileTest}", shell=True, capture_output=True)
+        log    = status.stdout.decode() + status.stderr.decode()
+        failed = len(failures)
+        if status.returncode == 0:
+            failures.append(f"{label}: the model with differing disk truncations ran to completion")
+        else:
+            for expected, description in (
+                    ("must agree on 'disk:galacticComponentTruncation'"                    , "the inconsistent fact"           ),
+                    ("of the standard disk component"                                     , "the disk component declaration"  ),
+                    ("of the `tidalMassLossDisks` node operator"                          , "the node operator declaration"   ),
+                    ("specifying the object once, at the top level of your parameter file", "the remedy"                      ),
+            ):
+                if expected not in log:
+                    failures.append(f"{label}: the error report does not give {description}")
+            if re.search(r"evolving (?:forest|tree)", log, re.IGNORECASE):
+                failures.append(f"{label}: the declared values were not checked before trees were evolved")
+        if len(failures) > failed:
+            print(log[-3000:])
+
 if failures:
     for failure in failures:
         print(f"FAILED: {failure}")
 else:
-    print("SUCCESS: unmet model fact requirements (checked at task build and at component initialization) are reported, with their provider, before evolution; met ones are accepted, including across the tasks of a taskMulti; conflicting exclusive claims are reported, and a single claim is accepted")
+    print("SUCCESS: unmet model fact requirements (checked at task build and at component initialization) are reported, with their provider, before evolution; met ones are accepted, including across the tasks of a taskMulti; conflicting exclusive claims are reported, and a single claim is accepted; disagreeing declared values are reported")
 sys.exit(0)
